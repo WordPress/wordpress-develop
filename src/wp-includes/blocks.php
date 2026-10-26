@@ -623,7 +623,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 * @param array    $attributes Block attributes.
 			 * @param string   $content    Block default content.
 			 * @param WP_Block $block      Block instance.
-			 *
 			 * @return string Returns the block content.
 			 */
 			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
@@ -677,7 +676,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
 			if ( is_array( $scripts ) ) {
-				for ( $index = 0; $index < count( $scripts ); $index++ ) {
+				for ( $index = 0, $length = count( $scripts ); $index < $length; $index++ ) {
 					$result = register_block_script_handle(
 						$metadata,
 						$metadata_field_name,
@@ -711,7 +710,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$modules           = $metadata[ $metadata_field_name ];
 			$processed_modules = array();
 			if ( is_array( $modules ) ) {
-				for ( $index = 0; $index < count( $modules ); $index++ ) {
+				for ( $index = 0, $length = count( $modules ); $index < $length; $index++ ) {
 					$result = register_block_script_module_id(
 						$metadata,
 						$metadata_field_name,
@@ -747,7 +746,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
 			if ( is_array( $styles ) ) {
-				for ( $index = 0; $index < count( $styles ); $index++ ) {
+				for ( $index = 0, $length = count( $styles ); $index < $length; $index++ ) {
 					$result = register_block_style_handle(
 						$metadata,
 						$metadata_field_name,
@@ -844,6 +843,7 @@ function register_block_type( $block_type, $args = array() ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
+	/** @var (lowercase-string&non-falsy-string)|WP_Block_Type $block_type A string that is not a path to block metadata should be a block type name. */
 	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
 }
 
@@ -1259,16 +1259,16 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
  * @since 7.0.0 Added the `$ignored_hooked_blocks_at_root` parameter.
  * @access private
  *
- * @param string       $content  Serialized content.
- * @param WP_Post|null $post     A post object that the content belongs to. If set to `null`,
- *                               `get_post()` will be called to use the current post as context.
- *                               Default: `null`.
- * @param callable     $callback A function that will be called for each block to generate
- *                               the markup for a given list of blocks that are hooked to it.
- *                               Default: 'insert_hooked_blocks'.
+ * @param string       $content                       Serialized content.
+ * @param WP_Post|null $post                          A post object that the content belongs to. If set to `null`,
+ *                                                    `get_post()` will be called to use the current post as context.
+ *                                                    Default: `null`.
+ * @param callable     $callback                      A function that will be called for each block to generate
+ *                                                    the markup for a given list of blocks that are hooked to it.
+ *                                                    Default: 'insert_hooked_blocks'.
  * @param array|null   $ignored_hooked_blocks_at_root A reference to an array that will be populated
- *                               with the ignored hooked blocks at the root level.
- *                               Default: `null`.
+ *                                                    with the ignored hooked blocks at the root level.
+ *                                                    Default: `null`.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content_from_post_object(
@@ -1929,7 +1929,6 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
  * @param array $blocks An array blocks.
- *
  * @return array An array of blocks with patterns replaced by their content.
  */
 function resolve_pattern_blocks( $blocks ) {
@@ -2256,6 +2255,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/heading',
 		'core/html',
 		'core/list',
+		'core/list-item',
 		'core/media-text',
 		'core/paragraph',
 		'core/preformatted',
@@ -2269,6 +2269,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/columns',
 		'core/column',
 		'core/group',
+		'core/list',
 	);
 
 	/**
@@ -2682,6 +2683,8 @@ function _wp_apply_block_content_filters( $content, $context = '', &$seen_ids = 
  *
  * @param string $content Content to test.
  * @return int The block format version is 1 if the content contains one or more blocks, 0 otherwise.
+ *
+ * @phpstan-return ( $content is '' ? 0 : 0|1 )
  */
 function block_version( $content ) {
 	return has_blocks( $content ) ? 1 : 0;
@@ -2814,7 +2817,6 @@ function wp_migrate_old_typography_shape( $metadata ) {
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
- *
  * @return array Returns the constructed WP_Query arguments.
  */
 function build_query_vars_from_query_block( $block, $page ) {
@@ -2841,7 +2843,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 				 * Logic should be used beforehand to determine if WP_Query should be used in the event that the array
 				 * being passed to post__in is empty.
 				 *
-				 * @see https://core.trac.wordpress.org/ticket/28099
+				 * @link https://core.trac.wordpress.org/ticket/28099
 				 */
 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
 				$query['ignore_sticky_posts'] = 1;
@@ -3083,6 +3085,8 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -3183,6 +3187,8 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Optional. Type of the arrow we will be rendering.
  *                                  Accepts 'next' or 'previous'. Default 'next'.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

@@ -24,6 +24,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @var array
+	 * @phpstan-var array{ version?: int, settings?: array<string, mixed>, styles?: array<string, mixed>, ...<string, mixed> }
 	 */
 	protected $theme_json = null;
 
@@ -127,6 +128,7 @@ class WP_Theme_JSON {
 	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
 	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @since 6.9.0 Added `border.radiusSizes`.
+	 * @since 7.2.0 Added `typography.textShadowPresets`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -189,6 +191,15 @@ class WP_Theme_JSON {
 			'properties'        => array( 'font-family' ),
 		),
 		array(
+			'path'              => array( 'typography', 'textShadowPresets' ),
+			'prevent_override'  => array( 'typography', 'defaultTextShadowPresets' ),
+			'use_default_names' => false,
+			'value_key'         => 'textShadow',
+			'css_vars'          => '--wp--preset--text-shadow--$slug',
+			'classes'           => array( '.has-$slug-text-shadow' => 'text-shadow' ),
+			'properties'        => array( 'text-shadow' ),
+		),
+		array(
 			'path'              => array( 'spacing', 'spacingSizes' ),
 			'prevent_override'  => array( 'spacing', 'defaultSpacingSizes' ),
 			'use_default_names' => true,
@@ -249,6 +260,7 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
+	 * @since 7.2.0 Added `background-clip`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -260,6 +272,7 @@ class WP_Theme_JSON {
 		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
 		'background-size'                   => array( 'background', 'backgroundSize' ),
 		'background-attachment'             => array( 'background', 'backgroundAttachment' ),
+		'background-clip'                   => array( 'background', 'backgroundClip' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -418,13 +431,17 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
+	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
+	 *              and `typography.defaultTextShadowPresets`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
 		'appearanceTools'               => null,
 		'useRootPaddingAwareAlignments' => null,
 		'background'                    => array(
+			'backgroundClip'  => null,
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
 			'gradient'        => null,
@@ -496,22 +513,25 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'typography'                    => array(
-			'fluid'            => null,
-			'customFontSize'   => null,
-			'defaultFontSizes' => null,
-			'dropCap'          => null,
-			'fontFamilies'     => null,
-			'fontSizes'        => null,
-			'fontStyle'        => null,
-			'fontWeight'       => null,
-			'letterSpacing'    => null,
-			'lineHeight'       => null,
-			'textAlign'        => null,
-			'textColumns'      => null,
-			'textDecoration'   => null,
-			'textIndent'       => null,
-			'textTransform'    => null,
-			'writingMode'      => null,
+			'fluid'                    => null,
+			'customFontSize'           => null,
+			'defaultFontSizes'         => null,
+			'dropCap'                  => null,
+			'fontFamilies'             => null,
+			'fontSizes'                => null,
+			'fontStyle'                => null,
+			'fontWeight'               => null,
+			'letterSpacing'            => null,
+			'lineHeight'               => null,
+			'textAlign'                => null,
+			'textColumns'              => null,
+			'textDecoration'           => null,
+			'textIndent'               => null,
+			'textTransform'            => null,
+			'textShadow'               => null,
+			'defaultTextShadowPresets' => null,
+			'textShadowPresets'        => null,
+			'writingMode'              => null,
 		),
 		'viewport'                      => array(
 			'mobile' => null,
@@ -567,10 +587,12 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
+	 * @since 7.2.0 Added support for `background.backgroundClip`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
 		'background' => array(
+			'backgroundClip'       => null,
 			'backgroundImage'      => null,
 			'backgroundPosition'   => null,
 			'backgroundRepeat'     => null,
@@ -636,10 +658,10 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
-	 * This is to ensure the user action (hover, focus and active) styles have a higher
-	 * specificity than the visited styles, which in turn have a higher specificity than
-	 * the unvisited styles.
+	 * The selector order controls the cascade when multiple states match. Link and button
+	 * selectors follow the LVHA order, with focus-visible immediately after focus. Text input
+	 * validation states come before the focus states because an edited field can match both
+	 * at once, so user action styles must be output last to win.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
@@ -648,22 +670,29 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
+	 * @since 7.2.0 Added ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible',
+	 *              and '::placeholder' support for the text input element.
+	 * @since 7.2.0 Added ':hover', ':focus', ':focus-visible', and ':active' support for the select element.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'link'      => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button'    => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'textInput' => array( ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible', '::placeholder' ),
+		'select'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
 	 * The valid pseudo-selectors that can be used for blocks.
 	 *
-	 * @since 7.0
+	 * @since 7.0.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_PSEUDO_SELECTORS = array(
-		'core/button'          => array( ':hover', ':focus', ':focus-visible', ':active' ),
-		'core/navigation-link' => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/button'             => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-link'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-submenu' => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -682,10 +711,12 @@ class WP_Theme_JSON {
 	 * `.wp-block-navigation-item.current-menu-item:hover`.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_CUSTOM_STATES = array(
-		'core/navigation-link' => array( '-current' ),
+		'core/navigation-link'    => array( '-current' ),
+		'core/navigation-submenu' => array( '-current' ),
 	);
 
 	/**
@@ -718,7 +749,7 @@ class WP_Theme_JSON {
 	 * @return array Responsive media queries.
 	 */
 	public static function get_viewport_media_queries( $viewport_settings = null, $options = array() ) {
-		$breakpoints = static::sanitize_viewport_settings( $viewport_settings );
+		$breakpoints = self::sanitize_viewport_settings( $viewport_settings );
 
 		$responsive_media_queries = array();
 
@@ -788,7 +819,7 @@ class WP_Theme_JSON {
 	 * @return float|null Viewport breakpoint size in pixels, or null when invalid.
 	 */
 	private static function get_viewport_breakpoint_value_in_pixels( $value ) {
-		if ( ! static::is_valid_viewport_breakpoint_size( $value ) ) {
+		if ( ! self::is_valid_viewport_breakpoint_size( $value ) ) {
 			return null;
 		}
 
@@ -831,7 +862,7 @@ class WP_Theme_JSON {
 		$breakpoints = array();
 		foreach ( array_keys( static::DEFAULT_VIEWPORT_BREAKPOINTS ) as $breakpoint ) {
 			$value = $viewport_settings[ $breakpoint ] ?? null;
-			$px    = static::get_viewport_breakpoint_value_in_pixels( $value );
+			$px    = self::get_viewport_breakpoint_value_in_pixels( $value );
 			if ( null !== $px ) {
 				$breakpoints[ $breakpoint ] = array(
 					'value' => trim( $value ),
@@ -863,6 +894,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added `heading`, `button`, and `caption` elements.
+	 * @since 7.2.0 Added `label` element.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
@@ -879,6 +911,7 @@ class WP_Theme_JSON {
 		// The block classes are necessary to target older content that won't use the new class names.
 		'caption'   => '.wp-element-caption, .wp-block-audio figcaption, .wp-block-embed figcaption, .wp-block-gallery figcaption, .wp-block-image figcaption, .wp-block-table figcaption, .wp-block-video figcaption',
 		'cite'      => 'cite',
+		'label'     => 'label',
 		'textInput' => 'textarea, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url])',
 		'select'    => 'select',
 	);
@@ -954,11 +987,13 @@ class WP_Theme_JSON {
 	/**
 	 * Processes pseudo-selectors for any node (block or variation).
 	 *
-	 * @param array  $node The node data (block or variation).
-	 * @param string $base_selector The base selector.
-	 * @param array  $settings The theme settings.
-	 * @param string $block_name The block name.
-	 * @param array|null $block_metadata Metadata about the block to get styles for.
+	 * @since 7.0.0
+	 *
+	 * @param array      $node            The node data (block or variation).
+	 * @param string     $base_selector   The base selector.
+	 * @param array      $settings        The theme settings.
+	 * @param string     $block_name      The block name.
+	 * @param array|null $block_metadata  Metadata about the block to get styles for.
 	 * @param array|null $style_variation Style variation metadata.
 	 * @return array Array of pseudo-selector declarations.
 	 */
@@ -983,14 +1018,23 @@ class WP_Theme_JSON {
 			return $pseudo_declarations;
 		}
 
+		// Nearest first: this node, then its variation's block.
+		$base_styles = array( $node );
+		foreach ( array( $style_variation['path'] ?? null, $block_metadata['path'] ?? null ) as $path ) {
+			$layer = $path ? _wp_array_get( $this->theme_json, $path ) : null;
+			if ( is_array( $layer ) ) {
+				$base_styles[] = $layer;
+			}
+		}
+
 		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
 			if ( isset( $node[ $pseudo_selector ] ) ) {
 				$pseudo_node = $node[ $pseudo_selector ];
 
 				if ( is_array( $block_metadata ) ) {
 					$feature_declarations = $this->get_feature_declarations_for_node( $block_metadata, $pseudo_node );
-					$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
-					$feature_declarations = static::update_button_width_declarations( $feature_declarations, $settings );
+					$feature_declarations = self::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
+					$feature_declarations = self::update_button_width_declarations( $feature_declarations, $settings );
 
 					foreach ( $feature_declarations as $feature_selector => $declarations ) {
 						$target_selector   = is_array( $style_variation )
@@ -1004,6 +1048,7 @@ class WP_Theme_JSON {
 
 				$combined_selector = static::append_to_selector( $base_selector, $pseudo_selector );
 				$declarations      = static::compute_style_properties( $pseudo_node, $settings, null, null );
+				$declarations      = self::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $base_styles );
 				$add_declarations( $combined_selector, $declarations );
 			}
 		}
@@ -1098,7 +1143,7 @@ class WP_Theme_JSON {
 		$valid_block_names   = array_keys( $blocks_metadata );
 		$valid_element_names = array_keys( static::ELEMENTS );
 		$valid_variations    = static::get_valid_block_style_variations( $blocks_metadata );
-		$this->theme_json    = static::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
+		$this->theme_json    = self::unwrap_shared_block_style_variations( $this->theme_json, $valid_variations );
 		$this->theme_json    = static::sanitize( $this->theme_json, $valid_block_names, $valid_element_names, $valid_variations );
 		$this->theme_json    = static::maybe_opt_in_into_settings( $this->theme_json );
 
@@ -1123,7 +1168,7 @@ class WP_Theme_JSON {
 		// In addition to presets, spacingScale (which generates presets) is also keyed by origin.
 		$scale_path    = array( 'settings', 'spacing', 'spacingScale' );
 		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
-		if ( null !== $spacing_scale ) {
+		if ( is_array( $spacing_scale ) ) {
 			// If the spacingScale is not already keyed by origin.
 			if ( empty( array_intersect( array_keys( $spacing_scale ), static::VALID_ORIGINS ) ) ) {
 				_wp_array_set( $this->theme_json, $scale_path, array( $origin => $spacing_scale ) );
@@ -1136,8 +1181,8 @@ class WP_Theme_JSON {
 		if ( isset( $spacing_scale ) ) {
 			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
 			$spacing_sizes        = _wp_array_get( $this->theme_json, $sizes_path, array() );
-			$spacing_scale_sizes  = static::compute_spacing_sizes( $spacing_scale );
-			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+			$spacing_scale_sizes  = self::compute_spacing_sizes( $spacing_scale );
+			$merged_spacing_sizes = self::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 			_wp_array_set( $this->theme_json, $sizes_path, $merged_spacing_sizes );
 		}
 	}
@@ -1197,7 +1242,10 @@ class WP_Theme_JSON {
 			foreach ( $registered_variations as $variation_name ) {
 				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
 				$top_level_data   = $variations[ $variation_name ] ?? array();
-				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );
+				if ( ! is_array( $block_level_data ) || ! is_array( $top_level_data ) ) {
+					continue;
+				}
+				$merged_data = array_replace_recursive( $top_level_data, $block_level_data );
 				if ( ! empty( $merged_data ) ) {
 					_wp_array_set( $new_theme_json, array( 'styles', 'blocks', $block_type, 'variations', $variation_name ), $merged_data );
 				}
@@ -1266,6 +1314,8 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$valid_block_names` and `$valid_element_name` parameters.
 	 * @since 6.3.0 Added the `$valid_variations` parameter.
 	 * @since 6.6.0 Updated schema to allow extended block style variations.
+	 * @since 7.1.1 Updated schema to allow responsive breakpoint states and pseudo-selectors
+	 *              at the top level of `styles` for block style variation partials.
 	 *
 	 * @param array $input               Structure to sanitize.
 	 * @param array $valid_block_names   List of valid block names.
@@ -1330,6 +1380,14 @@ class WP_Theme_JSON {
 
 		$schema_styles_blocks   = array();
 		$schema_settings_blocks = array();
+		$breakpoint_states      = array_keys( $responsive_media_queries );
+
+		$common_block_settings = static::VALID_SETTINGS;
+		// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
+		unset(
+			$common_block_settings['viewport'],
+			$common_block_settings['blockVisibility']
+		);
 
 		/*
 		 * Generate a schema for blocks.
@@ -1340,21 +1398,27 @@ class WP_Theme_JSON {
 		 *
 		 * As each variation needs both a `blocks` schema and responsive `blocks` schemas
 		 * for further nested inner `blocks`, the overall schema is generated in multiple passes.
+		 *
+		 * All blocks start with the same style schema. Build that common schema
+		 * once, then add block-specific pseudo and custom states below.
 		 */
+		$responsive_block_schema             = $styles_non_top_level;
+		$responsive_block_schema['elements'] = $schema_styles_elements;
+
+		$common_block_schema             = $styles_non_top_level;
+		$common_block_schema['elements'] = $schema_styles_elements;
+
+		foreach ( $breakpoint_states as $breakpoint_state ) {
+			$common_block_schema[ $breakpoint_state ] = $responsive_block_schema;
+		}
+
 		foreach ( $valid_block_names as $block ) {
-			$schema_settings_blocks[ $block ] = static::VALID_SETTINGS;
-			// `viewport` and `blockVisibility` are global-only settings and cannot be set per block for now.
-			unset( $schema_settings_blocks[ $block ]['viewport'] );
-			unset( $schema_settings_blocks[ $block ]['blockVisibility'] );
-			$schema_styles_blocks[ $block ]             = $styles_non_top_level;
-			$schema_styles_blocks[ $block ]['elements'] = $schema_styles_elements;
+			$schema_settings_blocks[ $block ] = $common_block_settings;
+			$schema_styles_blocks[ $block ]   = $common_block_schema;
 
-			// Add responsive breakpoint states for all blocks.
-			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
-				$schema_styles_blocks[ $block ][ $breakpoint_state ]             = $styles_non_top_level;
-				$schema_styles_blocks[ $block ][ $breakpoint_state ]['elements'] = $schema_styles_elements;
-
-				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+			// Add responsive pseudo-selectors only to blocks that support them.
+			if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
+				foreach ( $breakpoint_states as $breakpoint_state ) {
 					foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
 						$schema_styles_blocks[ $block ][ $breakpoint_state ][ $pseudo_selector ] = $styles_non_top_level;
 					}
@@ -1413,7 +1477,6 @@ class WP_Theme_JSON {
 					foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
 						$variation_schema[ $breakpoint_state ]             = $styles_non_top_level;
 						$variation_schema[ $breakpoint_state ]['elements'] = $schema_styles_elements;
-						$variation_schema[ $breakpoint_state ]['blocks']   = $schema_styles_blocks;
 
 						if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
 							foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
@@ -1443,6 +1506,47 @@ class WP_Theme_JSON {
 		$schema['settings']['blocks']                     = $schema_settings_blocks;
 		$schema['settings']['typography']['fontFamilies'] = static::schema_in_root_and_per_origin( static::FONT_FAMILY_SCHEMA );
 
+		/*
+		 * Add block style variation states to the top-level styles schema.
+		 *
+		 * Block style variations defined in a standalone JSON partial within a
+		 * theme's `styles` directory declare their styles at the root of the
+		 * `styles` object, so they are sanitized against the top-level schema.
+		 * It needs to allow the same states that are allowed for variations
+		 * declared inline in theme.json, otherwise those states are silently
+		 * removed as unknown keys.
+		 *
+		 * The `blockTypes` property is only present on block style variation
+		 * partials, so it both identifies the config as a variation and
+		 * determines which pseudo-selectors are valid for it. Regular
+		 * theme.json files are unaffected.
+		 */
+		if ( ! empty( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
+			$variation_pseudo_selectors = array();
+			foreach ( $input['blockTypes'] as $variation_block_type ) {
+				if ( is_string( $variation_block_type ) && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
+					$variation_pseudo_selectors = array_merge(
+						$variation_pseudo_selectors,
+						static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ]
+					);
+				}
+			}
+			$variation_pseudo_selectors = array_unique( $variation_pseudo_selectors );
+
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
+				$schema['styles'][ $breakpoint_state ]             = $styles_non_top_level;
+				$schema['styles'][ $breakpoint_state ]['elements'] = $schema_styles_elements;
+
+				foreach ( $variation_pseudo_selectors as $pseudo_selector ) {
+					$schema['styles'][ $breakpoint_state ][ $pseudo_selector ] = $styles_non_top_level;
+				}
+			}
+
+			foreach ( $variation_pseudo_selectors as $pseudo_selector ) {
+				$schema['styles'][ $pseudo_selector ] = $styles_non_top_level;
+			}
+		}
+
 		// Remove anything that's not present in the schema.
 		foreach ( array( 'styles', 'settings' ) as $subtree ) {
 			if ( ! isset( $input[ $subtree ] ) ) {
@@ -1457,17 +1561,81 @@ class WP_Theme_JSON {
 			$result = static::remove_keys_not_in_schema( $input[ $subtree ], $schema[ $subtree ] );
 
 			if ( 'settings' === $subtree && array_key_exists( 'viewport', $input[ $subtree ] ) ) {
-				$result['viewport'] = static::sanitize_viewport_settings( $input[ $subtree ]['viewport'] );
+				$result['viewport'] = self::sanitize_viewport_settings( $input[ $subtree ]['viewport'] );
+			}
+
+			if ( 'settings' === $subtree ) {
+				// Preset leaves are untyped in VALID_SETTINGS, but consumers read `$preset['slug']` as a string.
+				$is_valid_preset = static function ( $preset ) {
+					return is_array( $preset ) && ( ! isset( $preset['slug'] ) || is_scalar( $preset['slug'] ) );
+				};
+				foreach ( static::get_setting_nodes( array( 'settings' => $result ) ) as $node ) {
+					foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+						$path    = array_merge( array_slice( $node['path'], 1 ), $preset_metadata['path'] );
+						$presets = _wp_array_get( $result, $path, null );
+						if ( ! is_array( $presets ) ) {
+							continue;
+						}
+						if ( isset( $presets[0] ) ) {
+							$presets = array_values( array_filter( $presets, $is_valid_preset ) );
+						} else {
+							foreach ( static::VALID_ORIGINS as $origin ) {
+								if ( isset( $presets[ $origin ] ) && is_array( $presets[ $origin ] ) ) {
+									$presets[ $origin ] = array_values( array_filter( $presets[ $origin ], $is_valid_preset ) );
+								}
+							}
+						}
+						_wp_array_set( $result, $path, $presets );
+					}
+				}
 			}
 
 			if ( empty( $result ) ) {
 				unset( $output[ $subtree ] );
 			} else {
-				$output[ $subtree ] = static::resolve_custom_css_format( $result );
+				$output[ $subtree ] = self::resolve_custom_css_format( $result );
 			}
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Determines whether a pseudo selector is a pseudo-element, e.g. '::placeholder'.
+	 *
+	 * Pseudo-elements are not valid inside `:where()`, so rules that target them
+	 * cannot use the `:root :where()` specificity wrapper.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|null $pseudo_selector Pseudo selector to check, e.g. ':hover' or '::placeholder'.
+	 * @return bool True if the pseudo selector is a pseudo-element.
+	 */
+	protected static function is_pseudo_element( $pseudo_selector ) {
+		return is_string( $pseudo_selector ) && str_starts_with( $pseudo_selector, '::' );
+	}
+
+	/**
+	 * Builds the specificity-capped selector for a pseudo selector rule.
+	 *
+	 * Pseudo-classes are appended to each part of the base selector inside the
+	 * `:root :where()` wrapper, e.g. `:root :where(a:hover)`. Pseudo-elements are
+	 * not valid inside `:where()`, so they are appended after the wrapper instead,
+	 * e.g. `:root :where(textarea, input)::placeholder`, which keeps the same
+	 * specificity regardless of where the element styles are defined.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $base_selector   Selector without the pseudo selector, e.g. 'textarea, input'.
+	 * @param string $pseudo_selector Pseudo selector to apply, e.g. ':hover' or '::placeholder'.
+	 * @return string The selector to use for the rule.
+	 */
+	protected static function get_pseudo_rule_selector( $base_selector, $pseudo_selector ) {
+		if ( static::is_pseudo_element( $pseudo_selector ) ) {
+			return ':root :where(' . $base_selector . ')' . $pseudo_selector;
+		}
+
+		return ':root :where(' . static::append_to_selector( $base_selector, $pseudo_selector ) . ')';
 	}
 
 	/**
@@ -1507,7 +1675,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return preg_replace( '~[ \t\n]*,[ \t\n]*~', "{$to_append}, ", trim( $selector, " \t\n" ) ) . $to_append;
@@ -1556,7 +1724,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return $to_prepend . preg_replace( '~[ \t\n]*,[ \t\n]*~', ", {$to_prepend}", trim( $selector, " \t\n" ) );
@@ -1601,8 +1769,8 @@ class WP_Theme_JSON {
 	 *     // Comments stay with the selector they follow.
 	 *     array( '.a /* a, the first *\/', '.b' ) === self::split_selector_list( '.a /* a, the first *\/,.b' );
 	 *
-	 * @see https://www.w3.org/TR/selectors/#parse-selector
-	 * @see https://www.w3.org/TR/css-syntax-3/
+	 * @link https://www.w3.org/TR/selectors/#parse-selector
+	 * @link https://www.w3.org/TR/css-syntax-3/
 	 *
 	 * @since 7.1.0
 	 *
@@ -1709,8 +1877,8 @@ class WP_Theme_JSON {
 				 * > not included in this definition, as they are converted
 				 * > to U+000A LINE FEED during preprocessing.
 				 *
-				 * @see https://www.w3.org/TR/css-syntax/#whitespace
-				 * @see https://www.w3.org/TR/css-syntax/#newline
+				 * @link https://www.w3.org/TR/css-syntax/#whitespace
+				 * @link https://www.w3.org/TR/css-syntax/#newline
 				 */
 				$selectors[] = trim( substr( $selector, $was_at, $next_at - $was_at ), " \t\n" );
 				$at          = $next_at + 1;
@@ -2028,7 +2196,10 @@ class WP_Theme_JSON {
 		// Load the custom CSS last so it has the highest specificity.
 		if ( in_array( 'custom-css', $types, true ) ) {
 			// Add the global styles root CSS.
-			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
+			$root_css = $this->theme_json['styles']['css'] ?? '';
+			if ( is_string( $root_css ) ) {
+				$stylesheet .= $root_css;
+			}
 		}
 
 		return $stylesheet;
@@ -2048,7 +2219,7 @@ class WP_Theme_JSON {
 	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
-		if ( empty( $css ) ) {
+		if ( empty( $css ) || ! is_string( $css ) ) {
 			return $processed_css;
 		}
 
@@ -2244,7 +2415,8 @@ class WP_Theme_JSON {
 		 * Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
 		 */
 		if ( $has_block_gap_support || $has_fallback_gap_support ) {
-			$block_gap_value = null;
+			$block_gap_value     = null;
+			$block_gap_row_value = null;
 			// Use a fallback gap value if block gap support is not available.
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
@@ -2254,16 +2426,27 @@ class WP_Theme_JSON {
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
 			}
+			$block_gap_row_value = $block_gap_value;
 
 			// Support split row / column values and concatenate to a shorthand value.
 			if ( is_array( $block_gap_value ) ) {
-				if ( isset( $block_gap_value['top'] ) && isset( $block_gap_value['left'] ) ) {
-					$gap_row         = static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) );
-					$gap_column      = static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) );
-					$block_gap_value = $gap_row === $gap_column ? $gap_row : $gap_row . ' ' . $gap_column;
+				$has_block_gap_row_value    = isset( $block_gap_value['top'] );
+				$has_block_gap_column_value = isset( $block_gap_value['left'] );
+
+				if ( $has_block_gap_row_value || $has_block_gap_column_value ) {
+					$block_gap_row_value    = $has_block_gap_row_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) )
+						: '0';
+					$block_gap_column_value = $has_block_gap_column_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) )
+						: '0';
+					$block_gap_value        = $block_gap_row_value === $block_gap_column_value
+						? $block_gap_row_value
+						: $block_gap_row_value . ' ' . $block_gap_column_value;
 				} else {
-					// Skip outputting gap value if not all sides are provided.
-					$block_gap_value = null;
+					// Skip outputting a gap value if neither supported axis is provided.
+					$block_gap_value     = null;
+					$block_gap_row_value = null;
 				}
 			}
 
@@ -2275,8 +2458,11 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = $layout_definition['className'] ?? false;
-					$spacing_rules = $layout_definition['spacingStyles'] ?? array();
+					$class_name       = $layout_definition['className'] ?? false;
+					$spacing_rules    = $layout_definition['spacingStyles'] ?? array();
+					$layout_gap_value = in_array( $layout_definition_key, array( 'default', 'constrained' ), true )
+						? $block_gap_row_value
+						: $block_gap_value;
 
 					if (
 						! empty( $class_name ) &&
@@ -2291,7 +2477,7 @@ class WP_Theme_JSON {
 							) {
 								// Iterate over each of the styling rules and substitute non-string values such as `null` with the real `blockGap` value.
 								foreach ( $spacing_rule['rules'] as $css_property => $css_value ) {
-									$current_css_value = is_string( $css_value ) ? $css_value : $block_gap_value;
+									$current_css_value = is_string( $css_value ) ? $css_value : $layout_gap_value;
 									if ( static::is_safe_css_declaration( $css_property, $current_css_value ) ) {
 										$declarations[] = array(
 											'name'  => $css_property,
@@ -2509,7 +2695,7 @@ class WP_Theme_JSON {
 					continue;
 				}
 
-				$target = static::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
+				$target = self::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
 
 				if ( ! isset( $vars_by_selector[ $target ] ) ) {
 					$vars_by_selector[ $target ] = array();
@@ -2995,13 +3181,15 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
 	 * @since 6.7.0 `ref` resolution of background properties, and assigning custom default values.
 	 *
-	 * @param array   $styles Styles to process.
-	 * @param array   $settings Theme settings.
-	 * @param array   $properties Properties metadata.
-	 * @param array   $theme_json Theme JSON array.
-	 * @param string  $selector The style block selector.
-	 * @param boolean $use_root_padding Whether to add custom properties at root level.
+	 * @param array  $styles           Styles to process.
+	 * @param array  $settings         Theme settings.
+	 * @param array  $properties       Properties metadata.
+	 * @param array  $theme_json       Theme JSON array.
+	 * @param string $selector         The style block selector.
+	 * @param bool   $use_root_padding Whether to add custom properties at root level.
 	 * @return array Returns the modified $declarations.
+	 *
+	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
 	 */
 	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
 		if ( empty( $styles ) ) {
@@ -3104,6 +3292,34 @@ class WP_Theme_JSON {
 				'name'  => $css_property,
 				'value' => $value,
 			);
+
+			/*
+			 * Background clipping needs vendor prefixed properties for
+			 * cross-browser support. The `text` value clips the background to
+			 * the text and makes it visible through a transparent fill. The box
+			 * values only reset the fill color, to cancel any inherited text
+			 * clipping. `-webkit-background-clip` is an alias of
+			 * `background-clip` in Chromium, so resetting it would discard the
+			 * value set above. Values outside the set the style engine accepts
+			 * get neither, so a typo cannot reset the fill color.
+			 */
+			if ( 'background-clip' === $css_property ) {
+				if ( 'text' === $value ) {
+					$declarations[] = array(
+						'name'  => '-webkit-background-clip',
+						'value' => 'text',
+					);
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'transparent',
+					);
+				} elseif ( in_array( $value, array( 'border-box', 'padding-box', 'content-box' ), true ) ) {
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'currentColor',
+					);
+				}
+			}
 		}
 
 		// If a variable value is added to the root, the corresponding property should be removed.
@@ -3133,8 +3349,8 @@ class WP_Theme_JSON {
 	 *              so every property will be in the standard form.
 	 * @since 6.7.0 Added support for background image refs.
 	 *
-	 * @param array $styles Styles subtree.
-	 * @param array $path   Which property to process.
+	 * @param array $styles     Styles subtree.
+	 * @param array $path       Which property to process.
 	 * @param array $theme_json Theme JSON array.
 	 * @return string|array Style property value.
 	 */
@@ -3153,7 +3369,7 @@ class WP_Theme_JSON {
 		 * In the case of backgroundImage, if both a ref and a URL are present in the value,
 		 * the URL takes precedence and the ref is ignored.
 		 */
-		if ( is_array( $value ) && isset( $value['ref'] ) ) {
+		if ( is_array( $value ) && isset( $value['ref'] ) && is_string( $value['ref'] ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
 			// Background Image refs can refer to a string or an array containing a URL string.
@@ -3307,7 +3523,7 @@ class WP_Theme_JSON {
 			return $nodes;
 		}
 
-		$block_nodes = static::get_block_nodes( $theme_json, $selectors, $options );
+		$block_nodes = self::get_block_nodes( $theme_json, $selectors, $options );
 		foreach ( $block_nodes as $block_node ) {
 			$nodes[] = $block_node;
 		}
@@ -3332,7 +3548,7 @@ class WP_Theme_JSON {
 	 * @return array The block nodes in theme.json.
 	 */
 	public function get_styles_block_nodes() {
-		return static::get_block_nodes( $this->theme_json );
+		return self::get_block_nodes( $this->theme_json );
 	}
 
 	/**
@@ -3342,7 +3558,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.1
 	 *
 	 * @param array $declarations List of declarations.
-	 * @return array $declarations List of declarations filtered.
+	 * @return array List of declarations filtered.
 	 */
 	private static function update_separator_declarations( $declarations ) {
 		$background_color     = '';
@@ -3508,7 +3724,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
 	 * @param array $selectors  Optional list of selectors per block.
-	 * @param array $options {
+	 * @param array $options    {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
 	 *     @type bool $include_block_style_variations Include nodes for block style variations. Default false.
@@ -3715,22 +3931,45 @@ class WP_Theme_JSON {
 					}
 				}
 			}
-			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
-				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
+			/*
+			 * Elements can be styled outside any breakpoint, inside one, or both,
+			 * so collect the names from all of those places before looping. An
+			 * element styled only inside a breakpoint still needs a node.
+			 */
+			$block_node    = $theme_json['styles']['blocks'][ $name ] ?? array();
+			$element_names = array_keys( $block_node['elements'] ?? array() );
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+				$element_names = array_merge(
+					$element_names,
+					array_keys( $block_node[ $breakpoint ]['elements'] ?? array() )
+				);
+			}
+			$element_names = array_unique( $element_names );
+
+			if ( ! empty( $element_names ) ) {
+				foreach ( $element_names as $element ) {
 					$element_path = array( 'styles', 'blocks', $name, 'elements', $element );
 					if ( $include_node_paths_only ) {
-						$nodes[] = array(
-							'path' => $element_path,
-						);
+						if ( isset( $block_node['elements'][ $element ] ) ) {
+							$nodes[] = array(
+								'path' => $element_path,
+							);
+						}
+						continue;
+					}
+
+					if ( ! isset( $selectors[ $name ]['elements'][ $element ] ) ) {
 						continue;
 					}
 
 					$element_selector = $selectors[ $name ]['elements'][ $element ];
 
-					$nodes[] = array(
-						'path'     => $element_path,
-						'selector' => $element_selector,
-					);
+					if ( isset( $block_node['elements'][ $element ] ) ) {
+						$nodes[] = array(
+							'path'     => $element_path,
+							'selector' => $element_selector,
+						);
+					}
 
 					// Responsive element nodes: one node per breakpoint that has
 					// styles for this element. Cascade: a{} → @media{a{}}
@@ -3747,42 +3986,26 @@ class WP_Theme_JSON {
 					// Handle any pseudo selectors for the element.
 					if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
-							// Create element pseudo node if default or any responsive breakpoint has the pseudo.
-							$has_element_pseudo = isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] );
-							if ( ! $has_element_pseudo ) {
-								foreach ( array_keys( $responsive_media_queries ) as $bp ) {
-									if ( isset( $theme_json['styles']['blocks'][ $name ][ $bp ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-										$has_element_pseudo = true;
-										break;
-									}
-								}
-							}
-
-							if ( $has_element_pseudo ) {
-								$element_pseudo_path = array( 'styles', 'blocks', $name, 'elements', $element );
-								if ( $include_node_paths_only ) {
-									$nodes[] = array(
-										'path' => $element_pseudo_path,
-									);
-									continue;
-								}
-
+							// Emit the default pseudo node only when the default state styles
+							// the pseudo. Otherwise get_styles_for_block() falls back to the
+							// element's base styles, outputting a rule the theme never defined.
+							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$nodes[] = array(
-									'path'     => $element_pseudo_path,
+									'path'     => array( 'styles', 'blocks', $name, 'elements', $element ),
 									'selector' => static::append_to_selector( $element_selector, $pseudo_selector ),
 								);
+							}
 
-								// Responsive element pseudo nodes: one node per breakpoint
-								// that has this pseudo state for this element.
-								// Cascade: a:hover{} → @media{a:hover{}}
-								foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
-									if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ][ $pseudo_selector ] ) ) {
-										$nodes[] = array(
-											'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
-											'selector'    => static::append_to_selector( $element_selector, $pseudo_selector ),
-											'media_query' => $responsive_media_queries[ $breakpoint ],
-										);
-									}
+							// Responsive element pseudo nodes: one node per breakpoint
+							// that has this pseudo state for this element.
+							// Cascade: a:hover{} → @media{a:hover{}}
+							foreach ( array_keys( $responsive_media_queries ) as $breakpoint ) {
+								if ( isset( $theme_json['styles']['blocks'][ $name ][ $breakpoint ]['elements'][ $element ][ $pseudo_selector ] ) ) {
+									$nodes[] = array(
+										'path'        => array( 'styles', 'blocks', $name, $breakpoint, 'elements', $element ),
+										'selector'    => static::append_to_selector( $element_selector, $pseudo_selector ),
+										'media_query' => $responsive_media_queries[ $breakpoint ],
+									);
 								}
 							}
 						}
@@ -3792,6 +4015,108 @@ class WP_Theme_JSON {
 		}
 
 		return $nodes;
+	}
+
+	/**
+	 * Returns the node keys that hold a state's styles: a breakpoint, a pseudo
+	 * state or a custom state.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $settings Settings from theme.json.
+	 * @return string[] Style-state keys.
+	 *
+	 * @phpstan-return list<non-falsy-string>
+	 */
+	private static function get_style_state_keys( array $settings ): array {
+		$keys = array_keys( static::get_viewport_media_queries( $settings['viewport'] ?? null ) );
+
+		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS as $pseudo_selectors ) {
+			$keys = array_merge( $keys, $pseudo_selectors );
+		}
+
+		foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS as $pseudo_selectors ) {
+			$keys = array_merge( $keys, $pseudo_selectors );
+		}
+
+		foreach ( static::VALID_BLOCK_CUSTOM_STATES as $custom_states ) {
+			$keys = array_merge( $keys, $custom_states );
+		}
+
+		return array_values( array_unique( $keys ) );
+	}
+
+	/**
+	 * Returns the style objects a state node layers over, nearest first.
+	 *
+	 * Drops the path's state keys (e.g. `@mobile`) from the innermost outward.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[]             $path     Path to the node within the theme.json tree.
+	 * @param array<string, mixed> $tree     The theme.json tree to read from.
+	 * @param array<string, mixed> $settings Settings from theme.json.
+	 * @return array[] Style objects, nearest first.
+	 */
+	private static function get_state_base_styles( array $path, array $tree, array $settings ): array {
+		$state_keys  = self::get_style_state_keys( $settings );
+		$base_path   = $path;
+		$base_styles = array();
+
+		foreach ( array_reverse( array_keys( $path ) ) as $index ) {
+			if ( ! in_array( $path[ $index ], $state_keys, true ) ) {
+				continue;
+			}
+
+			unset( $base_path[ $index ] );
+			$layer = _wp_array_get( $tree, array_values( $base_path ) );
+			if ( is_array( $layer ) ) {
+				$base_styles[] = $layer;
+			}
+		}
+
+		return $base_styles;
+	}
+
+	/**
+	 * Adds the declarations a state needs to escape a text clip set below it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array[]              $declarations Declarations generated for the state.
+	 * @param array<string, mixed> $state_style  State style object.
+	 * @param array[]              $base_styles  Style objects the state layers over, nearest first.
+	 * @return array[] Declarations with the escapes applied where needed.
+	 *
+	 * @phpstan-param list<array{ name: non-falsy-string, value: scalar }> $declarations
+	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
+	 */
+	private static function get_state_declarations_with_text_clip_escapes( array $declarations, array $state_style, array $base_styles ): array {
+		$base_clip = '';
+		foreach ( $base_styles as $base_style ) {
+			if ( ! empty( $base_style['background']['backgroundClip'] ) ) {
+				$base_clip = is_string( $base_style['background']['backgroundClip'] ) ? $base_style['background']['backgroundClip'] : '';
+				break;
+			}
+		}
+
+		if ( 'text' !== $base_clip ) {
+			return $declarations;
+		}
+
+		$escapes = array_merge(
+			wp_get_state_text_clip_escape( $state_style, $base_clip ),
+			wp_get_state_text_fill_reset( $state_style )
+		);
+
+		foreach ( $escapes as $name => $value ) {
+			$declarations[] = array(
+				'name'  => $name,
+				'value' => $value,
+			);
+		}
+
+		return $declarations;
 	}
 
 	/**
@@ -3815,13 +4140,21 @@ class WP_Theme_JSON {
 		$media_query              = $block_metadata['media_query'] ?? null;
 		$responsive_media_queries = static::get_viewport_media_queries( $settings['viewport'] ?? null );
 
+		$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+		if ( is_array( $css_feature_selector ) ) {
+			$css_feature_selector = $css_feature_selector['root'] ?? null;
+		}
+		if ( ! is_string( $css_feature_selector ) ) {
+			$css_feature_selector = null;
+		}
+
 		// Update text indent selector for paragraph blocks based on the textIndent setting.
 		$block_name           = $block_metadata['name'] ?? null;
-		$feature_declarations = static::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
+		$feature_declarations = self::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
 		$block_elements       = $block_metadata['elements'] ?? array();
 
 		// Update button width declarations for percentage values to use calc() with block gap.
-		$feature_declarations = static::update_button_width_declarations( $feature_declarations, $settings );
+		$feature_declarations = self::update_button_width_declarations( $feature_declarations, $settings );
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
 		$style_variation_declarations          = array();
@@ -3837,10 +4170,10 @@ class WP_Theme_JSON {
 				$variation_declarations = static::get_feature_declarations_for_node( $block_metadata, $style_variation_node );
 
 				// Update text indent selector for paragraph blocks based on the textIndent setting.
-				$variation_declarations = static::update_paragraph_text_indent_selector( $variation_declarations, $settings, $block_name );
+				$variation_declarations = self::update_paragraph_text_indent_selector( $variation_declarations, $settings, $block_name );
 
 				// Update button width declarations for percentage values to use calc() with block gap.
-				$variation_declarations = static::update_button_width_declarations( $variation_declarations, $settings );
+				$variation_declarations = self::update_button_width_declarations( $variation_declarations, $settings );
 
 				// Combine selectors with style variation's selector and add to overall style variation declarations.
 				foreach ( $variation_declarations as $current_selector => $new_declarations ) {
@@ -3857,24 +4190,39 @@ class WP_Theme_JSON {
 				if ( isset( $block_metadata['name'] ) ) {
 					$block_name = $block_metadata['name'];
 				} elseif ( in_array( 'blocks', $block_metadata['path'], true ) && count( $block_metadata['path'] ) >= 3 ) {
-					$block_name = static::get_block_name_from_metadata_path( $block_metadata );
+					$block_name = self::get_block_name_from_metadata_path( $block_metadata );
 				} else {
 					$block_name = null;
 				}
 				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
 
+				// Custom CSS targets the block's `css` feature selector, if any.
+				$variation_css_selector = null !== $css_feature_selector
+					? static::get_block_style_variation_feature_selector( $style_variation, $css_feature_selector )
+					: $style_variation['selector'];
+
 				// Store custom CSS for the style variation.
 				if ( isset( $style_variation_node['css'] ) ) {
-					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $variation_css_selector );
 				}
 
 				// Store variation metadata and node for layout styles generation.
 				// Only store if the variation has blockGap defined.
 				if ( isset( $style_variation_node['spacing']['blockGap'] ) ) {
 					// Append block selector to the variation selector for proper targeting.
-					$variation_metadata_with_selector                                = $style_variation;
-					$variation_metadata_with_selector['selector']                    = $style_variation['selector'] . $block_metadata['css'];
+					$variation_metadata_with_selector             = $style_variation;
+					$variation_metadata_with_selector['selector'] = $style_variation['selector'] . $block_metadata['css'];
+
+					/*
+					 * `get_layout_styles()` reads `name` as a block name, to check that the block
+					 * supports layout at all. A variation node's `name` is the variation slug,
+					 * which is never a registered block, so the check fails and every variation
+					 * gap rule is discarded. Pass the block the variation belongs to, so the
+					 * support check answers the question it is actually asking.
+					 */
+					$variation_metadata_with_selector['name'] = $block_name;
+
 					$style_variation_layout_metadata[ $style_variation['selector'] ] = array(
 						'metadata' => $variation_metadata_with_selector,
 						'node'     => $style_variation_node,
@@ -3895,8 +4243,8 @@ class WP_Theme_JSON {
 					$breakpoint_media = $responsive_media_queries[ $breakpoint ];
 					// Process feature-level declarations for this breakpoint.
 					$breakpoint_feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $breakpoint_node );
-					$breakpoint_feature_declarations = static::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
-					$breakpoint_feature_declarations = static::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
+					$breakpoint_feature_declarations = self::update_paragraph_text_indent_selector( $breakpoint_feature_declarations, $settings, $block_name );
+					$breakpoint_feature_declarations = self::update_button_width_declarations( $breakpoint_feature_declarations, $settings );
 					foreach ( $breakpoint_feature_declarations as $feature_selector => $feature_decl ) {
 						$combined_selectors = static::get_block_style_variation_feature_selector( $style_variation, $feature_selector );
 
@@ -3906,6 +4254,11 @@ class WP_Theme_JSON {
 
 					// Process base properties for this breakpoint.
 					$breakpoint_declarations = static::compute_style_properties( $breakpoint_node, $settings, null, $this->theme_json );
+					$breakpoint_declarations = self::get_state_declarations_with_text_clip_escapes(
+						$breakpoint_declarations,
+						$breakpoint_node,
+						array( $style_variation_node, $node )
+					);
 					if ( ! empty( $breakpoint_declarations ) ) {
 						$base_ruleset              = static::to_ruleset( ':root :where(' . $style_variation['selector'] . ')', $breakpoint_declarations );
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
@@ -3922,7 +4275,7 @@ class WP_Theme_JSON {
 
 					// Process custom CSS for this breakpoint.
 					if ( isset( $breakpoint_node['css'] ) ) {
-						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $style_variation['selector'] );
+						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $variation_css_selector );
 						$variation_responsive_css .= $breakpoint_media . '{' . $breakpoint_custom_css . '}';
 					}
 
@@ -3930,7 +4283,11 @@ class WP_Theme_JSON {
 					if ( isset( $breakpoint_node['spacing']['blockGap'] ) ) {
 						$variation_layout_metadata             = $style_variation;
 						$variation_layout_metadata['selector'] = $style_variation['selector'] . $block_metadata['css'];
-						$variation_responsive_css             .= $this->get_layout_styles(
+
+						// The variation slug is not a block name here either. See above.
+						$variation_layout_metadata['name'] = $block_name;
+
+						$variation_responsive_css .= $this->get_layout_styles(
 							$variation_layout_metadata,
 							array(
 								'node'        => $breakpoint_node,
@@ -3970,7 +4327,7 @@ class WP_Theme_JSON {
 										continue;
 									}
 
-									$pseudo_selector_ruleset          = static::to_ruleset( ':root :where(' . static::append_to_selector( $variation_element_selector, $pseudo_selector ) . ')', $pseudo_declarations );
+									$pseudo_selector_ruleset          = static::to_ruleset( static::get_pseudo_rule_selector( $variation_element_selector, $pseudo_selector ), $pseudo_declarations );
 									$variation_responsive_pseudo_css .= $breakpoint_media . '{' . $pseudo_selector_ruleset . '}';
 								}
 							}
@@ -4026,11 +4383,18 @@ class WP_Theme_JSON {
 		 * element then compute the style properties for it.
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
+		$base_styles = self::get_state_base_styles( $block_metadata['path'] ?? array(), $this->theme_json, $settings );
+
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
 			isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+			$declarations = self::get_state_declarations_with_text_clip_escapes(
+				$declarations,
+				$node[ $pseudo_selector ],
+				array_merge( array( $node ), $base_styles )
+			);
 		} else {
 			/*
 			 * For block pseudo-selector nodes (e.g. ':hover'), $node has already had any
@@ -4038,6 +4402,7 @@ class WP_Theme_JSON {
 			 * so those properties are not output twice.
 			 */
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
+			$declarations = self::get_state_declarations_with_text_clip_escapes( $declarations, $node, $base_styles );
 		}
 
 		$block_rules = '';
@@ -4094,7 +4459,7 @@ class WP_Theme_JSON {
 
 		// Update declarations if there are separators with only background color defined.
 		if ( '.wp-block-separator' === $selector ) {
-			$declarations = static::update_separator_declarations( $declarations );
+			$declarations = self::update_separator_declarations( $declarations );
 		}
 
 		/*
@@ -4107,6 +4472,9 @@ class WP_Theme_JSON {
 		 * Pseudo classes, e.g. :hover, :focus etc., are a class-level selector so
 		 * still need to be wrapped in `:root :where` to cap specificity for nested
 		 * variations etc. Pseudo selectors won't match the ELEMENTS selector exactly.
+		 *
+		 * Pseudo-elements, e.g. ::placeholder, are not valid inside `:where()`, so
+		 * they are appended after the wrapper instead.
 		 */
 		$element_only_selector = $is_root_selector || (
 			$current_element &&
@@ -4117,8 +4485,13 @@ class WP_Theme_JSON {
 		);
 
 		// 2. Generate and append the rules that use the general selector.
-		$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
-		$block_rules     .= static::to_ruleset( $general_selector, $declarations );
+		if ( static::is_pseudo_element( $pseudo_selector ) ) {
+			// The node selector already carries the pseudo-element on each part, so strip it to get the base selector.
+			$general_selector = static::get_pseudo_rule_selector( str_replace( $pseudo_selector, '', $selector ), $pseudo_selector );
+		} else {
+			$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
+		}
+		$block_rules .= static::to_ruleset( $general_selector, $declarations );
 
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
@@ -4162,11 +4535,7 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
-			if ( is_array( $css_feature_selector ) ) {
-				$css_feature_selector = $css_feature_selector['root'] ?? null;
-			}
-			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$css_selector = $css_feature_selector ?? $selector;
 			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
@@ -4188,7 +4557,7 @@ class WP_Theme_JSON {
 	 *              Updated specificity of body margin reset and first/last child selectors.
 	 * @since 7.0.0 Added `$options` parameter to control alignment styles output for classic themes.
 	 *
-	 * @param string $selector The root node selector.
+	 * @param string $selector       The root node selector.
 	 * @param array  $block_metadata The metadata for the root block.
 	 * @param array  $options        Optional. An array of options for now used for internal purposes only.
 	 * @return string The additional root rules CSS.
@@ -4322,11 +4691,13 @@ class WP_Theme_JSON {
 			$scale_path = array( 'settings', 'spacing', 'spacingScale', $origin );
 
 			// Apply the base spacing scale to the current layer.
-			$base_spacing_scale      = _wp_array_get( $this->theme_json, $scale_path, array() );
-			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
+			$base_spacing_scale = _wp_array_get( $this->theme_json, $scale_path, array() );
+			if ( is_array( $base_spacing_scale ) ) {
+				$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
+			}
 
 			$spacing_scale = _wp_array_get( $incoming_data, $scale_path, null );
-			if ( ! isset( $spacing_scale ) ) {
+			if ( ! is_array( $spacing_scale ) ) {
 				continue;
 			}
 
@@ -4336,8 +4707,8 @@ class WP_Theme_JSON {
 			// Generate and merge the scales for this layer.
 			$sizes_path           = array( 'settings', 'spacing', 'spacingSizes', $origin );
 			$spacing_sizes        = _wp_array_get( $incoming_data, $sizes_path, array() );
-			$spacing_scale_sizes  = static::compute_spacing_sizes( $flattened_spacing_scale );
-			$merged_spacing_sizes = static::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
+			$spacing_scale_sizes  = self::compute_spacing_sizes( $flattened_spacing_scale );
+			$merged_spacing_sizes = self::merge_spacing_sizes( $spacing_scale_sizes, $spacing_sizes );
 
 			_wp_array_set( $incoming_data, $sizes_path, $merged_spacing_sizes );
 		}
@@ -4434,7 +4805,7 @@ class WP_Theme_JSON {
 		 * some values provide exceptions, namely style values that are
 		 * objects and represent unique definitions for the style.
 		 */
-		$style_nodes = static::get_block_nodes(
+		$style_nodes = self::get_block_nodes(
 			$this->theme_json,
 			array(),
 			array( 'include_node_paths_only' => true )
@@ -4591,7 +4962,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $slug The slug we want to find a match from default presets.
+	 * @param string $slug      The slug we want to find a match from default presets.
 	 * @param array  $base_path The path to inspect. It's 'settings' by default.
 	 * @return string|null
 	 */
@@ -4674,7 +5045,7 @@ class WP_Theme_JSON {
 			}
 
 			$block_name = in_array( 'blocks', $metadata['path'], true )
-				? static::get_block_name_from_metadata_path( $metadata )
+				? self::get_block_name_from_metadata_path( $metadata )
 				: null;
 
 			// The global styles custom CSS is not sanitized, but can only be edited by users with 'edit_css' capability.
@@ -5001,13 +5372,13 @@ class WP_Theme_JSON {
 		}
 
 		// Ensure indirect properties not included in any `PRESETS_METADATA` value are allowed.
-		static::remove_indirect_properties( $input, $output );
+		self::remove_indirect_properties( $input, $output );
 
 		// Preserve all valid settings that have type markers in VALID_SETTINGS.
 		self::preserve_valid_typed_settings( $input, $output, static::VALID_SETTINGS );
 
 		if ( $is_root && array_key_exists( 'viewport', $input ) ) {
-			$output['viewport'] = static::sanitize_viewport_settings( $input['viewport'] );
+			$output['viewport'] = self::sanitize_viewport_settings( $input['viewport'] );
 		}
 
 		return $output;
@@ -5042,7 +5413,7 @@ class WP_Theme_JSON {
 		}
 
 		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
-		static::remove_indirect_properties( $input, $output );
+		self::remove_indirect_properties( $input, $output );
 
 		return $output;
 	}
@@ -5375,11 +5746,11 @@ class WP_Theme_JSON {
 			return;
 		}
 
-		$spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+		$spacing_sizes = self::compute_spacing_sizes( $spacing_scale );
 
 		// If there are 7 or fewer steps in the scale revert to numbers for labels instead of t-shirt sizes.
 		if ( $spacing_scale['steps'] <= 7 ) {
-			for ( $spacing_sizes_count = 0; $spacing_sizes_count < count( $spacing_sizes ); $spacing_sizes_count++ ) {
+			for ( $spacing_sizes_count = 0, $spacing_sizes_length = count( $spacing_sizes ); $spacing_sizes_count < $spacing_sizes_length; $spacing_sizes_count++ ) {
 				$spacing_sizes[ $spacing_sizes_count ]['name'] = (string) ( $spacing_sizes_count + 1 );
 			}
 		}
@@ -5427,7 +5798,7 @@ class WP_Theme_JSON {
 	 *         'operator'   => '+',
 	 *         'increment'  => 2,
 	 *     );
-	 *     $spacing_sizes = static::compute_spacing_sizes( $spacing_scale );
+	 *     $spacing_sizes = self::compute_spacing_sizes( $spacing_scale );
 	 *     // -> array(
 	 *     //        array( 'name' => 'Small',   'slug' => '40', 'size' => '14px' ),
 	 *     //        array( 'name' => 'Medium',  'slug' => '50', 'size' => '16px' ),
@@ -5460,6 +5831,7 @@ class WP_Theme_JSON {
 			! isset( $spacing_scale['mediumStep'] ) ||
 			! is_numeric( $spacing_scale['mediumStep'] ) ||
 			! isset( $spacing_scale['unit'] ) ||
+			! is_string( $spacing_scale['unit'] ) ||
 			! isset( $spacing_scale['operator'] ) ||
 			( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ||
 			! isset( $spacing_scale['increment'] ) ||
@@ -5558,6 +5930,7 @@ class WP_Theme_JSON {
 	 * For example, `var:preset|color|vivid-green-cyan` becomes `var(--wp--preset--color--vivid-green-cyan)`.
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 Preset reference slugs are kebab-cased to match the generated custom properties.
 	 *
 	 * @param string $value The variable such as var:preset|color|vivid-green-cyan to convert.
 	 * @return string The converted variable.
@@ -5568,12 +5941,29 @@ class WP_Theme_JSON {
 		$token_in   = '|';
 		$token_out  = '--';
 		if ( str_starts_with( $value, $prefix ) ) {
-			$unwrapped_name = str_replace(
-				$token_in,
-				$token_out,
-				substr( $value, $prefix_len )
-			);
-			$value          = "var(--wp--$unwrapped_name)";
+			$parts = explode( $token_in, substr( $value, $prefix_len ) );
+
+			/*
+			 * The slug of a preset reference is kebab-cased so the resulting
+			 * custom property matches the one generated from the preset,
+			 * whose slug is also kebab-cased (see `get_settings_values_by_slug()`).
+			 * For slugs that are not already kebab-cased (e.g. `n27`), a verbatim
+			 * conversion produces a reference to a custom property that does
+			 * not exist (`--wp--preset--font-family--n27` instead of the
+			 * generated `--wp--preset--font-family--n-27`).
+			 *
+			 * Duotone is the exception: its custom properties are generated by
+			 * `WP_Duotone` from the presets it registers in
+			 * `get_all_global_styles_presets()`. Duotone references are
+			 * kebab-cased all the same: the editor and the JS style engine
+			 * kebab-case the references of every preset type, and
+			 * `WP_Duotone` looks up presets by kebab-cased filter ID.
+			 */
+			if ( 3 === count( $parts ) && 'preset' === $parts[0] ) {
+				$parts[2] = _wp_to_kebab_case( $parts[2] );
+			}
+
+			$value = 'var(--wp--' . implode( $token_out, $parts ) . ')';
 		}
 
 		return $value;
@@ -5665,10 +6055,14 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param object $metadata The related block metadata containing selectors.
-	 * @param object $node     A merged theme.json node for block or variation.
-	 * @return array The style declarations for the node's features with custom
-	 *               selectors.
+	 * @param array<string, mixed> $metadata The related block metadata containing selectors.
+	 * @param array<string, mixed> $node     A merged theme.json node for block or variation. Features
+	 *                                       promoted to their own selector are removed from it.
+	 * @return array<string, array[]> The style declarations for the node's features with custom
+	 *                                selectors, keyed by selector.
+	 *
+	 * @phpstan-param array{ selectors?: array<string, string|array<string, string>> } $metadata
+	 * @phpstan-return array<string, list<array{ name: non-falsy-string, value: scalar }>>
 	 */
 	protected function get_feature_declarations_for_node( $metadata, &$node ) {
 		$declarations = array();
@@ -5688,9 +6082,10 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( is_array( $feature_selectors ) ) {
+			if ( is_array( $feature_selectors ) && is_array( $node[ $feature ] ) ) {
+				$feature_styles = $node[ $feature ];
 				foreach ( $feature_selectors as $subfeature => $subfeature_selector ) {
-					if ( 'root' === $subfeature || empty( $node[ $feature ][ $subfeature ] ) ) {
+					if ( 'root' === $subfeature || empty( $feature_styles[ $subfeature ] ) ) {
 						continue;
 					}
 
@@ -5700,7 +6095,7 @@ class WP_Theme_JSON {
 					 */
 					$subfeature_node = array(
 						$feature => array(
-							$subfeature => $node[ $feature ][ $subfeature ],
+							$subfeature => $feature_styles[ $subfeature ],
 						),
 					);
 
@@ -5721,8 +6116,9 @@ class WP_Theme_JSON {
 					 * styles will be included under its own selector not the
 					 * block's.
 					 */
-					unset( $node[ $feature ][ $subfeature ] );
+					unset( $feature_styles[ $subfeature ] );
 				}
+				$node[ $feature ] = $feature_styles;
 			}
 
 			/*
@@ -5789,7 +6185,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( 0 <= strpos( $style, 'var(' ) ) {
+			if ( str_contains( $style, 'var(' ) ) {
 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
 
 				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
@@ -5904,7 +6300,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param array  $style_variation Style variation metadata.
+	 * @param array  $style_variation  Style variation metadata.
 	 * @param string $feature_selector CSS selector for the feature.
 	 * @return string Feature selector with block style variation selector added.
 	 */
