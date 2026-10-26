@@ -236,9 +236,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 			)
 		);
 
-		ob_start();
-		wp_dashboard_on_this_day();
-		$output = ob_get_clean();
+		$output = get_echo( 'wp_dashboard_on_this_day' );
 
 		$this->assertStringContainsString( '(no title)', $output );
 		$this->assertStringNotContainsString( 'Password-protected anniversary memory.', $output );
@@ -250,9 +248,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 * @covers ::wp_dashboard_site_activity
 	 */
 	public function test_activity_renders_no_activity_message_without_posts() {
-		ob_start();
-		wp_dashboard_site_activity();
-		$output = ob_get_clean();
+		$output = get_echo( 'wp_dashboard_site_activity' );
 
 		$this->assertStringContainsString( 'No activity yet!', $output );
 		$this->assertStringNotContainsString( 'Published On This Day', $output );
@@ -274,9 +270,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 			)
 		);
 
-		ob_start();
-		wp_dashboard_site_activity();
-		$output = ob_get_clean();
+		$output = get_echo( 'wp_dashboard_site_activity' );
 
 		$this->assertStringContainsString( 'Published On This Day', $output );
 		$this->assertSame( 1, preg_match( '/<div id="published-posts".*?<\/div>/s', $output, $recent_posts ) );
@@ -304,17 +298,9 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 			)
 		);
 
-		ob_start();
-		wp_dashboard_site_activity();
-		$activity_output = ob_get_clean();
-
-		ob_start();
-		wp_dashboard_recent_comments_widget();
-		$comments_output = ob_get_clean();
-
-		ob_start();
-		wp_dashboard_recent_comments();
-		$direct_output = ob_get_clean();
+		$activity_output = get_echo( 'wp_dashboard_site_activity' );
+		$comments_output = get_echo( 'wp_dashboard_recent_comments_widget' );
+		$direct_output   = get_echo( 'wp_dashboard_recent_comments' );
 
 		$this->assertStringNotContainsString( 'A comment in its own widget.', $activity_output );
 		$this->assertStringContainsString( 'No activity yet!', $activity_output );
@@ -338,9 +324,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
-		ob_start();
-		wp_dashboard_recent_comments_widget();
-		$output = ob_get_clean();
+		$output = get_echo( 'wp_dashboard_recent_comments_widget' );
 
 		$this->assertStringContainsString( 'No comments to show.', $output );
 	}
