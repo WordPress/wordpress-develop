@@ -4172,9 +4172,10 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 
 	$post_id = 0;
 	if ( 'query' === $context && is_singular() ) {
-		$post = get_post( get_queried_object_id() );
-		if ( $post ) {
-			$post_id = $post->ID;
+		$queried_object = get_queried_object();
+		if ( $queried_object instanceof WP_Post ) {
+			$post    = $queried_object;
+			$post_id = $queried_object->ID;
 		}
 	} elseif ( 'post' === $context ) {
 		$post = get_post( $id );
