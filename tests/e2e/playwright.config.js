@@ -22,11 +22,20 @@ const SERIAL_SPECS = [
 	'login-localize-script.test.js',
 	'gutenberg-plugin.test.js',
 	'plugins.test.js',
+	// These delete all posts or media, including other workers' content.
+	'cache-control-headers-directives.test.js',
+	'dashboard.test.js',
+	'edit-posts.test.js',
+	'empty-trash-restore-trashed-posts.test.js',
+	'media-library-client-side-upload.test.js',
+	'media-modal-client-side-upload.test.js',
+	'media-new-client-side-upload.test.js',
 ];
 
 const config = defineConfig( {
 	...baseConfig,
 	globalSetup: require.resolve( './config/global-setup.js' ),
+	workers: '50%',
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
@@ -36,7 +45,6 @@ const config = defineConfig( {
 			name: 'parallel',
 			testIgnore: SERIAL_SPECS,
 			fullyParallel: false,
-			workers: process.env.CI ? 4 : '50%',
 			use: { ...devices[ 'Desktop Chrome' ] },
 		},
 		{
