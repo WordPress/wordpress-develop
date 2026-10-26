@@ -417,6 +417,20 @@ class WP_REST_Server {
 			}
 		}
 
+		/*
+		 * Reject a non-string method override, such as `?_method[]=DELETE`, instead of
+		 * serving the request with a method other than the one the client asked for.
+		 */
+		if ( isset( $_GET['_method'] ) && ! is_string( $_GET['_method'] ) ) {
+			echo $this->json_error(
+				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
+				sprintf( __( 'Invalid parameter(s): %s' ), '_method' ),
+				400
+			);
+			return false;
+		}
+
 		if ( empty( $path ) ) {
 			$path = $_SERVER['PATH_INFO'] ?? '/';
 		}
