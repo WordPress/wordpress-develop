@@ -270,6 +270,25 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	/**
 	 * @ticket 65116
 	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_otd_activity_is_hidden_after_opt_out() {
+		update_user_option( self::$user_id, 'dashboard_show_on_this_day', 'opt-out' );
+		$this->create_matching_post( self::$user_id, 'A note from me' );
+
+		$otd_activity  = get_echo( 'wp_dashboard_on_this_day' );
+		$inline_styles = $this->get_inline_styles_by_id( $otd_activity );
+
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $inline_styles, 'OTD Widget should render the posts list element.' );
+		$this->assertArrayHasKey( 'display', $inline_styles['wp-on-this-day-posts-list'], 'OTD Widget posts list should set an inline display property after the user opts out.' );
+		$this->assertSame( 'none', $inline_styles['wp-on-this-day-posts-list']['display'], 'OTD Widget posts list should be hidden after the user opts out.' );
+
+		$this->assertArrayNotHasKey( 'wp-on-this-day-posts-form', $inline_styles, 'OTD Widget should not render the opt-in form after the user opts out.' );
+	}
+
+	/**
+	 * @ticket 65116
+	 *
 	 * @covers ::wp_dashboard_site_activity
 	 */
 	public function test_activity_renders_no_activity_message_without_posts() {
