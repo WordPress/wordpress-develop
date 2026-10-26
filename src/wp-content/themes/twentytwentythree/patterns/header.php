@@ -2,6 +2,7 @@
 /**
  * Title: Header
  * Slug: twentytwentythree/header
+ * Categories: header
  * Description: Site header with site title and navigation.
  *
  * @package WordPress
