@@ -1027,6 +1027,14 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		$display_list = true;
 		$display_form = false;
 	} else {
+		/*
+		 * User has not yet chosen to opt-in or -out.
+		 *
+		 * As On This Day features can be distressing in some circumstances,
+		 * users are prompted to opt-in or -out of the feature prior to the
+		 * list of posts being displayed. If they have done neither a form is
+		 * displayed prompting them to make a choice.
+		 */
 		$display_list = false;
 		$display_form = true;
 	}
