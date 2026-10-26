@@ -1308,7 +1308,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * (RFC 3986 `pchar`).
 	 *
 	 * A site's path takes precedence over the files and routes beneath it, so
-	 * the first segment must not be a reserved name such as `wp-json`, and no
+	 * the first segment after the network's base path must not be a reserved
+	 * name such as `wp-json`, and no
 	 * segment may name a PHP file such as `wp-login.php`.
 	 *
 	 * @since 7.2.0
@@ -1326,7 +1327,15 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		// Sites are looked up case-insensitively, so /WP-JSON/ would take over /wp-json/ too.
-		$segments = explode( '/', trim( strtolower( $path ), '/' ) );
+		$path = strtolower( $path );
+
+		// Reserved names apply to the first segment after the network's base path, e.g. /parent/wp-json/ on a network at /parent/.
+		$base = strtolower( get_network()->path );
+		if ( str_starts_with( $path, $base ) ) {
+			$path = substr( $path, strlen( $base ) );
+		}
+
+		$segments = explode( '/', trim( $path, '/' ) );
 
 		// Every segment ends with a slash, so a segment naming a PHP file shows up as ".php/".
 		return ! in_array( $segments[0], get_subdirectory_reserved_names(), true ) && 1 !== preg_match( '#\.php/#i', $path );
