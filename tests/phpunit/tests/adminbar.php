@@ -276,7 +276,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_admin_bar_nodes_with_tabindex_meta() {
+	public static function data_admin_bar_nodes_with_tabindex_meta() {
 		return array(
 			array(
 				// No tabindex.
@@ -804,7 +804,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_my_sites_network_menu_items() {
+	public static function data_my_sites_network_menu_items() {
 		return array(
 			array( 'my-sites-super-admin', 'manage_network' ),
 			array( 'network-admin', 'manage_network' ),
