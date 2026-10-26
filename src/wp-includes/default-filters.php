@@ -703,6 +703,7 @@ add_action( 'change_locale', 'create_initial_taxonomies' );
 // Canonical.
 add_action( 'template_redirect', 'redirect_canonical' );
 add_action( 'template_redirect', 'wp_redirect_admin_locations', 1000 );
+add_action( 'template_redirect', 'wp_short_circuit_404_assets', 1010 );
 
 // Media.
 add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
