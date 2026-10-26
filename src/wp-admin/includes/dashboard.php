@@ -1047,9 +1047,9 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		return false;
 	}
 
-	if ( ! str_starts_with( get_user_option( 'dashboard_show_on_this_day' ), 'opt-' ) ) :
+	if ( $display_form ) :
 		?>
-		<div id="wp-on-this-day-posts-form" class="activity-block wp-on-this-day-posts-title hide-if-no-js" style="<?php echo $display_form ? '' : 'display: none;'; ?>">
+		<div id="wp-on-this-day-posts-form" class="activity-block wp-on-this-day-posts-title hide-if-no-js">
 			<h3><?php _e( 'Published On This Day' ); ?></h3>
 			<form method="post">
 			<p>
