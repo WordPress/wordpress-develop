@@ -30,4 +30,24 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * @ticket 63971
+	 *
+	 * @covers WP_Users_List_Table::extra_tablenav
+	 */
+	public function test_change_role_label_is_visible() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		if ( is_multisite() ) {
+			grant_super_admin( get_current_user_id() );
+		}
+
+		$this->table->prepare_items();
+
+		ob_start();
+		$this->table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter">\s*<label for="new_role">\s*Change role to&hellip;\s*</label>\s*<select name="new_role" id="new_role">#', $output );
+	}
 }

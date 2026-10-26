@@ -309,9 +309,9 @@ class WP_Media_List_Table extends WP_List_Table {
 			<div class="filter-items">
 				<?php $this->view_switcher( $mode ); ?>
 
-				<label for="attachment-filter" class="screen-reader-text">
+				<div class="tablenav-filter">
+				<label for="attachment-filter">
 					<?php
-					/* translators: Hidden accessibility text. */
 					_e( 'Filter by type' );
 					?>
 				</label>
@@ -324,6 +324,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					}
 					?>
 				</select>
+				</div>
 
 				<?php
 				$this->extra_tablenav( 'bar' );

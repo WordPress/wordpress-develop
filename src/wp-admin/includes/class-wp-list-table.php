@@ -629,10 +629,7 @@ class WP_List_Table {
 			return;
 		}
 
-		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' .
-			/* translators: Hidden accessibility text. */
-			__( 'Select bulk action' ) .
-		'</label>';
+		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '">' . __( 'Bulk actions' ) . '</label>';
 		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
 		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
@@ -795,7 +792,8 @@ class WP_List_Table {
 
 		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
 		?>
-		<label for="filter-by-date" class="screen-reader-text"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
+		<div class="tablenav-filter">
+		<label for="filter-by-date"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
 		<select name="m" id="filter-by-date">
 			<option<?php selected( $selected_month, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
 		<?php
@@ -817,6 +815,7 @@ class WP_List_Table {
 		}
 		?>
 		</select>
+		</div>
 		<?php
 	}
 

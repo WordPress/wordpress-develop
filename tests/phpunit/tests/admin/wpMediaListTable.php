@@ -512,4 +512,18 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 			self::$detached->setAccessible( false );
 		}
 	}
+
+	/**
+	 * @ticket 63971
+	 *
+	 * @covers WP_Media_List_Table::views
+	 */
+	public function test_type_filter_label_is_visible() {
+		$GLOBALS['mode'] = 'list';
+		list( $GLOBALS['post_mime_types'], $GLOBALS['avail_post_mime_types'] ) = wp_edit_attachments_query();
+
+		$output = get_echo( array( self::$list_table, 'views' ) );
+
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter">\s*<label for="attachment-filter">\s*Filter by type\s*</label>\s*<select class="attachment-filters" name="attachment-filter" id="attachment-filter">#', $output );
+	}
 }

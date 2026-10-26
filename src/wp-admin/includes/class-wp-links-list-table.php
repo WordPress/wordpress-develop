@@ -119,9 +119,11 @@ class WP_Links_List_Table extends WP_List_Table {
 				'orderby'         => 'name',
 			);
 
-			echo '<label class="screen-reader-text" for="cat_id">' . get_taxonomy( 'link_category' )->labels->filter_by_item . '</label>';
+			echo '<div class="tablenav-filter">';
+			echo '<label for="cat_id">' . get_taxonomy( 'link_category' )->labels->filter_by_item . '</label>';
 
 			wp_dropdown_categories( $dropdown_options );
+			echo '</div>';
 
 			submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			?>
