@@ -80,6 +80,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that February 28 includes leap day posts in non-leap years.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
@@ -104,6 +106,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that only published posts from this day in prior years are queried.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day_get_posts
@@ -139,6 +143,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the On This Day query limit defaults to 100 and is filterable.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day_get_posts
@@ -168,6 +174,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that posts by all authors and untitled post excerpts are rendered.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -198,6 +206,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that excerpts of unreadable untitled posts are not rendered.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -221,6 +231,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that excerpts of password-protected untitled posts are not rendered.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -243,6 +255,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the opt-in form is shown and the list hidden before opting in.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -268,6 +282,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the form is not rendered and the list is hidden after opt-out.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -287,6 +303,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the form is not rendered and the list is shown after opt-in.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_on_this_day
@@ -321,6 +339,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that On This Day posts are not repeated in Recently Published.
+	 *
 	 * @ticket 65116
 	 *
 	 * @covers ::wp_dashboard_site_activity
