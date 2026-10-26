@@ -761,7 +761,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertSame( $siteurl_scheme, parse_url( get_blog_option( $new, 'siteurl' ), PHP_URL_SCHEME ) );
 	}
 
-	public function data_new_blog_url_schemes() {
+	public static function data_new_blog_url_schemes() {
 		return array(
 			array(
 				'https',
@@ -1040,7 +1040,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $site_id, 'site-details' ) );
 	}
 
-	public function data_get_site_caches() {
+	public static function data_get_site_caches() {
 		return array(
 			array( '%blog_id%', 'sites' ),
 			array( '%blog_id%', 'site-details' ),
@@ -1067,7 +1067,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_insert_site() {
+	public static function data_wp_insert_site() {
 		return array(
 			array(
 				array(
@@ -1224,7 +1224,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_update_site() {
+	public static function data_wp_update_site() {
 		return array(
 			array(
 				array(
@@ -1363,7 +1363,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, $result );
 	}
 
-	public function data_wp_normalize_site_data() {
+	public static function data_wp_normalize_site_data() {
 		return array(
 			array(
 				array(
@@ -1463,7 +1463,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_validate_site_data() {
+	public static function data_wp_validate_site_data() {
 		$date = current_time( 'mysql', true );
 
 		return array(
@@ -1761,7 +1761,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $update_expected, $update_result );
 	}
 
-	public function data_site_status_hook_triggers() {
+	public static function data_site_status_hook_triggers() {
 		return array(
 			array(
 				array(
@@ -1922,7 +1922,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertSame( $expected_meta, $meta );
 	}
 
-	public function data_wp_initialize_site() {
+	public static function data_wp_initialize_site() {
 		return array(
 			array(
 				array(),
@@ -2260,7 +2260,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->wp_initialize_site_meta = $meta;
 	}
 
-	public function data_wpmu_new_blog_action_backward_compatible() {
+	public static function data_wpmu_new_blog_action_backward_compatible() {
 		return array(
 			'default values' => array(
 				array(),
