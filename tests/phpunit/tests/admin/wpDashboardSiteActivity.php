@@ -203,6 +203,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		ob_start();
 		$result = wp_dashboard_on_this_day();
 		$output = ob_get_clean();
+		$this->assertIsString( $output );
 
 		$this->assertTrue( $result, 'OTD Widget should return true when posts are rendered.' );
 		$this->assertStringContainsString( 'Published On This Day', $output, 'OTD Widget should render the section heading.' );
