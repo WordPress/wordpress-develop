@@ -60,6 +60,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $themes_route = '/wp/v2/themes';
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Performs a REST API request for the active theme.
 	 *
 	 * @since 5.0.0
@@ -147,6 +156,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
+
 		wp_set_current_user( self::$contributor_id );
 
 		// Select the fixture theme without running theme activation side effects.
@@ -159,6 +170,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		$GLOBALS['_wp_theme_features']            = self::$theme_features;
 		$GLOBALS['_wp_registered_theme_features'] = self::$registered_theme_features;
 
