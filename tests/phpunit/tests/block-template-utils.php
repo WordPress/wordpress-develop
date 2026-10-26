@@ -274,7 +274,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_remove_theme_attribute_in_block_template_content() {
+	public static function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(
 				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
