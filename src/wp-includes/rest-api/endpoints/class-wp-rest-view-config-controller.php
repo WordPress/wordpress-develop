@@ -140,7 +140,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Returns the default view configuration for the given entity type.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 Added the item count of each view in the `page` view list.
+	 * @since 7.3.0 Added the item count of each view in the `page` view list.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -201,7 +201,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 Added the `count` property to the view list entries.
+	 * @since 7.3.0 Added the `count` property to the view list entries.
 	 *
 	 * @return array Item schema data.
 	 */

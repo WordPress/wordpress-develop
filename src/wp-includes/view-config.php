@@ -875,7 +875,7 @@ function _wp_get_entity_view_config_root_site( $data ) {
  * `readable` permission argument keeps private posts the current user cannot
  * read out of the totals.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param string       $post_type       The post type the view list belongs to.
  * @param array        $view_list       The view list.
@@ -914,7 +914,7 @@ function _wp_add_counts_to_view_list( $post_type, $view_list, $default_view = ar
  * The entry and defaults come from view config filters, so their shape is not
  * trusted.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param mixed        $entry           A view list entry.
  * @param array|object $default_view    The default view the entry inherits from.
@@ -956,7 +956,7 @@ function _wp_get_view_list_entry_statuses( $entry, $default_view = array(), $def
  * `search` in a layer is ignored, as the client drops it from the config and
  * takes the search from the URL instead.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param array[] $layers The view's layers, lowest first.
  * @return string[]|null The statuses, or null when the view filters by anything
