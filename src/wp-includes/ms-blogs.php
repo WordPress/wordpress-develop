@@ -485,6 +485,11 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  *
  * PHP code loaded with the originally requested site, such as code from a plugin or theme, does not switch. See #14941.
  *
+ * Registered post types, taxonomies and other registries do not switch either: they still
+ * hold what the original site registered. Functions that read them, such as get_post_types(),
+ * post_type_exists() and taxonomy_exists(), and a WP_Query using 'post_type' => 'any' or a
+ * 'tax_query', reflect the original site rather than the switched-to site. See #20541 and #63768.
+ *
  * @see restore_current_blog()
  * @since MU (3.0.0)
  *
