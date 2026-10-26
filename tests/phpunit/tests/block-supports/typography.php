@@ -35,8 +35,8 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->test_block_name         = null;
-		$this->original_stylesheet     = get_stylesheet();
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
