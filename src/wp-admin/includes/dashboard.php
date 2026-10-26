@@ -1145,6 +1145,25 @@ function wp_dashboard_on_this_day( $posts = null ) {
  * @return WP_Post[] Array of posts ordered by newest first.
  */
 function wp_dashboard_on_this_day_get_posts() {
+	/**
+	 * Filters whether to short-circuit performing the query for the On This Day dashboard query.
+	 *
+	 * Filter to allow the bypassing of the SQL query for the On This Day section of the activity
+	 * widget.
+	 *
+	 * Return null for the default query to run or an array of post IDs to override the built in
+	 * database query. Returning an empty array will have the effect of turning the feature off.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post[]|null $preflight Null to continue, array of post objects to bypass query.
+	 */
+	$preflight = apply_filters( 'pre_wp_dashboard_on_this_day_get_posts', null );
+
+	if ( is_array( $preflight ) ) {
+		return $preflight;
+	}
+
 	$today = current_datetime();
 	$year  = (int) $today->format( 'Y' );
 
