@@ -38,7 +38,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		// With a permalink structure set, get_permalink() will no longer match.
-		$this->assertNotEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertNotSame( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		// Global post and permalink structure are set.
