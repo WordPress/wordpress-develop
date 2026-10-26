@@ -48,7 +48,7 @@ class WP_Query {
 	 * @since 3.2.0
 	 * @var WP_Meta_Query A meta query instance.
 	 */
-	public $meta_query = false;
+	public $meta_query;
 
 	/**
 	 * Date query container.
@@ -56,7 +56,7 @@ class WP_Query {
 	 * @since 3.7.0
 	 * @var WP_Date_Query A date query instance.
 	 */
-	public $date_query = false;
+	public $date_query;
 
 	/**
 	 * Holds the data for a single object that is queried.
