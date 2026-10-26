@@ -942,7 +942,8 @@ body #dashboard-widgets .postbox form .submit {
 	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto;
 	column-gap: 10px;
 	color: #646970;
-	padding: 4px 12px;
+	padding: 7px 12px;
+	margin-bottom: 0;
 }
 
 #future-posts li:nth-child(odd),
