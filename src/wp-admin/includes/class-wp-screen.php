@@ -1192,7 +1192,7 @@ final class WP_Screen {
 	 *
 	 * @return string Meta box reordering option markup.
 	 */
-	private function get_on_this_day_option() {
+	private function get_on_this_day_option(): string {
 		return '<input class="wp-on-this-day-toggle" name="wp-on-this-day-toggle" type="checkbox" id="wp-on-this-day-toggle" value="opt-in"' . checked( wp_is_on_this_day_enabled(), true, false ) . ' />'
 			. '<label for="wp-on-this-day-toggle">' . __( 'Display "On This Day" posts in Activity' ) . '</label>';
 	}

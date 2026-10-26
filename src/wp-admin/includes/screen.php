@@ -214,7 +214,7 @@ function wp_is_meta_box_reordering_enabled() {
  *
  * @return bool Whether meta box reordering is enabled.
  */
-function wp_is_on_this_day_enabled() {
+function wp_is_on_this_day_enabled(): bool {
 	$setting = get_user_option( 'dashboard_show_on_this_day' );
 
 	return 'opt-in' === $setting;
