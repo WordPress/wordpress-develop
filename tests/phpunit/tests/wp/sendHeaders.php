@@ -33,6 +33,26 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 			}
 		);
 
+		$post_id = self::factory()->post->create(
+			array(
+				'ping_status' => 'open',
+			)
+		);
+		$this->go_to( get_permalink( $post_id ) );
+	}
+
+	/**
+	 * @ticket 56840
+	 * @ticket 38207
+	 */
+	public function test_send_headers_does_not_set_x_pingback_when_pings_are_closed() {
+		add_action(
+			'wp_headers',
+			function ( $headers ) {
+				$this->assertArrayNotHasKey( 'X-Pingback', $headers );
+			}
+		);
+
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
 	}
