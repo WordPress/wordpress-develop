@@ -1047,28 +1047,28 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		return false;
 	}
 
+	?>
+	<div id="wp-on-this-day-posts" class="activity-block wp-on-this-day-posts-title <?php echo $display_form ? 'hide-if-no-js' : ''; ?> <?php echo ! $display_form && ! $display_list ? 'hidden' : ''; ?>">
+		<h3><?php _e( 'Published On This Day' ); ?></h3>
+	<?php
+
 	if ( $display_form ) :
 		?>
-		<div id="wp-on-this-day-posts-form" class="activity-block wp-on-this-day-posts-title hide-if-no-js">
-			<h3><?php _e( 'Published On This Day' ); ?></h3>
-			<form method="post">
-			<p>
-				<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' ); ?>
-			</p>
-			<p>
-				<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
-				<button name="enabled" value="1" class="button button-primary"><?php _e( 'Yes' ); ?></button>
-				<button name="enabled" value="0" class="button"><?php _e( 'No' ); ?></button>
-			</p>
-			</form>
-		</div>
+		<form method="post" id="wp-on-this-day-posts-form">
+		<p>
+			<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' ); ?>
+		</p>
+		<p>
+			<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
+			<button name="enabled" value="1" class="button button-primary"><?php _e( 'Yes' ); ?></button>
+			<button name="enabled" value="0" class="button"><?php _e( 'No' ); ?></button>
+		</p>
+		</form>
 		<?php
 	endif;
 
 	?>
-	<div id="wp-on-this-day-posts-list" class="activity-block wp-on-this-day-posts-title" style="<?php echo $display_list ? '' : 'display: none;'; ?>">
-	<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
-	<ul>
+	<ul id="wp-on-this-day-posts-list" <?php echo $display_list ? '' : 'class="hidden"'; ?>>
 	<?php
 
 	foreach ( $posts as $post ) {

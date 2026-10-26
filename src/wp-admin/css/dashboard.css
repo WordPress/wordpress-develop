@@ -931,13 +931,13 @@ body #dashboard-widgets .postbox form .submit {
 
 #future-posts ul,
 #published-posts ul,
-#wp-on-this-day-posts-list ul {
+#wp-on-this-day-posts ul {
 	margin: 8px -12px 0 -12px;
 }
 
 #future-posts li,
 #published-posts li,
-#wp-on-this-day-posts-list li {
+#wp-on-this-day-posts li {
 	display: grid;
 	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto;
 	column-gap: 10px;
@@ -962,6 +962,12 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 .activity-block:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
+/* The last visible block, ignoring any hidden blocks that follow it. */
+.activity-block:nth-last-child(1 of :not(.hidden)) {
 	border-bottom: none;
 	margin-bottom: 0;
 }
