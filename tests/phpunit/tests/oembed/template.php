@@ -10,6 +10,12 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		global $wp_scripts;
 		$wp_scripts = null;
+
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
+		// `print_embed_scripts()` assumes `wp-includes/js/wp-embed-template.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-embed-template.js' );
 	}
 
 	public function tear_down() {
@@ -40,9 +46,6 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->go_to( get_post_embed_url( $post_id ) );
 
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
-
-		// `print_embed_scripts()` assumes `wp-includes/js/wp-embed-template.js` is present:
-		self::touch( ABSPATH . WPINC . '/js/wp-embed-template.js' );
 
 		ob_start();
 		require ABSPATH . WPINC . '/theme-compat/embed.php';
