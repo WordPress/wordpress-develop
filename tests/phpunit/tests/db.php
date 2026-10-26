@@ -1022,6 +1022,20 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A prefix pattern prepared as database drop-ins see it: the wildcard placeholder
+	 * is replaced again by the `query` filter before the table is looked up.
+	 *
+	 * @ticket 57149
+	 */
+	public function test_get_table_from_query_built_with_prepare_esc_like_and_wildcard() {
+		$query = self::$_wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', self::$_wpdb->esc_like( 'wp_123_' ) . '%' );
+		$query = self::$_wpdb->remove_placeholder_escape( $query );
+
+		$this->assertSame( "SHOW TABLE STATUS LIKE 'wp\\\\_123\\\\_%'", $query, 'The prepared query is not in the expected form.' );
+		$this->assertSame( 'wp_123_', self::$_wpdb->get_table_from_query( $query ) );
+	}
+
+	/**
 	 * @ticket 21212
 	 */
 	public function data_process_field_formats() {
