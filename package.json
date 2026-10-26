@@ -42,7 +42,7 @@
 		"@343dev/gifsicle": "1.2.0",
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@napi-rs/image": "1.14.0",
-		"@playwright/test": "1.61.1",
+		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/backbone": "1.4.23",
 		"@types/codemirror": "5.60.17",
