@@ -410,7 +410,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_ping_types() {
+	public static function data_ping_types() {
 		return array(
 			'pingback'  => array( 'pingback' ),
 			'trackback' => array( 'trackback' ),

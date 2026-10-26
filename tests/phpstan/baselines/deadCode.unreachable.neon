@@ -52,9 +52,4 @@ parameters:
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
-			path: ../../../src/wp-includes/class-wp-block.php
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
 			path: ../../../src/wp-includes/pluggable.php

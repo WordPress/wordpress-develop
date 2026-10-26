@@ -1953,7 +1953,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
 		$response = rest_ensure_response( new WP_Error() );
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 	}
 
 	/**
