@@ -2,7 +2,7 @@
  * External dependencies
  */
 import path from 'node:path';
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * WordPress dependencies
@@ -15,6 +15,15 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 	'storage-states/admin.json'
 );
 
+const SERIAL_SPECS = [
+	'install.test.js',
+	'maintenance-mode.test.js',
+	'fatal-error-handler.test.js',
+	'login-localize-script.test.js',
+	'gutenberg-plugin.test.js',
+	'plugins.test.js',
+];
+
 const config = defineConfig( {
 	...baseConfig,
 	globalSetup: require.resolve( './config/global-setup.js' ),
@@ -22,6 +31,22 @@ const config = defineConfig( {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
 	},
+	projects: [
+		{
+			name: 'parallel',
+			testIgnore: SERIAL_SPECS,
+			fullyParallel: false,
+			workers: process.env.CI ? 4 : '50%',
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+		{
+			name: 'serial',
+			testMatch: SERIAL_SPECS,
+			fullyParallel: false,
+			workers: 1,
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+	],
 } );
 
 export default config;
