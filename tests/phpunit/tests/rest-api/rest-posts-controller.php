@@ -5207,6 +5207,42 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertCount( 1, $publish, 'LDO found on schema.' );
 	}
 
+	/**
+	 * @ticket 66332
+	 *
+	 * @covers WP_REST_Posts_Controller::get_schema_links
+	 */
+	public function test_unfiltered_html_action_ldo_target_schema() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema, 'The schema should have links.' );
+		$unfiltered_html = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-unfiltered-html' ) );
+
+		$this->assertCount( 1, $unfiltered_html, 'The action-unfiltered-html LDO should be on the schema once.' );
+
+		$ldo = array_shift( $unfiltered_html );
+
+		$this->assertSame(
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'content' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'raw' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+			$ldo['targetSchema'],
+			'The target schema should describe content.raw as a string.'
+		);
+	}
+
 	public function test_sticky_action_ldo_registered_for_posts() {
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
 		$data     = $response->get_data();
@@ -5437,6 +5473,48 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$post = self::factory()->post->create( array( 'post_status' => 'trash' ) );
 
 		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_in_view_context() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'view' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_when_user_cannot_delete() {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'delete_post' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
 		$request->set_query_params( array( 'context' => 'edit' ) );
 
 		$response = rest_get_server()->dispatch( $request );

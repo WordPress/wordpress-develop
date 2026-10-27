@@ -1373,6 +1373,448 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Builds a Paragraph stylesheet with a text gradient and the given states.
+	 *
+	 * @param array $state_styles State styles to merge into the block styles.
+	 * @return string Generated stylesheet.
+	 */
+	private function get_text_clip_stylesheet( $state_styles ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/paragraph' => array_merge(
+							array(
+								'background' => array(
+									'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+									'backgroundClip' => 'text',
+								),
+							),
+							$state_styles
+						),
+					),
+				),
+			)
+		);
+
+		return $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_escaping_a_text_clip_clears_the_inherited_gradient() {
+		$stylesheet = $this->get_text_clip_stylesheet(
+			array(
+				'@mobile' => array(
+					'background' => array( 'backgroundClip' => 'border-box' ),
+				),
+			)
+		);
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(p){background-clip: border-box;-webkit-text-fill-color: currentColor;background-image: unset;}}',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_painting_its_own_background_keeps_it() {
+		$stylesheet = $this->get_text_clip_stylesheet(
+			array(
+				'@mobile' => array(
+					'background' => array(
+						'gradient'       => 'linear-gradient(135deg,#00ff00,#ffff00)',
+						'backgroundClip' => 'border-box',
+					),
+				),
+			)
+		);
+
+		$this->assertStringNotContainsString( 'background-image: unset', $stylesheet );
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_text_color_under_a_text_clip_gets_its_fill_back() {
+		$stylesheet = $this->get_text_clip_stylesheet(
+			array( '@mobile' => array( 'color' => array( 'text' => '#00ff00' ) ) )
+		);
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(p){color: #00ff00;-webkit-text-fill-color: currentColor;}}',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_keeping_the_text_clip_needs_no_escape() {
+		$stylesheet = $this->get_text_clip_stylesheet(
+			array(
+				'@mobile' => array(
+					'background' => array(
+						'gradient'       => 'linear-gradient(135deg,#00ff00,#ffff00)',
+						'backgroundClip' => 'text',
+					),
+				),
+			)
+		);
+
+		$this->assertStringNotContainsString( 'background-image: unset', $stylesheet );
+		$this->assertStringNotContainsString( '-webkit-text-fill-color: currentColor', $stylesheet );
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_element_styles_read_the_element_clip() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'background' => array(
+										'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+										'backgroundClip' => 'text',
+									),
+								),
+							),
+							'@mobile'  => array(
+								'elements' => array(
+									'link' => array( 'color' => array( 'text' => '#00ff00' ) ),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		// The state key sits in the middle of this node's path, not at its end.
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: #00ff00;-webkit-text-fill-color: currentColor;}}',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_variation_styles_read_the_variation_clip() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'flashy',
+				'label' => 'Flashy',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'flashy' => array(
+									'background' => array(
+										'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+										'backgroundClip' => 'text',
+									),
+									'@mobile'    => array(
+										'background' => array( 'backgroundClip' => 'border-box' ),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block(
+			array(
+				'name'       => 'core/group',
+				'path'       => array( 'styles', 'blocks', 'core/group' ),
+				'selector'   => '.wp-block-group',
+				'css'        => '.wp-block-group',
+				'variations' => array(
+					array(
+						'path'     => array( 'styles', 'blocks', 'core/group', 'variations', 'flashy' ),
+						'selector' => '.is-style-flashy.wp-block-group',
+					),
+				),
+			)
+		);
+
+		unregister_block_style( 'core/group', 'flashy' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.is-style-flashy.wp-block-group){background-clip: border-box;-webkit-text-fill-color: currentColor;background-image: unset;}}',
+			$actual_styles
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_breakpoint_variation_styles_read_the_block_clip() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'flashy',
+				'label' => 'Flashy',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'background' => array(
+								'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+								'backgroundClip' => 'text',
+							),
+							'variations' => array(
+								'flashy' => array(
+									'@mobile' => array(
+										'background' => array( 'backgroundClip' => 'border-box' ),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block(
+			array(
+				'name'       => 'core/group',
+				'path'       => array( 'styles', 'blocks', 'core/group' ),
+				'selector'   => '.wp-block-group',
+				'css'        => '.wp-block-group',
+				'variations' => array(
+					array(
+						'path'     => array( 'styles', 'blocks', 'core/group', 'variations', 'flashy' ),
+						'selector' => '.is-style-flashy.wp-block-group',
+					),
+				),
+			)
+		);
+
+		unregister_block_style( 'core/group', 'flashy' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.is-style-flashy.wp-block-group){background-clip: border-box;-webkit-text-fill-color: currentColor;background-image: unset;}}',
+			$actual_styles
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_variation_pseudo_state_reads_the_block_clip() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'flashy',
+				'label' => 'Flashy',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button' => array(
+							'background' => array(
+								'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+								'backgroundClip' => 'text',
+							),
+							'variations' => array(
+								'flashy' => array(
+									':hover' => array(
+										'background' => array( 'backgroundClip' => 'border-box' ),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block(
+			array(
+				'name'       => 'core/button',
+				'path'       => array( 'styles', 'blocks', 'core/button' ),
+				'selector'   => '.wp-block-button',
+				'css'        => '.wp-block-button',
+				'variations' => array(
+					array(
+						'path'     => array( 'styles', 'blocks', 'core/button', 'variations', 'flashy' ),
+						'selector' => '.is-style-flashy.wp-block-button',
+					),
+				),
+			)
+		);
+
+		unregister_block_style( 'core/button', 'flashy' );
+
+		$this->assertStringContainsString(
+			':root :where(.is-style-flashy.wp-block-button:hover){background-clip: border-box;-webkit-text-fill-color: currentColor;background-image: unset;}',
+			$actual_styles
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_variation_breakpoint_pseudo_state_reads_the_block_clip() {
+		register_block_style(
+			'core/button',
+			array(
+				'name'  => 'flashy',
+				'label' => 'Flashy',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/button' => array(
+							'background' => array(
+								'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+								'backgroundClip' => 'text',
+							),
+							'variations' => array(
+								'flashy' => array(
+									'@mobile' => array(
+										':hover' => array(
+											'background' => array( 'backgroundClip' => 'border-box' ),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_styles = $theme_json->get_styles_for_block(
+			array(
+				'name'       => 'core/button',
+				'path'       => array( 'styles', 'blocks', 'core/button' ),
+				'selector'   => '.wp-block-button',
+				'css'        => '.wp-block-button',
+				'variations' => array(
+					array(
+						'path'     => array( 'styles', 'blocks', 'core/button', 'variations', 'flashy' ),
+						'selector' => '.is-style-flashy.wp-block-button',
+					),
+				),
+			)
+		);
+
+		unregister_block_style( 'core/button', 'flashy' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.is-style-flashy.wp-block-button:hover){background-clip: border-box;-webkit-text-fill-color: currentColor;background-image: unset;}}',
+			$actual_styles
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_pseudo_state_reads_the_clip_its_own_breakpoint_sets() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/button' => array(
+							'background' => array( 'backgroundClip' => 'border-box' ),
+							'@mobile'    => array(
+								'background' => array(
+									'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+									'backgroundClip' => 'text',
+								),
+								':hover'     => array( 'color' => array( 'text' => '#00ff00' ) ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.wp-block-button .wp-block-button__link:hover){color: #00ff00;-webkit-text-fill-color: currentColor;}}',
+			$stylesheet
+		);
+	}
+
+	/**
+	 * @ticket 66094
+	 */
+	public function test_pseudo_state_inside_a_breakpoint_reads_the_breakpoint_clip() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'viewport' => array( 'mobile' => '480px' ) ),
+				'styles'   => array(
+					'blocks' => array(
+						'core/button' => array(
+							'background' => array(
+								'gradient'       => 'linear-gradient(135deg,#ff0000,#0000ff)',
+								'backgroundClip' => 'text',
+							),
+							'@mobile'    => array(
+								'background' => array( 'backgroundClip' => 'border-box' ),
+								':hover'     => array( 'color' => array( 'text' => '#00ff00' ) ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		// The breakpoint already escaped the clip, so no fill is needed.
+		$this->assertStringContainsString(
+			'@media (width <= 480px){:root :where(.wp-block-button .wp-block-button__link:hover){color: #00ff00;}}',
+			$stylesheet
+		);
+	}
+
+	/**
 	 * @ticket 65596
 	 */
 	public function test_get_stylesheet_omits_tablet_styles_when_its_breakpoint_is_not_larger_than_mobile() {
@@ -1928,6 +2370,216 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_focus_color_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:focus, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_user_invalid_spacing_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':user-invalid' => array(
+								'spacing' => array(
+									'padding' => array(
+										'top' => '1rem',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:user-invalid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-invalid){padding-top: 1rem;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_placeholder_typography_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							'::placeholder' => array(
+								'typography' => array(
+									'fontStyle' => 'italic',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{font-style: italic;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_variation_responsive_text_input_pseudo_selectors() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'section-1',
+				'label' => 'Section 1',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'section-1' => array(
+									'@mobile' => array(
+										'elements' => array(
+											'textInput' => array(
+												':focus' => array(
+													'color' => array(
+														'text' => 'blue',
+													),
+												),
+												'::placeholder' => array(
+													'color' => array(
+														'text' => 'green',
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		unregister_block_style( 'core/group', 'section-1' );
+
+		$focus       = '@media (width <= 480px){:root :where(.wp-block-group.is-style-section-1 textarea:focus, .wp-block-group.is-style-section-1 input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}}';
+		$placeholder = '@media (width <= 480px){:root :where(.wp-block-group.is-style-section-1 textarea, .wp-block-group.is-style-section-1 input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{color: green;}}';
+
+		$this->assertStringContainsString( $focus, $actual );
+		$this->assertStringContainsString( $placeholder, $actual );
+	}
+
+	/**
+	 * Tests that text input focus styles are output after validation styles, so focus wins when both match.
+	 *
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_outputs_text_input_focus_after_validation_states() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus'        => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+							':user-valid'   => array(
+								'color' => array(
+									'text' => 'green',
+								),
+							),
+							':user-invalid' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:user-valid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-valid){color: green;}:root :where(textarea:user-invalid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-invalid){color: red;}:root :where(textarea:focus, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_block_text_input_placeholder_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/search' => array(
+							'elements' => array(
+								'textInput' => array(
+									'::placeholder' => array(
+										'color' => array(
+											'text' => 'green',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-search textarea, .wp-block-search input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{color: green;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
@@ -1964,6 +2616,88 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$expected = 'h4{background-color: red;color: green;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 66349
+	 */
+	public function test_get_stylesheet_handles_select_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'select' => array(
+							'color'          => array(
+								'text' => 'green',
+							),
+							':hover'         => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+							':focus'         => array(
+								'outline' => array(
+									'style' => 'dotted',
+								),
+							),
+							':focus-visible' => array(
+								'outline' => array(
+									'style' => 'solid',
+								),
+							),
+							':active'        => array(
+								'color' => array(
+									'background' => 'yellow',
+								),
+							),
+							':visited'       => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = 'select{color: green;}:root :where(select:hover){background-color: blue;}:root :where(select:focus){outline-style: dotted;}:root :where(select:focus-visible){outline-style: solid;}:root :where(select:active){background-color: yellow;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 66349
+	 */
+	public function test_get_stylesheet_handles_block_level_select_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/categories' => array(
+							'elements' => array(
+								'select' => array(
+									'color'  => array(
+										'text' => 'green',
+									),
+									':hover' => array(
+										'color' => array(
+											'background' => 'blue',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-categories select){color: green;}:root :where(.wp-block-categories select:hover){background-color: blue;}';
 
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
@@ -4555,6 +5289,70 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65880
+	 */
+	public function test_remove_insecure_properties_preserves_supported_text_input_pseudo_selectors() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus'        => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+							':user-invalid' => array(
+								'spacing' => array(
+									'padding' => array(
+										'top' => '1rem',
+									),
+								),
+							),
+							'::placeholder' => array(
+								'typography' => array(
+									'fontStyle' => 'italic',
+								),
+							),
+						),
+					),
+				),
+			),
+			'theme'
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'elements' => array(
+					'textInput' => array(
+						':focus'        => array(
+							'color' => array(
+								'text' => 'blue',
+							),
+						),
+						':user-invalid' => array(
+							'spacing' => array(
+								'padding' => array(
+									'top' => '1rem',
+								),
+							),
+						),
+						'::placeholder' => array(
+							'typography' => array(
+								'fontStyle' => 'italic',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_get_custom_templates() {
@@ -5898,6 +6696,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66286
+	 * @ticket 66304
 	 *
 	 * @dataProvider data_get_stylesheet_ignores_values_of_unexpected_types
 	 *
@@ -5918,22 +6717,57 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public static function data_get_stylesheet_ignores_values_of_unexpected_types() {
 		return array(
-			'root custom css as an object'       => array(
+			'root custom css as an object'          => array(
 				array( 'styles' => array( 'css' => array( 'color' => 'red' ) ) ),
 			),
-			'element custom css as an object'    => array(
+			'element custom css as an object'       => array(
 				array( 'styles' => array( 'elements' => array( 'link' => array( 'css' => array( 'color' => 'red' ) ) ) ) ),
 			),
-			'block custom css as a list'         => array(
+			'block custom css as a list'            => array(
 				array( 'styles' => array( 'blocks' => array( 'core/paragraph' => array( 'css' => array( 'color: red;' ) ) ) ) ),
 			),
-			'ref as an array'                    => array(
+			'ref as an array'                       => array(
 				array( 'styles' => array( 'color' => array( 'text' => array( 'ref' => array( 'styles', 'color' ) ) ) ) ),
 			),
-			'spacing scale as a string'          => array(
+			'palette as a list of strings'          => array(
+				array( 'settings' => array( 'color' => array( 'palette' => array( '#000', '#fff' ) ) ) ),
+			),
+			'palette keyed by origin with a string' => array(
+				array( 'settings' => array( 'color' => array( 'palette' => array( 'custom' => array( '#000' ) ) ) ) ),
+			),
+			'palette mixing a list and an origin'   => array(
+				array(
+					'settings' => array(
+						'color' => array(
+							'palette' => array(
+								0       => '#000',
+								'theme' => '#fff',
+							),
+						),
+					),
+				),
+			),
+			'preset slug as an array'               => array(
+				array(
+					'settings' => array(
+						'typography' => array(
+							'fontSizes' => array(
+								array(
+									'slug' => array( 'small' ),
+									'size' => '1rem',
+								),
+							),
+						),
+					),
+				),
+			),
+			'font families as a list of strings'    => array(
+				array( 'settings' => array( 'typography' => array( 'fontFamilies' => array( 'Inter' ) ) ) ),
+			),
+			'spacing scale as a string'             => array(
 				array( 'settings' => array( 'spacing' => array( 'spacingScale' => '1.5' ) ) ),
 			),
-			'spacing scale unit as an array'     => array(
+			'spacing scale unit as an array'        => array(
 				array(
 					'settings' => array(
 						'spacing' => array(
@@ -5948,13 +6782,75 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 			),
-			'shared style variation as a string' => array(
+			'shared style variation as a string'    => array(
 				array( 'styles' => array( 'variations' => array( 'plain' => 'red' ) ) ),
 			),
-			'block types item as an array'       => array(
+			'block types item as an array'          => array(
 				array( 'blockTypes' => array( array( 'core/button' ) ) ),
 			),
 		);
+	}
+
+	/**
+	 * @ticket 66304
+	 */
+	public function test_sanitize_removes_preset_items_of_unexpected_types() {
+		$valid_color = array(
+			'slug'  => 'black',
+			'color' => '#000',
+			'name'  => 'Black',
+		);
+		$int_slug    = array(
+			'slug'  => 50,
+			'color' => '#888',
+			'name'  => 'Grey',
+		);
+		$invalid     = array(
+			'#fff',
+			array(
+				'slug'  => array( 'white' ),
+				'color' => '#fff',
+			),
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array( 'palette' => array_merge( $invalid, array( $valid_color, $int_slug ) ) ),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array( 'palette' => array( 'custom' => array_merge( $invalid, array( $valid_color, $int_slug ) ) ) ),
+						),
+					),
+				),
+			)
+		);
+		$settings   = $theme_json->get_settings();
+
+		$this->assertSame( array( $valid_color, $int_slug ), $settings['color']['palette']['theme'], 'Top-level preset list' );
+		$this->assertSame( array( $valid_color, $int_slug ), $settings['blocks']['core/paragraph']['color']['palette']['custom'], 'Block-level presets keyed by origin' );
+	}
+
+	/**
+	 * @ticket 66304
+	 */
+	public function test_remove_insecure_properties_removes_preset_items_of_unexpected_types() {
+		$valid_color = array(
+			'slug'  => 'black',
+			'color' => '#000',
+			'name'  => 'Black',
+		);
+
+		$sanitized = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'color' => array( 'palette' => array( 'custom' => array( '#fff', $valid_color ) ) ) ),
+			),
+			'custom'
+		);
+
+		$this->assertSame( array( $valid_color ), $sanitized['settings']['color']['palette']['custom'] );
 	}
 
 	/**
@@ -9164,6 +10060,56 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $expected, $stylesheet_unsupported );
 		$this->assertStringNotContainsString( '-current', $stylesheet_unsupported );
 		$this->assertStringNotContainsString( 'current-menu-item', $stylesheet_unsupported );
+	}
+
+	/**
+	 * Test that core/navigation-submenu supports -current and its pseudo-selectors
+	 * independently from core/navigation-link, using its own CSS selector.
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 66312
+	 */
+	public function test_block_custom_states_navigation_submenu() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-submenu' => array(
+							'-current' => array(
+								'color'  => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+								':hover' => array(
+									'color' => array(
+										'text' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-submenu', '-current' ),
+			'selector' => '.wp-block-navigation .wp-block-navigation-submenu .current-menu-item',
+		);
+		$hover_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-submenu', '-current', ':hover' ),
+			'selector' => '.wp-block-navigation .wp-block-navigation-submenu .current-menu-item:hover',
+		);
+
+		$expected  = ':root :where(.wp-block-navigation .wp-block-navigation-submenu .current-menu-item){background-color: blue;color: red;}';
+		$expected .= ':root :where(.wp-block-navigation .wp-block-navigation-submenu .current-menu-item:hover){color: white;}';
+
+		$actual  = $theme_json->get_styles_for_block( $current_node );
+		$actual .= $theme_json->get_styles_for_block( $hover_node );
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**

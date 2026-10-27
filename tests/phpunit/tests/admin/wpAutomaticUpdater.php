@@ -112,7 +112,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_append_plugin_urls() {
 		return array(
 			'successful updates, the current version and the plugin url'       => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -380,7 +380,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_not_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_not_append_plugin_urls() {
 		return array(
 			'successful updates, the current version, but no plugin url'    => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -704,7 +704,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
+	public static function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
 		return array(
 			// Type checks and boolean comparisons.
 			'null'                              => array( 'dir' => null ),
@@ -755,5 +755,157 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturn( false );
 
 		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Automatic_Updater::send_plugin_theme_email()} lists the details of a
+	 * fatal error under the plugin whose update was rolled back.
+	 *
+	 * @ticket 64155
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 */
+	public function test_send_plugin_theme_email_should_include_fatal_error_details(): void {
+		$filter = new MockAction();
+		add_filter( 'wp_mail', array( $filter, 'filter' ) );
+
+		$fatal_error = 'PHP Fatal error: Uncaught Error: Call to undefined function failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12';
+
+		$result = new WP_Error( 'plugin_update_fatal_error_rollback_successful', "The update for 'failed-plugin' contained a fatal error. The previously installed version has been restored." );
+		$result->add( 'plugin_update_fatal_error', $fatal_error );
+
+		$failed = array(
+			(object) array(
+				'name'   => 'Failed Plugin',
+				'result' => $result,
+				'item'   => (object) array(
+					'current_version' => '1.0.0',
+					'new_version'     => '2.0.0',
+					'plugin'          => 'failed-plugin/failed-plugin.php',
+				),
+			),
+		);
+
+		self::$send_plugin_theme_email->invokeArgs( self::$updater, array( 'fail', array(), array( 'plugin' => $failed ) ) );
+
+		$this->assertSame( 1, $filter->get_call_count(), 'An email should have been sent.' );
+
+		$mail_args = $filter->get_args()[0][0];
+		$this->assertIsArray( $mail_args );
+		$this->assertArrayHasKey( 'message', $mail_args );
+		$this->assertIsString( $mail_args['message'] );
+		$this->assertStringContainsString(
+			"- Failed Plugin (from version 1.0.0 to 2.0.0)\n  {$fatal_error}\n",
+			$mail_args['message'],
+			'The fatal error should be listed under the plugin that failed to update.'
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Automatic_Updater::has_fatal_error()} records the details of the fatal
+	 * error found by the loopback request, without any stack trace.
+	 *
+	 * @ticket 64155
+	 *
+	 * @covers WP_Automatic_Updater::has_fatal_error
+	 *
+	 * @dataProvider data_has_fatal_error_should_record_fatal_error_details
+	 *
+	 * @param array<string, string>|true|WP_Error $scrape_result    The result of the loopback request: the error
+	 *                                                                found by the scrape, `true` for none, or a
+	 *                                                                `WP_Error` for a failed request.
+	 * @param bool                                $expected_return  The expected return value.
+	 * @param string|null                         $expected_message The expected details of the fatal error.
+	 */
+	public function test_has_fatal_error_should_record_fatal_error_details( $scrape_result, bool $expected_return, ?string $expected_message ): void {
+		$upgrading = 1700000000;
+
+		$maintenance_file = ABSPATH . '.maintenance';
+		$this->assertFileDoesNotExist( $maintenance_file, 'The test requires that no maintenance file exists.' );
+		file_put_contents( $maintenance_file, "<?php \$upgrading = {$upgrading};" );
+
+		add_filter(
+			'pre_http_request',
+			static function () use ( $scrape_result, $upgrading ) {
+				if ( $scrape_result instanceof WP_Error ) {
+					return $scrape_result;
+				}
+
+				$scrape_key = md5( (string) $upgrading );
+
+				return array(
+					'headers'  => array(),
+					'body'     => "<html></html>\n###### wp_scraping_result_start:{$scrape_key} ######\n" . wp_json_encode( $scrape_result ) . "\n###### wp_scraping_result_end:{$scrape_key} ######\n",
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
+
+		$has_fatal_error = new ReflectionMethod( self::$updater, 'has_fatal_error' );
+		$message         = new ReflectionProperty( self::$updater, 'fatal_error_message' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$has_fatal_error->setAccessible( true );
+			$message->setAccessible( true );
+		}
+
+		try {
+			$this->assertSame( $expected_return, $has_fatal_error->invoke( self::$updater ), 'The return value should indicate whether a fatal error was detected.' );
+		} finally {
+			unlink( $maintenance_file );
+		}
+
+		$this->assertSame( $expected_message, $message->getValue( self::$updater ), 'The recorded details of the fatal error do not match.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * The scrape results mirror those of {@see wp_finalize_scraping_edited_file_errors()}, which
+	 * passes the error through `str_replace()`, so that every value is a string.
+	 *
+	 * @return array<non-falsy-string, array{
+	 *     scrape_result: array<string, string>|true|WP_Error,
+	 *     expected_return: bool,
+	 *     expected_message: string|null,
+	 * }>
+	 */
+	public function data_has_fatal_error_should_record_fatal_error_details(): array {
+		return array(
+			'fatal error with a stack trace'    => array(
+				'scrape_result'    => array(
+					'type'    => '1',
+					'message' => "Uncaught Exception: Could not connect to the database in wp-content/plugins/failed-plugin/failed-plugin.php:3\nStack trace:\n#0 wp-content/plugins/failed-plugin/failed-plugin.php(7): failed_plugin_connect('db_user', 'secret_password')\n#1 {main}\n  thrown",
+					'file'    => 'wp-content/plugins/failed-plugin/failed-plugin.php',
+					'line'    => '3',
+				),
+				'expected_return'  => true,
+				'expected_message' => 'PHP Fatal error: Uncaught Exception: Could not connect to the database in wp-content/plugins/failed-plugin/failed-plugin.php:3 in wp-content/plugins/failed-plugin/failed-plugin.php on line 3',
+			),
+			'fatal error without a stack trace' => array(
+				'scrape_result'    => array(
+					'type'    => '64',
+					'message' => 'Cannot redeclare failed_plugin_init()',
+					'file'    => 'wp-content/plugins/failed-plugin/failed-plugin.php',
+					'line'    => '12',
+				),
+				'expected_return'  => true,
+				'expected_message' => 'PHP Fatal error: Cannot redeclare failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12',
+			),
+			'no fatal error'                    => array(
+				'scrape_result'    => true,
+				'expected_return'  => false,
+				'expected_message' => null,
+			),
+			'failed loopback request'           => array(
+				'scrape_result'    => new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ),
+				'expected_return'  => true,
+				'expected_message' => 'The loopback request to check for fatal errors failed: cURL error 28: Operation timed out',
+			),
+		);
 	}
 }

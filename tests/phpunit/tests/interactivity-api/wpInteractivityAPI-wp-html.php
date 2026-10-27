@@ -182,7 +182,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that a token renders as the exact content of the host, however the
 	 * reference reaches it, and reaches the output only there: `data-wp-bind`
-	 * does not set it and the client data does not hold it.
+	 * does not set it and the client data holds none of its HTML. A token in
+	 * state prints as the marker `{"wpServerHtml":true}`.
 	 *
 	 * @ticket 66246
 	 *
@@ -191,8 +192,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @dataProvider data_ways_to_reach_a_token
 	 *
 	 * @param callable $make_state Callable returning the state to set.
+	 * @param string   $printed    How `state.html` is expected to print in the client data.
 	 */
-	public function test_token_reaches_the_output_only_as_host_content( callable $make_state ) {
+	public function test_token_reaches_the_output_only_as_host_content( callable $make_state, string $printed ) {
 		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
 		$this->set_state( $make_state() );
 
@@ -220,15 +222,14 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'Expected only the non-scalar notice of each bound attribute.'
 		);
 
-		$printed = $this->printed_client_data();
-		$this->assertStringNotContainsString( 'marker-7f3a', $printed, 'Expected the client data to hold no trusted HTML.' );
-		$this->assertStringContainsString( '"html":{}', $printed, 'Expected the token to print as an empty object.' );
+		$this->assertStringNotContainsString( 'marker-7f3a', $this->printed_client_data(), 'Expected the client data to hold no trusted HTML.' );
+		$this->assertStringContainsString( '"html":' . $printed, $this->printed_client_data(), 'Expected state.html to print as given.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: callable }> Data provider.
+	 * @return array<string, array{ 0: callable, 1: string }> Data provider.
 	 */
 	public static function data_ways_to_reach_a_token(): array {
 		return array(
@@ -236,6 +237,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 				static function () {
 					return array( 'html' => wp_interactivity_as_dangerous_html( self::MARKER_HTML ) );
 				},
+				'{"wpServerHtml":true}',
 			),
 			'closure returning a token' => array(
 				static function () {
@@ -245,16 +247,19 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 						},
 					);
 				},
+				'{}',
 			),
 			'clone of a token'          => array(
 				static function () {
 					return array( 'html' => clone wp_interactivity_as_dangerous_html( self::MARKER_HTML ) );
 				},
+				'{"wpServerHtml":true}',
 			),
 			'token created with new'    => array(
 				static function () {
 					return array( 'html' => new WP_Interactivity_Dangerous_HTML( self::MARKER_HTML ) );
 				},
+				'{"wpServerHtml":true}',
 			),
 		);
 	}
@@ -394,6 +399,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'json_decode object'         => array( json_decode( '{"html":"<p>Hi</p>"}' ) ),
 			'other object'               => array( new ArrayObject( array( '<p>Hi</p>' ) ) ),
 			'json_decode of a token'     => array( json_decode( wp_json_encode( new WP_Interactivity_Dangerous_HTML( '<p>Hi</p>' ) ) ) ),
+			'marker decoded as an array' => array( json_decode( '{"wpServerHtml":true}', true ) ),
 			'closure returning a string' => array(
 				static function () {
 					return '<p>Hi</p>';
@@ -729,11 +735,11 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a token restored by unserialization does not render but is
-	 * listed like any other token: the host keeps its fallback, exactly one
-	 * notice is raised for the unserialization and one for the decline, the
-	 * markup after the host is processed, and the token prints as an empty
-	 * object. The token that was serialized still renders.
+	 * Tests that a token restored by unserialization does not render but prints
+	 * as the marker like any other token: the host keeps its fallback, exactly
+	 * one notice is raised for the unserialization and one for the decline, and
+	 * the markup after the host is processed. The token that was serialized
+	 * still renders.
 	 *
 	 * @ticket 66246
 	 *
@@ -772,18 +778,18 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		);
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
 		$this->assertCount( 2, $this->notices, 'Expected no notice besides those of the unserialization and the decline.' );
-		$this->assertSame( array( 'test' => array( 'state.html', 'state.original' ) ), $this->announced_paths() );
 		$this->assertEquals(
-			(object) array(),
+			(object) array( 'wpServerHtml' => true ),
 			json_decode( $this->printed_client_data() )->state->test->html,
-			'Expected the token to print as an empty object.'
+			'Expected the token to print as the marker.'
 		);
 	}
 
 	/**
-	 * Tests that a token in `wp_interactivity_data_wp_context()` reaches neither
-	 * the output nor the client data, and that referencing it from other
-	 * directives neither renders it nor aborts processing.
+	 * Tests that a token in `wp_interactivity_data_wp_context()` prints as the
+	 * marker, so its HTML reaches neither the output nor the client data, and
+	 * that referencing it from other directives neither renders it nor aborts
+	 * processing.
 	 *
 	 * @ticket 66246
 	 *
@@ -809,30 +815,25 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			$output,
 			'Expected the context to hold no HTML to render, and the markup after it to be processed.'
 		);
-		$this->assertStringContainsString( '{"h":{}}', $output, 'Expected the token to print as an empty object in the context attribute.' );
+		$this->assertStringContainsString( '{"h":{"wpServerHtml":true}}', $output, 'Expected the token to print as the marker in the context attribute.' );
 		$this->assertStringNotContainsString( 'marker-7f3a', $output );
 		$this->assertStringNotContainsString( 'marker-7f3a', $this->printed_client_data() );
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected the value read from context to decline as not a token.' );
 	}
 
 	/**
-	 * Tests that every host renders its token and that a token reached through
-	 * state is listed with the full path of the reference, under the namespace
-	 * the reference resolves in, once per path and namespace. A path is listed
-	 * without a leading `!`, also when only a directive other than
-	 * `data-wp-html` references it.
+	 * Tests that every host renders the token its reference reaches through
+	 * state, at any depth and in any namespace.
 	 *
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
-	 * @covers ::filter_script_module_interactivity_data
 	 */
-	public function test_token_paths_are_listed_in_full_per_namespace() {
+	public function test_tokens_render_at_any_depth_and_namespace() {
 		$this->set_state(
 			array(
-				'html'    => $this->token(),
-				'deep'    => array( 'er' => array( 'html' => $this->token() ) ),
-				'negated' => $this->token(),
+				'html' => $this->token(),
+				'deep' => array( 'er' => array( 'html' => $this->token() ) ),
 			)
 		);
 		wp_interactivity_state(
@@ -849,18 +850,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			$hosts    .= '<div data-wp-html="' . $reference . '">Fallback</div>';
 			$rendered .= '<div data-wp-html="' . $reference . '">' . self::MARKER_HTML . '</div>';
 		}
-		$negated = '<div data-wp-class--off="!state.negated">x</div>';
+		$output = wp_interactivity_process_directives( $this->page( $hosts ) );
 
-		$output = wp_interactivity_process_directives( $this->page( $hosts . $negated ) );
-
-		$this->assertSame( $this->processed_page( $rendered . $negated ), $output, 'Expected every host to render its token.' );
-		$this->assertSame(
-			array(
-				'test'  => array( 'state.deep.er.html', 'state.html', 'state.negated' ),
-				'other' => array( 'state.html', 'state.deep.er.html' ),
-			),
-			$this->announced_paths()
-		);
+		$this->assertSame( $this->processed_page( $rendered ), $output, 'Expected every host to render its token.' );
 	}
 
 	/**
@@ -893,15 +885,15 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 	/**
 	 * Tests that tokens reached through `context`, such as the items of
-	 * `data-wp-each`, render without a notice and are not listed, although
-	 * they are held in state.
+	 * `data-wp-each`, render without a notice, add no listed path, and print
+	 * as the marker in the state that holds them.
 	 *
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 * @covers ::filter_script_module_interactivity_data
 	 */
-	public function test_tokens_reached_through_context_are_not_listed() {
+	public function test_tokens_reached_through_context_render_and_print_as_the_marker() {
 		$this->set_state(
 			array(
 				'items' => array(
@@ -918,6 +910,40 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$this->assertSame( 2, substr_count( $output, '<li data-wp-each-child="test::state.items" data-wp-html="context.item.html">' . self::MARKER_HTML . '</li>' ) );
 		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
 		$this->assertSame( array(), $this->announced_paths(), 'Expected no listed path.' );
+		$this->assertStringContainsString(
+			'"items":[{"html":{"wpServerHtml":true}},{"html":{"wpServerHtml":true}}]',
+			$this->printed_client_data(),
+			'Expected each item token to print as the marker.'
+		);
+	}
+
+	/**
+	 * Tests that a token prints as the marker on both encoding paths of
+	 * `wp_json_encode()`, including the one taken when the data holds a string
+	 * that is not valid UTF-8, and that iterating a token yields only the
+	 * marker.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers WP_Interactivity_Dangerous_HTML::jsonSerialize
+	 * @covers WP_Interactivity_Dangerous_HTML::getIterator
+	 */
+	public function test_token_prints_as_the_marker_on_both_encoding_paths() {
+		$token = $this->token();
+
+		$this->assertSame( '{"wpServerHtml":true}', wp_json_encode( $token ) );
+
+		$data = array(
+			'bad'   => "caf\xE9",
+			'token' => $token,
+		);
+		$this->assertFalse( json_encode( $data ), 'Expected the data to take the fallback path.' );
+		$fallback = wp_json_encode( $data );
+		$this->assertIsString( $fallback );
+		$this->assertStringContainsString( '"token":{"wpServerHtml":true}', $fallback, 'Expected the fallback path to print the marker.' );
+		$this->assertStringNotContainsString( 'marker-7f3a', $fallback );
+
+		$this->assertSame( array( 'wpServerHtml' => true ), iterator_to_array( $token ) );
 	}
 
 	/**
