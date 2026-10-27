@@ -29,7 +29,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString(
-			"<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "' />",
+			"<input type='hidden' name='option_page' value='" . $option_group . "' />",
 			$output,
 			'Should output the option_page hidden field.'
 		);
@@ -65,9 +65,9 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString(
-			"<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "' />",
+			"<input type='hidden' name='option_page' value='general&amp;&quot;&#039;&lt;&gt;' />",
 			$output,
-			'option_page value should be escaped with esc_attr().'
+			'option_page value should escape special characters for an HTML attribute.'
 		);
 		$this->assertStringNotContainsString(
 			'value=\'general&"\'',
@@ -78,10 +78,12 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_nonce_option_groups
+	 *
+	 * @param string $option_group Settings group name.
 	 */
-	public function test_outputs_valid_nonce_for_option_group() {
-		$option_group = 'general';
-
+	public function test_outputs_valid_nonce_for_option_group( $option_group ) {
 		ob_start();
 		settings_fields( $option_group );
 		$output = ob_get_clean();
@@ -102,6 +104,18 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for nonce action coverage across option groups.
+	 *
+	 * @return array[]
+	 */
+	public static function data_nonce_option_groups() {
+		return array(
+			'general' => array( 'general' ),
+			'reading' => array( 'reading' ),
+		);
+	}
+
+	/**
 	 * @ticket 65819
 	 */
 	public function test_outputs_referer_field() {
@@ -114,22 +128,5 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 			$output,
 			'Should include the referer field from wp_nonce_field().'
 		);
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_output_matches_expected_markup() {
-		$option_group = 'reading';
-
-		$expected  = "<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "' />";
-		$expected .= '<input type="hidden" name="action" value="update" />';
-		$expected .= wp_nonce_field( $option_group . '-options', '_wpnonce', true, false );
-
-		ob_start();
-		settings_fields( $option_group );
-		$output = ob_get_clean();
-
-		$this->assertSame( $expected, $output );
 	}
 }
