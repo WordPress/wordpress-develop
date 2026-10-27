@@ -10,6 +10,12 @@
  */
 class Tests_Link_GetPostTypeArchiveFeedLink extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_books' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Registers a post type with an archive.
 	 *
