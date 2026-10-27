@@ -267,10 +267,6 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		if ( '' === $value ) {
-			return $this->remove_declaration();
-		}
-
 		if ( ! $this->is_valid_declaration_value( $value ) ) {
 			return false;
 		}
@@ -1626,7 +1622,7 @@ class WP_HTML_Style_Attribute_Processor {
 
 				$top_level_tokens[] = array(
 					'type'  => $type,
-					'value' => $processor->get_token_value(),
+					'value' => $processor->get_token()->get_value(),
 				);
 			}
 
