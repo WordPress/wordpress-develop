@@ -97,6 +97,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_count_posts', array( $filter, 'filter' ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), wp_count_posts( 'not_a_post_type' ), 'An unregistered post type should return an empty object.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The pre_wp_count_posts filter should not fire for an unregistered post type.' );
 	}
@@ -159,6 +160,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 
 		$args = $filter->get_args();
 		$this->assertSame( 1, $filter->get_call_count(), 'Expected the wp_count_posts filter to run once.' );
+		// Keep assertEquals() because the filtered counts object in the array is compared by value.
 		$this->assertEquals( array( $expected_counts, 'page', 'readable' ), $args[0], 'Expected the wp_count_posts filter to receive the filtered counts, type, and permission.' );
 	}
 
@@ -177,6 +179,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		$counts = wp_count_posts();
 
 		$this->assertSame( 0, $counts->draft, 'A status missing from the filtered value should default to 0.' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) array( 'publish' => 5 ), $stored_counts, 'The object returned by the filter should not be modified.' );
 	}
 

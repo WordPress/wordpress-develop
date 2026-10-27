@@ -778,6 +778,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		);
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
 		$this->assertCount( 2, $this->notices, 'Expected no notice besides those of the unserialization and the decline.' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			(object) array( 'wpServerHtml' => true ),
 			json_decode( $this->printed_client_data() )->state->test->html,
