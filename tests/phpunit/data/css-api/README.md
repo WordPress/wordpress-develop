@@ -27,9 +27,6 @@ The upstream corpus maps a case name to `{ css, tokens }`. Each upstream token h
 - `numberType` is `structured.type` on number and dimension tokens. The upstream
   `structured.type` of hash tokens (`id` or `unrestricted`) and `signCharacter` are
   not kept.
-- `normalized` is WordPress's expectation for `WP_CSS_Token_Processor::get_normalized_token()`:
-  the token text after input preprocessing and, outside comments, escape decoding.
-  Upstream has no such field.
 
 Three cases carry WordPress's token expectations where the upstream package contradicts
 CSS Syntax Level 3: `tests/ident/0007` (`-§`), `tests/ident/0008` (`-×`) and
