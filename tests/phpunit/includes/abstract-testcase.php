@@ -1372,7 +1372,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * build_style_attribute_declarations(). Whitespace and comments are ignored. The assertion
 	 * fails when either value has text that is not a declaration, a `;`, whitespace or a comment.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $expected The expected style attribute value.
 	 * @param string $actual   The actual style attribute value.
