@@ -234,14 +234,44 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 		add_filter( 'wp_doing_cron', '__return_true' );
 		update_option( 'active_plugins', array( self::FILE ) );
 
+		$maintenance_file_exists = false;
+
+		$this->filesystem->method( 'exists' )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					return '/remote/.maintenance' === $file ? $maintenance_file_exists : true;
+				}
+			);
+
 		$this->filesystem->expects( $this->once() )
 			->method( 'put_contents' )
-			->with( '/remote/.maintenance', $this->stringStartsWith( '<?php $upgrading = ' ), FS_CHMOD_FILE );
-		$this->filesystem->method( 'exists' )->willReturn( true );
-		$this->filesystem->expects( $this->exactly( 2 ) )->method( 'delete' )->with( '/remote/.maintenance' );
+			->with( '/remote/.maintenance', $this->stringStartsWith( '<?php $upgrading = ' ), FS_CHMOD_FILE )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					if ( '/remote/.maintenance' === $file ) {
+						$maintenance_file_exists = true;
+					}
+					return true;
+				}
+			);
+
+		$this->filesystem->expects( $this->exactly( 2 ) )
+			->method( 'delete' )
+			->with( '/remote/.maintenance' )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					if ( '/remote/.maintenance' === $file ) {
+						$maintenance_file_exists = false;
+					}
+					return true;
+				}
+			);
 
 		$this->assertTrue( $this->upgrader->active_before( true, array( 'plugin' => self::FILE ) ), 'active_before() should return the response.' );
+		$this->assertTrue( $maintenance_file_exists, 'Maintenance mode should be active after active_before().' );
+
 		$this->assertTrue( $this->upgrader->active_after( true, array( 'plugin' => self::FILE ) ), 'active_after() should return the response.' );
+		$this->assertFalse( $maintenance_file_exists, 'Maintenance mode should be inactive after active_after().' );
 	}
 
 	/**
