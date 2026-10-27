@@ -46,7 +46,7 @@ class Tests_Multisite_UpgradeNetwork extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ db_version: int, expect_deleted: bool }>
 	 */
-	public function data_can_compress_scripts_deletion(): array {
+	public static function data_can_compress_scripts_deletion(): array {
 		return array(
 			'upgrading from just below the 7.2 db version' => array(
 				'db_version'     => 64485,
