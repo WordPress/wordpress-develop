@@ -47,6 +47,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		unregister_post_type( 'book' );
 		unregister_post_type( 'magazine' );
 		unregister_post_type( 'shelf' );
+		unregister_post_type( 'cpt' );
 		unregister_post_type( $this->post_type );
 		parent::tear_down();
 	}
