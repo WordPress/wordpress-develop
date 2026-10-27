@@ -27,6 +27,15 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down(): void {
+		unregister_post_type( 'wptests_pt' );
+		unregister_post_type( 'wptests_noarchive' );
+		parent::tear_down();
+	}
+
+	/**
 	 * @dataProvider data_built_in_post_types
 	 *
 	 * @param string $post_type Post type name.
