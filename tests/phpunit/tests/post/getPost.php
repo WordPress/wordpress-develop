@@ -37,7 +37,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	 */
 	public function test_get_post_global(): void {
 		global $post;
-		$post = $this->get_test_post_instance();
+		$post = self::get_test_post_instance();
 		$this->assertSame( $post, get_post() );
 		$this->assertSame( $post, get_post( null ) );
 		$this->assertSame( $post, get_post( 0 ) );
