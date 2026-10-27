@@ -244,7 +244,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			try {
 				$this->assertCanonical( $requested, $expected );
 			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
-				$this->fail(
+				throw new \PHPUnit\Framework\ExpectationFailedException(
 					sprintf(
 						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
 						$post_key,
@@ -253,7 +253,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 						$requested,
 						$expected,
 						$e->getMessage()
-					)
+					),
+					$e->getComparisonFailure()
 				);
 			}
 		}
@@ -884,7 +885,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			try {
 				$this->assertCanonical( $requested, $expected );
 			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
-				$this->fail(
+				throw new \PHPUnit\Framework\ExpectationFailedException(
 					sprintf(
 						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
 						$post_key,
@@ -893,7 +894,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 						$requested,
 						$expected,
 						$e->getMessage()
-					)
+					),
+					$e->getComparisonFailure()
 				);
 			}
 		}
