@@ -157,6 +157,12 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
+		unregister_post_type( 'value-add' );
+		unregister_post_type( 'edit-some-thing' );
+		unregister_post_type( 'comments' );
+		unregister_post_type( 'tags' );
+		unregister_post_type( 'type_shows_in_rest' );
+
 		parent::tear_down();
 	}
 
