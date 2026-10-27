@@ -7,6 +7,12 @@
  * @covers ::get_the_category_by_ID
  */
 class Tests_Category_GetTheCategoryById extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
 	public function test_success() {
 		$c = self::factory()->category->create(
 			array(

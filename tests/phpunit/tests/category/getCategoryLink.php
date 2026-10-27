@@ -7,6 +7,12 @@
  * @covers ::get_category_link
  */
 class Tests_Category_GetCategoryLink extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
 	public function test_success() {
 		$c = self::factory()->category->create();
 
