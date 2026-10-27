@@ -647,10 +647,14 @@ class WP_Admin_Bar {
 		// Dashicons back-compat: a core node that was given no icon gets its default icon.
 		$default_icon = self::get_default_icon( $node );
 
-		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title; without one, the node gets no default icon.
-		if ( $default_icon && $default_icon['in_title'] ) {
+		$has_default_icon_in_title = $default_icon && $default_icon['in_title'];
+
+		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title, so that a node given an icon does not also show its Dashicon element.
+		if ( $has_default_icon_in_title || wp_is_valid_icon_name( $icon_name ) ) {
 			$title = preg_replace( '/<span\b[^>]*\bclass=(["\'])(?:[^"\']*\s)?ab-icon(?:\s[^"\']*)?\1[^>]*>\s*<\/span>/', '', (string) $title, 1, $count );
-			if ( ! $count ) {
+
+			// Without one, a core node whose icon was drawn in it gets no default icon.
+			if ( ! $count && $has_default_icon_in_title ) {
 				$default_icon = false;
 			}
 		}

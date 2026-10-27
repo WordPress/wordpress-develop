@@ -1265,6 +1265,93 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Dashicons back-compat: the icon of a node replaces the empty icon element that the title had for earlier versions.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 *
+	 * @dataProvider data_dashicon_elements
+	 *
+	 * @param string $dashicon_element Empty icon element in the title.
+	 */
+	public function test_icon_argument_replaces_empty_icon_element( $dashicon_element ): void {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'core-admin/pin',
+				'title' => $dashicon_element . '<span class="ab-label">Label</span>',
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( '<span class="ab-label">Label</span>' ), $html );
+		$this->assertSame( 1, substr_count( $html, 'ab-icon' ), 'Only the SVG icon element should be rendered.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_dashicon_elements(): array {
+		return array(
+			'empty icon element'       => array( '<span class="ab-icon" aria-hidden="true"></span>' ),
+			'Dashicons class'          => array( '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>' ),
+			'Dashicons class and font' => array( '<span class="ab-icon dashicons dashicons-edit"></span>' ),
+		);
+	}
+
+	/**
+	 * Dashicons back-compat: an icon element that has content is kept next to the icon of a node.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 */
+	public function test_icon_argument_keeps_icon_element_with_content(): void {
+		$title     = '<span class="ab-icon"><img src="https://example.org/logo.png" alt="" /></span>Label';
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'core-admin/pin',
+				'title' => $title,
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( $title ), $html );
+	}
+
+	/**
+	 * Dashicons back-compat: a value that is not an icon name keeps the empty icon element.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 */
+	public function test_value_that_is_not_an_icon_name_keeps_empty_icon_element(): void {
+		$title     = '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>Label';
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'dashicons-chart-bar',
+				'title' => $title,
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'svg-icon', $html );
+		$this->assertStringContainsString( $title, $html );
+	}
+
+	/**
 	 * @ticket 65089
 	 *
 	 * @covers WP_Admin_Bar::_render_item
