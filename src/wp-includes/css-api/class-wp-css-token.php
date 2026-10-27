@@ -289,16 +289,7 @@ final class WP_CSS_Token {
 				return WP_CSS_Token_Processor::decode_range( $this->css, $this->value_start, $this->value_length );
 
 			case WP_CSS_Token_Processor::TOKEN_COMMENT:
-				// Comments contain no escapes, so only input preprocessing applies.
-				return strtr(
-					wp_scrub_utf8( substr( $this->css, $this->value_start, $this->value_length ) ),
-					array(
-						"\r\n" => "\n",
-						"\r"   => "\n",
-						"\f"   => "\n",
-						"\0"   => "\u{FFFD}",
-					)
-				);
+				return WP_CSS_Token_Processor::preprocess_range( $this->css, $this->value_start, $this->value_length );
 
 			case WP_CSS_Token_Processor::TOKEN_NUMBER:
 				// Numbers are ASCII and have no escapes.

@@ -772,6 +772,8 @@ class WP_CSS_Token_Processor {
 	 * - `\r\n`, `\r`, `\f` → `\n`
 	 * - `\x00` → U+FFFD (�)
 	 *
+	 * Comments contain no escapes, so only the normalization applies to them.
+	 *
 	 * This is different from get_token_value() which returns the semantic value
 	 * (e.g., for strings: content without quotes; for numbers: numeric value).
 	 *
@@ -782,6 +784,10 @@ class WP_CSS_Token_Processor {
 	public function get_normalized_token(): ?string {
 		if ( null === $this->token_starts_at || null === $this->token_length ) {
 			return null;
+		}
+
+		if ( self::TOKEN_COMMENT === $this->token_type ) {
+			return self::preprocess_range( $this->css, $this->token_starts_at, $this->token_length );
 		}
 
 		return self::decode_range(
@@ -1601,6 +1607,32 @@ class WP_CSS_Token_Processor {
 		}
 
 		return $decoded;
+	}
+
+	/**
+	 * Applies CSS input preprocessing to a byte range without decoding escapes.
+	 *
+	 * CR, CRLF and FF become LF, and NUL and invalid UTF-8 become U+FFFD.
+	 * Comments are read with this method because they contain no escapes.
+	 *
+	 * @since 7.3.0
+	 * @access private
+	 *
+	 * @param string $css    CSS source the offsets index.
+	 * @param int    $start  Start byte offset.
+	 * @param int    $length Length of the substring to preprocess.
+	 * @return string Preprocessed string.
+	 */
+	public static function preprocess_range( string $css, int $start, int $length ): string {
+		return strtr(
+			wp_scrub_utf8( substr( $css, $start, $length ) ),
+			array(
+				"\r\n" => "\n",
+				"\r"   => "\n",
+				"\f"   => "\n",
+				"\0"   => "\u{FFFD}",
+			)
+		);
 	}
 
 	/**
