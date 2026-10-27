@@ -65,6 +65,13 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	protected static $contributor_id;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
 	 * Creates shared users.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory instance.
@@ -92,6 +99,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 
 		if ( ! function_exists( 'register_core_entity_actions' ) ) {
 			$this->markTestSkipped( 'The pinned Gutenberg build does not include the core actions.' );
@@ -105,6 +113,10 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * theme of the test; the next read fires `wp_entity_actions_api_init` again.
 	 */
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		self::reset_registry();
 
 		parent::tear_down();

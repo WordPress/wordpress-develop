@@ -9,6 +9,13 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	protected $theme_root;
 	protected static $user_id;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
@@ -21,8 +28,9 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->theme_root     = DIR_TESTDATA . '/themedir1';
-		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = DIR_TESTDATA . '/themedir1';
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -51,6 +59,10 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		unload_textdomain( 'internationalized-plugin' );
 		unload_textdomain( 'internationalized-plugin-2' );
 		unload_textdomain( 'internationalized-theme' );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
