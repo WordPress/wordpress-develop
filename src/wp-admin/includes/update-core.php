@@ -1065,7 +1065,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/post-categories.svg',
 	'wp-includes/images/icon-library/post-comments-count.svg',
 	'wp-includes/images/icon-library/post-comments-form.svg',
-	'wp-includes/images/icon-library/post-comments.svg',
 	'wp-includes/images/icon-library/post-content.svg',
 	'wp-includes/images/icon-library/post-date.svg',
 	'wp-includes/images/icon-library/post-excerpt.svg',
@@ -1166,6 +1165,7 @@ $_old_files = array(
 	 * 'wp-includes/images/icon-library/page.svg',
 	 * 'wp-includes/images/icon-library/pin.svg',
 	 * 'wp-includes/images/icon-library/plugins.svg',
+	 * 'wp-includes/images/icon-library/post-comments.svg',
 	 * 'wp-includes/images/icon-library/tool.svg',
 	 * 'wp-includes/images/icon-library/update.svg',
 	 * 'wp-includes/images/icon-library/wordpress.svg',
@@ -1305,6 +1305,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
 	'themes/twentytwentyfive/'  => '6.7',
+	'themes/ipsum/'             => '7.2',
 );
 
 /**

@@ -10063,6 +10063,56 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that core/navigation-submenu supports -current and its pseudo-selectors
+	 * independently from core/navigation-link, using its own CSS selector.
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 *
+	 * @ticket 66312
+	 */
+	public function test_block_custom_states_navigation_submenu() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/navigation-submenu' => array(
+							'-current' => array(
+								'color'  => array(
+									'text'       => 'red',
+									'background' => 'blue',
+								),
+								':hover' => array(
+									'color' => array(
+										'text' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$current_node = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-submenu', '-current' ),
+			'selector' => '.wp-block-navigation .wp-block-navigation-submenu .current-menu-item',
+		);
+		$hover_node   = array(
+			'path'     => array( 'styles', 'blocks', 'core/navigation-submenu', '-current', ':hover' ),
+			'selector' => '.wp-block-navigation .wp-block-navigation-submenu .current-menu-item:hover',
+		);
+
+		$expected  = ':root :where(.wp-block-navigation .wp-block-navigation-submenu .current-menu-item){background-color: blue;color: red;}';
+		$expected .= ':root :where(.wp-block-navigation .wp-block-navigation-submenu .current-menu-item:hover){color: white;}';
+
+		$actual  = $theme_json->get_styles_for_block( $current_node );
+		$actual .= $theme_json->get_styles_for_block( $hover_node );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * Tests that append_to_selector correctly appends to single and
 	 * compound (comma-separated) selectors.
 	 *

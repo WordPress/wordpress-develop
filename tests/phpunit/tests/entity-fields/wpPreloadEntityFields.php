@@ -11,9 +11,8 @@ require_once __DIR__ . '/base.php';
  *
  * @group entity-fields
  *
+ * @covers ::_wp_add_entity_preload_paths
  * @covers ::_wp_preload_entity_fields
- * @covers ::_wp_get_post_type_fields_preload_paths
- * @covers ::_wp_get_site_editor_screen_post_types
  */
 class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTestCase {
 
@@ -140,10 +139,14 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 	 * @ticket 66229
 	 */
 	public function test_unregistered_post_types_are_not_preloaded() {
-		$this->assertSame(
-			array( '/wp/v2/entity-fields?kind=postType&name=page' ),
-			_wp_get_post_type_fields_preload_paths( array( 'page', 'not_a_post_type', 'page' ) )
+		$context = new WP_Block_Editor_Context(
+			array(
+				'name' => 'core/edit-post',
+				'post' => new WP_Post( (object) array( 'post_type' => 'not_a_post_type' ) ),
+			)
 		);
+
+		$this->assertSame( array(), _wp_preload_entity_fields( array(), $context ) );
 	}
 
 	/**
@@ -160,5 +163,61 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 		$this->assertSame( array(), _wp_preload_entity_fields( array(), $site_editor ) );
 		$this->assertSame( array(), _wp_preload_entity_fields( array(), $no_post ) );
 		$this->assertSame( array(), _wp_preload_entity_fields( array(), $widgets ) );
+	}
+
+	/**
+	 * Empty paths that are not an array become an array the fields are added
+	 * to. Other paths that are not an array are returned unchanged.
+	 *
+	 * @ticket 66229
+	 *
+	 * @dataProvider data_non_array_paths
+	 *
+	 * @param mixed $paths    The paths passed to the filter.
+	 * @param mixed $expected The filtered paths, or null for the fields path
+	 *                        only.
+	 */
+	public function test_non_array_paths( $paths, $expected ) {
+		$post    = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+		$context = new WP_Block_Editor_Context(
+			array(
+				'name' => 'core/edit-post',
+				'post' => $post,
+			)
+		);
+
+		if ( null === $expected ) {
+			$expected = array( '/wp/v2/entity-fields?kind=postType&name=page' );
+		}
+
+		$this->assertSame( $expected, _wp_preload_entity_fields( $paths, $context ) );
+	}
+
+	/**
+	 * Data provider for test_non_array_paths().
+	 *
+	 * @return array[]
+	 */
+	public function data_non_array_paths() {
+		$object = new stdClass();
+
+		return array(
+			'null'         => array( null, null ),
+			'false'        => array( false, null ),
+			'empty string' => array( '', null ),
+			'string'       => array( '/wp/v2/types', '/wp/v2/types' ),
+			'object'       => array( $object, $object ),
+		);
+	}
+
+	/**
+	 * Called with the paths only, as by a filter added with one accepted
+	 * argument, the paths are returned unchanged.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_the_paths_are_unchanged_without_a_context() {
+		$this->assertSame( array( '/wp/v2/types' ), _wp_preload_entity_fields( array( '/wp/v2/types' ) ) );
+		$this->assertSame( array(), _wp_preload_entity_fields( null ) );
 	}
 }

@@ -12,6 +12,7 @@ require_once __DIR__ . '/base.php';
  * @group entity-fields
  *
  * @covers ::_wp_add_entity_field_modules_to_editor_script
+ * @covers ::_wp_add_entity_modules_to_editor_script
  */
 class Tests_Entity_Fields_WpAddEntityFieldModulesToEditorScript extends WP_Entity_Fields_UnitTestCase {
 
