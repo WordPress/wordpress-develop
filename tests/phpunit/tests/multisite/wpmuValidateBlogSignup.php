@@ -60,7 +60,7 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		$this->assertContains( 'blogname', $result['errors']->get_error_codes(), $error_message );
 	}
 
-	public function data_validate_blogname() {
+	public static function data_validate_blogname() {
 		$data = array(
 			array( '', 'Site names must not be empty.' ),
 			array( 'foo-hello', 'Site names must not contain hyphens.' ),
@@ -114,7 +114,7 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_filter_minimum_site_name_length() {
+	public static function data_filter_minimum_site_name_length() {
 		return array(
 			array( 'fooo', 5, true ),
 			array( 'foooo', 5, false ),
