@@ -11,6 +11,8 @@
  * @since 4.4.0
  *
  * @return string The HTTP protocol. Default: HTTP/1.0.
+ *
+ * @phpstan-return 'HTTP/1.0'|'HTTP/1.1'|'HTTP/2'|'HTTP/2.0'|'HTTP/3'
  */
 function wp_get_server_protocol() {
 	$protocol = $_SERVER['SERVER_PROTOCOL'] ?? '';
@@ -1581,6 +1583,8 @@ function absint( $maybeint ): int {
  * @global int $blog_id
  *
  * @return int Site ID.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_current_blog_id() {
 	global $blog_id;
@@ -1594,6 +1598,8 @@ function get_current_blog_id() {
  * @since 4.6.0
  *
  * @return int The ID of the current network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_current_network_id() {
 	if ( ! is_multisite() ) {
