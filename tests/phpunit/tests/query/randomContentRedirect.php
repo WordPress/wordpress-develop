@@ -149,6 +149,15 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		add_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10, 2 );
 	}
 
+	public function tear_down(): void {
+		unregister_post_type( 'wptests_book' );
+		unregister_post_type( 'wptests_hidden' );
+		unregister_post_type( 'wptests_unsearchable' );
+		unregister_taxonomy( 'wptests_genre' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Captures the redirect and prevents it from being sent.
 	 *
