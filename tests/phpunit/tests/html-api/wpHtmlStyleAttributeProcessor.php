@@ -553,24 +553,16 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::set_value
-	 * @covers ::remove_declaration
-	 * @covers ::get_property_name
-	 * @covers ::is_important
 	 */
-	public function test_set_value_with_empty_string_removes_current_declaration() {
+	public function test_set_value_rejects_empty_value() {
 		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white;' );
 
 		$this->assertTrue( $processor->next_declaration( 'color' ) );
-		$this->assertTrue( $processor->set_value( '' ) );
+		$this->assertFalse( $processor->set_value( '' ) );
+		$this->assertFalse( $processor->set_value( " \t" ) );
 
-		$this->assertNull( $processor->get_property_name() );
-		$this->assertNull( $processor->is_important() );
-		$this->assertFalse( $processor->set_value( 'green' ) );
-		$this->assertFalse( $processor->remove_declaration() );
-
-		$this->assertTrue( $processor->next_declaration() );
-		$this->assertSame( 'background', $processor->get_property_name() );
-		$this->assertSame( 'background: white;', $processor->get_updated_style() );
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertSame( 'color: red; background: white;', $processor->get_updated_style() );
 	}
 
 	/**
