@@ -328,10 +328,72 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$pattern = array(
+			'name'          => 'test/sample-pattern',
+			'title'         => 'Sample Pattern',
+			'content'       => '<!-- wp:paragraph --><p>Sample pattern content</p><!-- /wp:paragraph -->',
+			'description'   => 'A sample pattern for tests',
+			'viewportWidth' => 1200,
+			'inserter'      => true,
+			'categories'    => array( 'buttons' ),
+			'keywords'      => array( 'sample', 'test' ),
+			'blockTypes'    => array( 'core/paragraph' ),
+			'postTypes'     => array( 'post' ),
+			'templateTypes' => array( 'single' ),
+			'source'        => 'core',
+		);
+
+		$endpoint = new WP_REST_Block_Patterns_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$response = $endpoint->prepare_item_for_response( $pattern, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'test/sample-pattern', $data['name'] );
+		$this->assertSame( 'Sample Pattern', $data['title'] );
+		$this->assertSame( '<!-- wp:paragraph --><p>Sample pattern content</p><!-- /wp:paragraph -->', $data['content'] );
+		$this->assertSame( 'A sample pattern for tests', $data['description'] );
+		$this->assertSame( 1200, $data['viewport_width'] );
+		$this->assertTrue( $data['inserter'] );
+		$this->assertSame( array( 'buttons' ), $data['categories'] );
+		$this->assertSame( array( 'sample', 'test' ), $data['keywords'] );
+		$this->assertSame( array( 'core/paragraph' ), $data['block_types'] );
+		$this->assertSame( array( 'post' ), $data['post_types'] );
+		$this->assertSame( array( 'single' ), $data['template_types'] );
+		$this->assertSame( 'core', $data['source'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$pattern = array(
+			'name'    => 'test/sample-pattern',
+			'title'   => 'Sample Pattern',
+			'content' => '<!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->',
+		);
+
+		$endpoint = new WP_REST_Block_Patterns_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name,title' );
+
+		$response = $endpoint->prepare_item_for_response( $pattern, $request );
+		$this->assertSame(
+			array(
+				'name'  => 'test/sample-pattern',
+				'title' => 'Sample Pattern',
+			),
+			$response->get_data()
+		);
 	}
 
 	/**
