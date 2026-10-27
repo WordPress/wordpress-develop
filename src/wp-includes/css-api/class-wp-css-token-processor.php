@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage CSS-API
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
@@ -74,7 +74,7 @@
  *         }
  *     }
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @see https://www.w3.org/TR/css-syntax-3/#tokenization
  */
@@ -318,7 +318,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Do not instantiate directly. Use WP_CSS_Token_Processor::create() instead.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $css         CSS source to tokenize.
 	 */
@@ -336,7 +336,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * - The only supported document encoding is `UTF-8`, which is the default value.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $css      CSS source to tokenize.
 	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
@@ -357,7 +357,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-token
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return bool Whether a token was found.
 	 */
@@ -655,7 +655,7 @@ class WP_CSS_Token_Processor {
 	 *     }
 	 *     $tokens[2]->get_value(); // 'b'
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return WP_CSS_Token|null The current token, or null before the first
 	 *                           token and after the last.
@@ -685,7 +685,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Gets the current token type.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null
 	 * @phpstan-return self::TOKEN_*|null
@@ -705,7 +705,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null
 	 * @phpstan-return 'id'|'unrestricted'|'integer'|'number'|null
@@ -725,7 +725,7 @@ class WP_CSS_Token_Processor {
 	 * This is different from get_token_value() which returns the semantic value
 	 * (e.g., for strings: content without quotes; for numbers: numeric value).
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null
 	 */
@@ -748,7 +748,7 @@ class WP_CSS_Token_Processor {
 	 * Returns the exact bytes from the source without any normalization.
 	 * This preserves original line endings (\r\n, \r, \f) and null bytes.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null
 	 */
@@ -774,7 +774,7 @@ class WP_CSS_Token_Processor {
 	 * - For strings/URLs: the decoded string value
 	 * - For other tokens: null
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#token-value
 	 * @return string|null
@@ -787,7 +787,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Gets the token start at.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return int|null
 	 */
@@ -798,7 +798,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Gets the token length.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return int|null
 	 */
@@ -809,7 +809,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Gets the unit for dimension tokens.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null
 	 */
@@ -837,7 +837,7 @@ class WP_CSS_Token_Processor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-string-token
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return bool Whether the current token ended at its closing delimiter.
 	 */
@@ -955,7 +955,7 @@ class WP_CSS_Token_Processor {
 					continue 2;
 
 				default:
-					_doing_it_wrong( __METHOD__, 'Unexpected character in string: ' . $char, '1.0.0' );
+					_doing_it_wrong( __METHOD__, 'Unexpected character in string: ' . $char, '7.3.0' );
 					break;
 			}
 		}
@@ -1447,7 +1447,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * The cursor and WP_CSS_Token both decode with this method.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 * @access private
 	 *
 	 * @param string $css            CSS source the offsets index.

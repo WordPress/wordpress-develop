@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage CSS-API
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
@@ -24,7 +24,7 @@
  *     $tokens[3]->get_type();  // 'string-token'
  *     $tokens[3]->get_value(); // 'Exo 2'
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @see WP_CSS_Token_Processor::get_token()
  */
@@ -32,7 +32,7 @@ final class WP_CSS_Token {
 	/**
 	 * CSS source the offsets index.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var string
 	 */
@@ -41,7 +41,7 @@ final class WP_CSS_Token {
 	/**
 	 * Token type.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var string
 	 * @phpstan-var WP_CSS_Token_Processor::TOKEN_*
@@ -51,7 +51,7 @@ final class WP_CSS_Token {
 	/**
 	 * Byte offset at which the token starts.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var int
 	 */
@@ -60,7 +60,7 @@ final class WP_CSS_Token {
 	/**
 	 * Byte length of the token.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var int
 	 */
@@ -69,7 +69,7 @@ final class WP_CSS_Token {
 	/**
 	 * Type flag of a hash, number or dimension token.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var string|null
 	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
@@ -79,7 +79,7 @@ final class WP_CSS_Token {
 	/**
 	 * Decoded unit of a dimension token.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var string|null
 	 */
@@ -88,7 +88,7 @@ final class WP_CSS_Token {
 	/**
 	 * Byte offset at which the value of a string or url token starts.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var int|null
 	 */
@@ -97,7 +97,7 @@ final class WP_CSS_Token {
 	/**
 	 * Byte length of the value of a string or url token.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var int|null
 	 */
@@ -106,7 +106,7 @@ final class WP_CSS_Token {
 	/**
 	 * Whether the token ended at its closing delimiter.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var bool
 	 */
@@ -115,7 +115,7 @@ final class WP_CSS_Token {
 	/**
 	 * Decoded value, or false before the first call to get_value().
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var string|null|false
 	 */
@@ -126,7 +126,7 @@ final class WP_CSS_Token {
 	 *
 	 * Use WP_CSS_Token_Processor::get_token() to create tokens.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 * @access private
 	 *
 	 * @param string      $css           CSS source the offsets index.
@@ -164,7 +164,7 @@ final class WP_CSS_Token {
 	/**
 	 * Gets the token type.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string One of the WP_CSS_Token_Processor::TOKEN_* constants.
 	 * @phpstan-return WP_CSS_Token_Processor::TOKEN_*
@@ -179,7 +179,7 @@ final class WP_CSS_Token {
 	 * Hash tokens have an "id" or "unrestricted" flag. Number and dimension
 	 * tokens have an "integer" or "number" flag. Other tokens have none.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see WP_CSS_Token_Processor::get_token_type_flag()
 	 *
@@ -195,7 +195,7 @@ final class WP_CSS_Token {
 	 *
 	 * The value is decoded on the first call and kept for later calls.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see WP_CSS_Token_Processor::get_token_value()
 	 *
@@ -212,7 +212,7 @@ final class WP_CSS_Token {
 	/**
 	 * Gets the decoded unit of a dimension token.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null The unit, or null for other token types.
 	 */
@@ -223,7 +223,7 @@ final class WP_CSS_Token {
 	/**
 	 * Gets the byte offset at which the token starts in the CSS source.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return int Byte offset.
 	 */
@@ -234,7 +234,7 @@ final class WP_CSS_Token {
 	/**
 	 * Gets the byte length of the token in the CSS source.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return int Byte length.
 	 */
@@ -245,7 +245,7 @@ final class WP_CSS_Token {
 	/**
 	 * Reports whether the token ended at its closing delimiter.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see WP_CSS_Token_Processor::is_token_terminated()
 	 *
@@ -258,7 +258,7 @@ final class WP_CSS_Token {
 	/**
 	 * Decodes the value from the CSS source.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null The decoded value, or null for token types without a value.
 	 */
