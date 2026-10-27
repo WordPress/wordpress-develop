@@ -25,13 +25,13 @@ signature and docblock. It builds the allowed property list once, applies
 `kses.php`:
 
 - `_safecss_filter_attr_declarations( $css, $allowed_attr )`: this filter.
-- `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.2.0 body,
+- `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.3.0 body,
   unchanged except that it receives the list.
 
 The declarations helper uses three further private helpers:
 `_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`
 and `_safecss_filter_attr_is_trivia()`.
-All are `@access private`, `@internal`, `@since 7.2.0`.
+All are `@access private`, `@internal`, `@since 7.3.0`.
 
 ## Scope
 
@@ -222,12 +222,12 @@ paths see the same list. An empty array returns the input before dispatch,
 and a result that is not an array is replaced with the default list (see
 "Policy").
 
-`wp_kses_force_legacy_css_parser` is new in 7.2.0. It receives `false`;
+`wp_kses_force_legacy_css_parser` is new in 7.3.0. It receives `false`;
 returning `true` selects the legacy helper. It matches the form of
 `wp_kses_force_legacy_parser` and exists for a transition period so a site
 can restore the previous output while it adapts.
 
-`safecss_filter_attr_allow_css` is deprecated in 7.2.0 and applied by the
+`safecss_filter_attr_allow_css` is deprecated in 7.3.0 and applied by the
 legacy helper only. It exposed a regex test string that has no equivalent
 here. When a callback is attached, the declarations helper calls
 `_deprecated_hook()` once per call, naming no replacement, and does not
@@ -348,7 +348,7 @@ In `tests/phpunit/tests/kses.php`, `data_safecss_filter_attr` and
 `data_kses_style_attr_with_url` serve both paths. The new output is compared
 with `assertEqualStyleAttribute()`, so a row whose output changes only in form
 keeps its expectation. A row whose output changes otherwise also lists the
-pre-7.2.0 output, which the `_legacy` tests assert through `wp_kses_force_legacy_css_parser`.
+pre-7.3.0 output, which the `_legacy` tests assert through `wp_kses_force_legacy_css_parser`.
 `tools/Tests_Safecss_Filter_Differential.php` compares the two paths over both
 providers and classifies each difference.
 

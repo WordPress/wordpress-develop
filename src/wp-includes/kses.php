@@ -3693,6 +3693,7 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
+ * @since 7.3.0 Parses the declaration list with WP_HTML_Style_Attribute_Processor.
  *
  * @see 'wp_kses_force_legacy_css_parser' to opt-out of the new parser-based implementation.
  *
@@ -3955,7 +3956,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * @since 2.8.1
 	 * @since 7.1.0 Added support for SVG presentation attributes.
 	 * @since 7.2.0 Added support for `background-clip` and its vendor prefixed companions.
-	 *              A value that is not an array is replaced with the default list.
+	 * @since 7.3.0 A value that is not an array is replaced with the default list.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -3979,7 +3980,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * pieces with regular expressions. It exists for a transition period so
 	 * sites can restore the previous output while they adapt.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param bool $force_legacy_css_parser Whether to force using the legacy implementation
 	 *                                      instead of relying on the CSS API.
@@ -3994,10 +3995,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 /**
  * Filters an inline style attribute by splitting it on `;` and `:`.
  *
- * This is the implementation safecss_filter_attr() used before 7.2.0. It
+ * This is the implementation safecss_filter_attr() used before 7.3.0. It
  * runs when the `wp_kses_force_legacy_css_parser` filter returns true.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  * @internal
  *
@@ -4174,7 +4175,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
-			 * @deprecated 7.2.0 Applied only when the wp_kses_force_legacy_css_parser filter returns true.
+			 * @deprecated 7.3.0 Applied only when the wp_kses_force_legacy_css_parser filter returns true.
 			 *
 			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
 			 * @param string $css_test_string The CSS string to test.
@@ -4228,7 +4229,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * A block (a function, `(`, `[` or `{`) or a comment, string or url token
  * that the input ends inside is closed, as CSS closes it.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  * @internal
  *
@@ -4248,7 +4249,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	if ( has_filter( 'safecss_filter_attr_allow_css' ) ) {
 		_deprecated_hook(
 			'safecss_filter_attr_allow_css',
-			'7.2.0',
+			'7.3.0',
 			'',
 			__( 'The hook only runs when the wp_kses_force_legacy_css_parser filter returns true.' )
 		);
@@ -4285,7 +4286,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 /**
  * Checks a declaration value's tokens against the function, URL, structure and delimiter policy.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  * @internal
  *
@@ -4483,7 +4484,7 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
 /**
  * Checks a decoded URL against the allowed protocols.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  * @internal
  *
@@ -4503,7 +4504,7 @@ function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
 /**
  * Checks whether a token is whitespace or a comment.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  * @internal
  *
