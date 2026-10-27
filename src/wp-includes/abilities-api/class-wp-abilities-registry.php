@@ -47,8 +47,8 @@ final class WP_Abilities_Registry {
 	 * @see wp_register_ability()
 	 *
 	 * @param string               $name The name of the ability. The name must be a string containing a namespace
-	 *                                   prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
-	 *                                   alphanumeric characters, dashes and the forward slash.
+	 *                                   prefix, e.g. `my-plugin/my-ability`. It can only contain lowercase alphanumeric
+	 *                                   characters, dashes and forward slash.
 	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the ability.
 	 *
@@ -93,11 +93,11 @@ final class WP_Abilities_Registry {
 	 * @phpstan-param lowercase-string&non-falsy-string $name
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
-		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
+		if ( ! preg_match( '/^[a-z0-9-]+(?:\/[a-z0-9-]+)+$/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__(
-					'Ability name must be a string containing a namespace prefix, i.e. "my-plugin/my-ability". It can only contain lowercase alphanumeric characters, dashes and the forward slash.'
+					'Ability name must be a string containing a namespace prefix prefix, e.g. "my-plugin/my-ability". It can only contain lowercase alphanumeric characters, dashes, and forward slashes.'
 				),
 				'6.9.0'
 			);
