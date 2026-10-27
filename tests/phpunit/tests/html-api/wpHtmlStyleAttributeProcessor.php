@@ -1269,7 +1269,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 				array(
 					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 8, 3, 'px' ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 11, 1 ),
-					self::token( WP_CSS_Token_Processor::TOKEN_COMMENT, null, 12, 7 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_COMMENT, ' a ', 12, 7 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 19, 1 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '2', 20, 3, 'px' ),
 				),
