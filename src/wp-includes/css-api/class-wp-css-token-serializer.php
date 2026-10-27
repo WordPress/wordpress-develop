@@ -20,6 +20,7 @@
  * @access private
  *
  * @see WP_CSS_Token_Processor
+ * @see WP_CSS_Builder
  */
 class WP_CSS_Token_Serializer {
 	/**
@@ -409,11 +410,14 @@ class WP_CSS_Token_Serializer {
 	 * @link https://drafts.csswg.org/cssom/#serialize-a-string
 	 *
 	 * @since 7.3.0
+	 * @access private
+	 *
+	 * @see WP_CSS_Builder::string()
 	 *
 	 * @param string $value Decoded value.
 	 * @return string Quoted string text.
 	 */
-	private static function escape_string( string $value ): string {
+	public static function escape_string( string $value ): string {
 		$value  = wp_scrub_utf8( $value );
 		$result = '';
 		$length = strlen( $value );
