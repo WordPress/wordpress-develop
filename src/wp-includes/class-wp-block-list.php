@@ -11,6 +11,7 @@
  *
  * @since 5.5.0
  *
+ * @phpstan-implements Iterator<int, WP_Block>
  * @phpstan-implements ArrayAccess<int, WP_Block>
  */
 #[AllowDynamicProperties]
