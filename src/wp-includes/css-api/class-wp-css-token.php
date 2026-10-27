@@ -38,6 +38,7 @@ final class WP_CSS_Token {
 	 * CSS source the offsets index.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string
 	 */
@@ -47,6 +48,7 @@ final class WP_CSS_Token {
 	 * Token type.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string
 	 * @phpstan-var WP_CSS_Token_Processor::TOKEN_*
@@ -57,6 +59,7 @@ final class WP_CSS_Token {
 	 * Byte offset at which the token starts.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int
 	 */
@@ -66,6 +69,7 @@ final class WP_CSS_Token {
 	 * Byte length of the token.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int
 	 */
@@ -75,6 +79,7 @@ final class WP_CSS_Token {
 	 * Type flag of a hash, number or dimension token.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string|null
 	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
@@ -85,6 +90,7 @@ final class WP_CSS_Token {
 	 * Decoded unit of a dimension token.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string|null
 	 */
@@ -94,6 +100,7 @@ final class WP_CSS_Token {
 	 * Byte offset at which the value of a string, url or comment token starts.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int|null
 	 */
@@ -103,6 +110,7 @@ final class WP_CSS_Token {
 	 * Byte length of the value of a string, url or comment token.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int|null
 	 */
@@ -112,6 +120,7 @@ final class WP_CSS_Token {
 	 * Whether the token ended at its closing delimiter.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var bool
 	 */
@@ -121,6 +130,7 @@ final class WP_CSS_Token {
 	 * Decoded value, or false before the first call to get_value().
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string|null|false
 	 */
@@ -133,6 +143,7 @@ final class WP_CSS_Token {
 	 *
 	 * @since 7.3.0
 	 * @access private
+	 * @ignore
 	 *
 	 * @param string      $css           CSS source the offsets index.
 	 * @param string      $type          Token type, one of the WP_CSS_Token_Processor::TOKEN_* constants.
@@ -264,6 +275,7 @@ final class WP_CSS_Token {
 	 * Decodes the value from the CSS source.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @return string|null The decoded value, or null for token types without a value.
 	 */

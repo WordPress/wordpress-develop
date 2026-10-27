@@ -18,6 +18,7 @@
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  *
  * @see WP_CSS_Token_Processor
  * @see WP_CSS_Builder
@@ -32,6 +33,7 @@ class WP_CSS_Token_Serializer {
 	 * @see WP_CSS_Token_Serializer::serialize()
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var array<string, string[]>
 	 */
@@ -84,6 +86,7 @@ class WP_CSS_Token_Serializer {
 	 * @see WP_CSS_Token_Serializer::MARKED_PAIRS
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string[]
 	 */
@@ -105,6 +108,7 @@ class WP_CSS_Token_Serializer {
 	 * @see WP_CSS_Token_Serializer::MARKED_PAIRS
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string[]
 	 */
@@ -118,6 +122,7 @@ class WP_CSS_Token_Serializer {
 	 * Text of the token types that have no value.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var array<string, string>
 	 */
@@ -141,6 +146,7 @@ class WP_CSS_Token_Serializer {
 	 * Closing token type of each token type that opens a block.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var array<string, string>
 	 */
@@ -315,6 +321,7 @@ class WP_CSS_Token_Serializer {
 	 * Serializes one token other than whitespace or a comment.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param WP_CSS_Token $token Token.
 	 * @return string CSS text.
@@ -379,6 +386,7 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * @since 7.3.0
 	 * @access private
+	 * @ignore
 	 *
 	 * @param string $value Decoded value.
 	 * @return string Identifier text.
@@ -411,6 +419,7 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * @since 7.3.0
 	 * @access private
+	 * @ignore
 	 *
 	 * @see WP_CSS_Builder::string()
 	 *
@@ -461,6 +470,7 @@ class WP_CSS_Token_Serializer {
 	 * @link https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $value Decoded name.
 	 * @return string Escaped name.
@@ -516,6 +526,7 @@ class WP_CSS_Token_Serializer {
 	 * @link https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $code_point Code point above U+007F.
 	 * @return bool Whether the code point may appear unescaped in an identifier.
@@ -550,6 +561,7 @@ class WP_CSS_Token_Serializer {
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $value Decoded value.
 	 * @return string Url text, including `url(` and `)`.

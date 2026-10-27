@@ -240,22 +240,34 @@ class WP_CSS_Token_Processor {
 	public const TOKEN_CDO = 'CDO-token';
 
 	/**
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var string
 	 */
 	private $css;
 
 	/**
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int
 	 */
 	private $length = 0;
 
 	/**
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int
 	 */
 	private $at = 0;
 
 	/**
 	 * The type of the current token. One of the self::TOKEN_* constants.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string|null
 	 * @phpstan-var self::TOKEN_*|null
@@ -272,6 +284,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var string|null
 	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
 	 */
@@ -286,6 +301,9 @@ class WP_CSS_Token_Processor {
 	 *                 ↑
 	 *     The url token starts at byte 12.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int|null
 	 */
 	private $token_starts_at = null;
@@ -298,6 +316,9 @@ class WP_CSS_Token_Processor {
 	 *     background: url( a.png );
 	 *                 ╰────┬─────╯
 	 *     The url token is 12 bytes long.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int|null
 	 */
@@ -315,6 +336,9 @@ class WP_CSS_Token_Processor {
 	 *                      ↑
 	 *     The url value starts at byte 17.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int|null
 	 */
 	private $token_value_starts_at = null;
@@ -328,6 +352,9 @@ class WP_CSS_Token_Processor {
 	 *                      ╰─┬─╯
 	 *     The url value is 5 bytes long.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int|null
 	 */
 	private $token_value_length = null;
@@ -335,12 +362,18 @@ class WP_CSS_Token_Processor {
 	/**
 	 * The current token, created on the first call to get_token().
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var WP_CSS_Token|null
 	 */
 	private $token = null;
 
 	/**
 	 * The unit of the current token, e.g. "px", "em", "deg", etc.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var string|null
 	 */
@@ -357,6 +390,9 @@ class WP_CSS_Token_Processor {
 	 *            ╰─┬╯
 	 *     The string token is not terminated: the input ends before the closing quote.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var bool
 	 */
 	private $token_is_terminated = true;
@@ -367,6 +403,7 @@ class WP_CSS_Token_Processor {
 	 * Do not instantiate directly. Use WP_CSS_Token_Processor::create() instead.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $css         CSS source to tokenize.
 	 */
@@ -768,6 +805,9 @@ class WP_CSS_Token_Processor {
 
 	/**
 	 * Clears token state between tokens.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 */
 	private function after_token(): void {
 		$this->token_type            = null;
@@ -788,6 +828,9 @@ class WP_CSS_Token_Processor {
 	 * Newlines inside strings (without escaping) make the string invalid.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @return bool
 	 */
@@ -899,6 +942,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @return bool
 	 */
@@ -1019,6 +1065,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @return bool
 	 */
 	private function consume_ident_like(): bool {
@@ -1078,6 +1127,9 @@ class WP_CSS_Token_Processor {
 	 * bad-url token.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @return bool
 	 */
@@ -1218,6 +1270,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @return bool
 	 */
 	private function consume_remnants_of_bad_url(): bool {
@@ -1259,6 +1314,9 @@ class WP_CSS_Token_Processor {
 	 * Advances the cursor past the sequence; the caller decodes the bytes.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-name
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 */
 	private function consume_ident_sequence(): void {
 		while ( $this->at < $this->length ) {
@@ -1299,6 +1357,10 @@ class WP_CSS_Token_Processor {
 	 *     An ident-start code point, a digit, or U+002D HYPHEN-MINUS (-).
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
+	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @return int The number of bytes consumed.
 	 */
 	private function consume_ident_codepoint( $at ): int {
@@ -1319,6 +1381,10 @@ class WP_CSS_Token_Processor {
 	 *     An ident-start code point, a digit, or U+002D HYPHEN-MINUS (-).
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
+	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @return int The number of bytes consumed.
 	 */
 	private function consume_ident_start_codepoint( $at ): int {
@@ -1364,6 +1430,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @since 7.3.0
 	 * @access private
+	 * @ignore
 	 *
 	 * @param string $css            CSS source the offsets index.
 	 * @param int    $start          Start byte offset.
@@ -1474,6 +1541,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @since 7.3.0
 	 * @access private
+	 * @ignore
 	 *
 	 * @param string $css    CSS source the offsets index.
 	 * @param int    $start  Start byte offset.
@@ -1500,6 +1568,9 @@ class WP_CSS_Token_Processor {
 	 * replaced with U+FFFD.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $css             CSS source.
 	 * @param int    $offset          Byte offset (should point to the character after the backslash).
@@ -1583,6 +1654,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param string $css    CSS source.
 	 * @param int    $offset Byte offset.
 	 * @return bool
@@ -1617,6 +1691,9 @@ class WP_CSS_Token_Processor {
 	 * Checks if the next 3 code points would start a number.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @return bool
 	 */
@@ -1673,6 +1750,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int $offset Byte offset of the first code point to check.
 	 * @return bool
 	 */
@@ -1697,6 +1777,9 @@ class WP_CSS_Token_Processor {
 
 	/**
 	 * Convert a UTF-8 byte sequence to its Unicode codepoint.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param  string $character  UTF-8 encoded byte sequence representing a single Unicode character.
 	 *
