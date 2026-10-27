@@ -45,7 +45,7 @@ class Tests_Filesystem_WpFilesystemDirect_IsDir extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_determine_that_a_path_is_not_a_directory() {
+	public static function data_should_determine_that_a_path_is_not_a_directory() {
 		return array(
 			'a file that exists'              => array(
 				'path' => 'a_file_that_exists.txt',

@@ -12,7 +12,7 @@
  * For example, `COLOR: rgb(1, 2, 3); margin: 1px  2px` gives
  * `array( 'color:rgb(1,2,3);', 'margin:1px 2px;' )`.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param string $style Decoded style attribute value.
  * @return string[]|null Declarations, or null when the value has text that is
