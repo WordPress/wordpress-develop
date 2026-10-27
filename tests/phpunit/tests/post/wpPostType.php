@@ -4,6 +4,13 @@
  * @group post
  */
 class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_post_type( 'test_post_type' );
+
+		parent::tear_down();
+	}
+
 	public function test_instances() {
 		global $wp_post_types;
 
