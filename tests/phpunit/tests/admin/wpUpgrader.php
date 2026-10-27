@@ -1729,6 +1729,199 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Upgrader::move_to_temp_backup_dir()` adds an index.php file
+	 * to the temporary backup directories.
+	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * @ticket 66148
+	 *
+	 * @covers WP_Upgrader::move_to_temp_backup_dir
+	 * @covers WP_Upgrader::add_index_file
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_move_to_temp_backup_dir_should_add_index_files() {
+		define( 'FS_CHMOD_FILE', 0644 );
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		self::$instance->generic_strings();
+
+		self::$wp_filesystem_mock->method( 'wp_content_dir' )->willReturn( '/wp-content/' );
+		self::$wp_filesystem_mock->method( 'find_folder' )->willReturn( '/wp-content/plugins/' );
+		self::$wp_filesystem_mock->method( 'mkdir' )->willReturn( true );
+		self::$wp_filesystem_mock->method( 'exists' )->willReturn( false );
+		self::$wp_filesystem_mock->method( 'move' )->willReturn( true );
+
+		// The backup directories exist once created, the plugin's backup does not.
+		self::$wp_filesystem_mock
+			->method( 'is_dir' )
+			->willReturnOnConsecutiveCalls( false, false, true, true, false );
+
+		self::$wp_filesystem_mock
+			->expects( $this->exactly( 2 ) )
+			->method( 'put_contents' )
+			->willReturnCallback(
+				function ( $file, $contents, $mode ) {
+					static $expected_files = array(
+						'/wp-content/upgrade-temp-backup/index.php',
+						'/wp-content/upgrade-temp-backup/plugins/index.php',
+					);
+
+					$this->assertSame( array_shift( $expected_files ), $file, 'The index file was written to an unexpected path.' );
+					$this->assertSame( "<?php\n// Silence is golden.\n", $contents, 'The index file has unexpected contents.' );
+					$this->assertSame( FS_CHMOD_FILE, $mode, 'The index file has unexpected permissions.' );
+
+					return true;
+				}
+			);
+
+		$result = self::$instance->move_to_temp_backup_dir(
+			array(
+				'slug' => 'hello-dolly',
+				'src'  => WP_PLUGIN_DIR,
+				'dir'  => 'plugins',
+			)
+		);
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::move_to_temp_backup_dir()` does not overwrite
+	 * existing index.php files in the temporary backup directories.
+	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * @ticket 66148
+	 *
+	 * @covers WP_Upgrader::move_to_temp_backup_dir
+	 * @covers WP_Upgrader::add_index_file
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_move_to_temp_backup_dir_should_not_overwrite_existing_index_files() {
+		define( 'FS_CHMOD_FILE', 0644 );
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		self::$instance->generic_strings();
+
+		self::$wp_filesystem_mock->method( 'wp_content_dir' )->willReturn( '/wp-content/' );
+		self::$wp_filesystem_mock->method( 'find_folder' )->willReturn( '/wp-content/plugins/' );
+		self::$wp_filesystem_mock->method( 'move' )->willReturn( true );
+
+		// The backup directories already exist, the plugin's backup does not.
+		self::$wp_filesystem_mock
+			->method( 'is_dir' )
+			->willReturnCallback(
+				static function ( $path ) {
+					return '/wp-content/upgrade-temp-backup/plugins/hello-dolly' !== $path;
+				}
+			);
+
+		// Only the index files exist.
+		self::$wp_filesystem_mock
+			->method( 'exists' )
+			->willReturnCallback(
+				static function ( $path ) {
+					return 'index.php' === basename( $path );
+				}
+			);
+
+		self::$wp_filesystem_mock->expects( $this->never() )->method( 'mkdir' );
+		self::$wp_filesystem_mock->expects( $this->never() )->method( 'put_contents' );
+
+		$result = self::$instance->move_to_temp_backup_dir(
+			array(
+				'slug' => 'hello-dolly',
+				'src'  => WP_PLUGIN_DIR,
+				'dir'  => 'plugins',
+			)
+		);
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::unpack_package()` adds an index.php file to the
+	 * upgrade directory and does not delete it when cleaning up the directory.
+	 *
+	 * This test runs in a separate process so that it can define
+	 * constants without impacting other tests.
+	 *
+	 * @ticket 66148
+	 *
+	 * @covers WP_Upgrader::unpack_package
+	 * @covers WP_Upgrader::add_index_file
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_unpack_package_should_add_and_keep_index_file_in_upgrade_directory() {
+		define( 'FS_CHMOD_FILE', 0644 );
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		self::$instance->generic_strings();
+
+		self::$wp_filesystem_mock->method( 'wp_content_dir' )->willReturn( '/wp-content/' );
+		self::$wp_filesystem_mock->method( 'exists' )->willReturn( false );
+
+		self::$wp_filesystem_mock
+			->method( 'dirlist' )
+			->with( '/wp-content/upgrade/' )
+			->willReturn(
+				array(
+					'index.php'   => array(
+						'name' => 'index.php',
+						'type' => 'f',
+					),
+					'old-package' => array(
+						'name' => 'old-package',
+						'type' => 'd',
+					),
+				)
+			);
+
+		// Only the upgrade directory exists.
+		self::$wp_filesystem_mock
+			->method( 'is_dir' )
+			->willReturnCallback(
+				static function ( $path ) {
+					return '/wp-content/upgrade/' === trailingslashit( $path );
+				}
+			);
+
+		$deleted = array();
+		self::$wp_filesystem_mock
+			->method( 'delete' )
+			->willReturnCallback(
+				static function ( $path ) use ( &$deleted ) {
+					$deleted[] = $path;
+					return true;
+				}
+			);
+
+		self::$wp_filesystem_mock
+			->expects( $this->once() )
+			->method( 'put_contents' )
+			->with( '/wp-content/upgrade/index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE )
+			->willReturn( true );
+
+		// The package does not exist, so unzipping fails after the cleanup.
+		$result = self::$instance->unpack_package( DIR_TESTDATA . '/does-not-exist.zip', false );
+
+		$this->assertWPError( $result, 'Unpacking a missing package should fail.' );
+		$this->assertContains( '/wp-content/upgrade/old-package', $deleted, 'The old package was not deleted.' );
+		$this->assertNotContains( '/wp-content/upgrade/index.php', $deleted, 'The index file should not be deleted.' );
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::download_package()` returns a package URL error
 	 * as a `WP_Error` object.
 	 *

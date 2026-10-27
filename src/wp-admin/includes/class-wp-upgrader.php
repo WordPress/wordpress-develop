@@ -366,13 +366,23 @@ class WP_Upgrader {
 
 		$upgrade_folder = $wp_filesystem->wp_content_dir() . 'upgrade/';
 
-		// Clean up contents of upgrade directory beforehand.
+		// Clean up contents of upgrade directory beforehand, keeping the index file.
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
+				if ( 'index.php' === $file['name'] ) {
+					continue;
+				}
+
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
 		}
+
+		// Create the upgrade directory if needed and protect it from browsing.
+		if ( ! $wp_filesystem->is_dir( $upgrade_folder ) ) {
+			$wp_filesystem->mkdir( $upgrade_folder, FS_CHMOD_DIR );
+		}
+		$this->add_index_file( $upgrade_folder );
 
 		// We need a working directory - strip off any .tmp or .zip suffixes.
 		$working_dir = $upgrade_folder . basename( basename( $package, '.tmp' ), '.zip' );
@@ -1104,6 +1114,34 @@ class WP_Upgrader {
 	}
 
 	/**
+	 * Adds an index.php file to a directory to prevent directory listing.
+	 *
+	 * Does nothing if the directory does not exist or already contains an index.php file.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param string $directory Path to the directory.
+	 * @return bool True if the index file exists or was created, false otherwise.
+	 */
+	protected function add_index_file( $directory ) {
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem->is_dir( $directory ) ) {
+			return false;
+		}
+
+		$index_file = trailingslashit( $directory ) . 'index.php';
+
+		if ( $wp_filesystem->exists( $index_file ) ) {
+			return true;
+		}
+
+		return $wp_filesystem->put_contents( $index_file, "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+	}
+
+	/**
 	 * Moves the plugin or theme being updated into a temporary backup directory.
 	 *
 	 * @since 6.3.0
@@ -1156,6 +1194,10 @@ class WP_Upgrader {
 				return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
 			}
 		}
+
+		// Protect the temporary backup directories from browsing.
+		$this->add_index_file( $dest_dir );
+		$this->add_index_file( $sub_dir );
 
 		$src_dir = $wp_filesystem->find_folder( $args['src'] );
 		$src     = trailingslashit( $src_dir ) . $args['slug'];
