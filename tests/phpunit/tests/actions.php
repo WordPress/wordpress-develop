@@ -187,7 +187,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * Test that multiple callbacks receive the correct number of args even when the number
 	 * is less than, or greater than previous hooks.
 	 *
-	 * @see https://core.trac.wordpress.org/ticket/17817#comment:72
+	 * @link https://core.trac.wordpress.org/ticket/17817#comment:72
 	 * @ticket 17817
 	 *
 	 * @covers ::do_action
@@ -286,7 +286,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_integers() {
+	public static function data_priority_callback_order_with_integers() {
 		return array(
 			'int DESC' => array(
 				'priorities'          => array( 10, 9 ),
@@ -304,7 +304,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_unhappy_path_nonintegers() {
+	public static function data_priority_callback_order_with_unhappy_path_nonintegers() {
 		return array(
 			// Numbers as strings and floats.
 			'int as string DESC'               => array(

@@ -31,7 +31,7 @@ class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data_canonical_category() {
+	public static function data_canonical_category() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.

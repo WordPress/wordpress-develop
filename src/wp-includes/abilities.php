@@ -9,13 +9,15 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-abilities-content.php';
 require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-users.php';
 
 /**
  * Registers the core ability categories.
  *
  * @since 6.9.0
- * @since 7.2.0 Added the `uncategorized` category.
+ * @since 7.2.0 Added the `content` and `uncategorized` categories.
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -35,6 +37,14 @@ function wp_register_core_ability_categories(): void {
 	);
 
 	wp_register_ability_category(
+		'content',
+		array(
+			'label'       => __( 'Content' ),
+			'description' => __( 'Abilities that retrieve or manage posts and other content.' ),
+		)
+	);
+
+	wp_register_ability_category(
 		'uncategorized',
 		array(
 			'label'       => __( 'Uncategorized' ),
@@ -47,7 +57,7 @@ function wp_register_core_ability_categories(): void {
  * Registers the default core abilities.
  *
  * @since 6.9.0
- * @since 7.2.0 Added the `core/settings-get` ability.
+ * @since 7.2.0 Added the `core/content-query`, `core/settings-get`, and `core/users-query` abilities.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -102,10 +112,10 @@ function wp_register_core_abilities(): void {
 	wp_register_ability(
 		'core/get-site-info',
 		array(
-			'label'               => __( 'Get Site Information' ),
-			'description'         => __( 'Returns site information configured in WordPress. By default returns all fields, or optionally a filtered subset.' ),
-			'category'            => $category_site,
-			'input_schema'        => array(
+			'label'                 => __( 'Get Site Information' ),
+			'description'           => __( 'Returns site information configured in WordPress. By default returns all fields, or optionally a filtered subset.' ),
+			'category'              => $category_site,
+			'input_schema'          => array(
 				'type'                 => 'object',
 				'properties'           => array(
 					'fields' => array(
@@ -120,14 +130,17 @@ function wp_register_core_abilities(): void {
 				'additionalProperties' => false,
 				'default'              => array(),
 			),
-			'output_schema'       => array(
+			'output_schema'         => array(
 				'type'                 => 'object',
 				'properties'           => $site_info_properties,
 				'additionalProperties' => false,
 			),
-			'execute_callback'    => static function ( $input = array() ) use ( $site_info_fields ): array {
-				$input = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $site_info_fields;
+			'execute_callback'      => static function ( $input = array() ) use ( $site_info_fields ): array {
+				$input            = rest_sanitize_object( $input );
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $site_info_fields;
+				}
 
 				$result = array();
 				foreach ( $requested_fields as $field ) {
@@ -140,10 +153,8 @@ function wp_register_core_abilities(): void {
 
 				return $result;
 			},
-			'permission_callback' => static function (): bool {
-				return current_user_can( 'manage_options' );
-			},
-			'meta'                => array(
+			'required_capabilities' => array( 'manage_options' ),
+			'meta'                  => array(
 				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
@@ -243,9 +254,12 @@ function wp_register_core_abilities(): void {
 				'additionalProperties' => false,
 			),
 			'execute_callback'    => static function ( $input = array() ) use ( $user_info_fields ): array {
-				$input            = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $user_info_fields;
-				$current_user     = wp_get_current_user();
+				$input            = rest_sanitize_object( $input );
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $user_info_fields;
+				}
+				$current_user = wp_get_current_user();
 
 				$all = array(
 					'id'            => $current_user->ID,
@@ -306,10 +320,10 @@ function wp_register_core_abilities(): void {
 	wp_register_ability(
 		'core/get-environment-info',
 		array(
-			'label'               => __( 'Get Environment Info' ),
-			'description'         => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version). By default returns all fields, or optionally a filtered subset.' ),
-			'category'            => $category_site,
-			'input_schema'        => array(
+			'label'                 => __( 'Get Environment Info' ),
+			'description'           => __( 'Returns core details about the site\'s runtime context for diagnostics and compatibility (environment, PHP runtime, database server info, WordPress version). By default returns all fields, or optionally a filtered subset.' ),
+			'category'              => $category_site,
+			'input_schema'          => array(
 				'type'                 => 'object',
 				'properties'           => array(
 					'fields' => array(
@@ -324,17 +338,20 @@ function wp_register_core_abilities(): void {
 				'additionalProperties' => false,
 				'default'              => array(),
 			),
-			'output_schema'       => array(
+			'output_schema'         => array(
 				'type'                 => 'object',
 				'properties'           => $environment_info_properties,
 				'additionalProperties' => false,
 			),
-			'execute_callback'    => static function ( $input = array() ) use ( $environment_info_fields ): array {
+			'execute_callback'      => static function ( $input = array() ) use ( $environment_info_fields ): array {
 				global $wpdb;
 
-				/** @var array{ fields?: string[] } $input */
-				$input            = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
+				$input = rest_sanitize_object( $input );
+				/** @var array{ fields?: string[]|string } $input */
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $environment_info_fields;
+				}
 
 				$db_server_info = '';
 				if ( method_exists( $wpdb, 'db_server_info' ) ) {
@@ -350,10 +367,8 @@ function wp_register_core_abilities(): void {
 
 				return array_intersect_key( $all, array_flip( $requested_fields ) );
 			},
-			'permission_callback' => static function (): bool {
-				return current_user_can( 'manage_options' );
-			},
-			'meta'                => array(
+			'required_capabilities' => array( 'view_site_health_checks' ),
+			'meta'                  => array(
 				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
@@ -366,4 +381,10 @@ function wp_register_core_abilities(): void {
 
 	// Register the settings abilities (currently the read-only `core/settings-get`).
 	( new WP_Abilities_Settings() )->register();
+
+	// Register the user abilities (currently the read-only `core/users-query`).
+	( new WP_Abilities_Users() )->register();
+
+	// Register the content abilities (currently the read-only `core/content-query`).
+	( new WP_Abilities_Content() )->register();
 }
