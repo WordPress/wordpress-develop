@@ -45,6 +45,15 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
 	public function clean_up_global_scope() {

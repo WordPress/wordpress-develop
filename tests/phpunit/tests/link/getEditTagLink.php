@@ -73,6 +73,14 @@ class Tests_Link_GetEditTagLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tag_tax' );
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests get_edit_tag_link() with a tag ID.
 	 *
 	 * @ticket 65819

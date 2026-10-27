@@ -38,6 +38,20 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->post_type = 'foo1';
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'foo' );
+		unregister_post_type( 'bar' );
+		unregister_post_type( 'book' );
+		unregister_post_type( 'magazine' );
+		unregister_post_type( 'shelf' );
+		unregister_post_type( 'cpt' );
+		unregister_post_type( $this->post_type );
+		parent::tear_down();
+	}
+
 	public function test_register_post_type() {
 		$this->assertNull( get_post_type_object( 'foo' ) );
 		register_post_type( 'foo' );
