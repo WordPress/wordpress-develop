@@ -35,6 +35,10 @@ class Tests_HTTP_IsAllowedHttpOrigin extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_empty_string_for_empty_origin() {
+		$allowed                = get_allowed_http_origins();
+		$_SERVER['HTTP_ORIGIN'] = $allowed[0];
+
+		// Explicit empty string must not fall back to the request Origin header.
 		$this->assertSame( '', is_allowed_http_origin( '' ) );
 	}
 
