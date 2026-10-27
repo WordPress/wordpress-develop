@@ -22,6 +22,12 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		self::register_custom_taxonomy();
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Helper to register a custom taxonomy for use in tests.
 	 *
