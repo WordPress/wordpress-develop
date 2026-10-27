@@ -16,7 +16,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_valid_names(): array {
+	public static function data_valid_names(): array {
 		return array(
 			'simple'                      => array( 'myplugin/api-key' ),
 			'single character segments'   => array( 'a/b' ),
@@ -60,7 +60,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_unnamespaced_names(): array {
+	public static function data_unnamespaced_names(): array {
 		return array(
 			'simple'      => array( 'api_key' ),
 			'with hyphen' => array( 'api-key' ),
@@ -84,7 +84,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_names(): array {
+	public static function data_invalid_names(): array {
 		return array(
 			'empty string'                 => array( '' ),
 			'two slashes'                  => array( 'too/many/slashes' ),
