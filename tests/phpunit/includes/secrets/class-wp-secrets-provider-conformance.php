@@ -236,6 +236,39 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertSame( $first, $second );
 	}
 
+	/**
+	 * A settings form saves every field on every submit, so writing the value a
+	 * secret already holds is routine. A provider that treats it as a rotation
+	 * discards the previous version while consumers may still be using it.
+	 *
+	 * Compared by fingerprint rather than by value, so a provider that withholds
+	 * values is checked too. Only asked of a provider that keeps a previous
+	 * version; one with no history has nothing to lose.
+	 *
+	 * @ticket 66353
+	 */
+	public function test_writing_an_unchanged_value_keeps_the_previous_version(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$provider->set( $name, 'first-value' );
+		$provider->set( $name, 'second-value' );
+
+		$previous = $provider->get( $name, WP_Secret_Version::PREVIOUS );
+
+		if ( ! $previous instanceof WP_Secret ) {
+			$this->markTestSkipped( 'Provider keeps no previous version; there is nothing to keep.' );
+		}
+
+		$this->assertNotWPError( $provider->set( $name, 'second-value' ) );
+
+		$kept = $provider->get( $name, WP_Secret_Version::PREVIOUS );
+
+		$this->assertInstanceOf( 'WP_Secret', $kept, 'Writing an unchanged value must not discard the previous version.' );
+		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value must not replace the previous version.' );
+	}
+
 	public function test_a_deleted_secret_reads_as_absent(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );

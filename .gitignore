@@ -72,6 +72,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwentythree
 !/src/wp-content/themes/twentytwentyfour
 !/src/wp-content/themes/twentytwentyfive
+!/src/wp-content/themes/ipsum
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
