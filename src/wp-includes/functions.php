@@ -2149,8 +2149,8 @@ function wp_mkdir_p( $target ) {
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
  *
+ * @phpstan-assert-if-true =non-falsy-string $path
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
- * @phpstan-assert-if-true non-falsy-string $path
  */
 function path_is_absolute( $path ) {
 	/*
