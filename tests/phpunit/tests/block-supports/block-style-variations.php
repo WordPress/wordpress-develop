@@ -23,9 +23,17 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
 
@@ -42,6 +50,10 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
