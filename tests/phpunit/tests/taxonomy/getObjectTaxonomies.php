@@ -10,6 +10,14 @@ class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'wptests_pt' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_post_type( 'wptests_pt' );
+
+		parent::tear_down();
+	}
+
 	public function test_object_should_accept_string() {
 		$found    = get_object_taxonomies( 'wptests_pt' );
 		$expected = array( 'wptests_tax' );
