@@ -171,7 +171,21 @@ function wp_get_connectors(): array {
  *
  * @return bool True if AI credentials are configured, false otherwise.
  */
-function has_ai_credentials(): bool {
+function wp_has_ai_credentials(): bool {
+	/**
+	 * Filters whether AI credentials are configured before executing the default check.
+	 *
+	 * Returning a boolean value will short-circuit the default connector credential check.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool|null $has_credentials Whether AI credentials are configured. Default null.
+	 */
+	$pre = apply_filters( 'pre_wp_has_ai_credentials', null );
+	if ( null !== $pre ) {
+		return (bool) $pre;
+	}
+
 	$has_credentials = false;
 	$connectors      = array();
 
@@ -215,19 +229,7 @@ function has_ai_credentials(): bool {
 	 * @param bool                                $has_credentials Whether AI credentials are available.
 	 * @param array<string, array<string, mixed>> $connectors      The registered connectors.
 	 */
-	$has_credentials = (bool) apply_filters( 'wp_has_ai_credentials', $has_credentials, $connectors );
-
-	/**
-	 * Filters whether AI credentials are available.
-	 *
-	 * Legacy filter for compatibility with the WordPress AI plugin.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param bool                                $has_credentials Whether AI credentials are available.
-	 * @param array<string, array<string, mixed>> $connectors      The registered connectors.
-	 */
-	return (bool) apply_filters( 'wpai_has_ai_credentials', $has_credentials, $connectors );
+	return (bool) apply_filters( 'wp_has_ai_credentials', $has_credentials, $connectors );
 }
 
 /**
