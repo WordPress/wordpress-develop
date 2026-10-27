@@ -145,6 +145,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 
 	/**
 	 * Test getting a URL list for a custom taxonomy that is not publicly queryable.
+	 *
+	 * @ticket 61293
 	 */
 	public function test_get_url_list_custom_taxonomy_not_publicly_queryable() {
 		// Create a custom taxonomy for this test.
@@ -157,9 +159,14 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		// Create a test post applied to all test terms.
 		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
 
+		$sitemaps     = wp_sitemaps_get_server();
 		$tax_provider = new WP_Sitemaps_Taxonomies();
 
 		$post_list = $tax_provider->get_url_list( 1, $taxonomy );
+
+		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		$sitemaps->render_sitemaps();
+		$this->assertTrue( is_404(), 'Private taxonomy sitemaps should 404' );
 
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
