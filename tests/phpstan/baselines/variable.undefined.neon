@@ -159,31 +159,6 @@ parameters:
 			count: 9
 			path: ../../../src/wp-admin/includes/class-core-upgrader.php
 		-
-			message: '#^Variable \$context might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$item_name might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$subject might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$upgrader might not be defined\.$#'
-			identifier: variable.undefined
-			count: 8
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$was_active might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
 			message: '#^Variable \$wp_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -208,11 +183,6 @@ parameters:
 			identifier: variable.undefined
 			count: 5
 			path: ../../../src/wp-admin/includes/class-wp-plugins-list-table.php
-		-
-			message: '#^Variable \$authors_dropdown might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
 		-
 			message: '#^Variable \$badge_class might not be defined\.$#'
 			identifier: variable.undefined
@@ -382,11 +352,6 @@ parameters:
 			message: '#^Variable \$is_nginx might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/options-permalink.php
-		-
-			message: '#^Variable \$wp_rewrite might not be defined\.$#'
-			identifier: variable.undefined
-			count: 8
 			path: ../../../src/wp-admin/options-permalink.php
 		-
 			message: '#^Variable \$options_to_update might not be defined\.$#'
@@ -704,11 +669,6 @@ parameters:
 			count: 5
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
-			message: '#^Variable \$filter_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-duotone.php
-		-
 			message: '#^Variable \$processed_response might not be defined\.$#'
 			identifier: variable.undefined
 			count: 5
@@ -799,11 +759,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Variable \$node might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
-		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -823,11 +778,6 @@ parameters:
 			identifier: variable.undefined
 			count: 3
 			path: ../../../src/wp-includes/ms-settings.php
-		-
-			message: '#^Variable \$wp_version might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/script-loader.php
 		-
 			message: '#^Variable \$wp_template_path might not be defined\.$#'
 			identifier: variable.undefined

@@ -3421,7 +3421,7 @@ function retrieve_password( $user_login = '' ) {
 	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
 	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
 	 *
-	 * @see https://core.trac.wordpress.org/tickets/42957
+	 * @link https://core.trac.wordpress.org/ticket/42957
 	 */
 	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
@@ -4011,6 +4011,10 @@ All at ###SITENAME###
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.2.0 The notice is displayed whenever an email change is pending, not only after updating
+ *              the profile, and includes a link to cancel the request. The function is no longer
+ *              hooked to the `admin_notices`, `user_admin_notices`, and `network_admin_notices`
+ *              actions, and is instead called directly from wp-admin/user-edit.php.
  *
  * @global string $pagenow The filename of the current screen.
  */
@@ -4029,7 +4033,7 @@ function new_user_email_admin_notice() {
 			$message .= sprintf(
 				' <a href="%1$s">%2$s</a>',
 				esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user_id . '_new_email' ), 'dismiss-' . $current_user_id . '_new_email' ) ),
-				_x( 'Cancel request', 'user email change' ),
+				_x( 'Cancel request', 'user email change' )
 			);
 			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}
