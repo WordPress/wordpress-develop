@@ -462,7 +462,6 @@
 #dashboard_right_now li > span > svg,
 #dashboard_right_now .search-engines-info svg {
 	flex: none;
-	fill: currentColor;
 	color: #646970;
 }
 
