@@ -778,12 +778,7 @@ class WP_Query {
 	 *     @type int[]           $post_parent__in        An array containing parent page IDs to query child pages from.
 	 *     @type int[]           $post_parent__not_in    An array containing parent page IDs not to query child pages from.
 	 *     @type string|string[] $post_type              A post type slug (string) or array of post type slugs.
-	 *                                                   'any' matches every post type registered with
-	 *                                                   'exclude_from_search' set to false. Post types are
-	 *                                                   registered per request, so after switch_to_blog()
-	 *                                                   'any' still uses the post types of the original site;
-	 *                                                   pass the slugs explicitly to query another site's
-	 *                                                   post types. Default 'any' if using 'tax_query'.
+	 *                                                   Default 'any' if using 'tax_query'.
 	 *     @type string|string[] $post_status            A post status (string) or array of post statuses.
 	 *     @type int             $posts_per_page         The number of posts to query for. Use -1 to request all posts.
 	 *     @type int             $posts_per_archive_page The number of posts to query for by archive page. Overrides
