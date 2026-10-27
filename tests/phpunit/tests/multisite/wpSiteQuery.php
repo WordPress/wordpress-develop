@@ -955,7 +955,7 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_site_query_meta_query() {
+	public static function data_wp_site_query_meta_query() {
 		return array(
 			array(
 				array(
