@@ -77,6 +77,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
 	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
+	 * @since 7.2.0 Added the Ipsum theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -97,6 +98,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
 		'twentytwentyfive'  => 'Twenty Twenty-Five',
+		'ipsum'             => 'Ipsum',
 	);
 
 	/**

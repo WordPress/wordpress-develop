@@ -44,7 +44,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 
 		WP_Image_Editor_Mock::$load_return = true;
 	}

@@ -20,10 +20,28 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	protected $interactivity;
 
 	/**
+	 * Global WP_Interactivity_API instance from before the test.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	private $original_wp_interactivity;
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
+		global $wp_interactivity;
+
 		parent::set_up();
+
+		/*
+		 * The global instance is replaced with a fresh one for the duration of
+		 * the test, so that no state leaks into the original instance.
+		 */
+		$this->original_wp_interactivity = $wp_interactivity;
+		$wp_interactivity                = new WP_Interactivity_API();
+		$wp_interactivity->add_hooks();
+
 		$this->interactivity = new WP_Interactivity_API();
 		wp_default_script_modules();
 		$this->interactivity->add_hooks();
@@ -33,9 +51,20 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tear_down() {
-		global $wp_script_modules;
-		parent::tear_down();
+		global $wp_script_modules, $wp_interactivity;
+
+		remove_filter( 'script_module_data_@wordpress/interactivity', array( $this->interactivity, 'filter_script_module_interactivity_data' ) );
+		remove_filter( 'script_module_data_@wordpress/interactivity-router', array( $this->interactivity, 'filter_script_module_interactivity_router_data' ) );
+		remove_filter( 'wp_script_attributes', array( $this->interactivity, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
+
+		/*
+		 * The hooks registered by core are bound to the original instance and are
+		 * restored by the parent method, so the same instance must be restored.
+		 */
+		$wp_interactivity  = $this->original_wp_interactivity;
 		$wp_script_modules = null;
+
+		parent::tear_down();
 	}
 
 	public function charset_iso_8859_1() {

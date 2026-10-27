@@ -1852,16 +1852,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				// Expected returned values.
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -1906,16 +1906,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				),
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);
@@ -2081,13 +2081,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 35, $properties );
+		$this->assertCount( 36, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
 		$this->assertArrayHasKey( 'image_quality', $properties );
 		$this->assertArrayHasKey( 'image_output_format', $properties );
 		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertArrayHasKey( 'edit_root', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
 		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -2155,11 +2156,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_default_in_response() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
 		$request->set_param( 'context', 'edit' );
@@ -2175,11 +2175,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_with_size_aware_filter() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		// Lower the quality for small images (e.g. thumbnails) only.
 		$filter = static function ( $quality, $mime_type, $size ) {
@@ -2211,11 +2210,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
 	 *
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_honors_jpeg_quality_filter() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$filter = static function () {
 			return 70;
@@ -2232,6 +2230,35 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status() );
 		// JPEG output, so the jpeg_quality filter overrides the 82 default.
 		$this->assertSame( 70, $data['image_quality']['default'] );
+	}
+
+	/**
+	 * Creates a JPEG attachment with static metadata for image quality tests.
+	 *
+	 * Quality reporting uses the MIME type, full-size dimensions, and registered
+	 * image sizes, so no upload or generated thumbnails are needed.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_quality_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+				'file'           => 'canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+			)
+		);
+
+		return $attachment_id;
 	}
 
 	/**
@@ -2606,6 +2633,27 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$links    = $response->get_links();
 
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_without_media_trash() {
+		$this->assertFalse( MEDIA_TRASH, 'The test expects the default MEDIA_TRASH value.' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->attachment->create( array( 'post_author' => self::$editor_id ) );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
 	}
 
 	protected function check_post_data( $attachment, $data, $context = 'view', $links = array() ) {
@@ -5589,7 +5637,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_sideloads_without_subsizes() {
 		$this->enable_client_side_media_processing();
@@ -5625,7 +5674,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_generates_subsizes_by_default() {
 		$this->enable_client_side_media_processing();
@@ -5656,7 +5706,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_fires_rest_after_insert_attachment() {
 		$this->enable_client_side_media_processing();
@@ -5697,7 +5748,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_attaches_to_post() {
 		$this->enable_client_side_media_processing();
@@ -5730,7 +5782,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_returns_error_on_download_failure() {
 		$this->enable_client_side_media_processing();
@@ -5755,6 +5808,48 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that downloaded content which does not match an allowed type is
+	 * reported as a client error rather than a server error.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_rejects_disallowed_content_type() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		// A URL that looks like an image but serves an HTML page.
+		$mock_html_download = static function ( $response, $args ) {
+			if ( ! empty( $args['filename'] ) ) {
+				file_put_contents( $args['filename'], '<!DOCTYPE html><html><body>Not an image</body></html>' );
+			}
+
+			return array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'headers'  => array(),
+				'cookies'  => array(),
+				'body'     => '',
+			);
+		};
+		add_filter( 'pre_http_request', $mock_html_download, 10, 2 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/not-an-image.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $mock_html_download, 10 );
+
+		$this->assertErrorResponse( 'rest_upload_invalid_file_type', $response, 400 );
+	}
+
+	/**
 	 * Verifies that the URL sideload path enforces the multisite maximum file
 	 * size, for parity with the multipart and raw-body upload paths.
 	 *
@@ -5762,7 +5857,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @group multisite
 	 * @group ms-required
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 * @covers WP_REST_Attachments_Controller::check_upload_size
 	 */
 	public function test_create_item_from_url_exceeds_multisite_max_filesize() {
@@ -5795,7 +5891,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @group multisite
 	 * @group ms-required
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 * @covers WP_REST_Attachments_Controller::check_upload_size
 	 */
 	public function test_create_item_from_url_exceeds_multisite_site_upload_space() {
@@ -5827,7 +5924,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_exceeds_max_upload_size() {
 		$this->enable_client_side_media_processing();
@@ -5855,7 +5953,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_limits_the_download_size() {
 		$this->enable_client_side_media_processing();
@@ -5917,7 +6016,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_rejects_url_without_filename() {
 		$this->enable_client_side_media_processing();
@@ -5952,7 +6052,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @dataProvider data_create_item_from_url_rejects_non_image_extension
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 *
 	 * @param string $url URL with a disallowed file extension.
 	 */
@@ -6002,7 +6103,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 65517
 	 *
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_requires_upload_capability() {
 		$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -6019,18 +6121,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'url', 'https://example.com/denied.jpg' );
 
-		$controller = new WP_REST_Attachments_Controller( 'attachment' );
-		$method     = new ReflectionMethod( $controller, 'create_item_from_url' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$method->setAccessible( true );
-		}
-		$result = $method->invoke( $controller, $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		remove_filter( 'pre_http_request', $track );
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_cannot_create', $result->get_error_code() );
-		$this->assertSame( 403, $result->get_error_data()['status'] );
+		$this->assertErrorResponse( 'rest_cannot_create', $response );
 		$this->assertFalse( $downloaded, 'No download should be attempted without upload_files.' );
 	}
 
@@ -6122,7 +6217,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 65517
 	 *
 	 * @covers WP_REST_Attachments_Controller::create_item
-	 * @covers WP_REST_Attachments_Controller::create_item_from_url
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
 	 */
 	public function test_create_item_from_url_without_client_side_media_processing() {
 		$this->disable_client_side_media_processing();
@@ -6287,5 +6383,618 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
 			$this->assertSame( 400, $result->get_error_data()['status'] );
 		}
+	}
+
+	/**
+	 * Verifies that a request cannot supply both an uploaded file and a `url`.
+	 *
+	 * The two are alternative sources for the same attachment, so honoring one
+	 * would silently discard the other.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_rejects_a_file_and_url_together() {
+		wp_set_current_user( self::$superadmin_id );
+
+		// Fail loudly if the request is not rejected and a download is attempted.
+		$downloaded = false;
+		$track      = static function () use ( &$downloaded ) {
+			$downloaded = true;
+			return new WP_Error( 'http_request_failed', 'Should not be reached.' );
+		};
+		add_filter( 'pre_http_request', $track );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file ),
+					'name'     => 'canola.jpg',
+					'size'     => filesize( self::$test_file ),
+					'tmp_name' => self::$test_file,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $track );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertFalse( $downloaded, 'No download should be attempted when a file is also supplied.' );
+	}
+
+	/**
+	 * Verifies that a request cannot supply both a raw body upload and a `url`.
+	 *
+	 * The raw body path is identified by its Content-Disposition filename, so
+	 * the conflict has to be detected from the headers rather than from the
+	 * file parameters.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 */
+	public function test_create_item_rejects_a_body_upload_and_url_together() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_param( 'url', 'https://example.com/photo.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Verifies that the fields carried on the request are applied to an
+	 * attachment created from a `url`, as they are for an uploaded file.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_applies_request_fields() {
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/fields.jpg' );
+		$request->set_param( 'title', 'My sideloaded title' );
+		$request->set_param( 'caption', 'My sideloaded caption' );
+		$request->set_param( 'description', 'My sideloaded description' );
+		$request->set_param( 'alt_text', 'My sideloaded alt text' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data       = $response->get_data();
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( 'My sideloaded title', $attachment->post_title );
+		$this->assertSame( 'My sideloaded caption', $attachment->post_excerpt );
+		$this->assertSame( 'My sideloaded description', $attachment->post_content );
+		$this->assertSame( 'My sideloaded alt text', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
+	}
+
+	/**
+	 * Verifies that the insert hooks fire when an attachment is created from a
+	 * `url`, as they do for an uploaded file.
+	 *
+	 * rest_pre_insert_attachment and rest_insert_attachment fire from
+	 * prepare_item_for_database() and insert_attachment(). wp_after_insert_post
+	 * is fired by create_item(), since wp_insert_post() returns for attachments
+	 * before it reaches the after-insert hooks.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_fires_the_insert_hooks() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$fired = array();
+		$spy   = static function ( $hook ) use ( &$fired ) {
+			return static function ( $value ) use ( $hook, &$fired ) {
+				$fired[] = $hook;
+				return $value;
+			};
+		};
+
+		$pre    = $spy( 'rest_pre_insert_attachment' );
+		$insert = $spy( 'rest_insert_attachment' );
+		$after  = $spy( 'wp_after_insert_post' );
+
+		add_filter( 'rest_pre_insert_attachment', $pre );
+		add_action( 'rest_insert_attachment', $insert );
+		add_action( 'wp_after_insert_post', $after );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/hooks.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+		remove_action( 'wp_after_insert_post', $after );
+		remove_action( 'rest_insert_attachment', $insert );
+		remove_filter( 'rest_pre_insert_attachment', $pre );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertContains( 'rest_pre_insert_attachment', $fired );
+		$this->assertContains( 'rest_insert_attachment', $fired );
+		$this->assertContains( 'wp_after_insert_post', $fired );
+	}
+
+	/**
+	 * Verifies that an error returned from the rest_pre_insert_attachment
+	 * filter is honored rather than used as if it were an attachment.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_create_item_from_url_honors_a_pre_insert_error() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$deny = static function () {
+			return new WP_Error( 'rest_pre_insert_denied', 'Denied.', array( 'status' => 400 ) );
+		};
+
+		add_filter( 'rest_pre_insert_attachment', $deny );
+		add_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/denied-by-filter.jpg' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', array( $this, 'mock_image_download' ), 10 );
+		remove_filter( 'rest_pre_insert_attachment', $deny );
+
+		$this->assertErrorResponse( 'rest_pre_insert_denied', $response, 400 );
+	}
+
+	/**
+	 * Edits an image and returns the ID of the attachment the edit created.
+	 *
+	 * @param int $attachment_id Attachment to edit.
+	 * @return int New attachment ID.
+	 */
+	private function edit_image_and_get_new_id( $attachment_id ) {
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment_id, 'full' ),
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertSame( 201, $response->get_status(), 'The image edit should have succeeded.' );
+
+		$data = $response->get_data();
+
+		return $data['id'];
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_edit_root_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response = rest_get_server()->dispatch( $request );
+		$schema   = $response->get_data()['schema']['properties']['edit_root'];
+
+		$this->assertSame( 'integer', $schema['type'], 'The edit root should be typed as an integer.' );
+		$this->assertSame( array( 'edit' ), $schema['context'], 'The edit root should be exposed in the edit context only.' );
+		$this->assertTrue( $schema['readonly'], 'The edit root should be read only.' );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_get_edit_root_attachment_id_returns_zero_for_an_upload() {
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->assertSame( 0, wp_get_edit_root_attachment_id( $attachment ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_records_the_edited_image_as_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$this->assertSame( $attachment, wp_get_edit_root_attachment_id( $edited ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_an_edited_image_keeps_the_first_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'An edit of an edit should still point at the image the chain started from.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edited_image_response_includes_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'edit_root', $data, 'An edited image should report an edit root.' );
+		$this->assertSame( $attachment, $data['edit_root'], 'The edit root should be the image that was edited.' );
+	}
+
+	/**
+	 * The response carries only the ID, so the edit root is offered as an embeddable
+	 * link in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_root_is_embeddable() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links, 'An edited image should carry an edit root link.' );
+		$this->assertCount(
+			1,
+			$links['https://api.w.org/edit-root'],
+			'The link should be added once.'
+		);
+
+		$link = $links['https://api.w.org/edit-root'][0];
+		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'], 'The link should point at the edit root.' );
+		$this->assertTrue( $link['attributes']['embeddable'], 'The link should be embeddable.' );
+
+		// Requesting `_embed` hydrates the edit root alongside the edited image.
+		$embedded = rest_get_server()->response_to_data( $response, true );
+		$this->assertSame(
+			$attachment,
+			$embedded['_embedded']['wp:edit-root'][0]['id'],
+			'Embedding should hydrate the edit root alongside the edited image.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_edit_root_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_uploaded_image_reports_no_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 0, $response->get_data()['edit_root'], 'An uploaded image should report no edit root.' );
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/edit-root',
+			$response->get_links(),
+			'An image with no edit root should carry no link.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayNotHasKey( 'edit_root', $data );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_root_can_be_requested_on_its_own() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,edit_root' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'edit_root', $data, 'The edit root should be returned when it is the only field requested.' );
+		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
+		$this->assertSame( $attachment, $data['edit_root'], 'Limiting the fields should not change the reported edit root.' );
+	}
+
+	/**
+	 * Core leaves `_links` out of a response limited with `_fields` by not building
+	 * its own links at all, so this link must not be the one thing that puts the
+	 * member back.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_omits_the_edit_root_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * Asking for the field is not asking for links.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_requesting_the_edit_root_field_without_links_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,edit_root' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * A request that limits the fields but asks for links gets every link, this one
+	 * included, whether or not it asked for the field.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_keeps_the_edit_root_link_when_links_are_requested() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,_links' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * An attachment recorded as its own edit root is a broken record, not a chain,
+	 * so it reports no edit root.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_attachment_recorded_as_its_own_edit_root_reports_none() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_edit_root_id', $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertSame(
+			0,
+			wp_get_edit_root_attachment_id( $attachment ),
+			'A record pointing at the attachment itself should resolve to no edit root.'
+		);
+		$this->assertSame( 0, $data['edit_root'], 'The field should report no edit root.' );
+	}
+
+	/**
+	 * The field reports the recorded ID as is, but the link is only offered when the
+	 * edit root exists and can be read, in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_missing_edit_root_keeps_the_field_but_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_edit_root_id', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame(
+			REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			$response->get_data()['edit_root'],
+			'The field should report the recorded ID even when the edit root is gone.'
+		);
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/edit-root',
+			$response->get_links(),
+			'A missing edit root should carry no link.'
+		);
+	}
+
+	/**
+	 * Trashing is not deleting. `delete_attachment` does not fire for a trashed
+	 * attachment, and the record is deliberately left in place so that untrashing
+	 * the edit root restores the relationship intact.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_trashing_an_edit_root_keeps_the_record_on_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_trash_post( $attachment );
+
+		$this->assertSame(
+			'trash',
+			get_post_status( $attachment ),
+			'The edit root should have been trashed rather than deleted.'
+		);
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited ),
+			'Trashing the edit root should leave the record in place.'
+		);
+
+		wp_untrash_post( $attachment );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited ),
+			'Untrashing the edit root should leave the relationship intact.'
+		);
+	}
+
+	/**
+	 * Once the edit root is gone its record is cleared, so a further edit has no
+	 * lineage to inherit and starts a new chain from the image being edited.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_again_after_the_edit_root_is_deleted_starts_a_new_chain() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_delete_attachment( $attachment, true );
+
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$edited,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'The new image should point at the image it was edited from.'
+		);
+	}
+
+	/**
+	 * Deleting an image from the middle of a chain does not orphan the images
+	 * edited from it, because every image records the start of the chain rather
+	 * than the image directly above it.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_a_middle_image_leaves_the_rest_of_the_chain_intact() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment   = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		wp_delete_attachment( $edited, true );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'The remaining image should still point at the start of the chain.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_an_edit_root_clears_it_from_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		$unrelated        = self::factory()->attachment->create_upload_object( self::$test_file );
+		$unrelated_edited = $this->edit_image_and_get_new_id( $unrelated );
+
+		wp_delete_attachment( $attachment, true );
+
+		$this->assertSame(
+			'',
+			get_post_meta( $edited, '_wp_attachment_edit_root_id', true ),
+			'The record pointing at the deleted attachment should have been cleared.'
+		);
+		$this->assertSame(
+			$unrelated,
+			wp_get_edit_root_attachment_id( $unrelated_edited ),
+			'An unrelated image should have kept its record.'
+		);
 	}
 }

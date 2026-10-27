@@ -182,18 +182,12 @@ HTML
 
 	public function data_different_get_value_callbacks() {
 		return array(
-			'pass arguments to source'        => array(
+			'pass arguments to source' => array(
 				function ( $source_args, $block_instance, $attribute_name ) {
 					$value = $source_args['key'];
 					return "The attribute name is '$attribute_name' and its binding has argument 'key' with value '$value'.";
 				},
 				"<p class=\"wp-block-paragraph\">The attribute name is 'content' and its binding has argument 'key' with value 'test'.</p>",
-			),
-			'unsafe HTML should be sanitized' => array(
-				function () {
-					return '<script>alert("Unsafe HTML")</script>';
-				},
-				'<p class="wp-block-paragraph">alert("Unsafe HTML")</p>',
 			),
 			'symbols and numbers should be rendered correctly' => array(
 				function () {
@@ -234,11 +228,44 @@ HTML;
 		$block         = new WP_Block( $parsed_blocks[0] );
 		$result        = $block->render();
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			trim( $result ),
+			'<body>',
 			'The block content should be updated with the value returned by the source.'
 		);
+	}
+
+	/**
+	 * Tests that unsafe HTML returned by the source is sanitized.
+	 *
+	 * @ticket 60651
+	 * @ticket 66208
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_unsafe_html_from_source_is_sanitized() {
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function () {
+					return '<script>alert("Unsafe HTML")</script>';
+				},
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$processor = new WP_HTML_Tag_Processor( $result );
+		$this->assertFalse( $processor->next_tag( 'SCRIPT' ), 'The SCRIPT element should be removed.' );
 	}
 
 	/**
@@ -349,6 +376,71 @@ HTML;
 			trim( $result ),
 			'The block content should be updated with the value returned by the source.'
 		);
+	}
+
+	/**
+	 * Tests if the Icon block's icon attribute is updated with the value
+	 * returned by a block bindings source.
+	 *
+	 * @ticket 65725
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_update_icon_block_with_value_from_source() {
+		$get_value_callback = function () {
+			return 'test-icons/test-icon';
+		};
+
+		wp_register_icon_collection(
+			'test-icons',
+			array( 'label' => 'Test Icons' )
+		);
+
+		wp_register_icon(
+			'test-icons/test-icon',
+			array(
+				'label'   => 'Test Icon',
+				'content' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="currentColor"/></svg>',
+			)
+		);
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		try {
+			$block_content = <<<HTML
+<!-- wp:icon {"metadata":{"bindings":{"icon":{"source":"test/source"}}}} -->
+<div class="wp-block-icon"></div>
+<!-- /wp:icon -->
+HTML;
+			$parsed_blocks = parse_blocks( $block_content );
+			$block         = new WP_Block( $parsed_blocks[0] );
+			$result        = $block->render();
+
+			$this->assertSame(
+				'test-icons/test-icon',
+				$block->attributes['icon'],
+				"The 'icon' attribute should be updated with the value returned by the source."
+			);
+			$this->assertStringContainsString(
+				'<svg',
+				$result,
+				'The rendered output should contain an SVG element.'
+			);
+			$this->assertStringContainsString(
+				'wp-block-icon',
+				$result,
+				'The rendered output should contain the wp-block-icon class.'
+			);
+		} finally {
+			wp_unregister_icon( 'test-icons/test-icon' );
+			wp_unregister_icon_collection( 'test-icons' );
+		}
 	}
 
 	/**

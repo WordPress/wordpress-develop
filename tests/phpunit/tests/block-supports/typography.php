@@ -358,7 +358,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_fixtures() {
+	public static function data_generate_font_size_preset_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size_preset' => array(
@@ -874,7 +874,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
+	public static function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size'                   => array(
@@ -925,7 +925,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_should_override_theme_settings_fixtures() {
+	public static function data_generate_should_override_theme_settings_fixtures() {
 		return array(
 			'returns clamp value when theme activates fluid typography' => array(
 				'font_size'       => array(
@@ -1052,7 +1052,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_block_supports_font_size_fixtures() {
+	public static function data_generate_block_supports_font_size_fixtures() {
 		return array(
 			'returns value when fluid typography is not active' => array(
 				'font_size_value' => '15px',
@@ -1130,7 +1130,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
+	public static function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
 		return array(
 			'default_return_content'                       => array(
 				'block_content'               => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:4rem;font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
@@ -1206,7 +1206,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
 	 */
-	public function data_should_add_fit_text_class_name(): array {
+	public static function data_should_add_fit_text_class_name(): array {
 		return array(
 			'wrapper without a class attribute' => array(
 				'block_content'  => '<h1>Site Title</h1>',
@@ -1266,7 +1266,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_size_wp_get_typography_value_and_unit() {
+	public static function data_valid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: 10vh with default units do not match' => array(
 				'raw_value' => '10vh',
@@ -1353,7 +1353,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_invalid_size_wp_get_typography_value_and_unit() {
+	public static function data_invalid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: null'  => array( null ),
 			'size: false' => array( false ),
@@ -1393,7 +1393,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_computed_fluid_typography_value() {
+	public static function data_wp_get_computed_fluid_typography_value() {
 		return array(
 			'returns clamped value with valid args' => array(
 				'args'            => array(
