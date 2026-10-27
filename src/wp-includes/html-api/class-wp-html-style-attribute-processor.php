@@ -53,6 +53,19 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Parsed declarations.
 	 *
+	 * Each declaration records byte offsets into the style text. The offsets
+	 * of the second declaration in this style are:
+	 *
+	 *     color: red;  width: 1px !important;  top: 0
+	 *                ╰────────────────────────╯   leading_start to trailing_end
+	 *                  ╰────────────────────╯     start to after
+	 *                         ╰─╯                 value_start to value_end
+	 *                             ╰────────╯      important_start to important_end
+	 *
+	 * `value_tokens` is the range of token indexes, end exclusive, of the
+	 * value. The `important_*` offsets are null when the declaration has no
+	 * `!important` priority.
+	 *
 	 * @var array<int, array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
@@ -184,6 +197,10 @@ class WP_HTML_Style_Attribute_Processor {
 	 * whitespace and comments and the `!important` priority are excluded;
 	 * whitespace and comments between value tokens are included. The list is
 	 * empty when the declaration has no value tokens, as in `color:;`.
+	 *
+	 *     color:  red  blue !important;
+	 *             ╰───┬───╯
+	 *     The value tokens are `red`, a whitespace token and `blue`.
 	 *
 	 * Token offsets index the current style text, which
 	 * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} returns.
