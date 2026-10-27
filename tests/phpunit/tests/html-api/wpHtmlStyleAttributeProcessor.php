@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @group html-api
  *
