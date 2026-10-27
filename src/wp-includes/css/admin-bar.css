@@ -278,6 +278,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 	text-indent: 0;
 }
 
+/* Dashicons back-compat: hide an icon drawn on `.ab-item::before` so it doesn't show next to the SVG icon. */
+#wpadminbar .ab-item:has(> .ab-icon.svg-icon)::before {
+	display: none;
+}
+
 #wpadminbar .ab-icon.svg-icon svg {
 	flex: none;
 	width: 24px;
