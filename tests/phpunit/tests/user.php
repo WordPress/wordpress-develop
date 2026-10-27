@@ -678,7 +678,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_count_many_users_posts_cached_for_equivalent_arguments(): array {
+	public static function data_count_many_users_posts_cached_for_equivalent_arguments(): array {
 		return array(
 			'single post string vs array'  => array(
 				array( array( 0 ), 'post' ),
@@ -1227,7 +1227,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
-	public function data_illegal_user_logins() {
+	public static function data_illegal_user_logins() {
 		$data = array(
 			array( 'testuser' ),
 		);
@@ -1621,7 +1621,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertFalse( wp_validate_auth_cookie( $cookie ) );
 	}
 
-	public function data_remember_user() {
+	public static function data_remember_user() {
 		return array(
 			array( true ),
 			array( false ),
@@ -1766,7 +1766,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_new_user_notifications() {
+	public static function data_wp_new_user_notifications() {
 		return array(
 			array(
 				'',
@@ -1907,7 +1907,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_send_new_user_notification_filters() {
+	public static function data_wp_send_new_user_notification_filters() {
 		return array(
 			'true'          => array(
 				'expected' => true,
@@ -1931,15 +1931,15 @@ class Tests_User extends WP_UnitTestCase {
 			),
 			'zero float'    => array(
 				'expected' => false,
-				'callback' => array( $this, 'cb_return_zero_float' ),
+				'callback' => array( self::class, 'cb_return_zero_float' ),
 			),
 			'zero string'   => array(
 				'expected' => false,
-				'callback' => array( $this, 'cb_return_zero_string' ),
+				'callback' => array( self::class, 'cb_return_zero_string' ),
 			),
 			'array( true )' => array(
 				'expected' => false,
-				'callback' => array( $this, 'cb_return_array_true' ),
+				'callback' => array( self::class, 'cb_return_array_true' ),
 			),
 		);
 	}
@@ -2009,7 +2009,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return float 0.0.
 	 */
-	public function cb_return_zero_float() {
+	public static function cb_return_zero_float() {
 		return 0.0;
 	}
 
@@ -2018,7 +2018,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return string '0'.
 	 */
-	public function cb_return_zero_string() {
+	public static function cb_return_zero_string() {
 		return '0';
 	}
 
@@ -2027,7 +2027,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return array array( true )
 	 */
-	public function cb_return_array_true() {
+	public static function cb_return_array_true() {
 		return array( true );
 	}
 
@@ -2089,7 +2089,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_user_admin_email_confirmation_emails() {
+	public static function data_user_admin_email_confirmation_emails() {
 		return array(
 			array(
 				get_option( 'admin_email' ),
@@ -2153,7 +2153,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_user_change_email_confirmation_emails() {
+	public static function data_user_change_email_confirmation_emails() {
 		return array(
 			array(
 				'email@test.dev',
