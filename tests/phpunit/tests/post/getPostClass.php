@@ -12,6 +12,14 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$this->post_id = self::factory()->post->create();
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	public function test_with_tags() {
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'post_tag' );
 

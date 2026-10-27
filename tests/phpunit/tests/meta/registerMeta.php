@@ -21,6 +21,14 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'test_post_type' );
+		parent::tear_down();
+	}
+
 	public static function wpTearDownAfterClass() {
 		wp_delete_post( self::$post_id, true );
 		wp_delete_term( self::$term_id, 'category' );
