@@ -178,7 +178,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	 *
 	 * One case for each ✗ cell in the table in CSS Syntax Level 3 §9.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#serialization
+	 * @link https://www.w3.org/TR/css-syntax-3/#serialization
 	 *
 	 * @return Generator
 	 */

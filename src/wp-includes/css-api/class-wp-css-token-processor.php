@@ -13,8 +13,8 @@
  * This class follows the algorithm in https://www.w3.org/TR/css-syntax-3/ and
  * exposes a pull-based API so callers can stream over large stylesheets without
  * allocating every token up front. Each call to next_token() advances the cursor
- * and fills in metadata (type, value, raw slice, byte offsets) that you can read
- * through the getter methods.
+ * and fills in metadata (type, value, raw slice, byte offsets) that the getter
+ * methods read.
  *
  * ## Design choices
  *
@@ -31,7 +31,7 @@
  * This processor delays normalization as much as possible. That keeps the raw byte
  * positions intact for accurate rewrites while still letting consumers ask for a
  * normalized token when they need one.
- * For example, url(a<NUL>b) is a URL token whose value is a�b, where <NUL>
+ * For example, `url(a<NUL>b)` is a URL token whose value is `a�b`, where `<NUL>`
  * means one zero byte in the source. That byte stays in the raw token, so later
  * edits still use byte offsets from the original input.
  *
@@ -43,51 +43,49 @@
  * ### UTF-8 handling
  *
  * Only UTF-8 strings are supported. Invalid sequences are replaced with U+FFFD (�)
- * using the maximal subpart approach described in
- * https://www.unicode.org/versions/Unicode9.0.0/ch03.pdf, section 3.9 Best Practices
- * for Using U+FFFD.
+ * by the maximal subpart rule of the Unicode Standard, section 3.9.6, U+FFFD
+ * Substitution of Maximal Subparts.
  *
  * ## Usage
  *
  * Basic iteration:
  *
- *     $css = 'width: 10px;';
- *     $processor = WP_CSS_Token_Processor::create( $css );
- *     while ( $processor->next_token() ) {
- *         echo $processor->get_normalized_token();
- *     }
- *     // Outputs:
- *     // width: 10px;
+ * ```php interactive
+ * $processor = WP_CSS_Token_Processor::create( 'width: 10px;' );
+ * while ( $processor->next_token() ) {
+ *     echo $processor->get_normalized_token();
+ * }
+ * // Outputs: "width: 10px;"
+ * ```
  *
  * Gathering diagnostics with byte offsets:
  *
- *     $css = "color: red;\ncolor: re\nd;";
- *     $processor = WP_CSS_Token_Processor::create( $css );
- *     $bad_strings = array();
- *     while ( $processor->next_token() ) {
- *         if ( WP_CSS_Token_Processor::TOKEN_BAD_STRING === $processor->get_token_type() ) {
- *             $bad_strings[] = array(
- *                 'start'  => $processor->get_token_start(),
- *                 'length' => $processor->get_token_length(),
- *                 'value'  => $processor->get_unnormalized_token(),
- *             );
- *         }
+ * ```php interactive
+ * $css       = "color: red;\ncolor: \"re\nd\";";
+ * $processor = WP_CSS_Token_Processor::create( $css );
+ * while ( $processor->next_token() ) {
+ *     if ( WP_CSS_Token_Processor::TOKEN_BAD_STRING === $processor->get_token_type() ) {
+ *         echo "Bad string at byte {$processor->get_token_start()}, {$processor->get_token_length()} bytes long.\n";
  *     }
+ * }
+ * // Outputs: "Bad string at byte 19, 3 bytes long."
+ * ```
  *
  * @since 7.3.0
  *
- * @see https://www.w3.org/TR/css-syntax-3/#tokenization
+ * @link https://www.w3.org/TR/css-syntax-3/#tokenization
+ * @link https://www.unicode.org/versions/Unicode18.0.0/core-spec/chapter-3/#G66453
  */
 class WP_CSS_Token_Processor {
 	/**
 	 * Token type constants matching the CSS Syntax Level 3 specification.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#tokenization
+	 * @link https://www.w3.org/TR/css-syntax-3/#tokenization
 	 */
 	public const TOKEN_WHITESPACE = 'whitespace-token';
 
 	/**
-	 * Comment tokens, such as `/* a *\/`.
+	 * Comment tokens, which open with `/` `*` and close with `*` `/`.
 	 *
 	 * The specification's tokenizer produces no comment tokens. This processor
 	 * does, so callers can find comments by their byte offsets. CSS Syntax
@@ -99,38 +97,74 @@ class WP_CSS_Token_Processor {
 	 * @link https://www.w3.org/TR/css-syntax-3/#serialization
 	 */
 	public const TOKEN_COMMENT = 'comment';
-	public const TOKEN_STRING  = 'string-token';
+
+	/**
+	 * String tokens, such as `"hello"` and `'world'`.
+	 *
+	 * @see WP_CSS_Token_Processor::TOKEN_BAD_STRING
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-string-token
+	 */
+	public const TOKEN_STRING = 'string-token';
 
 	/**
 	 * BAD-STRING tokens occur when a string contains an unescaped newline.
 	 *
-	 * Valid strings: "hello", 'world', "line1\Aline2" (escaped newline)
-	 * Invalid (produces bad-string): "hello
-	 *                                 world"  (literal newline breaks the string)
+	 * These are valid strings; the last contains an escaped newline:
+	 *
+	 *     "hello" 'world' "line1\Aline2"
+	 *
+	 * This string produces a bad-string token, because a literal newline ends it:
+	 *
+	 *     "hello
+	 *     world"
 	 *
 	 * The processor stops at the newline and produces a bad-string token for error recovery.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-bad-string-token
+	 * @see WP_CSS_Token_Processor::TOKEN_STRING
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-bad-string-token
 	 */
-	public const TOKEN_BAD_STRING        = 'bad-string-token';
-	public const TOKEN_HASH              = 'hash-token';
-	public const HASH_TOKEN_ID           = 'id';
+	public const TOKEN_BAD_STRING = 'bad-string-token';
+
+	/**
+	 * Hash tokens, such as `#fff` and `#header`.
+	 *
+	 * A hash token has an "id" or "unrestricted" type flag.
+	 *
+	 * @see WP_CSS_Token_Processor::HASH_TOKEN_ID
+	 * @see WP_CSS_Token_Processor::HASH_TOKEN_UNRESTRICTED
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-hash-token
+	 */
+	public const TOKEN_HASH = 'hash-token';
+
+	/**
+	 * Type flag of a hash token whose name would start an identifier, such as `#header`.
+	 *
+	 * @see WP_CSS_Token_Processor::TOKEN_HASH
+	 */
+	public const HASH_TOKEN_ID = 'id';
+
+	/**
+	 * Type flag of a hash token whose name would not start an identifier, such as `#123`.
+	 *
+	 * @see WP_CSS_Token_Processor::TOKEN_HASH
+	 */
 	public const HASH_TOKEN_UNRESTRICTED = 'unrestricted';
-	public const TOKEN_DELIM             = 'delim-token';
-	public const TOKEN_NUMBER            = 'number-token';
-	public const TOKEN_PERCENTAGE        = 'percentage-token';
-	public const TOKEN_DIMENSION         = 'dimension-token';
-	public const TOKEN_AT_KEYWORD        = 'at-keyword-token';
-	public const TOKEN_COLON             = 'colon-token';
-	public const TOKEN_SEMICOLON         = 'semicolon-token';
-	public const TOKEN_COMMA             = 'comma-token';
-	public const TOKEN_LEFT_PAREN        = '(-token';
-	public const TOKEN_RIGHT_PAREN       = ')-token';
-	public const TOKEN_LEFT_BRACKET      = '[-token';
-	public const TOKEN_RIGHT_BRACKET     = ']-token';
-	public const TOKEN_LEFT_BRACE        = '{-token';
-	public const TOKEN_RIGHT_BRACE       = '}-token';
-	public const TOKEN_FUNCTION          = 'function-token';
+
+	public const TOKEN_DELIM         = 'delim-token';
+	public const TOKEN_NUMBER        = 'number-token';
+	public const TOKEN_PERCENTAGE    = 'percentage-token';
+	public const TOKEN_DIMENSION     = 'dimension-token';
+	public const TOKEN_AT_KEYWORD    = 'at-keyword-token';
+	public const TOKEN_COLON         = 'colon-token';
+	public const TOKEN_SEMICOLON     = 'semicolon-token';
+	public const TOKEN_COMMA         = 'comma-token';
+	public const TOKEN_LEFT_PAREN    = '(-token';
+	public const TOKEN_RIGHT_PAREN   = ')-token';
+	public const TOKEN_LEFT_BRACKET  = '[-token';
+	public const TOKEN_RIGHT_BRACKET = ']-token';
+	public const TOKEN_LEFT_BRACE    = '{-token';
+	public const TOKEN_RIGHT_BRACE   = '}-token';
+	public const TOKEN_FUNCTION      = 'function-token';
 
 	/**
 	 * URL tokens represent unquoted URLs in url() notation.
@@ -143,20 +177,23 @@ class WP_CSS_Token_Processor {
 	 * Bad URL tokens are created when invalid characters are encountered in
 	 * a URL token.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-url-token
+	 * @see WP_CSS_Token_Processor::TOKEN_BAD_URL
+	 * @see WP_CSS_Token_Processor::TOKEN_FUNCTION
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-url-token
 	 */
 	public const TOKEN_URL = 'url-token';
 
 	/**
 	 * BAD-URL tokens occur when a URL contains invalid characters.
 	 *
-	 * Invalid characters: quotes ("), apostrophes ('), parentheses (()
-	 * Example invalid: url(image(.jpg) or url(image".jpg)
+	 * Invalid characters include quotes (`"`), apostrophes (`'`) and opening
+	 * parentheses (`(`), as in `url(image(.jpg)` or `url(image".jpg)`.
 	 *
-	 * When detected, the processor consumes everything up to ) or EOF.
+	 * When detected, the processor consumes everything up to `)` or EOF.
 	 * This prevents the bad URL from breaking subsequent tokens.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-bad-url-token
+	 * @see WP_CSS_Token_Processor::TOKEN_URL
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-bad-url-token
 	 */
 	public const TOKEN_BAD_URL = 'bad-url-token';
 
@@ -167,36 +204,38 @@ class WP_CSS_Token_Processor {
 	 * There are restrictions on the codepoints that start or are contained in
 	 * an identifier, and identifiers may contain escape sequences.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-ident-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-ident-token
 	 */
 	public const TOKEN_IDENT = 'ident-token';
 
 	/**
-	 * CDC (Comment Delimiter Close) token: -->
+	 * CDC (Comment Delimiter Close) token: `-->`
 	 *
-	 * Legacy token from when CSS was embedded in HTML <style> tags
+	 * Legacy token from when CSS was embedded in HTML `<style>` tags
 	 * and needed to be hidden from old browsers using HTML comments:
 	 *
-	 *   <style>
-	 *   <!--
-	 *   body { color: red; }
-	 *   -->
-	 *   </style>
+	 *     <style>
+	 *     <!--
+	 *     body { color: red; }
+	 *     -->
+	 *     </style>
 	 *
 	 * Modern CSS no longer needs these, but they're preserved for compatibility.
 	 * In stylesheets, they're typically treated like whitespace.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-CDC-token
+	 * @see WP_CSS_Token_Processor::TOKEN_CDO
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-cdc-token
 	 */
 	public const TOKEN_CDC = 'CDC-token';
 
 	/**
-	 * CDO (Comment Delimiter Open) token: <!--
+	 * CDO (Comment Delimiter Open) token: `<!--`
 	 *
-	 * Legacy token from when CSS was embedded in HTML <style> tags.
-	 * See TOKEN_CDC for full explanation of HTML comment compatibility.
+	 * Legacy token from when CSS was embedded in HTML `<style>` tags.
+	 * TOKEN_CDC describes the HTML comment compatibility.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#typedef-CDO-token
+	 * @see WP_CSS_Token_Processor::TOKEN_CDC
+	 * @link https://www.w3.org/TR/css-syntax-3/#typedef-cdo-token
 	 */
 	public const TOKEN_CDO = 'CDO-token';
 
@@ -227,11 +266,11 @@ class WP_CSS_Token_Processor {
 	 * The type flag for the current token, if any.
 	 *
 	 * Hash tokens carry an "id" or "unrestricted" flag. Per CSS Syntax Level 3,
-	 * <number-token> and <dimension-token> have a type flag indicating whether
+	 * `<number-token>` and `<dimension-token>` have a type flag indicating whether
 	 * the number was written as an integer or a number (with decimal point or
-	 * exponent). <percentage-token> does not have a type flag.
+	 * exponent). `<percentage-token>` does not have a type flag.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
 	 * @var string|null
 	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
@@ -243,8 +282,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Example:
 	 *
-	 * background-image: url(https://example.com/image.jpg);
-	 *                   ^ token_starts_at
+	 *     background: url( a.png );
+	 *                 ↑
+	 *     The url token starts at byte 12.
 	 *
 	 * @var int|null
 	 */
@@ -255,9 +295,9 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Example:
 	 *
-	 * background-image: url(https://example.com/image.jpg);
-	 *                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	 *                             token_length
+	 *     background: url( a.png );
+	 *                 ╰────┬─────╯
+	 *     The url token is 12 bytes long.
 	 *
 	 * @var int|null
 	 */
@@ -266,23 +306,26 @@ class WP_CSS_Token_Processor {
 	/**
 	 * The byte offset at which the value of the current token starts.
 	 *
-	 * It is used for STRING and URL tokens. For example:
+	 * It is used for string and url tokens. The value of a string token
+	 * excludes its quotes; the value of a url token excludes `url(`, `)` and
+	 * the whitespace inside them. For example:
 	 *
-	 * background-image: url(https://example.com/image.jpg);
-	 *                       ^ token_value_starts_at
+	 *     background: url( a.png );
+	 *                      ↑
+	 *     The url value starts at byte 17.
 	 *
 	 * @var int|null
 	 */
 	private $token_value_starts_at = null;
 
 	/**
-	 * The byte offset at which the value of the current token starts.
+	 * The byte length of the value of the current token.
 	 *
-	 * It is relevant for STRING and URL tokens. For example:
+	 * It is used for string and url tokens. For example:
 	 *
-	 * background-image: url(https://example.com/image.jpg);
-	 *                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	 *                             token_value_length
+	 *     background: url( a.png );
+	 *                      ╰─┬─╯
+	 *     The url value is 5 bytes long.
 	 *
 	 * @var int|null
 	 */
@@ -305,9 +348,13 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Whether the current token ended at its closing delimiter.
 	 *
-	 * Comment, string, url and bad-url tokens end at `*\/`, the matching quote
-	 * or `)`. When the input ends first, the token is complete but this flag
-	 * is false. Every other token type is always terminated.
+	 * Comment, string, url and bad-url tokens end at `*` `/`, the matching
+	 * quote or `)`. When the input ends first, the token is complete but this
+	 * flag is false. Every other token type is always terminated.
+	 *
+	 *     color: "red
+	 *            ╰─┬╯
+	 *     The string token is not terminated: the input ends before the closing quote.
 	 *
 	 * @var bool
 	 */
@@ -355,7 +402,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Implements the main tokenization loop, consuming the next token from the input stream.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-token
 	 *
 	 * @since 7.3.0
 	 *
@@ -364,16 +411,16 @@ class WP_CSS_Token_Processor {
 	public function next_token(): bool {
 		$this->after_token();
 
-		// Bale out once we reach the end.
+		// Stop at the end of the input.
 		if ( $this->at >= $this->length ) {
 			return false;
 		}
 
 		/*
-		 * CSS comments. They are not preserved as tokens in the specification, but we
-		 * still track them.
+		 * CSS comments. The specification does not produce comment tokens; this
+		 * processor does.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#consume-comment
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-comment
 		 */
 		if (
 			$this->at + 1 < $this->length &&
@@ -400,12 +447,12 @@ class WP_CSS_Token_Processor {
 		/*
 		 * Whitespace tokens.
 		 *
-		 * We consider U+000A LINE FEED, U+0009 CHARACTER TABULATION, and U+0020 SPACE bytes covered by the spec.
-		 * In addition, we also capture U+000D CARRIAGE RETURN and U+000C FORM FEED that are normally converted to
-		 * U+000A LINE FEED during the preprocessing phase.
+		 * The spec defines U+000A LINE FEED, U+0009 CHARACTER TABULATION, and U+0020 SPACE as whitespace.
+		 * In addition, U+000D CARRIAGE RETURN and U+000C FORM FEED are handled here, which the preprocessing
+		 * phase would convert to U+000A LINE FEED.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#newline
-		 * @see https://www.w3.org/TR/css-syntax-3/#whitespace
+		 * @link https://www.w3.org/TR/css-syntax-3/#newline
+		 * @link https://www.w3.org/TR/css-syntax-3/#whitespace
 		 */
 		$whitespace_length = strspn( $this->css, "\t\n\f\r ", $this->at );
 		if ( $whitespace_length > 0 ) {
@@ -419,7 +466,7 @@ class WP_CSS_Token_Processor {
 		/*
 		 * String tokens with either " or ' as delimiters.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#consume-string-token
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
 		 */
 		if ( '"' === $this->css[ $this->at ] || "'" === $this->css[ $this->at ] ) {
 			return $this->consume_string();
@@ -434,7 +481,7 @@ class WP_CSS_Token_Processor {
 		 * A hash token is created when # is followed by an ident code point or valid escape.
 		 * This is commonly used for hex colors (#fff) or ID selectors (#header).
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#consume-token
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-token
 		 */
 		if ( '#' === $char ) {
 			if ( $this->at + 1 < $this->length ) {
@@ -473,7 +520,7 @@ class WP_CSS_Token_Processor {
 		 * Note: ( tokens here are not function tokens - those are handled
 		 * in consume_ident_like() when ( follows an identifier.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#tokenization
+		 * @link https://www.w3.org/TR/css-syntax-3/#tokenization
 		 */
 		$simple = array(
 			'(' => self::TOKEN_LEFT_PAREN,
@@ -499,7 +546,7 @@ class WP_CSS_Token_Processor {
 		 * An at-keyword is @ followed by an identifier, used for at-rules like
 		 * @media, @import, @keyframes, etc.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#consume-token
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-token
 		 */
 		if ( '@' === $char ) {
 			++$this->at;
@@ -522,7 +569,7 @@ class WP_CSS_Token_Processor {
 		/*
 		 * Numbers start with digits, the plus sign, minus sign, and decimal point.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
+		 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
 		 */
 		if ( $this->would_next_3_code_points_start_a_number() ) {
 			return $this->consume_numeric();
@@ -536,11 +583,11 @@ class WP_CSS_Token_Processor {
 			// > If the input stream starts with a number.
 
 			/*
-			 * If followed by another hyphen and >, this is a CDC token (-->)
+			 * If followed by another hyphen and `>`, this is a CDC token (`-->`).
 			 *
 			 * Comment Delimiter Close - legacy HTML comment syntax in CSS.
 			 *
-			 * @see https://www.w3.org/TR/css-syntax-3/#CDC-token-diagram
+			 * @link https://www.w3.org/TR/css-syntax-3/#CDC-token-diagram
 			 */
 			if (
 				$this->at + 2 < $this->length &&
@@ -570,11 +617,11 @@ class WP_CSS_Token_Processor {
 
 		/*
 		 * U+003C LESS-THAN SIGN (<)
-		 * If followed by !--, this is a CDO token (<!--)
+		 * If followed by `!--`, this is a CDO token (`<!--`).
 		 *
 		 * Comment Delimiter Open - legacy HTML comment syntax in CSS.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#CDO-token-diagram
+		 * @link https://www.w3.org/TR/css-syntax-3/#CDO-token-diagram
 		 */
 		if ( '<' === $char && $this->at + 3 < $this->length &&
 			'!' === $this->css[ $this->at + 1 ] &&
@@ -595,7 +642,7 @@ class WP_CSS_Token_Processor {
 		 *
 		 * Could be an identifier, function, or url() token.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token
 		 */
 		if ( $this->check_if_3_code_points_start_an_ident_sequence( $this->at ) ) {
 			return $this->consume_ident_like();
@@ -607,19 +654,16 @@ class WP_CSS_Token_Processor {
 		 * Any code point that doesn't match above rules becomes a delim token.
 		 * Handle multi-byte UTF-8 characters properly.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#delim-token-diagram
+		 * @link https://www.w3.org/TR/css-syntax-3/#typedef-delim-token
 		 */
 		if ( ord( $char ) >= 0x80 ) {
 			$new_at         = $this->at;
 			$invalid_length = 0;
 			if ( 1 !== _wp_scan_utf8( $this->css, $new_at, $invalid_length, null, 1 ) ) {
-				/**
-				 * Trouble ahead!
-				 * Bytes at $at are not a valid UTF-8 sequence.
-				 *
-				 * We'll move forward by $invalid_length bytes and continue processing.
-				 * Later on, during the string decoding, we'll replace the invalid bytes with U+FFFD
-				 * via maximal subpart”replacement.
+				/*
+				 * The bytes at the cursor are not a valid UTF-8 sequence. Skip the
+				 * $invalid_length bytes of the maximal subpart; decoding replaces them
+				 * with U+FFFD.
 				 */
 				$matched_bytes = $invalid_length;
 			} else {
@@ -648,12 +692,15 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $processor = WP_CSS_Token_Processor::create( 'a "b"' );
-	 *     $tokens    = array();
-	 *     while ( $processor->next_token() ) {
-	 *         $tokens[] = $processor->get_token();
-	 *     }
-	 *     $tokens[2]->get_value(); // 'b'
+	 * ```php interactive
+	 * $processor = WP_CSS_Token_Processor::create( 'a "b"' );
+	 * $tokens    = array();
+	 * while ( $processor->next_token() ) {
+	 *     $tokens[] = $processor->get_token();
+	 * }
+	 * echo $tokens[2]->get_value();
+	 * // Outputs: "b"
+	 * ```
 	 *
 	 * @since 7.3.0
 	 *
@@ -703,7 +750,7 @@ class WP_CSS_Token_Processor {
 	 *   written without a decimal point or exponent, and a "number" flag otherwise.
 	 * - Percentage tokens do not have a type flag.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
 	 * @since 7.3.0
 	 *
@@ -718,9 +765,9 @@ class WP_CSS_Token_Processor {
 	 * Gets the normalized token text from the CSS source.
 	 *
 	 * Returns the token with CSS normalization and escape decoding applied:
-	 * - CSS escapes decoded (e.g., \6c → l, \2f → /, \A → newline)
-	 * - \r\n, \r, \f → \n
-	 * - \x00 → U+FFFD (�)
+	 * - CSS escapes decoded (e.g., `\6c` → `l`, `\2f` → `/`, `\A` → newline)
+	 * - `\r\n`, `\r`, `\f` → `\n`
+	 * - `\x00` → U+FFFD (�)
 	 *
 	 * This is different from get_token_value() which returns the semantic value
 	 * (e.g., for strings: content without quotes; for numbers: numeric value).
@@ -746,7 +793,7 @@ class WP_CSS_Token_Processor {
 	 * Gets the raw, unnormalized token text from the CSS source.
 	 *
 	 * Returns the exact bytes from the source without any normalization.
-	 * This preserves original line endings (\r\n, \r, \f) and null bytes.
+	 * This preserves original line endings (`\r\n`, `\r`, `\f`) and null bytes.
 	 *
 	 * @since 7.3.0
 	 *
@@ -761,7 +808,7 @@ class WP_CSS_Token_Processor {
 
 	/**
 	 * Gets the current token value as a normalized and decoded string. This is
-	 * a slight divergence from the CSS Syntax Level 3 spec, where all the numberic
+	 * a slight divergence from the CSS Syntax Level 3 spec, where all the numeric
 	 * values are parsed as numbers. This processor is only concerned with their
 	 * textual representation.
 	 *
@@ -776,7 +823,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#token-value
+	 * @link https://www.w3.org/TR/css-syntax-3/#tokenization
 	 * @return string|null
 	 */
 	public function get_token_value(): ?string {
@@ -785,7 +832,7 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
-	 * Gets the token start at.
+	 * Gets the byte offset at which the current token starts.
 	 *
 	 * @since 7.3.0
 	 *
@@ -796,7 +843,7 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
-	 * Gets the token length.
+	 * Gets the byte length of the current token.
 	 *
 	 * @since 7.3.0
 	 *
@@ -820,7 +867,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Reports whether the current token ended at its closing delimiter.
 	 *
-	 * Comment, string, url and bad-url tokens have a closing delimiter: `*\/`,
+	 * Comment, string, url and bad-url tokens have a closing delimiter: `*` `/`,
 	 * the matching quote, or `)`. When the input ends before the delimiter,
 	 * the tokenizer still returns the token, and this method returns false.
 	 * It returns true for every other token type, which have no closing
@@ -828,14 +875,19 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Example:
 	 *
-	 *     $processor = WP_CSS_Token_Processor::create( '"abc' );
-	 *     $processor->next_token();
-	 *     $processor->get_token_type();      // 'string-token'
-	 *     $processor->is_token_terminated(); // false
+	 * ```php interactive
+	 * $processor = WP_CSS_Token_Processor::create( '"abc' );
+	 * $processor->next_token();
+	 * echo $processor->get_token_type() . "\n";
+	 * var_dump( $processor->is_token_terminated() );
+	 * // Outputs:
+	 * // string-token
+	 * // bool(false)
+	 * ```
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-comment
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-string-token
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-comment
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
 	 * @since 7.3.0
 	 *
@@ -866,7 +918,7 @@ class WP_CSS_Token_Processor {
 	 * Strings are quoted with either " or ' and can contain escape sequences.
 	 * Newlines inside strings (without escaping) make the string invalid.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-string-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
 	 *
 	 * @return bool
 	 */
@@ -883,7 +935,7 @@ class WP_CSS_Token_Processor {
 		$special_chars = "'" === $ending_char ? "'\n\f\r\\" : "\"\n\f\r\\";
 
 		while ( $this->at < $this->length ) {
-			// Consume normal characters until we hit a special character.
+			// Consume normal characters up to the next special character.
 			$normal_len = strcspn( $this->css, $special_chars, $this->at );
 			if ( $normal_len > 0 ) {
 				$this->at += $normal_len;
@@ -917,7 +969,7 @@ class WP_CSS_Token_Processor {
 					 * Unescaped newlines are not allowed in strings. To include a newline,
 					 * it must be escaped as \A or the string must end and a new one begin.
 					 *
-					 * @see https://www.w3.org/TR/css-syntax-3/#consume-string-token
+					 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
 					 */
 					$this->token_type            = self::TOKEN_BAD_STRING;
 					$this->token_length          = $this->at - $this->token_starts_at;
@@ -976,8 +1028,8 @@ class WP_CSS_Token_Processor {
 	 * Numbers can be integers or decimals, with optional sign and exponent.
 	 * They can be followed by % (percentage) or an identifier (dimension).
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
 	 * @return bool
 	 */
@@ -1052,10 +1104,11 @@ class WP_CSS_Token_Processor {
 			}
 		}
 
-		/**
+		/*
 		 * This is the end of spec section 4.3.12. Consume a number.
-		 * We still have some work to do as specified in section 4.3.3. Consume a numeric token:
-		 * https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
+		 * The rest follows section 4.3.3. Consume a numeric token.
+		 *
+		 * @link https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
 		 */
 
 		// If the next 3 input code points would start an ident sequence, then.
@@ -1095,7 +1148,7 @@ class WP_CSS_Token_Processor {
 	 * After consuming an identifier, checks if it's followed by '(' to determine
 	 * if it's a function or url() token, otherwise it's a plain identifier.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token
 	 *
 	 * @return bool
 	 */
@@ -1155,7 +1208,7 @@ class WP_CSS_Token_Processor {
 	 * parentheses, or certain control characters. Invalid characters create a
 	 * bad-url token.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
 	 * @return bool
 	 */
@@ -1202,7 +1255,7 @@ class WP_CSS_Token_Processor {
 				$this->at     += $ws_len;
 				// Accept either ) or EOF after whitespace.
 				if ( $this->at >= $this->length ) {
-					// EOF is a parse error, but we return the <url-token> anyway.
+					// EOF is a parse error, but the <url-token> is still returned.
 					$this->token_type            = self::TOKEN_URL;
 					$this->token_is_terminated   = false;
 					$this->token_length          = $this->at - $this->token_starts_at;
@@ -1267,13 +1320,10 @@ class WP_CSS_Token_Processor {
 			$at             = $this->at;
 			$invalid_length = 0;
 			if ( 1 !== _wp_scan_utf8( $this->css, $at, $invalid_length, null, 1 ) ) {
-				/**
-				 * Trouble ahead!
-				 * Bytes at $at are not a valid UTF-8 sequence.
-				 *
-				 * We'll move forward by $invalid_length bytes and continue processing.
-				 * Later on, during the string decoding, we'll replace the invalid bytes with U+FFFD
-				 * via maximal subpart”replacement.
+				/*
+				 * The bytes at the cursor are not a valid UTF-8 sequence. Skip the
+				 * $invalid_length bytes of the maximal subpart; decoding replaces them
+				 * with U+FFFD.
 				 */
 				$this->at += $invalid_length;
 			} else {
@@ -1294,10 +1344,10 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Finishes a bad url token by consuming remnants.
 	 *
-	 * When an invalid character is encountered in a URL, we must consume
-	 * the remainder of the URL up to the closing ) or EOF.
+	 * When an invalid character is encountered in a URL, the remainder of
+	 * the URL up to the closing `)` or EOF is consumed.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url
 	 *
 	 * @return bool
 	 */
@@ -1339,7 +1389,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * Advances the cursor past the sequence; the caller decodes the bytes.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-name
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-name
 	 */
 	private function consume_ident_sequence(): void {
 		while ( $this->at < $this->length ) {
@@ -1379,7 +1429,7 @@ class WP_CSS_Token_Processor {
 	 * Ident code point
 	 *     An ident-start code point, a digit, or U+002D HYPHEN-MINUS (-).
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
+	 * @link https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
 	 * @return int The number of bytes consumed.
 	 */
 	private function consume_ident_codepoint( $at ): int {
@@ -1400,7 +1450,7 @@ class WP_CSS_Token_Processor {
 	 * Ident code point
 	 *     An ident-start code point, a digit, or U+002D HYPHEN-MINUS (-).
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
+	 * @link https://www.w3.org/TR/css-syntax-3/#ident-start-code-point
 	 * @return int The number of bytes consumed.
 	 */
 	private function consume_ident_start_codepoint( $at ): int {
@@ -1423,13 +1473,10 @@ class WP_CSS_Token_Processor {
 		$new_at         = $at;
 		$invalid_length = 0;
 		if ( 1 !== _wp_scan_utf8( $this->css, $new_at, $invalid_length, null, 1 ) ) {
-			/**
-			 * Trouble ahead!
-			 * Bytes at $at are not a valid UTF-8 sequence.
-			 *
-			 * We'll move forward by $invalid_length bytes and continue processing.
-			 * Later on, during the string decoding, we'll replace the invalid bytes with U+FFFD
-			 * via maximal subpart”replacement.
+			/*
+			 * The bytes at $at are not a valid UTF-8 sequence. Their maximal subpart
+			 * of $invalid_length bytes counts as one code point; decoding replaces it
+			 * with U+FFFD.
 			 */
 			return $invalid_length;
 		}
@@ -1558,7 +1605,7 @@ class WP_CSS_Token_Processor {
 	 * trailing whitespace) or any other character. Invalid code points are
 	 * replaced with U+FFFD.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
 	 *
 	 * @param string $css             CSS source.
 	 * @param int    $offset          Byte offset (should point to the character after the backslash).
@@ -1639,7 +1686,7 @@ class WP_CSS_Token_Processor {
 	 *
 	 * A valid escape is a backslash not followed by a newline or EOF.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
+	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
 	 * @param string $css    CSS source.
 	 * @param int    $offset Byte offset.
@@ -1654,8 +1701,7 @@ class WP_CSS_Token_Processor {
 		}
 		// Otherwise, if the second code point is a newline, return false.
 		if ( $offset + 1 >= $css_length ) {
-			// Second code point is EOF - this is a valid escape per spec (weird!)
-			// Are we sure we're interpreting the spec correctly?
+			// The spec rejects only a newline as the second code point, so a `\` at EOF is a valid escape.
 			return true;
 		}
 
@@ -1669,15 +1715,14 @@ class WP_CSS_Token_Processor {
 			// Carriage return is normalized to newline during preprocessing.
 			"\r" !== $css[ $offset + 1 ]
 
-			// We don't need to check for \r\n separately here. The \r check alone covers
-			// that scenario.
+			// The \r check also covers \r\n.
 		);
 	}
 
 	/**
 	 * Checks if the next 3 code points would start a number.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
+	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
 	 *
 	 * @return bool
 	 */
@@ -1732,7 +1777,7 @@ class WP_CSS_Token_Processor {
 	 * NOTE: "Three code points" means three Unicode code points, not three bytes.
 	 * Multi-byte UTF-8 sequences count as single code points.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
+	 * @link https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
 	 *
 	 * @param int $offset Byte offset of the first code point to check.
 	 * @return bool

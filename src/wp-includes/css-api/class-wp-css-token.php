@@ -16,13 +16,18 @@
  *
  * Example:
  *
- *     $processor = WP_CSS_Token_Processor::create( 'font-family: "Exo\20 2"' );
- *     $tokens    = array();
- *     while ( $processor->next_token() ) {
- *         $tokens[] = $processor->get_token();
- *     }
- *     $tokens[3]->get_type();  // 'string-token'
- *     $tokens[3]->get_value(); // 'Exo 2'
+ * ```php interactive
+ * $processor = WP_CSS_Token_Processor::create( 'font-family: "Exo\20 2"' );
+ * $tokens    = array();
+ * while ( $processor->next_token() ) {
+ *     $tokens[] = $processor->get_token();
+ * }
+ * echo $tokens[3]->get_type() . "\n";
+ * echo $tokens[3]->get_value();
+ * // Outputs:
+ * // string-token
+ * // Exo 2
+ * ```
  *
  * @since 7.3.0
  *
