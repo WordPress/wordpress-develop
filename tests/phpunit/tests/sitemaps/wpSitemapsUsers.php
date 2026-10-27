@@ -31,6 +31,13 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 		self::$editor_id = self::$users[0];
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'public_cpt' );
+		unregister_post_type( 'private_cpt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test getting a URL list for a users sitemap page via
 	 * WP_Sitemaps_Users::get_url_list().
