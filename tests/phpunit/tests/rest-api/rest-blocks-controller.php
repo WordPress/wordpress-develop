@@ -355,4 +355,55 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 			'author' => array( 'author', 403 ),
 		);
 	}
+
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$endpoint = new WP_REST_Blocks_Controller( 'wp_block' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/blocks/%d', self::$post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$data = $response->get_data();
+		$this->assertSame( self::$post_id, $data['id'] );
+		$this->assertSame( 'My cool block', $data['title']['raw'] );
+		$this->assertSame( '<!-- wp:paragraph --><p>Hello!</p><!-- /wp:paragraph -->', $data['content']['raw'] );
+		$this->assertArrayNotHasKey( 'rendered', $data['title'] );
+		$this->assertArrayNotHasKey( 'rendered', $data['content'] );
+		$this->assertArrayHasKey( 'wp_pattern_sync_status', $data );
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertArrayHasKey( 'about', $links );
+	}
+
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$endpoint = new WP_REST_Blocks_Controller( 'wp_block' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/blocks/%d', self::$post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,slug,wp_pattern_sync_status' );
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		$this->assertSame(
+			array(
+				'id',
+				'slug',
+				'wp_pattern_sync_status',
+			),
+			array_keys( $response->get_data() )
+		);
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when not requested in _fields.' );
+	}
 }
