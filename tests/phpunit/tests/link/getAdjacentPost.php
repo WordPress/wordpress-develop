@@ -6,6 +6,13 @@
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_error_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 17807
 	 */
