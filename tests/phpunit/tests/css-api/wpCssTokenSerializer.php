@@ -104,7 +104,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_IDENT, $processor->get_token_type() );
 
-		$this->assertSame( str_replace( "\0", '�', $input ), $processor->get_token_value() );
+		$this->assertSame( str_replace( "\0", '�', $input ), $processor->get_token()->get_value() );
 		$this->assertFalse( $processor->next_token() );
 	}
 
