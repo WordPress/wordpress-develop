@@ -615,7 +615,7 @@
 				"raw": "/*\\*/",
 				"startIndex": 0,
 				"endIndex": 5,
-				"normalized": "/**/",
+				"normalized": "/*\\*/",
 				"value": "\\"
 			},
 			{

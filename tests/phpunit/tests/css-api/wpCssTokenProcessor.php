@@ -2229,6 +2229,32 @@ CSS;
 		$this->assertSame( $expected, $actual_tokens );
 	}
 
+	/**
+	 * Tests that get_normalized_token() does not decode escapes in a comment.
+	 *
+	 * @ticket 65738
+	 * @dataProvider data_normalized_comment
+	 */
+	public function test_get_normalized_token_keeps_comment_escapes( string $css, string $expected ): void {
+		$processor = WP_CSS_Token_Processor::create( $css );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( WP_CSS_Token_Processor::TOKEN_COMMENT, $processor->get_token_type() );
+
+		$this->assertSame( $expected, $processor->get_normalized_token() );
+	}
+
+	/**
+	 * Data provider for test_get_normalized_token_keeps_comment_escapes().
+	 *
+	 * @return array[]
+	 */
+	public static function data_normalized_comment(): array {
+		return array(
+			'escape'                => array( '/* \\41 */', '/* \\41 */' ),
+			'newlines preprocessed' => array( "/*\\41\r\n\f*/", "/*\\41\n\n*/" ),
+		);
+	}
+
 	public function test_dimension_token_value(): void {
 		$css           = '10px;15em;20%;30pt;40pc;50vw;';
 		$expected      = array(
