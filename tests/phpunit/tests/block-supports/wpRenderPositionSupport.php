@@ -54,10 +54,6 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		if ( get_stylesheet() !== $this->original_stylesheet ) {
-			switch_theme( $this->original_stylesheet );
-		}
-
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
@@ -67,6 +63,11 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
