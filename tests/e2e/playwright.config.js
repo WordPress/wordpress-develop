@@ -22,6 +22,7 @@ const SERIAL_SPECS = [
 	'login-localize-script.test.js',
 	'gutenberg-plugin.test.js',
 	'plugins.test.js',
+	'themes.test.js',
 	// These delete all posts or media, including other workers' content.
 	'cache-control-headers-directives.test.js',
 	'dashboard.test.js',
@@ -42,13 +43,21 @@ const config = defineConfig( {
 	},
 	projects: [
 		{
+			name: 'all',
+			fullyParallel: false,
+			workers: 1,
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+		{
 			name: 'parallel',
+			default: false,
 			testIgnore: SERIAL_SPECS,
 			fullyParallel: false,
 			use: { ...devices[ 'Desktop Chrome' ] },
 		},
 		{
 			name: 'serial',
+			default: false,
 			testMatch: SERIAL_SPECS,
 			fullyParallel: false,
 			workers: 1,

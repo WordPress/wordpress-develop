@@ -152,7 +152,7 @@ jobs:
           npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
 
       - name: Run E2E tests
-        run: npm run "test:e2e:${PROJECT}"
+        run: npm run test:e2e -- --project="${PROJECT}"
         env:
           PROJECT: ${{ matrix.project }}
           # Chromium is installed above and is the only browser the suite runs. Without this,
