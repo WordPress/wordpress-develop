@@ -121,7 +121,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: int}>
 	 */
-	public function data_invalid_site_ids(): array {
+	public static function data_invalid_site_ids(): array {
 		return array(
 			'zero'     => array( 0 ),
 			'negative' => array( -1 ),
