@@ -165,7 +165,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$post_list = $tax_provider->get_url_list( 1, $taxonomy );
 
 		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
-		$sitemaps->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 		$this->assertTrue( is_404(), 'Private taxonomy sitemaps should 404' );
 
 		// Clean up.

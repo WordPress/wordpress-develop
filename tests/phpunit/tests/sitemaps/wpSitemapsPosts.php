@@ -208,7 +208,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$this->assertSame( array(), $posts_provider->get_url_list( 1, $post_type ), 'URL list for private post type should be empty.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The short-circuit filter should not run.' );
 		$this->go_to( home_url( "/?sitemap=posts&sitemap-subtype={$post_type}" ) );
-		$sitemaps->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 		$this->assertTrue( is_404(), 'Private post type sitemaps should 404' );
 	}
 
