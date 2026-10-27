@@ -1580,25 +1580,24 @@ HTML
 	 *
 	 * @dataProvider data_extraction_stop_tokens
 	 *
-	 * @param string $marked_document An HTML document containing blocks, with "⌖" at the start of the
-	 *                                token on which extraction should stop, or at the end if extraction
-	 *                                should reach the end of the document.
-	 * @param string $block_type      Block type at which to start extraction.
+	 * @param string      $test_document An HTML document containing blocks.
+	 * @param string      $block_type    Block type at which to start extraction.
+	 * @param string|null $stop_token    Token on which extraction should stop, or null if
+	 *                                   extraction should reach the end of the document.
 	 */
-	public function test_extraction_stops_on_expected_token( string $marked_document, string $block_type ): void {
-		$test_document = str_replace( '⌖', '', $marked_document );
-		$processor     = new WP_Block_Processor( $test_document );
+	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ): void {
+		$processor = new WP_Block_Processor( $test_document );
 		$this->assertTrue(
 			$processor->next_block( $block_type ),
 			"Failed to find a block of type '{$block_type}'."
 		);
 
 		$processor->extract_full_block_and_advance();
-		$stopped_at = $processor->get_span()->start ?? strlen( $test_document );
+		$span = $processor->get_span();
 
 		$this->assertSame(
-			$marked_document,
-			substr_replace( $test_document, '⌖', $stopped_at, 0 ),
+			$stop_token,
+			isset( $span ) ? substr( $test_document, $span->start, $span->length ) : null,
 			'Stopped on the wrong token after extracting a block.'
 		);
 	}
@@ -1622,20 +1621,20 @@ HTML
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: string}>
+	 * @return array<string, array{0: string, 1: string, 2: string|null}>
 	 */
 	public static function data_extraction_stop_tokens(): array {
 		return array(
-			'Block with inner content'                  => array( '<!-- wp:a -->x⌖<!-- /wp:a -->y', 'a' ),
-			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /-->⌖<!-- /wp:g -->x', 'g' ),
-			'Void block'                                => array( '<!-- wp:a /-->⌖<!-- wp:b /-->', 'a' ),
-			'Void block before freeform HTML'           => array( '<!-- wp:a /-->⌖x', 'a' ),
-			'Void block at end of document'             => array( '<!-- wp:a /-->⌖', 'a' ),
-			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /-->⌖<!-- wp:w /--><!-- /wp:g -->', 'v' ),
-			'Freeform HTML'                             => array( '⌖x<!-- wp:a /-->', 'freeform' ),
-			'Unclosed block'                            => array( '<!-- wp:a -->x⌖', 'a' ),
-			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->⌖', 'g' ),
-			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->⌖x<', 'g' ),
+			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
+			'Void block'                                => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:b /-->' ),
+			'Void block before freeform HTML'           => array( '<!-- wp:a /-->x', 'a', 'x' ),
+			'Void block at end of document'             => array( '<!-- wp:a /-->', 'a', null ),
+			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:w /-->' ),
+			'Freeform HTML'                             => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                            => array( '<!-- wp:a -->x', 'a', null ),
+			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->', 'g', null ),
+			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->x<', 'g', 'x' ),
 		);
 	}
 
