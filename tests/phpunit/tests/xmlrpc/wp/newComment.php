@@ -308,7 +308,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 	 *     @type string Optional. Allow anonymous comment callback. Default __return_false.
 	 * }
 	 */
-	public function data_comments_observe_post_permissions() {
+	public static function data_comments_observe_post_permissions() {
 		return array(
 			// 0: Post author, password protected public post.
 			array(
