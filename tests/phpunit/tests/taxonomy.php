@@ -16,6 +16,23 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_1' );
+		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'taxonomy53212' );
+		unregister_taxonomy( 'random' );
+		unregister_taxonomy( 'foo' );
+		unregister_taxonomy( 'test_tax' );
+		unregister_taxonomy( 'tax_default_term_1' );
+		unregister_taxonomy( 'tax_default_term_2' );
+		unregister_post_type( 'cpt_default_term' );
+		parent::tear_down();
+	}
+
 	public function test_get_post_taxonomies() {
 		$this->assertSame( array( 'category', 'post_tag', 'post_format' ), get_object_taxonomies( 'post' ) );
 	}
