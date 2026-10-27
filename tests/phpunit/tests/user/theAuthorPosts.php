@@ -69,6 +69,7 @@ class Tests_User_TheAuthorPosts extends WP_UnitTestCase {
 	 * Cleans up global state after each test.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'wptests_cpt' );
 		unset( $GLOBALS['post'], $GLOBALS['authordata'] );
 
 		parent::tear_down();
