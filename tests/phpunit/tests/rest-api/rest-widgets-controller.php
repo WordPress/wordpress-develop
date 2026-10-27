@@ -1719,12 +1719,53 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The prepare_item() method does not exist for sidebar.
+	 * @ticket 40538
 	 *
-	 * @doesNotPerformAssertions
+	 * @covers WP_REST_Widgets_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-1' )
+		);
+
+		$controller = new WP_REST_Widgets_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
+
+		$response = $controller->prepare_item_for_response(
+			array(
+				'widget_id'  => 'text-1',
+				'sidebar_id' => 'sidebar-1',
+			),
+			$request
+		);
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSetsWithIndex(
+			array(
+				'id'       => 'text-1',
+				'id_base'  => 'text',
+				'sidebar'  => 'sidebar-1',
+				'rendered' => '<div class="textwidget">Custom text test</div>',
+			),
+			$response->get_data()
+		);
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( 'wp/v2/widgets/text-1' ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/widgets' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/widget-types/text' ), $links['about'][0]['href'] );
 	}
 
 	/**
