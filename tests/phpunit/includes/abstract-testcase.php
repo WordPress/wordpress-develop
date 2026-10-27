@@ -159,8 +159,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->reset_post_statuses();
 			$this->reset__SERVER();
 
-			if ( $wp_rewrite->permalink_structure ) {
-				$this->set_permalink_structure( '' );
+			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+				$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 			}
 		}
 
@@ -206,8 +206,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
 		 * remains synchronized with the restored database option for subsequent class fixtures.
 		 */
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
-			$this->set_permalink_structure( '' );
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		}
 
 		$wpdb->query( 'ROLLBACK' );
@@ -1744,10 +1744,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 *
-	 * @param string $structure Optional. Permalink structure to set. Default empty.
+	 * @param string|null $structure Optional. Permalink structure to set. Default null (resets to default).
 	 */
-	public function set_permalink_structure( $structure = '' ) {
+	public function set_permalink_structure( $structure = null ) {
 		global $wp_rewrite;
+
+		if ( null === $structure ) {
+			$structure = WP_TESTS_DEFAULT_PERMALINK_STRUCTURE;
+		}
 
 		$wp_rewrite->init();
 		$wp_rewrite->set_permalink_structure( $structure );

@@ -298,6 +298,8 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	exit( 1 );
 }
 
+define( 'WP_TESTS_DEFAULT_PERMALINK_STRUCTURE', '/%year%/%monthnum%/%day%/%postname%/' );
+
 /**
  * Set a permalink structure.
  *
@@ -307,7 +309,7 @@ function _wp_die_handler_exit( $message, $title, $args ) {
  * @since 4.2.0
  */
 function _set_default_permalink_structure_for_tests() {
-	update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	update_option( 'permalink_structure', WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 }
 
 /**

@@ -158,8 +158,11 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
 		}
 
-		// Keep assertEquals() because get_option( 'permalink_structure' ) returns false on single site and empty string on multisite.
-		$this->assertEquals( $expected, $actual );
+		if ( false === $expected ) {
+			$expected = get_option( 'permalink_structure' );
+		}
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	public static function data_sanitize_option_permalink_structure() {

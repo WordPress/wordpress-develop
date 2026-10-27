@@ -9,6 +9,11 @@
  */
 class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Creates a provider that only implements the abstract methods.
 	 *

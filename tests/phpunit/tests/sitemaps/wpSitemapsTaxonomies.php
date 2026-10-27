@@ -37,6 +37,11 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Test getting a URL list for default taxonomies via
 	 * WP_Sitemaps_Taxonomies::get_url_list().

@@ -54,6 +54,11 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
+		global $wpdb;
+		foreach ( self::$posts as $post_id ) {
+			$wpdb->update( $wpdb->posts, array( 'guid' => home_url( '/?p=' . $post_id ) ), array( 'ID' => $post_id ) );
+		}
+
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
 	}

@@ -39,6 +39,7 @@ class Tests_Link_ThePermalink extends WP_UnitTestCase {
 
 		$GLOBALS['post'] = get_post( self::$post_id );
 		setup_postdata( $GLOBALS['post'] );
+		$this->set_permalink_structure( '' );
 	}
 
 	/**

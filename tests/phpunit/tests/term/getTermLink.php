@@ -23,6 +23,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+
+		$this->set_permalink_structure( '' );
 		self::register_custom_taxonomy();
 	}
 

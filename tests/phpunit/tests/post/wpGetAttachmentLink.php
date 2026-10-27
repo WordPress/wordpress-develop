@@ -20,9 +20,17 @@ class Tests_Post_WpGetAttachmentLink extends WP_UnitTestCase {
 	 * Creates an attachment for testing before any tests run.
 	 */
 	public static function set_up_before_class() {
+		global $wpdb;
+
 		parent::set_up_before_class();
 
 		self::$attachment = self::factory()->attachment->create();
+		$wpdb->update(
+			$wpdb->posts,
+			array( 'guid' => 'http://' . WP_TESTS_DOMAIN . '/?attachment_id=' . self::$attachment ),
+			array( 'ID' => self::$attachment )
+		);
+		clean_post_cache( self::$attachment );
 	}
 
 	/**

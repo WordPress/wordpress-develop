@@ -236,6 +236,8 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 * @covers ::widget
 	 */
 	public function test_widget_displays_links_for_logged_out_visitor() {
+		$this->set_permalink_structure( '' );
+
 		update_option( 'users_can_register', 0 );
 
 		$output = $this->get_widget_output();

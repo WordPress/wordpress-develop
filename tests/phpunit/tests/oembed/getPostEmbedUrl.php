@@ -22,6 +22,8 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	}
 
 	public function test_with_ugly_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$embed_url = get_post_embed_url( $post_id );
@@ -51,6 +53,8 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_static_front_page_with_ugly_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		update_option( 'show_on_front', 'page' );

@@ -648,6 +648,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_default_permalink_for_view_post_link_when_pretty_permalinks_are_disabled() {
+		$this->set_permalink_structure( '' );
+
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );

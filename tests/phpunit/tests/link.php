@@ -5,6 +5,8 @@
 class Tests_Link extends WP_UnitTestCase {
 
 	public function test_wp_get_shortlink() {
+		$this->set_permalink_structure( '' );
+
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 

@@ -93,11 +93,11 @@ add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
 wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, '', 'password' );
 
-// Delete dummy permalink structure, as prefilled above.
-if ( ! is_multisite() ) {
-	delete_option( 'permalink_structure' );
-}
 remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
+
+$wp_rewrite->init();
+$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+$wp_rewrite->flush_rules();
 
 if ( $multisite ) {
 	echo 'Installing network...' . PHP_EOL;
@@ -114,5 +114,7 @@ if ( $multisite ) {
 		wp_die( $error );
 	}
 
-	$wp_rewrite->set_permalink_structure( '' );
+	$wp_rewrite->init();
+	$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+	$wp_rewrite->flush_rules();
 }

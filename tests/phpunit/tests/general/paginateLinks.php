@@ -261,6 +261,8 @@ EXPECTED;
 	 * @ticket 29636
 	 */
 	public function test_paginate_links_query_args() {
+		$this->set_permalink_structure( '' );
+
 		add_filter( 'get_pagenum_link', array( $this, 'add_query_arg' ) );
 		$links = paginate_links(
 			array(
@@ -299,6 +301,8 @@ EXPECTED;
 	 * @ticket 30831
 	 */
 	public function test_paginate_links_with_custom_query_args() {
+		$this->set_permalink_structure( '' );
+
 		add_filter( 'get_pagenum_link', array( $this, 'add_query_arg' ) );
 		$links = paginate_links(
 			array(

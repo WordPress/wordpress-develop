@@ -22,6 +22,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	public static $posts;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		global $wpdb;
+
 		self::setup_custom_types();
 		self::$users = array(
 			'anon'           => 0,
@@ -50,7 +52,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 
 			// Add fake attachment to the post (file upload not needed).
-			self::$posts[ "$post_status-attachment" ] = $factory->post->create_and_get(
+			$att = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'attachment',
 					'post_title'   => "$post_status inherited attachment",
@@ -62,6 +64,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_date'    => $post_date,
 				)
 			);
+			$wpdb->update( $wpdb->posts, array( 'guid' => home_url( "/?attachment_id={$att->ID}" ) ), array( 'ID' => $att->ID ) );
+			clean_post_cache( $att->ID );
+			self::$posts[ "$post_status-attachment" ] = get_post( $att->ID );
 
 			// Set up a page with same.
 			self::$posts[ "$post_status-page" ] = $factory->post->create_and_get(
@@ -90,7 +95,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the public cpt (file upload not needed).
-		self::$posts['a-public-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-public-cpt post inherited attachment',
@@ -101,6 +106,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-public-cpt']->ID,
 			)
 		);
+		$wpdb->update( $wpdb->posts, array( 'guid' => home_url( "/?attachment_id={$att->ID}" ) ), array( 'ID' => $att->ID ) );
+		clean_post_cache( $att->ID );
+		self::$posts['a-public-cpt-attachment'] = get_post( $att->ID );
 
 		// Create a private CPT with a public status.
 		self::$posts['a-private-cpt'] = $factory->post->create_and_get(
@@ -115,7 +123,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the private cpt (file upload not needed).
-		self::$posts['a-private-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-private-cpt post inherited attachment',
@@ -126,6 +134,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-private-cpt']->ID,
 			)
 		);
+		$wpdb->update( $wpdb->posts, array( 'guid' => home_url( "/?attachment_id={$att->ID}" ) ), array( 'ID' => $att->ID ) );
+		clean_post_cache( $att->ID );
+		self::$posts['a-private-cpt-attachment'] = get_post( $att->ID );
 
 		// Post for trashing.
 		self::$posts['trash'] = $factory->post->create_and_get(
@@ -139,7 +150,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		self::$posts['trash-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'trash post inherited attachment',
@@ -150,6 +161,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['trash']->ID,
 			)
 		);
+		$wpdb->update( $wpdb->posts, array( 'guid' => home_url( "/?attachment_id={$att->ID}" ) ), array( 'ID' => $att->ID ) );
+		clean_post_cache( $att->ID );
+		self::$posts['trash-attachment'] = get_post( $att->ID );
 
 		// Page for trashing.
 		self::$posts['trash-page'] = $factory->post->create_and_get(
