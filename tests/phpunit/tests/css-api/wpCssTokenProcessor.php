@@ -20,7 +20,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	/**
 	 * Provides the test cases derived from the @rmenke/css-tokenizer-tests corpus (MIT).
 	 *
-	 * @see https://github.com/romainmenke/css-tokenizer-tests/
+	 * @link https://github.com/romainmenke/css-tokenizer-tests/
 	 * @return array
 	 */
 	public static function corpus_provider(): array {
@@ -2707,7 +2707,7 @@ CSS;
 	/**
 	 * Tests that decode_escape_at() consumes at most six hex digits.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
 	 */
 	public function test_decode_escape_at_hex_limit_is_six_digits(): void {
 		$processor = WP_CSS_Token_Processor::create( '"\\0000411rest"' );
