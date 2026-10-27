@@ -19,8 +19,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		unregister_taxonomy( 'wptests_tax' );
-
-		parent::wpTearDownAfterClass();
 	}
 
 	public function set_up() {
