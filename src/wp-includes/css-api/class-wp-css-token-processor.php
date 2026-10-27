@@ -772,6 +772,8 @@ class WP_CSS_Token_Processor {
 	 * - `\r\n`, `\r`, `\f` → `\n`
 	 * - `\x00` → U+FFFD (�)
 	 *
+	 * Comments contain no escapes, so only the normalization applies to them.
+	 *
 	 * This is different from get_token_value() which returns the semantic value
 	 * (e.g., for strings: content without quotes; for numbers: numeric value).
 	 *
@@ -782,6 +784,10 @@ class WP_CSS_Token_Processor {
 	public function get_normalized_token(): ?string {
 		if ( null === $this->token_starts_at || null === $this->token_length ) {
 			return null;
+		}
+
+		if ( self::TOKEN_COMMENT === $this->token_type ) {
+			return self::preprocess_range( $this->css, $this->token_starts_at, $this->token_length );
 		}
 
 		return self::decode_range(
@@ -1604,6 +1610,32 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
+	 * Applies CSS input preprocessing to a byte range without decoding escapes.
+	 *
+	 * CR, CRLF and FF become LF, and NUL and invalid UTF-8 become U+FFFD.
+	 * Comments are read with this method because they contain no escapes.
+	 *
+	 * @since 7.3.0
+	 * @access private
+	 *
+	 * @param string $css    CSS source the offsets index.
+	 * @param int    $start  Start byte offset.
+	 * @param int    $length Length of the substring to preprocess.
+	 * @return string Preprocessed string.
+	 */
+	public static function preprocess_range( string $css, int $start, int $length ): string {
+		return strtr(
+			wp_scrub_utf8( substr( $css, $start, $length ) ),
+			array(
+				"\r\n" => "\n",
+				"\r"   => "\n",
+				"\f"   => "\n",
+				"\0"   => "\u{FFFD}",
+			)
+		);
+	}
+
+	/**
 	 * Decodes an escape sequence starting at the given offset.
 	 *
 	 * Escape sequences are backslash followed by 1-6 hex digits (with optional
@@ -1689,7 +1721,8 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Checks if current position starts a valid escape sequence.
 	 *
-	 * A valid escape is a backslash not followed by a newline or EOF.
+	 * A valid escape is a `\` not followed by a newline. A `\` at the end of
+	 * the input is a valid escape; consuming it produces U+FFFD.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
@@ -1704,23 +1737,22 @@ class WP_CSS_Token_Processor {
 		if ( $offset >= $css_length || '\\' !== $css[ $offset ] ) {
 			return false;
 		}
-		// Otherwise, if the second code point is a newline, return false.
+
+		// The end of the input is not a newline.
 		if ( $offset + 1 >= $css_length ) {
-			// The spec rejects only a newline as the second code point, so a `\` at EOF is a valid escape.
 			return true;
 		}
 
-		// Otherwise, if the second code point is not a newline, return true.
+		/*
+		 * Otherwise, if the second code point is a newline, return false.
+		 * Otherwise, return true.
+		 *
+		 * Preprocessing turns CR, FF and CRLF into a newline, so the CR check also covers CRLF.
+		 */
 		return (
 			"\n" !== $css[ $offset + 1 ] &&
-
-			// Form feed is normalized to newline during preprocessing.
 			"\f" !== $css[ $offset + 1 ] &&
-
-			// Carriage return is normalized to newline during preprocessing.
 			"\r" !== $css[ $offset + 1 ]
-
-			// The \r check also covers \r\n.
 		);
 	}
 
