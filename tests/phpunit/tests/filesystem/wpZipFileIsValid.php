@@ -52,7 +52,7 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_zip_file_validity() {
+	public static function data_zip_file_validity() {
 		return array(
 			'standard zip'           => array( 'archive.zip', true ),
 			'large zip'              => array( 'archive-large.zip', true ),

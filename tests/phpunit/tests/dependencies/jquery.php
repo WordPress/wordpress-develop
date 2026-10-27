@@ -57,7 +57,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public function data_jquery_files_exist(): array {
+	public static function data_jquery_files_exist(): array {
 		return array(
 			'jquery'             => array( 'jquery.js' ),
 			'jquery-min'         => array( 'jquery.min.js' ),

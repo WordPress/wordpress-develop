@@ -35,7 +35,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $expected, $is_ssl );
 	}
 
-	public function data_is_ssl() {
+	public static function data_is_ssl() {
 		return array(
 			array(
 				'on',
@@ -102,7 +102,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $siteurl_https . $expected, $admin_url_https );
 	}
 
-	public function data_admin_urls() {
+	public static function data_admin_urls() {
 		return array(
 			array(
 				null,
@@ -172,7 +172,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $homeurl_https . $expected, $home_url_https );
 	}
 
-	public function data_home_urls() {
+	public static function data_home_urls() {
 		return array(
 			array(
 				null,

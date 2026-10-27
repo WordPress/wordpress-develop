@@ -154,7 +154,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_get_etag() {
+	public static function data_provider_get_etag() {
 		return array(
 			'should accept one dependency'              => array(
 				'load'               => array(

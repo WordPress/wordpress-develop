@@ -88,7 +88,7 @@ class Tests_Multisite_wpGetSites extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_wp_get_sites() {
+	public static function data_wp_get_sites() {
 		return array(
 			array( 3, array(), 'Default arguments should return all sites from the current network.' ),
 			array( 0, array( 'network_id' => 999 ), 'No sites should match a query with an invalid network ID.' ),

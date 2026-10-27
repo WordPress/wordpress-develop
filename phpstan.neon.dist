@@ -37,7 +37,6 @@ includes:
 	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
-	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon
 	- tests/phpstan/baselines/identical.alwaysFalse.neon
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
@@ -52,7 +51,6 @@ includes:
 	- tests/phpstan/baselines/offsetAccess.nonOffsetAccessible.neon
 	- tests/phpstan/baselines/offsetAccess.notFound.neon
 	- tests/phpstan/baselines/offsetAssign.valueType.neon
-	- tests/phpstan/baselines/parameter.defaultValue.neon
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon

@@ -492,6 +492,98 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( 'bar', $data['meta']['foo'] );
 	}
 
+	/**
+	 * The autosave's meta only includes the meta keys that are revisioned,
+	 * since those are the only meta values stored on an autosave.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Autosaves_Controller::prepare_item_for_response
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_update_item_with_meta_only_includes_revisioned_meta_keys() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+			)
+		);
+		register_post_meta(
+			'post',
+			'not_revisioned',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+			)
+		);
+		$params = $this->set_post_data(
+			array(
+				'id'     => self::$post_id,
+				'author' => self::$contributor_id,
+				'meta'   => array(
+					'foo'            => 'bar',
+					'not_revisioned' => 'baz',
+				),
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_create_autosave_response( $response );
+
+		$data = $response->get_data();
+		$this->assertSame( 'bar', $data['meta']['foo'] );
+		$this->assertArrayNotHasKey( 'not_revisioned', $data['meta'] );
+	}
+
+	/**
+	 * Autosaving your own draft updates the post itself instead of creating an
+	 * autosave, so the response includes all of the post's meta.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_item
+	 * @covers WP_REST_Revision_Meta_Fields::get_value
+	 */
+	public function test_create_item_for_own_draft_includes_meta_that_is_not_revisioned() {
+		register_post_meta(
+			'post',
+			'not_revisioned',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_author' => self::$editor_id,
+			)
+		);
+		update_post_meta( $draft_id, 'not_revisioned', 'kept value' );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $draft_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( array( 'content' => 'Autosaved content.' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $draft_id, $data['id'], 'Autosaving your own draft should update the post itself.' );
+		$this->assertArrayHasKey( 'not_revisioned', $data['meta'], 'The post itself should include meta that is not revisioned.' );
+		$this->assertSame( 'kept value', $data['meta']['not_revisioned'] );
+	}
+
 	public function test_update_item_with_json_meta() {
 		$meta = '[{\"content\":\"foot 1\",\"id\":\"fa97a10d-7401-42b9-ac54-df8f4510749a\"},{\"content\":\"fdddddoot 2\\\"\",\"id\":\"2216d0aa-34b8-42b4-b441-84dedc0406e0\"}]';
 		wp_set_current_user( self::$editor_id );

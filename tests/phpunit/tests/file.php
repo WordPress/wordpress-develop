@@ -120,7 +120,7 @@ class Tests_File extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( basename( basename( $file, '.tmp' ), '.zip' ) );
 	}
-	public function data_wp_tempnam_filenames() {
+	public static function data_wp_tempnam_filenames() {
 		return array(
 			array( '0.zip' ),
 			array( '0.1.2.3.zip' ),
@@ -155,7 +155,7 @@ class Tests_File extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_tempnam_should_limit_filename_length_to_252_characters() {
+	public static function data_wp_tempnam_should_limit_filename_length_to_252_characters() {
 		return array(
 			'the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 241, 'filename' ) ),
 			'one more than the limit before adding characters for uniqueness' => array( 'filename' => str_pad( '', 242, 'filename' ) ),

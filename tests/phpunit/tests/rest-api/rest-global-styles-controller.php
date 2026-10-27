@@ -793,10 +793,57 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'       => self::$global_styles_id,
+				'title'    => array(
+					'raw'      => 'Custom Styles',
+					'rendered' => 'Custom Styles',
+				),
+				'settings' => new stdClass(),
+				'styles'   => new stdClass(),
+			),
+			$response->get_data()
+		);
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_global_styles' ), $links['about'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertSame( array( 'id' => self::$global_styles_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	/**

@@ -20,7 +20,7 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public function data_published_error_codes() {
+	public static function data_published_error_codes() {
 		return array(
 			'decryption failed'  => array( 'WP_SECRETS_ERROR_DECRYPTION_FAILED', 'secret_decryption_failed' ),
 			'key unavailable'    => array( 'WP_SECRETS_ERROR_KEY_UNAVAILABLE', 'secret_key_unavailable' ),

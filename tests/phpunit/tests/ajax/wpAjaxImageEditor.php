@@ -34,7 +34,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 *
 	 * @covers ::wp_save_image
 	 */
-	public function testCropImageIntoLargerOne() {
+	public function test_crop_image_into_larger_one() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
@@ -62,7 +62,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	 * @covers ::wp_insert_attachment
 	 * @covers ::wp_save_image
 	 */
-	public function testImageEditOverwriteConstant() {
+	public function test_image_edit_overwrite_constant() {
 		define( 'IMAGE_EDIT_OVERWRITE', true );
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';

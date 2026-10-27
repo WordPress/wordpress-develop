@@ -176,7 +176,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$primary_profile_url = get_admin_url( $primary->blog_id, 'profile.php' );
 
 		// Ensure the user's primary blog is not the same as the main site.
-		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $primary_profile_url, $node_my_account->href );
@@ -229,7 +229,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$user_profile_url = user_admin_url( 'profile.php' );
 
-		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $user_profile_url, $node_my_account->href );
@@ -276,7 +276,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_admin_bar_nodes_with_tabindex_meta() {
+	public static function data_admin_bar_nodes_with_tabindex_meta() {
 		return array(
 			array(
 				// No tabindex.
@@ -804,7 +804,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_my_sites_network_menu_items() {
+	public static function data_my_sites_network_menu_items() {
 		return array(
 			array( 'my-sites-super-admin', 'manage_network' ),
 			array( 'network-admin', 'manage_network' ),

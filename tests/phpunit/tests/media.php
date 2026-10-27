@@ -627,7 +627,7 @@ https://w.org</a>',
 		$this->assertSame( '', $prepped['type'] );
 		$this->assertSame( '', $prepped['subtype'] );
 		// #21963, there will be a GUID always, so there will be a URL.
-		$this->assertNotEquals( '', $prepped['url'] );
+		$this->assertNotSame( '', $prepped['url'] );
 		$this->assertSame( site_url( 'wp-includes/images/media/default.svg' ), $prepped['icon'] );
 
 		// Fake a mime.

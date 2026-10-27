@@ -11,8 +11,16 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'block-theme' );
 		do_action( 'setup_theme' );
 		do_action( 'after_setup_theme' );
@@ -21,6 +29,11 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function tear_down() {
 		global $_wp_current_template_id, $_wp_current_template_content;
 		unset( $_wp_current_template_id, $_wp_current_template_content );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 

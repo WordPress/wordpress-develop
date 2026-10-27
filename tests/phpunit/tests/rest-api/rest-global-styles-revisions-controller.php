@@ -1453,9 +1453,52 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( $this->revision_1_id );
+		$controller = new WP_REST_Global_Styles_Revisions_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$request->set_url_params(
+			array(
+				'parent' => self::$global_styles_id,
+				'id'     => $this->revision_1_id,
+			)
+		);
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+		$this->check_get_revision_response( $response->get_data(), $this->revision_1 );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( $this->revision_1_id );
+		$controller = new WP_REST_Global_Styles_Revisions_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$request->set_url_params(
+			array(
+				'parent' => self::$global_styles_id,
+				'id'     => $this->revision_1_id,
+			)
+		);
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertSame( array( 'id' => $this->revision_1_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 }

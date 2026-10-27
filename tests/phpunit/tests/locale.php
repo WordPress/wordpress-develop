@@ -35,7 +35,7 @@ class Tests_Locale extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_property_initializes_to_array() {
+	public static function data_property_initializes_to_array() {
 		return array(
 			'weekday'         => array( 'weekday' ),
 			'weekday_initial' => array( 'weekday_initial' ),
@@ -201,7 +201,7 @@ class Tests_Locale extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_word_count_type() {
+	public static function data_get_word_count_type() {
 		return array(
 			'default'                   => array(
 				'word_count_type' => null,

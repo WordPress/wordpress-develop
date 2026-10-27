@@ -16,7 +16,7 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 		$this->assertContains( 'user_name', $v['errors']->get_error_codes(), $error_message );
 	}
 
-	public function data_user_name() {
+	public static function data_user_name() {
 		return array(
 			array( 'contains spaces', 'User names with spaces are not allowed.' ),
 			array( 'ContainsCaps', 'User names with capital letters are not allowed.' ),

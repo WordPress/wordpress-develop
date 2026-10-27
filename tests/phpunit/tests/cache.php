@@ -57,7 +57,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 *     @type bool  $valid Whether the key should be considered valid.
 	 * }
 	 */
-	public function data_is_valid_key() {
+	public static function data_is_valid_key() {
 		return array(
 			'false'          => array( false, false ),
 			'null'           => array( null, false ),
