@@ -139,7 +139,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_missing_or_empty_field_args() {
+	public static function data_missing_or_empty_field_args() {
 		return array(
 			'missing field' => array( array() ),
 			'empty string'  => array( array( 'field' => '' ) ),
@@ -168,7 +168,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_missing_or_empty_context() {
+	public static function data_missing_or_empty_context() {
 		return array(
 			'empty context'    => array( array() ),
 			'missing taxonomy' => array( array( 'termId' => 123 ) ),
@@ -272,7 +272,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_supported_fields() {
+	public static function data_supported_fields() {
 		return array(
 			'name'        => array( 'name', 'Test Category' ),
 			'slug'        => array( 'slug', 'test-category' ),
