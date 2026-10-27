@@ -10,6 +10,26 @@
 class Tests_Theme_wpThemeGetPostTemplates extends WP_UnitTestCase {
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 41717
 	 */
 	public function test_get_post_templates_child_theme() {

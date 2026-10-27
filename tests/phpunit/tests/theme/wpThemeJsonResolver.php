@@ -68,6 +68,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
@@ -104,7 +111,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
 
@@ -128,6 +136,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		// Reset data between tests.
 		wp_clean_theme_json_cache();
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
