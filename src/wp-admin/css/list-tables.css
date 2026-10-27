@@ -1967,7 +1967,10 @@ div.action-links,
 		z-index: 1;
 		width: 0;
 		padding: 0;
-		border: 0 solid transparent;
+
+		/* WebKit needs a nonzero, nontransparent border to paint the sticky cell's border image. */
+		border: 0 solid var(--list-table-row-background);
+		border-top-width: 1px;
 		pointer-events: none;
 		opacity: 0;
 	}
