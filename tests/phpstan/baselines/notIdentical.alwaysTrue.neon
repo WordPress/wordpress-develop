@@ -24,16 +24,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Strict comparison using \!\=\= between 0 and int\<min, \-1\>\|int\<1, max\> will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/nav-menu.php
-		-
-			message: '#^Strict comparison using \!\=\= between float\|int\|numeric\-string and ''bottom''\|''footer''\|''header''\|''main''\|''menu\-1''\|''menu\-2''\|''navigation''\|''primary''\|''secondary''\|''social''\|''subsidiary''\|''top'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 2
-			path: ../../../src/wp-includes/nav-menu.php
-		-
 			message: '#^Strict comparison using \!\=\= between false and int will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
