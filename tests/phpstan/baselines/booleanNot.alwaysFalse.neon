@@ -23,8 +23,3 @@ parameters:
 			identifier: booleanNot.alwaysFalse
 			count: 1
 			path: ../../../src/wp-includes/class-wp-comment-query.php
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: ../../../src/wp-includes/nav-menu.php
