@@ -277,19 +277,16 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		$this->assertFalse( get_user_option( 'dashboard_show_on_this_day' ), 'User option should default to false' );
 
 		$otd_activity = get_echo( 'wp_dashboard_on_this_day' );
+		$hidden       = $this->get_hidden_class_by_id( $otd_activity );
 
-		$inline_styles = $this->get_inline_styles_by_id( $otd_activity );
+		$this->assertArrayHasKey( 'wp-on-this-day-posts', $hidden, 'OTD Widget should render the section container.' );
+		$this->assertFalse( $hidden['wp-on-this-day-posts'], 'OTD Widget section container should not be hidden before the user opts in.' );
 
-		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $inline_styles, 'OTD Widget should render the posts list element.' );
-		$this->assertArrayHasKey( 'display', $inline_styles['wp-on-this-day-posts-list'], 'OTD Widget posts list should set an inline display property before the user opts in.' );
-		$this->assertSame( 'none', $inline_styles['wp-on-this-day-posts-list']['display'], 'OTD Widget posts list should be hidden before the user opts in.' );
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $hidden, 'OTD Widget should render the posts list element.' );
+		$this->assertTrue( $hidden['wp-on-this-day-posts-list'], 'OTD Widget posts list should be hidden before the user opts in.' );
 
-		$this->assertArrayHasKey( 'wp-on-this-day-posts-form', $inline_styles, 'OTD Widget should render the opt-in form element.' );
-		$this->assertSame(
-			'block',
-			$inline_styles['wp-on-this-day-posts-form']['display'] ?? 'block',
-			'OTD Widget opt-in form should not set an inline display property other than block before the user opts in.'
-		);
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-form', $hidden, 'OTD Widget should render the opt-in form element.' );
+		$this->assertFalse( $hidden['wp-on-this-day-posts-form'], 'OTD Widget opt-in form should not be hidden before the user opts in.' );
 	}
 
 	/**
@@ -303,14 +300,16 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		update_user_option( self::$user_id, 'dashboard_show_on_this_day', 'opt-out' );
 		$this->create_matching_post( self::$user_id, 'A note from me' );
 
-		$otd_activity  = get_echo( 'wp_dashboard_on_this_day' );
-		$inline_styles = $this->get_inline_styles_by_id( $otd_activity );
+		$otd_activity = get_echo( 'wp_dashboard_on_this_day' );
+		$hidden       = $this->get_hidden_class_by_id( $otd_activity );
 
-		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $inline_styles, 'OTD Widget should render the posts list element.' );
-		$this->assertArrayHasKey( 'display', $inline_styles['wp-on-this-day-posts-list'], 'OTD Widget posts list should set an inline display property after the user opts out.' );
-		$this->assertSame( 'none', $inline_styles['wp-on-this-day-posts-list']['display'], 'OTD Widget posts list should be hidden after the user opts out.' );
+		$this->assertArrayHasKey( 'wp-on-this-day-posts', $hidden, 'OTD Widget should render the section container.' );
+		$this->assertTrue( $hidden['wp-on-this-day-posts'], 'OTD Widget section container should be hidden after the user opts out.' );
 
-		$this->assertArrayNotHasKey( 'wp-on-this-day-posts-form', $inline_styles, 'OTD Widget should not render the opt-in form after the user opts out.' );
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $hidden, 'OTD Widget should render the posts list element.' );
+		$this->assertTrue( $hidden['wp-on-this-day-posts-list'], 'OTD Widget posts list should be hidden after the user opts out.' );
+
+		$this->assertArrayNotHasKey( 'wp-on-this-day-posts-form', $hidden, 'OTD Widget should not render the opt-in form after the user opts out.' );
 	}
 
 	/**
@@ -324,17 +323,16 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		update_user_option( self::$user_id, 'dashboard_show_on_this_day', 'opt-in' );
 		$this->create_matching_post( self::$user_id, 'A note from me' );
 
-		$otd_activity  = get_echo( 'wp_dashboard_on_this_day' );
-		$inline_styles = $this->get_inline_styles_by_id( $otd_activity );
+		$otd_activity = get_echo( 'wp_dashboard_on_this_day' );
+		$hidden       = $this->get_hidden_class_by_id( $otd_activity );
 
-		$this->assertArrayNotHasKey( 'wp-on-this-day-posts-form', $inline_styles, 'OTD Widget should not render the opt-in form after the user opts in.' );
+		$this->assertArrayHasKey( 'wp-on-this-day-posts', $hidden, 'OTD Widget should render the section container.' );
+		$this->assertFalse( $hidden['wp-on-this-day-posts'], 'OTD Widget section container should not be hidden after the user opts in.' );
 
-		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $inline_styles, 'OTD Widget should render the posts list element.' );
-		$this->assertSame(
-			'block',
-			$inline_styles['wp-on-this-day-posts-list']['display'] ?? 'block',
-			'OTD Widget posts list should not set an inline display property other than block after the user opts in.'
-		);
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $hidden, 'OTD Widget should render the posts list element.' );
+		$this->assertFalse( $hidden['wp-on-this-day-posts-list'], 'OTD Widget posts list should not be hidden after the user opts in.' );
+
+		$this->assertArrayNotHasKey( 'wp-on-this-day-posts-form', $hidden, 'OTD Widget should not render the opt-in form after the user opts in.' );
 	}
 
 	/**
@@ -465,15 +463,15 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Gets the inline style declarations of each element with an ID.
+	 * Gets whether each element with an ID has the `hidden` class.
 	 *
 	 * @param string $html HTML fragment to parse.
-	 * @return array<string, array<lowercase-string, string>> Declarations keyed by element ID, then by lowercase property name.
+	 * @return array<string, bool> Whether the element has the `hidden` class, keyed by element ID.
 	 */
-	private function get_inline_styles_by_id( string $html ): array {
+	private function get_hidden_class_by_id( string $html ): array {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 		$this->assertInstanceOf( WP_HTML_Processor::class, $processor );
-		$inline_styles = array();
+		$hidden = array();
 
 		while ( $processor->next_tag() ) {
 			$id = $processor->get_attribute( 'id' );
@@ -481,21 +479,10 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 				continue;
 			}
 
-			$declarations = array();
-			foreach ( explode( ';', (string) $processor->get_attribute( 'style' ) ) as $declaration ) {
-				if ( ! str_contains( $declaration, ':' ) ) {
-					continue;
-				}
-
-				list( $property, $value ) = explode( ':', $declaration, 2 );
-
-				$declarations[ strtolower( trim( $property ) ) ] = trim( $value );
-			}
-
-			$inline_styles[ $id ] = $declarations;
+			$hidden[ $id ] = true === $processor->has_class( 'hidden' );
 		}
 
-		return $inline_styles;
+		return $hidden;
 	}
 
 	/**
