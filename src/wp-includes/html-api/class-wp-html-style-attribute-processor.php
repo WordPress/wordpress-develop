@@ -57,7 +57,6 @@ class WP_HTML_Style_Attribute_Processor {
 	 * of the second declaration in this style are:
 	 *
 	 *     color: red;  width: 1px !important;  top: 0
-	 *                ╰────────────────────────╯   leading_start to trailing_end
 	 *                  ╰────────────────────╯     start to after
 	 *                         ╰─╯                 value_start to value_end
 	 *                             ╰────────╯      important_start to important_end
@@ -66,7 +65,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * value. The `important_*` offsets are null when the declaration has no
 	 * `!important` priority.
 	 *
-	 * @var array<int, array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
+	 * @var array<int, array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
 
@@ -585,17 +584,13 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Parses the token list according to the CSS declaration-list shape.
 	 */
 	private function parse_declaration_list(): void {
-		$index                 = 0;
-		$count                 = count( $this->tokens );
-		$previous_item_ends_at = 0;
+		$index = 0;
+		$count = count( $this->tokens );
 
 		while ( $index < $count ) {
-			$leading_start = $previous_item_ends_at;
-			$index         = $this->skip_ignored_tokens( $index );
+			$index = $this->skip_ignored_tokens( $index );
 
 			while ( $index < $count && WP_CSS_Token_Processor::TOKEN_SEMICOLON === $this->tokens[ $index ]->get_type() ) {
-				$previous_item_ends_at = self::get_token_end( $this->tokens[ $index ] );
-				$leading_start         = $previous_item_ends_at;
 				++$index;
 				$index = $this->skip_ignored_tokens( $index );
 			}
@@ -605,30 +600,28 @@ class WP_HTML_Style_Attribute_Processor {
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_AT_KEYWORD === $this->tokens[ $index ]->get_type() ) {
-				list( $index, $previous_item_ends_at ) = $this->consume_at_rule( $index );
+				$index = $this->consume_at_rule( $index );
 				continue;
 			}
 
 			list( $declaration_end, $after_declaration, $has_semicolon ) = $this->consume_declaration_segment( $index );
-			$declaration = $this->parse_declaration_segment( $leading_start, $index, $declaration_end, $after_declaration );
+			$declaration = $this->parse_declaration_segment( $index, $declaration_end, $after_declaration );
 
 			if ( null !== $declaration ) {
-				$declaration['trailing_end'] = $this->get_trailing_ignored_end( $declaration_end + ( $has_semicolon ? 1 : 0 ) );
-				$this->declarations[]        = $declaration;
+				$this->declarations[] = $declaration;
 			}
 
-			$index                 = $declaration_end + ( $has_semicolon ? 1 : 0 );
-			$previous_item_ends_at = $after_declaration;
+			$index = $declaration_end + ( $has_semicolon ? 1 : 0 );
 		}
 	}
 
 	/**
-	 * Consumes an at-rule and returns the token index and byte offset after it.
+	 * Consumes an at-rule and returns the token index after it.
 	 *
 	 * @param int $index At-keyword token index.
-	 * @return array{int,int} Token index and byte offset after the at-rule.
+	 * @return int Token index after the at-rule.
 	 */
-	private function consume_at_rule( int $index ): array {
+	private function consume_at_rule( int $index ): int {
 		$count = count( $this->tokens );
 		++$index;
 
@@ -636,7 +629,7 @@ class WP_HTML_Style_Attribute_Processor {
 			$token = $this->tokens[ $index ];
 
 			if ( WP_CSS_Token_Processor::TOKEN_SEMICOLON === $token->get_type() ) {
-				return array( $index + 1, self::get_token_end( $token ) );
+				return $index + 1;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
@@ -644,25 +637,24 @@ class WP_HTML_Style_Attribute_Processor {
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
 			++$index;
 		}
 
-		$after = empty( $this->tokens ) ? strlen( $this->style ) : self::get_token_end( $this->tokens[ $count - 1 ] );
-		return array( $count, $after );
+		return $count;
 	}
 
 	/**
@@ -670,9 +662,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * @param int    $index        Token index for the opening token.
 	 * @param string $closing_type Expected closing token type.
-	 * @return array{int,int} Token index and byte offset after the block.
+	 * @return int Token index after the block.
 	 */
-	private function consume_simple_block( int $index, string $closing_type ): array {
+	private function consume_simple_block( int $index, string $closing_type ): int {
 		$count = count( $this->tokens );
 		++$index;
 
@@ -680,34 +672,33 @@ class WP_HTML_Style_Attribute_Processor {
 			$token = $this->tokens[ $index ];
 
 			if ( $closing_type === $token->get_type() ) {
-				return array( $index + 1, self::get_token_end( $token ) );
+				return $index + 1;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
 
 			++$index;
 		}
 
-		$after = empty( $this->tokens ) ? strlen( $this->style ) : self::get_token_end( $this->tokens[ $count - 1 ] );
-		return array( $count, $after );
+		return $count;
 	}
 
 	/**
@@ -727,22 +718,22 @@ class WP_HTML_Style_Attribute_Processor {
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
 
@@ -756,13 +747,12 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Parses a declaration from a token segment.
 	 *
-	 * @param int $leading_start Byte offset before leading trivia.
-	 * @param int $start_index   First token index in the segment.
-	 * @param int $end_index     Token index after the segment.
-	 * @param int $after         Byte offset after the declaration.
-	 * @return array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @param int $start_index First token index in the segment.
+	 * @param int $end_index   Token index after the segment.
+	 * @param int $after       Byte offset after the declaration.
+	 * @return array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
-	private function parse_declaration_segment( int $leading_start, int $start_index, int $end_index, int $after ): ?array {
+	private function parse_declaration_segment( int $start_index, int $end_index, int $after ): ?array {
 		$index = $this->skip_ignored_tokens( $start_index, $end_index );
 		if ( $index >= $end_index || WP_CSS_Token_Processor::TOKEN_IDENT !== $this->tokens[ $index ]->get_type() ) {
 			return null;
@@ -822,10 +812,8 @@ class WP_HTML_Style_Attribute_Processor {
 
 		return array(
 			'name'            => $name,
-			'leading_start'   => $leading_start,
 			'start'           => $name_token->get_start(),
 			'after'           => $after,
-			'trailing_end'    => $after,
 			'value_start'     => $value_start,
 			'value_end'       => $value_end,
 			'value_tokens'    => array( $value_start_index, $value_end_index ),
@@ -857,22 +845,22 @@ class WP_HTML_Style_Attribute_Processor {
 			$top_level_tokens[] = $index;
 
 			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
 
@@ -909,24 +897,6 @@ class WP_HTML_Style_Attribute_Processor {
 	private function trim_ignored_tokens( int $start, int $end ): int {
 		while ( $end > $start && $this->is_ignored_token( $this->tokens[ $end - 1 ] ) ) {
 			--$end;
-		}
-
-		return $end;
-	}
-
-	/**
-	 * Gets the byte offset after ignored tokens beginning at a token index.
-	 *
-	 * @param int $index Token index.
-	 * @return int Byte offset after ignored tokens.
-	 */
-	private function get_trailing_ignored_end( int $index ): int {
-		$end   = $index > 0 && isset( $this->tokens[ $index - 1 ] ) ? self::get_token_end( $this->tokens[ $index - 1 ] ) : 0;
-		$count = count( $this->tokens );
-
-		while ( $index < $count && $this->is_ignored_token( $this->tokens[ $index ] ) ) {
-			$end = self::get_token_end( $this->tokens[ $index ] );
-			++$index;
 		}
 
 		return $end;
@@ -988,7 +958,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration metadata.
 	 *
-	 * @return array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @return array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function get_current_declaration(): ?array {
 		if (
@@ -1005,7 +975,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a replacement preserves the current declaration's structure.
 	 *
-	 * @param array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
+	 * @param array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
 	 * @param int                                                                                                                                                                                                                           $start              Byte offset at which to start the replacement.
 	 * @param int                                                                                                                                                                                                                           $length             Number of bytes to replace.
 	 * @param string                                                                                                                                                                                                                        $text               Replacement text.
@@ -1231,22 +1201,22 @@ class WP_HTML_Style_Attribute_Processor {
 			$last_token = $token;
 
 			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
 			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
-				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
+				$index = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
 
