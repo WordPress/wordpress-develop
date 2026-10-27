@@ -6,7 +6,6 @@
  * @subpackage Theme
  * @since 3.4.0
  *
- * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  * @property-read string|false   $name
  * @property-read string|false   $title
  * @property-read string|false   $version
@@ -21,6 +20,8 @@
  * @property-read string[]|false $tags
  * @property-read string         $theme_root
  * @property-read string         $theme_root_uri
+ *
+ * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
