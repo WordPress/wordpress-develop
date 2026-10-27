@@ -98,9 +98,6 @@ returns `false`.
 After `set_value()` or `set_important()` succeeds without removing the
 declaration, the cursor remains on the same logical declaration.
 
-`set_value( '' )` removes the current declaration. On success it has the same
-cursor semantics as `remove_declaration()`.
-
 `append_declaration()` does not move the cursor. If the cursor was exhausted, it
 remains invalid until a later `next_declaration()` advances to the appended
 declaration.
@@ -195,8 +192,7 @@ properties and value grammars.
 
 Values must be complete and self-contained. Reject inputs that:
 
-- are empty after CSS whitespace trimming, except `set_value( '' )`, which
-  removes the current declaration;
+- are empty after CSS whitespace trimming;
 - contain top-level declaration separators such as semicolons;
 - contain a top-level `!important`, because priority is a separate argument;
 - contain bad strings or bad URLs;
@@ -344,7 +340,7 @@ Tests should cover:
 - value token view: `null` off-cursor, trivia and priority exclusion, offsets
   into the style text, and the re-tokenization invariant;
 - `set_value()` priority preservation, setting, clearing, and empty-value
-  removal;
+  rejection;
 - `set_important()` setting, clearing, cursor behavior, and safe normalization;
 - rejection of unsafe values and property names with atomic failure;
 - append behavior, duplicate appends, exhausted cursor behavior, and empty-value
