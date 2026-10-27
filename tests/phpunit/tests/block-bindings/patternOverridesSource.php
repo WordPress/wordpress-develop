@@ -79,7 +79,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_metadata_names() {
+	public static function data_empty_metadata_names() {
 		return array(
 			'empty attributes'     => array( array() ),
 			'missing metadata'     => array( array( 'unrelated' => 'value' ) ),
@@ -119,7 +119,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_context() {
+	public static function data_empty_context() {
 		return array(
 			'empty context'                 => array( array() ),
 			'missing pattern/overrides key' => array( array( 'postType' => 'post' ) ),
@@ -271,7 +271,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_override_values_and_types() {
+	public static function data_override_values_and_types() {
 		return array(
 			'string'        => array( 'A customized string' ),
 			'empty string'  => array( '' ),
