@@ -17,6 +17,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		unregister_post_type( $this->post_type );
 		unset( $this->q );
 
 		parent::tear_down();

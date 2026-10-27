@@ -27,6 +27,10 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		self::$post_ids = $factory->post->create_many( 5, array( 'post_type' => 'wptests_pt' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wptests_pt' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		/*
@@ -37,6 +41,11 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		 * get_post_types().
 		 */
 		register_post_type( 'wptests_pt' );
+	}
+
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		parent::tear_down();
 	}
 
 	/**
