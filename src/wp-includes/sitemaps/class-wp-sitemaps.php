@@ -211,7 +211,9 @@ class WP_Sitemaps {
 		}
 
 		$this->renderer->render_sitemap( $url_list );
-		exit;
+		if ( ! defined( 'WP_RUN_CORE_TESTS' ) || ! WP_RUN_CORE_TESTS ) {
+			exit;
+		}
 	}
 
 	/**
