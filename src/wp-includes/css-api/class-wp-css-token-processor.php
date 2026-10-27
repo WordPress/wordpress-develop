@@ -306,9 +306,10 @@ class WP_CSS_Token_Processor {
 	/**
 	 * The byte offset at which the value of the current token starts.
 	 *
-	 * It is used for string and url tokens. The value of a string token
-	 * excludes its quotes; the value of a url token excludes `url(`, `)` and
-	 * the whitespace inside them. For example:
+	 * It is used for string, url and comment tokens. The value of a string
+	 * token excludes its quotes; the value of a url token excludes `url(`, `)`
+	 * and the whitespace inside them; the value of a comment excludes its
+	 * delimiters. For example:
 	 *
 	 *     background: url( a.png );
 	 *                      ↑
@@ -321,7 +322,7 @@ class WP_CSS_Token_Processor {
 	/**
 	 * The byte length of the value of the current token.
 	 *
-	 * It is used for string and url tokens. For example:
+	 * It is used for string, url and comment tokens. For example:
 	 *
 	 *     background: url( a.png );
 	 *                      ╰─┬─╯
@@ -429,18 +430,20 @@ class WP_CSS_Token_Processor {
 		) {
 			$this->token_type            = self::TOKEN_COMMENT;
 			$this->token_starts_at       = $this->at;
-			$this->token_value_starts_at = $this->at;
+			$this->token_value_starts_at = $this->at + 2;
 
 			$end = strpos( $this->css, '*/', $this->at + 2 );
 			if ( false === $end ) {
 				// The comment runs to the end of the input.
 				$this->token_is_terminated = false;
 				$this->at                  = $this->length;
+				$value_ends_at             = $this->length;
 			} else {
-				$this->at = $end + 2;
+				$this->at      = $end + 2;
+				$value_ends_at = $end;
 			}
 			$this->token_length       = $this->at - $this->token_starts_at;
-			$this->token_value_length = $this->token_length - 4;
+			$this->token_value_length = $value_ends_at - $this->token_value_starts_at;
 			return true;
 		}
 
@@ -819,6 +822,8 @@ class WP_CSS_Token_Processor {
 	 * - For dimensions: the string representation of the number (use get_token_unit() for the unit)
 	 * - For identifiers/functions/hash/at-keywords: the decoded identifier string
 	 * - For strings/URLs: the decoded string value
+	 * - For comments: the text between the delimiters, with newlines normalized;
+	 *   comments contain no escapes
 	 * - For other tokens: null
 	 *
 	 * @since 7.3.0

@@ -186,4 +186,34 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 			'ident'                => array( 'a b', true ),
 		);
 	}
+
+	/**
+	 * Tests that the value of a comment token is the text between its delimiters.
+	 *
+	 * @ticket 65738
+	 * @dataProvider data_comment_value
+	 *
+	 * @covers ::get_value
+	 */
+	public function test_comment_value( string $css, string $expected ): void {
+		$processor = WP_CSS_Token_Processor::create( $css );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( WP_CSS_Token_Processor::TOKEN_COMMENT, $processor->get_token_type() );
+
+		$this->assertSame( $expected, $processor->get_token()->get_value() );
+	}
+
+	/**
+	 * Data provider for test_comment_value().
+	 *
+	 * @return array[]
+	 */
+	public static function data_comment_value(): array {
+		return array(
+			'terminated'                        => array( '/* a */', ' a ' ),
+			'unterminated'                      => array( '/* a', ' a' ),
+			'opener star does not close'        => array( '/*/', '/' ),
+			'no escapes, newlines preprocessed' => array( "/*\\41\r\n*/", "\\41\n" ),
+		);
+	}
 }
