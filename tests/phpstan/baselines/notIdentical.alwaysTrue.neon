@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Strict comparison using \!\=\= between ''Etc'' and ''Africa''\|''America''\|''Antarctica''\|''Arctic''\|''Asia''\|''Atlantic''\|''Australia''\|''Europe''\|''Indian''\|''Pacific'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/functions.php
-		-
 			message: '#^Strict comparison using \!\=\= between 0 and int\<min, \-1\>\|int\<1, max\> will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
