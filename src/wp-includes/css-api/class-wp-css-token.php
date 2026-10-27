@@ -197,8 +197,6 @@ final class WP_CSS_Token {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @see WP_CSS_Token_Processor::get_token_type_flag()
-	 *
 	 * @return string|null The type flag, or null.
 	 * @phpstan-return 'id'|'unrestricted'|'integer'|'number'|null
 	 */
@@ -209,11 +207,34 @@ final class WP_CSS_Token {
 	/**
 	 * Gets the decoded value.
 	 *
+	 * The value is the token's text after input preprocessing and escape
+	 * decoding, without its delimiters:
+	 *
+	 * - ident, delim: the whole token.
+	 * - function: the name, without `(`.
+	 * - at-keyword, hash: the name, without `@` or `#`.
+	 * - string, url: the contents, without quotes or `url(` and `)`.
+	 * - comment: the text between `/*` and `*` `/`. Comments contain no
+	 *   escapes, so only preprocessing applies.
+	 * - number, percentage, dimension: the number as written in the source,
+	 *   without `%` or the unit. CSS Syntax 3 parses it as a number; this
+	 *   method keeps the text.
+	 * - Every other type, including bad-string and bad-url: null.
+	 *
 	 * The value is decoded on the first call and kept for later calls.
+	 *
+	 * Example:
+	 *
+	 * ```php interactive
+	 * $processor = WP_CSS_Token_Processor::create( '"a\\62 c"' );
+	 * $processor->next_token();
+	 * echo $processor->get_token()->get_value();
+	 * // Outputs: abc
+	 * ```
 	 *
 	 * @since 7.3.0
 	 *
-	 * @see WP_CSS_Token_Processor::get_token_value()
+	 * @link https://www.w3.org/TR/css-syntax-3/#tokenization
 	 *
 	 * @return string|null The decoded value, or null for token types without a value.
 	 */
@@ -261,9 +282,30 @@ final class WP_CSS_Token {
 	/**
 	 * Reports whether the token ended at its closing delimiter.
 	 *
+	 * Comment, string, url and bad-url tokens have a closing delimiter: `*` `/`,
+	 * the matching quote, or `)`. When the input ends before the delimiter,
+	 * the tokenizer still returns the token, and this method returns false.
+	 * It returns true for every other token type, which have no closing
+	 * delimiter.
+	 *
+	 * Example:
+	 *
+	 * ```php interactive
+	 * $processor = WP_CSS_Token_Processor::create( '"abc' );
+	 * $processor->next_token();
+	 * $token = $processor->get_token();
+	 * echo $token->get_type() . "\n";
+	 * var_dump( $token->is_terminated() );
+	 * // Outputs:
+	 * // string-token
+	 * // bool(false)
+	 * ```
+	 *
 	 * @since 7.3.0
 	 *
-	 * @see WP_CSS_Token_Processor::is_token_terminated()
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-comment
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
 	 * @return bool Whether the token ended at its closing delimiter.
 	 */

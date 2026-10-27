@@ -29,8 +29,8 @@
  * > CHARACTER (�).
  *
  * This processor delays normalization as much as possible. That keeps the raw byte
- * positions intact for accurate rewrites while still letting consumers ask for a
- * normalized token when they need one.
+ * positions intact for accurate rewrites; WP_CSS_Token::get_value() normalizes and
+ * decodes a token's value when it is asked for.
  * For example, `url(a<NUL>b)` is a URL token whose value is `a�b`, where `<NUL>`
  * means one zero byte in the source. That byte stays in the raw token, so later
  * edits still use byte offsets from the original input.
@@ -53,9 +53,14 @@
  * ```php interactive
  * $processor = WP_CSS_Token_Processor::create( 'width: 10px;' );
  * while ( $processor->next_token() ) {
- *     echo $processor->get_normalized_token();
+ *     echo $processor->get_token_type() . "\n";
  * }
- * // Outputs: "width: 10px;"
+ * // Outputs:
+ * // ident-token
+ * // colon-token
+ * // whitespace-token
+ * // dimension-token
+ * // semicolon-token
  * ```
  *
  * Gathering diagnostics with byte offsets:
