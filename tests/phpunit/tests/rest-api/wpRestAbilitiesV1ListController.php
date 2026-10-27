@@ -600,7 +600,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$page1_names    = wp_list_pluck( $page1_response->get_data(), 'name' );
 		$page2_names    = wp_list_pluck( $data, 'name' );
 
-		$this->assertNotEquals( $page1_names, $page2_names );
+		$this->assertNotSame( $page1_names, $page2_names );
 	}
 
 	/**
