@@ -19,7 +19,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 	}
 
 	// Data for test_human_time_diff.
-	public function data_human_time_diff() {
+	public static function data_human_time_diff() {
 		return array(
 			array(
 				'37 seconds',
@@ -94,7 +94,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-negative-int, 1: non-falsy-string }>
 	 */
-	public function data_human_time_diff_unit_boundaries(): array {
+	public static function data_human_time_diff_unit_boundaries(): array {
 		return array(
 			'no difference'             => array( 0, '1 second' ),
 			'1 second'                  => array( 1, '1 second' ),

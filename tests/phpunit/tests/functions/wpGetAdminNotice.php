@@ -29,7 +29,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_return_admin_notice() {
+	public static function data_should_return_admin_notice() {
 		return array(
 			'defaults'                                  => array(
 				'message'  => 'A notice with defaults.',
@@ -317,7 +317,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_apply_filters() {
+	public static function data_should_apply_filters() {
 		return array(
 			'wp_admin_notice_args'   => array( 'hook_name' => 'wp_admin_notice_args' ),
 			'wp_admin_notice_markup' => array( 'hook_name' => 'wp_admin_notice_markup' ),
