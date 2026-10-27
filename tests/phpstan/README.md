@@ -43,6 +43,15 @@ Note the `--` in each of those. Composer needs it in order to pass the flags on 
 
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
 
+## Results on pull requests
+
+The analysis also runs on every pull request that changes PHP files or the PHPStan configuration. The errors it reports are shown in two places:
+
+- As annotations on the changed files. Most errors are annotated as warnings, which do not fail the check.
+- In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed.
+
+Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#regenerating-the-baselines), which is reported when an error recorded in a baseline was fixed without the baseline being regenerated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
+
 ## The PHPStan configuration
 
 The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist).
@@ -124,7 +133,7 @@ As we adopt PHPStan iteratively, you may be faced with false positives due to le
 
 PHPStan errors can be ignored in the following ways:
 
-- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. This should be used to suppress false positives with a specific line of code.
+- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. **Avoid this if at all possible.** An ignore comment stays in the code, hiding the error from every later analysis of that line, so first try to fix the error, or to correct the types that PHPStan relies on, such as those in a docblock. It is only for a false positive with a specific line of code that cannot be resolved any other way.
 
 - Adding the error pattern to the `ignoreErrors` section of the `phpstan.neon.dist` configuration file. This should be used to handle conflicts with WordPress Coding Standards or similar project decisions, or to allowlist legacy code that is not worth refactoring solely to satisfy the tests.
 
@@ -209,7 +218,7 @@ A cache written before one of them changed therefore answers with what the old c
 rm -rf .cache
 ```
 
-The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and [`HookDocsResultCacheMetaExtension`](HookDocsResultCacheMetaExtension.php) already folds every file in this directory into its key, so it is discarded when one of them is edited. What survives either is the per-file reflection, which is keyed by the source file's own contents and has no way to know that reading it now yields something else. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
+The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and also when a bootstrap file or the source of any extension the configuration registers is edited, which covers every file in this directory that runs during analysis. What survives either is the per-file reflection, which is keyed by the source file's own contents and has no way to know that reading it now yields something else. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
 
 Analyzing a subset of the tree used to call for the same treatment, the same silence arriving from the other direction. A file named on the command line is analyzed, but a file merely *read* on its behalf went to PHPStan's simple parser, where these visitors do not run, so the reflection stored for it carried no derived shape — wrong for that run, and there in the cache for the next full run to restore. [`base.neon`](base.neon) now has the simple parser wrap the rich one, so every parse rewrites the same docblocks and a run over a subset derives what a full run derives. It does so by redefining one of PHPStan's own parser services, which is not a documented extension point; if a hash notation type ever looks wrong after a PHPStan upgrade, check that definition first.
 

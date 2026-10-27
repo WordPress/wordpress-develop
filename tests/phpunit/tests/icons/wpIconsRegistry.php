@@ -23,8 +23,18 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private $temp_file = null;
 
+	/**
+	 * Registry instance in place before the test, restored in tear_down.
+	 *
+	 * @var WP_Icons_Registry|null
+	 */
+	private $original_registry = null;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_registry = WP_Icons_Registry::get_instance();
+		$this->set_registry_instance( null );
 		$this->registry = WP_Icons_Registry::get_instance();
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
@@ -34,12 +44,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$reflection        = new ReflectionClass( WP_Icons_Registry::class );
-		$instance_property = $reflection->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_property->setAccessible( true );
-		}
-		$instance_property->setValue( null, null );
+		$this->set_registry_instance( null );
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
 		if ( $collections->is_registered( 'test-collection' ) ) {
@@ -54,8 +59,23 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		}
 		$this->temp_file = null;
 
-		$this->registry = null;
+		$this->set_registry_instance( $this->original_registry );
+		$this->original_registry = null;
+		$this->registry          = null;
 		parent::tear_down();
+	}
+
+	/**
+	 * Replaces the WP_Icons_Registry singleton instance.
+	 *
+	 * @param WP_Icons_Registry|null $instance The instance to use.
+	 */
+	private function set_registry_instance( $instance ) {
+		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$instance_property->setValue( null, $instance );
 	}
 
 	/**
@@ -295,7 +315,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$icon = $this->registry->get_registered_icon( 'test-collection/unsafe-content' );
-		$this->assertSame( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
+		$this->assertEqualHTML( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
 	}
 
 	/**
@@ -309,7 +329,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * @param non-falsy-string $expected The expected sanitized output.
 	 */
 	public function test_sanitize_icon_content( $input, $expected ) {
-		$this->assertSame( $expected, $this->sanitize_icon_content( $input ) );
+		$this->assertEqualHTML( $expected, $this->sanitize_icon_content( $input ) );
 	}
 
 	/**
@@ -480,6 +500,39 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66338
+	 *
+	 * @covers ::get_content
+	 */
+	public function test_get_content_sanitizes_non_core_icon_file() {
+		$path = $this->create_temp_icon_file( '<svg><script>alert( 1 )</script><path d="M0 0"/></svg>' );
+
+		$this->registry->register(
+			'test-collection/from-file',
+			array(
+				'label'     => 'From File',
+				'file_path' => $path,
+			)
+		);
+
+		$icon = $this->registry->get_registered_icon( 'test-collection/from-file' );
+		$this->assertStringContainsString( '<path', $icon['content'] );
+		$this->assertStringNotContainsString( '<script', $icon['content'] );
+	}
+
+	/**
+	 * Should serve a core icon unsanitized (sanitizing would lowercase `viewBox`, which would fail this test).
+	 *
+	 * @ticket 66338
+	 *
+	 * @covers ::get_content
+	 */
+	public function test_get_content_does_not_sanitize_core_icon() {
+		$icon = $this->original_registry->get_registered_icon( 'core/pencil' );
+		$this->assertSame( file_get_contents( ABSPATH . WPINC . '/images/icon-library/pencil.svg' ), $icon['content'] );
+	}
+
+	/**
 	 * Provides icon files that cannot yield valid content.
 	 *
 	 * @return array<string, array{0: string|null, 1: string}> Data sets of [ $contents, $extension ].
@@ -521,25 +574,234 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should reject a `public` property that is not a boolean.
+	 * Should register an icon that provides a valid `keywords` array.
 	 *
-	 * @ticket 66087
-	 *
-	 * @covers ::register
-	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @ticket 66158
 	 */
-	public function test_register_rejects_non_boolean_public_property() {
+	public function test_register_icon_with_keywords() {
+		$name = 'test-collection/with-keywords';
+
 		$result = $this->registry->register(
-			'test-collection/invalid-visibility',
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'alpha', 'beta' ),
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertSame( array( 'alpha', 'beta' ), $icon['keywords'] );
+	}
+
+	/**
+	 * Should register an icon that omits `keywords`, since the property is optional.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_register_icon_without_keywords() {
+		$name = 'test-collection/without-keywords';
+
+		$result = $this->registry->register(
+			$name,
 			array(
 				'label'   => 'Icon',
 				'content' => '<svg></svg>',
-				'public'  => 'yes',
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertArrayNotHasKey( 'keywords', $icon );
+	}
+
+	/**
+	 * Provides values that are not an array of strings.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_keywords() {
+		return array(
+			'null'                 => array( null ),
+			'a string'             => array( 'alpha' ),
+			'an integer'           => array( 5 ),
+			'an array of integers' => array( array( 1, 2 ) ),
+			'a mixed array'        => array( array( 'alpha', 5 ) ),
+			'a nested array'       => array( array( array( 'alpha' ) ) ),
+			'an array of null'     => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * Should fail to register an icon whose `keywords` is not an array of strings.
+	 *
+	 * @ticket 66158
+	 *
+	 * @dataProvider data_invalid_keywords
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $keywords Invalid keywords candidate.
+	 */
+	public function test_register_icon_with_invalid_keywords( $keywords ) {
+		$name = 'test-collection/invalid-keywords';
+
+		$result = $this->registry->register(
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => $keywords,
 			)
 		);
 
 		$this->assertFalse( $result );
-		$this->assertFalse( $this->registry->is_registered( 'test-collection/invalid-visibility' ) );
+		$this->assertFalse( $this->registry->is_registered( $name ) );
+	}
+
+	/**
+	 * Should match an icon by keyword when neither its name nor its label match.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		$this->registry->register(
+			'test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		/*
+		 * The search term is deliberately absent from both the name and the label,
+		 * so a match can only come from the keywords.
+		 */
+		$icon = $this->registry->get_registered_icon( 'test-collection/dove' );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['name'] );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['label'] );
+
+		$names = array_column( $this->registry->get_registered_icons( 'peace' ), 'name' );
+
+		$this->assertContains(
+			'test-collection/dove',
+			$names,
+			'Search results should include an icon matched only by its keyword'
+		);
+		$this->assertNotContains(
+			'test-collection/anvil',
+			$names,
+			'Search results should exclude an icon that matches on no property'
+		);
+	}
+
+	/**
+	 * Should match keywords case-insensitively, as names and labels are.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords_case_insensitively() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+
+		$names = array_column( $this->registry->get_registered_icons( 'PEACE' ), 'name' );
+
+		$this->assertContains( 'test-collection/dove', $names );
+	}
+
+	/**
+	 * Should return the registered core-admin icon that replaces a Dashicon,
+	 * including for Dashicons other than the first one listed for the icon.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_registered_icon() {
+		$this->registry->register(
+			'core-admin/envelope',
+			array(
+				'label'   => 'Envelope',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertSame(
+			'core-admin/envelope',
+			$this->registry->get_admin_icon_name_for_dashicon( 'dashicons-email' ),
+			'First Dashicon in the mapping is replaced'
+		);
+		$this->assertSame(
+			'core-admin/envelope',
+			$this->registry->get_admin_icon_name_for_dashicon( 'dashicons-email-alt' ),
+			'Alternative Dashicons are also replaced'
+		);
+	}
+
+	/**
+	 * Should return null when the replacement icon is not registered, so the
+	 * Dashicon can still be rendered.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_null_for_unregistered_icon() {
+		$this->assertNull( $this->registry->get_admin_icon_name_for_dashicon( 'dashicons-admin-post' ) );
+	}
+
+	/**
+	 * Should return null for values without a replacement.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 *
+	 * @dataProvider data_get_admin_icon_name_for_dashicon_without_replacement
+	 *
+	 * @param mixed $value The value to look up.
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_null_without_replacement( $value ) {
+		$this->registry->register(
+			'core-admin/pin',
+			array(
+				'label'   => 'Pin',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertNull( $this->registry->get_admin_icon_name_for_dashicon( $value ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_get_admin_icon_name_for_dashicon_without_replacement() {
+		return array(
+			'Dashicon without replacement' => array( 'dashicons-heart' ),
+			'Dashicon name without prefix' => array( 'admin-post' ),
+			'icon name'                    => array( 'core-admin/pin' ),
+			'empty string'                 => array( '' ),
+			'null'                         => array( null ),
+			'array'                        => array( array( 'dashicons-admin-post' ) ),
+		);
 	}
 }

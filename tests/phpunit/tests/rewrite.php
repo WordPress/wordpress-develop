@@ -294,7 +294,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_url_to_postid_host_matching() {
+	public static function data_url_to_postid_host_matching() {
 		return array(
 			'the site host'              => array( 'example.com', true ),
 			'the site host with www'     => array( 'www.example.com', true ),

@@ -6,7 +6,7 @@
  * @group comment
  */
 class Tests_Comment_Query extends WP_UnitTestCase {
-	protected static $post_id;
+	protected static int $post_id;
 	protected $comment_id;
 
 	/**
@@ -1816,11 +1816,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_approved' => '1',
 			)
 		);
-
-		// Ensure we are dealing with integers, and not objects.
-		$this->assertIsInt( $comment_1 );
-		$this->assertIsInt( $comment_2 );
-		$this->assertIsInt( $comment_3 );
 
 		$comment_ids = get_comments( array( 'fields' => 'ids' ) );
 		$this->assertCount( 3, $comment_ids );
@@ -3645,7 +3640,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -3670,7 +3665,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -4508,6 +4503,71 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 		$q2_ids = wp_list_pluck( $q2->comments, 'comment_ID' );
 		$this->assertSameSets( $q1_ids, $q2_ids );
+	}
+
+	/**
+	 * Tests that a cached descendant ID that no longer resolves to a comment is skipped.
+	 *
+	 * The reply is removed without clean_comment_cache() running, so the cached
+	 * `get_comment_child_ids` entry stays valid while get_comment() returns null.
+	 *
+	 * @ticket 66151
+	 *
+	 * @covers WP_Comment_Query::fill_descendants
+	 *
+	 * @dataProvider data_hierarchical_modes
+	 *
+	 * @param 'threaded'|'flat' $hierarchical Value of the 'hierarchical' query var.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_fill_descendants_should_skip_cached_child_ids_that_no_longer_exist( string $hierarchical ): void {
+		global $wpdb;
+
+		$parent = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$reply  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_parent'   => $parent,
+			)
+		);
+
+		$query_args = array(
+			'post_id'      => self::$post_id,
+			'hierarchical' => $hierarchical,
+		);
+
+		// Prime the parent-child relationship cache.
+		new WP_Comment_Query( $query_args );
+
+		// Remove the reply behind the back of the comment API, leaving 'last_changed' untouched.
+		$this->assertSame( 1, $wpdb->delete( $wpdb->comments, array( 'comment_ID' => $reply ) ) );
+		$this->assertTrue( wp_cache_delete( $reply, 'comment' ) );
+		unset( $GLOBALS['comment'] );
+
+		$q = new WP_Comment_Query( $query_args );
+
+		$this->assertIsArray( $q->comments );
+		$this->assertContainsOnlyInstancesOf( WP_Comment::class, $q->comments, 'Only WP_Comment objects should be returned.' );
+		$this->assertSame( array( (string) $parent ), array_values( wp_list_pluck( $q->comments, 'comment_ID' ) ), 'The parent comment should still be returned.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: 'threaded'|'flat' }>
+	 */
+	public static function data_hierarchical_modes(): array {
+		return array(
+			'threaded' => array( 'threaded' ),
+			'flat'     => array( 'flat' ),
+		);
 	}
 
 	/**
@@ -5385,13 +5445,15 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper method to create standard test comments for note type exclusion tests.
+	 * Helper method to create standard test comments for internal comment type
+	 * exclusion tests.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 A 'reaction' comment is created alongside the 'note'.
 	 *
-	 * @return array<'comment'|'pingback'|'note', int> Array of comments created.
+	 * @return array<'comment'|'pingback'|'note'|'reaction', int> Array of comments created.
 	 */
-	protected function create_note_type_test_comments(): array {
+	protected function create_internal_comment_type_test_comments(): array {
 		return array(
 			'comment'  => self::factory()->comment->create(
 				array(
@@ -5413,19 +5475,27 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 					'comment_type'     => 'note',
 				)
 			),
+			'reaction' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'reaction',
+				)
+			),
 		);
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
-	 * @dataProvider data_note_type_exclusion
+	 * @dataProvider data_internal_comment_type_exclusion
 	 *
 	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
 	 * @param string[]                    $expected_types Expected comment types.
 	 */
-	public function test_note_type_exclusion( array $query_args, array $expected_types ) {
-		$this->create_note_type_test_comments();
+	public function test_internal_comment_type_exclusion( array $query_args, array $expected_types ) {
+		$this->create_internal_comment_type_test_comments();
 
 		$query = new WP_Comment_Query();
 		$found = $query->query( array_merge( $query_args, array( 'fields' => 'ids' ) ) );
@@ -5447,7 +5517,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
-	public function data_note_type_exclusion(): array {
+	public static function data_internal_comment_type_exclusion(): array {
 		return array(
 			'default query excludes note'        => array(
 				'query_args'     => array(),
@@ -5459,7 +5529,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			),
 			'type all includes note'             => array(
 				'query_args'     => array( 'type' => 'all' ),
-				'expected_types' => array( 'comment', 'pingback', 'note' ),
+				'expected_types' => array( 'comment', 'pingback', 'note', 'reaction' ),
 			),
 			'explicit note type'                 => array(
 				'query_args'     => array( 'type' => 'note' ),
@@ -5481,17 +5551,34 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'query_args'     => array( 'type__not_in' => array( 'note' ) ),
 				'expected_types' => array( 'comment', 'pingback' ),
 			),
+			'explicit reaction type'             => array(
+				'query_args'     => array( 'type' => 'reaction' ),
+				'expected_types' => array( 'reaction' ),
+			),
+			'type__in with reaction'             => array(
+				'query_args'     => array( 'type__in' => array( 'reaction' ) ),
+				'expected_types' => array( 'reaction' ),
+			),
+			'type__in with note and reaction'    => array(
+				'query_args'     => array( 'type__in' => array( 'note', 'reaction' ) ),
+				'expected_types' => array( 'note', 'reaction' ),
+			),
+			'type__not_in with reaction'         => array(
+				'query_args'     => array( 'type__not_in' => array( 'reaction' ) ),
+				'expected_types' => array( 'comment', 'pingback' ),
+			),
 		);
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_note_type_not_duplicated_in_type__not_in() {
+	public function test_internal_comment_types_not_duplicated_in_type__not_in() {
 		global $wpdb;
 
-		$comments = $this->create_note_type_test_comments();
+		$comments = $this->create_internal_comment_type_test_comments();
 
 		$query = new WP_Comment_Query();
 		$found = $query->query(
@@ -5503,15 +5590,23 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $comments['comment'], $comments['pingback'] ), $found );
 		$this->assertNotContains( $comments['note'], $found );
-		$note_count = substr_count( $wpdb->last_query, "'note'" );
-		$this->assertSame( 1, $note_count, 'The note type should only appear once in the query' );
+		$this->assertNotContains( $comments['reaction'], $found );
+
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
+			$this->assertSame(
+				1,
+				substr_count( $wpdb->last_query, "'" . $internal_type . "'" ),
+				"The {$internal_type} type should only appear once in the query"
+			);
+		}
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers ::get_comment_count
 	 */
-	public function test_get_comment_count_excludes_note_type() {
+	public function test_get_comment_count_excludes_internal_comment_types() {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
@@ -5532,6 +5627,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '0',
 				'comment_type'     => 'note',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'reaction',
 			)
 		);
 

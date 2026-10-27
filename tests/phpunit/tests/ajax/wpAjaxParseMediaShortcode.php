@@ -33,12 +33,21 @@ class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 				'post_author'    => 0,
 			)
 		);
+		$factory->attachment->create_object(
+			get_temp_dir() . 'canola.jpg',
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'An unrelated caption',
+			)
+		);
 	}
 	/**
 	 * @dataProvider shortcode_provider
 	 */
 	public function test_parse_shortcode( array $payload, $expected ) {
 		add_shortcode( 'test', array( $this, 'shortcode_test' ) );
+		$payload['shortcode'] = sprintf( $payload['shortcode'], self::$media_id );
 
 		$_POST = array_merge(
 			array(
@@ -60,20 +69,24 @@ class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 			$this->assertStringNotContainsString( self::SHORTCODE_RETURN_VALUE, $body );
 		}
 		$this->assertSame( $expected['success'], $response['success'] );
+		if ( $expected['success'] ) {
+			$this->assertStringContainsString( 'A sample caption', $body );
+			$this->assertStringNotContainsString( 'An unrelated caption', $body );
+		}
 	}
 
 	public function shortcode_test() {
 		return self::SHORTCODE_RETURN_VALUE;
 	}
 
-	public function shortcode_provider() {
+	public static function shortcode_provider() {
 		return array(
 			'gallery_shortcode_is_allowed'         => array(
-				'payload'  => array( 'shortcode' => '[gallery ids=" ' . self::$media_id . '"]' ),
+				'payload'  => array( 'shortcode' => '[gallery ids="%d"]' ),
 				'expected' => array( 'success' => true ),
 			),
 			'gallery_and_custom_test_shortcode_is_not_allowed' => array(
-				'payload'  => array( 'shortcode' => '[gallery ids=" ' . self::$media_id . '"] [test]' ),
+				'payload'  => array( 'shortcode' => '[gallery ids="%d"] [test]' ),
 				'expected' => array( 'success' => false ),
 			),
 			'custom_test_shortcode_is_not_allowed' => array(
