@@ -700,11 +700,6 @@ class WP_Comment_Query {
 					}
 				}
 
-				// Default to DESC.
-				if ( ! $comment_id_order ) {
-					$comment_id_order = 'DESC';
-				}
-
 				$orderby_array[] = "$wpdb->comments.comment_ID $comment_id_order";
 			}
 
