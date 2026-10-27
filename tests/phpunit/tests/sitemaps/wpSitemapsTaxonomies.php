@@ -157,7 +157,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
-		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+		$post_id = self::factory()->post->create();
+		wp_add_object_terms( $post_id, $terms, 'non_queryable_tax' );
 
 		$sitemaps     = wp_sitemaps_get_server();
 		$tax_provider = new WP_Sitemaps_Taxonomies();
