@@ -12,20 +12,21 @@ class Tests_Functions_WpGetDefaultUpdateHttpsUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_returns_default_https_documentation_url() {
-		$this->assertSame(
-			__( 'https://developer.wordpress.org/advanced-administration/security/https/' ),
-			wp_get_default_update_https_url()
-		);
-	}
+	public function test_returns_localized_https_documentation_url() {
+		$translated = 'https://example.test/update-https-localized/';
 
-	/**
-	 * @ticket 65819
-	 */
-	public function test_returns_non_empty_https_url() {
-		$url = wp_get_default_update_https_url();
+		$filter = static function ( $translation, $text ) use ( $translated ) {
+			if ( 'https://developer.wordpress.org/advanced-administration/security/https/' === $text ) {
+				return $translated;
+			}
 
-		$this->assertNotSame( '', $url );
-		$this->assertStringStartsWith( 'https://', $url );
+			return $translation;
+		};
+
+		add_filter( 'gettext', $filter, 10, 2 );
+
+		$this->assertSame( $translated, wp_get_default_update_https_url() );
+
+		remove_filter( 'gettext', $filter, 10 );
 	}
 }
