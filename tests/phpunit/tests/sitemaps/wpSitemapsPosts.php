@@ -185,6 +185,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 * Tests that the URL list is empty for post types that are not object subtypes.
 	 *
 	 * @ticket 65819
+	 * @ticket 61293
 	 *
 	 * @covers WP_Sitemaps_Posts::get_url_list
 	 *
@@ -201,10 +202,14 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'wp_sitemaps_posts_pre_url_list', array( $filter, 'filter' ) );
 
+		$sitemaps       = wp_sitemaps_get_server();
 		$posts_provider = new WP_Sitemaps_Posts();
 
-		$this->assertSame( array(), $posts_provider->get_url_list( 1, $post_type ) );
+		$this->assertSame( array(), $posts_provider->get_url_list( 1, $post_type ), 'URL list for private post type should be empty.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The short-circuit filter should not run.' );
+		$this->go_to( home_url( "/?sitemap=posts&sitemap-subtype={$post_type}" ) );
+		$sitemaps->render_sitemaps();
+		$this->assertTrue( is_404(), 'Private post type sitemaps should 404' );
 	}
 
 	/**
