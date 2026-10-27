@@ -31,32 +31,52 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		self::delete_user( self::$subscriber_id );
 	}
 
+	/**
+	 * Original registry singletons, restored after each test.
+	 *
+	 * @var array<class-string, object|null>
+	 */
+	private $original_instances = array();
+
 	public function set_up() {
 		parent::set_up();
 
 		/*
 		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the collections and
-		 * icons that `init` only registers once. Replay the registration so order-dependent
-		 * tests pass. `_wp_register_default_icon_collections()` registers every default
-		 * collection at once, so drop whatever survived rather than topping up.
+		 * icons that `init` only registers once. Replay the registration on fresh registry
+		 * instances so order-dependent tests pass. The "core-admin" collection cannot be
+		 * unregistered, so swap the instances rather than dropping whatever survived.
 		 */
-		$collections_registry = WP_Icon_Collections_Registry::get_instance();
-		foreach ( array( 'core', 'core-admin' ) as $collection_slug ) {
-			if ( $collections_registry->is_registered( $collection_slug ) ) {
-				$collections_registry->unregister( $collection_slug );
-			}
+		foreach ( array( WP_Icon_Collections_Registry::class, WP_Icons_Registry::class ) as $class_name ) {
+			$this->original_instances[ $class_name ] = $this->set_registry_instance( $class_name, null );
 		}
 		_wp_register_default_icon_collections();
 		_wp_register_default_icons();
 	}
 
 	public function tear_down() {
-		foreach ( array( 'rest-visibility-public', 'rest-visibility-private' ) as $slug ) {
-			if ( WP_Icon_Collections_Registry::get_instance()->is_registered( $slug ) ) {
-				wp_unregister_icon_collection( $slug );
-			}
+		foreach ( $this->original_instances as $class_name => $instance ) {
+			$this->set_registry_instance( $class_name, $instance );
 		}
+		$this->original_instances = array();
 		parent::tear_down();
+	}
+
+	/**
+	 * Replaces a registry singleton instance.
+	 *
+	 * @param class-string $class_name The registry class name.
+	 * @param object|null  $instance   The instance to use.
+	 * @return object|null The previous instance.
+	 */
+	private function set_registry_instance( $class_name, $instance ) {
+		$instance_property = new ReflectionProperty( $class_name, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$previous = $instance_property->getValue();
+		$instance_property->setValue( null, $instance );
+		return $previous;
 	}
 
 	/**

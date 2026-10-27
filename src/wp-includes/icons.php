@@ -35,7 +35,10 @@ function wp_register_icon_collection( $slug, $args ) {
 /**
  * Unregisters an icon collection.
  *
+ * The "core-admin" collection cannot be unregistered.
+ *
  * @since 7.1.0
+ * @since 7.2.0 The "core-admin" collection can no longer be unregistered.
  *
  * @param string $slug Icon collection slug.
  * @return bool True if the icon collection was unregistered successfully, else false.
@@ -77,7 +80,10 @@ function wp_register_icon( $icon_name, $args ) {
 /**
  * Unregisters an icon.
  *
+ * The core icons in the "core-admin" collection cannot be unregistered.
+ *
  * @since 7.1.0
+ * @since 7.2.0 The core icons in the "core-admin" collection can no longer be unregistered.
  *
  * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
  *                          (e.g. "core/arrow-left").

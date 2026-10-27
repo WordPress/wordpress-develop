@@ -21,6 +21,15 @@ class WP_Icons_Registry {
 	protected $registered_icons = array();
 
 	/**
+	 * Names of the core icons in the "core-admin" collection, as keys.
+	 * Built from the manifest on first use.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, true>|null
+	 */
+	private $core_admin_icon_names = null;
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @since 7.0.0
@@ -228,13 +237,30 @@ class WP_Icons_Registry {
 	/**
 	 * Unregisters an icon.
 	 *
+	 * The core icons in the "core-admin" collection are used by the WordPress
+	 * administration interface and cannot be unregistered.
+	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 The core icons in the "core-admin" collection can no longer be unregistered.
 	 *
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
 	 *                          (e.g. "core/arrow-left").
 	 * @return bool True if the icon was unregistered successfully, false otherwise.
 	 */
 	public function unregister( $icon_name ) {
+		if ( $this->is_core_admin_icon( $icon_name ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon name. */
+					__( 'Icon "%s" is used by the administration interface and cannot be unregistered.' ),
+					$icon_name
+				),
+				'7.2.0'
+			);
+			return false;
+		}
+
 		if ( ! $this->is_registered( $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -250,6 +276,37 @@ class WP_Icons_Registry {
 
 		unset( $this->registered_icons[ $icon_name ] );
 		return true;
+	}
+
+	/**
+	 * Checks whether an icon is one of the core icons in the "core-admin" collection.
+	 *
+	 * Custom icons registered in the collection are not core icons.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $icon_name Namespaced icon name.
+	 * @return bool True if the icon is a core "core-admin" icon, false otherwise.
+	 */
+	private function is_core_admin_icon( $icon_name ): bool {
+		if ( ! is_string( $icon_name ) || ! str_starts_with( $icon_name, 'core-admin/' ) ) {
+			return false;
+		}
+
+		if ( null === $this->core_admin_icon_names ) {
+			$this->core_admin_icon_names = array();
+
+			$manifest_path = ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+			$manifest      = is_readable( $manifest_path ) ? include $manifest_path : array();
+
+			foreach ( is_array( $manifest ) ? $manifest : array() as $manifest_icon_name => $icon_data ) {
+				if ( in_array( 'core-admin', $icon_data['collections'] ?? array(), true ) ) {
+					$this->core_admin_icon_names[ 'core-admin/' . $manifest_icon_name ] = true;
+				}
+			}
+		}
+
+		return isset( $this->core_admin_icon_names[ $icon_name ] );
 	}
 
 	/**
