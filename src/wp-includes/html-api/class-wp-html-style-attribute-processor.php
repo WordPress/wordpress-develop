@@ -32,6 +32,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * CSS whitespace characters.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var string
 	 */
 	private const WHITESPACE = " \t\n\r\f";
@@ -39,12 +42,18 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Decoded style attribute value.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var string
 	 */
 	private $style;
 
 	/**
 	 * CSS tokens of the style attribute value.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var WP_CSS_Token[]
 	 */
@@ -65,12 +74,18 @@ class WP_HTML_Style_Attribute_Processor {
 	 * value. The `important_*` offsets are null when the declaration has no
 	 * `!important` priority.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var array<int, array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
 
 	/**
 	 * Whether the style attribute value has been parsed.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var bool
 	 */
@@ -79,12 +94,18 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Index of the current declaration, or -1 before the first declaration.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var int
 	 */
 	private $current_declaration = -1;
 
 	/**
 	 * Whether the current declaration was removed and no new declaration has been selected.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var bool
 	 */
@@ -93,12 +114,18 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Lexical updates to apply to the original style attribute value.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @var array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}>
 	 */
 	private $lexical_updates = array();
 
 	/**
 	 * Sequence counter used to keep lexical updates in queue order.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @var int
 	 */
@@ -111,6 +138,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * {@see WP_HTML_Style_Attribute_Processor::create()} instead.
 	 *
 	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $style Decoded CSS text value from a style attribute.
 	 */
@@ -546,6 +574,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Parses CSS tokens and declarations from the style attribute value.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 */
 	private function parse(): void {
 		$this->tokens       = array();
@@ -567,6 +598,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Lazily parses the style attribute value when declaration access needs it.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 */
 	private function ensure_parsed(): void {
 		if ( $this->parsed ) {
@@ -578,6 +612,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Parses the token list according to the CSS declaration-list shape.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 */
 	private function parse_declaration_list(): void {
 		$index = 0;
@@ -613,6 +650,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Consumes an at-rule and returns the token index after it.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $index At-keyword token index.
 	 * @return int Token index after the at-rule.
@@ -655,6 +695,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Consumes a simple block.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int    $index        Token index for the opening token.
 	 * @param string $closing_type Expected closing token type.
@@ -700,6 +743,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Consumes a declaration candidate up to the next top-level semicolon or EOF.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int $index Starting token index.
 	 * @return array{int,int,bool} End token index, byte offset after candidate, and whether it ended in a semicolon.
 	 */
@@ -742,6 +788,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Parses a declaration from a token segment.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $start_index First token index in the segment.
 	 * @param int $end_index   Token index after the segment.
@@ -822,6 +871,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets top-level non-ignored token indexes from a token range.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int $start Start token index.
 	 * @param int $end   End token index.
 	 * @return int[] Top-level non-ignored token indexes.
@@ -869,6 +921,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Skips ignored CSS tokens.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int      $index Token index.
 	 * @param int|null $end   Optional token index at which to stop.
 	 * @return int Token index after ignored tokens.
@@ -886,6 +941,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Trims ignored CSS tokens from the end of a token range.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int $start Start token index.
 	 * @param int $end   End token index.
 	 * @return int Trimmed end token index.
@@ -901,6 +959,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a token is ignored by declaration-list grammar.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param WP_CSS_Token $token Token.
 	 * @return bool Whether the token is ignored.
 	 */
@@ -914,6 +975,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the byte offset after a token.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param WP_CSS_Token $token Token.
 	 * @return int Byte offset after the token.
 	 */
@@ -923,6 +987,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Gets the byte offset before contiguous whitespace ending at an offset.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $offset Byte offset.
 	 * @return int Offset before preceding whitespace.
@@ -937,6 +1004,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Gets the byte offset after contiguous whitespace beginning at an offset.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $offset Byte offset.
 	 * @return int Offset after following whitespace.
@@ -954,6 +1024,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration metadata.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @return array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function get_current_declaration(): ?array {
@@ -970,6 +1043,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Checks whether a replacement preserves the current declaration's structure.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param array{name:string, start:int, after:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
 	 * @param int                                                                                                                                                                                                                           $start              Byte offset at which to start the replacement.
@@ -1013,6 +1089,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Checks whether removing a declaration preserves remaining structure.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int    $removed_declaration Removed declaration index.
 	 * @param int    $start               Byte offset at which to start the replacement.
@@ -1066,6 +1145,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the parsed value source from a serialized declaration.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param string $declaration_text Serialized declaration text.
 	 * @return string|null Parsed declaration value, or null if parsing failed.
 	 */
@@ -1086,6 +1168,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Applies queued lexical updates and reparses the updated style attribute value.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int  $current_declaration         Declaration index to keep before the next cursor advance.
 	 * @param bool $current_declaration_removed Optional. Whether the current declaration was removed.
@@ -1108,6 +1193,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Queues a lexical update, replacing any earlier update for the same declaration.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int      $start       Byte offset at which to start the update.
 	 * @param int      $length      Number of bytes to replace.
@@ -1135,6 +1223,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether an append has already been queued at a byte offset.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int $insert_at Byte offset.
 	 * @return bool Whether an append has already been queued at the offset.
 	 */
@@ -1153,6 +1244,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * Comments and whitespace are CSS parser trivia. They do not determine
 	 * whether the existing declaration list needs a semicolon before appending.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $insert_at Byte offset at which the declaration will be inserted.
 	 * @return string Separator text.
@@ -1173,6 +1267,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Gets the last top-level non-ignored token before a byte offset.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $insert_at Byte offset before which to scan.
 	 * @return WP_CSS_Token|null Token, or null when there is none.
@@ -1228,6 +1325,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * CSS closes unterminated strings, comments, functions and simple blocks at
 	 * EOF. Appending must materialize those closers before adding a new
 	 * declaration.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int $insert_at Byte offset at which the declaration will be inserted.
 	 * @return string|null Closing delimiters, or null when repair cannot be precise.
@@ -1312,6 +1412,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * unclosed component value. In that case preserving the original text and
 	 * appending a top-level declaration are incompatible.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param int    $insert_at             Byte offset at which the declaration will be inserted.
 	 * @param string $eof_repair            EOF repair text.
 	 * @param string $separator             Separator text.
@@ -1357,6 +1460,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Adjacent declaration removals may share separator whitespace, and appends
 	 * may be queued inside a range removed from the original style. This method
 	 * collapses those updates while preserving the requested replacement text.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}> $updates Lexical updates.
 	 * @return array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}> Merged updates.
@@ -1408,6 +1514,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Formats a declaration as `name: value;` or `name: value !important;`.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param string $property_name CSS property name text.
 	 * @param string $value         CSS declaration value text.
 	 * @param bool   $important     Whether to append !important.
@@ -1422,6 +1531,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * Whitespace and comments before and after the value are removed, and the
 	 * rest is written as serialize_declaration() writes a value.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $value CSS declaration value.
 	 * @return string Value text.
@@ -1448,6 +1560,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether two property names match.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param string $actual Property name from a declaration.
 	 * @param string $query  Queried property name.
 	 * @return bool Whether the property names match.
@@ -1467,6 +1582,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * unmatched closing token, or a top-level `!`. A `{}` block must be the whole
 	 * value unless the property is a custom property. Blocks left open at EOF are
 	 * closed by CSS and are valid.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param int  $start              First value token index.
 	 * @param int  $end                Token index after the value.
@@ -1528,6 +1646,9 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a property name is a custom property.
 	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
 	 * @param string $property_name Property name.
 	 * @return bool Whether this is a custom property name.
 	 */
@@ -1537,6 +1658,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Checks whether a CSS property name is syntactically valid.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $property_name CSS property name.
 	 * @return bool Whether the property name is valid.
@@ -1588,6 +1712,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 	/**
 	 * Checks whether a CSS declaration value is syntactically safe to insert.
+	 *
+	 * @since 7.3.0
+	 * @ignore
 	 *
 	 * @param string $value CSS declaration value.
 	 * @return bool Whether the value is valid.
