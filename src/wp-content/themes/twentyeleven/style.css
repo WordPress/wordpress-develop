@@ -636,6 +636,7 @@ a.assistive-text:focus,
 	background: #efefef;
 }
 #access li:hover > a,
+#access li.focus > a,
 #access a:focus {
 	background: #f9f9f9; /* Show a solid color for older browsers */
 	background: -moz-linear-gradient(#f9f9f9, #e5e5e5);
@@ -644,7 +645,8 @@ a.assistive-text:focus,
 	background: -webkit-linear-gradient(#f9f9f9, #e5e5e5);
 	color: #373737;
 }
-#access ul li:hover > ul {
+#access ul li:hover > ul,
+#access ul li.focus > ul {
 	display: block;
 }
 #access .current-menu-item > a,
