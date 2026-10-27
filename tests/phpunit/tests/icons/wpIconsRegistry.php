@@ -691,4 +691,84 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$this->assertContains( 'test-collection/dove', $names );
 	}
+
+	/**
+	 * Should return the registered core-admin icon that replaces a Dashicon,
+	 * including for Dashicons other than the first one listed for the icon.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_registered_icon() {
+		$this->registry->register(
+			'core-admin/envelope',
+			array(
+				'label'   => 'Envelope',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertSame(
+			'core-admin/envelope',
+			$this->registry->get_admin_icon_name_for_dashicon( 'dashicons-email' ),
+			'First Dashicon in the mapping is replaced'
+		);
+		$this->assertSame(
+			'core-admin/envelope',
+			$this->registry->get_admin_icon_name_for_dashicon( 'dashicons-email-alt' ),
+			'Alternative Dashicons are also replaced'
+		);
+	}
+
+	/**
+	 * Should return null when the replacement icon is not registered, so the
+	 * Dashicon can still be rendered.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_null_for_unregistered_icon() {
+		$this->assertNull( $this->registry->get_admin_icon_name_for_dashicon( 'dashicons-admin-post' ) );
+	}
+
+	/**
+	 * Should return null for values without a replacement.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::get_admin_icon_name_for_dashicon
+	 *
+	 * @dataProvider data_get_admin_icon_name_for_dashicon_without_replacement
+	 *
+	 * @param mixed $value The value to look up.
+	 */
+	public function test_get_admin_icon_name_for_dashicon_returns_null_without_replacement( $value ) {
+		$this->registry->register(
+			'core-admin/pin',
+			array(
+				'label'   => 'Pin',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertNull( $this->registry->get_admin_icon_name_for_dashicon( $value ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_get_admin_icon_name_for_dashicon_without_replacement() {
+		return array(
+			'Dashicon without replacement' => array( 'dashicons-heart' ),
+			'Dashicon name without prefix' => array( 'admin-post' ),
+			'icon name'                    => array( 'core-admin/pin' ),
+			'empty string'                 => array( '' ),
+			'null'                         => array( null ),
+			'array'                        => array( array( 'dashicons-admin-post' ) ),
+		);
+	}
 }
