@@ -176,7 +176,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$primary_profile_url = get_admin_url( $primary->blog_id, 'profile.php' );
 
 		// Ensure the user's primary blog is not the same as the main site.
-		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $primary_profile_url, $node_my_account->href );
@@ -229,7 +229,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$user_profile_url = user_admin_url( 'profile.php' );
 
-		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $user_profile_url, $node_my_account->href );
