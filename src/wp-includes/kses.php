@@ -3721,6 +3721,7 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
+ * @since 7.3.0 Added support for CSS color functions, such as `rgb()` and `color-mix()`.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -4135,7 +4136,31 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 
 			/*
-			 * Disallow CSS containing \ ( & } = or comments, except for within url(), var(), calc(), etc.
+			 * Allow CSS color functions like rgb() and color-mix() by replacing them, innermost first,
+			 * so long as their contents are plain color syntax. The number of passes caps the nesting.
+			 */
+			$color_function_regex = '/(?<![\w-])(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix|color|light-dark)\(([^()]*)\)/i';
+
+			for ( $pass = 0; $pass < 32; $pass++ ) {
+				if ( ! preg_match_all( $color_function_regex, $css_test_string, $color_matches ) ) {
+					break;
+				}
+
+				foreach ( $color_matches[1] as $color_contents ) {
+					if ( ! preg_match( '/^[a-z0-9#%.,\/+\s-]*$/i', $color_contents ) ) {
+						break 2;
+					}
+				}
+
+				$css_test_string = preg_replace( $color_function_regex, '0', $css_test_string );
+
+				if ( null === $css_test_string ) {
+					continue 2;
+				}
+			}
+
+			/*
+			 * Disallow CSS containing \ ( & } = or comments, except for within url(), var(), calc(), color functions, etc.
 			 * which were removed from the test string above.
 			 */
 			$allow_css = 0 === preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
