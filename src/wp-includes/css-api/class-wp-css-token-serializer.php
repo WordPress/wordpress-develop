@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage CSS-API
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
@@ -16,7 +16,7 @@
  * The output parses to the same CSS as the tokens. Which characters are
  * escaped may change.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @see WP_CSS_Token_Processor
@@ -30,7 +30,7 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * @see WP_CSS_Token_Serializer::serialize()
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var array<string, string[]>
 	 */
@@ -80,7 +80,9 @@ class WP_CSS_Token_Serializer {
 	 * Second tokens of the marked pairs shared by the at-keyword, hash,
 	 * dimension, `#` and `-` rows.
 	 *
-	 * @since 7.2.0
+	 * @see WP_CSS_Token_Serializer::MARKED_PAIRS
+	 *
+	 * @since 7.3.0
 	 *
 	 * @var string[]
 	 */
@@ -99,7 +101,9 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Second tokens of the marked pairs in the `.` and `+` rows.
 	 *
-	 * @since 7.2.0
+	 * @see WP_CSS_Token_Serializer::MARKED_PAIRS
+	 *
+	 * @since 7.3.0
 	 *
 	 * @var string[]
 	 */
@@ -112,7 +116,7 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Text of the token types that have no value.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var array<string, string>
 	 */
@@ -135,7 +139,7 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Closing token type of each token type that opens a block.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var array<string, string>
 	 */
@@ -230,16 +234,19 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * Example:
 	 *
-	 *     $processor = WP_CSS_Token_Processor::create( 'url( a&b ) calc(1px  +  2px' );
-	 *     $tokens    = array();
-	 *     while ( $processor->next_token() ) {
-	 *         $tokens[] = $processor->get_token();
-	 *     }
-	 *     WP_CSS_Token_Serializer::serialize( $tokens ); // 'url(a\26 b) calc(1px + 2px)'
+	 * ```php interactive
+	 * $processor = WP_CSS_Token_Processor::create( 'url( a&b ) calc(1px  +  2px' );
+	 * $tokens    = array();
+	 * while ( $processor->next_token() ) {
+	 *     $tokens[] = $processor->get_token();
+	 * }
+	 * echo WP_CSS_Token_Serializer::serialize( $tokens );
+	 * // Outputs: "url(a\26 b) calc(1px + 2px)"
+	 * ```
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#serialization
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param iterable<WP_CSS_Token> $tokens Tokens read by WP_CSS_Token_Processor::get_token().
 	 * @return string CSS text.
@@ -306,7 +313,7 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Serializes one token other than whitespace or a comment.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_CSS_Token $token Token.
 	 * @return string CSS text.
@@ -366,10 +373,10 @@ class WP_CSS_Token_Serializer {
 	 * An empty value returns an empty string. Callers that require an ident
 	 * token must reject an empty value.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#escaping
-	 * @see https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
+	 * @link https://www.w3.org/TR/css-syntax-3/#escaping
+	 * @link https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 * @access private
 	 *
 	 * @param string $value Decoded value.
@@ -398,10 +405,10 @@ class WP_CSS_Token_Serializer {
 	 * for rudimentary CSS processors. The string reads back as the same value,
 	 * except that NULL becomes U+FFFD.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#escaping
-	 * @see https://drafts.csswg.org/cssom/#serialize-a-string
+	 * @link https://www.w3.org/TR/css-syntax-3/#escaping
+	 * @link https://drafts.csswg.org/cssom/#serialize-a-string
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $value Decoded value.
 	 * @return string Quoted string text.
@@ -447,9 +454,9 @@ class WP_CSS_Token_Serializer {
 	 * point, as browsers do. CSS Syntax allows fewer, so the others are escaped
 	 * and the output reads the same under both rules.
 	 *
-	 * @see https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
+	 * @link https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $value Decoded name.
 	 * @return string Escaped name.
@@ -502,9 +509,9 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Reports whether a code point above U+007F is a non-ASCII ident code point.
 	 *
-	 * @see https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
+	 * @link https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int $code_point Code point above U+007F.
 	 * @return bool Whether the code point may appear unescaped in an identifier.
@@ -536,9 +543,9 @@ class WP_CSS_Token_Serializer {
 	 * parentheses, `\`, whitespace and non-printable code points. So are the
 	 * code points escape_string() escapes for HTML and CSS: `< > & , ; { }`.
 	 *
-	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $value Decoded value.
 	 * @return string Url text, including `url(` and `)`.

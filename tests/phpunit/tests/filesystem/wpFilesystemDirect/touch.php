@@ -71,7 +71,7 @@ class Tests_Filesystem_WpFilesystemDirect_Touch extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_create_file() {
+	public static function data_should_create_file() {
 		return array(
 			'default mtime or atime'      => array(
 				'file'  => 'TEST_DATA/file-to-create.txt',

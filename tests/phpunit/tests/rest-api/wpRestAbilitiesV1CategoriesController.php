@@ -360,7 +360,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$page1_slugs    = wp_list_pluck( $page1_response->get_data(), 'slug' );
 		$page2_slugs    = wp_list_pluck( $data, 'slug' );
 
-		$this->assertNotEquals( $page1_slugs, $page2_slugs );
+		$this->assertNotSame( $page1_slugs, $page2_slugs );
 	}
 
 	/**
