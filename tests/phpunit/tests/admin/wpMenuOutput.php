@@ -55,40 +55,98 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_menu_output
 	 *
-	 * @dataProvider data_replaced_dashicons
+	 * @dataProvider data_core_menu_items
 	 *
-	 * @param string $dashicon Dashicon class name.
+	 * @param string $id       ID of the core menu item.
+	 * @param string $dashicon Default Dashicon of the core menu item.
+	 * @param string $icon     Name of the replacement icon.
 	 */
-	public function test_core_dashicon_is_rendered_as_svg_icon( $dashicon ): void {
+	public function test_core_menu_item_dashicon_is_rendered_as_svg_icon( $id, $dashicon, $icon ): void {
+		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
+		$menu = array(
+			array( 'Item', 'read', 'index.php', '', 'menu-top', $id, $dashicon ),
+		);
+		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
+
+		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before svg-icon' aria-hidden='true'>" . wp_get_icon( $icon ) . '</div>', $html );
+	}
+
+	/**
+	 * Plugin menu items keep their Dashicon, even when it is one of the Dashicons of the core menu items.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::_wp_menu_output
+	 *
+	 * @dataProvider data_core_menu_items
+	 *
+	 * @param string $id       ID of the core menu item.
+	 * @param string $dashicon Default Dashicon of the core menu item.
+	 */
+	public function test_plugin_menu_item_with_core_dashicon_is_rendered_as_before( $id, $dashicon ): void {
 		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 		$menu = array(
 			array( 'Item', 'read', 'my-plugin', '', 'menu-top', 'toplevel_page_my-plugin', $dashicon ),
 		);
 		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
 
-		$this->assertMatchesRegularExpression( "#<div class='wp-menu-image dashicons-before svg-icon' aria-hidden='true'><svg\\b.*?</svg>\\s*</div>#s", $html );
+		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before $dashicon' aria-hidden='true'><br /></div>", $html );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string, 2: non-falsy-string }>
 	 */
-	public static function data_replaced_dashicons(): array {
+	public static function data_core_menu_items(): array {
 		return array(
-			'dashboard'  => array( 'dashicons-dashboard' ),
-			'posts'      => array( 'dashicons-admin-post' ),
-			'media'      => array( 'dashicons-admin-media' ),
-			'links'      => array( 'dashicons-admin-links' ),
-			'pages'      => array( 'dashicons-admin-page' ),
-			'comments'   => array( 'dashicons-admin-comments' ),
-			'appearance' => array( 'dashicons-admin-appearance' ),
-			'plugins'    => array( 'dashicons-admin-plugins' ),
-			'users'      => array( 'dashicons-admin-users' ),
-			'tools'      => array( 'dashicons-admin-tools' ),
-			'settings'   => array( 'dashicons-admin-settings' ),
-			'sites'      => array( 'dashicons-admin-multisite' ),
+			'dashboard'  => array( 'menu-dashboard', 'dashicons-dashboard', 'core-admin/dashboard' ),
+			'posts'      => array( 'menu-posts', 'dashicons-admin-post', 'core-admin/pin' ),
+			'media'      => array( 'menu-media', 'dashicons-admin-media', 'core-admin/media' ),
+			'links'      => array( 'menu-links', 'dashicons-admin-links', 'core-admin/link' ),
+			'pages'      => array( 'menu-pages', 'dashicons-admin-page', 'core-admin/page' ),
+			'comments'   => array( 'menu-comments', 'dashicons-admin-comments', 'core-admin/comment' ),
+			'appearance' => array( 'menu-appearance', 'dashicons-admin-appearance', 'core-admin/brush' ),
+			'plugins'    => array( 'menu-plugins', 'dashicons-admin-plugins', 'core-admin/plugins' ),
+			'users'      => array( 'menu-users', 'dashicons-admin-users', 'core-admin/people' ),
+			'tools'      => array( 'menu-tools', 'dashicons-admin-tools', 'core-admin/tool' ),
+			'settings'   => array( 'menu-settings', 'dashicons-admin-settings', 'core-admin/settings' ),
+			'sites'      => array( 'menu-site', 'dashicons-admin-multisite', 'core-admin/sites' ),
 		);
+	}
+
+	/**
+	 * A custom post type without a menu icon keeps the default Dashicon of the Posts menu item.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::_wp_menu_output
+	 */
+	public function test_post_type_menu_item_with_default_dashicon_is_rendered_as_before(): void {
+		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
+		$menu = array(
+			array( 'Books', 'read', 'edit.php?post_type=book', '', 'menu-top menu-icon-book', 'menu-posts-book', 'dashicons-admin-post' ),
+		);
+		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
+
+		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before dashicons-admin-post' aria-hidden='true'><br /></div>", $html );
+	}
+
+	/**
+	 * A core menu item whose Dashicon was changed keeps the new Dashicon.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::_wp_menu_output
+	 */
+	public function test_core_menu_item_with_changed_dashicon_is_rendered_as_before(): void {
+		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
+		$menu = array(
+			array( 'Posts', 'read', 'edit.php', '', 'menu-top menu-icon-post', 'menu-posts', 'dashicons-heart' ),
+		);
+		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
+
+		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before dashicons-heart' aria-hidden='true'><br /></div>", $html );
 	}
 
 	/**

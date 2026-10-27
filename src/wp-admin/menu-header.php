@@ -77,20 +77,25 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	 * Dashicons back-compat: the `$menu` global keeps the Dashicons values of the core
 	 * menu items. Those Dashicons are only mapped to their replacement icons here, when
 	 * the menu is rendered.
+	 *
+	 * Only the core menu items, found by their ID, are mapped, and only while they still
+	 * use their default Dashicon. Plugin menu items keep the Dashicon they register, even
+	 * when it is the same as one of the core menu items, and can opt in to an SVG icon
+	 * by registering an icon name instead.
 	 */
-	$dashicon_replacements = array(
-		'dashicons-dashboard'        => 'core-admin/dashboard',
-		'dashicons-admin-post'       => 'core-admin/pin',
-		'dashicons-admin-media'      => 'core-admin/media',
-		'dashicons-admin-links'      => 'core-admin/link',
-		'dashicons-admin-page'       => 'core-admin/page',
-		'dashicons-admin-comments'   => 'core-admin/comment',
-		'dashicons-admin-appearance' => 'core-admin/brush',
-		'dashicons-admin-plugins'    => 'core-admin/plugins',
-		'dashicons-admin-users'      => 'core-admin/people',
-		'dashicons-admin-tools'      => 'core-admin/tool',
-		'dashicons-admin-settings'   => 'core-admin/settings',
-		'dashicons-admin-multisite'  => 'core-admin/sites',
+	$core_menu_icon_replacements = array(
+		'menu-dashboard'  => array( 'dashicons-dashboard' => 'core-admin/dashboard' ),
+		'menu-posts'      => array( 'dashicons-admin-post' => 'core-admin/pin' ),
+		'menu-media'      => array( 'dashicons-admin-media' => 'core-admin/media' ),
+		'menu-links'      => array( 'dashicons-admin-links' => 'core-admin/link' ),
+		'menu-pages'      => array( 'dashicons-admin-page' => 'core-admin/page' ),
+		'menu-comments'   => array( 'dashicons-admin-comments' => 'core-admin/comment' ),
+		'menu-appearance' => array( 'dashicons-admin-appearance' => 'core-admin/brush' ),
+		'menu-plugins'    => array( 'dashicons-admin-plugins' => 'core-admin/plugins' ),
+		'menu-users'      => array( 'dashicons-admin-users' => 'core-admin/people' ),
+		'menu-tools'      => array( 'dashicons-admin-tools' => 'core-admin/tool' ),
+		'menu-settings'   => array( 'dashicons-admin-settings' => 'core-admin/settings' ),
+		'menu-site'       => array( 'dashicons-admin-multisite' => 'core-admin/sites' ),
 	);
 
 	$first = true;
@@ -145,13 +150,13 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases. Dashicons that have a replacement, and namespaced icon names, are
+		 * as special cases. Default Dashicons of core menu items, and namespaced icon names, are
 		 * rendered as inline SVG, or leave the menu image empty if the icon is not found.
 		 * Any other value is treated as an image URL.
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
-			$icon_name = $dashicon_replacements[ $item[6] ] ?? $item[6];
+			$icon_name = $core_menu_icon_replacements[ $item[5] ][ $item[6] ] ?? $item[6];
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
