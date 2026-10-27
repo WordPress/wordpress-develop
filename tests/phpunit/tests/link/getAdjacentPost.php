@@ -53,8 +53,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
 
-		$this->assertNotSame( $post_two, get_adjacent_post( false, '', true ) );
-		$this->assertNotSame( $post_two, get_adjacent_post( false, '', false ) );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', true )->ID );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', false )->ID );
 
 		// Test category adjacency.
 		$this->go_to( get_permalink( $post_one->ID ) );
