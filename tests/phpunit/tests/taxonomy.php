@@ -174,7 +174,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_taxonomy_exists_should_return_false_with_non_string_taxonomy() {
+	public static function data_taxonomy_exists_should_return_false_with_non_string_taxonomy() {
 		return array(
 			'array'        => array( array() ),
 			'object'       => array( new stdClass() ),

@@ -361,7 +361,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_background_color_has_background_with_a_clip() {
+	public static function data_background_color_has_background_with_a_clip() {
 		return array(
 			'preset color clipped to the text'      => array(
 				array(
