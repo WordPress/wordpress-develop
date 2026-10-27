@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage HTML-API
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
@@ -26,7 +26,7 @@
  * declaration list model of CSS. Multiple declarations with the same property
  * name remain separate entries and can be inspected or changed individually.
  *
- * @since 7.2.0
+ * @since 7.3.0
  */
 class WP_HTML_Style_Attribute_Processor {
 	/**
@@ -98,7 +98,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Do not instantiate directly. Use
 	 * {@see WP_HTML_Style_Attribute_Processor::create()} instead.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $style Decoded CSS text value from a style attribute.
 	 */
@@ -109,7 +109,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Creates a processor for decoded CSS text from a style attribute.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $decoded_css_text Decoded CSS text value from a style attribute.
 	 * @return static Created processor.
@@ -128,7 +128,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * When a property name is provided, normal CSS properties are matched
 	 * ASCII-case-insensitively while custom properties are matched exactly.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string|null $property_name Optional declaration property name to match.
 	 * @return bool Whether a matching declaration was found.
@@ -155,7 +155,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration's property name.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string|null Property name, or null when not on a declaration.
 	 */
@@ -167,7 +167,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Indicates whether the current declaration has an !important priority.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return bool|null Whether the current declaration has an !important priority,
 	 *                   or null when not on a declaration.
@@ -189,7 +189,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} returns.
 	 * Before any mutation that is the text passed to `create()`.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return WP_CSS_Token[]|null Value tokens, or null when not on a declaration.
 	 */
@@ -212,7 +212,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * result is `name: value;` or `name: value !important;`, as in CSSOM, and
 	 * CSS reads it as the same declaration.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see WP_CSS_Token_Serializer::serialize()
 	 *
@@ -238,7 +238,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * name is escaped as an identifier and the value is written from its
 	 * tokens.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string    $value     CSS declaration value, without the property name.
 	 * @param bool|null $important Optional. Whether the declaration should be important.
@@ -294,7 +294,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Sets the !important priority of the current declaration.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param bool $important Whether the declaration should be important.
 	 * @return bool Whether the current declaration priority is set as requested.
@@ -396,7 +396,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * declarations, join the {@see WP_HTML_Style_Attribute_Processor::serialize_declaration()}
 	 * output of the ones to keep instead.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return bool Whether the current declaration was removed.
 	 */
@@ -434,7 +434,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * writes it: the name is escaped as an identifier and the value is
 	 * written from its tokens.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $property_name CSS property name.
 	 * @param string $value         CSS declaration value, without the property name.
@@ -496,7 +496,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Returns the updated decoded CSS text value for the style attribute.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return string Updated decoded CSS text value for the style attribute.
 	 */
