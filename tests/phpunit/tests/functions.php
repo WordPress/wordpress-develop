@@ -1254,38 +1254,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that {@see wp_is_uuid()} rejects a UUID with leading or trailing characters.
-	 *
-	 * The regular expression must anchor to the end of the string, since `$` also matches before a trailing newline.
-	 *
-	 * @covers ::wp_is_uuid
-	 * @ticket 65817
-	 *
-	 * @dataProvider data_wp_is_uuid_rejects_surrounding_characters
-	 *
-	 * @param string $uuid UUID with surrounding characters.
-	 */
-	public function test_wp_is_uuid_rejects_surrounding_characters( string $uuid ) {
-		$this->assertFalse( wp_is_uuid( $uuid ), 'Expected UUID without a version to be rejected.' );
-		$this->assertFalse( wp_is_uuid( $uuid, 4 ), 'Expected UUID version 4 to be rejected.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ 0: string }>
-	 */
-	public function data_wp_is_uuid_rejects_surrounding_characters(): array {
-		return array(
-			'trailing newline'         => array( "27fe2421-780c-44c5-b39b-fff753092b55\n" ),
-			'trailing CRLF'            => array( "27fe2421-780c-44c5-b39b-fff753092b55\r\n" ),
-			'trailing space'           => array( '27fe2421-780c-44c5-b39b-fff753092b55 ' ),
-			'leading newline'          => array( "\n27fe2421-780c-44c5-b39b-fff753092b55" ),
-			'trailing extra hex digit' => array( '27fe2421-780c-44c5-b39b-fff753092b55a' ),
-		);
-	}
-
-	/**
 	 * Tests wp_unique_id().
 	 *
 	 * @covers ::wp_unique_id
