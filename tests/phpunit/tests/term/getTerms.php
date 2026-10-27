@@ -3175,7 +3175,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_same_term_args() {
+	public static function data_same_term_args() {
 		return array(
 			'all fields vs ids'                        => array(
 				array(

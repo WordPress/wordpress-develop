@@ -129,7 +129,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_columns_should_be_sortable() {
+	public static function data_columns_should_be_sortable() {
 		return array(
 			// Default order (ID) DESC.
 			array(
