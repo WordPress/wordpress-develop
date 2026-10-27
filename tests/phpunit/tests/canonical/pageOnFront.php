@@ -32,6 +32,14 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		delete_option( 'show_on_front' );
+		delete_option( 'page_for_posts' );
+		delete_option( 'page_on_front' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @dataProvider data
 	 */

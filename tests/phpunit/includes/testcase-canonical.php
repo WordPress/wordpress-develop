@@ -269,11 +269,26 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 * @since 4.1.0
 	 */
 	public static function delete_shared_fixtures() {
-		self::$author_id   = null;
-		self::$post_ids    = array();
+		if ( self::$author_id ) {
+			self::delete_user( self::$author_id );
+			self::$author_id = null;
+		}
+
+		foreach ( self::$post_ids as $post_id ) {
+			wp_delete_post( $post_id, true );
+		}
+		self::$post_ids = array();
+
+		foreach ( self::$comment_ids as $comment_id ) {
+			wp_delete_comment( $comment_id, true );
+		}
 		self::$comment_ids = array();
-		self::$term_ids    = array();
-		self::$terms       = array();
+
+		foreach ( self::$term_ids as $term_id => $taxonomy ) {
+			wp_delete_term( $term_id, $taxonomy );
+		}
+		self::$term_ids = array();
+		self::$terms    = array();
 	}
 
 	/**

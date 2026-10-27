@@ -21,6 +21,13 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 		$wp_rewrite->flush_rules();
 	}
 
+	public function tear_down() {
+		$this->set_permalink_structure( $this->structure );
+		flush_rewrite_rules( false );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @dataProvider data
 	 */
