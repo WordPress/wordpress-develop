@@ -452,7 +452,7 @@
 #dashboard_right_now li > span:has(> svg),
 #dashboard_right_now .search-engines-info a {
 	display: inline-flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 5px;
 	/* Match the height of ::before icon rows so the floated list items don't snag. */
 	vertical-align: top;
