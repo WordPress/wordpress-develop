@@ -483,6 +483,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_the_script_modules_of_the_core_actions_are_registered() {
+		wp_default_script_modules();
 		wp_set_current_user( self::$admin_id );
 
 		foreach ( wp_get_all_registered_entity_action_modules()['postType'] as $post_type => $modules ) {
