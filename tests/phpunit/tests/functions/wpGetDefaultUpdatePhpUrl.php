@@ -12,20 +12,24 @@ class Tests_Functions_WpGetDefaultUpdatePhpUrl extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_returns_default_php_upgrade_information_url() {
-		$this->assertSame(
-			_x( 'https://wordpress.org/support/update-php/', 'localized PHP upgrade information page' ),
-			wp_get_default_update_php_url()
-		);
-	}
+	public function test_returns_contextually_localized_php_upgrade_url() {
+		$translated = 'https://example.test/update-php-localized/';
 
-	/**
-	 * @ticket 65819
-	 */
-	public function test_returns_non_empty_https_url() {
-		$url = wp_get_default_update_php_url();
+		$filter = static function ( $translation, $text, $context ) use ( $translated ) {
+			if (
+				'https://wordpress.org/support/update-php/' === $text
+				&& 'localized PHP upgrade information page' === $context
+			) {
+				return $translated;
+			}
 
-		$this->assertNotSame( '', $url );
-		$this->assertStringStartsWith( 'https://', $url );
+			return $translation;
+		};
+
+		add_filter( 'gettext_with_context', $filter, 10, 3 );
+
+		$this->assertSame( $translated, wp_get_default_update_php_url() );
+
+		remove_filter( 'gettext_with_context', $filter, 10 );
 	}
 }
