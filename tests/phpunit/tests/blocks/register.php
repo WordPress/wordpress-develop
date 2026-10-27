@@ -21,6 +21,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	protected $original_wp_styles;
 
 	/**
+	 * @var WP_Script_Modules|null
+	 */
+	protected $original_wp_script_modules;
+
+	/**
 	 * Original stylesheet.
 	 *
 	 * @var string
@@ -70,11 +75,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		parent::set_up();
 		$this->original_stylesheet = get_stylesheet();
 
-		global $wp_scripts, $wp_styles;
-		$this->original_wp_scripts = $wp_scripts;
-		$this->original_wp_styles  = $wp_styles;
-		$wp_scripts                = null;
-		$wp_styles                 = null;
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$this->original_wp_scripts        = $wp_scripts;
+		$this->original_wp_styles         = $wp_styles;
+		$this->original_wp_script_modules = $wp_script_modules;
+		$wp_scripts                       = null;
+		$wp_styles                        = null;
+		$wp_script_modules                = null;
 		wp_scripts();
 		wp_styles();
 	}
@@ -100,9 +107,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			}
 		}
 
-		global $wp_scripts, $wp_styles;
-		$wp_scripts = $this->original_wp_scripts;
-		$wp_styles  = $this->original_wp_styles;
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$wp_scripts        = $this->original_wp_scripts;
+		$wp_styles         = $this->original_wp_styles;
+		$wp_script_modules = $this->original_wp_script_modules;
 
 		if ( get_stylesheet() !== $this->original_stylesheet ) {
 			switch_theme( $this->original_stylesheet );

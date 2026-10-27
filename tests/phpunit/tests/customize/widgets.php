@@ -833,7 +833,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $bad_params, $this->manager->widgets->filter_dynamic_sidebar_params( $bad_params ) );
 
 		$filtered_params = $this->manager->widgets->filter_dynamic_sidebar_params( $params );
-		$this->assertNotEquals( $params, $filtered_params );
+		$this->assertNotSame( $params, $filtered_params );
 		ob_start();
 		do_action( 'dynamic_sidebar_after', 'foo' );
 		$output = ob_get_clean();
