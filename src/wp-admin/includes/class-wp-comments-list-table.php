@@ -752,18 +752,20 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$untrash_url   = sprintf( $action_string, 'untrashcomment', $del_nonce );
 		$delete_url    = sprintf( $action_string, 'deletecomment', $del_nonce );
 
+		// @ticket 13792. The new action 'nesting_level_limit' was added for displaying data when replaying is not possible due to Nesting Limit option had been reached.
 		// Preorder it: Approve | Reply | Quick Edit | Edit | Spam | Trash.
 		$actions = array(
-			'approve'   => '',
-			'unapprove' => '',
-			'reply'     => '',
-			'quickedit' => '',
-			'edit'      => '',
-			'spam'      => '',
-			'unspam'    => '',
-			'trash'     => '',
-			'untrash'   => '',
-			'delete'    => '',
+			'approve'             => '',
+			'unapprove'           => '',
+			'reply'               => '',
+			'nesting_level_limit' => '',
+			'quickedit'           => '',
+			'edit'                => '',
+			'spam'                => '',
+			'unspam'              => '',
+			'trash'               => '',
+			'untrash'             => '',
+			'delete'              => '',
 		);
 
 		// Not looking at all comments.
@@ -870,16 +872,35 @@ class WP_Comments_List_Table extends WP_List_Table {
 				__( 'Quick&nbsp;Edit' )
 			);
 
-			$actions['reply'] = sprintf(
-				$format,
-				$comment->comment_ID,
-				$comment->comment_post_ID,
-				'replyto',
-				'vim-r comment-inline',
-				esc_attr__( 'Reply to this comment' ),
-				/* translators: Comment reply button text. */
-				_x( 'Reply', 'verb' )
-			);
+			$thread_comments = (bool) get_option( 'thread_comments' );
+			$max_depth       = (int) get_option( 'thread_comments_depth' );
+
+			// Hide the Reply action when the comment has reached the maximum nesting level.
+			// Administrators get a link to the setting; other users get a plain notice.
+			if ( ! $thread_comments || ! $max_depth || $this->get_comment_depth( $comment ) < $max_depth ) {
+				$actions['reply'] = sprintf(
+					$format,
+					$comment->comment_ID,
+					$comment->comment_post_ID,
+					'replyto',
+					'vim-r comment-inline',
+					esc_attr__( 'Reply to this comment' ),
+					/* translators: Comment reply button text. */
+					_x( 'Reply', 'verb' )
+				);
+			} elseif ( current_user_can( 'manage_options' ) ) {
+				$actions['nesting_level_limit'] = sprintf(
+					'<a href="%s" class="nesting-limit-reached" aria-label="%s">%s</a>',
+					esc_url( admin_url( 'options-discussion.php#thread_comments_depth' ) ),
+					esc_attr__( 'Nesting limit reached. Change the maximum nesting level in Discussion Settings.' ),
+					_x( 'Nesting limit reached', 'comment row action' )
+				);
+			} else {
+				$actions['nesting_level_limit'] = sprintf(
+					'<span class="nesting-limit-reached">%s</span>',
+					_x( 'Nesting limit reached', 'comment row action' )
+				);
+			}
 		}
 
 		/**
@@ -1008,6 +1029,35 @@ class WP_Comments_List_Table extends WP_List_Table {
 		</div>
 			<?php
 		}
+	}
+
+	/**
+	 * Calculates the depth (nesting level) of a comment.
+	 *
+	 * Top-level comments have a depth of 1. A comment whose parent no longer
+	 * exists is treated as top-level, matching how the front end displays orphans.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Comment|int $comment Comment object or ID.
+	 * @return int Comment depth.
+	 */
+	public function get_comment_depth( $comment ) {
+		$comment = get_comment( $comment );
+		$depth   = 1;
+		$visited = array();
+
+		while ( $comment && $comment->comment_parent && ! isset( $visited[ $comment->comment_parent ] ) ) {
+			$visited[ $comment->comment_parent ] = true;
+
+			$comment = get_comment( $comment->comment_parent );
+			if ( ! $comment ) {
+				break;
+			}
+			++$depth;
+		}
+
+		return $depth;
 	}
 
 	/**
