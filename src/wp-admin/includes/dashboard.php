@@ -1923,12 +1923,12 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s">%2$s%3$s<span class="screen-reader-text"> (%4$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
+				wp_get_icon( 'core-admin/media', array( 'size' => 20 ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
-				__( 'Manage Uploads' ),
-				wp_get_icon( 'core-admin/media', array( 'size' => 20 ) )
+				__( 'Manage Uploads' )
 			);
 			?>
 		</li><li class="storage-count <?php echo $used_class; ?>">
@@ -1940,12 +1940,12 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%2$s%3$s<span class="screen-reader-text"> (%4$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
+				wp_get_icon( $used_class ? 'core-admin/error' : 'core-admin/media', array( 'size' => 20 ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
-				__( 'Manage Uploads' ),
-				wp_get_icon( $used_class ? 'core-admin/error' : 'core-admin/media', array( 'size' => 20 ) )
+				__( 'Manage Uploads' )
 			);
 			?>
 		</li>
