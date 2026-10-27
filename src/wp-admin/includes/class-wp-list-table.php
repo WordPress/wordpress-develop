@@ -11,6 +11,8 @@
  * Base class for displaying a list of items in an ajaxified HTML table.
  *
  * @since 3.1.0
+ *
+ * @property-read WP_Screen $screen The current screen.
  */
 #[AllowDynamicProperties]
 class WP_List_Table {
