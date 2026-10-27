@@ -4000,6 +4000,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  * @internal
  *
  * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
@@ -4231,6 +4232,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  * @internal
  *
  * @param string $css          A string of CSS rules, decoded from an HTML `style` attribute.
@@ -4288,6 +4290,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  * @internal
  *
  * @param WP_CSS_Token[] $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
@@ -4486,6 +4489,7 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  * @internal
  *
  * @param string|null $url               Decoded URL.
@@ -4506,6 +4510,7 @@ function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
  *
  * @since 7.3.0
  * @access private
+ * @ignore
  * @internal
  *
  * @param WP_CSS_Token $token Token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
