@@ -672,7 +672,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
