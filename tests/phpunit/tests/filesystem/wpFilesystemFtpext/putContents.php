@@ -40,9 +40,13 @@ class Tests_Filesystem_WpFilesystemFtpext_PutContents extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Since PHP 8.1 an FTP connection is an FTP\Connection object, and using it after ftp_close() throws an Error.
+	 * Before that it is a resource, and using a closed one only raises a warning.
+	 *
 	 * @ticket 64519
 	 *
 	 * @requires extension ftp
+	 * @requires PHP >= 8.1
 	 */
 	public function test_put_contents_on_closed_connection_leaves_no_temp_file() {
 		// A minimal FTP server that sends the greeting and answers QUIT, so a real connection can be opened and closed.
