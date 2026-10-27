@@ -57,7 +57,7 @@ class Tests_File extends WP_UnitTestCase {
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename2 ) );
 
 		// The two should be different.
-		$this->assertNotEquals( $filename1, $filename2 );
+		$this->assertNotSame( $filename1, $filename2 );
 
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename1 );
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename2 );
