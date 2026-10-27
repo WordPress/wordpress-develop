@@ -176,7 +176,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ timezone: string, expected: string }>
 	 */
-	public function data_internal_comment_types_are_excluded() {
+	public static function data_internal_comment_types_are_excluded() {
 		return array(
 			'server timezone' => array(
 				'timezone' => 'server',
