@@ -30,6 +30,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		unregister_taxonomy( 'tax_default_term_1' );
 		unregister_taxonomy( 'tax_default_term_2' );
 		unregister_post_type( 'cpt_default_term' );
+		unregister_post_type( 'test_cpt' );
 		parent::tear_down();
 	}
 
