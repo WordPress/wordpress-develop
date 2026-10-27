@@ -46,6 +46,12 @@ class Tests_Term_TermDescription extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that term_description() returns the formatted description for a given term ID.
 	 *
