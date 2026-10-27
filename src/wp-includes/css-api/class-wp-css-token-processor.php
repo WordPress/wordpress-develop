@@ -1689,7 +1689,8 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Checks if current position starts a valid escape sequence.
 	 *
-	 * A valid escape is a backslash not followed by a newline or EOF.
+	 * A valid escape is a `\` not followed by a newline. A `\` at the end of
+	 * the input is a valid escape; consuming it produces U+FFFD.
 	 *
 	 * @link https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
@@ -1704,23 +1705,22 @@ class WP_CSS_Token_Processor {
 		if ( $offset >= $css_length || '\\' !== $css[ $offset ] ) {
 			return false;
 		}
-		// Otherwise, if the second code point is a newline, return false.
+
+		// The end of the input is not a newline.
 		if ( $offset + 1 >= $css_length ) {
-			// The spec rejects only a newline as the second code point, so a `\` at EOF is a valid escape.
 			return true;
 		}
 
-		// Otherwise, if the second code point is not a newline, return true.
+		/*
+		 * Otherwise, if the second code point is a newline, return false.
+		 * Otherwise, return true.
+		 *
+		 * Preprocessing turns CR, FF and CRLF into a newline, so the CR check also covers CRLF.
+		 */
 		return (
 			"\n" !== $css[ $offset + 1 ] &&
-
-			// Form feed is normalized to newline during preprocessing.
 			"\f" !== $css[ $offset + 1 ] &&
-
-			// Carriage return is normalized to newline during preprocessing.
 			"\r" !== $css[ $offset + 1 ]
-
-			// The \r check also covers \r\n.
 		);
 	}
 
