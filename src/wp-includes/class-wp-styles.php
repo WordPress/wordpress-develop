@@ -58,6 +58,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds a list of style handles which will be concatenated.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $concat = '';
@@ -75,6 +76,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Whether to perform concatenation.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var bool
 	 */
 	public $do_concat = false;
@@ -84,6 +86,7 @@ class WP_Styles extends WP_Dependencies {
 	 * is enabled.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $print_html = '';
@@ -92,6 +95,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds inline styles if concatenation is enabled.
 	 *
 	 * @since 3.3.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $print_code = '';
@@ -99,7 +103,12 @@ class WP_Styles extends WP_Dependencies {
 	/**
 	 * List of default directories.
 	 *
+	 * Only the deprecated {@see WP_Styles::in_default_dir()} reads this, but
+	 * {@see wp_default_styles()} still sets it for plugins that read it.
+	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
+	 * @see WP_Styles::in_default_dir()
 	 * @see wp_default_styles()
 	 * @var string[]|null
 	 */
@@ -144,15 +153,6 @@ class WP_Styles extends WP_Dependencies {
 
 			return false;
 		}
-		if ( null === $obj->ver ) {
-			$ver = '';
-		} else {
-			$ver = $obj->ver ? $obj->ver : $this->default_version;
-		}
-
-		if ( isset( $this->args[ $handle ] ) ) {
-			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
-		}
 
 		$src          = $obj->src;
 		$inline_style = $this->print_inline_style( $handle, false );
@@ -167,27 +167,12 @@ class WP_Styles extends WP_Dependencies {
 			$inline_style_tag = '';
 		}
 
-		if ( $this->do_concat ) {
-			if ( is_string( $src ) && $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
-				$this->concat         .= "$handle,";
-				$this->concat_version .= "$handle$ver";
-
-				$this->print_code .= $inline_style;
-
-				return true;
-			}
-		}
-
 		$media = $obj->args ?? 'all';
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
 			if ( $inline_style_tag ) {
-				if ( $this->do_concat ) {
-					$this->print_html .= $inline_style_tag;
-				} else {
-					echo $inline_style_tag;
-				}
+				echo $inline_style_tag;
 			}
 
 			return true;
@@ -224,15 +209,11 @@ class WP_Styles extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
-		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
-			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
-				$suffix   = $obj->extra['suffix'] ?? '';
-				$rtl_href = str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->_css_href( $src, $ver, "$handle-rtl" ) );
-			} else {
-				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
-			}
+		$rtl_src = $this->get_rtl_src( $handle );
 
-			$rtl_tag = sprintf(
+		if ( null !== $rtl_src ) {
+			$rtl_href = esc_url( $rtl_src );
+			$rtl_tag  = sprintf(
 				"<link rel='%s' id='%s-rtl-css'%s href='%s' media='%s' />\n",
 				$rel,
 				esc_attr( $handle ),
@@ -251,17 +232,57 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
-		if ( $this->do_concat ) {
-			$this->print_html .= $tag;
-			if ( $inline_style_tag ) {
-				$this->print_html .= $inline_style_tag;
-			}
-		} else {
-			echo $tag;
-			$this->print_inline_style( $handle );
-		}
+		echo $tag;
+		echo $inline_style_tag;
 
 		return true;
+	}
+
+	/**
+	 * Gets the URL of the right-to-left stylesheet for a registered style.
+	 *
+	 * On a right-to-left locale, a style registered with `rtl` data is served by a separate
+	 * stylesheet, which either replaces its left-to-right one (when the data is `'replace'`)
+	 * or loads alongside it.
+	 *
+	 * Like {@see WP_Styles::get_src()}, the URL is neither sanitized nor escaped, so a caller can
+	 * pass it through esc_url() to print it, or esc_url_raw() otherwise, once.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $handle The style's registered handle.
+	 * @return string|null URL of the right-to-left stylesheet, after the {@see 'style_loader_src'}
+	 *                     filter. Null when the text direction is not right-to-left, or the style is
+	 *                     not registered, has no source of its own, or has no right-to-left variant.
+	 */
+	public function get_rtl_src( string $handle ): ?string {
+		if ( 'rtl' !== $this->text_direction || ! isset( $this->registered[ $handle ] ) ) {
+			return null;
+		}
+
+		$obj = $this->registered[ $handle ];
+
+		if ( ! $obj->src || ! isset( $obj->extra['rtl'] ) || ! $obj->extra['rtl'] ) {
+			return null;
+		}
+
+		/*
+		 * The version and the handle's added arguments are those of the left-to-right stylesheet,
+		 * appended the same way, while the filter is passed the handle with `-rtl` appended, as it
+		 * always has been.
+		 */
+		if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
+			$suffix = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+
+			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->build_src( $obj->src, $obj->ver, $handle, "$handle-rtl" ) );
+		}
+
+		// Any other value is the URL of the right-to-left stylesheet itself.
+		if ( ! is_string( $obj->extra['rtl'] ) ) {
+			return null;
+		}
+
+		return $this->build_src( $obj->extra['rtl'], $obj->ver, $handle, "$handle-rtl" );
 	}
 
 	/**
@@ -307,25 +328,22 @@ class WP_Styles extends WP_Dependencies {
 			return false;
 		}
 
-		if ( ! $this->do_concat ) {
+		// Obtain the original `src` for a stylesheet possibly inlined by wp_maybe_inline_styles().
+		$inlined_src = $this->get_data( $handle, 'inlined_src' );
 
-			// Obtain the original `src` for a stylesheet possibly inlined by wp_maybe_inline_styles().
-			$inlined_src = $this->get_data( $handle, 'inlined_src' );
-
-			// If there's only one `after` inline style, and that inline style had been inlined, then use the $inlined_src
-			// as the sourceURL. Otherwise, if there is more than one inline `after` style associated with the handle,
-			// then resort to using the handle to construct the sourceURL since there isn't a single source.
-			if ( count( $output ) === 1 && is_string( $inlined_src ) && strlen( $inlined_src ) > 0 ) {
-				$source_url = esc_url_raw( $inlined_src );
-			} else {
-				$source_url = rawurlencode( "{$handle}-inline-css" );
-			}
-
-			$output[] = sprintf(
-				'/*# sourceURL=%s */',
-				$source_url
-			);
+		// If there's only one `after` inline style, and that inline style had been inlined, then use the $inlined_src
+		// as the sourceURL. Otherwise, if there is more than one inline `after` style associated with the handle,
+		// then resort to using the handle to construct the sourceURL since there isn't a single source.
+		if ( count( $output ) === 1 && is_string( $inlined_src ) && strlen( $inlined_src ) > 0 ) {
+			$source_url = esc_url_raw( $inlined_src );
+		} else {
+			$source_url = rawurlencode( "{$handle}-inline-css" );
 		}
+
+		$output[] = sprintf(
+			'/*# sourceURL=%s */',
+			$source_url
+		);
 
 		$output = implode( "\n", $output );
 
@@ -401,9 +419,66 @@ class WP_Styles extends WP_Dependencies {
 	 * @param string            $src    The source of the enqueued style.
 	 * @param string|false|null $ver    The version of the enqueued style.
 	 * @param string            $handle The style's registered handle.
-	 * @return string Style's fully-qualified URL.
+	 * @return string Style's fully-qualified URL, escaped for use in an HTML attribute.
 	 */
 	public function _css_href( $src, $ver, $handle ) {
+		return esc_url( $this->build_src( $src, $ver, (string) $handle ) );
+	}
+
+	/**
+	 * Gets the URL a registered style is loaded from.
+	 *
+	 * This is the URL printed in the stylesheet's `href` attribute, including the version query
+	 * argument and any arguments added to the handle, after the {@see 'style_loader_src'} filter.
+	 * Unlike {@see WP_Styles::_css_href()}, it is neither sanitized nor escaped, so a caller can
+	 * pass it through esc_url() to print it, or esc_url_raw() otherwise, once. This is the same as
+	 * {@see WP_Script_Modules::get_src()}.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $handle The style's registered handle.
+	 * @return string Style URL, or an empty string when the style is not registered, has no
+	 *                source of its own because it only aliases other styles, or was filtered away.
+	 */
+	public function get_src( string $handle ): string {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return '';
+		}
+
+		$obj = $this->registered[ $handle ];
+
+		/*
+		 * An alias, with no source of its own, has no URL. A source of `true`, like that of `colors`,
+		 * gets past this, since its URL comes from the 'style_loader_src' filter in build_src(), as
+		 * it does when WP_Styles::do_item() prints the stylesheet.
+		 */
+		if ( ! $obj->src ) {
+			return '';
+		}
+
+		return $this->build_src( $obj->src, $obj->ver, $handle );
+	}
+
+	/**
+	 * Builds a style's fully-qualified URL and passes it through the 'style_loader_src' filter.
+	 *
+	 * The result is not escaped, so callers can escape it for where it is used.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|true       $src    The source of the style, or true for one whose URL comes
+	 *                                  from the {@see 'style_loader_src'} filter.
+	 * @param string|false|null $ver           The version of the style.
+	 * @param string            $handle        The style's registered handle, whose added arguments
+	 *                                         are appended.
+	 * @param string|null       $filter_handle Optional. The handle passed to the
+	 *                                         {@see 'style_loader_src'} filter, such as
+	 *                                         `{$handle}-rtl` for a right-to-left stylesheet.
+	 *                                         Default `$handle`.
+	 * @return string The filtered URL, or an empty string when the filter returns anything other
+	 *                than a string.
+	 */
+	private function build_src( $src, $ver, string $handle, ?string $filter_handle = null ): string {
 		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
 			$src = $this->base_url . $src;
 		}
@@ -443,19 +518,23 @@ class WP_Styles extends WP_Dependencies {
 		 * @param string $src    The source URL of the enqueued style.
 		 * @param string $handle The style's registered handle.
 		 */
-		$src = apply_filters( 'style_loader_src', $src, $handle );
-		return esc_url( $src );
+		$src = apply_filters( 'style_loader_src', $src, $filter_handle ?? $handle );
+
+		return is_string( $src ) ? $src : '';
 	}
 
 	/**
 	 * Whether a handle's source is in a default directory.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 *
 	 * @param string $src The source of the enqueued style.
 	 * @return bool True if found, false if not.
 	 */
 	public function in_default_dir( $src ) {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
 		if ( ! $this->default_dirs ) {
 			return true;
 		}

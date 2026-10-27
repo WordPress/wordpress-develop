@@ -26,10 +26,18 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -61,6 +69,10 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
@@ -84,21 +96,151 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65667
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_sanitize_block_gap_value
 	 *
 	 * @covers ::wp_sanitize_block_gap_value
 	 */
-	public function test_sanitize_block_gap_value_rejects_nested_array_values() {
-		$this->assertSame(
-			array(
-				'top'  => null,
-				'left' => '2rem',
-			),
-			wp_sanitize_block_gap_value(
+	public function test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values( $gap_value, $expected ) {
+		$this->assertSame( $expected, wp_sanitize_block_gap_value( $gap_value ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values().
+	 *
+	 * @return array[] Test data.
+	 */
+	public static function data_sanitize_block_gap_value() {
+		return array(
+			'string value'           => array( '1rem', '1rem' ),
+			'empty string'           => array( '', null ),
+			'whitespace-only string' => array( " \t\n", null ),
+			'integer zero'           => array( 0, '0' ),
+			'floating-point zero'    => array( 0.0, '0' ),
+			'non-zero integer'       => array( 1, null ),
+			'boolean value'          => array( true, null ),
+			'object value'           => array( new stdClass(), null ),
+			'nested array value'     => array(
 				array(
 					'top'  => array( '1rem' ),
 					'left' => '2rem',
-				)
+				),
+				array( 'left' => '2rem' ),
+			),
+			'empty sanitized array'  => array( array( array( '1rem' ) ), null ),
+		);
+	}
+
+	/**
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_wp_get_layout_style
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style( $args, $expected_output ) {
+		$this->assertSame(
+			$expected_output,
+			wp_get_layout_style(
+				$args['selector'],
+				$args['layout'],
+				$args['has_block_gap_support'],
+				$args['gap_value'],
+				false,
+				$args['fallback_gap_value'] ?? '0.5em'
 			)
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_get_layout_style().
+	 *
+	 * @return array[] Test data.
+	 */
+	public static function data_wp_get_layout_style() {
+		return array(
+			'flex layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{gap:0.5em 2rem;}',
+			),
+			'flex layout ignores an empty block gap'    => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => '',
+				),
+				'expected_output' => '',
+			),
+			'grid layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'grid' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;gap:0.5em 2rem;}',
+			),
+			'grid layout uses horizontal gap for responsive columns' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '3rem',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (3rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 3rem;}',
+			),
+			'grid layout uses fallback when horizontal gap is missing' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'top' => '2rem' ),
+					'fallback_gap_value'    => '1.2rem',
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (1.2rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 1.2rem;}',
+			),
+			'grid layout preserves zero horizontal gap' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '0',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (0px * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 0;}',
+			),
 		);
 	}
 
@@ -165,7 +307,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_block_image_html_restored_outer_container() {
+	public static function data_block_image_html_restored_outer_container() {
 		$expected = '<div class="wp-block-image is-style-round my-custom-classname"><figure class="alignright size-full"><img src="/my-image.jpg"/></figure></div>';
 
 		return array(
@@ -234,7 +376,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_layout_support_flag_renders_classnames_on_wrapper() {
+	public static function data_layout_support_flag_renders_classnames_on_wrapper() {
 		return array(
 			'single wrapper block layout with flow type'   => array(
 				'args'            => array(
@@ -447,7 +589,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_restore_group_inner_container() {
+	public static function data_restore_group_inner_container() {
 		return array(
 			'group block with existing inner container'    => array(
 				'args'            => array(
@@ -542,7 +684,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_child_layout_style_rules() {
+	public static function data_wp_get_child_layout_style_rules() {
 		return array(
 			'legacy fixed sizing remains shrinkable'      => array(
 				'child_layout'       => array(
@@ -694,7 +836,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_add_parent_layout_to_parsed_block() {
+	public static function data_wp_add_parent_layout_to_parsed_block() {
 		return array(
 			'block with no parent layout' => array(
 				'block'        => array(
@@ -808,7 +950,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_layout_support_flag_renders_consistent_container_hash() {
+	public static function data_layout_support_flag_renders_consistent_container_hash() {
 		return array(
 			'default type block gap 12px'      => array(
 				'block_attributes' => array(
@@ -944,7 +1086,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_layout_classname_with_custom_blocks() {
+	public static function data_layout_classname_with_custom_blocks() {
 		return array(
 			'custom block with constrained layout' => array(
 				'block_name'         => 'foo/bar',
@@ -978,6 +1120,9 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @ticket 64624
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_layout_support_flag_uses_variation_block_gap_value() {
 		switch_theme( 'block-theme' );
@@ -1035,7 +1180,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_style_variation_name_from_registered_style() {
+	public static function data_get_block_style_variation_name_from_registered_style() {
 		return array(
 			'empty class name'                             => array(
 				'class_name'        => '',
@@ -1444,7 +1589,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_layout_style_with_non_numeric_grid_counts() {
+	public static function data_get_layout_style_with_non_numeric_grid_counts() {
 		return array(
 			'non-numeric columnCount falls back to the responsive default' => array(
 				'layout'          => array(

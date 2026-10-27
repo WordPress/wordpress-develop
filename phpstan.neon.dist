@@ -24,7 +24,6 @@ includes:
 	# phpstan:baselines start
 	- tests/phpstan/baselines/argument.type.neon
 	- tests/phpstan/baselines/argument.unresolvableType.neon
-	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
@@ -32,24 +31,17 @@ includes:
 	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
-	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
-	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
-	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
-	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
 	- tests/phpstan/baselines/empty.offset.neon
 	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
-	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon
-	- tests/phpstan/baselines/greaterOrEqual.alwaysTrue.neon
 	- tests/phpstan/baselines/identical.alwaysFalse.neon
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
 	- tests/phpstan/baselines/if.alwaysFalse.neon
 	- tests/phpstan/baselines/if.alwaysTrue.neon
-	- tests/phpstan/baselines/instanceof.alwaysTrue.neon
 	- tests/phpstan/baselines/isset.offset.neon
 	- tests/phpstan/baselines/isset.property.neon
 	- tests/phpstan/baselines/method.childParameterType.neon
@@ -59,19 +51,16 @@ includes:
 	- tests/phpstan/baselines/offsetAccess.nonOffsetAccessible.neon
 	- tests/phpstan/baselines/offsetAccess.notFound.neon
 	- tests/phpstan/baselines/offsetAssign.valueType.neon
-	- tests/phpstan/baselines/parameter.defaultValue.neon
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
 	- tests/phpstan/baselines/property.nonObject.neon
 	- tests/phpstan/baselines/property.notFound.neon
-	- tests/phpstan/baselines/property.phpDocType.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/property.protected.neon
 	- tests/phpstan/baselines/return.type.neon
 	- tests/phpstan/baselines/return.unusedType.neon
-	- tests/phpstan/baselines/ternary.alwaysTrue.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
@@ -153,3 +142,40 @@ parameters:
 			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
 			path: src/wp-includes/html-api/class-wp-html-tag-processor.php
 			reportUnmatched: false
+
+		# HTML API:
+		# These errors are ignored for the sake of making it easier to keep the HTML Processor in sync with the HTML spec.
+		-
+			message: '#^Comparison operation "\>" between 999\|1000 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Comparison operation "\>\=" between 0 and 8 is always false\.$#'
+			identifier: greaterOrEqual.alwaysFalse
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 15
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 2
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			# The early return at the start of step() narrows $last_error to null, and PHPStan does not see that
+			# bookmark_token() sets it to ERROR_EXCEEDED_MAX_BOOKMARKS before throwing, whether it is called directly
+			# in step() or via insert_virtual_node() in a step_*() method. So it reports that the checks in both catch
+			# blocks of step() can never match, when in fact they do whenever bookmarks run out.
+			message: '#^Strict comparison using \=\=\= between ''exceeded\-max…'' and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: src/wp-includes/html-api/class-wp-html-processor.php
