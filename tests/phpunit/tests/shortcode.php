@@ -428,7 +428,7 @@ EOF;
 		$this->assertSame( $expected, strip_shortcodes( $content ) );
 	}
 
-	public function data_strip_shortcodes() {
+	public static function data_strip_shortcodes() {
 		return array(
 			array( 'before', 'before[gallery]' ),
 			array( 'after', '[gallery]after' ),
@@ -547,7 +547,7 @@ EOF;
 		return $this->assertSame( $output, do_shortcode( $input ) );
 	}
 
-	public function data_escaping() {
+	public static function data_escaping() {
 		return array(
 			array(
 				'<!--[if lt IE 7]>',
@@ -625,7 +625,7 @@ EOF;
 		return $this->assertSame( $output, strip_shortcodes( $input ) );
 	}
 
-	public function data_escaping2() {
+	public static function data_escaping2() {
 		return array(
 			array(
 				'<!--[if lt IE 7]>',
@@ -700,7 +700,7 @@ EOF;
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_registration_bad() {
+	public static function data_registration_bad() {
 		return array(
 			array(
 				'<html>',
@@ -733,7 +733,7 @@ EOF;
 		);
 	}
 
-	public function data_registration_good() {
+	public static function data_registration_good() {
 		return array(
 			array(
 				'good!',
@@ -761,7 +761,7 @@ EOF;
 		return $this->assertLessThan( 200, $result );
 	}
 
-	public function data_whole_posts() {
+	public static function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
