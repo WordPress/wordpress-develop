@@ -42,19 +42,8 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		'attachment for page 2' => array(),
 	);
 
-	/**
-	 * Creates the fixtures for each test, not once for the class.
-	 *
-	 * Each test runs in its own process, so class fixtures would not be shared,
-	 * and the parent process would commit a set of them the child processes
-	 * would collide with, e.g. a second `User 1`.
-	 */
-	public function set_up() {
-		parent::set_up();
-
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
-
-		$factory = self::factory();
 
 		$dataset = array(
 			'post 1' => array(
