@@ -2016,8 +2016,9 @@ class WP_Query {
 		if ( ( isset( $query_vars['posts_per_archive_page'] ) && 0 != $query_vars['posts_per_archive_page'] ) && ( $this->is_archive || $this->is_search ) ) {
 			$query_vars['posts_per_page'] = $query_vars['posts_per_archive_page'];
 		}
+		$query_vars['posts_per_page'] = (int) $query_vars['posts_per_page'];
 		if ( ! isset( $query_vars['nopaging'] ) ) {
-			if ( -1 == $query_vars['posts_per_page'] ) {
+			if ( -1 === $query_vars['posts_per_page'] ) {
 				$query_vars['nopaging'] = true;
 			} else {
 				$query_vars['nopaging'] = false;
@@ -2035,8 +2036,16 @@ class WP_Query {
 		}
 
 		$query_vars['posts_per_page'] = (int) $query_vars['posts_per_page'];
-		if ( $query_vars['posts_per_page'] < -1 ) {
-			$query_vars['posts_per_page'] = abs( $query_vars['posts_per_page'] );
+		if ( $this->is_feed && -1 === $query_vars['posts_per_page'] ) {
+			// Feeds are always paginated, so -1 falls back to the default number of feed items.
+			$query_vars['posts_per_page'] = (int) get_option( 'posts_per_rss' );
+		}
+		if ( ! $this->is_feed && -1 === $query_vars['posts_per_page'] ) {
+			// -1 means all posts, so never build a LIMIT clause with it.
+			$query_vars['nopaging'] = true;
+		} elseif ( $query_vars['posts_per_page'] < 0 ) {
+			// Clamp before abs(), as abs( PHP_INT_MIN ) returns a float.
+			$query_vars['posts_per_page'] = abs( max( $query_vars['posts_per_page'], -PHP_INT_MAX ) );
 		} elseif ( 0 === $query_vars['posts_per_page'] ) {
 			$query_vars['posts_per_page'] = 1;
 		}
