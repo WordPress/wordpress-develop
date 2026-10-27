@@ -45,10 +45,6 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		if ( get_stylesheet() !== $this->original_stylesheet ) {
-			switch_theme( $this->original_stylesheet );
-		}
-
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
@@ -56,6 +52,11 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
