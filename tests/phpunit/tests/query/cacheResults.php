@@ -1263,7 +1263,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		 * it in to account. The test needs to discard the instance ID when
 		 * confirming inequality.
 		 */
-		$this->assertNotEquals( $query1->posts, $query2->posts );
+		$this->assertNotSame( $query1->posts, $query2->posts );
 	}
 
 
