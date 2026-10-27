@@ -233,6 +233,46 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a block theme without an index.php file is found as a parent theme.
+	 *
+	 * @ticket 57141
+	 *
+	 * @dataProvider data_child_theme_should_find_block_parent_theme_without_index_php
+	 *
+	 * @covers WP_Theme::__construct
+	 *
+	 * @param string $stylesheet The child theme's stylesheet.
+	 * @param string $expected   The expected parent theme's stylesheet.
+	 */
+	public function test_child_theme_should_find_block_parent_theme_without_index_php( $stylesheet, $expected ) {
+		$theme  = new WP_Theme( $stylesheet, $this->theme_root );
+		$parent = $theme->parent();
+
+		$this->assertFalse( $theme->errors(), 'The child theme has errors.' );
+		$this->assertInstanceOf( 'WP_Theme', $parent, 'The parent theme was not found.' );
+		$this->assertSame( $expected, $parent->get_stylesheet(), 'The parent theme stylesheet is not correct.' );
+		$this->assertSame( $expected, $theme->get_template(), 'The child theme template is not correct.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_child_theme_should_find_block_parent_theme_without_index_php() {
+		return array(
+			'parent in the theme root'        => array(
+				'stylesheet' => 'block-theme-no-index-child',
+				'expected'   => 'block-theme-no-index',
+			),
+			'parent in a directory of themes' => array(
+				'stylesheet' => 'subdir/block-theme-no-index-subdir-child',
+				'expected'   => 'subdir/block-theme-no-index-subdir',
+			),
+		);
+	}
+
+	/**
 	 * Enable a single theme on a network.
 	 *
 	 * @ticket 30594

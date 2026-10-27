@@ -237,6 +237,17 @@ final class WP_Theme implements ArrayAccess {
 	);
 
 	/**
+	 * Paths, relative to a theme directory, of the index block template that makes a block theme.
+	 *
+	 * @since 7.3.0
+	 * @var string[]
+	 */
+	private static $block_theme_index_templates = array(
+		'/templates/index.html',
+		'/block-templates/index.html',
+	);
+
+	/**
 	 * Flag for whether the themes cache bucket should be persistently cached.
 	 *
 	 * Default is false. Can be set with the {@see 'wp_cache_themes_persistently'} filter.
@@ -442,7 +453,7 @@ final class WP_Theme implements ArrayAccess {
 		// If we got our data from cache, we can assume that 'template' is pointing to the right place.
 		if ( ! is_array( $cache )
 			&& $this->template !== $this->stylesheet
-			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
+			&& ! self::has_index_template( $this->theme_root . '/' . $this->template )
 		) {
 			/*
 			 * If we're in a directory of themes inside /themes, look for the parent nearby.
@@ -452,7 +463,7 @@ final class WP_Theme implements ArrayAccess {
 			$directories = search_theme_directories();
 
 			if ( '.' !== $parent_dir
-				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' )
+				&& self::has_index_template( $this->theme_root . '/' . $parent_dir . '/' . $this->template )
 			) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
@@ -1634,10 +1645,7 @@ final class WP_Theme implements ArrayAccess {
 			return $this->block_theme;
 		}
 
-		$paths_to_index_block_template = array(
-			$this->get_file_path( '/templates/index.html' ),
-			$this->get_file_path( '/block-templates/index.html' ),
-		);
+		$paths_to_index_block_template = array_map( array( $this, 'get_file_path' ), self::$block_theme_index_templates );
 
 		$this->block_theme = false;
 
@@ -1649,6 +1657,36 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		return $this->block_theme;
+	}
+
+	/**
+	 * Determines whether a theme directory contains an index template.
+	 *
+	 * A theme directory has an index template if it contains an index.php file,
+	 * or the index block template of a block theme.
+	 *
+	 * Unlike WP_Theme::is_block_theme(), this checks the raw paths rather than going
+	 * through WP_Theme::get_file_path() and the {@see 'theme_file_path'} filter. It is
+	 * used to locate a parent theme, so it needs to know where the files physically are,
+	 * and no WP_Theme instance exists for the parent theme at that point.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $theme_dir Absolute path to the theme directory.
+	 * @return bool Whether the theme directory contains an index template.
+	 */
+	private static function has_index_template( $theme_dir ) {
+		if ( file_exists( $theme_dir . '/index.php' ) ) {
+			return true;
+		}
+
+		foreach ( self::$block_theme_index_templates as $index_block_template ) {
+			if ( is_file( $theme_dir . $index_block_template ) && is_readable( $theme_dir . $index_block_template ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
