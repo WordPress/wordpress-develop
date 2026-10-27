@@ -21,6 +21,14 @@ class WP_Icons_Registry {
 	protected $registered_icons = array();
 
 	/**
+	 * Names of the core icons in the "core-admin" collection, as keys.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, true>
+	 */
+	private $core_admin_icon_names = array();
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @since 7.0.0
@@ -232,19 +240,45 @@ class WP_Icons_Registry {
 
 		$this->registered_icons[ $qualified_name ] = $icon;
 
+		// Remember the core icons in the "core-admin" collection, which cannot be unregistered.
+		if (
+			'core-admin' === $collection &&
+			isset( $icon_properties['file_path'] ) &&
+			str_starts_with( $icon_properties['file_path'], ABSPATH . WPINC . '/images/icon-library/' )
+		) {
+			$this->core_admin_icon_names[ $qualified_name ] = true;
+		}
+
 		return true;
 	}
 
 	/**
 	 * Unregisters an icon.
 	 *
+	 * The core icons in the "core-admin" collection are used by the WordPress
+	 * administration interface and cannot be unregistered.
+	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 The core icons in the "core-admin" collection can no longer be unregistered.
 	 *
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
 	 *                          (e.g. "core/arrow-left").
 	 * @return bool True if the icon was unregistered successfully, false otherwise.
 	 */
 	public function unregister( $icon_name ) {
+		if ( is_string( $icon_name ) && isset( $this->core_admin_icon_names[ $icon_name ] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Icon name. */
+					__( 'Icon "%s" is used by the administration interface and cannot be unregistered.' ),
+					$icon_name
+				),
+				'7.2.0'
+			);
+			return false;
+		}
+
 		if ( ! $this->is_registered( $icon_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,

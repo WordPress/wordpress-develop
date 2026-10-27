@@ -203,6 +203,30 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should refuse to unregister the "core-admin" collection and keep its icons.
+	 *
+	 * @ticket 66344
+	 *
+	 * @covers ::unregister
+	 * @covers ::wp_unregister_icon_collection
+	 *
+	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::unregister
+	 */
+	public function test_unregister_core_admin_collection_is_rejected() {
+		$icons          = WP_Icons_Registry::get_instance();
+		$admin_icons    = wp_list_filter( $icons->get_registered_icons(), array( 'collection' => 'core-admin' ) );
+		$expected_names = array_column( $admin_icons, 'name' );
+
+		$this->assertNotEmpty( $expected_names, 'The core-admin collection should contain icons.' );
+		$this->assertFalse( wp_unregister_icon_collection( 'core-admin' ) );
+		$this->assertTrue( $this->collections->is_registered( 'core-admin' ), 'The core-admin collection should remain registered.' );
+
+		foreach ( $expected_names as $icon_name ) {
+			$this->assertTrue( $icons->is_registered( $icon_name ), "The {$icon_name} icon should remain registered." );
+		}
+	}
+
+	/**
 	 * Should register collections as public by default.
 	 *
 	 * @ticket 66087
