@@ -745,104 +745,6 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
-	 * Gets the current token's type flag, if it has one.
-	 *
-	 * Some token types have an additional flag:
-	 * - Hash tokens have an "id" or "unrestricted" flag.
-	 * - Number and dimension tokens have an "integer" flag when the number was
-	 *   written without a decimal point or exponent, and a "number" flag otherwise.
-	 * - Percentage tokens do not have a type flag.
-	 *
-	 * @link https://www.w3.org/TR/css-syntax-3/#consume-number
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return string|null
-	 * @phpstan-return 'id'|'unrestricted'|'integer'|'number'|null
-	 */
-	public function get_token_type_flag(): ?string {
-		return $this->token_type_flag;
-	}
-
-	/**
-	 * Gets the normalized token text from the CSS source.
-	 *
-	 * Returns the token with CSS normalization and escape decoding applied:
-	 * - CSS escapes decoded (e.g., `\6c` → `l`, `\2f` → `/`, `\A` → newline)
-	 * - `\r\n`, `\r`, `\f` → `\n`
-	 * - `\x00` → U+FFFD (�)
-	 *
-	 * Comments contain no escapes, so only the normalization applies to them.
-	 *
-	 * This is different from get_token_value() which returns the semantic value
-	 * (e.g., for strings: content without quotes; for numbers: numeric value).
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return string|null
-	 */
-	public function get_normalized_token(): ?string {
-		if ( null === $this->token_starts_at || null === $this->token_length ) {
-			return null;
-		}
-
-		if ( self::TOKEN_COMMENT === $this->token_type ) {
-			return self::preprocess_range( $this->css, $this->token_starts_at, $this->token_length );
-		}
-
-		return self::decode_range(
-			$this->css,
-			$this->token_starts_at,
-			$this->token_length,
-			self::TOKEN_STRING === $this->token_type
-		);
-	}
-
-	/**
-	 * Gets the raw, unnormalized token text from the CSS source.
-	 *
-	 * Returns the exact bytes from the source without any normalization.
-	 * This preserves original line endings (`\r\n`, `\r`, `\f`) and null bytes.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return string|null
-	 */
-	public function get_unnormalized_token(): ?string {
-		if ( null === $this->token_starts_at || null === $this->token_length ) {
-			return null;
-		}
-		return substr( $this->css, $this->token_starts_at, $this->token_length );
-	}
-
-	/**
-	 * Gets the current token value as a normalized and decoded string. This is
-	 * a slight divergence from the CSS Syntax Level 3 spec, where all the numeric
-	 * values are parsed as numbers. This processor is only concerned with their
-	 * textual representation.
-	 *
-	 * Returns the semantic value of the token per CSS Syntax Level 3 spec:
-	 *
-	 * - For delimiters: the single code point
-	 * - For numbers/percentages: the string representation of the number
-	 * - For dimensions: the string representation of the number (use get_token_unit() for the unit)
-	 * - For identifiers/functions/hash/at-keywords: the decoded identifier string
-	 * - For strings/URLs: the decoded string value
-	 * - For comments: the text between the delimiters, with newlines normalized;
-	 *   comments contain no escapes
-	 * - For other tokens: null
-	 *
-	 * @since 7.3.0
-	 *
-	 * @link https://www.w3.org/TR/css-syntax-3/#tokenization
-	 * @return string|null
-	 */
-	public function get_token_value(): ?string {
-		$token = $this->get_token();
-		return null === $token ? null : $token->get_value();
-	}
-
-	/**
 	 * Gets the byte offset at which the current token starts.
 	 *
 	 * @since 7.3.0
@@ -862,50 +764,6 @@ class WP_CSS_Token_Processor {
 	 */
 	public function get_token_length(): ?int {
 		return $this->token_length;
-	}
-
-	/**
-	 * Gets the unit for dimension tokens.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return string|null
-	 */
-	public function get_token_unit(): ?string {
-		return $this->token_unit;
-	}
-
-	/**
-	 * Reports whether the current token ended at its closing delimiter.
-	 *
-	 * Comment, string, url and bad-url tokens have a closing delimiter: `*` `/`,
-	 * the matching quote, or `)`. When the input ends before the delimiter,
-	 * the tokenizer still returns the token, and this method returns false.
-	 * It returns true for every other token type, which have no closing
-	 * delimiter, and false before the first call to next_token().
-	 *
-	 * Example:
-	 *
-	 * ```php interactive
-	 * $processor = WP_CSS_Token_Processor::create( '"abc' );
-	 * $processor->next_token();
-	 * echo $processor->get_token_type() . "\n";
-	 * var_dump( $processor->is_token_terminated() );
-	 * // Outputs:
-	 * // string-token
-	 * // bool(false)
-	 * ```
-	 *
-	 * @link https://www.w3.org/TR/css-syntax-3/#consume-comment
-	 * @link https://www.w3.org/TR/css-syntax-3/#consume-string-token
-	 * @link https://www.w3.org/TR/css-syntax-3/#consume-url-token
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return bool Whether the current token ended at its closing delimiter.
-	 */
-	public function is_token_terminated(): bool {
-		return null !== $this->token_type && $this->token_is_terminated;
 	}
 
 	/**
@@ -1452,7 +1310,6 @@ class WP_CSS_Token_Processor {
 
 		return $this->consume_ident_start_codepoint( $at );
 	}
-
 
 	/**
 	 * Ident-start code point
