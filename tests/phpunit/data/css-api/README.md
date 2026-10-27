@@ -20,8 +20,9 @@ The upstream corpus maps a case name to `{ css, tokens }`. Each upstream token h
   JavaScript string indexes (UTF-16 code units).
 - `value` is `structured.value` flattened onto the token. Numeric values are the
   number's source text as a string (`"10e2"`, not `1000`); for dimension and
-  percentage tokens the unit or `%` is removed. Tokens without structured data have
-  `value: null`.
+  percentage tokens the unit or `%` is removed. A comment token, which has no
+  structured data upstream, has the text between its delimiters after input
+  preprocessing. Other tokens without structured data have `value: null`.
 - `unit` is `structured.unit`, present on dimension tokens only.
 - `numberType` is `structured.type` on number and dimension tokens. The upstream
   `structured.type` of hash tokens (`id` or `unrestricted`) and `signCharacter` are

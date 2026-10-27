@@ -91,7 +91,7 @@ final class WP_CSS_Token {
 	private $unit;
 
 	/**
-	 * Byte offset at which the value of a string or url token starts.
+	 * Byte offset at which the value of a string, url or comment token starts.
 	 *
 	 * @since 7.3.0
 	 *
@@ -100,7 +100,7 @@ final class WP_CSS_Token {
 	private $value_start;
 
 	/**
-	 * Byte length of the value of a string or url token.
+	 * Byte length of the value of a string, url or comment token.
 	 *
 	 * @since 7.3.0
 	 *
@@ -140,8 +140,8 @@ final class WP_CSS_Token {
 	 * @param int         $length        Byte length of the token.
 	 * @param string|null $flag          Type flag of a hash, number or dimension token.
 	 * @param string|null $unit          Decoded unit of a dimension token.
-	 * @param int|null    $value_start   Byte offset at which the value of a string or url token starts.
-	 * @param int|null    $value_length  Byte length of the value of a string or url token.
+	 * @param int|null    $value_start   Byte offset at which the value of a string, url or comment token starts.
+	 * @param int|null    $value_length  Byte length of the value of a string, url or comment token.
 	 * @param bool        $is_terminated Whether the token ended at its closing delimiter.
 	 */
 	public function __construct(
@@ -287,6 +287,18 @@ final class WP_CSS_Token {
 
 			case WP_CSS_Token_Processor::TOKEN_URL:
 				return WP_CSS_Token_Processor::decode_range( $this->css, $this->value_start, $this->value_length );
+
+			case WP_CSS_Token_Processor::TOKEN_COMMENT:
+				// Comments contain no escapes, so only input preprocessing applies.
+				return strtr(
+					wp_scrub_utf8( substr( $this->css, $this->value_start, $this->value_length ) ),
+					array(
+						"\r\n" => "\n",
+						"\r"   => "\n",
+						"\f"   => "\n",
+						"\0"   => "\u{FFFD}",
+					)
+				);
 
 			case WP_CSS_Token_Processor::TOKEN_NUMBER:
 				// Numbers are ASCII and have no escapes.

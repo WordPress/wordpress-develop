@@ -2061,7 +2061,7 @@ CSS;
 				'type'       => WP_CSS_Token_Processor::TOKEN_COMMENT,
 				'raw'        => "/* Comment\r\nwith\flines */",
 				'normalized' => "/* Comment\nwith\nlines */",
-				'value'      => null,
+				'value'      => " Comment\nwith\nlines ",
 			),
 			// Whitespace with \r\n.
 			array(

@@ -545,7 +545,7 @@
 				"startIndex": 0,
 				"endIndex": 15,
 				"normalized": "/* a comment */",
-				"value": null
+				"value": " a comment "
 			},
 			{
 				"type": "whitespace-token",
@@ -566,7 +566,7 @@
 				"startIndex": 0,
 				"endIndex": 13,
 				"normalized": "/* a comment ",
-				"value": null
+				"value": " a comment "
 			}
 		]
 	},
@@ -587,7 +587,7 @@
 				"startIndex": 1,
 				"endIndex": 5,
 				"normalized": "/**/",
-				"value": null
+				"value": ""
 			},
 			{
 				"type": "ident-token",
@@ -616,7 +616,7 @@
 				"startIndex": 0,
 				"endIndex": 5,
 				"normalized": "/**/",
-				"value": null
+				"value": "\\"
 			},
 			{
 				"type": "delim-token",
@@ -653,7 +653,7 @@
 				"startIndex": 0,
 				"endIndex": 14,
 				"normalized": "/* a comment *",
-				"value": null
+				"value": " a comment *"
 			}
 		]
 	},
@@ -666,7 +666,7 @@
 				"startIndex": 0,
 				"endIndex": 9,
 				"normalized": "/*a𐀀*/",
-				"value": null
+				"value": "a𐀀"
 			},
 			{
 				"type": "whitespace-token",
