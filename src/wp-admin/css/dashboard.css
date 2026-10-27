@@ -445,23 +445,6 @@
 }
 
 /* Fallbacks for when the SVG icons are unavailable. */
-#dashboard_right_now .comment-mod-count a::before {
-	content: "\f125";
-	content: "\f125" / "";
-}
-
-#dashboard_right_now .storage-count.warning a::before {
-	content: "\f153";
-	content: "\f153" / "";
-}
-
-#dashboard_right_now .search-engines-info::before {
-	padding: 0 5px 0 0;
-	content: "\f348";
-	content: "\f348" / "";
-	color: #d63638;
-}
-
 #dashboard_right_now li a:has(> svg)::before,
 #dashboard_right_now li > span:has(> svg)::before,
 #dashboard_right_now .search-engines-info:has(svg)::before {
