@@ -42,6 +42,26 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 18302
 	 *
 	 * @dataProvider data_theme_files
