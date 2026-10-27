@@ -99,6 +99,13 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	private static $template_part_post_2;
 
 	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * @var array
 	 */
 	private static $template_revisions = array();
@@ -236,6 +243,19 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		foreach ( self::$template_part_revisions as $template_part_revision ) {
 			wp_delete_post( $template_part_revision, true );
 		}
+	}
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**

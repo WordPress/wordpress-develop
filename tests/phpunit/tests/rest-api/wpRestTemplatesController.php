@@ -20,6 +20,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	private static $template_part_post;
 
 	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
@@ -82,6 +89,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		wp_delete_post( self::$template_post->ID );
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
 	/**
 	 * Tear down after each test.
 	 *
@@ -93,6 +105,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		}
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();

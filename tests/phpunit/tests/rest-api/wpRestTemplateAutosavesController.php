@@ -76,6 +76,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	private static $template_part_post;
 
 	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Create fake data before the tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
@@ -131,6 +138,19 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		wp_set_post_terms( self::$template_part_post->ID, self::TEST_THEME, 'wp_theme' );
 		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+	}
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
