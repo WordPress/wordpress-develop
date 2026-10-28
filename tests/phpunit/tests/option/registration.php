@@ -52,8 +52,25 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 		$this->assertSame( 'S-M-R-T', $filtered );
 	}
 
+	/**
+	 * @ticket 15335
+	 *
+	 * @covers ::register_setting
+	 * @covers ::apply_filters
+	 */
+	public function test_register_with_callback_receives_option_name() {
+		register_setting( 'test_group', 'test_option_15335', array( $this, 'filter_registered_setting_with_option_name' ) );
+
+		$filtered = apply_filters( 'sanitize_option_test_option_15335', 'smart', 'test_option_15335' );
+		$this->assertSame( 'test_option_15335:smart', $filtered );
+	}
+
 	public function filter_registered_setting() {
 		return 'S-M-R-T';
+	}
+
+	public function filter_registered_setting_with_option_name( $value, $option_name ) {
+		return $option_name . ':' . $value;
 	}
 
 	/**
