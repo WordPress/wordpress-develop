@@ -203,7 +203,7 @@ class WP_Sitemaps {
 		}
 
 		// Force a 404 and bail early if the sub-type query variable is set to an invalid value.
-		if ( $object_subtype && ! in_array( $object_subtype, $provider->get_object_subtypes(), true ) ) {
+		if ( $object_subtype && ! array_key_exists( $object_subtype, $provider->get_object_subtypes() ) ) {
 			$this->send_404();
 			return;
 		}
