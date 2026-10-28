@@ -29,21 +29,6 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 * @ticket 65819
 	 */
 	public function test_should_list_dependent() {
-		$this->set_dependencies( array( 'dependent/dependent.php' => array( 'dependency' ) ) );
-
-		$this->assertSame(
-			'<div class="required-by"><p><strong>Required by:</strong> Dependent Plugin</p>'
-			. '<p>Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.</p></div>',
-			$this->get_row( 'dependency/dependency.php' )
-		);
-	}
-
-	/**
-	 * Tests that several dependents are sorted by name and joined with the list separator.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_should_list_dependents_sorted_by_name() {
 		$this->set_dependencies(
 			array(
 				'zeta/zeta.php'           => array( 'dependency', 'other' ),
@@ -52,8 +37,9 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 			)
 		);
 
-		$this->assertStringStartsWith(
-			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>',
+		$this->assertSame(
+			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
+			. '<p>Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.</p></div>',
 			$this->get_row( 'dependency/dependency.php' )
 		);
 	}
