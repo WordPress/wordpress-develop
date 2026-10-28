@@ -410,7 +410,7 @@ class WP_CSS_Token_Processor {
 	 * @since 7.3.0
 	 * @ignore
 	 *
-	 * @param string $css         CSS source to tokenize.
+	 * @param string $css CSS source to tokenize.
 	 */
 	private function __construct( string $css ) {
 		$this->css    = $css;
@@ -420,23 +420,14 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Creates a CSS processor for the given CSS string.
 	 *
-	 * Use this method to create a CSS processor instance.
-	 *
-	 * ## Current Support
-	 *
-	 * - The only supported document encoding is `UTF-8`, which is the default value.
+	 * The CSS is read as UTF-8. Convert CSS in another encoding to UTF-8 first.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string $css      CSS source to tokenize.
-	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
-	 * @return static|null The created processor if successful, otherwise null.
+	 * @param string $css CSS source to tokenize.
+	 * @return static The created processor.
 	 */
-	public static function create( string $css, string $encoding = 'UTF-8' ) {
-		if ( 'UTF-8' !== $encoding ) {
-			return null;
-		}
-
+	public static function create( string $css ) {
 		return new static( $css );
 	}
 
