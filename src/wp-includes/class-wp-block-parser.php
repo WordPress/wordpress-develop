@@ -222,11 +222,14 @@ class WP_Block_Parser {
 				 * otherwise we're nested and we have to close out the current
 				 * block and add it as a new innerBlock to the parent
 				 */
-				$stack_top                        = array_pop( $this->stack );
-				$html                             = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
-				$stack_top->block->innerHTML     .= $html;
-				$stack_top->block->innerContent[] = $html;
-				$stack_top->prev_offset           = $start_offset + $token_length;
+				$stack_top              = array_pop( $this->stack );
+				$html                   = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
+				$stack_top->prev_offset = $start_offset + $token_length;
+
+				if ( '' !== $html ) {
+					$stack_top->block->innerHTML     .= $html;
+					$stack_top->block->innerContent[] = $html;
+				}
 
 				$this->add_inner_block(
 					$stack_top->block,
@@ -342,7 +345,7 @@ class WP_Block_Parser {
 		$parent->block->innerBlocks[] = (array) $block;
 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
 
-		if ( ! empty( $html ) ) {
+		if ( '' !== $html ) {
 			$parent->block->innerHTML     .= $html;
 			$parent->block->innerContent[] = $html;
 		}
@@ -367,7 +370,7 @@ class WP_Block_Parser {
 			? substr( $this->document, $prev_offset, $end_offset - $prev_offset )
 			: substr( $this->document, $prev_offset );
 
-		if ( ! empty( $html ) ) {
+		if ( '' !== $html ) {
 			$stack_top->block->innerHTML     .= $html;
 			$stack_top->block->innerContent[] = $html;
 		}
@@ -402,8 +405,10 @@ class WP_Block_Parser {
 				$html = substr( $this->document, $stack_top->prev_offset );
 			}
 
-			$stack_top->block->innerHTML     .= $html;
-			$stack_top->block->innerContent[] = $html;
+			if ( '' !== $html ) {
+				$stack_top->block->innerHTML     .= $html;
+				$stack_top->block->innerContent[] = $html;
+			}
 
 			// Trap potential leading freeform content for the final output.
 			$last_freeform = array( $stack_top->leading_html_start ?? 0, $stack_top->token_start );
