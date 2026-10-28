@@ -169,6 +169,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	private static function restore_options() {
 		global $wpdb;
 
+		// No snapshot if no class ran the parent set_up_before_class(), e.g. Text_Diff_Check_Test.
+		if ( null === self::$original_options ) {
+			return;
+		}
+
 		$current = self::get_option_rows();
 
 		foreach ( array_keys( array_diff_key( $current, self::$original_options ) ) as $name ) {
