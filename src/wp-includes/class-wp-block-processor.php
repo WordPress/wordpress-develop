@@ -1652,6 +1652,8 @@ class WP_Block_Processor {
 	 * @see self::is_non_whitespace_html()
 	 *
 	 * @return bool Whether the processor is matched on an HTML span.
+	 *
+	 * @phpstan-impure
 	 */
 	public function is_html(): bool {
 		return self::HTML_SPAN === $this->state;
