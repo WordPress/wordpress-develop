@@ -111,12 +111,12 @@ class Tests_Link_GetEditProfileUrl extends WP_UnitTestCase {
 			3
 		);
 
-		$url = get_edit_profile_url( self::$admin_id, 'admin' );
+		$url = get_edit_profile_url( self::$admin_id, 'https' );
 
 		$expected_args = array(
-			get_dashboard_url( self::$admin_id, 'profile.php', 'admin' ),
+			get_dashboard_url( self::$admin_id, 'profile.php', 'https' ),
 			self::$admin_id,
-			'admin',
+			'https',
 		);
 
 		$this->assertSame( $expected_args, $filter->get_args()[0], 'The edit_profile_url filter should receive url, user_id, and scheme.' );
