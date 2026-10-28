@@ -493,14 +493,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			/*
 			 * To be more efficient, resample large images to 5x the destination size before resizing
 			 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
-			 * unless we would be resampling to a scale smaller than 128x128.
+			 * unless we would be resampling to a scale smaller than 128x128 or larger than the original.
 			 */
 			if ( is_callable( array( $this->image, 'sampleImage' ) ) ) {
 				$resize_ratio  = ( $dst_w / $this->size['width'] ) * ( $dst_h / $this->size['height'] );
 				$sample_factor = 5;
+				$sample_w      = $dst_w * $sample_factor;
+				$sample_h      = $dst_h * $sample_factor;
 
-				if ( $resize_ratio < .111 && ( $dst_w * $sample_factor > 128 && $dst_h * $sample_factor > 128 ) ) {
-					$this->image->sampleImage( $dst_w * $sample_factor, $dst_h * $sample_factor );
+				if ( $resize_ratio < .111 && $sample_w > 128 && $sample_h > 128 && $sample_w < $this->size['width'] && $sample_h < $this->size['height'] ) {
+					$this->image->sampleImage( $sample_w, $sample_h );
 				}
 			}
 
