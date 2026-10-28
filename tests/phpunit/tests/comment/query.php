@@ -2971,6 +2971,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30478
+	 * @ticket 66397
 	 *
 	 * @covers WP_Comment_Query::query
 	 *
@@ -2993,6 +2994,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66397
+	 *
 	 * @covers WP_Comment_Query::query
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -3015,6 +3018,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66397
+	 *
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_orderby_non_date_field_should_order_by_comment_ID_in_case_of_tie_ASC() {
