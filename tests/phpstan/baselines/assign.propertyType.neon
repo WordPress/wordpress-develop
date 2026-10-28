@@ -89,11 +89,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-user.php
 		-
-			message: '#^Property wpdb\:\:\$col_info \(array\) does not accept null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-includes/class-wpdb.php
-		-
 			message: '#^Property wpdb\:\:\$last_query \(string\) does not accept null\.$#'
 			identifier: assign.propertyType
 			count: 1

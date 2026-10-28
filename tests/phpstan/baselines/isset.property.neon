@@ -154,7 +154,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
 		-
-			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string\>\) in isset\(\) is not nullable\.$#'
+			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string, true\>\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
