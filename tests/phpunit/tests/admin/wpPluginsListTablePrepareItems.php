@@ -239,9 +239,10 @@ class Tests_Admin_wpPluginsListTablePrepareItems extends WP_UnitTestCase {
 	public function test_should_switch_to_search_view() {
 		$GLOBALS['s'] = 'Hello';
 
-		$this->prepare();
+		$table = $this->prepare();
 
 		$this->assertSame( 'search', $GLOBALS['status'] );
+		$this->assertSame( array( 'hello.php' ), array_keys( $table->items ), 'Only the matching plugin should be listed.' );
 	}
 
 	/**
