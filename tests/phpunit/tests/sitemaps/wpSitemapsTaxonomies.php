@@ -144,8 +144,9 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test getting a URL list for a custom taxonomy that is not publicly queryable.
+	 * Test getting a sitemap for a custom taxonomy that is not publicly queryable.
 	 *
+	 * @ticket 50607
 	 * @ticket 61293
 	 */
 	public function test_get_url_list_custom_taxonomy_not_publicly_queryable() {
@@ -178,6 +179,9 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 
 	/**
 	 * Test sitemap index entries with public and private taxonomies.
+	 *
+	 * @ticket #50117
+	 * @ticket #50607
 	 */
 	public function test_get_sitemap_entries_custom_taxonomies() {
 		wp_set_current_user( self::$editor_id );
