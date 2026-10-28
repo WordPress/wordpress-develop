@@ -10,6 +10,43 @@
 class Tests_Link_GetNextPreviousPostsPageLink extends WP_UnitTestCase {
 
 	/**
+	 * Whether the pagination global was set before the test.
+	 *
+	 * @var bool
+	 */
+	private $had_paged;
+
+	/**
+	 * The original pagination global.
+	 *
+	 * @var mixed
+	 */
+	private $original_paged;
+
+	/**
+	 * Saves the incoming pagination global before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->had_paged      = array_key_exists( 'paged', $GLOBALS );
+		$this->original_paged = $this->had_paged ? $GLOBALS['paged'] : null;
+	}
+
+	/**
+	 * Restores the incoming pagination global after each test.
+	 */
+	public function tear_down() {
+		if ( $this->had_paged ) {
+			$GLOBALS['paged'] = $this->original_paged;
+		} else {
+			unset( $GLOBALS['paged'] );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests that get_next_posts_page_link() returns null on single post view.
 	 *
 	 * @ticket 65819
