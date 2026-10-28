@@ -29,6 +29,14 @@ class Tests_Post_GetPostsByAuthorSql extends WP_UnitTestCase {
 		self::$user_id_2 = $factory->user->create();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'foo' );
+		unregister_post_type( 'bar' );
+		unregister_post_type( 'baz' );
+
+		parent::tear_down();
+	}
+
 	public function test_post_type_post() {
 		$maybe_string = get_posts_by_author_sql( 'post' );
 		$this->assertStringContainsString( "post_type = 'post'", $maybe_string );
