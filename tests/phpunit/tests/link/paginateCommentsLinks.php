@@ -101,7 +101,6 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 
 		$output = get_echo( 'paginate_comments_links', array( $args ) );
 
-		$this->assertNotEmpty( $output );
 		$this->assertStringContainsString( 'cpage=2#comments', $output );
 	}
 
@@ -112,6 +111,8 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 	 */
 	public function test_paginate_comments_links_type_array() {
 		$this->go_to( get_permalink( self::$post_id ) );
+
+		$this->expectOutputString( '' );
 
 		// Even with 'echo' => true, 'type' => 'array' should return array and not echo.
 		$links = paginate_comments_links(
