@@ -8,6 +8,7 @@ require_once __DIR__ . '/plugin-dependencies/base.php';
  * @group admin
  * @group plugins
  *
+ * @covers WP_Plugins_List_Table::single_row
  * @covers WP_Plugins_List_Table::add_dependencies_to_dependent_plugin_row
  * @covers WP_Plugins_List_Table::get_dependency_view_details_link
  * @covers WP_Plugins_List_Table::get_view_details_link
@@ -29,17 +30,28 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	private $original_globals = array();
 
 	/**
+	 * Whether each saved global existed before setup.
+	 *
+	 * @var bool[]
+	 */
+	private $had_globals = array();
+
+	/**
 	 * Switches to the Plugins screen and resets the active plugins.
 	 */
 	public function set_up() {
 		parent::set_up();
 
-		$this->original_globals = array(
-			'pagenow'        => $GLOBALS['pagenow'] ?? null,
-			'current_screen' => $GLOBALS['current_screen'] ?? null,
-		);
+		foreach ( array( 'pagenow', 'current_screen', 'status', 'page', 's', 'totals' ) as $name ) {
+			$this->had_globals[ $name ]      = array_key_exists( $name, $GLOBALS );
+			$this->original_globals[ $name ] = $this->had_globals[ $name ] ? $GLOBALS[ $name ] : null;
+		}
 
 		$GLOBALS['pagenow'] = 'plugins.php';
+		$GLOBALS['status']  = 'all';
+		$GLOBALS['page']    = 1;
+		$GLOBALS['s']       = '';
+		$GLOBALS['totals']  = array();
 		set_current_screen( is_multisite() ? 'plugins-network' : 'plugins' );
 
 		update_option( 'active_plugins', array() );
@@ -51,7 +63,11 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	 */
 	public function tear_down() {
 		foreach ( $this->original_globals as $name => $value ) {
-			$GLOBALS[ $name ] = $value;
+			if ( $this->had_globals[ $name ] ) {
+				$GLOBALS[ $name ] = $value;
+			} else {
+				unset( $GLOBALS[ $name ] );
+			}
 		}
 
 		parent::tear_down();
@@ -65,7 +81,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	public function test_should_output_nothing_without_dependencies() {
 		$this->set_state( array(), array(), array() );
 
-		$this->assertSame( '', $this->get_row() );
+		$this->assertStringNotContainsString( '<div class="requires">', $this->get_row() );
 	}
 
 	/**
@@ -94,7 +110,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 			$url = str_replace( '/network/', '/', $url );
 		}
 
-		$this->assertSame(
+		$this->assertStringContainsString(
 			'<div class="requires"><p><strong>Requires:</strong> '
 			. "<a href='{$url}' class='thickbox open-plugin-details-modal' aria-label='More information about Dep &lt;b&gt;One&lt;/b&gt; &amp; &quot;Co&quot;' data-title='Dep &lt;b&gt;One&lt;/b&gt; &amp; &quot;Co&quot;'>Dep &lt;b&gt;One&lt;/b&gt; &amp; &quot;Co&quot;</a>"
 			. ', Dep Two Installed</p></div>',
@@ -116,7 +132,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 		$this->set_state( array( 'dep-one' ), array( 'dep-one' => $api_data ), array( 'dep-one' => 'dep-one/dep-one.php' ) );
 		$this->activate( array( 'dep-one/dep-one.php' ) );
 
-		$this->assertSame( '<div class="requires"><p><strong>Requires:</strong> ' . $expected . '</p></div>', $this->get_row() );
+		$this->assertStringContainsString( '<div class="requires"><p><strong>Requires:</strong> ' . $expected . '</p></div>', $this->get_row() );
 	}
 
 	/**
@@ -157,7 +173,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 		$this->set_state( array( 'missing' ), array(), array( 'missing' => false ) );
 		$this->activate( $dependent_active ? array( self::DEPENDENT ) : array() );
 
-		$this->assertSame(
+		$this->assertStringContainsString(
 			'<div class="requires"><p><strong>Requires:</strong> missing</p>'
 			. '<div class="notice notice-error inline notice-alt"><p>' . $message . '</p></div>'
 			. '</div>',
@@ -222,6 +238,10 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 		$this->set_property_value( 'plugins', $plugins );
 		$this->set_property_value( 'dependencies', $dependencies ? array( self::DEPENDENT => $dependencies ) : array() );
 		$this->set_property_value( 'dependency_slugs', $dependencies );
+		$this->set_property_value(
+			'dependent_slugs',
+			$dependencies ? array( self::DEPENDENT => 'dependent' ) : array()
+		);
 		$this->set_property_value( 'dependency_api_data', $api_data );
 		$this->set_property_value( 'dependency_filepaths', $filepaths );
 		$this->set_property_value( 'initialized', true );
@@ -248,11 +268,30 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	private function get_row() {
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => get_current_screen() ) );
 
-		$method = new ReflectionMethod( $table, 'add_dependencies_to_dependent_plugin_row' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$method->setAccessible( true );
-		}
+		$row = get_echo(
+			array( $table, 'single_row' ),
+			array(
+				array(
+					self::DEPENDENT,
+					array(
+						'Name'        => 'Dependent',
+						'slug'        => 'dependent',
+						'Description' => '',
+						'Version'     => '',
+						'Author'      => '',
+						'AuthorURI'   => '',
+						'PluginURI'   => '',
+					),
+				),
+			)
+		);
 
-		return get_echo( array( $method, 'invoke' ), array( $table, self::DEPENDENT ) );
+		$this->assertLessThanOrEqual(
+			1,
+			substr_count( $row, '<div class="requires">' ),
+			'The plugin row should contain at most one complete dependency fragment.'
+		);
+
+		return $row;
 	}
 }
