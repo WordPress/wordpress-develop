@@ -51,14 +51,14 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  *
- * @property      mysqli_result|bool|null         $result              Result of the last query.
- * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
- * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
- * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
- * @property      string                          $dbuser              Database username.
- * @property      string                          $dbname              Database name.
- * @property      string                          $dbhost              Database host.
- * @property      mysqli|false|null               $dbh                 Database handle.
+ * @property      mysqli_result|bool|null   $result              Result of the last query.
+ * @property-read bool                      $check_current_query Whether the current query needs to be confidence checked.
+ * @property      list<stdClass|false>|null $col_info            Saved info on the table column.
+ * @property      int                       $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                    $dbuser              Database username.
+ * @property      string                    $dbname              Database name.
+ * @property      string                    $dbhost              Database host.
+ * @property      mysqli|false|null         $dbh                 Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {
@@ -205,12 +205,12 @@ class wpdb {
 	 * Each value is populated by mysqli_fetch_field() in {@see wpdb::load_col_info()}, which is
 	 * typed as returning false when there are no more fields. A false value cannot actually occur,
 	 * however, since the loop only runs for the number of fields returned by mysqli_num_fields().
-	 * Populating the array with mysqli_fetch_fields() instead would allow this type to be narrowed
-	 * to a list of stdClass objects.
+	 * Populating the array with mysqli_fetch_fields() instead would allow false to be removed from
+	 * this type.
 	 *
 	 * @since 0.71
 	 *
-	 * @var array<int, stdClass|false>|null
+	 * @var list<stdClass|false>|null
 	 */
 	protected $col_info;
 
@@ -3973,7 +3973,7 @@ class wpdb {
 		$num_fields = mysqli_num_fields( $this->result );
 
 		for ( $i = 0; $i < $num_fields; $i++ ) {
-			$this->col_info[ $i ] = mysqli_fetch_field( $this->result );
+			$this->col_info[] = mysqli_fetch_field( $this->result );
 		}
 	}
 
@@ -4001,7 +4001,7 @@ class wpdb {
 					++$i;
 				}
 				return $new_array;
-			} else {
+			} elseif ( isset( $this->col_info[ $col_offset ] ) && false !== $this->col_info[ $col_offset ] ) {
 				return $this->col_info[ $col_offset ]->{$info_type};
 			}
 		}
