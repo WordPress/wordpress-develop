@@ -107,16 +107,16 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_adjacent_post_link_echoes_get_adjacent_post_link() {
-		$expected_prev = get_adjacent_post_link( '&laquo; %link', '%title', false, '', true );
-		$actual_prev   = get_echo( 'adjacent_post_link', array( '&laquo; %link', '%title', false, '', true ) );
+		$previous_title = get_post( $this->post_ids[3] )->post_title;
+		$expected_prev  = '&laquo; <a href="' . home_url( '?p=' . $this->post_ids[3] ) . '" rel="prev">' . $previous_title . '</a>';
+		$actual_prev    = get_echo( 'adjacent_post_link', array( '&laquo; %link', '%title', false, '', true ) );
 
-		$this->assertNotEmpty( $actual_prev );
 		$this->assertSame( $expected_prev, $actual_prev );
 
-		$expected_next = get_adjacent_post_link( '%link &raquo;', '%title', false, '', false );
+		$next_title    = get_post( $this->post_ids[1] )->post_title;
+		$expected_next = '<a href="' . home_url( '?p=' . $this->post_ids[1] ) . '" rel="next">' . $next_title . '</a> &raquo;';
 		$actual_next   = get_echo( 'adjacent_post_link', array( '%link &raquo;', '%title', false, '', false ) );
 
-		$this->assertNotEmpty( $actual_next );
 		$this->assertSame( $expected_next, $actual_next );
 	}
 
@@ -126,10 +126,10 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_previous_post_link_echoes_get_previous_post_link() {
-		$expected = get_previous_post_link( '&laquo; %link', '%title' );
+		$title    = get_post( $this->post_ids[3] )->post_title;
+		$expected = '&laquo; <a href="' . home_url( '?p=' . $this->post_ids[3] ) . '" rel="prev">' . $title . '</a>';
 		$actual   = get_echo( 'previous_post_link', array( '&laquo; %link', '%title' ) );
 
-		$this->assertNotEmpty( $actual );
 		$this->assertSame( $expected, $actual );
 	}
 
@@ -139,10 +139,10 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_next_post_link_echoes_get_next_post_link() {
-		$expected = get_next_post_link( '%link &raquo;', '%title' );
+		$title    = get_post( $this->post_ids[1] )->post_title;
+		$expected = '<a href="' . home_url( '?p=' . $this->post_ids[1] ) . '" rel="next">' . $title . '</a> &raquo;';
 		$actual   = get_echo( 'next_post_link', array( '%link &raquo;', '%title' ) );
 
-		$this->assertNotEmpty( $actual );
 		$this->assertSame( $expected, $actual );
 	}
 
