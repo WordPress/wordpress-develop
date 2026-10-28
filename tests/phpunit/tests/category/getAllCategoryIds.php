@@ -7,6 +7,12 @@
  */
 class Tests_Category_GetAllCategoryIds extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'test_tax_cat' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Validate get_all_category_ids
 	 *
