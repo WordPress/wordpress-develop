@@ -390,10 +390,28 @@ switch ( $step ) {
 			}
 		}
 
+		/*
+		 * Generate a dedicated key for the Secrets API, so that stored secrets do not depend on
+		 * LOGGED_IN_KEY and LOGGED_IN_SALT, which are routinely changed. Without a CSPRNG the key is
+		 * left out, and the Secrets API derives its key from those salts instead.
+		 */
+		try {
+			$secrets_key = base64_encode( random_bytes( 32 ) );
+		} catch ( Exception $ex ) {
+			$secrets_key = '';
+		}
+
+		$add_secrets_key = '' !== $secrets_key && ! preg_grep( '/^define\(\s*\'WP_SECRETS_KEY\',/', $config_file );
+
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
 			if ( str_starts_with( $line, '$table_prefix =' ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
+				continue;
+			}
+
+			if ( isset( $nonce_salt_line ) && ! isset( $salts_end_line ) && '/**#@-*/' === trim( $line ) ) {
+				$salts_end_line = $line_num;
 				continue;
 			}
 
@@ -427,8 +445,30 @@ switch ( $step ) {
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . $secret_keys[ $key++ ] . "' );\r\n";
 					break;
 			}
+
+			if ( 'NONCE_SALT' === $constant ) {
+				$nonce_salt_line = $line_num;
+			}
 		}
 		unset( $line );
+
+		// Add the key after the keys and salts, outside their group, whose advice to change them does not apply to it.
+		if ( $add_secrets_key && isset( $nonce_salt_line ) ) {
+			$secrets_key_lines = array(
+				"\r\n",
+				"/**\r\n",
+				" * Encryption key for the Secrets API.\r\n",
+				" *\r\n",
+				" * Secrets stored by WordPress and plugins are encrypted with this key.\r\n",
+				" * Unlike the keys and salts above, changing it makes every stored secret unreadable.\r\n",
+				" *\r\n",
+				" * @since 7.2.0\r\n",
+				" */\r\n",
+				"define( 'WP_SECRETS_KEY', '" . $secrets_key . "' );\r\n",
+			);
+
+			array_splice( $config_file, ( $salts_end_line ?? $nonce_salt_line ) + 1, 0, $secrets_key_lines );
+		}
 
 		if ( ! is_writable( ABSPATH ) ) :
 			setup_config_display_header();
