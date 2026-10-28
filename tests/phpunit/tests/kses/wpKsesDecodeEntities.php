@@ -3,6 +3,13 @@
 /**
  * Tests for wp_kses_decode_entities().
  *
+ * Prefer WP_HTML_Decoder::decode_attribute() for new code. It understands the
+ * full character-reference grammar (including named references) and does not
+ * rely on single-byte chr() decoding. These tests only document the helper's
+ * historical behavior: numeric entities are decoded, named entities are left
+ * unchanged. That named-entity gap was tolerated for legacy URL-protocol
+ * checks, not because named decoding is undesirable.
+ *
  * @group kses
  *
  * @covers ::wp_kses_decode_entities
