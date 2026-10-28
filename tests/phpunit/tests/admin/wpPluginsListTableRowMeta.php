@@ -133,6 +133,7 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 					'Version'   => '1.2.3',
 					'Author'    => 'Jane',
 					'AuthorURI' => 'https://example.org/jane/',
+					'PluginURI' => 'https://example.org/plugin/',
 					'slug'      => $this->slug,
 				)
 			)
