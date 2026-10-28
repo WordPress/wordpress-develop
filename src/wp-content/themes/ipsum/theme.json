@@ -611,7 +611,10 @@
 				"css": "& :where(table:not(.has-text-color)) td{border-color: var(--wp--preset--color--theme-4) !important;} & :where(table:not(.has-text-color)) th{border-color: var(--wp--preset--color--theme-4) !important;} & :where(table:not(.has-text-color)){color:var(--wp--preset--color--theme-2)} & :where(.wp-block-calendar table:not(.has-background) th){background-color:var(--wp--preset--color--theme-5)}"
 			},
 			"core/categories": {
-				"css": "& {padding-inline-start: var(--wp--preset--spacing--30);} & ul {padding-inline-start: var(--wp--preset--spacing--30);}"
+				"css": "& {padding-inline-start: var(--wp--preset--spacing--30);} & ul {padding-inline-start: var(--wp--preset--spacing--30);}",
+				"typography": {
+					"lineHeight": "2"
+				}
 			},
 			"core/code": {
 				"border": {
