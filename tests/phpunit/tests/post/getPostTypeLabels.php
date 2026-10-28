@@ -4,6 +4,13 @@
  * @group post
  */
 class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_post_type( 'foo' );
+
+		parent::tear_down();
+	}
+
 	public function test_returns_an_object() {
 		$this->assertIsObject(
 			get_post_type_labels(
