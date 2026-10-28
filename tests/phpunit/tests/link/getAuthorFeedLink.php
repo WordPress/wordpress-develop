@@ -38,6 +38,8 @@ class Tests_Link_GetAuthorFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_plain_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$this->assertSame(
 			home_url( '?feed=rss2&amp;author=' . self::$author_id ),
 			get_author_feed_link( self::$author_id )
