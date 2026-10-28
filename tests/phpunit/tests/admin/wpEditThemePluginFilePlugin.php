@@ -186,6 +186,10 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @param string $message The expected error message.
 	 */
 	public function test_should_reject_invalid_plugin_edit( $args, $code, $message ) {
+		if ( isset( $args['nonce'] ) && 'other-file' === $args['nonce'] ) {
+			$args['nonce'] = wp_create_nonce( 'edit-plugin_' . $this->get_plugin() );
+		}
+
 		$result = wp_edit_theme_plugin_file( array_merge( $this->get_request( 'readme.txt' ), $args ) );
 
 		$this->assertWPError( $result, 'An error should be returned.' );
@@ -200,7 +204,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_plugin_edits() {
 		return array(
-			'nonce for another file'       => array( array( 'nonce' => 'invalid' ), 'nonce_failure', '' ),
+			'nonce for another file'       => array( array( 'nonce' => 'other-file' ), 'nonce_failure', '' ),
 			'plugin that is not installed' => array( array( 'plugin' => 'missing/missing.php' ), 'invalid_plugin', '' ),
 		);
 	}
@@ -393,6 +397,12 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 				array( 'code' => 'json_parse_error' ),
 				array( '/wp-admin/plugin-editor.php' ),
 			),
+			'home page returns no JSON'  => array(
+				array( 'true', 'not JSON' ),
+				'An error occurred. Please try again later.',
+				array( 'code' => 'json_parse_error' ),
+				array( '/wp-admin/plugin-editor.php', '/' ),
+			),
 			'home page request fails'    => array(
 				array( 'true', null ),
 				$loopback_failed,
@@ -423,12 +433,15 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 
 		$this->loopback_requests[] = $url;
 
+		wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $query );
+		$this->assertArrayHasKey( 'wp_scrape_nonce', $query, 'The loopback should include the scrape nonce.' );
+		$key = $query['wp_scrape_key'];
+		$this->assertSame( $query['wp_scrape_nonce'], get_transient( 'scrape_key_' . $key ), 'The scrape nonce should match its live transient.' );
+
 		$scrape_result = array_shift( $this->scrape_results );
 		if ( null === $scrape_result ) {
 			return new WP_Error( 'loopback_blocked', 'Loopback requests are not made in tests.' );
 		}
-
-		$key = $this->get_scrape_key( $url );
 
 		return array(
 			'headers'  => array(),
