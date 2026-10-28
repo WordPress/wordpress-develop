@@ -194,17 +194,17 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests the Activate and Delete links of an inactive plugin.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 */
 	public function test_should_link_activate_and_delete_for_inactive_plugin() {
-		$this->assertSame(
-			array(
-				'activate' => '<a href="' . $this->get_url( 'activate', 'activate-plugin_' . $this->get_file() ) . '" id="activate-' . $this->slug . '" class="edit" aria-label="Activate My Plugin">Activate</a>',
-				'delete'   => '<a href="' . $this->get_delete_url() . '" id="delete-' . $this->slug . '" class="delete" aria-label="Delete My Plugin">Delete</a>',
-			),
-			$this->get_actions()
+		$expected_actions = array(
+			'activate' => '<a href="' . $this->get_url( 'activate', 'activate-plugin_' . $this->get_file() ) . '" id="activate-' . $this->slug . '" class="edit" aria-label="Activate My Plugin">Activate</a>',
 		);
+
+		if ( ! is_multisite() ) {
+			$expected_actions['delete'] = '<a href="' . $this->get_delete_url() . '" id="delete-' . $this->slug . '" class="delete" aria-label="Delete My Plugin">Delete</a>';
+		}
+
+		$this->assertSame( $expected_actions, $this->get_actions() );
 	}
 
 	/**
