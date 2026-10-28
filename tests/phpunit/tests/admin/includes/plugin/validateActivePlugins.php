@@ -213,7 +213,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Removes the plugin file without a header, including any left over by an interrupted run.
+	 * Removes the plugin file without a header.
 	 */
 	private function remove_plugin() {
 		if ( $this->no_header_dir ) {
@@ -221,14 +221,6 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 			if ( is_dir( $dir ) ) {
 				$this->rmdir( $dir );
 				$this->delete_folders( $dir );
-			}
-		}
-
-		$dirs = glob( WP_PLUGIN_DIR . '/validate-test-no-header-*', GLOB_ONLYDIR );
-		if ( is_array( $dirs ) ) {
-			foreach ( $dirs as $leftover ) {
-				$this->rmdir( $leftover );
-				$this->delete_folders( $leftover );
 			}
 		}
 	}
