@@ -52,12 +52,17 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_the_comments_navigation_pages
 	 *
-	 * @param int  $cpage        Current comment page.
-	 * @param bool $has_previous Whether previous link should exist.
-	 * @param bool $has_next     Whether next link should exist.
+	 * @param int         $cpage          Current comment page.
+	 * @param bool        $has_previous   Whether previous link should exist.
+	 * @param bool        $has_next       Whether next link should exist.
+	 * @param string|null $previous_query Escaped query suffix for the previous page.
+	 * @param string|null $next_query     Escaped query suffix for the next page.
 	 */
-	public function test_get_the_comments_navigation_pages( $cpage, $has_previous, $has_next ) {
+	public function test_get_the_comments_navigation_pages( $cpage, $has_previous, $has_next, $previous_query, $next_query ) {
 		global $wp_query;
+
+		$this->set_permalink_structure( '' );
+		update_option( 'default_comments_page', 'oldest' );
 
 		$wp_query->max_num_comment_pages = 3;
 		set_query_var( 'cpage', $cpage );
@@ -65,15 +70,19 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 		$nav = get_the_comments_navigation();
 
 		if ( $has_previous ) {
-			$this->assertStringContainsString( 'class="nav-previous"', $nav );
-			$this->assertStringContainsString( 'Older comments', $nav );
+			$this->assertStringContainsString(
+				'<div class="nav-previous"><a href="' . home_url( '?p=' . self::$post_id ) . $previous_query . '#comments" >Older comments</a></div>',
+				$nav
+			);
 		} else {
 			$this->assertStringNotContainsString( 'class="nav-previous"', $nav );
 		}
 
 		if ( $has_next ) {
-			$this->assertStringContainsString( 'class="nav-next"', $nav );
-			$this->assertStringContainsString( 'Newer comments', $nav );
+			$this->assertStringContainsString(
+				'<div class="nav-next"><a href="' . home_url( '?p=' . self::$post_id ) . $next_query . '#comments" >Newer comments</a></div>',
+				$nav
+			);
 		} else {
 			$this->assertStringNotContainsString( 'class="nav-next"', $nav );
 		}
@@ -87,19 +96,25 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 	public static function data_get_the_comments_navigation_pages() {
 		return array(
 			'first page'  => array(
-				'cpage'        => 1,
-				'has_previous' => false,
-				'has_next'     => true,
+				'cpage'          => 1,
+				'has_previous'   => false,
+				'has_next'       => true,
+				'previous_query' => null,
+				'next_query'     => '&#038;cpage=2',
 			),
 			'middle page' => array(
-				'cpage'        => 2,
-				'has_previous' => true,
-				'has_next'     => true,
+				'cpage'          => 2,
+				'has_previous'   => true,
+				'has_next'       => true,
+				'previous_query' => '',
+				'next_query'     => '&#038;cpage=3',
 			),
 			'last page'   => array(
-				'cpage'        => 3,
-				'has_previous' => true,
-				'has_next'     => false,
+				'cpage'          => 3,
+				'has_previous'   => true,
+				'has_next'       => false,
+				'previous_query' => '&#038;cpage=2',
+				'next_query'     => null,
 			),
 		);
 	}
@@ -151,6 +166,12 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader"', $nav );
+
+		$omitted_label = get_the_comments_navigation(
+			array( 'screen_reader_text' => 'Fallback Screen Reader' )
+		);
+
+		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader"', $omitted_label );
 	}
 
 	/**
@@ -159,14 +180,35 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_comments_navigation_echoes() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_id ) );
+
 		global $wp_query;
+
+		update_option( 'default_comments_page', 'oldest' );
 
 		$wp_query->max_num_comment_pages = 2;
 		set_query_var( 'cpage', 1 );
 
-		$expected = get_the_comments_navigation();
+		add_filter(
+			'navigation_markup_template',
+			static function () {
+				return '<nav class="%1$s" aria-label="%4$s"><h2>%2$s</h2>%3$s</nav>';
+			}
+		);
+
+		$expected = '<nav class="echo-comment-navigation" aria-label="Echo ARIA"><h2>Echo Reader</h2>' .
+			'<div class="nav-next"><a href="' . home_url( '?p=' . self::$post_id ) . '&#038;cpage=2#comments" >Echo Newer</a></div></nav>';
 
 		$this->expectOutputString( $expected );
-		the_comments_navigation();
+		the_comments_navigation(
+			array(
+				'class'              => 'echo-comment-navigation',
+				'screen_reader_text' => 'Echo Reader',
+				'aria_label'         => 'Echo ARIA',
+				'prev_text'          => 'Echo Older',
+				'next_text'          => 'Echo Newer',
+			)
+		);
 	}
 }
