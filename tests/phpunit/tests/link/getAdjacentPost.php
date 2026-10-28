@@ -6,6 +6,13 @@
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_error_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 17807
 	 */
@@ -53,8 +60,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
 
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', false ) );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', true )->ID );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', false )->ID );
 
 		// Test category adjacency.
 		$this->go_to( get_permalink( $post_one->ID ) );
@@ -567,12 +574,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$first_run = get_adjacent_post( false, '', true );
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
-		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
+		$this->assertNotSame( $post_two->ID, $first_run->ID, 'Got second post when on second post' );
 
 		// Query count to test caching.
 		$num_queries = get_num_queries();
 		$second_run  = get_adjacent_post( false, '', true );
-		$this->assertNotEquals( $post_two, $second_run, 'Got second post when on second post on second run' );
+		$this->assertNotSame( $post_two->ID, $second_run->ID, 'Got second post when on second post on second run' );
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $second_run, 'Did not get first post when on second post on second run' );
 		$this->assertSame( $num_queries, get_num_queries() );
