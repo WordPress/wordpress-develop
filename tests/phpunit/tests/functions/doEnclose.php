@@ -129,6 +129,85 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that enclosures store the resolved MIME type for each URL.
+	 *
+	 * @ticket 65817
+	 * @dataProvider data_enclosure_mime_types
+	 *
+	 * @param string   $content      Post content.
+	 * @param string   $content_type HTTP Content-Type header.
+	 * @param string[] $expected     Expected enclosure metadata.
+	 */
+	public function test_enclosure_mime_types( $content, $content_type, $expected ) {
+		$post_id = self::factory()->post->create();
+
+		add_filter(
+			'pre_http_request',
+			static function () use ( $content_type ) {
+				return array(
+					'headers' => array(
+						'Content-Length' => 123,
+						'Content-Type'   => $content_type,
+					),
+				);
+			},
+			20
+		);
+
+		do_enclose( $content, $post_id );
+
+		$this->assertSame( $expected, get_post_meta( $post_id, 'enclosure', false ) );
+	}
+
+	/**
+	 * Data provider for test_enclosure_mime_types().
+	 *
+	 * @return array[]
+	 */
+	public static function data_enclosure_mime_types() {
+		return array(
+			'audio without an extension'              => array(
+				'https://example.com/audio',
+				'audio/ogg',
+				array( "https://example.com/audio\n123\naudio/ogg\n" ),
+			),
+			'video without an extension'              => array(
+				'https://example.com/video',
+				'video/mp4',
+				array( "https://example.com/video\n123\nvideo/mp4\n" ),
+			),
+			'audio with an unrecognized extension'    => array(
+				'https://example.com/audio.unknown',
+				'audio/ogg',
+				array( "https://example.com/audio.unknown\n123\naudio/ogg\n" ),
+			),
+			'video with a query and no path'          => array(
+				'https://example.com?video=1',
+				'video/mp4',
+				array( "https://example.com?video=1\n123\nvideo/mp4\n" ),
+			),
+			'extension takes precedence over header'  => array(
+				'https://example.com/video.mp4',
+				'application/octet-stream',
+				array( "https://example.com/video.mp4\n123\nvideo/mp4\n" ),
+			),
+			'previous enclosure has a different type' => array(
+				"https://example.com/video.mp4\nhttps://example.com/audio",
+				'audio/ogg',
+				array(
+					"https://example.com/video.mp4\n123\nvideo/mp4\n",
+					"https://example.com/audio\n123\naudio/ogg\n",
+				),
+			),
+			'non-media content type is not enclosed'  => array(
+				'https://example.com/document',
+				'text/html',
+				array(),
+			),
+		);
+	}
+
+	/**
 	 * The function should return false when the post ID input is invalid.
 	 *
 	 * @since 5.3.0
