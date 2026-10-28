@@ -202,13 +202,13 @@ class WP_Sitemaps {
 			$paged = 1;
 		}
 
-		$url_list = $provider->get_url_list( $paged, $object_subtype );
-
 		// Force a 404 and bail early if the sub-type query variable is set to an invalid value.
 		if ( $object_subtype && ! in_array( $object_subtype, $provider->get_object_subtypes(), true ) ) {
 			$this->send_404();
 			return;
 		}
+
+		$url_list = $provider->get_url_list( $paged, $object_subtype );
 
 		// Force a 404 and bail early if the requested page is out of range.
 		if ( $paged > $provider->get_max_num_pages( $object_subtype ) ) {
