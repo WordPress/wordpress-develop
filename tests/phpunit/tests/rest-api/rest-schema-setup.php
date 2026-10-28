@@ -16,6 +16,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function set_up() {
 		parent::set_up();
 
+		$this->set_permalink_structure( '' );
+
 		// Ensure client-side media processing is enabled so the sideload route is registered.
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
