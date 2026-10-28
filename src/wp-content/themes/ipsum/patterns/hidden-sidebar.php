@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: sidebar
+ * Title: Sidebar
  * Slug: ipsum/hidden-sidebar
  * Inserter: no
  *

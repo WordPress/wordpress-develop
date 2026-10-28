@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: search
+ * Title: Search
  * Slug: ipsum/hidden-search
  * Inserter: no
  *
