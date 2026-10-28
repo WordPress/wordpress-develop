@@ -205,8 +205,6 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_shortlink_with_pretty_permalinks() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$shortlink = wp_get_shortlink( self::$post_id );
 		$expected  = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '">Get Shortlink</a>';
 

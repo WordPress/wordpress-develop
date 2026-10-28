@@ -37,8 +37,6 @@ class Tests_Link_GetFeedLink extends WP_UnitTestCase {
 	 * @param string $type     Feed type to request.
 	 */
 	public function tests_pretty_permastruct( $expected, $type ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$this->assertSame( home_url( $expected ), get_feed_link( $type ) );
 	}
 

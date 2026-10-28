@@ -69,8 +69,6 @@ class Tests_Link_PostCommentsFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_post_comments_feed_link_pretty_permastruct() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_url = get_post_comments_feed_link( self::$post_id );
 		$expected     = '<a href="' . esc_url( $expected_url ) . '">Comments Feed</a>';
 

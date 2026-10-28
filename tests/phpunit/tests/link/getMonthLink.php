@@ -59,8 +59,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @param string     $expected_padded Expected two-digit padded month.
 	 */
 	public function test_get_month_link_pretty_permalinks( $year, $month, $expected_padded ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . $year . '/' . $expected_padded . '/' );
 		$this->assertSame( $expected, get_month_link( $year, $month ) );
 	}
@@ -76,8 +74,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @param mixed $month Month input.
 	 */
 	public function test_get_month_link_pretty_permalinks_fallback( $year, $month ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_year  = $year ? $year : current_time( 'Y' );
 		$expected_month = $month ? zeroise( (int) $month, 2 ) : current_time( 'm' );
 
@@ -115,8 +111,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_month_link_filter_custom_url() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$custom_callback = static function ( $monthlink, $year, $month ) {
 			return 'https://example.org/archives/' . $year . '-' . $month;
 		};

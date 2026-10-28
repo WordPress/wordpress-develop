@@ -51,6 +51,8 @@ class Tests_Link extends WP_UnitTestCase {
 	}
 
 	public function test_wp_get_shortlink_with_page() {
+		$this->set_permalink_structure( '' );
+
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		// Basic case.
@@ -66,6 +68,8 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 26871
 	 */
 	public function test_wp_get_shortlink_with_home_page() {
+		$this->set_permalink_structure( '' );
+
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $post_id );
@@ -130,8 +134,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 1914
 	 */
 	public function test_unattached_attachment_has_a_pretty_permalink() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
 			0,
@@ -153,8 +155,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 */
 	public function test_attachment_attached_to_non_existent_post_type_has_a_pretty_permalink() {
 		global $wp_post_types;
-
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_post_type( 'not_a_post_type', array( 'public' => true ) );
 

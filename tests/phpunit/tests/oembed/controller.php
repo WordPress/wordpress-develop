@@ -525,8 +525,6 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
-
-		update_option( 'permalink_structure', '' );
 	}
 
 	public function test_proxy_without_permission() {

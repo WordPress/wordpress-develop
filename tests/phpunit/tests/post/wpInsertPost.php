@@ -577,8 +577,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_permalink_without_title() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$data = array(
 			'post_status'  => 'publish',
 			'post_content' => 'content',

@@ -36,8 +36,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		create_initial_taxonomies();
 		flush_rewrite_rules();
 	}

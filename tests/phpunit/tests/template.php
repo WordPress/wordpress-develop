@@ -114,7 +114,6 @@ class Tests_Template extends WP_UnitTestCase {
 				'hierarchical' => true,
 			)
 		);
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		// Remove hooks which are added by wp_load_classic_theme_block_styles_on_demand() during bootstrapping.
 		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );

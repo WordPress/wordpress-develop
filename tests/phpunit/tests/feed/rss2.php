@@ -82,7 +82,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// This seems to break something.
 		update_option( 'use_smilies', false );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 	}
 
