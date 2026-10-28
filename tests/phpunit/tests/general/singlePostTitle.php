@@ -98,29 +98,13 @@ class Tests_General_SinglePostTitle extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::single_post_title
-	 *
-	 * @dataProvider data_non_post_views
-	 *
-	 * @param bool $display Whether to echo the title.
 	 */
-	public function test_returns_null_without_queried_post( $display ) {
+	public function test_returns_null_without_queried_post() {
 		$this->go_to( get_category_link( self::$category_id ) );
 
 		$this->expectOutputString( '' );
 
-		$this->assertNull( single_post_title( 'Blog: ', $display ) );
-	}
-
-	/**
-	 * Data provider for test_returns_null_without_queried_post().
-	 *
-	 * @return array[]
-	 */
-	public static function data_non_post_views() {
-		return array(
-			'echo'   => array( true ),
-			'return' => array( false ),
-		);
+		$this->assertNull( single_post_title( 'Blog: ', true ) );
 	}
 
 	/**
