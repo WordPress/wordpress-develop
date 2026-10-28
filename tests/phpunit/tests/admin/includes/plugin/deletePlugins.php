@@ -54,6 +54,13 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 		$this->had_filesystem      = array_key_exists( 'wp_filesystem', $GLOBALS );
 		$this->original_filesystem = $this->had_filesystem ? $GLOBALS['wp_filesystem'] : null;
 
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'direct';
+			}
+		);
+
 		self::$uninstalled = array();
 		delete_site_transient( 'update_plugins' );
 	}
