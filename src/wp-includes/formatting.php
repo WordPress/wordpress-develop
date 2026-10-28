@@ -2625,6 +2625,7 @@ function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.Namin
  *
  * @since 2.0.4
  * @since 5.3.0 Improve accuracy and add support for custom element tags.
+ * @since 7.2.0 MathML elements that may contain themselves are treated as nestable.
  *
  * @author Leonard Lin <leonard@acm.org>
  * @license GPL
@@ -2643,7 +2644,7 @@ function force_balance_tags( $text ) {
 	// Known single-entity/self-closing tags.
 	$single_tags = array( 'area', 'base', 'basefont', 'br', 'col', 'command', 'embed', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
 	// Tags that can be immediately nested within themselves.
-	$nestable_tags = array( 'article', 'aside', 'blockquote', 'details', 'div', 'figure', 'object', 'q', 'section', 'span' );
+	$nestable_tags = array( 'article', 'aside', 'blockquote', 'details', 'div', 'figure', 'maction', 'menclose', 'merror', 'mfrac', 'mmultiscripts', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'msqrt', 'mstyle', 'msub', 'msubsup', 'msup', 'munder', 'munderover', 'object', 'q', 'section', 'span' );
 
 	// WP bug fix for comments - in case you REALLY meant to type '< !--'.
 	$text = str_replace( '< !--', '<    !--', $text );
