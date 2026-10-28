@@ -144,14 +144,16 @@ function _delete_all_data() {
 	$wpdb->query( "DELETE FROM {$wpdb->usermeta} WHERE user_id != 1" );
 
 	/*
-	 * Drop the deleted users from the super admins too, e.g. a fixture user a test
-	 * class granted super admin to, or the grant leaks into the next test classes.
+	 * Drop the deleted users from the super admins and the network user count too,
+	 * e.g. a fixture user a test class granted super admin to, or the grant and the
+	 * count leak into the next test classes.
 	 */
 	if ( is_multisite() ) {
 		$logins = $wpdb->get_col( "SELECT user_login FROM {$wpdb->users}" );
 		$admins = array_intersect( (array) get_site_option( 'site_admins', array() ), $logins );
 
 		update_site_option( 'site_admins', array_values( $admins ) );
+		wp_update_network_user_counts();
 	}
 }
 

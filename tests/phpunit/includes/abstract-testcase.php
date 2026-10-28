@@ -134,6 +134,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		/*
+		 * The cache still holds values the tests' rollbacks undid, and the cleanup reads
+		 * options, e.g. a `site_admins` set in set_up() and rolled back in tear_down().
+		 */
+		self::flush_cache();
+
 		_delete_all_data();
 		self::restore_options();
 		self::flush_cache();
