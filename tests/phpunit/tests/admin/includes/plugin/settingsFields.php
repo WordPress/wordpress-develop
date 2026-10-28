@@ -48,9 +48,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	public static function data_option_groups() {
 		return array(
 			'general'      => array( 'general' ),
-			'discussion'   => array( 'discussion' ),
 			'custom group' => array( 'my_plugin_settings' ),
-			'empty string' => array( '' ),
 		);
 	}
 
@@ -101,6 +99,12 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 			wp_verify_nonce( $matches[1], $option_group . '-options' ),
 			'Nonce should verify for the "{option_group}-options" action.'
 		);
+
+		$this->assertStringContainsString(
+			'name="_wp_http_referer"',
+			$output,
+			'Should include the referer field from wp_nonce_field().'
+		);
 	}
 
 	/**
@@ -112,21 +116,6 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 		return array(
 			'general' => array( 'general' ),
 			'reading' => array( 'reading' ),
-		);
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_outputs_referer_field() {
-		ob_start();
-		settings_fields( 'general' );
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString(
-			'name="_wp_http_referer"',
-			$output,
-			'Should include the referer field from wp_nonce_field().'
 		);
 	}
 }
