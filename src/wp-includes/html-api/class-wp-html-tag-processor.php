@@ -1009,33 +1009,17 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		// Parse all of its attributes.
-		while ( $this->parse_next_attribute() ) {
-			continue;
-		}
+		$this->parse_all_attributes();
 
 		// Ensure that the tag closes before the end of the document.
-		if (
-			self::STATE_INCOMPLETE_INPUT === $this->parser_state ||
-			$this->bytes_already_parsed >= strlen( $this->html )
-		) {
-			// Does this appropriately clear state (parsed attributes)?
-			$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
+		if ( self::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
 			$this->bytes_already_parsed = $was_at;
-
 			return false;
 		}
 
-		$tag_ends_at = strpos( $this->html, '>', $this->bytes_already_parsed );
-		if ( false === $tag_ends_at ) {
-			$this->parser_state         = self::STATE_INCOMPLETE_INPUT;
-			$this->bytes_already_parsed = $was_at;
-
-			return false;
-		}
-		$this->parser_state         = self::STATE_MATCHED_TAG;
-		$this->bytes_already_parsed = $tag_ends_at + 1;
-		$this->token_length         = $this->bytes_already_parsed - $this->token_starts_at;
+		$this->parser_state = self::STATE_MATCHED_TAG;
+		++$this->bytes_already_parsed;
+		$this->token_length = $this->bytes_already_parsed - $this->token_starts_at;
 
 		/*
 		 * Certain tags require additional processing. The first-letter pre-check
@@ -1473,28 +1457,15 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			while ( $this->parse_next_attribute() ) {
-				continue;
-			}
+			$this->parse_all_attributes();
 
-			$at = $this->bytes_already_parsed;
-			if ( $at >= strlen( $this->html ) ) {
+			// Ensure that the tag closes before the end of the document.
+			if ( self::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
 				return false;
 			}
 
-			if ( '>' === $html[ $at ] ) {
-				$this->bytes_already_parsed = $at + 1;
-				return true;
-			}
-
-			if ( $at + 1 >= strlen( $this->html ) ) {
-				return false;
-			}
-
-			if ( '/' === $html[ $at ] && '>' === $html[ $at + 1 ] ) {
-				$this->bytes_already_parsed = $at + 2;
-				return true;
-			}
+			++$this->bytes_already_parsed;
+			return true;
 		}
 
 		return false;
@@ -1683,18 +1654,15 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				while ( $this->parse_next_attribute() ) {
-					continue;
-				}
+				$this->parse_all_attributes();
 
-				if ( $this->bytes_already_parsed >= $doc_length ) {
+				// Ensure that the tag closes before the end of the document.
+				if ( self::STATE_INCOMPLETE_INPUT === $this->parser_state ) {
 					return false;
 				}
 
-				if ( '>' === $html[ $this->bytes_already_parsed ] ) {
-					++$this->bytes_already_parsed;
-					return true;
-				}
+				++$this->bytes_already_parsed;
+				return true;
 			}
 
 			++$at;
@@ -2191,168 +2159,169 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Parses the next attribute.
+	 * Parses attributes.
 	 *
-	 * @since 6.2.0
+	 * This method must parse all attributes in a tag up to its closing `>`. After calling this
+	 * function, the parser is guaranteed to be positioned at the closing `>` of the tag or at the
+	 * end of the document if the tag is incomplete.
+	 *
+	 * This function will set the parser state to `STATE_INCOMPLETE_INPUT` if the tag is incomplete
+	 * and the parser reaches the end of the document before finding a closing `>`.
+	 *
+	 * @since 7.3.0
 	 * @ignore
-	 *
-	 * @return bool Whether an attribute was found. Returns `false` upon reaching the end
-	 *              of the tag (`>` or `/>`) or the end of the document.
 	 */
-	private function parse_next_attribute(): bool {
+	private function parse_all_attributes(): void {
 		$doc_length = strlen( $this->html );
 
-		// Skip whitespace and slashes.
-		$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
-		$this->bytes_already_parsed += $skipped_length;
-		if ( $this->bytes_already_parsed >= $doc_length ) {
-			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
-			return false;
-		}
-
-		/**
-		 * This block serves two purposes:
-		 *
-		 * - A fast path for common tag-ending `>`.
-		 * - A check for the self-closing flag which must appear as `/>`.
-		 *
-		 * In a tag like `<g attr=/>`, `/` is the attribute value, not a self-closing
-		 * flag. When it appears in this form, the parser has already consumed the
-		 * attribute value, `$skipped_length` is 0, and this checks below correctly
-		 * identify whether there is a self-closing flag.
-		 *
-		 * Note: Both start and end tags may have the self-closing flag.
-		 */
-		if ( '>' === $this->html[ $this->bytes_already_parsed ] ) {
-			if ( $skipped_length > 0 && '/' === $this->html[ $this->bytes_already_parsed - 1 ] ) {
-				$this->has_self_closing_flag = true;
+		while ( true ) {
+			// Skip whitespace and slashes.
+			$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
+			$this->bytes_already_parsed += $skipped_length;
+			if ( $this->bytes_already_parsed >= $doc_length ) {
+				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+				break;
 			}
-			return false;
-		}
 
-		/*
-		 * Treat the equal sign as a part of the attribute
-		 * name if it is the first encountered byte.
-		 *
-		 * @link https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
-		 */
-		$name_length = '=' === $this->html[ $this->bytes_already_parsed ]
-			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
-			: strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed );
+			/**
+			 * This block serves two purposes:
+			 *
+			 * - A fast path for common tag-ending `>`.
+			 * - A check for the self-closing flag which must appear as `/>`.
+			 *
+			 * In a tag like `<g attr=/>`, `/` is the attribute value, not a self-closing
+			 * flag. When it appears in this form, the parser has already consumed the
+			 * attribute value, `$skipped_length` is 0, and this checks below correctly
+			 * identify whether there is a self-closing flag.
+			 *
+			 * Note: Both start and end tags may have the self-closing flag.
+			 */
+			if ( '>' === $this->html[ $this->bytes_already_parsed ] ) {
+				if ( $skipped_length > 0 && '/' === $this->html[ $this->bytes_already_parsed - 1 ] ) {
+					$this->has_self_closing_flag = true;
+				}
+				break;
+			}
 
-		// No attribute, just tag closer.
-		if ( 0 === $name_length || $this->bytes_already_parsed + $name_length >= $doc_length ) {
-			return false;
-		}
+			/*
+			 * Treat the equal sign as a part of the attribute
+			 * name if it is the first encountered byte.
+			 *
+			 * @link https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
+			 */
+			$name_length = '=' === $this->html[ $this->bytes_already_parsed ]
+				? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
+				: strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed );
 
-		$attribute_start             = $this->bytes_already_parsed;
-		$attribute_name              = substr( $this->html, $attribute_start, $name_length );
-		$this->bytes_already_parsed += $name_length;
-		if ( $this->bytes_already_parsed >= $doc_length ) {
-			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+			// No attribute, just tag closer.
+			if ( 0 === $name_length ) {
+				break;
+			}
 
-			return false;
-		}
+			if ( $this->bytes_already_parsed + $name_length >= $doc_length ) {
+				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+				break;
+			}
 
-		$this->skip_whitespace();
-		if ( $this->bytes_already_parsed >= $doc_length ) {
-			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+			$attribute_start             = $this->bytes_already_parsed;
+			$attribute_name              = substr( $this->html, $attribute_start, $name_length );
+			$this->bytes_already_parsed += $name_length;
 
-			return false;
-		}
-
-		$has_value = '=' === $this->html[ $this->bytes_already_parsed ];
-		if ( $has_value ) {
-			++$this->bytes_already_parsed;
 			$this->skip_whitespace();
 			if ( $this->bytes_already_parsed >= $doc_length ) {
 				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
-				return false;
+				break;
 			}
 
-			switch ( $this->html[ $this->bytes_already_parsed ] ) {
-				case "'":
-				case '"':
-					$quote                      = $this->html[ $this->bytes_already_parsed ];
-					$value_start                = $this->bytes_already_parsed + 1;
-					$end_quote_at               = strpos( $this->html, $quote, $value_start );
-					$end_quote_at               = false === $end_quote_at ? $doc_length : $end_quote_at;
-					$value_length               = $end_quote_at - $value_start;
-					$attribute_end              = $end_quote_at + 1;
-					$this->bytes_already_parsed = $attribute_end;
+			$has_value = '=' === $this->html[ $this->bytes_already_parsed ];
+			if ( $has_value ) {
+				++$this->bytes_already_parsed;
+				$this->skip_whitespace();
+				if ( $this->bytes_already_parsed >= $doc_length ) {
+					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 					break;
+				}
 
-				default:
-					$value_start                = $this->bytes_already_parsed;
-					$value_length               = strcspn( $this->html, "> \t\f\r\n", $value_start );
-					$attribute_end              = $value_start + $value_length;
-					$this->bytes_already_parsed = $attribute_end;
+				switch ( $this->html[ $this->bytes_already_parsed ] ) {
+					case "'":
+					case '"':
+						$quote                      = $this->html[ $this->bytes_already_parsed ];
+						$value_start                = $this->bytes_already_parsed + 1;
+						$end_quote_at               = strpos( $this->html, $quote, $value_start );
+						$end_quote_at               = false === $end_quote_at ? $doc_length : $end_quote_at;
+						$value_length               = $end_quote_at - $value_start;
+						$attribute_end              = $end_quote_at + 1;
+						$this->bytes_already_parsed = $attribute_end;
+						break;
+
+					default:
+						$value_start                = $this->bytes_already_parsed;
+						$value_length               = strcspn( $this->html, "> \t\f\r\n", $value_start );
+						$attribute_end              = $value_start + $value_length;
+						$this->bytes_already_parsed = $attribute_end;
+				}
+			} else {
+				$value_start   = $this->bytes_already_parsed;
+				$value_length  = 0;
+				$attribute_end = $attribute_start + $name_length;
 			}
-		} else {
-			$value_start   = $this->bytes_already_parsed;
-			$value_length  = 0;
-			$attribute_end = $attribute_start + $name_length;
+
+			if ( $attribute_end >= $doc_length ) {
+				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+				break;
+			}
+
+			if ( $this->is_closing_tag ) {
+				continue;
+			}
+
+			/*
+			 * > There must never be two or more attributes on
+			 * > the same start tag whose names are an ASCII
+			 * > case-insensitive match for each other.
+			 *     - HTML 5 spec
+			 *
+			 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+			 *
+			 * The tokenizer replaces U+0000 NULL bytes in
+			 * attribute names with U+FFFD.
+			 *
+			 * @link https://html.spec.whatwg.org/#attribute-name-state
+			 */
+			$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
+
+			// If an attribute is listed many times, only use the first declaration and ignore the rest.
+			if ( ! isset( $this->attributes[ $comparable_name ] ) ) {
+				$this->attributes[ $comparable_name ] = new WP_HTML_Attribute_Token(
+					$attribute_name,
+					$value_start,
+					$value_length,
+					$attribute_start,
+					$attribute_end - $attribute_start,
+					! $has_value
+				);
+				continue;
+			}
+
+			/*
+			 * Track the duplicate attributes so if we remove it, all disappear together.
+			 *
+			 * While `$this->duplicated_attributes` could always be stored as an `array()`,
+			 * which would simplify the logic here, storing a `null` and only allocating
+			 * an array when encountering duplicates avoids needless allocations in the
+			 * normative case of parsing tags with no duplicate attributes.
+			 */
+			$duplicate_span = new WP_HTML_Span( $attribute_start, $attribute_end - $attribute_start );
+			if ( null === $this->duplicate_attributes ) {
+				$this->duplicate_attributes = array( $comparable_name => array( $duplicate_span ) );
+			} elseif ( ! isset( $this->duplicate_attributes[ $comparable_name ] ) ) {
+				$this->duplicate_attributes[ $comparable_name ] = array( $duplicate_span );
+			} else {
+				$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
+			}
 		}
 
-		if ( $attribute_end >= $doc_length ) {
-			$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
-			return false;
-		}
-
-		if ( $this->is_closing_tag ) {
-			return true;
-		}
-
-		/*
-		 * > There must never be two or more attributes on
-		 * > the same start tag whose names are an ASCII
-		 * > case-insensitive match for each other.
-		 *     - HTML 5 spec
-		 *
-		 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
-		 *
-		 * The tokenizer replaces U+0000 NULL bytes in
-		 * attribute names with U+FFFD.
-		 *
-		 * @link https://html.spec.whatwg.org/#attribute-name-state
-		 */
-		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
-
-		// If an attribute is listed many times, only use the first declaration and ignore the rest.
-		if ( ! isset( $this->attributes[ $comparable_name ] ) ) {
-			$this->attributes[ $comparable_name ] = new WP_HTML_Attribute_Token(
-				$attribute_name,
-				$value_start,
-				$value_length,
-				$attribute_start,
-				$attribute_end - $attribute_start,
-				! $has_value
-			);
-
-			return true;
-		}
-
-		/*
-		 * Track the duplicate attributes so if we remove it, all disappear together.
-		 *
-		 * While `$this->duplicated_attributes` could always be stored as an `array()`,
-		 * which would simplify the logic here, storing a `null` and only allocating
-		 * an array when encountering duplicates avoids needless allocations in the
-		 * normative case of parsing tags with no duplicate attributes.
-		 */
-		$duplicate_span = new WP_HTML_Span( $attribute_start, $attribute_end - $attribute_start );
-		if ( null === $this->duplicate_attributes ) {
-			$this->duplicate_attributes = array( $comparable_name => array( $duplicate_span ) );
-		} elseif ( ! isset( $this->duplicate_attributes[ $comparable_name ] ) ) {
-			$this->duplicate_attributes[ $comparable_name ] = array( $duplicate_span );
-		} else {
-			$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
-		}
-
-		return true;
+		assert( self::STATE_INCOMPLETE_INPUT === $this->parser_state || '>' === $this->html[ $this->bytes_already_parsed ] );
 	}
 
 	/**
