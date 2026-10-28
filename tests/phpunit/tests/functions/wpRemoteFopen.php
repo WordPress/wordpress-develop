@@ -62,7 +62,6 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845
-	 * @ticket 63914
 	 */
 	public function test_wp_remote_fopen() {
 		$body         = 'Hello World';
