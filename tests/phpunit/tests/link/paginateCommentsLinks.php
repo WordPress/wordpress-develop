@@ -40,7 +40,15 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 	public function test_paginate_comments_links_returns_null_when_not_singular() {
 		$this->go_to( home_url( '/' ) );
 
-		$this->assertNull( paginate_comments_links( array( 'echo' => false ) ) );
+		$this->assertNull(
+			paginate_comments_links(
+				array(
+					'total'   => 2,
+					'current' => 1,
+					'echo'    => false,
+				)
+			)
+		);
 	}
 
 	/**
