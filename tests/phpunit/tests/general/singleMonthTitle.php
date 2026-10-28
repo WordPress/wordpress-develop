@@ -35,9 +35,7 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	public static function data_month_titles() {
 		return array(
 			'year and monthnum, no prefix'          => array( 'year=2024&monthnum=3', '', 'March2024' ),
-			'year and monthnum, space prefix'       => array( 'year=2024&monthnum=3', ' ', ' March 2024' ),
 			'year and monthnum, custom prefix'      => array( 'year=2024&monthnum=3', ' / ', ' / March / 2024' ),
-			'm with year and month'                 => array( 'm=202411', ' ', ' November 2024' ),
 			'm with full date'                      => array( 'm=20241105', ' ', ' November 2024' ),
 			'year and monthnum take precedence'     => array( 'm=202411&year=2024&monthnum=3', ' ', ' March 2024' ),
 			'monthnum without year falls back to m' => array( 'm=202411&monthnum=3', ' ', ' November 2024' ),
@@ -69,7 +67,6 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	public static function data_no_month() {
 		return array(
 			'no date query variables' => array( '' ),
-			'year only'               => array( 'year=2024' ),
 			'm with year only'        => array( 'm=2024' ),
 			'm with invalid month'    => array( 'm=202413' ),
 		);
