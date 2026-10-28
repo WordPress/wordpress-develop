@@ -84,7 +84,7 @@ class Tests_Link_GetNextPreviousPostsPageLink extends WP_UnitTestCase {
 
 		$paged = 1;
 
-		$this->assertSame( get_pagenum_link( 2 ), get_next_posts_page_link( 3 ) );
+		$this->assertSame( get_pagenum_link( 2 ), get_next_posts_page_link( 2 ) );
 	}
 
 	/**
@@ -134,8 +134,19 @@ class Tests_Link_GetNextPreviousPostsPageLink extends WP_UnitTestCase {
 	public function test_get_previous_posts_page_link_clamps_to_page_one() {
 		global $paged;
 
-		$paged = 1;
+		$paged         = 1;
+		$expected_link = get_pagenum_link( 1 );
 
-		$this->assertSame( get_pagenum_link( 1 ), get_previous_posts_page_link() );
+		$filtered_page_number = null;
+		$filter               = static function ( $link, $page_number ) use ( &$filtered_page_number ) {
+			$filtered_page_number = $page_number;
+			return $link;
+		};
+
+		add_filter( 'get_pagenum_link', $filter, 10, 2 );
+		$previous_page_link = get_previous_posts_page_link();
+		remove_filter( 'get_pagenum_link', $filter, 10 );
+
+		$this->assertSame( array( $expected_link, 1 ), array( $previous_page_link, $filtered_page_number ) );
 	}
 }
