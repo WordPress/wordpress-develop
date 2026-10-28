@@ -170,6 +170,54 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The `excerpt` row shows the field's placeholder when the excerpt is
+	 * empty, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_block
+	 *
+	 * @dataProvider data_post_types_with_excerpt_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_excerpt_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'excerpt' )['layout']
+		);
+
+		if ( ! in_array( $post_type, array( 'page', 'post', 'wp_block' ), true ) ) {
+			unregister_post_type( $post_type );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_post_types_with_excerpt_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'wp_block'         => array( 'wp_block' ),
+			'custom post type' => array( 'excerpt_cpt' ),
+		);
+	}
+
+	/**
 	 * The `attachment` post type provides the form of the media editor: the
 	 * editable fields in a regular layout, then the rest in panels.
 	 *

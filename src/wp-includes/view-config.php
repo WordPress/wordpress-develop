@@ -69,8 +69,9 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'     => 'excerpt',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(
@@ -417,8 +418,9 @@ function _wp_get_entity_view_config_posttype_wp_block( $data ) {
 			array(
 				'id'     => 'excerpt',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(
