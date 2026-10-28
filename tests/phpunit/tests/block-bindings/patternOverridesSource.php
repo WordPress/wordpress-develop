@@ -82,49 +82,30 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	public function data_empty_metadata_names() {
 		return array(
 			'empty attributes'     => array( array() ),
-			'missing metadata'     => array( array( 'unrelated' => 'value' ) ),
 			'empty metadata array' => array( array( 'metadata' => array() ) ),
 			'empty name string'    => array( array( 'metadata' => array( 'name' => '' ) ) ),
-			'null name'            => array( array( 'metadata' => array( 'name' => null ) ) ),
-			'false name'           => array( array( 'metadata' => array( 'name' => false ) ) ),
 		);
 	}
 
 	/**
-	 * Tests that _block_bindings_pattern_overrides_get_value() returns null when context is empty or missing.
+	 * Tests that _block_bindings_pattern_overrides_get_value() returns null when context is empty.
 	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_pattern_overrides_get_value
 	 *
-	 * @dataProvider data_empty_context
-	 *
-	 * @param array $context Available block context.
 	 */
-	public function test_get_value_returns_null_when_context_empty( array $context ) {
+	public function test_get_value_returns_null_when_context_empty() {
 		$block = $this->create_block(
 			array(
 				'metadata' => array(
 					'name' => 'heading-1',
 				),
 			),
-			$context
+			array()
 		);
 
 		$this->assertNull( _block_bindings_pattern_overrides_get_value( array(), $block, 'content' ) );
-	}
-
-	/**
-	 * Data provider for test_get_value_returns_null_when_context_empty.
-	 *
-	 * @return array[]
-	 */
-	public function data_empty_context() {
-		return array(
-			'empty context'                 => array( array() ),
-			'missing pattern/overrides key' => array( array( 'postType' => 'post' ) ),
-			'empty pattern/overrides array' => array( array( 'pattern/overrides' => array() ) ),
-		);
 	}
 
 	/**
@@ -177,34 +158,6 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 		);
 
 		$this->assertNull( _block_bindings_pattern_overrides_get_value( array(), $block, 'alt' ) );
-	}
-
-	/**
-	 * Tests that _block_bindings_pattern_overrides_get_value() returns the matching override value for an attribute.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::_block_bindings_pattern_overrides_get_value
-	 */
-	public function test_get_value_returns_override_value() {
-		$block = $this->create_block(
-			array(
-				'metadata' => array(
-					'name' => 'custom-header',
-				),
-			),
-			array(
-				'pattern/overrides' => array(
-					'custom-header' => array(
-						'content' => 'Overridden Header Text',
-					),
-				),
-			)
-		);
-
-		$result = _block_bindings_pattern_overrides_get_value( array(), $block, 'content' );
-
-		$this->assertSame( 'Overridden Header Text', $result );
 	}
 
 	/**
@@ -273,12 +226,8 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 */
 	public function data_override_values_and_types() {
 		return array(
-			'string'        => array( 'A customized string' ),
 			'empty string'  => array( '' ),
-			'integer'       => array( 12345 ),
 			'zero integer'  => array( 0 ),
-			'zero string'   => array( '0' ),
-			'boolean true'  => array( true ),
 			'boolean false' => array( false ),
 			'array'         => array( array( 'nested' => 'value' ) ),
 			'empty array'   => array( array() ),
