@@ -310,10 +310,12 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 
 		$args = $network_filter->get_args();
 
+		$this->assertCount( 1, $args, 'The general network filter should run once.' );
+
 		$this->assertSame( $this->get_file(), $args[0][1], 'The filter should receive the plugin file.' );
 		$this->assertSame( 'My Plugin', $args[0][2]['Name'], 'The filter should receive the plugin data.' );
 		$this->assertSame( 'all', $args[0][3], 'The filter should receive the context.' );
-		$this->assertSame( 1, $file_filter->get_call_count(), 'The plugin-specific network filter should run.' );
+		$this->assertSame( $args, $file_filter->get_args(), 'The plugin-specific filter should receive the same actions, plugin file, plugin data and context.' );
 		$this->assertSame( 0, $site_filter->get_call_count(), 'The site filter should not run.' );
 	}
 
