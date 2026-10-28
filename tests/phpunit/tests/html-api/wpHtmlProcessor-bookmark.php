@@ -170,4 +170,35 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_token() );
 		$this->assertTrue( $processor->set_bookmark( 'mark' ) );
 	}
+
+	/**
+	 * Ensures that after a backward seek, content after BODY and HTML parses as it did the first time.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers ::seek
+	 */
+	public function test_seek_backward_reparses_content_after_body_and_html() {
+		$processor = WP_HTML_Processor::create_full_parser( '<html><body><p>x</p></body><!--a--></html><!--b-->' );
+		$this->assertTrue( $processor->next_tag( 'P' ) );
+		$this->assertTrue( $processor->set_bookmark( 'p' ), 'Failed to set bookmark "p".' );
+
+		$walk = static function () use ( $processor ) {
+			$tokens = array();
+			while ( $processor->next_token() ) {
+				$closer   = $processor->is_tag_closer() ? '/' : '';
+				$tokens[] = $closer . $processor->get_token_name() . ' ' . implode( ' > ', $processor->get_breadcrumbs() );
+			}
+			return $tokens;
+		};
+
+		$first_pass = $walk();
+		$this->assertNull( $processor->get_last_error(), 'Failed to parse the document on the first pass.' );
+
+		$this->assertTrue( $processor->seek( 'p' ), 'Failed to seek to bookmark "p".' );
+
+		$second_pass = $walk();
+		$this->assertSame( $first_pass, $second_pass, 'Found different tokens after seeking backward.' );
+		$this->assertNull( $processor->get_last_error(), 'Failed to parse the document after seeking backward.' );
+	}
 }
