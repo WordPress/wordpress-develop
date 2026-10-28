@@ -4022,7 +4022,7 @@ class wpdb {
 		if ( $this->col_info ) {
 			if ( -1 === $col_offset ) {
 				$new_array = array();
-				foreach ( (array) $this->col_info as $col ) {
+				foreach ( $this->col_info as $col ) {
 					$new_array[] = $col->{$info_type};
 				}
 				return $new_array;
