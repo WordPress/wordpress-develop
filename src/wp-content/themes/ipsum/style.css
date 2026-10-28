@@ -172,6 +172,17 @@ footer.wp-block-template-part {
 }
 
 /*
+ * Author cards: core hides the Author Name block for post types that do not
+ * support authors, but the hand-written "Written by" byline would remain.
+ * Hide the card when the Author Name block renders nothing, so the avatar and
+ * the byline disappear together.
+ * https://github.com/WordPress/ipsum/issues/166
+ */
+.author-card:not(:has(.wp-block-post-author-name)) {
+	display: none;
+}
+
+/*
  * Sticky headers: a sticky root block inside a template part has no room to
  * travel — the part's wrapper element is exactly as tall as its content — so
  * the wrapper itself must carry the stickiness. Keyed on the class core emits
