@@ -384,10 +384,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'type',
 				'status',
 				'date',
-				'date.local',
+				'date.site',
 				'date.gmt',
 				'modified',
-				'modified.local',
+				'modified.site',
 				'modified.gmt',
 				'slug',
 				'link',
@@ -678,7 +678,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( (int) ceil( $result['pagination']['total'] / 10 ), $result['pagination']['total_pages'], 'The page count should follow the default page size.' );
 		$this->assertSameSets( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result['items'][0] ), 'An empty fields list should select the default fields.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The default fields should hold only the rendered title.' );
-		$this->assertSameSets( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both dates.' );
+		$this->assertSame( array( 'site', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both the site and the GMT date, in that order.' );
 
 		$explicit = $ability->execute(
 			array(
@@ -740,12 +740,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$nullable_string = array( 'string', 'null' );
 		$object_types    = array(
 			'date'     => array(
-				'local' => $nullable_string,
-				'gmt'   => $nullable_string,
+				'site' => $nullable_string,
+				'gmt'  => $nullable_string,
 			),
 			'modified' => array(
-				'local' => $nullable_string,
-				'gmt'   => $nullable_string,
+				'site' => $nullable_string,
+				'gmt'  => $nullable_string,
 			),
 			'title'    => array(
 				'raw'      => 'string',
@@ -775,9 +775,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$this->assertSame( $types, wp_list_pluck( $object['properties'], 'type' ), sprintf( 'The %s object should describe each key with its type, in order.', $name ) );
 		}
 		foreach ( array( 'date', 'modified' ) as $name ) {
-			foreach ( array( 'local', 'gmt' ) as $key ) {
+			foreach ( array( 'site', 'gmt' ) as $key ) {
 				$this->assertSame( 'date-time', $post_schema['properties'][ $name ]['properties'][ $key ]['format'], sprintf( 'The %s.%s value should use the date-time format.', $name, $key ) );
 			}
+			$this->assertStringContainsString( "in ISO 8601 format using the site's timezone.", $post_schema['properties'][ $name ]['properties']['site']['description'], sprintf( 'The %s.site description should say the date uses the site timezone.', $name ) );
 		}
 
 		$this->assertSame( 'object', $pagination['type'], 'The pagination should describe an object.' );
@@ -2009,11 +2010,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'content.rendered'  => array(
 				'field' => 'content.rendered',
 			),
+			'date.site'         => array(
+				'field' => 'date.site',
+			),
 			'date.gmt'          => array(
 				'field' => 'date.gmt',
 			),
-			'modified.local'    => array(
-				'field' => 'modified.local',
+			'modified.site'     => array(
+				'field' => 'modified.site',
 			),
 			'author.name'       => array(
 				'field' => 'author.name',
@@ -2075,11 +2079,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			),
 			'date'     => array(
 				'field' => 'date',
-				'keys'  => array( 'local', 'gmt' ),
+				'keys'  => array( 'site', 'gmt' ),
 			),
 			'modified' => array(
 				'field' => 'modified',
-				'keys'  => array( 'local', 'gmt' ),
+				'keys'  => array( 'site', 'gmt' ),
 			),
 			'author'   => array(
 				'field' => 'author',
@@ -5252,7 +5256,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Local and GMT date fields report the correct instant and offset on non-UTC sites.
+	 * Site and GMT date fields report the correct instant and offset on non-UTC sites.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -5289,13 +5293,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type' => 'post',
 					'ids'  => array( $post_id ),
 				),
-				'fields' => array( 'id', 'date.local', 'date.gmt', 'modified.local', 'modified.gmt' ),
+				'fields' => array( 'id', 'date.site', 'date.gmt', 'modified.site', 'modified.gmt' ),
 			)
 		);
 
-		$this->assertSame( '2026-01-15T10:00:00-05:00', $result['items'][0]['date']['local'], 'The local date should carry the site timezone offset.' );
+		$this->assertSame( '2026-01-15T10:00:00-05:00', $result['items'][0]['date']['site'], 'The site date should carry the site timezone offset.' );
 		$this->assertSame( '2026-01-15T15:00:00+00:00', $result['items'][0]['date']['gmt'], 'The GMT date should be the UTC instant with a UTC offset.' );
-		$this->assertSame( '2026-01-16T11:00:00-05:00', $result['items'][0]['modified']['local'], 'The local modified date should carry the site timezone offset.' );
+		$this->assertSame( '2026-01-16T11:00:00-05:00', $result['items'][0]['modified']['site'], 'The site modified date should carry the site timezone offset.' );
 		$this->assertSame( '2026-01-16T16:00:00+00:00', $result['items'][0]['modified']['gmt'], 'The GMT modified date should be the UTC instant with a UTC offset.' );
 	}
 
@@ -5508,19 +5512,19 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function data_date_fields(): array {
 		return array(
-			'date.local'     => array(
-				'field'  => 'date.local',
+			'date.site'     => array(
+				'field'  => 'date.site',
 				'column' => 'post_date',
 			),
-			'date.gmt'       => array(
+			'date.gmt'      => array(
 				'field'  => 'date.gmt',
 				'column' => 'post_date_gmt',
 			),
-			'modified.local' => array(
-				'field'  => 'modified.local',
+			'modified.site' => array(
+				'field'  => 'modified.site',
 				'column' => 'post_modified',
 			),
-			'modified.gmt'   => array(
+			'modified.gmt'  => array(
 				'field'  => 'modified.gmt',
 				'column' => 'post_modified_gmt',
 			),
@@ -5538,7 +5542,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_date_fields
 	 *
-	 * @param string $field  The field path to request, such as `date.local`.
+	 * @param string $field  The field path to request, such as `date.site`.
 	 * @param string $column The cached post column to corrupt.
 	 */
 	public function test_malformed_date_is_null( string $field, string $column ): void {
