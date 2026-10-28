@@ -1271,7 +1271,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Admin_Bar::_render_item
 	 *
-	 * @dataProvider data_dashicon_elements
+	 * @dataProvider data_icon_argument_replaces_empty_icon_element
 	 *
 	 * @param string $dashicon_element Empty icon element in the title.
 	 */
@@ -1287,16 +1287,16 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( '<span class="ab-label">Label</span>' ), $html );
+		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( '<span class="ab-label">Label</span>' ), $html, 'The SVG icon element should be rendered before the label.' );
 		$this->assertSame( 1, substr_count( $html, 'ab-icon' ), 'Only the SVG icon element should be rendered.' );
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_icon_argument_replaces_empty_icon_element().
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_dashicon_elements(): array {
+	public static function data_icon_argument_replaces_empty_icon_element(): array {
 		return array(
 			'empty icon element'       => array( '<span class="ab-icon" aria-hidden="true"></span>' ),
 			'Dashicons class'          => array( '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>' ),
@@ -1347,8 +1347,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertStringNotContainsString( 'svg-icon', $html );
-		$this->assertStringContainsString( $title, $html );
+		$this->assertStringNotContainsString( 'svg-icon', $html, 'No SVG icon element should be rendered.' );
+		$this->assertStringContainsString( $title, $html, 'The empty icon element should be kept in the title.' );
 	}
 
 	/**
