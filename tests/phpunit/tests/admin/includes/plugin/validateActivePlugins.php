@@ -48,16 +48,12 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Creates a plugin file without a plugin header and resets the active plugins.
+	 * Removes stale plugin files and resets the active plugins.
 	 */
 	public function set_up() {
 		parent::set_up();
 
 		$this->remove_plugin();
-
-		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
-		$this->assertTrue( mkdir( $dir ), 'The test directory should be created.' );
-		$this->assertNotFalse( file_put_contents( $dir . '/functions.php', "<?php\n// No plugin header.\n" ), 'The file should be written.' );
 
 		wp_cache_delete( 'plugins', 'plugins' );
 		update_site_option( 'active_sitewide_plugins', array() );
@@ -120,6 +116,12 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 * @ticket 65819
 	 */
 	public function test_should_report_and_deactivate_invalid_plugins() {
+		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
+		$this->assertTrue( mkdir( $dir ), 'The test directory should be created.' );
+		$this->assertNotFalse( file_put_contents( $dir . '/functions.php', "<?php\n// No plugin header.\n" ), 'The file should be written.' );
+
+		wp_cache_delete( 'plugins', 'plugins' );
+
 		$no_header = self::NO_HEADER_DIR . '/functions.php';
 		update_option( 'active_plugins', array( 'hello.php', '../outside.php', 'missing/missing.php', $no_header ) );
 
@@ -178,6 +180,8 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 * @group ms-required
 	 */
 	public function test_should_not_validate_network_plugins_for_other_users() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
 		update_option( 'active_plugins', array() );
 		update_site_option( 'active_sitewide_plugins', array( 'missing/missing.php' => 1000 ) );
 
