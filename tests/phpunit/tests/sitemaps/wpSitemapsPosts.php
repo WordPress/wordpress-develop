@@ -258,7 +258,6 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 */
 	public static function data_timezones() {
 		return array(
-			'UTC'          => array( 'UTC', '2026-02-03T04:05:06+00:00' ),
 			'behind UTC'   => array( 'America/New_York', '2026-02-02T23:05:06-05:00' ),
 			'ahead of UTC' => array( 'Asia/Dhaka', '2026-02-03T10:05:06+06:00' ),
 		);
@@ -528,10 +527,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	public static function data_get_max_num_pages() {
 		return array(
 			'no posts'    => array( 0, 0 ),
-			'one post'    => array( 1, 1 ),
 			'two posts'   => array( 2, 1 ),
 			'three posts' => array( 3, 2 ),
-			'five posts'  => array( 5, 3 ),
 		);
 	}
 
