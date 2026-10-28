@@ -12,8 +12,8 @@
  *
  * @since 3.1.0
  *
- * @property-read array<string, mixed> $_pagination_args Various information needed for displaying the pagination.
- * @property-read WP_Screen            $screen           The current screen.
+ * @property array<string, mixed> $_pagination_args Various information needed for displaying the pagination.
+ * @property WP_Screen            $screen           The current screen.
  */
 #[AllowDynamicProperties]
 class WP_List_Table {

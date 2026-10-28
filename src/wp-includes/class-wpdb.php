@@ -51,14 +51,14 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  *
- * @property-read mysqli_result|bool|null         $result              Result of the last query.
+ * @property      mysqli_result|bool|null         $result              Result of the last query.
  * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
- * @property-read array<int, stdClass|false>|null $col_info            Saved info on the table column.
- * @property-read int                             $reconnect_retries   Number of times to retry reconnecting before dying.
- * @property-read string                          $dbuser              Database username.
- * @property-read string                          $dbname              Database name.
- * @property-read string                          $dbhost              Database host.
- * @property-read mysqli|false|null               $dbh                 Database handle.
+ * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
+ * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                          $dbuser              Database username.
+ * @property      string                          $dbname              Database name.
+ * @property      string                          $dbhost              Database host.
+ * @property      mysqli|false|null               $dbh                 Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {

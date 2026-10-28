@@ -21,7 +21,7 @@
  *
  * @since 2.0.0
  *
- * @property-read string[] $global_groups List of global cache groups.
+ * @property string[] $global_groups List of global cache groups.
  */
 #[AllowDynamicProperties]
 class WP_Object_Cache {
