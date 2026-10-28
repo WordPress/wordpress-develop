@@ -4137,11 +4137,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			/*
 			 * Allow CSS color functions like rgb() and color-mix() by replacing them, innermost first,
-			 * so long as their contents are plain color syntax. The number of passes caps the nesting.
+			 * so long as their contents are plain color syntax.
 			 */
 			$color_function_regex = '/(?<![\w-])(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix|color|light-dark)\(([^()]*)\)/i';
 
-			for ( $pass = 0; $pass < 32; $pass++ ) {
+			/*
+			 * Each pass replaces the innermost color functions, so 4 passes allow 4 levels
+			 * of nesting. That is the deepest real combination, for example:
+			 * light-dark(color-mix(in srgb, rgb(from hsl(200 50% 40%) r g b) 50%, #fff), #000)
+			 */
+			for ( $pass = 0; $pass < 4; $pass++ ) {
 				if ( ! preg_match_all( $color_function_regex, $css_test_string, $color_matches ) ) {
 					break;
 				}

@@ -1600,6 +1600,16 @@ EOF;
 				'css'      => 'color: color(display-p3 1 0 0)',
 				'expected' => 'color: color(display-p3 1 0 0)',
 			),
+			// Allow four levels of nested color functions.
+			array(
+				'css'      => 'color: light-dark(color-mix(in srgb, rgb(from hsl(200 50% 40%) r g b) 50%, #fff), #000)',
+				'expected' => 'color: light-dark(color-mix(in srgb, rgb(from hsl(200 50% 40%) r g b) 50%, #fff), #000)',
+			),
+			// Allow color functions nested up to the pass limit.
+			array(
+				'css'      => 'color: ' . str_repeat( 'rgb(', 4 ) . '0' . str_repeat( ')', 4 ),
+				'expected' => 'color: ' . str_repeat( 'rgb(', 4 ) . '0' . str_repeat( ')', 4 ),
+			),
 			// Color functions may not contain other functions.
 			array(
 				'css'      => 'color: rgb(foo(1) 0 0)',
@@ -1637,7 +1647,7 @@ EOF;
 			),
 			// Color functions may not be nested beyond the pass limit.
 			array(
-				'css'      => 'color: ' . str_repeat( 'rgb(', 40 ) . '0' . str_repeat( ')', 40 ),
+				'css'      => 'color: ' . str_repeat( 'rgb(', 5 ) . '0' . str_repeat( ')', 5 ),
 				'expected' => '',
 			),
 			// A comment after a color function is not allowed.
