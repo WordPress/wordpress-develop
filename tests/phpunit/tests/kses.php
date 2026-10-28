@@ -2995,4 +2995,34 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Ensures that a NOSCRIPT element is removed without discarding the content after it.
+	 *
+	 * @ticket 66208
+	 *
+	 * @dataProvider data_noscript_elements
+	 *
+	 * @param string $html     Input HTML.
+	 * @param string $expected Expected output.
+	 */
+	public function test_wp_kses_removes_noscript_and_keeps_following_content( $html, $expected ) {
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_noscript_elements() {
+		return array(
+			'Text around NOSCRIPT'       => array( 'Hello <noscript>Enable JS</noscript> world.', 'Hello  world.' ),
+			'Paragraphs around NOSCRIPT' => array( '<p>Before</p><noscript><img src="a.jpg" alt=""></noscript><p>After</p>', '<p>Before</p><p>After</p>' ),
+			'Nested NOSCRIPT'            => array( '<noscript><noscript>a</noscript>b</noscript>c', 'c' ),
+			'Closer inside an attribute' => array( '<noscript><p title="</noscript><img src=x onerror=alert(1)>"></p></noscript><p>After</p>', '<p>After</p>' ),
+			'Unclosed NOSCRIPT'          => array( '<p>Before</p><noscript><b>x</b>', '<p>Before</p>' ),
+			'Uppercase NOSCRIPT'         => array( '<NOSCRIPT>x</NOSCRIPT>y', 'y' ),
+		);
+	}
 }

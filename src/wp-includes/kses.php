@@ -1393,6 +1393,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 */
 		public function sanitize() {
 			$template_depth            = 0;
+			$noscript_depth            = 0;
 			$output                    = '';
 			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
@@ -1430,9 +1431,22 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * based on whether the scripting flag is enabled in a browser.
 				 * Rely on trusted inputs for producing the appropriate NOSCRIPT
 				 * content, and prevent untrusted inputs from generating it.
+				 *
+				 * The element is removed along with its contents, as with SCRIPT,
+				 * and sanitization continues after it, so that the rest of the
+				 * document is not lost.
 				 */
-				if ( 'NOSCRIPT' === $token_name && ! $is_closer ) {
-					break;
+				if ( 'NOSCRIPT' === $token_name && 'html' === $namespace ) {
+					if ( ! $is_closer ) {
+						++$noscript_depth;
+					} elseif ( $noscript_depth > 0 ) {
+						--$noscript_depth;
+					}
+					continue;
+				}
+
+				if ( $noscript_depth > 0 ) {
+					continue;
 				}
 
 				/*
