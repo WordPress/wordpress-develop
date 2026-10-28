@@ -36,6 +36,7 @@ themes.announceThemeDebounced = _.debounce( function( model ) {
 		return;
 	}
 
+	/* translators: %s: Theme name. */
 	wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( 'Theme details: %s' ), name ) );
 }, 500 );
 
