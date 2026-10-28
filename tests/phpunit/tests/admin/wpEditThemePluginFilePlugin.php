@@ -227,6 +227,11 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 
 			$this->assertWPError( $result, 'An error should be returned.' );
 			$this->assertSame( 'bad_plugin_file_path', $result->get_error_code(), 'The error code should match.' );
+			$this->assertSame(
+				$original_content,
+				file_get_contents( $hello_file ),
+				'The shared Hello Dolly fixture should be unchanged.'
+			);
 		} finally {
 			if ( file_get_contents( $hello_file ) !== $original_content ) {
 				$this->assertNotFalse(
@@ -234,12 +239,6 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 					'The shared Hello Dolly fixture should be restored.'
 				);
 			}
-
-			$this->assertSame(
-				$original_content,
-				file_get_contents( $hello_file ),
-				'The shared Hello Dolly fixture should be unchanged.'
-			);
 		}
 	}
 
