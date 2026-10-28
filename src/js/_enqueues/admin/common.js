@@ -1777,7 +1777,7 @@ $( function() {
 				$wpwrap.toggleClass( 'wp-responsive-open' );
 				if ( $wpwrap.hasClass( 'wp-responsive-open' ) ) {
 					$(this).find('a').attr( 'aria-expanded', 'true' );
-					$( '#adminmenu a:first' ).trigger( 'focus' );
+					$( '#adminmenu:not(:has(.wp-has-current-submenu)) a:first' ).trigger( 'blur' );
 				} else {
 					$(this).find('a').attr( 'aria-expanded', 'false' );
 				}
