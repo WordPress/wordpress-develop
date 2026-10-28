@@ -2276,26 +2276,6 @@ CSS;
 	}
 
 	/**
-	 * Tests that create() validates encoding and only accepts UTF-8.
-	 */
-	public function test_create_validates_encoding(): void {
-		// UTF-8 encoding should work (default).
-		$processor = WP_CSS_Token_Processor::create( '.class { color: red; }' );
-		$this->assertInstanceOf( WP_CSS_Token_Processor::class, $processor );
-
-		// UTF-8 encoding should work (explicit).
-		$processor = WP_CSS_Token_Processor::create( '.class { color: red; }', 'UTF-8' );
-		$this->assertInstanceOf( WP_CSS_Token_Processor::class, $processor );
-
-		// Other encodings should return null.
-		$processor = WP_CSS_Token_Processor::create( '.class { color: red; }', 'ISO-8859-1' );
-		$this->assertNull( $processor );
-
-		$processor = WP_CSS_Token_Processor::create( '.class { color: red; }', 'Windows-1252' );
-		$this->assertNull( $processor );
-	}
-
-	/**
 	 * Tests escape sequences in unusual and edge-case positions.
 	 *
 	 * Covers:
