@@ -1314,10 +1314,21 @@ class WP_Block_Processor {
 			'innerContent' => array(),
 		);
 
-		$depth          = $this->get_depth();
-		$should_advance = true;
-		while ( ( ! $should_advance || $this->next_token() ) && $this->get_depth() > $depth ) {
-			$should_advance = true;
+		$depth             = $this->get_depth();
+		$skip_next_advance = false;
+		while ( ( $skip_next_advance || $this->next_token() ) && $this->get_depth() > $depth ) {
+			/*
+			 * Once this method returns, the caller should be calling `next_token()` in order
+			 * to advance to the next block or HTML span. That means this loop needs to know
+			 * before advancing if it would step into that next block of span. For void blocks,
+			 * it’s clear that the processor must wait as the already-matched void delimiter,
+			 * because there is no expected closing delimiter. For HTML spans it’s a bit less
+			 * intuitive because they are parsed _as part of_ finding the next delimiter. It’s
+			 * necessary therefore to advance even with HTML spans, because the processor handles
+			 * this pause between HTML and delimiters automatically within `next_token()`.
+			 */
+			$skip_next_advance = ! $this->is_html() && self::VOID === $this->type;
+
 			if ( $this->is_html() ) {
 				$chunk                   = $this->get_html_content();
 				$block['innerHTML']     .= $chunk;
@@ -1332,7 +1343,6 @@ class WP_Block_Processor {
 			 * @todo Use iteration instead of recursion, or at least refactor to tail-call form.
 			 */
 			if ( $this->opens_block() ) {
-				$should_advance          = self::VOID !== $this->type;
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
