@@ -646,11 +646,11 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 * Tests the two pages that are in range return a 200 and that third, out of
 	 * range, page returns a 404.
 	 *
-	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemaps
+	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemap_subtypes
 	 *
 	 * @param string $post_type The post type to test.
 	 */
-	public function test_sitemap_does_not_404_for_valid_sitemaps( $post_type ) {
+	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( $post_type ) {
 		register_post_type( 'valid_cpt', array( 'public' => true ) );
 
 		self::factory()->post->create_many( 5, array( 'post_type' => $post_type ) );
@@ -684,11 +684,11 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_sitemap_does_not_404_for_valid_sitemaps
+	 * Data provider for test_sitemap_does_not_404_for_valid_sitemap_subtypes
 	 *
 	 * return array<string, array<string>>
 	 */
-	public function data_sitemap_does_not_404_for_valid_sitemaps() {
+	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes() {
 		return array(
 			'post'      => array( 'post' ),
 			'valid cpt' => array( 'valid_cpt' ),
