@@ -143,7 +143,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( $this->user->ID, $authed_user->ID );
 	}
 
-	public function data_passwords_for_trimming() {
+	public static function data_passwords_for_trimming() {
 		return array(
 			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
 			'trailing space'           => array( 'a password with trailing spaces ' ),
@@ -189,7 +189,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
 	}
 
-	public function data_passwords_with_whitespace() {
+	public static function data_passwords_with_whitespace() {
 		return array(
 			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
 			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
@@ -361,7 +361,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( 1, did_filter( 'check_password' ) );
 	}
 
-	public function data_empty_values() {
+	public static function data_empty_values() {
 		return array(
 			// String zero:
 			array( '0' ),
@@ -473,7 +473,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( self::$user_id, $user->ID );
 	}
 
-	public function data_passwords(): array {
+	public static function data_passwords(): array {
 		return array(
 			array( 'a' ),
 			array( 'password' ),
@@ -1278,7 +1278,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		return $options;
 	}
 
-	public function data_usernames() {
+	public static function data_usernames() {
 		return array(
 			array(
 				self::USER_LOGIN,
@@ -1850,7 +1850,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertSame( $user_id, $check->ID );
 	}
 
-	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
+	public static function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
 		return array(
 			'allowed'     => array( 'editor', true ),
 			'not allowed' => array( 'subscriber', false ),

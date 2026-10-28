@@ -434,7 +434,7 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 	 *
 	 * @return array[]
 	 */
-	public function data_non_public_collections() {
+	public static function data_non_public_collections() {
 		return array(
 			'custom non-public collection' => array( 'rest-visibility-private' ),
 			'built-in core-admin'          => array( 'core-admin' ),
