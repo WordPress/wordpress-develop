@@ -644,7 +644,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, int[]>
 	 */
-	public static function data_get_col_info_with_out_of_range_offset() {
+	public static function data_get_col_info_with_out_of_range_offset(): array {
 		return array(
 			'next offset'     => array( 1 ),
 			'distant offset'  => array( 100 ),
