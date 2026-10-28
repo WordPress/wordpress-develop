@@ -105,6 +105,10 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * theme of the test; the next read fires `wp_entity_actions_api_init` again.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'test_book' );
+		unregister_post_type( 'test_note' );
+		unregister_post_type( 'test_hidden' );
+
 		self::reset_registry();
 
 		parent::tear_down();
