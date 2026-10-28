@@ -137,7 +137,7 @@ footer.wp-block-template-part {
 }
 
 .wp-block-table thead th {
-	text-align: left;
+	text-align: start;
 	font-family: var(--wp--preset--font-family--manrope);
 	font-size: var(--wp--preset--font-size--small);
 	font-style: normal;
