@@ -1611,6 +1611,9 @@ HTML
 		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
 		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
 		$group = $processor->extract_full_block_and_advance();
+		$this->assertIsArray( $group );
+		$this->assertGreaterThan( 0, count( $group['innerBlocks'] ) );
+		$this->assertIsArray( $group['innerBlocks'][0] );
 
 		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
 		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
