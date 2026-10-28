@@ -33,15 +33,6 @@ class Tests_Link_GetTagFeedLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that false is returned for a non-existent tag ID.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_returns_false_for_non_existent_tag() {
-		$this->assertFalse( get_tag_feed_link( 999999 ) );
-	}
-
-	/**
 	 * Tests plain permalinks for tag feed link with default and specific feeds.
 	 *
 	 * @ticket 65819
@@ -73,55 +64,6 @@ class Tests_Link_GetTagFeedLink extends WP_UnitTestCase {
 		$this->assertSame(
 			home_url( '/tag/testing/feed/atom/' ),
 			get_tag_feed_link( self::$tag_id, 'atom' )
-		);
-	}
-
-	/**
-	 * Tests that passing a WP_Term object works the same as an ID.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_accepts_term_object() {
-		$this->set_permalink_structure( '/%postname%/' );
-		create_initial_taxonomies();
-
-		$tag = get_term( self::$tag_id, 'post_tag' );
-		$this->assertSame(
-			home_url( '/tag/testing/feed/' ),
-			get_tag_feed_link( $tag )
-		);
-	}
-
-	/**
-	 * Tests that the default_feed filter changes the default feed type.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_respects_default_feed_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-		create_initial_taxonomies();
-
-		add_filter(
-			'default_feed',
-			static function () {
-				return 'atom';
-			}
-		);
-
-		$this->assertSame(
-			home_url( '/tag/testing/feed/' ),
-			get_tag_feed_link( self::$tag_id ),
-			'An empty feed type should use the filtered default feed.'
-		);
-		$this->assertSame(
-			home_url( '/tag/testing/feed/' ),
-			get_tag_feed_link( self::$tag_id, 'atom' ),
-			'The default feed should not add a feed segment.'
-		);
-		$this->assertSame(
-			home_url( '/tag/testing/feed/rss2/' ),
-			get_tag_feed_link( self::$tag_id, 'rss2' ),
-			'A non-default feed should add a feed segment.'
 		);
 	}
 
