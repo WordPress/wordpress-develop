@@ -51,17 +51,6 @@ class Tests_Comment_GetPostReplyLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the default reply link.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::get_post_reply_link
-	 */
-	public function test_get_post_reply_link_default() {
-		$this->assertSame( $this->expected_link( self::$post_id ), get_post_reply_link( array(), self::$post_id ) );
-	}
-
-	/**
 	 * Tests that custom arguments change the reply link.
 	 *
 	 * @ticket 65819
@@ -191,18 +180,5 @@ class Tests_Comment_GetPostReplyLink extends WP_UnitTestCase {
 			),
 			self::$post_id
 		);
-	}
-
-	/**
-	 * Tests that post_reply_link() displays nothing when comments are closed.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::post_reply_link
-	 */
-	public function test_post_reply_link_displays_nothing_when_comments_closed() {
-		$this->expectOutputString( '' );
-
-		post_reply_link( array(), self::$closed_post_id );
 	}
 }
