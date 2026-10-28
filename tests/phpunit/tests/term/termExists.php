@@ -6,6 +6,13 @@
  * @covers ::term_exists
  */
 class Tests_TermExists extends WP_UnitTestCase {
+	public function tear_down() {
+		unregister_taxonomy( 'foo' );
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	public function test_term_exists_term_0() {
 		$this->assertSame( 0, term_exists( 0 ) );
 	}
