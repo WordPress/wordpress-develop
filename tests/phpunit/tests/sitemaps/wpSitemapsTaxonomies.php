@@ -249,4 +249,75 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 		$this->assertTrue( is_404(), 'Unregistered taxonomy sitemaps should 404' );
 	}
+
+	/**
+	 * Ensure in each page for a registered sub-type returns the correct response.
+	 *
+	 * Tests the two pages that are in range return a 200 and that third, out of
+	 * range, page returns a 404.
+	 *
+	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemaps
+	 *
+	 * @param string $taxonomy The taxonomy to test.
+	 */
+	public function test_sitemap_does_not_404_for_valid_sitemaps( $taxonomy ) {
+		register_taxonomy( 'valid_custom_taxonomy', 'post', array( 'public' => true ) );
+
+		$post_id = self::factory()->post->create();
+		$terms   = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'number'     => 5,
+			)
+		);
+
+		$count = count( $terms );
+		if ( $count < 5 ) {
+			$terms = array_merge( $terms, self::factory()->term->create_many( 5 - $count, array( 'taxonomy' => $taxonomy ) ) );
+		}
+		wp_add_object_terms( $post_id, $terms, $taxonomy );
+
+		add_filter(
+			'wp_sitemaps_max_urls',
+			static function () {
+				return 3;
+			}
+		);
+
+		$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertFalse( is_404(), 'Sitemap should not 404 when page is unspecified' );
+
+		foreach ( array( 1, 2 ) as $page ) {
+			$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}&paged={$page}" ) );
+			$sitemaps = wp_sitemaps_get_server();
+			// Wrap in get_echo to prevent unexpected test suite output.
+			get_echo( array( $sitemaps, 'render_sitemaps' ) );
+			$this->assertFalse( is_404(), "Sitemap should not 404 when page is set to {$page}" );
+		}
+
+		$page = 3;
+		$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}&paged={$page}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), "Sitemap should 404 when page is set to {$page} (out of range)" );
+	}
+
+	/**
+	 * Data provider for test_sitemap_does_not_404_for_valid_sitemaps
+	 *
+	 * return array<string, array<string>>
+	 */
+	public function data_sitemap_does_not_404_for_valid_sitemaps() {
+		return array(
+			'category'              => array( 'category' ),
+			'valid custom taxonomy' => array( 'valid_custom_taxonomy' ),
+			'tag'                   => array( 'post_tag' ),
+		);
+	}
 }

@@ -639,4 +639,60 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 			'zero pages'  => array( 0 ),
 		);
 	}
+
+	/**
+	 * Ensure in each page for a registered sub-type returns the correct response.
+	 *
+	 * Tests the two pages that are in range return a 200 and that third, out of
+	 * range, page returns a 404.
+	 *
+	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemaps
+	 *
+	 * @param string $post_type The post type to test.
+	 */
+	public function test_sitemap_does_not_404_for_valid_sitemaps( $post_type ) {
+		register_post_type( 'valid_cpt', array( 'public' => true ) );
+
+		self::factory()->post->create_many( 5, array( 'post_type' => $post_type ) );
+		add_filter(
+			'wp_sitemaps_max_urls',
+			static function () {
+				return 3;
+			}
+		);
+
+		$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertFalse( is_404(), 'Sitemap should not 404 when page is unspecified' );
+
+		foreach ( array( 1, 2 ) as $page ) {
+			$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}&paged={$page}" ) );
+			$sitemaps = wp_sitemaps_get_server();
+			// Wrap in get_echo to prevent unexpected test suite output.
+			get_echo( array( $sitemaps, 'render_sitemaps' ) );
+			$this->assertFalse( is_404(), "Sitemap should not 404 when page is set to {$page}" );
+		}
+
+		$page = 3;
+		$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}&paged={$page}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), "Sitemap should 404 when page is set to {$page} (out of range)" );
+	}
+
+	/**
+	 * Data provider for test_sitemap_does_not_404_for_valid_sitemaps
+	 *
+	 * return array<string, array<string>>
+	 */
+	public function data_sitemap_does_not_404_for_valid_sitemaps() {
+		return array(
+			'post'      => array( 'post' ),
+			'valid cpt' => array( 'valid_cpt' ),
+			'page'      => array( 'page' ),
+		);
+	}
 }
