@@ -130,7 +130,12 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( $error, $result, 'The error should be returned.' );
-		$this->assertSame( array( self::FILE ), get_option( 'active_plugins' ), 'The plugin should stay active.' );
+
+		// The plugin should remain active when deactivation is bypassed; for other callbacks,
+		// the never() expectations above verify that no filesystem operations were performed.
+		if ( 'deactivate_plugin_before_upgrade' === $callback ) {
+			$this->assertSame( array( self::FILE ), get_option( 'active_plugins' ), 'The plugin should stay active.' );
+		}
 	}
 
 	/**
@@ -152,9 +157,30 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 
 		$deactivate = new MockAction();
 		add_action( 'deactivate_plugin', array( $deactivate, 'action' ) );
+		add_action( 'deactivate_' . self::FILE, array( $deactivate, 'action' ) );
+		add_action( 'deactivated_plugin', array( $deactivate, 'action' ) );
 
 		$this->assertTrue( $this->upgrader->deactivate_plugin_before_upgrade( true, array( 'plugin' => self::FILE ) ), 'The response should be returned.' );
 		$this->assertSame( array( 'other-plugin/other-plugin.php' ), array_values( get_option( 'active_plugins' ) ), 'Only the upgraded plugin should be deactivated.' );
+		$this->assertSame( 0, $deactivate->get_call_count(), 'No deactivation hooks should run.' );
+	}
+
+	/**
+	 * Tests that a network-active plugin is deactivated silently before a manual upgrade on multisite.
+	 *
+	 * @ticket 65819
+	 * @group ms-required
+	 */
+	public function test_deactivate_should_deactivate_network_active_plugin_silently() {
+		update_site_option( 'active_sitewide_plugins', array( self::FILE => time() ) );
+
+		$deactivate = new MockAction();
+		add_action( 'deactivate_plugin', array( $deactivate, 'action' ) );
+		add_action( 'deactivate_' . self::FILE, array( $deactivate, 'action' ) );
+		add_action( 'deactivated_plugin', array( $deactivate, 'action' ) );
+
+		$this->assertTrue( $this->upgrader->deactivate_plugin_before_upgrade( true, array( 'plugin' => self::FILE ) ), 'The response should be returned.' );
+		$this->assertSame( array(), get_site_option( 'active_sitewide_plugins' ), 'The network-active plugin should be deactivated.' );
 		$this->assertSame( 0, $deactivate->get_call_count(), 'No deactivation hooks should run.' );
 	}
 
@@ -220,6 +246,37 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that active_before() and active_after() do not toggle maintenance mode when the plugin key is missing or empty.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_empty_plugin_args
+	 *
+	 * @param array $args The hook arguments.
+	 */
+	public function test_active_before_and_after_should_not_toggle_maintenance_mode_without_plugin( $args ) {
+		add_filter( 'wp_doing_cron', '__return_true' );
+
+		$this->filesystem->expects( $this->never() )->method( 'put_contents' );
+		$this->filesystem->expects( $this->never() )->method( 'delete' );
+
+		$this->assertTrue( $this->upgrader->active_before( true, $args ), 'active_before() should return the response.' );
+		$this->assertTrue( $this->upgrader->active_after( true, $args ), 'active_after() should return the response.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_empty_plugin_args() {
+		return array(
+			'no plugin key' => array( array() ),
+			'empty plugin'  => array( array( 'plugin' => '' ) ),
+		);
+	}
+
+	/**
 	 * Tests that maintenance mode is enabled and disabled for an active plugin during a background upgrade.
 	 *
 	 * The maintenance file is written with FS_CHMOD_FILE, which WP_Filesystem() defines.
@@ -258,7 +315,64 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 				}
 			);
 
-		$this->filesystem->expects( $this->exactly( 2 ) )
+		$this->filesystem->expects( $this->atLeastOnce() )
+			->method( 'delete' )
+			->with( '/remote/.maintenance' )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					if ( '/remote/.maintenance' === $file ) {
+						$maintenance_file_exists = false;
+					}
+					return true;
+				}
+			);
+
+		$this->assertTrue( $this->upgrader->active_before( true, array( 'plugin' => self::FILE ) ), 'active_before() should return the response.' );
+		$this->assertTrue( $maintenance_file_exists, 'Maintenance mode should be active after active_before().' );
+
+		$this->assertTrue( $this->upgrader->active_after( true, array( 'plugin' => self::FILE ) ), 'active_after() should return the response.' );
+		$this->assertFalse( $maintenance_file_exists, 'Maintenance mode should be inactive after active_after().' );
+	}
+
+	/**
+	 * Tests that maintenance mode is toggled for a network-active plugin during a background upgrade on multisite.
+	 *
+	 * @ticket 65819
+	 * @group ms-required
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_active_before_and_after_should_toggle_maintenance_mode_for_network_active_plugin_in_cron() {
+		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
+			define( 'FS_CHMOD_FILE', 0644 );
+		}
+
+		add_filter( 'wp_doing_cron', '__return_true' );
+		update_site_option( 'active_sitewide_plugins', array( self::FILE => time() ) );
+
+		$maintenance_file_exists = false;
+
+		$this->filesystem->method( 'exists' )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					return '/remote/.maintenance' === $file ? $maintenance_file_exists : true;
+				}
+			);
+
+		$this->filesystem->expects( $this->once() )
+			->method( 'put_contents' )
+			->with( '/remote/.maintenance', $this->stringStartsWith( '<?php $upgrading = ' ), FS_CHMOD_FILE )
+			->willReturnCallback(
+				static function ( $file ) use ( &$maintenance_file_exists ) {
+					if ( '/remote/.maintenance' === $file ) {
+						$maintenance_file_exists = true;
+					}
+					return true;
+				}
+			);
+
+		$this->filesystem->expects( $this->atLeastOnce() )
 			->method( 'delete' )
 			->with( '/remote/.maintenance' )
 			->willReturnCallback(
@@ -332,7 +446,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 			->with( $path, $recursive )
 			->willReturn( true );
 
-		$this->assertTrue( $this->upgrader->delete_old_plugin( null, '', '', array( 'plugin' => $plugin ) ) );
+		$this->assertTrue( $this->upgrader->delete_old_plugin( true, '', '', array( 'plugin' => $plugin ) ) );
 	}
 
 	/**
@@ -342,8 +456,9 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 */
 	public static function data_old_plugin_files() {
 		return array(
-			'plugin in a directory' => array( self::FILE, self::PLUGINS_DIR . 'my-plugin/', true ),
-			'single-file plugin'    => array( 'my-plugin.php', self::PLUGINS_DIR . 'my-plugin.php', false ),
+			'plugin in a directory'               => array( self::FILE, self::PLUGINS_DIR . 'my-plugin/', true ),
+			'single-file plugin'                  => array( 'my-plugin.php', self::PLUGINS_DIR . 'my-plugin.php', false ),
+			'directory trailing slash only guard' => array( 'my-plugin/', self::PLUGINS_DIR . 'my-plugin/', false ),
 		);
 	}
 
@@ -359,7 +474,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 			->willReturn( false );
 		$this->filesystem->expects( $this->never() )->method( 'delete' );
 
-		$this->assertNull( $this->upgrader->delete_old_plugin( null, '', '', array( 'plugin' => self::FILE ) ) );
+		$this->assertFalse( $this->upgrader->delete_old_plugin( false, '', '', array( 'plugin' => self::FILE ) ) );
 	}
 
 	/**
