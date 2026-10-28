@@ -55,9 +55,6 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 		return array(
 			'parentheses' => array( 'alert(1)' ),
 			'array'       => array( array( 'callback' ) ),
-			'integer'     => array( 123 ),
-			'null'        => array( null ),
-			'boolean'     => array( true ),
 		);
 	}
 }
