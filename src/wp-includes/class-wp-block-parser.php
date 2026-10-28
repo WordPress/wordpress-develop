@@ -143,7 +143,11 @@ class WP_Block_Parser {
 
 		$token_type   = $processor->get_delimiter_type();
 		$block_name   = $processor->get_block_type();
-		$attrs        = $processor->allocate_and_return_parsed_attributes() ?? array();
+		$attrs        = $processor->allocate_and_return_parsed_attributes() ?? (
+			JSON_ERROR_NONE === $processor->get_last_json_error()
+				? array()
+				: null
+		);
 		$span         = $processor->get_span();
 		$start_offset = $span->start;
 		$token_length = $span->length;
@@ -271,7 +275,11 @@ class WP_Block_Parser {
 		$started_at = $span->start;
 		$length     = $span->length;
 		$name       = $processor->get_block_type();
-		$attrs      = $processor->allocate_and_return_parsed_attributes();
+		$attrs      = $processor->allocate_and_return_parsed_attributes() ?? (
+			JSON_ERROR_NONE === $processor->get_last_json_error()
+				? array()
+				: null
+		);
 
 		switch ( $processor->get_delimiter_type() ) {
 			case WP_Block_Processor::VOID:
