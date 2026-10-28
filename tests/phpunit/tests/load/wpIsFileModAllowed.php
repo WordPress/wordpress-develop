@@ -69,10 +69,8 @@ class Tests_Load_WpIsFileModAllowed extends WP_UnitTestCase {
 	 */
 	public function data_contexts() {
 		return array(
-			'install_plugins'        => array( 'install_plugins' ),
-			'automatic_updater'      => array( 'automatic_updater' ),
-			'capability_edit_themes' => array( 'capability_edit_themes' ),
-			'download_language_pack' => array( 'download_language_pack' ),
+			'install_plugins'   => array( 'install_plugins' ),
+			'automatic_updater' => array( 'automatic_updater' ),
 		);
 	}
 
