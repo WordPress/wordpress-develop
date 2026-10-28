@@ -16,6 +16,18 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		wp_cache_delete( 'last_changed', 'terms' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( self::$taxonomy );
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_taxonomy( 'wptests_tax_1' );
+		unregister_taxonomy( 'countries' );
+		unregister_taxonomy( 'hierarchical_fields' );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_taxonomy( self::$taxonomy, 'page', array( 'hierarchical' => true ) );
 		$term_id1 = $factory->term->create(
@@ -36,6 +48,10 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		foreach ( $posts as $i => $post ) {
 			wp_set_object_terms( $post, array( $term_id1, $term_id2 ), self::$taxonomy );
 		}
+	}
+
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( self::$taxonomy );
 	}
 
 	/**
