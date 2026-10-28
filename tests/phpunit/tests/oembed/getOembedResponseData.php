@@ -13,6 +13,12 @@ class Tests_oEmbed_GetOembedResponseData extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
+	public function tear_down() {
+		global $wp_post_statuses;
+		unset( $wp_post_statuses['public'], $wp_post_statuses['private_foo'] );
+		parent::tear_down();
+	}
+
 	private function normalize_secret_attribute( $data ) {
 		if ( is_array( $data ) ) {
 			$html = $data['html'];
