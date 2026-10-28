@@ -3,8 +3,6 @@
 /**
  * Tests for valid_unicode().
  *
- * IMPORTANT: Do not call valid_unicode() from new code.
- *
  * Despite its name, this helper does not report whether a code point is valid
  * Unicode. It approximates the XML Char production: C0 controls other than
  * HT/LF/CR are rejected even though they are valid Unicode (for example
