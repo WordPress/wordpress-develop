@@ -222,14 +222,41 @@ class Tests_Widgets_wpWidgetMediaGallery extends WP_UnitTestCase {
 		}
 		$post_id = self::factory()->post->create();
 
-		$widget      = new WP_Widget_Media_Gallery();
-		$has_content = new ReflectionMethod( $widget, 'has_content' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$has_content->setAccessible( true );
-		}
+		$widget = new WP_Widget_Media_Gallery();
+		$args   = array(
+			'before_widget' => '<aside>',
+			'after_widget'  => '</aside>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		);
 
-		$this->assertTrue( $has_content->invoke( $widget, array( 'ids' => $attachment_ids ) ), 'Attachments only.' );
-		$this->assertFalse( $has_content->invoke( $widget, array( 'ids' => array( $attachment_ids[0], $post_id ) ) ), 'A non-attachment ID.' );
-		$this->assertFalse( $has_content->invoke( $widget, array( 'ids' => array() ) ), 'No IDs.' );
+		$gallery_renderer = static function ( $output ) {
+			return 'gallery-rendered';
+		};
+		add_filter( 'post_gallery', $gallery_renderer );
+
+		$render_widget = static function ( $ids ) use ( $widget, $args ) {
+			ob_start();
+			try {
+				$widget->widget(
+					$args,
+					array(
+						'ids'   => $ids,
+						'title' => '',
+					)
+				);
+				return ob_get_contents();
+			} finally {
+				ob_end_clean();
+			}
+		};
+
+		try {
+			$this->assertSame( '<aside>gallery-rendered</aside>', $render_widget( $attachment_ids ), 'A gallery of attachments should render.' );
+			$this->assertSame( '', $render_widget( array( $attachment_ids[0], $post_id ) ), 'A mixed attachment and post selection should not render.' );
+			$this->assertSame( '', $render_widget( array() ), 'An empty selection should not render.' );
+		} finally {
+			remove_filter( 'post_gallery', $gallery_renderer );
+		}
 	}
 }
