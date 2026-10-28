@@ -162,10 +162,11 @@ footer.wp-block-template-part {
  * users who can edit), so the dot appears and disappears with its element
  * instead of leaving orphan separators. The padding carries the breathing
  * room — literal spaces in generated content can collapse — so rows using
- * this class need no block gap of their own.
+ * this class need no block gap of their own. The empty alternative text after
+ * the slash keeps screen readers from announcing the dot, which is decorative.
  */
 .dot-before::before {
-	content: "·";
+	content: "·" / "";
 	font-weight: 600;
 	padding-inline: 0.5em;
 }

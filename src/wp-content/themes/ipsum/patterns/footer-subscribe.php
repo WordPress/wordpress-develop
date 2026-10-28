@@ -42,7 +42,7 @@ printf( esc_html__( 'Designed with %1$sWordPress%2$s', 'ipsum' ), '<a href="' . 
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Back to Top', 'Name of the back to top paragraph', 'ipsum' ); ?>"},"fontSize":"small","fontFamily":"manrope"} -->
-<p class="has-manrope-font-family has-small-font-size"><a href="#top"><?php esc_html_e( 'Back to top ↑', 'ipsum' ); ?></a></p>
+<p class="has-manrope-font-family has-small-font-size"><a href="#top"><?php esc_html_e( 'Back to top', 'ipsum' ); ?><span aria-hidden="true"> <?php esc_html_e( '↑', 'ipsum' ); ?></span></a></p>
 <!-- /wp:paragraph --></div>
 <!-- /wp:group --></div>
 <!-- /wp:group -->

@@ -24,7 +24,7 @@
 <div class="wp-block-group"><!-- wp:post-date {"isLink":true} /-->
 
 <!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
-<p class="has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( '·', 'ipsum' ); ?></p>
+<p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:post-terms {"term":"category"} /--></div>

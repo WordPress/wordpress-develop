@@ -936,7 +936,7 @@
 				"color": {
 					"background": "var(--wp--preset--color--theme-5)"
 				},
-				"css": "& blockquote::before{content:\"❝\";display:block;color:var(--wp--preset--color--theme-4);font-size:var(--wp--preset--font-size--2-x-large);line-height:1;} & cite::before{content:\"— \";} & p:last-of-type {margin-bottom: var(--wp--preset--spacing--40);}",
+				"css": "& blockquote::before{content:\"❝\" / \"\";display:block;color:var(--wp--preset--color--theme-4);font-size:var(--wp--preset--font-size--2-x-large);line-height:1;} & cite::before{content:\"— \" / \"\";} & p:last-of-type {margin-bottom: var(--wp--preset--spacing--40);}",
 				"elements": {
 					"cite": {
 						"typography": {
@@ -1003,7 +1003,7 @@
 				"color": {
 					"background": "var(--wp--preset--color--theme-5)"
 				},
-				"css": "&::before{content:\"❝\";display:block;color:var(--wp--preset--color--theme-4);font-size:var(--wp--preset--font-size--2-x-large);line-height:1;} & cite::before{content:\"— \";}",
+				"css": "&::before{content:\"❝\" / \"\";display:block;color:var(--wp--preset--color--theme-4);font-size:var(--wp--preset--font-size--2-x-large);line-height:1;} & cite::before{content:\"— \" / \"\";}",
 				"elements": {
 					"cite": {
 						"typography": {

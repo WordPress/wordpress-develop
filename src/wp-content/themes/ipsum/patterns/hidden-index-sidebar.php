@@ -34,7 +34,7 @@
 <div class="wp-block-group"><!-- wp:post-date {"isLink":true} /-->
 
 <!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
-<p class="has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( '·', 'ipsum' ); ?></p>
+<p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:post-terms {"term":"category"} /--></div>
@@ -48,7 +48,7 @@
 <div class="wp-block-group"><!-- wp:post-comments-link /-->
 
 <!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
-<p class="has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( '·', 'ipsum' ); ?></p>
+<p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"ipsum/comments-cta"}},"name":"<?php echo esc_html_x( 'Comments CTA', 'Name of the comments call to action paragraph', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small","fontFamily":"manrope"} -->
@@ -56,7 +56,7 @@
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph {"metadata":{"name":"›"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
-<p class="has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( '›', 'ipsum' ); ?></p>
+<p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '›', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph --></div>
 <!-- /wp:group --></div>
 <!-- /wp:group --></div>
