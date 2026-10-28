@@ -151,6 +151,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::get_object_subtypes
+	 * @covers ::get_sitemap_type_data
 	 * @covers ::get_sitemap_entries
 	 * @covers ::get_sitemap_url
 	 */
@@ -158,6 +159,15 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 		$provider = $this->get_provider( array( '' => 2 ) );
 
 		$this->assertSame( array(), $provider->get_object_subtypes() );
+		$this->assertSame(
+			array(
+				array(
+					'name'  => '',
+					'pages' => 2,
+				),
+			),
+			$provider->get_sitemap_type_data()
+		);
 		$this->assertSame(
 			array(
 				array( 'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=tests&paged=1' ),
