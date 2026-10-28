@@ -6,7 +6,11 @@
 class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 
 	public function tear_down() {
-		unregister_post_type( 'wptests_pt' );
+		$post_type = get_post_type_object( 'wptests_pt' );
+		if ( $post_type ) {
+			$post_type->_builtin = false;
+			unregister_post_type( 'wptests_pt' );
+		}
 
 		parent::tear_down();
 	}
