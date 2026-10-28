@@ -101,16 +101,16 @@ class Tests_Link_GetNextPreviousPostsPageLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests get_next_posts_page_link() when max_page argument is omitted or zero.
+	 * Tests that omitting max_page defaults to zero and permits the next page.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_get_next_posts_page_link_with_zero_max_page() {
+	public function test_get_next_posts_page_link_with_default_max_page() {
 		global $paged;
 
 		$paged = 2;
 
-		$this->assertSame( get_pagenum_link( 3 ), get_next_posts_page_link( 0 ) );
+		$this->assertSame( get_pagenum_link( 3 ), get_next_posts_page_link() );
 	}
 
 	/**
