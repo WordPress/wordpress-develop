@@ -27,20 +27,18 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	private static $subscriber_id;
 
 	/**
-	 * Number used to give each rendered plugin a unique slug.
-	 *
-	 * single_row() keeps the ID attributes it used in a static variable.
-	 *
-	 * @var int
-	 */
-	private static $counter = 0;
-
-	/**
 	 * The original globals the list table reads.
 	 *
 	 * @var array
 	 */
 	private $original_globals = array();
+
+	/**
+	 * The original request parameters.
+	 *
+	 * @var array
+	 */
+	private $original_request = array();
 
 	/**
 	 * The actions passed to the plugin_action_links filter.
@@ -85,14 +83,23 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	public function set_up() {
 		parent::set_up();
 
-		foreach ( array( 'status', 'page', 's', 'totals', '_paused_plugins', 'current_screen' ) as $name ) {
-			$this->original_globals[ $name ] = $GLOBALS[ $name ] ?? null;
+		$this->original_globals = array();
+		foreach ( array( 's', 'totals', '_paused_plugins' ) as $name ) {
+			if ( array_key_exists( $name, $GLOBALS ) ) {
+				$this->original_globals[ $name ] = $GLOBALS[ $name ];
+			}
 		}
+
+		$this->original_request = array(
+			'plugin_status' => $_REQUEST['plugin_status'] ?? null,
+			'paged'         => $_REQUEST['paged'] ?? null,
+		);
 
 		set_current_screen( 'plugins' );
 
-		$GLOBALS['status']          = 'all';
-		$GLOBALS['page']            = 1;
+		$_REQUEST['plugin_status'] = 'all';
+		$_REQUEST['paged']         = 1;
+
 		$GLOBALS['s']               = '';
 		$GLOBALS['totals']          = array();
 		$GLOBALS['_paused_plugins'] = array();
@@ -109,7 +116,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		update_site_option( 'active_sitewide_plugins', array() );
 
 		$this->actions = null;
-		$this->slug    = 'action-links-plugin-' . ++self::$counter;
+		$this->slug    = 'action-links-plugin-' . wp_generate_password( 8, false );
 
 		add_filter( 'plugin_action_links', array( $this, 'capture_actions' ), PHP_INT_MAX );
 
@@ -124,6 +131,20 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 			$GLOBALS[ $name ] = $value;
 		}
 
+		foreach ( array( 's', 'totals', '_paused_plugins' ) as $name ) {
+			if ( ! array_key_exists( $name, $this->original_globals ) ) {
+				unset( $GLOBALS[ $name ] );
+			}
+		}
+
+		foreach ( $this->original_request as $key => $value ) {
+			if ( null !== $value ) {
+				$_REQUEST[ $key ] = $value;
+			} else {
+				unset( $_REQUEST[ $key ] );
+			}
+		}
+
 		$this->remove_plugin();
 
 		parent::tear_down();
@@ -133,8 +154,6 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests the Deactivate link of an active plugin.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 */
 	public function test_should_link_deactivate_for_active_plugin() {
 		$this->activate();
@@ -151,8 +170,6 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests that an active plugin that other active plugins require cannot be deactivated.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 */
 	public function test_should_not_link_deactivate_for_plugin_with_active_dependents() {
 		$this->set_dependent( true );
@@ -170,23 +187,17 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests the Resume link of an active plugin that was paused.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 */
 	public function test_should_link_resume_for_paused_plugin() {
 		$this->activate();
-		$GLOBALS['_paused_plugins'] = array(
-			$this->slug => array(
-				'type'    => E_ERROR,
-				'line'    => 1,
-				'file'    => WP_PLUGIN_DIR . '/' . $this->get_file(),
-				'message' => 'Error.',
-			),
-		);
+		$this->pause();
 
 		$this->assertSame(
-			'<a href="' . $this->get_url( 'resume', 'resume-plugin_' . $this->get_file() ) . '" id="resume-' . $this->slug . '" class="resume-link" aria-label="Resume My Plugin">Resume</a>',
-			$this->get_actions()['resume']
+			array(
+				'deactivate' => '<a href="' . $this->get_url( 'deactivate', 'deactivate-plugin_' . $this->get_file() ) . '" id="deactivate-' . $this->slug . '" aria-label="Deactivate My Plugin">Deactivate</a>',
+				'resume'     => '<a href="' . $this->get_url( 'resume', 'resume-plugin_' . $this->get_file() ) . '" id="resume-' . $this->slug . '" class="resume-link" aria-label="Resume My Plugin">Resume</a>',
+			),
+			$this->get_actions()
 		);
 	}
 
@@ -201,7 +212,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		);
 
 		if ( ! is_multisite() ) {
-			$expected_actions['delete'] = '<a href="' . $this->get_delete_url() . '" id="delete-' . $this->slug . '" class="delete" aria-label="Delete My Plugin">Delete</a>';
+			$expected_actions['delete'] = $this->get_delete_link();
 		}
 
 		$this->assertSame( $expected_actions, $this->get_actions() );
@@ -211,8 +222,6 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests that a plugin whose requirements are not met cannot be activated.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 *
 	 * @dataProvider data_unmet_requirements
 	 *
@@ -238,8 +247,6 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 * Tests that a plugin with unmet dependencies cannot be activated.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
 	 */
 	public function test_should_not_activate_plugin_with_unmet_dependencies() {
 		$this->set_property_value( 'dependencies', array( $this->get_file() => array( 'missing' ) ) );
@@ -271,7 +278,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 
 		$this->assertSame(
 			$circular
-				? '<a href="' . $this->get_delete_url() . '" id="delete-' . $this->slug . '" class="delete" aria-label="Delete My Plugin">Delete</a>'
+				? $this->get_delete_link()
 				: 'Delete<span class="screen-reader-text">You cannot delete this plugin as other plugins require it.</span>',
 			$this->get_actions()['delete']
 		);
@@ -303,14 +310,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 
 		if ( $active ) {
 			$this->activate();
-			$GLOBALS['_paused_plugins'] = array(
-				$this->slug => array(
-					'type'    => E_ERROR,
-					'line'    => 1,
-					'file'    => WP_PLUGIN_DIR . '/' . $this->get_file(),
-					'message' => 'Error.',
-				),
-			);
+			$this->pause();
 		}
 
 		$this->assertSame( array(), $this->get_actions() );
@@ -339,6 +339,20 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		update_site_option( 'active_sitewide_plugins', array( $this->get_file() => time() ) );
 
 		$this->assertSame( array( 'network_active' => 'Network Active' ), $this->get_actions() );
+	}
+
+	/**
+	 * Tests that an inactive network-only plugin shows "Network Only" on a site's Plugins screen.
+	 *
+	 * @ticket 65819
+	 *
+	 * @group ms-required
+	 */
+	public function test_should_show_network_only_for_inactive_network_only_plugin() {
+		$this->assertSame(
+			array( 'network_only' => 'Network Only' ),
+			$this->get_actions( array(), " * Network: true\n" )
+		);
 	}
 
 	/**
@@ -374,15 +388,30 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	/**
 	 * Renders the row of the test plugin and returns its action links.
 	 *
-	 * @param array $plugin_data The plugin data to add.
+	 * @param array  $plugin_data The plugin data to add.
+	 * @param string $headers     Additional plugin headers for the file on multisite.
 	 * @return array The action links.
 	 */
-	private function get_actions( $plugin_data = array() ) {
+	private function get_actions( $plugin_data = array(), $headers = '' ) {
 		// is_network_only_plugin() reads the plugin headers on multisite.
-		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
-		$this->remove_plugin();
-		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
-		$this->assertNotFalse( file_put_contents( $dir . '/' . $this->slug . '.php', "<?php\n/**\n * Plugin Name: My Plugin\n */\n" ), 'The test plugin should be written.' );
+		if ( is_multisite() ) {
+			if ( ! is_writable( WP_PLUGIN_DIR ) ) {
+				$this->markTestSkipped( 'WP_PLUGIN_DIR is not writable.' );
+			}
+
+			$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+			$this->remove_plugin();
+			$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
+			$this->assertNotFalse(
+				file_put_contents(
+					$dir . '/' . $this->slug . '.php',
+					"<?php\n/**\n * Plugin Name: My Plugin\n{$headers} */\n"
+				),
+				'The test plugin should be written.'
+			);
+
+			wp_clean_plugins_cache( false );
+		}
 
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
 
@@ -440,10 +469,33 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	}
 
 	/**
+	 * Returns the expected Delete link markup.
+	 *
+	 * @return string The Delete link markup.
+	 */
+	private function get_delete_link() {
+		return '<a href="' . $this->get_delete_url() . '" id="delete-' . $this->slug . '" class="delete" aria-label="Delete My Plugin">Delete</a>';
+	}
+
+	/**
 	 * Activates the test plugin.
 	 */
 	private function activate() {
 		update_option( 'active_plugins', array_merge( get_option( 'active_plugins' ), array( $this->get_file() ) ) );
+	}
+
+	/**
+	 * Pauses the test plugin.
+	 */
+	private function pause() {
+		$GLOBALS['_paused_plugins'] = array(
+			$this->slug => array(
+				'type'    => E_ERROR,
+				'line'    => 1,
+				'file'    => WP_PLUGIN_DIR . '/' . $this->get_file(),
+				'message' => 'Error.',
+			),
+		);
 	}
 
 	/**
@@ -457,7 +509,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		$this->set_property_value( 'dependency_slugs', array( $this->slug ) );
 
 		if ( $active ) {
-			update_option( 'active_plugins', array( 'dependent/dependent.php' ) );
+			update_option( 'active_plugins', array_merge( (array) get_option( 'active_plugins', array() ), array( 'dependent/dependent.php' ) ) );
 		}
 	}
 
@@ -469,7 +521,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 
 		if ( is_dir( $dir ) ) {
 			$this->rmdir( $dir );
-			rmdir( $dir );
+			$this->delete_folders( $dir );
 		}
 	}
 }
