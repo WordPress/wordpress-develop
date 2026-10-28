@@ -112,6 +112,12 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader"', $pagination );
+
+		$omitted_label = get_the_comments_pagination(
+			array( 'screen_reader_text' => 'Fallback Screen Reader' )
+		);
+
+		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader"', $omitted_label );
 	}
 
 	/**
@@ -120,14 +126,37 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_comments_pagination_echoes() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_id ) );
+
 		global $wp_query;
+
+		update_option( 'default_comments_page', 'oldest' );
 
 		$wp_query->max_num_comment_pages = 2;
 		set_query_var( 'cpage', 1 );
 
-		$expected = get_the_comments_pagination();
+		add_filter(
+			'navigation_markup_template',
+			static function () {
+				return '<nav class="%1$s" aria-label="%4$s"><h2>%2$s</h2>%3$s</nav>';
+			}
+		);
+
+		$expected = '<nav class="echo-comments-pagination" aria-label="Echo ARIA"><h2>Echo Reader</h2>' .
+			'<span aria-current="page" class="page-numbers current">1</span>' . "\n" .
+			'<a class="page-numbers" href="https://example.org/comments/2/?p=' . self::$post_id . '#comments">2</a></nav>';
 
 		$this->expectOutputString( $expected );
-		the_comments_pagination();
+		the_comments_pagination(
+			array(
+				'base'               => 'https://example.org/comments/%#%/?p=' . self::$post_id,
+				'format'             => '',
+				'prev_next'          => false,
+				'class'              => 'echo-comments-pagination',
+				'screen_reader_text' => 'Echo Reader',
+				'aria_label'         => 'Echo ARIA',
+			)
+		);
 	}
 }
