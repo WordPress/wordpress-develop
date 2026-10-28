@@ -635,6 +635,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$wpdb->get_results( "SELECT ID FROM $wpdb->users" );
 
+		// @phpstan-ignore argument.type (Offsets outside the documented range are passed deliberately.)
 		$this->assertNull( $wpdb->get_col_info( 'name', $col_offset ) );
 	}
 
