@@ -225,6 +225,9 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 * The maintenance file is written with FS_CHMOD_FILE, which WP_Filesystem() defines.
 	 *
 	 * @ticket 65819
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_active_before_and_after_should_toggle_maintenance_mode_in_cron() {
 		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
