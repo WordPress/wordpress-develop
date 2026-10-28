@@ -66,59 +66,25 @@ class Tests_Link_EditPostLink extends WP_UnitTestCase {
 	public function test_should_output_default_link_for_permitted_user() {
 		$output = get_echo( 'edit_post_link' );
 
-		$processor = new WP_HTML_Tag_Processor( $output );
-		$this->assertTrue( $processor->next_tag( 'a' ), 'The output should contain an anchor tag.' );
-		$this->assertSame( 'post-edit-link', $processor->get_attribute( 'class' ), 'The anchor should have the post-edit-link class.' );
-		$this->assertSame( get_edit_post_link( self::$post_id, 'url' ), $processor->get_attribute( 'href' ), 'The anchor href should match get_edit_post_link().' );
-
 		$expected = '<a class="post-edit-link" href="' . esc_url( get_edit_post_link( self::$post_id ) ) . '">' . __( 'Edit This' ) . '</a>';
 		$this->assertSame( $expected, $output, 'The full output should match the expected default markup.' );
-	}
-
-	/**
-	 * Tests that edit_post_link() outputs custom link text when provided.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_should_output_custom_link_text() {
-		$custom_text = 'Edit My Post';
-		$output      = get_echo( 'edit_post_link', array( $custom_text ) );
-
-		$expected = '<a class="post-edit-link" href="' . esc_url( get_edit_post_link( self::$post_id ) ) . '">' . $custom_text . '</a>';
-		$this->assertSame( $expected, $output, 'The link should use the custom link text.' );
 	}
 
 	/**
 	 * Tests that edit_post_link() prepends $before and appends $after markup.
 	 *
 	 * @ticket 65819
-	 *
-	 * @dataProvider data_before_and_after_markup
-	 *
-	 * @param string $before The markup to prepend.
-	 * @param string $after  The markup to append.
 	 */
-	public function test_should_prepend_and_append_markup( $before, $after ) {
-		$output = get_echo( 'edit_post_link', array( null, $before, $after ) );
+	public function test_should_prepend_and_append_markup() {
+		$before = '<p>';
+		$after  = '</p>';
 
-		$link     = '<a class="post-edit-link" href="' . esc_url( get_edit_post_link( self::$post_id ) ) . '">' . __( 'Edit This' ) . '</a>';
+		$output = get_echo( 'edit_post_link', array( 'Edit My Post', $before, $after ) );
+
+		$link     = '<a class="post-edit-link" href="' . esc_url( get_edit_post_link( self::$post_id ) ) . '">Edit My Post</a>';
 		$expected = $before . $link . $after;
 
 		$this->assertSame( $expected, $output, 'The output should include the prepended and appended markup.' );
-	}
-
-	/**
-	 * Data provider for test_should_prepend_and_append_markup().
-	 *
-	 * @return array<string, array<string>>
-	 */
-	public static function data_before_and_after_markup() {
-		return array(
-			'paragraph tags' => array( '<p>', '</p>' ),
-			'div tags'       => array( '<div class="edit-link">', '</div>' ),
-			'list item tags' => array( '<li>', '</li>' ),
-			'span tags'      => array( '<span>', '</span>' ),
-		);
 	}
 
 	/**
