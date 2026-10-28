@@ -38,6 +38,12 @@ class Tests_User_GetTheAuthorPosts extends WP_UnitTestCase {
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_the_author_posts() {
 		// Test with no global post, result should be 0 because no author is found.
 		$this->assertSame( 0, get_the_author_posts() );
