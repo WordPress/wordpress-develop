@@ -20,6 +20,29 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	protected static $fixtures_dir;
 
 	/**
+	 * Ensures that a basic block parses into the expected data structure.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_parses_basic_empty_block() {
+		$p      = new WP_Block_Parser();
+		$blocks = $p->parse( '<!-- wp:block -->' );
+
+		$this->assertSame(
+			array(
+				array(
+					'blockName'    => 'core/block',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '',
+					'innerContent' => array(),
+				),
+			),
+			$blocks
+		);
+	}
+
+	/**
 	 * @dataProvider data_parsing_test_filenames
 	 * @ticket 45109
 	 *

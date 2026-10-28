@@ -1675,17 +1675,6 @@ HTML
 			'<!-- wp:g --><!-- wp:v /--><!-- wp:p -->y<!-- /wp:p --><!-- /wp:g -->',
 		);
 
-		/*
-		 * @todo There is a hidden bug in here, which is possibly a problem in
-		 *       the default parser. There are HTML spans of newlines between
-		 *       these block delimiters, and without them, the parse doesn’t
-		 *       match `parse_blocks()`. However, `parse_blocks()` is inconsistent
-		 *       in its behavior. Whereas it produces an empty text chunk here,
-		 *       in the case of a void inner block it produces none. The test is
-		 *       being adjusted to step around this issue so that it can be resolved
-		 *       separately, and until it’s clear if there is an implementation issue
-		 *       with `parse_blocks()` itself.
-		 */
 		yield 'Empty columns' => array(
 			<<<HTML
 			<!-- wp:columns -->
