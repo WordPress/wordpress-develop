@@ -630,7 +630,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @param int $col_offset Column offset past the last column, or a negative offset other than -1.
 	 */
-	public function test_get_col_info_with_out_of_range_offset( $col_offset ) {
+	public function test_get_col_info_with_out_of_range_offset( int $col_offset ) {
 		global $wpdb;
 
 		$wpdb->get_results( "SELECT ID FROM $wpdb->users" );
