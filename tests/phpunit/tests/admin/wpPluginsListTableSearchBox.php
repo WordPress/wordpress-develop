@@ -124,11 +124,11 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 		$_REQUEST['s']       = 'a "b" <c>';
 		$_GET['s']           = $_REQUEST['s'];
 		$_REQUEST['orderby'] = 'name"><x';
-		$_REQUEST['order']   = 'DESC';
+		$_REQUEST['order']   = 'DESC"><x';
 
 		$this->assertEqualHTML(
 			'<input type="hidden" name="orderby" value="name&quot;&gt;&lt;x" />'
-			. '<input type="hidden" name="order" value="DESC" />'
+			. '<input type="hidden" name="order" value="DESC&quot;&gt;&lt;x" />'
 			. '<p class="search-box">'
 			. '<label for="plugin-search-input">Search Plugins</label>'
 			. '<input type="search" id="plugin-search-input" class="wp-filter-search" name="s" value="a &quot;b&quot; &lt;c&gt;" />'
@@ -170,10 +170,19 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 	 * @param int    $expected The expected sign of the comparison.
 	 */
 	public function test_order_callback_should_compare_by_field( $order, $a, $b, $expected ) {
-		$GLOBALS['orderby'] = 'Name';
+		$GLOBALS['orderby'] = 'Author';
 		$GLOBALS['order']   = $order;
 
-		$result = $this->get_table( array() )->_order_callback( array( 'Name' => $a ), array( 'Name' => $b ) );
+		$result = $this->get_table( array() )->_order_callback(
+			array(
+				'Name'   => 'Zulu Plugin',
+				'Author' => $a,
+			),
+			array(
+				'Name'   => 'Alpha Plugin',
+				'Author' => $b,
+			)
+		);
 
 		$this->assertSame( $expected, $result <=> 0 );
 	}
