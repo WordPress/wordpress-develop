@@ -33,6 +33,8 @@ class Tests_Formatting_TagEscape extends WP_UnitTestCase {
 			'mixed case'                  => array( 'SpAn', 'span' ),
 			'allows hyphen underscore'    => array( 'my-custom_tag', 'my-custom_tag' ),
 			'allows colon for namespaced' => array( 'svg:path', 'svg:path' ),
+			'invalid characters removed'  => array( 'div<script>', 'divscript' ),
+			'invalid spaces not allowed'  => array( 'hello world', 'helloworld' ),
 		);
 	}
 
