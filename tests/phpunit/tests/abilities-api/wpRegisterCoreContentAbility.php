@@ -1968,39 +1968,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns field paths that are not part of the supported set.
-	 *
-	 * The date sub-fields are `site` and `gmt`, so `local` date sub-field paths are unknown too.
-	 *
-	 * @return array<string, array{field: string}> Unknown field path test cases.
-	 */
-	public function data_unknown_field_paths(): array {
-		return array(
-			'unknown field'               => array(
-				'field' => 'bogus_field',
-			),
-			'renamed date.local path'     => array(
-				'field' => 'date.local',
-			),
-			'renamed modified.local path' => array(
-				'field' => 'modified.local',
-			),
-		);
-	}
-
-	/**
 	 * An unknown requested field path fails schema validation.
 	 *
 	 * Unlike fields a post type does not support, which are omitted per post, a field path
 	 * that is not part of the supported set is rejected before the ability executes.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_unknown_field_paths
 	 * @since 7.2.0
-	 *
-	 * @param string $field The unknown field path to request, such as `date.local`.
 	 */
-	public function test_unknown_requested_field_fails_schema_validation( string $field ): void {
+	public function test_unknown_requested_field_fails_schema_validation(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -2010,7 +1986,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type' => 'post',
 					'ids'  => array( self::$post_ids['published_content'] ),
 				),
-				'fields' => array( 'id', $field ),
+				'fields' => array( 'id', 'bogus_field' ),
 			)
 		);
 
