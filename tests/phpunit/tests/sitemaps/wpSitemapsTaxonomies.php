@@ -232,4 +232,20 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
 	}
+
+	/**
+	 * Ensure unregistered taxonomy sub-type throws a 404.
+	 *
+	 * @ticket 61293
+	 */
+	public function test_unregistered_taxonomy_sitemap_404s() {
+		$taxonomy = 'unregistered_test_taxonomy';
+		$sitemaps = wp_sitemaps_get_server();
+		new WP_Sitemaps_Taxonomies();
+
+		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), 'Unregistered taxonomy sitemaps should 404' );
+	}
 }
