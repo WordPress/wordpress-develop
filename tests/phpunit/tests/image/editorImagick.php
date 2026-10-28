@@ -667,9 +667,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$test_file = DIR_TESTDATA . '/images/test-alpha.pdf';
 
-		$editor = wp_get_image_editor( $test_file );
-		if ( is_wp_error( $editor ) ) {
-			$this->markTestSkipped( $editor->get_error_message() );
+		// Check native PDF rendering without running the WordPress code under test.
+		$imagick = new Imagick();
+		try {
+			$imagick->readImage( $test_file . '[0]' );
+		} catch ( ImagickException $e ) {
+			$this->markTestSkipped( 'Imagick cannot render the PDF fixture: ' . $e->getMessage() );
+		} finally {
+			$imagick->destroy();
 		}
 
 		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
