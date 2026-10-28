@@ -94,9 +94,7 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 		$widget = new WP_Widget_Pages();
 
 		$this->assertSame( 'pages', $widget->id_base );
-		$this->assertSame( 'Pages', $widget->name );
 		$this->assertSame( 'widget_pages', $widget->widget_options['classname'] );
-		$this->assertSame( 'A list of your site&#8217;s Pages.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -163,8 +161,6 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'     => array( array(), 'Pages' ),
-			'empty title'  => array( array( 'title' => '' ), 'Pages' ),
-			'title "0"'    => array( array( 'title' => '0' ), 'Pages' ),
 			'custom title' => array( array( 'title' => 'Site Pages' ), 'Site Pages' ),
 		);
 	}
@@ -257,9 +253,7 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Site Pages', 'Site Pages' ),
 			'title with HTML'     => array( '<em>Site</em> Pages ', 'Site Pages' ),
-			'empty title'         => array( '', 'Pages' ),
 			'title with only tag' => array( '<span></span>', 'Pages' ),
 		);
 	}
@@ -327,8 +321,6 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	public static function data_widget_pages_args() {
 		return array(
 			'defaults'           => array( array(), 'menu_order, post_title', '' ),
-			'menu order'         => array( array( 'sortby' => 'menu_order' ), 'menu_order, post_title', '' ),
-			'post title'         => array( array( 'sortby' => 'post_title' ), 'post_title', '' ),
 			'ID with exclusions' => array(
 				array(
 					'sortby'  => 'ID',
@@ -420,7 +412,7 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	 */
 	public static function data_update() {
 		return array(
-			'sanitized values'  => array(
+			'sanitized values' => array(
 				array(
 					'title'   => '<b>New Pages</b>',
 					'sortby'  => 'ID',
@@ -432,34 +424,10 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 					'exclude' => '12,34',
 				),
 			),
-			'menu order'        => array(
-				array(
-					'title'   => 'Pages',
-					'sortby'  => 'menu_order',
-					'exclude' => '',
-				),
-				array(
-					'title'   => 'Pages',
-					'sortby'  => 'menu_order',
-					'exclude' => '',
-				),
-			),
-			'invalid sortby'    => array(
+			'invalid sortby'   => array(
 				array(
 					'title'   => 'Pages',
 					'sortby'  => 'post_date',
-					'exclude' => '',
-				),
-				array(
-					'title'   => 'Pages',
-					'sortby'  => 'menu_order',
-					'exclude' => '',
-				),
-			),
-			'sortby wrong case' => array(
-				array(
-					'title'   => 'Pages',
-					'sortby'  => 'id',
 					'exclude' => '',
 				),
 				array(

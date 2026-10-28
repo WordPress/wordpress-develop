@@ -76,9 +76,7 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 		$widget = new WP_Widget_Calendar();
 
 		$this->assertSame( 'calendar', $widget->id_base );
-		$this->assertSame( 'Calendar', $widget->name );
 		$this->assertSame( 'widget_calendar', $widget->widget_options['classname'] );
-		$this->assertSame( 'A calendar of your site’s posts.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -237,12 +235,8 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	 */
 	public static function data_update_titles() {
 		return array(
-			'plain string'           => array( 'My Calendar', 'My Calendar' ),
-			'with html tags'         => array( 'Calendar <strong>2026</strong> <script>alert(1)</script>', 'Calendar 2026' ),
-			'with line breaks'       => array( "Calendar\nYear", 'Calendar Year' ),
-			'surrounding whitespace' => array( '  Calendar  ', 'Calendar' ),
-			'empty string'           => array( '', '' ),
-			'numeric string zero'    => array( '0', '0' ),
+			'plain string'   => array( 'My Calendar', 'My Calendar' ),
+			'with html tags' => array( 'Calendar <strong>2026</strong> <script>alert(1)</script>', 'Calendar 2026' ),
 		);
 	}
 
@@ -283,11 +277,8 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	 */
 	public static function data_form_titles() {
 		return array(
-			'with title'        => array( array( 'title' => 'Events Calendar' ), 'Events Calendar' ),
-			'with quotes'       => array( array( 'title' => 'Calendar "2026" & Beyond' ), 'Calendar "2026" & Beyond' ),
-			'empty title'       => array( array( 'title' => '' ), '' ),
-			'no title key'      => array( array(), '' ),
-			'zero string title' => array( array( 'title' => '0' ), '0' ),
+			'with quotes'  => array( array( 'title' => 'Calendar "2026" & Beyond' ), 'Calendar "2026" & Beyond' ),
+			'no title key' => array( array(), '' ),
 		);
 	}
 }

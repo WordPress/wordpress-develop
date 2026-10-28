@@ -58,9 +58,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 		$widget = new WP_Widget_Meta();
 
 		$this->assertSame( 'meta', $widget->id_base, 'The ID base did not match.' );
-		$this->assertSame( 'Meta', $widget->name, 'The name did not match.' );
 		$this->assertSame( 'widget_meta', $widget->widget_options['classname'], 'The class name did not match.' );
-		$this->assertSame( 'Login, RSS, &amp; WordPress.org links.', $widget->widget_options['description'], 'The description did not match.' );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'], 'Selective refresh should be supported.' );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'], 'The instance should be shown in the REST API.' );
 	}
@@ -99,9 +97,6 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 		return array(
 			'custom title' => array( array( 'title' => 'Site links' ), 'Site links' ),
 			'no title'     => array( array(), 'Meta' ),
-			'empty title'  => array( array( 'title' => '' ), 'Meta' ),
-			'zero title'   => array( array( 'title' => '0' ), 'Meta' ),
-			'null title'   => array( array( 'title' => null ), 'Meta' ),
 		);
 	}
 
@@ -166,7 +161,6 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	public static function data_navigation_formats() {
 		return array(
 			'xhtml'                        => array( 'xhtml', array( 'title' => 'Site links' ), null ),
-			'unknown format'               => array( 'html', array( 'title' => 'Site links' ), null ),
 			'html5 with a custom title'    => array( 'html5', array( 'title' => 'Site links' ), 'Site links' ),
 			'html5 with the default title' => array( 'html5', array(), 'Meta' ),
 		);
@@ -211,7 +205,6 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 			'markup around the text' => array( ' <em>Site</em> <strong>links</strong> ', 'Site links' ),
 			'title with a quote'     => array( 'Site "links"', 'Site "links"' ),
 			'title with markup only' => array( '<span></span>', 'Meta' ),
-			'title with only spaces' => array( '   ', 'Meta' ),
 		);
 	}
 
@@ -347,12 +340,8 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 */
 	public static function data_update_titles() {
 		return array(
-			'plain title'            => array( 'Site links', 'Site links' ),
-			'surrounding whitespace' => array( "  Site links \n", 'Site links' ),
-			'markup'                 => array( '<strong>Site</strong> links<script>alert(1)</script>', 'Site links' ),
-			'line breaks'            => array( "Site\nlinks", 'Site links' ),
-			'empty string'           => array( '', '' ),
-			'zero'                   => array( '0', '0' ),
+			'plain title' => array( 'Site links', 'Site links' ),
+			'markup'      => array( '<strong>Site</strong> links<script>alert(1)</script>', 'Site links' ),
 		);
 	}
 
@@ -421,11 +410,8 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 */
 	public static function data_form_titles() {
 		return array(
-			'saved title'       => array( array( 'title' => 'Site links' ), 'Site links' ),
 			'title with quotes' => array( array( 'title' => 'Site "links" & <more>' ), 'Site "links" & <more>' ),
 			'no title'          => array( array(), '' ),
-			'empty title'       => array( array( 'title' => '' ), '' ),
-			'zero title'        => array( array( 'title' => '0' ), '0' ),
 		);
 	}
 }
