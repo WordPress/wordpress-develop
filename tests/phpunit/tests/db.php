@@ -628,7 +628,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param positive-int $col_offset Column offset past the last column.
+	 * @param int $col_offset Column offset past the last column, or a negative offset other than -1.
 	 */
 	public function test_get_col_info_with_out_of_range_offset( $col_offset ) {
 		global $wpdb;
@@ -641,12 +641,13 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, positive-int[]>
+	 * @return array<non-falsy-string, int[]>
 	 */
 	public static function data_get_col_info_with_out_of_range_offset() {
 		return array(
-			'next offset'    => array( 1 ),
-			'distant offset' => array( 100 ),
+			'next offset'     => array( 1 ),
+			'distant offset'  => array( 100 ),
+			'negative offset' => array( -2 ),
 		);
 	}
 
