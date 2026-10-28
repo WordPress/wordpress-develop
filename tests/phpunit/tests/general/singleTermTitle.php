@@ -189,11 +189,12 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_filters
 	 *
-	 * @param string $archive Archive type.
-	 * @param string $hook    Filter expected to run.
-	 * @param string $name    Raw term name passed to the filter.
+	 * @param string $archive  Archive type.
+	 * @param string $hook     Filter expected to run.
+	 * @param string $name     Raw term name passed to the filter.
+	 * @param string $expected Expected filtered title.
 	 */
-	public function test_applies_filter_for_archive_type( $archive, $hook, $name ) {
+	public function test_applies_filter_for_archive_type( $archive, $hook, $name, $expected ) {
 		$filters = array();
 		foreach ( array( 'single_cat_title', 'single_tag_title', 'single_term_title' ) as $filter_hook ) {
 			$filters[ $filter_hook ] = new MockAction();
@@ -210,7 +211,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 
 		$this->go_to_archive( $archive );
 
-		$this->assertSame( strtoupper( $name ), single_term_title( '', false ), 'The filtered title should be returned.' );
+		$this->assertSame( $expected, single_term_title( '', false ), 'The filtered title should be returned.' );
 
 		foreach ( $filters as $filter_hook => $filter ) {
 			if ( $filter_hook === $hook ) {
@@ -228,9 +229,9 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 */
 	public static function data_filters() {
 		return array(
-			'category'        => array( 'category', 'single_cat_title', 'News &amp; Notes' ),
-			'tag'             => array( 'tag', 'single_tag_title', 'Featured' ),
-			'custom taxonomy' => array( 'tax', 'single_term_title', 'Jazz' ),
+			'category'        => array( 'category', 'single_cat_title', 'News &amp; Notes', 'NEWS &AMP; NOTES' ),
+			'tag'             => array( 'tag', 'single_tag_title', 'Featured', 'FEATURED' ),
+			'custom taxonomy' => array( 'tax', 'single_term_title', 'Jazz', 'JAZZ' ),
 		);
 	}
 
