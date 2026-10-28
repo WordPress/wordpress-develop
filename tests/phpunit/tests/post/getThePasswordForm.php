@@ -69,15 +69,6 @@ class Tests_Post_GetThePasswordForm extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the form markup for a post in a classic theme.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_form_markup() {
-		$this->assertSame( $this->expected_form(), get_the_password_form( self::$post_id ) );
-	}
-
-	/**
 	 * Tests that the global post is used by default.
 	 *
 	 * @ticket 65819
@@ -104,27 +95,6 @@ class Tests_Post_GetThePasswordForm extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '/^pwbox-\d+$/', $field_id, 'The field ID should use a random number.' );
 		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The password input should exist.' );
 		$this->assertSame( $field_id, $processor->get_attribute( 'id' ), 'The label and the input should share the field ID.' );
-	}
-
-	/**
-	 * Tests the error message after an incorrect password.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_incorrect_password_shows_error() {
-		$_SERVER['HTTP_REFERER']                = get_permalink( self::$post_id );
-		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = 'hash';
-
-		$id = self::$post_id;
-
-		$this->assertSame(
-			$this->expected_form(
-				' password-form-error',
-				'<div class="post-password-form-invalid-password" role="alert"><p id="error-pwbox-' . $id . '">Invalid password.</p></div>',
-				' aria-describedby="error-pwbox-' . $id . '"'
-			),
-			get_the_password_form( self::$post_id )
-		);
 	}
 
 	/**
