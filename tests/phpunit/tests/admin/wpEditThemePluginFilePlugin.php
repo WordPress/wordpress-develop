@@ -215,13 +215,32 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_should_reject_file_of_another_plugin() {
-		$request          = $this->get_request( 'hello.php' );
-		$request['nonce'] = wp_create_nonce( 'edit-plugin_hello.php' );
+		$hello_file       = WP_PLUGIN_DIR . '/hello.php';
+		$original_content = file_get_contents( $hello_file );
+		$this->assertNotFalse( $original_content, 'The shared Hello Dolly fixture should be readable.' );
 
-		$result = wp_edit_theme_plugin_file( $request );
+		try {
+			$request          = $this->get_request( 'hello.php' );
+			$request['nonce'] = wp_create_nonce( 'edit-plugin_hello.php' );
 
-		$this->assertWPError( $result, 'An error should be returned.' );
-		$this->assertSame( 'bad_plugin_file_path', $result->get_error_code(), 'The error code should match.' );
+			$result = wp_edit_theme_plugin_file( $request );
+
+			$this->assertWPError( $result, 'An error should be returned.' );
+			$this->assertSame( 'bad_plugin_file_path', $result->get_error_code(), 'The error code should match.' );
+		} finally {
+			if ( file_get_contents( $hello_file ) !== $original_content ) {
+				$this->assertNotFalse(
+					file_put_contents( $hello_file, $original_content ),
+					'The shared Hello Dolly fixture should be restored.'
+				);
+			}
+
+			$this->assertSame(
+				$original_content,
+				file_get_contents( $hello_file ),
+				'The shared Hello Dolly fixture should be unchanged.'
+			);
+		}
 	}
 
 	/**
