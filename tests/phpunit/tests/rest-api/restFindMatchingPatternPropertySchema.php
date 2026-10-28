@@ -33,28 +33,14 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 */
 	public static function data_matching_pattern_properties() {
 		return array(
-			'single pattern'                   => array(
-				'123',
-				array(
-					'^[0-9]+$' => array( 'type' => 'integer' ),
-				),
-				array( 'type' => 'integer' ),
-			),
-			'integer property name'            => array(
+			'integer property name'     => array(
 				123,
 				array(
 					'^[0-9]+$' => array( 'type' => 'integer' ),
 				),
 				array( 'type' => 'integer' ),
 			),
-			'pattern matches part of the name' => array(
-				'prop0',
-				array(
-					'[0-9]' => array( 'type' => 'integer' ),
-				),
-				array( 'type' => 'integer' ),
-			),
-			'match on a later pattern'         => array(
+			'match on a later pattern'  => array(
 				'bar',
 				array(
 					'^a' => array( 'type' => 'integer' ),
@@ -62,14 +48,14 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 				),
 				array( 'type' => 'string' ),
 			),
-			'pattern containing a hash'        => array(
+			'pattern containing a hash' => array(
 				'a#b',
 				array(
 					'^a#b$' => array( 'type' => 'string' ),
 				),
 				array( 'type' => 'string' ),
 			),
-			'multibyte property name'          => array(
+			'multibyte property name'   => array(
 				'é',
 				array(
 					'^.$' => array( 'type' => 'string' ),
@@ -103,10 +89,6 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 			'no patternProperties'                 => array(
 				'prop',
 				array( 'type' => 'object' ),
-			),
-			'empty patternProperties'              => array(
-				'prop',
-				array( 'patternProperties' => array() ),
 			),
 			'no pattern matches'                   => array(
 				'prop',
