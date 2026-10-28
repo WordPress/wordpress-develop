@@ -32,6 +32,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		self::$term = $factory->term->create_and_get( array( 'taxonomy' => 'wptests_tax' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+	}
+
 	/**
 	 * Set up the test fixtures.
 	 */
@@ -40,6 +45,16 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		// Required as taxonomies are reset between tests.
 		register_taxonomy( 'wptests_tax', 'post' );
 		register_taxonomy( 'wptests_tax_2', 'post' );
+	}
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
 	}
 
 	/**
