@@ -74,6 +74,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function tear_down() {
 		unset( $this->role_test_wp_roles_init );
 
+		unregister_taxonomy( 'standard_custom_taxo' );
+		unregister_taxonomy( 'custom_cap_taxo' );
+		unregister_taxonomy( 'wptests_tax' );
+
 		parent::tear_down();
 	}
 
