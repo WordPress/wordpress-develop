@@ -52,6 +52,7 @@ class Tests_Link_ThePrivacyPolicyLink extends WP_UnitTestCase {
 		$output = get_echo( 'the_privacy_policy_link', array( $before, $after ) );
 
 		$this->assertSame( get_the_privacy_policy_link( $before, $after ), $output );
+		$this->assertStringContainsString( 'class="privacy-policy-link"', $output );
 		$this->assertStringStartsWith( $before, $output );
 		$this->assertStringEndsWith( $after, $output );
 	}
