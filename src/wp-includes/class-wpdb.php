@@ -60,7 +60,21 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * @property      string                  $dbhost              Database host.
  * @property      mysqli|false|null       $dbh                 Database handle.
  *
- * @phpstan-type Column_Info stdClass&object{ name: string, orgname: string, table: string, orgtable: string, def: string, db: string, catalog: string, max_length: int, length: int, charsetnr: int|string, flags: int, type: int, decimals: int }
+ * @phpstan-type Column_Info stdClass&object{
+ *     name: string,
+ *     orgname: string,
+ *     table: string,
+ *     orgtable: string,
+ *     def: string,
+ *     db: string,
+ *     catalog: string,
+ *     max_length: int,
+ *     length: int,
+ *     charsetnr: int|string,
+ *     flags: int,
+ *     type: int,
+ *     decimals: int,
+ * }
  * @phpstan-property list<Column_Info>|null $col_info
  */
 #[AllowDynamicProperties]
