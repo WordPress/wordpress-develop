@@ -4296,6 +4296,7 @@ EOF;
 	 * @ticket 22101
 	 */
 	public function test_gallery_shortcode_when_is_feed_true() {
+		$this->set_permalink_structure( '' );
 
 		$this->go_to( '/?feed=rss2' );
 
