@@ -3982,16 +3982,7 @@ class wpdb {
 			return;
 		}
 
-		$num_fields = mysqli_num_fields( $this->result );
-
-		for ( $i = 0; $i < $num_fields; $i++ ) {
-			$field = mysqli_fetch_field( $this->result );
-			if ( false === $field ) {
-				break;
-			}
-
-			$this->col_info[] = $field;
-		}
+		$this->col_info = mysqli_fetch_fields( $this->result );
 	}
 
 	/**
