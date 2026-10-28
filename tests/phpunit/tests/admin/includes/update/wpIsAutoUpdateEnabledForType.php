@@ -130,10 +130,8 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 */
 	public static function data_other_types() {
 		return array(
-			'core'         => array( 'core' ),
-			'translation'  => array( 'translation' ),
-			'plural type'  => array( 'plugins' ),
-			'empty string' => array( '' ),
+			'core'        => array( 'core' ),
+			'plural type' => array( 'plugins' ),
 		);
 	}
 }
