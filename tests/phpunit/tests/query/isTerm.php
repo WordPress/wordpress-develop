@@ -65,6 +65,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unregister_taxonomy( 'testtax' );
+		unregister_taxonomy( 'testtax2' );
 		parent::tear_down();
 	}
 
