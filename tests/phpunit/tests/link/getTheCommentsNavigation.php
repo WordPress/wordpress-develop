@@ -33,7 +33,7 @@ class Tests_Link_GetTheCommentsNavigation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests get_the_comments_navigation() when there is only one comment page or no comments.
+	 * Tests get_the_comments_navigation() when there is only one comment page.
 	 *
 	 * @ticket 65819
 	 */
