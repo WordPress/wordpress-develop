@@ -54,8 +54,6 @@ class Tests_General_GetSearchQuery extends WP_UnitTestCase {
 	 * @covers ::get_search_query
 	 */
 	public function test_get_search_query_reads_main_query() {
-		self::factory()->post->create( array( 'post_title' => 'Pizza night' ) );
-
 		$this->go_to( home_url( '/?s=pizza+night' ) );
 
 		$this->assertSame( 'pizza night', get_search_query() );
