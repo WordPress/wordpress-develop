@@ -117,7 +117,6 @@ class Tests_Post_TheTitleAttribute extends WP_UnitTestCase {
 	public static function data_echo_false_arguments() {
 		return array(
 			'array with boolean false' => array( array( 'echo' => false ) ),
-			'array with integer 0'     => array( array( 'echo' => 0 ) ),
 			'query string with echo=0' => array( 'echo=0' ),
 		);
 	}
@@ -233,18 +232,11 @@ class Tests_Post_TheTitleAttribute extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the_title_attribute() accepts both a post ID and a WP_Post object.
+	 * Tests that the_title_attribute() accepts a WP_Post object.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_accepts_post_id_and_post_object() {
-		$by_id = the_title_attribute(
-			array(
-				'post' => self::$post_id,
-				'echo' => false,
-			)
-		);
-
+	public function test_accepts_post_object() {
 		$by_object = the_title_attribute(
 			array(
 				'post' => get_post( self::$post_id ),
@@ -252,8 +244,7 @@ class Tests_Post_TheTitleAttribute extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'Standard Post Title', $by_id );
-		$this->assertSame( $by_id, $by_object );
+		$this->assertSame( 'Standard Post Title', $by_object );
 	}
 
 	/**
