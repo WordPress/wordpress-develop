@@ -10,6 +10,20 @@
 class Tests_Link_GetPostsNavLink extends WP_UnitTestCase {
 
 	/**
+	 * Whether the pagination global was set before the test.
+	 *
+	 * @var bool
+	 */
+	private $had_paged;
+
+	/**
+	 * The original pagination global.
+	 *
+	 * @var mixed
+	 */
+	private $original_paged;
+
+	/**
 	 * Set up test fixtures before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory
@@ -19,14 +33,44 @@ class Tests_Link_GetPostsNavLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Saves the incoming pagination global before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->had_paged      = array_key_exists( 'paged', $GLOBALS );
+		$this->original_paged = $this->had_paged ? $GLOBALS['paged'] : null;
+	}
+
+	/**
+	 * Restores the incoming pagination global after each test.
+	 */
+	public function tear_down() {
+		if ( $this->had_paged ) {
+			$GLOBALS['paged'] = $this->original_paged;
+		} else {
+			unset( $GLOBALS['paged'] );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests get_posts_nav_link() returns an empty string on a singular view.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_get_posts_nav_link_empty_when_singular() {
-		global $wp_query;
+		global $wp_query, $paged;
 
-		$wp_query              = new WP_Query();
+		$paged                 = 2;
+		$wp_query              = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'posts_per_page' => 1,
+				'paged'          => $paged,
+			)
+		);
 		$wp_query->is_singular = true;
 
 		$this->assertSame( '', get_posts_nav_link() );
