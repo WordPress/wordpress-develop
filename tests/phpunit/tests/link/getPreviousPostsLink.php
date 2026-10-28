@@ -13,14 +13,39 @@
 class Tests_Link_GetPreviousPostsLink extends WP_UnitTestCase {
 
 	/**
+	 * Whether the pagination global was set before the test.
+	 *
+	 * @var bool
+	 */
+	private $had_paged;
+
+	/**
+	 * The original pagination global.
+	 *
+	 * @var mixed
+	 */
+	private $original_paged;
+
+	/**
 	 * Creates posts before any tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$factory->post->create_many( 3 );
+	}
+
+	/**
+	 * Saves the incoming pagination global before each test.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->had_paged      = array_key_exists( 'paged', $GLOBALS );
+		$this->original_paged = $this->had_paged ? $GLOBALS['paged'] : null;
+
 		global $wp_query, $paged;
 
-		$factory->post->create_many( 3 );
 		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
@@ -29,6 +54,19 @@ class Tests_Link_GetPreviousPostsLink extends WP_UnitTestCase {
 				'paged'          => $paged,
 			)
 		);
+	}
+
+	/**
+	 * Restores the incoming pagination global after each test.
+	 */
+	public function tear_down() {
+		if ( $this->had_paged ) {
+			$GLOBALS['paged'] = $this->original_paged;
+		} else {
+			unset( $GLOBALS['paged'] );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
