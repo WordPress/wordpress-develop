@@ -3990,8 +3990,9 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 * @since 6.4.0 The 'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric', 'blob',
-	 *              'unsigned', and 'zerofill' values for `$info_type` no longer apply, since support
-	 *              for the `mysql` extension was removed.
+	 *              'unsigned', and 'zerofill' values for `$info_type` no longer apply, and 'type'
+	 *              returns a `MYSQLI_TYPE_*` integer rather than a type name like 'int', since
+	 *              support for the `mysql` extension was removed.
 	 *
 	 * @param string $info_type  Optional. The column metadata property to retrieve. Possible values are
 	 *                           'name', 'orgname', 'table', 'orgtable', 'def', 'db', 'catalog',
