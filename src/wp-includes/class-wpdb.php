@@ -70,6 +70,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *     catalog: string,
  *     max_length: int,
  *     length: int,
+ *     // An int at runtime, but PHPStan types it as a string for mysqli_fetch_fields().
  *     charsetnr: int|string,
  *     flags: int,
  *     type: int,
