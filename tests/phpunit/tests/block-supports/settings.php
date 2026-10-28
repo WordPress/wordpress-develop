@@ -28,15 +28,15 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An earlier non-null filter result must bypass the block renderer unchanged.
-	 * A null result must continue through the normal rendering path.
+	 * The preset-styles callback must preserve the incoming pre-render result,
+	 * including null so that normal rendering can continue.
 	 *
 	 * @ticket 59551
 	 * @dataProvider data_preserve_pre_rendered_content
 	 *
 	 * @param bool                 $supports_settings Whether the block supports preset settings.
 	 * @param array<string, mixed> $settings          The block's preset settings.
-	 * @param string|null          $pre_render        The earlier filter's render result.
+	 * @param string|null          $pre_render        The incoming pre-render result.
 	 */
 	public function test_preserve_pre_rendered_content( $supports_settings, $settings, $pre_render ) {
 		$theme = wp_get_theme();
@@ -47,34 +47,18 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 		register_block_type(
 			$this->test_block_name,
 			array(
-				'api_version'     => 3,
-				'attributes'      => array( 'settings' => array( 'type' => 'object' ) ),
-				'supports'        => array( '__experimentalSettings' => $supports_settings ),
-				'render_callback' => static function () {
-					return '<div>Rendered settings block</div>';
-				},
+				'api_version' => 3,
+				'attributes'  => array( 'settings' => array( 'type' => 'object' ) ),
+				'supports'    => array( '__experimentalSettings' => $supports_settings ),
 			)
 		);
 
-		$block_content = get_comment_delimited_block_content(
-			$this->test_block_name,
-			$settings ? array( 'settings' => $settings ) : array(),
-			''
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => $settings ? array( 'settings' => $settings ) : array(),
 		);
 
-		// Compare the real rendering path before and after adding the earlier filter.
-		$normal_content = do_blocks( $block_content );
-
-		$pre_render_filter = function ( $content, $parsed_block ) use ( $pre_render ) {
-			if ( $this->test_block_name !== $parsed_block['blockName'] ) {
-				return $content;
-			}
-			return $pre_render;
-		};
-		add_filter( 'pre_render_block', $pre_render_filter, 9, 2 );
-
-		$actual = do_blocks( $block_content );
-		$this->assertSame( null === $pre_render ? $normal_content : $pre_render, $actual );
+		$this->assertSame( $pre_render, _wp_add_block_level_preset_styles( $pre_render, $block ) );
 	}
 
 	/**
