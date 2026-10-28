@@ -958,6 +958,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 39800
 	 */
 	public function test_parent_ancestor_for_post_archive() {
+		$this->set_permalink_structure( '' );
 
 		register_post_type(
 			'books',
@@ -1038,6 +1039,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'current-menu-parent', $post_archive_menu_item->classes );
 		$this->assertNotContains( 'current-menu-ancestor', $post_archive_menu_item->classes );
+
+		unregister_post_type( 'books' );
 	}
 
 	/**
