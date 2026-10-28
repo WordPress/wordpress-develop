@@ -213,7 +213,10 @@ class Tests_Admin_wpPluginsListTablePrepareItems extends WP_UnitTestCase {
 		set_site_transient(
 			'update_plugins',
 			(object) array(
-				'no_update' => array( 'hello.php' => (object) array( 'new_version' => '1.7.2' ) ),
+				'no_update' => array(
+					'hello.php'                      => (object) array( 'new_version' => '1.7.2' ),
+					'internationalized-plugin-2.php' => (object) array( 'new_version' => '1.0.0' ),
+				),
 			)
 		);
 		add_filter(
