@@ -92,7 +92,7 @@ class Tests_Link_GetNextPostsLink extends WP_UnitTestCase {
 		global $paged;
 
 		$old_paged = $paged;
-		$paged     = 1;
+		$paged     = 2;
 
 		$expected = get_next_posts_link( 'Next Page', 3 );
 		$actual   = get_echo( 'next_posts_link', array( 'Next Page', 3 ) );
@@ -104,7 +104,7 @@ class Tests_Link_GetNextPostsLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that next_posts_link() outputs nothing when on the last page.
+	 * Tests that next_posts_link() outputs nothing when on the last allowed page.
 	 *
 	 * @ticket 65819
 	 */
@@ -112,9 +112,9 @@ class Tests_Link_GetNextPostsLink extends WP_UnitTestCase {
 		global $paged;
 
 		$old_paged = $paged;
-		$paged     = 3;
+		$paged     = 2;
 
-		$actual = get_echo( 'next_posts_link', array( 'Next Page', 3 ) );
+		$actual = get_echo( 'next_posts_link', array( 'Next Page', 2 ) );
 
 		$paged = $old_paged;
 
