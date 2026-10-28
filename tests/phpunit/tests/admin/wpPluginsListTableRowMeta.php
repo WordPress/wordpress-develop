@@ -82,8 +82,10 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		foreach ( array( 'status', 'page', 's', 'totals', 'current_screen' ) as $name ) {
-			$this->original_globals[ $name ] = $GLOBALS[ $name ] ?? null;
+		foreach ( array( 'status', 's', 'totals' ) as $name ) {
+			if ( array_key_exists( $name, $GLOBALS ) ) {
+				$this->original_globals[ $name ] = $GLOBALS[ $name ];
+			}
 		}
 
 		set_current_screen( 'plugins' );
@@ -94,7 +96,7 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 		$GLOBALS['totals'] = array();
 
 		$this->filter_args = null;
-		$this->slug        = 'row-meta-plugin-' . ++self::$counter;
+		$this->slug        = 'row-meta-plugin-' . ++self::$counter . '-' . wp_generate_password( 6, false );
 
 		add_filter( 'plugin_row_meta', array( $this, 'capture_meta' ), PHP_INT_MAX, 4 );
 
@@ -105,8 +107,12 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	 * Restores the globals and removes the test plugin.
 	 */
 	public function tear_down() {
-		foreach ( $this->original_globals as $name => $value ) {
-			$GLOBALS[ $name ] = $value;
+		foreach ( array( 'status', 's', 'totals' ) as $name ) {
+			if ( array_key_exists( $name, $this->original_globals ) ) {
+				$GLOBALS[ $name ] = $this->original_globals[ $name ];
+			} else {
+				unset( $GLOBALS[ $name ] );
+			}
 		}
 
 		$this->remove_plugin();
@@ -120,12 +126,18 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_should_list_version_author_and_details_link() {
+		$expected_details_url = esc_url(
+			network_admin_url(
+				'plugin-install.php?tab=plugin-information&plugin=' . $this->slug .
+				'&TB_iframe=true&width=600&height=550'
+			)
+		);
+
 		$this->assertSame(
 			array(
 				'Version 1.2.3',
 				'By <a href="https://example.org/jane/">Jane</a>',
-				'<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_multisite() ? 'network/' : '' ) . 'plugin-install.php?tab=plugin-information&#038;plugin=' . $this->slug . '&#038;TB_iframe=true&#038;width=600&#038;height=550"'
-				. ' class="thickbox open-plugin-details-modal" aria-label="More information about My &quot;Plugin&quot;" data-title="My &quot;Plugin&quot;">View details</a>',
+				'<a href="' . $expected_details_url . '" class="thickbox open-plugin-details-modal" aria-label="More information about My &quot;Plugin&quot;" data-title="My &quot;Plugin&quot;">View details</a>',
 			),
 			$this->get_meta(
 				array(
@@ -217,6 +229,27 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty or '0' author URI does not link the author.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_empty_values
+	 *
+	 * @param string $empty_uri Empty or '0' author URI.
+	 */
+	public function test_should_not_link_author_when_author_uri_is_empty( $empty_uri ) {
+		$this->assertSame(
+			array( 'By Jane' ),
+			$this->get_meta(
+				array(
+					'Author'    => 'Jane',
+					'AuthorURI' => $empty_uri,
+				)
+			)
+		);
+	}
+
+	/**
 	 * Tests that the filter receives the plugin file, data and status, and its links are joined.
 	 *
 	 * @ticket 65819
@@ -233,6 +266,7 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 
 		$output = $this->render( array( 'Version' => '1.2.3' ) );
 
+		$this->assertIsArray( $this->filter_args, 'The plugin_row_meta filter should run.' );
 		$this->assertSame( $this->get_file(), $this->filter_args[1], 'The filter should receive the plugin file.' );
 		$this->assertSame( 'My Plugin', $this->filter_args[2]['Name'], 'The filter should receive the plugin data.' );
 		$this->assertSame( 'all', $this->filter_args[3], 'The filter should receive the status.' );
@@ -263,6 +297,8 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	private function get_meta( $plugin_data ) {
 		$this->render( $plugin_data );
 
+		$this->assertIsArray( $this->filter_args, 'The plugin_row_meta filter should run.' );
+
 		return $this->filter_args[0];
 	}
 
@@ -273,11 +309,17 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	 * @return string The row markup.
 	 */
 	private function render( $plugin_data ) {
-		// is_network_only_plugin() reads the plugin headers on multisite.
-		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
-		$this->remove_plugin();
-		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
-		$this->assertNotFalse( file_put_contents( $dir . '/' . $this->slug . '.php', "<?php\n/**\n * Plugin Name: My Plugin\n */\n" ), 'The test plugin should be written.' );
+		// is_network_only_plugin() reads the plugin headers only on multisite.
+		if ( is_multisite() ) {
+			if ( ! is_writable( WP_PLUGIN_DIR ) ) {
+				$this->markTestSkipped( 'WP_PLUGIN_DIR is not writable.' );
+			}
+
+			$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+			$this->remove_plugin();
+			$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
+			$this->assertNotFalse( file_put_contents( $dir . '/' . $this->slug . '.php', "<?php\n/**\n * Plugin Name: My Plugin\n */\n" ), 'The test plugin should be written.' );
+		}
 
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
 
@@ -312,14 +354,24 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the test plugin, including one left over by an interrupted run.
+	 * Removes the test plugin, including any left over by an interrupted run.
 	 */
 	private function remove_plugin() {
-		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+		if ( $this->slug ) {
+			$dir = WP_PLUGIN_DIR . '/' . $this->slug;
 
-		if ( is_dir( $dir ) ) {
-			$this->rmdir( $dir );
-			rmdir( $dir );
+			if ( is_dir( $dir ) ) {
+				$this->rmdir( $dir );
+				$this->delete_folders( $dir );
+			}
+		}
+
+		$dirs = glob( WP_PLUGIN_DIR . '/row-meta-plugin-*', GLOB_ONLYDIR );
+		if ( is_array( $dirs ) ) {
+			foreach ( $dirs as $leftover ) {
+				$this->rmdir( $leftover );
+				$this->delete_folders( $leftover );
+			}
 		}
 	}
 }
