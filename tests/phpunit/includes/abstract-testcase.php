@@ -161,6 +161,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
 				$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+			} else {
+				// Discard endpoints and extra rules added by previous tests.
+				$wp_rewrite->init();
 			}
 		}
 
@@ -1741,6 +1744,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Resets permalinks and flushes rewrites.
 	 *
 	 * @since 4.4.0
+	 * @since 7.2.0 Calling without a structure resets to `WP_TESTS_DEFAULT_PERMALINK_STRUCTURE`
+	 *              instead of plain permalinks. Pass an empty string to use plain permalinks.
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 *

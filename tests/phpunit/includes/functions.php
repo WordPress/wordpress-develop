@@ -298,6 +298,11 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	exit( 1 );
 }
 
+/*
+ * Permalink structure used by default in the test suite, matching the default
+ * for new installs. Tests that need plain permalinks should call
+ * `$this->set_permalink_structure( '' )`.
+ */
 define( 'WP_TESTS_DEFAULT_PERMALINK_STRUCTURE', '/%year%/%monthnum%/%day%/%postname%/' );
 
 /**
