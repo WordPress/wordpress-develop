@@ -22,10 +22,30 @@ class Tests_Post_WpPostMimeTypeWhere extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
+	public function test_returns_clause_for_mime_type_with_dot_and_dash() {
+		$this->assertSame(
+			" AND (post_mime_type = 'application/vnd.ms-excel') ",
+			wp_post_mime_type_where( 'application/vnd.ms-excel' )
+		);
+	}
+
+	/**
+	 * @ticket 65819
+	 */
 	public function test_removes_invalid_characters() {
 		$this->assertSame(
 			" AND (post_mime_type = 'image/jpegOR11') ",
 			wp_post_mime_type_where( "image/jpeg' OR 1=1" )
+		);
+	}
+
+	/**
+	 * @ticket 65819
+	 */
+	public function test_removes_invalid_characters_from_type() {
+		$this->assertSame(
+			" AND (post_mime_type = 'image/jpeg') ",
+			wp_post_mime_type_where( "ima'ge/jpeg" )
 		);
 	}
 
