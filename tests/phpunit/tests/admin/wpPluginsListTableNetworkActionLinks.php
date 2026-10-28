@@ -28,15 +28,6 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	private static $admin_id;
 
 	/**
-	 * Number used to give each rendered plugin a unique slug.
-	 *
-	 * single_row() keeps the ID attributes it used in a static variable.
-	 *
-	 * @var int
-	 */
-	private static $counter = 0;
-
-	/**
 	 * The original globals the list table reads.
 	 *
 	 * @var array
@@ -82,8 +73,11 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	public function set_up() {
 		parent::set_up();
 
-		foreach ( array( 'status', 'page', 's', 'totals', 'current_screen' ) as $name ) {
-			$this->original_globals[ $name ] = $GLOBALS[ $name ] ?? null;
+		$this->original_globals = array();
+		foreach ( array( 'status', 'page', 's', 'totals' ) as $name ) {
+			if ( array_key_exists( $name, $GLOBALS ) ) {
+				$this->original_globals[ $name ] = $GLOBALS[ $name ];
+			}
 		}
 
 		set_current_screen( 'plugins-network' );
@@ -105,7 +99,7 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 		update_site_option( 'active_sitewide_plugins', array() );
 
 		$this->actions = null;
-		$this->slug    = 'network-action-links-plugin-' . ++self::$counter;
+		$this->slug    = 'network-action-links-plugin-' . wp_generate_password( 8, false );
 
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'capture_actions' ), PHP_INT_MAX );
 
@@ -118,6 +112,12 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	public function tear_down() {
 		foreach ( $this->original_globals as $name => $value ) {
 			$GLOBALS[ $name ] = $value;
+		}
+
+		foreach ( array( 'status', 'page', 's', 'totals' ) as $name ) {
+			if ( ! array_key_exists( $name, $this->original_globals ) ) {
+				unset( $GLOBALS[ $name ] );
+			}
 		}
 
 		$this->remove_plugin();
@@ -153,6 +153,23 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 		$this->assertSame(
 			array(
 				'deactivate' => 'Network Deactivate<span class="screen-reader-text">You cannot deactivate this plugin as other plugins require it.</span>',
+			),
+			$this->get_actions()
+		);
+	}
+
+	/**
+	 * Tests that an inactive dependent does not block Network Deactivate.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_should_link_network_deactivate_when_dependent_is_inactive() {
+		$this->set_dependent( false );
+		$this->network_activate();
+
+		$this->assertSame(
+			array(
+				'deactivate' => '<a href="' . $this->get_url( 'deactivate', 'deactivate-plugin_' . $this->get_file() ) . '" id="deactivate-' . $this->slug . '" aria-label="Network Deactivate My Plugin">Network Deactivate</a>',
 			),
 			$this->get_actions()
 		);
@@ -213,14 +230,34 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 * Tests that a plugin with unmet dependencies cannot be network activated.
 	 *
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_unmet_dependencies
+	 *
+	 * @param string|false $filepath The filepath of the dependency.
 	 */
-	public function test_should_not_network_activate_plugin_with_unmet_dependencies() {
-		$this->set_property_value( 'dependencies', array( $this->get_file() => array( 'missing' ) ) );
-		$this->set_property_value( 'dependency_filepaths', array( 'missing' => false ) );
+	public function test_should_not_network_activate_plugin_with_unmet_dependencies( $filepath ) {
+		if ( false !== $filepath ) {
+			$this->set_property_value( 'plugins', array( $filepath => array( 'Name' => 'Dependency' ) ) );
+		}
+
+		$this->set_property_value( 'dependencies', array( $this->get_file() => array( 'dependency' ) ) );
+		$this->set_property_value( 'dependency_filepaths', array( 'dependency' => $filepath ) );
 
 		$this->assertSame(
 			'Network Activate<span class="screen-reader-text">You cannot activate this plugin as it has unmet requirements.</span>',
 			$this->get_actions()['activate']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unmet_dependencies() {
+		return array(
+			'missing dependency'             => array( false ),
+			'installed, inactive dependency' => array( 'dependency/dependency.php' ),
 		);
 	}
 
@@ -234,12 +271,17 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 * @param bool $circular Whether the dependency is circular.
 	 */
 	public function test_delete_link_for_plugin_with_dependents( $circular ) {
-		$this->set_property_value( 'plugins', array( 'dependent/dependent.php' => array( 'Name' => 'Dependent' ) ) );
-		$this->set_property_value( 'dependencies', array( 'dependent/dependent.php' => array( $this->slug ) ) );
-		$this->set_property_value( 'dependency_slugs', array( $this->slug ) );
+		$this->set_dependent( false );
 
 		if ( $circular ) {
-			$this->set_property_value( 'circular_dependencies_slugs', array( $this->slug ) );
+			$this->set_property_value(
+				'dependencies',
+				array(
+					'dependent/dependent.php' => array( $this->slug ),
+					$this->get_file()         => array( 'dependent' ),
+				)
+			);
+			$this->set_property_value( 'circular_dependencies_slugs', array( $this->slug, 'dependent' ) );
 		}
 
 		$this->assertSame(
@@ -338,10 +380,16 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 * @return array The action links.
 	 */
 	private function get_actions( $plugin_data = array() ) {
+		if ( ! is_writable( WP_PLUGIN_DIR ) ) {
+			$this->markTestSkipped( 'WP_PLUGIN_DIR is not writable.' );
+		}
+
 		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
 		$this->remove_plugin();
 		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
 		$this->assertNotFalse( file_put_contents( $dir . '/' . $this->slug . '.php', "<?php\n/**\n * Plugin Name: My Plugin\n */\n" ), 'The test plugin should be written.' );
+
+		wp_clean_plugins_cache( false );
 
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins-network' ) );
 
@@ -365,6 +413,8 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 				),
 			)
 		);
+
+		$this->assertIsArray( $this->actions, 'The action links filter should run.' );
 
 		return $this->actions;
 	}
@@ -402,20 +452,26 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 * Activates the test plugin network-wide.
 	 */
 	private function network_activate() {
-		$active                      = get_site_option( 'active_sitewide_plugins' );
+		$active                      = get_site_option( 'active_sitewide_plugins', array() );
 		$active[ $this->get_file() ] = time();
 		update_site_option( 'active_sitewide_plugins', $active );
 	}
 
 	/**
-	 * Makes another network-active plugin require the test plugin.
+	 * Sets a dependent plugin for the test plugin.
+	 *
+	 * @param bool $active Whether the dependent plugin should be network active. Default true.
 	 */
-	private function set_dependent() {
+	private function set_dependent( $active = true ) {
 		$this->set_property_value( 'plugins', array( 'dependent/dependent.php' => array( 'Name' => 'Dependent' ) ) );
 		$this->set_property_value( 'dependencies', array( 'dependent/dependent.php' => array( $this->slug ) ) );
 		$this->set_property_value( 'dependency_slugs', array( $this->slug ) );
 
-		update_site_option( 'active_sitewide_plugins', array( 'dependent/dependent.php' => time() ) );
+		if ( $active ) {
+			$active_plugins                            = get_site_option( 'active_sitewide_plugins', array() );
+			$active_plugins['dependent/dependent.php'] = time();
+			update_site_option( 'active_sitewide_plugins', $active_plugins );
+		}
 	}
 
 	/**
@@ -426,7 +482,7 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 
 		if ( is_dir( $dir ) ) {
 			$this->rmdir( $dir );
-			rmdir( $dir );
+			$this->delete_folders( $dir );
 		}
 	}
 }
