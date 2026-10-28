@@ -103,7 +103,7 @@ class Tests_General_GetSearchQuery extends WP_UnitTestCase {
 
 	/**
 	 * Tests the 'the_search_query' filter: it receives the unescaped query from the
-	 * 'get_search_query' filter, and its result is escaped once.
+	 * 'get_search_query' filter, and its result is escaped.
 	 *
 	 * @ticket 65819
 	 *
