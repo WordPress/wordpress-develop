@@ -303,6 +303,14 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 
 		if ( $active ) {
 			$this->activate();
+			$GLOBALS['_paused_plugins'] = array(
+				$this->slug => array(
+					'type'    => E_ERROR,
+					'line'    => 1,
+					'file'    => WP_PLUGIN_DIR . '/' . $this->get_file(),
+					'message' => 'Error.',
+				),
+			);
 		}
 
 		$this->assertSame( array(), $this->get_actions() );
