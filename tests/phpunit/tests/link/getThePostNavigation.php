@@ -89,10 +89,16 @@ class Tests_Link_GetThePostNavigation extends WP_UnitTestCase {
 
 		$nav = get_the_post_navigation();
 
-		$this->assertStringContainsString( 'class="nav-previous"', $nav );
-		$this->assertStringContainsString( 'First Post', $nav );
-		$this->assertStringContainsString( 'class="nav-next"', $nav );
-		$this->assertStringContainsString( 'Latest Post', $nav );
+		$this->assertStringContainsString(
+			'<div class="nav-previous"><a href="' . get_permalink( self::$post_ids[0] ) .
+			'" rel="prev">First Post</a></div>',
+			$nav
+		);
+		$this->assertStringContainsString(
+			'<div class="nav-next"><a href="' . get_permalink( self::$post_ids[2] ) .
+			'" rel="next">Latest Post</a></div>',
+			$nav
+		);
 	}
 
 	/**
