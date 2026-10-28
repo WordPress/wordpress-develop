@@ -155,6 +155,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		unregister_post_type( 'not_viewable_pt' );
 		unregister_post_type( 'public_pt' );
 		unregister_post_type( 'private_pt' );
+		unregister_post_type( 'unregistered_pt' );
 
 		parent::tear_down();
 	}
