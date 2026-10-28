@@ -143,8 +143,13 @@ jobs:
           coverage: none
 
       - name: Set up WP-CLI
-        if: ${{ inputs.subject == 'base' }}
+        if: ${{ inputs.subject == 'base' && hashFiles('.github/actions/setup-wp-cli/action.yml') != '' }}
         uses: ./.github/actions/setup-wp-cli
+
+      - name: Set up WP-CLI from trunk
+        # Release branches run this workflow from trunk, but their checkout lacks the action.
+        if: ${{ inputs.subject == 'base' && hashFiles('.github/actions/setup-wp-cli/action.yml') == '' }}
+        uses: WordPress/wordpress-develop/.github/actions/setup-wp-cli@trunk # zizmor: ignore[unpinned-uses]
 
       - name: Log debug information
         run: |

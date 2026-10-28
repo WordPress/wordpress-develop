@@ -99,7 +99,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up WP-CLI
+        if: ${{ hashFiles('ci-tools/.github/actions/setup-wp-cli/action.yml') != '' }}
         uses: ./ci-tools/.github/actions/setup-wp-cli
+
+      - name: Set up WP-CLI from trunk
+        # Release branches run this workflow from trunk, but their checkout lacks the action.
+        if: ${{ hashFiles('ci-tools/.github/actions/setup-wp-cli/action.yml') == '' }}
+        uses: WordPress/wordpress-develop/.github/actions/setup-wp-cli@trunk # zizmor: ignore[unpinned-uses]
 
       - name: Download WordPress ${{ inputs.wp }}
         run: wp core download --version="${WP_VERSION}"
