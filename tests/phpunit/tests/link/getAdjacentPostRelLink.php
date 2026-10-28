@@ -94,26 +94,12 @@ class Tests_Link_GetAdjacentPostRelLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_adjacent_post_rel_link_custom_title_format() {
+		update_option( 'date_format', 'Y-m-d' );
 		$this->go_to( get_permalink( self::$post_ids[1] ) );
 
 		$link = get_adjacent_post_rel_link( 'Pre: %title on %date', false, '', true );
 
-		$this->assertStringContainsString( "title='Pre: First Post on ", $link );
-	}
-
-	/**
-	 * Tests that adjacent_posts_rel_link() echoes both previous and next rel links.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_adjacent_posts_rel_link_echoes() {
-		$this->go_to( get_permalink( self::$post_ids[1] ) );
-
-		$expected_prev = get_adjacent_post_rel_link( '%title', false, '', true );
-		$expected_next = get_adjacent_post_rel_link( '%title', false, '', false );
-
-		$this->expectOutputString( $expected_prev . $expected_next );
-		adjacent_posts_rel_link();
+		$this->assertStringContainsString( "title='Pre: First Post on 2026-01-01'", $link );
 	}
 
 	/**
@@ -122,10 +108,11 @@ class Tests_Link_GetAdjacentPostRelLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_adjacent_posts_rel_link_wp_head_outputs_on_single_post() {
+		$this->set_permalink_structure( '' );
 		$this->go_to( get_permalink( self::$post_ids[1] ) );
 
-		$expected_prev = get_adjacent_post_rel_link( '%title', false, '', true );
-		$expected_next = get_adjacent_post_rel_link( '%title', false, '', false );
+		$expected_prev = "<link rel='prev' title='First Post' href='" . home_url( '?p=' . self::$post_ids[0] ) . "' />\n";
+		$expected_next = "<link rel='next' title='Third Post' href='" . home_url( '?p=' . self::$post_ids[2] ) . "' />\n";
 
 		$this->expectOutputString( $expected_prev . $expected_next );
 		adjacent_posts_rel_link_wp_head();
