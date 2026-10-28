@@ -202,6 +202,12 @@ class wpdb {
 	/**
 	 * Saved info on the table column.
 	 *
+	 * Each value is populated by mysqli_fetch_field() in {@see wpdb::load_col_info()}, which is
+	 * typed as returning false when there are no more fields. A false value cannot actually occur,
+	 * however, since the loop only runs for the number of fields returned by mysqli_num_fields().
+	 * Populating the array with mysqli_fetch_fields() instead would allow this type to be narrowed
+	 * to a list of stdClass objects.
+	 *
 	 * @since 0.71
 	 *
 	 * @var array<int, stdClass|false>|null
