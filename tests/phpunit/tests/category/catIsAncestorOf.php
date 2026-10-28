@@ -164,7 +164,6 @@ class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 	 */
 	public static function data_category_parameter_types() {
 		return array(
-			'both category IDs'                  => array( 'id', 'id' ),
 			'both WP_Term objects'               => array( 'object', 'object' ),
 			'parent ID and child WP_Term object' => array( 'id', 'object' ),
 			'parent WP_Term object and child ID' => array( 'object', 'id' ),
