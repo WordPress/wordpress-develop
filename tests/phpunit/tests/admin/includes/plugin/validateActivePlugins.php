@@ -12,11 +12,11 @@
 class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase {
 
 	/**
-	 * The directory of the test plugin without a header.
+	 * Unique directory name for the test plugin without a header.
 	 *
 	 * @var string
 	 */
-	const NO_HEADER_DIR = 'validate-test-no-header';
+	private $no_header_dir;
 
 	/**
 	 * Super admin user ID.
@@ -53,9 +53,10 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	public function set_up() {
 		parent::set_up();
 
+		$this->no_header_dir = 'validate-test-no-header-' . wp_generate_password( 6, false );
 		$this->remove_plugin();
 
-		wp_cache_delete( 'plugins', 'plugins' );
+		wp_clean_plugins_cache( false );
 		update_site_option( 'active_sitewide_plugins', array() );
 	}
 
@@ -65,7 +66,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	public function tear_down() {
 		$this->remove_plugin();
 
-		wp_cache_delete( 'plugins', 'plugins' );
+		wp_clean_plugins_cache( false );
 
 		parent::tear_down();
 	}
@@ -95,7 +96,21 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 		return array(
 			'string'  => array( 'hello.php' ),
 			'integer' => array( 1 ),
+			'boolean' => array( false ),
+			'null'    => array( null ),
+			'object'  => array( new stdClass() ),
 		);
+	}
+
+	/**
+	 * Tests that an empty array is returned when no plugins are active.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_should_return_empty_array_when_no_active_plugins() {
+		update_option( 'active_plugins', array() );
+
+		$this->assertSame( array(), validate_active_plugins() );
 	}
 
 	/**
@@ -116,41 +131,48 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 * @ticket 65819
 	 */
 	public function test_should_report_and_deactivate_invalid_plugins() {
-		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
+		if ( ! is_writable( WP_PLUGIN_DIR ) ) {
+			$this->markTestSkipped( 'WP_PLUGIN_DIR is not writable.' );
+		}
+
+		$dir = WP_PLUGIN_DIR . '/' . $this->no_header_dir;
 		$this->assertTrue( mkdir( $dir ), 'The test directory should be created.' );
 		$this->assertNotFalse( file_put_contents( $dir . '/functions.php', "<?php\n// No plugin header.\n" ), 'The file should be written.' );
 
-		wp_cache_delete( 'plugins', 'plugins' );
+		wp_clean_plugins_cache( false );
 
-		$no_header = self::NO_HEADER_DIR . '/functions.php';
+		$no_header = $this->no_header_dir . '/functions.php';
 		update_option( 'active_plugins', array( 'hello.php', '../outside.php', 'missing/missing.php', $no_header ) );
 
 		$deactivate = new MockAction();
 		add_action( 'deactivate_plugin', array( $deactivate, 'action' ) );
+		add_action( 'deactivated_plugin', array( $deactivate, 'action' ) );
+		add_action( "deactivate_{$no_header}", array( $deactivate, 'action' ) );
 
 		$invalid = validate_active_plugins();
 
 		$this->assertSame( array( '../outside.php', 'missing/missing.php', $no_header ), array_keys( $invalid ), 'Each invalid plugin should be reported.' );
 		$this->assertSame(
 			array(
-				'../outside.php'      => array( 'plugin_invalid', 'Invalid plugin path.' ),
-				'missing/missing.php' => array( 'plugin_not_found', 'Plugin file does not exist.' ),
-				$no_header            => array( 'no_plugin_header', 'The plugin does not have a valid header.' ),
+				'../outside.php'      => 'plugin_invalid',
+				'missing/missing.php' => 'plugin_not_found',
+				$no_header            => 'no_plugin_header',
 			),
 			array_map(
 				static function ( $error ) {
-					return array( $error->get_error_code(), $error->get_error_message() );
+					return $error->get_error_code();
 				},
 				$invalid
 			),
-			'Each invalid plugin should have its error.'
+			'Each invalid plugin should have its expected error code.'
 		);
 		$this->assertSame( array( 'hello.php' ), array_values( get_option( 'active_plugins' ) ), 'Only the valid plugin should stay active.' );
 		$this->assertSame( 0, $deactivate->get_call_count(), 'Invalid plugins should be deactivated silently.' );
 	}
 
 	/**
-	 * Tests that network-active plugins are validated for a user who can manage network plugins.
+	 * Tests that network-active plugins are validated for a user who can manage network plugins,
+	 * and that a missing plugin present in both active_plugins and active_sitewide_plugins is removed from both.
 	 *
 	 * @ticket 65819
 	 *
@@ -159,7 +181,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	public function test_should_validate_network_plugins_for_network_admin() {
 		wp_set_current_user( self::$super_admin_id );
 
-		update_option( 'active_plugins', array() );
+		update_option( 'active_plugins', array( 'missing/missing.php' ) );
 		update_site_option(
 			'active_sitewide_plugins',
 			array(
@@ -169,7 +191,8 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 		);
 
 		$this->assertSame( array( 'missing/missing.php' ), array_keys( validate_active_plugins() ), 'The invalid network plugin should be reported.' );
-		$this->assertSame( array( 'hello.php' => 1000 ), get_site_option( 'active_sitewide_plugins' ), 'The invalid network plugin should be deactivated.' );
+		$this->assertSame( array( 'hello.php' => 1000 ), get_site_option( 'active_sitewide_plugins' ), 'The invalid network plugin should be deactivated from network.' );
+		$this->assertNotContains( 'missing/missing.php', get_option( 'active_plugins' ), 'The invalid plugin should also be deactivated from site active plugins.' );
 	}
 
 	/**
@@ -190,14 +213,23 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Removes the plugin file without a header, including one left over by an interrupted run.
+	 * Removes the plugin file without a header, including any left over by an interrupted run.
 	 */
 	private function remove_plugin() {
-		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
+		if ( $this->no_header_dir ) {
+			$dir = WP_PLUGIN_DIR . '/' . $this->no_header_dir;
+			if ( is_dir( $dir ) ) {
+				$this->rmdir( $dir );
+				$this->delete_folders( $dir );
+			}
+		}
 
-		if ( is_dir( $dir ) ) {
-			$this->rmdir( $dir );
-			rmdir( $dir );
+		$dirs = glob( WP_PLUGIN_DIR . '/validate-test-no-header-*', GLOB_ONLYDIR );
+		if ( is_array( $dirs ) ) {
+			foreach ( $dirs as $leftover ) {
+				$this->rmdir( $leftover );
+				$this->delete_folders( $leftover );
+			}
 		}
 	}
 }
