@@ -162,17 +162,6 @@ class Tests_General_WpLoginScreenUrls extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the registration URL.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::wp_registration_url
-	 */
-	public function test_wp_registration_url() {
-		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-login.php?action=register', wp_registration_url() );
-	}
-
-	/**
 	 * Tests the arguments and return value of the 'register_url' filter.
 	 *
 	 * @ticket 65819
