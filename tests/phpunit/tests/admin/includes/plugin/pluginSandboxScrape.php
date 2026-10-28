@@ -91,6 +91,10 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_should_register_real_path_of_symlinked_plugin() {
+		if ( ! function_exists( 'symlink' ) ) {
+			$this->markTestSkipped( 'Symbolic links are not available on this system.' );
+		}
+
 		$target = get_temp_dir() . 'sandbox-scrape-target-' . wp_rand();
 		$link   = WP_PLUGIN_DIR . '/sandbox-scrape-symlinked';
 
@@ -108,8 +112,11 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 			$plugin_created  = false !== file_put_contents( $target . '/plugin.php', $plugin_contents );
 			$this->assertTrue( $plugin_created, 'The target plugin should be written.' );
 			$this->assertFileDoesNotExist( $link, 'The link should not exist yet.' );
-			$link_created = symlink( $target, $link );
-			$this->assertTrue( $link_created, 'The plugin should be linked.' );
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Probe native symlink support.
+			$link_created = @symlink( $target, $link );
+			if ( ! $link_created ) {
+				$this->markTestSkipped( 'Symbolic links cannot be created on this system.' );
+			}
 
 			plugin_sandbox_scrape( 'sandbox-scrape-symlinked/plugin.php' );
 
@@ -120,7 +127,11 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 			);
 		} finally {
 			if ( $link_created && is_link( $link ) ) {
-				unlink( $link );
+				if ( 'Windows' === PHP_OS_FAMILY ) {
+					rmdir( $link );
+				} else {
+					unlink( $link );
+				}
 			}
 			if ( $plugin_created && is_file( $target . '/plugin.php' ) ) {
 				unlink( $target . '/plugin.php' );
