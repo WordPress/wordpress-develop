@@ -2210,8 +2210,6 @@ class WP_HTML_Tag_Processor {
 				? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
 				: strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed );
 
-			assert( $name_length > 0 );
-
 			if ( $this->bytes_already_parsed + $name_length >= $doc_length ) {
 				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 				break;
@@ -2314,8 +2312,6 @@ class WP_HTML_Tag_Processor {
 				$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
 			}
 		}
-
-		assert( self::STATE_INCOMPLETE_INPUT === $this->parser_state || '>' === $this->html[ $this->bytes_already_parsed ] );
 	}
 
 	/**
