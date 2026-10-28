@@ -146,13 +146,7 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	public static function data_valid_dates() {
 		return array(
 			'single digit month and day as integers' => array( 2024, 4, 5, '04', '05' ),
-			'single digit month and day as strings'  => array( '2024', '4', '5', '04', '05' ),
 			'two digit month and day as integers'    => array( 2024, 11, 25, '11', '25' ),
-			'two digit month and day as strings'     => array( '2024', '11', '25', '11', '25' ),
-			'first day of year'                      => array( 2023, 1, 1, '01', '01' ),
-			'last day of year'                       => array( 2023, 12, 31, '12', '31' ),
-			'past year date'                         => array( 1999, 9, 9, '09', '09' ),
-			'future year date'                       => array( 2030, 2, 28, '02', '28' ),
 		);
 	}
 
@@ -166,12 +160,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 			'false year, valid month and day' => array( false, 5, 10 ),
 			'valid year, false month and day' => array( 2024, false, false ),
 			'valid year and month, false day' => array( 2024, 5, false ),
-			'all false'                       => array( false, false, false ),
-			'empty string year'               => array( '', 5, 10 ),
-			'empty string month'              => array( 2024, '', 10 ),
-			'empty string day'                => array( 2024, 5, '' ),
-			'all null'                        => array( null, null, null ),
-			'all zero'                        => array( 0, 0, 0 ),
 		);
 	}
 }

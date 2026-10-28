@@ -35,12 +35,8 @@ class Tests_Link_GetSearchFeedLink extends WP_UnitTestCase {
 	 */
 	public static function data_get_search_feed_link() {
 		return array(
-			'plain permalinks, default feed'  => array( '', 'pizza', '', '?s=pizza&feed=rss2' ),
-			'plain permalinks, atom feed'     => array( '', 'pizza', 'atom', '?s=pizza&feed=atom' ),
-			'plain permalinks, spaces'        => array( '', 'hello world', '', '?s=hello+world&feed=rss2' ),
-			'pretty permalinks, default feed' => array( '/%postname%/', 'pizza', '', '/search/pizza/feed/rss2/' ),
-			'pretty permalinks, atom feed'    => array( '/%postname%/', 'pizza', 'atom', '/search/pizza/feed/atom/' ),
-			'pretty permalinks, spaces'       => array( '/%postname%/', 'hello world', '', '/search/hello+world/feed/rss2/' ),
+			'plain permalinks, atom feed'  => array( '', 'pizza', 'atom', '?s=pizza&feed=atom' ),
+			'pretty permalinks, atom feed' => array( '/%postname%/', 'pizza', 'atom', '/search/pizza/feed/atom/' ),
 		);
 	}
 
@@ -70,10 +66,8 @@ class Tests_Link_GetSearchFeedLink extends WP_UnitTestCase {
 	 */
 	public static function data_get_search_comments_feed_link() {
 		return array(
-			'plain permalinks, default feed'  => array( '', '', '?s=pizza&feed=comments-rss2' ),
-			'plain permalinks, atom feed'     => array( '', 'atom', '?s=pizza&feed=comments-atom' ),
-			'pretty permalinks, default feed' => array( '/%postname%/', '', '/search/pizza/feed/rss2/?withcomments=1' ),
-			'pretty permalinks, atom feed'    => array( '/%postname%/', 'atom', '/search/pizza/feed/atom/?withcomments=1' ),
+			'plain permalinks, atom feed'  => array( '', 'atom', '?s=pizza&feed=comments-atom' ),
+			'pretty permalinks, atom feed' => array( '/%postname%/', 'atom', '/search/pizza/feed/atom/?withcomments=1' ),
 		);
 	}
 

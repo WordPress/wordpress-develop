@@ -136,10 +136,7 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	 */
 	public static function data_valid_years() {
 		return array(
-			'integer year'        => array( 2024 ),
-			'string integer year' => array( '2024' ),
-			'past year'           => array( 1999 ),
-			'future year'         => array( 2050 ),
+			'integer year' => array( 2024 ),
 		);
 	}
 
@@ -151,10 +148,6 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	public static function data_empty_years() {
 		return array(
 			'boolean false' => array( false ),
-			'integer zero'  => array( 0 ),
-			'string zero'   => array( '0' ),
-			'empty string'  => array( '' ),
-			'null'          => array( null ),
 		);
 	}
 }

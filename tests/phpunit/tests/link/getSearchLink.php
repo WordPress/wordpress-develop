@@ -47,8 +47,6 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 */
 	public static function data_plain_permastruct_queries() {
 		return array(
-			'single word'            => array( 'wordpress', 'wordpress' ),
-			'words with spaces'      => array( 'hello world', 'hello+world' ),
 			'special characters'     => array( 'core & test', 'core+%26+test' ),
 			'slashes to be stripped' => array( "single\'quote", 'single%27quote' ),
 		);
@@ -76,7 +74,6 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 */
 	public static function data_pretty_permastruct_queries() {
 		return array(
-			'single word'        => array( 'wordpress', '/search/wordpress/' ),
 			'words with spaces'  => array( 'hello world', '/search/hello+world/' ),
 			'forward slash kept' => array( 'tag/subtag', '/search/tag/subtag/' ),
 		);

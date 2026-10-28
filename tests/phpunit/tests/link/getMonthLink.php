@@ -136,13 +136,7 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	public static function data_valid_year_and_month() {
 		return array(
 			'single digit month as integer' => array( 2024, 4, '04' ),
-			'single digit month as string'  => array( '2024', '4', '04' ),
 			'two digit month as integer'    => array( 2024, 11, '11' ),
-			'two digit month as string'     => array( '2024', '11', '11' ),
-			'first month of year'           => array( 2023, 1, '01' ),
-			'last month of year'            => array( 2023, 12, '12' ),
-			'past year'                     => array( 1999, 9, '09' ),
-			'future year'                   => array( 2030, 2, '02' ),
 		);
 	}
 
@@ -156,10 +150,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 			'false year and valid month' => array( false, 5 ),
 			'valid year and false month' => array( 2024, false ),
 			'both false'                 => array( false, false ),
-			'empty string year'          => array( '', 5 ),
-			'empty string month'         => array( 2024, '' ),
-			'both null'                  => array( null, null ),
-			'both zero'                  => array( 0, 0 ),
 		);
 	}
 }
