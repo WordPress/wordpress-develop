@@ -96,7 +96,9 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	public function capture_shortcode_atts( $html, $atts ) {
 		$this->shortcode_atts[] = $atts;
 
-		return '<div class="media-stub"></div>';
+		return 'wp_video_shortcode_override' === current_filter()
+			? '<div class="video-stub"></div>'
+			: '<div class="audio-stub"></div>';
 	}
 
 	/**
@@ -161,7 +163,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 		wp_update_attachment_metadata( self::$video_id, $metadata );
 		$GLOBALS['post'] = get_post( self::$video_id );
 
-		$this->assertSame( "<div class=\"media-stub\"></div>\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
+		$this->assertSame( "<div class=\"video-stub\"></div>\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
 		$this->assertSame(
 			array( array( 'src' => wp_get_upload_dir()['baseurl'] . '/clip.mp4' ) + $dimensions ),
 			$this->shortcode_atts
@@ -225,7 +227,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	public function test_prepends_audio_shortcode() {
 		$GLOBALS['post'] = get_post( self::$audio_id );
 
-		$this->assertSame( "<div class=\"media-stub\"></div>\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
+		$this->assertSame( "<div class=\"audio-stub\"></div>\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
 		$this->assertSame( array( array( 'src' => wp_get_upload_dir()['baseurl'] . '/song.mp3' ) ), $this->shortcode_atts );
 	}
 
@@ -250,7 +252,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( "<div class=\"media-stub\"></div>-filtered\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
-		$this->assertSame( array( '<div class="media-stub"></div>' ), $received, 'The filter should run once with the attachment markup.' );
+		$this->assertSame( "<div class=\"audio-stub\"></div>-filtered\n<p>Content</p>", prepend_attachment( '<p>Content</p>' ) );
+		$this->assertSame( array( '<div class="audio-stub"></div>' ), $received, 'The filter should run once with the attachment markup.' );
 	}
 }
