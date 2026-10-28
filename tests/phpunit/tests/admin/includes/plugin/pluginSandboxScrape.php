@@ -26,14 +26,24 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$dir = WP_PLUGIN_DIR . '/' . self::SLUG;
+		$dir    = WP_PLUGIN_DIR . '/' . self::SLUG;
+		$plugin = $dir . '/' . self::SLUG . '.php';
+
+		// Remove this test's fixture if an earlier run was interrupted.
+		if ( is_dir( $dir ) ) {
+			$this->rmdir( $dir );
+			$this->delete_folders( $dir );
+		}
+
 		$this->assertDirectoryDoesNotExist( $dir, 'The test plugin directory should not exist yet.' );
 		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
+		$plugin_contents = "<?php\n"
+			. "/**\n * Plugin Name: Sandbox Scrape Test Plugin\n */\n"
+			. "\$GLOBALS['sandbox_scrape_constant_at_include'] = defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING;\n"
+			. "function sandbox_scrape_test_plugin_loaded() {\n\treturn true;\n}\n";
+
 		$this->assertNotFalse(
-			file_put_contents(
-				$dir . '/' . self::SLUG . '.php',
-				"<?php\n/**\n * Plugin Name: Sandbox Scrape Test Plugin\n */\nfunction sandbox_scrape_test_plugin_loaded() {\n\treturn true;\n}\n"
-			),
+			file_put_contents( $plugin, $plugin_contents ),
 			'The test plugin should be written.'
 		);
 	}
@@ -64,7 +74,11 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 
 		plugin_sandbox_scrape( self::SLUG . '/' . self::SLUG . '.php' );
 
-		$this->assertTrue( WP_SANDBOX_SCRAPING, 'Sandbox mode should be on.' );
+		$this->assertTrue(
+			$GLOBALS['sandbox_scrape_constant_at_include'] ?? false,
+			'Sandbox mode should be on before the plugin is included.'
+		);
+		$this->assertTrue( WP_SANDBOX_SCRAPING, 'Sandbox mode should be on after the plugin is included.' );
 		$this->assertTrue( function_exists( 'sandbox_scrape_test_plugin_loaded' ), 'The plugin should be loaded.' );
 	}
 
@@ -80,22 +94,40 @@ class Tests_Admin_Includes_Plugin_PluginSandboxScrape extends WP_UnitTestCase {
 		$target = get_temp_dir() . 'sandbox-scrape-target-' . wp_rand();
 		$link   = WP_PLUGIN_DIR . '/sandbox-scrape-symlinked';
 
-		$this->assertTrue( mkdir( $target ), 'The target directory should be created.' );
-		$this->assertNotFalse( file_put_contents( $target . '/plugin.php', "<?php\n/**\n * Plugin Name: Symlinked\n */\n" ), 'The target plugin should be written.' );
-		$this->assertFileDoesNotExist( $link, 'The link should not exist yet.' );
-		$this->assertTrue( symlink( $target, $link ), 'The plugin should be linked.' );
+		$target_created = false;
+		$plugin_created = false;
+		$link_created   = false;
 
 		try {
+			$target_created = mkdir( $target );
+			$this->assertTrue( $target_created, 'The target directory should be created.' );
+
+			$plugin_contents = "<?php\n"
+				. "/**\n * Plugin Name: Symlinked\n */\n"
+				. "\$GLOBALS['sandbox_scrape_symlink_basename_at_include'] = plugin_basename( __FILE__ );\n";
+			$plugin_created  = false !== file_put_contents( $target . '/plugin.php', $plugin_contents );
+			$this->assertTrue( $plugin_created, 'The target plugin should be written.' );
+			$this->assertFileDoesNotExist( $link, 'The link should not exist yet.' );
+			$link_created = symlink( $target, $link );
+			$this->assertTrue( $link_created, 'The plugin should be linked.' );
+
 			plugin_sandbox_scrape( 'sandbox-scrape-symlinked/plugin.php' );
 
 			$this->assertSame(
-				wp_normalize_path( realpath( $target ) ),
-				$GLOBALS['wp_plugin_paths'][ wp_normalize_path( $link ) ] ?? null
+				'sandbox-scrape-symlinked/plugin.php',
+				$GLOBALS['sandbox_scrape_symlink_basename_at_include'] ?? null,
+				'The plugin should see its public symlinked basename when it is included.'
 			);
 		} finally {
-			unlink( $link );
-			unlink( $target . '/plugin.php' );
-			rmdir( $target );
+			if ( $link_created && is_link( $link ) ) {
+				unlink( $link );
+			}
+			if ( $plugin_created && is_file( $target . '/plugin.php' ) ) {
+				unlink( $target . '/plugin.php' );
+			}
+			if ( $target_created && is_dir( $target ) ) {
+				rmdir( $target );
+			}
 		}
 	}
 
