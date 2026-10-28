@@ -642,7 +642,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, int[]>
+	 * @return array<non-falsy-string, array{ int }>
 	 */
 	public static function data_get_col_info_with_out_of_range_offset(): array {
 		return array(
