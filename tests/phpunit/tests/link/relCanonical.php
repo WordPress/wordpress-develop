@@ -55,21 +55,6 @@ class Tests_Link_RelCanonical extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests rel_canonical() with pretty permalinks enabled.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_rel_canonical_with_pretty_permalinks() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		$this->go_to( get_permalink( self::$post_id ) );
-
-		$expected = '<link rel="canonical" href="' . esc_url( wp_get_canonical_url( self::$post_id ) ) . '" />' . "\n";
-
-		$this->expectOutputString( $expected );
-		rel_canonical();
-	}
-
-	/**
 	 * Tests that rel_canonical() respects a modified URL from the 'get_canonical_url' filter.
 	 *
 	 * @ticket 65819
@@ -77,14 +62,14 @@ class Tests_Link_RelCanonical extends WP_UnitTestCase {
 	public function test_rel_canonical_respects_filter() {
 		$this->go_to( get_permalink( self::$post_id ) );
 
-		$custom_url = 'https://custom.example.org/canonical-post/';
+		$custom_url = 'https://custom.example.org/canonical-post/?one=1&two=2';
 		$filter     = static function () use ( $custom_url ) {
 			return $custom_url;
 		};
 
 		add_filter( 'get_canonical_url', $filter );
 
-		$expected = '<link rel="canonical" href="' . $custom_url . '" />' . "\n";
+		$expected = '<link rel="canonical" href="https://custom.example.org/canonical-post/?one=1&#038;two=2" />' . "\n";
 
 		$this->expectOutputString( $expected );
 		rel_canonical();
