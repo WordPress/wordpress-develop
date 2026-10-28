@@ -18,6 +18,13 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	const SLUG = 'editor-test-plugin';
 
 	/**
+	 * The slug of the second test plugin.
+	 *
+	 * @var string
+	 */
+	const OTHER_SLUG = 'editor-other-plugin';
+
+	/**
 	 * The edited content of the main plugin file.
 	 *
 	 * @var string
@@ -83,6 +90,14 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		if ( defined( 'DISALLOW_FILE_EDIT' ) && DISALLOW_FILE_EDIT ) {
+			$this->markTestSkipped( 'File editing is disabled via DISALLOW_FILE_EDIT.' );
+		}
+
+		if ( ! is_writable( WP_PLUGIN_DIR ) ) {
+			$this->markTestSkipped( 'WP_PLUGIN_DIR is not writable.' );
+		}
+
 		$this->remove_plugin();
 
 		$dir = WP_PLUGIN_DIR . '/' . self::SLUG;
@@ -96,6 +111,16 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		foreach ( $files as $name => $contents ) {
 			$this->assertNotFalse( file_put_contents( $dir . '/' . $name, $contents ), "{$name} should be written." );
 		}
+
+		$other_dir = WP_PLUGIN_DIR . '/' . self::OTHER_SLUG;
+		$this->assertTrue( mkdir( $other_dir ), 'The second test plugin directory should be created.' );
+		$this->assertNotFalse(
+			file_put_contents(
+				$other_dir . '/' . self::OTHER_SLUG . '.php',
+				"<?php\n/**\n * Plugin Name: Editor Other Plugin\n */\n"
+			),
+			'The second test plugin file should be written.'
+		);
 
 		wp_cache_delete( 'plugins', 'plugins' );
 		update_option( 'active_plugins', array() );
@@ -111,6 +136,14 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * Removes the test plugin.
 	 */
 	public function tear_down() {
+		$this->assertEmpty( $this->scrape_results, 'All queued scrape results should be consumed.' );
+
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+
+		if ( is_multisite() ) {
+			update_site_option( 'active_sitewide_plugins', array() );
+		}
+
 		$this->remove_plugin();
 
 		parent::tear_down();
@@ -175,38 +208,35 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the errors for plugin edits that fail validation.
+	 * Tests that a request with a nonce for another file is rejected.
 	 *
 	 * @ticket 65819
-	 *
-	 * @dataProvider data_invalid_plugin_edits
-	 *
-	 * @param array  $args    The arguments, merged over a valid request for readme.txt.
-	 * @param string $code    The expected error code.
-	 * @param string $message The expected error message.
 	 */
-	public function test_should_reject_invalid_plugin_edit( $args, $code, $message ) {
-		if ( isset( $args['nonce'] ) && 'other-file' === $args['nonce'] ) {
-			$args['nonce'] = wp_create_nonce( 'edit-plugin_' . $this->get_plugin() );
-		}
+	public function test_should_reject_nonce_for_another_file() {
+		$request          = $this->get_request( 'readme.txt' );
+		$request['nonce'] = wp_create_nonce( 'edit-plugin_' . $this->get_plugin() );
 
-		$result = wp_edit_theme_plugin_file( array_merge( $this->get_request( 'readme.txt' ), $args ) );
+		$result = wp_edit_theme_plugin_file( $request );
 
 		$this->assertWPError( $result, 'An error should be returned.' );
-		$this->assertSame( $code, $result->get_error_code(), 'The error code should match.' );
-		$this->assertSame( $message, $result->get_error_message(), 'The error message should match.' );
+		$this->assertSame( 'nonce_failure', $result->get_error_code(), 'The error code should match.' );
 	}
 
 	/**
-	 * Data provider.
+	 * Tests that editing an uninstalled plugin is rejected.
 	 *
-	 * @return array[]
+	 * @ticket 65819
 	 */
-	public static function data_invalid_plugin_edits() {
-		return array(
-			'nonce for another file'       => array( array( 'nonce' => 'other-file' ), 'nonce_failure', '' ),
-			'plugin that is not installed' => array( array( 'plugin' => 'missing/missing.php' ), 'invalid_plugin', '' ),
+	public function test_should_reject_uninstalled_plugin() {
+		$result = wp_edit_theme_plugin_file(
+			array_merge(
+				$this->get_request( 'readme.txt' ),
+				array( 'plugin' => 'missing/missing.php' )
+			)
 		);
+
+		$this->assertWPError( $result, 'An error should be returned.' );
+		$this->assertSame( 'invalid_plugin', $result->get_error_code(), 'The error code should match.' );
 	}
 
 	/**
@@ -215,31 +245,23 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_should_reject_file_of_another_plugin() {
-		$hello_file       = WP_PLUGIN_DIR . '/hello.php';
-		$original_content = file_get_contents( $hello_file );
-		$this->assertNotFalse( $original_content, 'The shared Hello Dolly fixture should be readable.' );
+		$other_file       = self::OTHER_SLUG . '/' . self::OTHER_SLUG . '.php';
+		$other_filepath   = WP_PLUGIN_DIR . '/' . $other_file;
+		$original_content = file_get_contents( $other_filepath );
 
-		try {
-			$request          = $this->get_request( 'hello.php' );
-			$request['nonce'] = wp_create_nonce( 'edit-plugin_hello.php' );
+		$result = wp_edit_theme_plugin_file(
+			array(
+				'plugin'     => $this->get_plugin(),
+				'file'       => $other_file,
+				'newcontent' => 'New content.',
+				'nonce'      => wp_create_nonce( 'edit-plugin_' . $other_file ),
+			)
+		);
 
-			$result = wp_edit_theme_plugin_file( $request );
-
-			$this->assertWPError( $result, 'An error should be returned.' );
-			$this->assertSame( 'bad_plugin_file_path', $result->get_error_code(), 'The error code should match.' );
-			$this->assertSame(
-				$original_content,
-				file_get_contents( $hello_file ),
-				'The shared Hello Dolly fixture should be unchanged.'
-			);
-		} finally {
-			if ( file_get_contents( $hello_file ) !== $original_content ) {
-				$this->assertNotFalse(
-					file_put_contents( $hello_file, $original_content ),
-					'The shared Hello Dolly fixture should be restored.'
-				);
-			}
-		}
+		$this->assertWPError( $result, 'An error should be returned.' );
+		$this->assertSame( 'bad_plugin_file_path', $result->get_error_code(), 'The error code should match.' );
+		$this->assertSame( 'Sorry, that file cannot be edited.', $result->get_error_message(), 'The error message should match.' );
+		$this->assertSame( $original_content, file_get_contents( $other_filepath ), 'The other plugin file should be unchanged.' );
 	}
 
 	/**
@@ -353,7 +375,73 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) ), 'The file should be saved.' );
 		$this->assertSame( self::EDITED_PHP, $this->get_contents( self::SLUG . '.php' ), 'The new content should be written.' );
-		$this->assertSame( array( '/wp-admin/plugin-editor.php', '/' ), $this->get_loopback_paths(), 'The editor and the home page should be checked.' );
+		$this->assertSame(
+			array(
+				wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
+				wp_parse_url( home_url( '/' ), PHP_URL_PATH ),
+			),
+			$this->get_loopback_paths(),
+			'The editor and the home page should be checked.'
+		);
+		$this->assert_scrape_key_deleted();
+	}
+
+	/**
+	 * Tests that a Basic Authorization header is included in loopback requests when PHP_AUTH credentials exist.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_should_include_basic_auth_in_loopback_requests() {
+		$_SERVER['PHP_AUTH_USER'] = 'testuser';
+		$_SERVER['PHP_AUTH_PW']   = 'testpass';
+
+		update_option( 'active_plugins', array( $this->get_plugin() ) );
+		$this->scrape_results = array( 'true', 'true' );
+
+		$captured_headers = array();
+		add_filter(
+			'pre_http_request',
+			function ( $response, $args, $url ) use ( &$captured_headers ) {
+				if ( str_contains( $url, 'wp_scrape_key' ) ) {
+					$captured_headers[] = $args['headers'];
+				}
+				return $response;
+			},
+			5,
+			3
+		);
+
+		$result = wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) );
+
+		$this->assertTrue( $result, 'The file should be saved.' );
+		$this->assertNotEmpty( $captured_headers, 'Loopback requests should be made.' );
+		$expected_auth = 'Basic ' . base64_encode( 'testuser:testpass' );
+		foreach ( $captured_headers as $headers ) {
+			$this->assertArrayHasKey( 'Authorization', $headers, 'Basic Auth header should be included.' );
+			$this->assertSame( $expected_auth, $headers['Authorization'], 'Basic Auth header should match.' );
+		}
+	}
+
+	/**
+	 * Tests that a PHP file of a network-active plugin triggers loopback checks on multisite.
+	 *
+	 * @ticket 65819
+	 * @group ms-required
+	 */
+	public function test_should_trigger_loopback_for_network_active_plugin() {
+		update_site_option( 'active_sitewide_plugins', array( $this->get_plugin() => time() ) );
+		$this->scrape_results = array( 'true', 'true' );
+
+		$this->assertTrue( wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) ), 'The file should be saved.' );
+		$this->assertSame( self::EDITED_PHP, $this->get_contents( self::SLUG . '.php' ), 'The new content should be written.' );
+		$this->assertSame(
+			array(
+				wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
+				wp_parse_url( home_url( '/' ), PHP_URL_PATH ),
+			),
+			$this->get_loopback_paths(),
+			'The editor and the home page should be checked.'
+		);
 		$this->assert_scrape_key_deleted();
 	}
 
@@ -392,13 +480,15 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 */
 	public static function data_failed_loopbacks() {
 		$loopback_failed = 'Unable to communicate back with site to check for fatal errors, so the PHP change was reverted. You will need to upload your PHP file change by some other means, such as by using SFTP.';
+		$editor_path     = wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
+		$home_path       = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
 
 		return array(
 			'editor request fails'       => array(
 				array( null ),
 				$loopback_failed,
 				array( 'code' => 'loopback_request_failed' ),
-				array( '/wp-admin/plugin-editor.php' ),
+				array( $editor_path ),
 			),
 			'editor reports an error'    => array(
 				array( '{"code":"E_ERROR","message":"Fatal error.","line":5}' ),
@@ -407,31 +497,31 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 					'code' => 'E_ERROR',
 					'line' => 5,
 				),
-				array( '/wp-admin/plugin-editor.php' ),
+				array( $editor_path ),
 			),
 			'editor returns no JSON'     => array(
 				array( 'not JSON' ),
 				'An error occurred. Please try again later.',
 				array( 'code' => 'json_parse_error' ),
-				array( '/wp-admin/plugin-editor.php' ),
+				array( $editor_path ),
 			),
 			'home page returns no JSON'  => array(
 				array( 'true', 'not JSON' ),
 				'An error occurred. Please try again later.',
 				array( 'code' => 'json_parse_error' ),
-				array( '/wp-admin/plugin-editor.php', '/' ),
+				array( $editor_path, $home_path ),
 			),
 			'home page request fails'    => array(
 				array( 'true', null ),
 				$loopback_failed,
 				array( 'code' => 'loopback_request_failed' ),
-				array( '/wp-admin/plugin-editor.php', '/' ),
+				array( $editor_path, $home_path ),
 			),
 			'home page reports an error' => array(
 				array( 'true', '{"code":"E_PARSE","message":"Parse error."}' ),
 				'Parse error.',
 				array( 'code' => 'E_PARSE' ),
-				array( '/wp-admin/plugin-editor.php', '/' ),
+				array( $editor_path, $home_path ),
 			),
 		);
 	}
@@ -451,8 +541,18 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 
 		$this->loopback_requests[] = $url;
 
-		wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $query );
+		wp_parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
+		$this->assertArrayHasKey( 'wp_scrape_key', $query, 'The loopback should include the scrape key.' );
 		$this->assertArrayHasKey( 'wp_scrape_nonce', $query, 'The loopback should include the scrape nonce.' );
+
+		$editor_path = wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
+		if ( wp_parse_url( $url, PHP_URL_PATH ) === $editor_path ) {
+			$this->assertArrayHasKey( 'plugin', $query, 'The editor loopback should include the plugin query arg.' );
+			$this->assertSame( $this->get_plugin(), $query['plugin'], 'The editor loopback should specify the edited plugin.' );
+			$this->assertArrayHasKey( 'file', $query, 'The editor loopback should include the file query arg.' );
+			$this->assertSame( self::SLUG . '/' . self::SLUG . '.php', $query['file'], 'The editor loopback should specify the edited file.' );
+		}
+
 		$key = $query['wp_scrape_key'];
 		$this->assertSame( $query['wp_scrape_nonce'], get_transient( 'scrape_key_' . $key ), 'The scrape nonce should match its live transient.' );
 
@@ -480,9 +580,9 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @return string The scrape key.
 	 */
 	private function get_scrape_key( $url ) {
-		wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $query );
+		wp_parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
 
-		return $query['wp_scrape_key'];
+		return $query['wp_scrape_key'] ?? '';
 	}
 
 	/**
@@ -515,7 +615,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @return array The request.
 	 */
 	private function get_request( $file, $content = 'New content.' ) {
-		$path = 'hello.php' === $file ? $file : self::SLUG . '/' . $file;
+		$path = self::SLUG . '/' . $file;
 
 		return array(
 			'plugin'     => $this->get_plugin(),
@@ -548,11 +648,13 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * Removes the test plugin and clears the plugins cache.
 	 */
 	private function remove_plugin() {
-		$dir = WP_PLUGIN_DIR . '/' . self::SLUG;
+		foreach ( array( self::SLUG, self::OTHER_SLUG ) as $slug ) {
+			$dir = WP_PLUGIN_DIR . '/' . $slug;
 
-		if ( is_dir( $dir ) ) {
-			$this->rmdir( $dir );
-			rmdir( $dir );
+			if ( is_dir( $dir ) ) {
+				$this->rmdir( $dir );
+				$this->delete_folders( $dir );
+			}
 		}
 
 		wp_cache_delete( 'plugins', 'plugins' );
