@@ -1290,7 +1290,10 @@ function block_core_navigation_add_directives_to_submenu( $tags, $block_attribut
 				'class_name' => 'wp-block-navigation__submenu-container',
 			)
 		) ) {
-			$tags->set_attribute( 'data-wp-on--focus', 'actions.openMenuOnFocus' );
+			$computed_visibility = block_core_navigation_get_submenu_visibility( $block_attributes );
+			if ( 'hover' !== $computed_visibility ) {
+				$tags->set_attribute( 'data-wp-on--focus', 'actions.openMenuOnFocus' );
+			}
 		}
 
 		// Iterate through subitems if exist.
