@@ -499,6 +499,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_get_oembed_endpoint_url() {
+		$this->set_permalink_structure( '' );
+
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
