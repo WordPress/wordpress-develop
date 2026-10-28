@@ -60,6 +60,15 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'testtax' );
+		unregister_taxonomy( 'testtax2' );
+		parent::tear_down();
+	}
+
 	public function test_tag_action_tax() {
 		// Tag with taxonomy added.
 		$this->go_to( home_url( '/tag/tag-slug/' ) );
