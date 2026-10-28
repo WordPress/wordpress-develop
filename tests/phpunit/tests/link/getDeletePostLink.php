@@ -85,6 +85,9 @@ class Tests_Link_GetDeletePostLink extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unset( $GLOBALS['post'] );
+		unregister_post_type( 'cpt_unreg_test' );
+		unregister_post_type( 'cpt_delete_test' );
+
 		parent::tear_down();
 	}
 
