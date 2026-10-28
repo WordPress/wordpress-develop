@@ -51,7 +51,6 @@ includes:
 	- tests/phpstan/baselines/offsetAccess.nonOffsetAccessible.neon
 	- tests/phpstan/baselines/offsetAccess.notFound.neon
 	- tests/phpstan/baselines/offsetAssign.valueType.neon
-	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
 	- tests/phpstan/baselines/property.defaultValue.neon
