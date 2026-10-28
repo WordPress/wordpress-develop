@@ -63,14 +63,14 @@ class Tests_Link_WpShortlinkWpHead extends WP_UnitTestCase {
 	public function test_wp_shortlink_wp_head_respects_pre_get_shortlink_filter() {
 		$this->go_to( get_permalink( self::$post_id ) );
 
-		$custom_shortlink = 'https://wp.me/custom123';
+		$custom_shortlink = 'https://wp.me/custom123?one=1&two=2';
 		$filter           = static function () use ( $custom_shortlink ) {
 			return $custom_shortlink;
 		};
 
 		add_filter( 'pre_get_shortlink', $filter );
 
-		$expected = "<link rel='shortlink' href='" . $custom_shortlink . "' />\n";
+		$expected = "<link rel='shortlink' href='https://wp.me/custom123?one=1&#038;two=2' />\n";
 
 		$this->expectOutputString( $expected );
 		wp_shortlink_wp_head();
