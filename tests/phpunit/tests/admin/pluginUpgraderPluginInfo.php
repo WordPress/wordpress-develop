@@ -39,6 +39,14 @@ class Tests_Admin_PluginUpgraderPluginInfo extends WP_UnitTestCase {
 	 * @param mixed $result The upgrade result.
 	 */
 	public function test_should_return_false_without_destination( $result ) {
+		wp_cache_set(
+			'plugins',
+			array(
+				'/0' => array( 'main.php' => array( 'Name' => 'Zero Directory Plugin' ) ),
+			),
+			'plugins'
+		);
+
 		$this->assertFalse( $this->get_upgrader( $result )->plugin_info() );
 	}
 
