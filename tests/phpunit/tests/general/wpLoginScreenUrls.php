@@ -8,8 +8,21 @@
  */
 class Tests_General_WpLoginScreenUrls extends WP_UnitTestCase {
 
+	/**
+	 * The original forced admin SSL setting.
+	 *
+	 * @var bool
+	 */
+	private $original_force_ssl_admin;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_force_ssl_admin = force_ssl_admin( false );
+	}
+
 	public function tear_down() {
-		force_ssl_admin( false );
+		force_ssl_admin( $this->original_force_ssl_admin );
 
 		parent::tear_down();
 	}
