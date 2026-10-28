@@ -5,6 +5,15 @@
  * @group taxonomy
  */
 class Tests_Query_TaxQuery extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_post_type( 'wptests_cpt1' );
+
+		parent::tear_down();
+	}
 	public function test_tax_query_single_query_single_term_field_slug() {
 		$t  = self::factory()->term->create(
 			array(
