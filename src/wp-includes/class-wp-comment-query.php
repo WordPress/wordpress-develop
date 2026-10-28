@@ -700,6 +700,7 @@ class WP_Comment_Query {
 					}
 				}
 
+				// The logic above ensures $comment_id_order is set to 'ASC' or defaults to 'DESC'.
 				$orderby_array[] = "$wpdb->comments.comment_ID $comment_id_order";
 			}
 
