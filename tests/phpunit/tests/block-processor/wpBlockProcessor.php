@@ -1622,9 +1622,9 @@ HTML
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_extraction_stops_on_expected_token()}.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: string|null}>
+	 * @return array<truthy-string, array{ 0: string, 1: lowercase-string&truthy-string, 2: non-empty-string|null }>
 	 */
 	public static function data_extraction_stop_tokens(): array {
 		return array(
