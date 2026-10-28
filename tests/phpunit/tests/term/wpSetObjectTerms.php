@@ -15,6 +15,12 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		self::$term_ids = $factory->term->create_many( 5, array( 'taxonomy' => self::$taxonomy ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 26570
 	 */
@@ -101,6 +107,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		wp_set_object_terms( $post_id, array( $cat1->slug, $cat2->slug, $cat3->slug ), $hier );
 		$this->assertTrue( has_term( array( $cat1->slug, $cat2->slug, $cat3->slug ), $hier, $post_id ) );
+
+		unregister_taxonomy( $non_hier );
+		unregister_taxonomy( $hier );
 	}
 
 	public function test_set_object_terms_by_id() {
