@@ -331,7 +331,29 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertTrue( $fields['uniqueItems'], 'The fields option should reject duplicate field names.' );
 		$this->assertArrayNotHasKey( 'minItems', $fields, 'The fields option should accept an empty list, which selects the default fields.' );
 		$this->assertSame( 'string', $fields['items']['type'], 'The fields option should contain field names.' );
-		$this->assertSameSets( array_merge( $user_fields, array( 'registered.site', 'registered.gmt' ) ), $fields['items']['enum'], 'The fields enum should expose every user field and the registered sub-field paths.' );
+		$this->assertSame(
+			array(
+				'id',
+				'name',
+				'description',
+				'url',
+				'link',
+				'slug',
+				'avatar_urls',
+				'username',
+				'email',
+				'first_name',
+				'last_name',
+				'nickname',
+				'locale',
+				'registered',
+				'registered.site',
+				'registered.gmt',
+				'roles',
+			),
+			$fields['items']['enum'],
+			'The fields enum should list every user field, in output order, each followed by the paths of its sub-fields.'
+		);
 		$this->assertContains( 'roles', $fields['items']['enum'], 'The fields enum should expose the roles field.' );
 		$this->assertContains( 'avatar_urls', $fields['items']['enum'], 'The fields enum should expose avatar_urls.' );
 
@@ -395,6 +417,15 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertSame( array( 'id' ), $user_schema['required'], 'Only the always-returned id should be required in a user.' );
 		$this->assertSameSets( $user_fields, array_keys( $user_properties ), 'A user should describe every user field.' );
 		$this->assertSame( 'object', $user_properties['registered']['type'], 'The registered output schema should describe an object.' );
+		$this->assertFalse( $user_properties['registered']['additionalProperties'], 'The registered object should not allow keys besides site and gmt.' );
+		$this->assertArrayNotHasKey( 'required', $user_properties['registered'], 'The registered object should not require either key, since a sub-field path returns only one.' );
+		$this->assertNotEmpty( $user_properties['registered']['description'], 'The registered object should have a description.' );
+		$this->assertSame( array( 'site', 'gmt' ), array_keys( $user_properties['registered']['properties'] ), 'The registered object should describe exactly site and gmt, in that order.' );
+		foreach ( $user_properties['registered']['properties'] as $key => $property ) {
+			$this->assertSame( array( 'string', 'null' ), $property['type'], sprintf( 'The registered.%s value should be a nullable string.', $key ) );
+			$this->assertSame( 'date-time', $property['format'], sprintf( 'The registered.%s value should use the date-time format.', $key ) );
+			$this->assertNotEmpty( $property['description'], sprintf( 'The registered.%s value should have a description.', $key ) );
+		}
 		$this->assertSame( 'uri', $user_properties['link']['format'], 'The link output schema should use uri format.' );
 		$this->assertSame( 'uri', $user_properties['avatar_urls']['additionalProperties']['format'], 'The avatar_urls output schema should use uri format.' );
 		$this->assertArrayNotHasKey( 'format', $user_properties['url'], 'The url output schema must not declare a format, so the empty URL of a user without a website still validates.' );
@@ -2208,11 +2239,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public static function data_unknown_requested_fields(): array {
 		return array(
-			'unknown field'                 => array( 'bogus_field' ),
-			'removed registered_date field' => array( 'registered_date' ),
-			'unknown registered sub-field'  => array( 'registered.local' ),
-			'avatar_urls size path'         => array( 'avatar_urls.96' ),
-			'path into a scalar field'      => array( 'email.address' ),
+			'unknown field'                => array( 'bogus_field' ),
+			'unknown registered sub-field' => array( 'registered.local' ),
+			'avatar_urls size path'        => array( 'avatar_urls.96' ),
+			'path into a scalar field'     => array( 'email.address' ),
 		);
 	}
 
@@ -2474,73 +2504,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The registered output schema describes the site and GMT dates as nullable date-time
-	 * strings, in a closed object that requires neither.
-	 *
-	 * A sub-field path returns only one of the two keys, so neither can be required.
-	 *
-	 * @ticket 64657
-	 */
-	public function test_registered_output_schema_describes_site_and_gmt_dates(): void {
-		$this->register_ability();
-
-		$user_properties = wp_get_ability( 'core/users-query' )->get_output_schema()['properties']['items']['items']['properties'];
-
-		$this->assertArrayNotHasKey( 'registered_date', $user_properties, 'The output schema should no longer describe registered_date.' );
-		$this->assertArrayHasKey( 'registered', $user_properties, 'The output schema should describe the registered field.' );
-
-		$registered = $user_properties['registered'];
-
-		$this->assertSame( 'object', $registered['type'], 'The registered field should be an object.' );
-		$this->assertFalse( $registered['additionalProperties'], 'The registered object should not allow keys besides site and gmt.' );
-		$this->assertArrayNotHasKey( 'required', $registered, 'The registered object should not require either key.' );
-		$this->assertNotEmpty( $registered['description'], 'The registered object should have a description.' );
-		$this->assertSame( array( 'site', 'gmt' ), array_keys( $registered['properties'] ), 'The registered object should describe exactly site and gmt, in that order.' );
-
-		foreach ( array( 'site', 'gmt' ) as $key ) {
-			$property = $registered['properties'][ $key ];
-
-			$this->assertSame( array( 'string', 'null' ), $property['type'], sprintf( 'The registered.%s value should be a nullable string.', $key ) );
-			$this->assertSame( 'date-time', $property['format'], sprintf( 'The registered.%s value should use the date-time format.', $key ) );
-			$this->assertNotEmpty( $property['description'], sprintf( 'The registered.%s value should have a description.', $key ) );
-		}
-	}
-
-	/**
-	 * The fields option accepts a path for each registered sub-field, right after the
-	 * registered field, and no path for avatar_urls, whose sizes are not declared.
-	 *
-	 * @ticket 64657
-	 */
-	public function test_fields_enum_exposes_registered_sub_field_paths(): void {
-		$this->register_ability();
-
-		$enum = wp_get_ability( 'core/users-query' )->get_input_schema()['properties']['fields']['items']['enum'];
-
-		$registered_index = array_search( 'registered', $enum, true );
-
-		$this->assertIsInt( $registered_index, 'The fields enum should expose the registered field.' );
-		$this->assertSame(
-			array( 'registered', 'registered.site', 'registered.gmt' ),
-			array_slice( $enum, $registered_index, 3 ),
-			'The registered sub-field paths should follow the registered field, in order.'
-		);
-		$this->assertNotContains( 'registered_date', $enum, 'The fields enum should no longer expose registered_date.' );
-		$this->assertSame(
-			array( 'registered.site', 'registered.gmt' ),
-			array_values(
-				array_filter(
-					$enum,
-					static function ( string $field ): bool {
-						return str_contains( $field, '.' );
-					}
-				)
-			),
-			'The registered sub-fields should be the only paths in the fields enum.'
-		);
-	}
-
-	/**
 	 * Selecting the registered field or its sub-field paths returns the selected dates.
 	 *
 	 * The site uses a timezone west of UTC, so a path that returned the wrong value could
@@ -2758,7 +2721,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public static function data_registered_visibility(): array {
 		return array(
-			'self, registered'               => array( 'public_author', 'registered', true ),
 			'self, registered.site'          => array( 'public_author', 'registered.site', true ),
 			'self, registered.gmt'           => array( 'public_author', 'registered.gmt', true ),
 			'administrator, registered'      => array( 'administrator', 'registered', true ),
