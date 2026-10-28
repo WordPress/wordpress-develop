@@ -25,9 +25,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_posts_pagination_empty_when_single_page() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 1;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -45,9 +44,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_posts_pagination_returns_markup() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -73,9 +71,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_posts_pagination_custom_args() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -107,9 +104,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_posts_pagination_aria_label_fallback() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -134,9 +130,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_posts_pagination_args_filter() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
@@ -163,9 +158,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_posts_pagination_echoes() {
-		global $wp_query, $paged;
+		global $wp_query;
 
-		$paged    = 2;
 		$wp_query = new WP_Query(
 			array(
 				'post_type'      => 'post',
