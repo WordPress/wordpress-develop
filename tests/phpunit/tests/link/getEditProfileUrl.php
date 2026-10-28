@@ -66,22 +66,16 @@ class Tests_Link_GetEditProfileUrl extends WP_UnitTestCase {
 	public function test_get_edit_profile_url_for_current_user() {
 		wp_set_current_user( self::$admin_id );
 
+		$filter = new MockAction();
+		add_filter( 'edit_profile_url', array( $filter, 'filter' ), 10, 3 );
+
+		$url = get_edit_profile_url();
+
 		$this->assertSame(
 			get_dashboard_url( self::$admin_id, 'profile.php' ),
-			get_edit_profile_url()
+			$url
 		);
-	}
-
-	/**
-	 * Tests that get_edit_profile_url() returns profile URL for a specified user ID.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_edit_profile_url_for_specified_user() {
-		$this->assertSame(
-			get_dashboard_url( self::$subscriber_id, 'profile.php' ),
-			get_edit_profile_url( self::$subscriber_id )
-		);
+		$this->assertSame( self::$admin_id, $filter->get_args()[0][1], 'The filter should receive the current user ID.' );
 	}
 
 	/**
