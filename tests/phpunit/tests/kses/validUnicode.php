@@ -3,6 +3,15 @@
 /**
  * Tests for valid_unicode().
  *
+ * IMPORTANT: Do not call valid_unicode() from new code.
+ *
+ * Despite its name, this helper does not report whether a code point is valid
+ * Unicode. It approximates the XML Char production: C0 controls other than
+ * HT/LF/CR are rejected even though they are valid Unicode (for example
+ * U+0008 BACKSPACE), as are surrogates and U+FFFE/U+FFFF. Prefer newer HTML
+ * APIs from the wp_kses() rewrite rather than extending call sites here.
+ * These tests only document the helper's historical accept/reject ranges.
+ *
  * @group kses
  *
  * @covers ::valid_unicode
@@ -14,8 +23,8 @@ class Tests_Kses_ValidUnicode extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_valid_unicode
 	 *
-	 * @param int|string $codepoint Unicode codepoint.
-	 * @param bool       $expected  Whether the codepoint is valid.
+	 * @param int|string $codepoint Code point under the XML Char-style check.
+	 * @param bool       $expected  Whether valid_unicode() accepts it.
 	 */
 	public function test_valid_unicode( $codepoint, $expected ) {
 		$this->assertSame( $expected, valid_unicode( $codepoint ) );
@@ -39,6 +48,9 @@ class Tests_Kses_ValidUnicode extends WP_UnitTestCase {
 			'supplementary plane start'    => array( 0x10000, true ),
 			'max unicode'                  => array( 0x10FFFF, true ),
 			'backspace control'            => array( 0x8, false ),
+			'vertical tab'                 => array( 0xB, false ),
+			'form feed'                    => array( 0xC, false ),
+			'unit separator control'       => array( 0x1F, false ),
 			'null'                         => array( 0x0, false ),
 			'surrogate start'              => array( 0xD800, false ),
 			'surrogate end'                => array( 0xDFFF, false ),
