@@ -4005,7 +4005,11 @@ class wpdb {
 	 *
 	 * @phpstan-param 'name'|'orgname'|'table'|'orgtable'|'def'|'db'|'catalog'|'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' $info_type
 	 * @phpstan-param -1|int<0, max> $col_offset
-	 * @phpstan-return ( $col_offset is -1 ? list<string|int>|null : string|int|null )
+	 * @phpstan-return (
+	 *     $col_offset is -1
+	 *     ? ( $info_type is 'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' ? list<int>|null : list<string>|null )
+	 *     : ( $info_type is 'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' ? int|null : string|null )
+	 * )
 	 */
 	public function get_col_info( $info_type = 'name', $col_offset = -1 ) {
 		$this->load_col_info();
