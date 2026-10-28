@@ -90,22 +90,9 @@ jobs:
           php-version: '${{ inputs.php }}'
           coverage: none
 
-      # This job does not check out the repository, so only fetch the action.
-      - name: Check out the WP-CLI setup action
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          path: ci-tools
-          sparse-checkout: .github/actions/setup-wp-cli
-          persist-credentials: false
-
       - name: Set up WP-CLI
-        if: ${{ hashFiles('ci-tools/.github/actions/setup-wp-cli/action.yml') != '' }}
-        uses: ./ci-tools/.github/actions/setup-wp-cli
-
-      - name: Set up WP-CLI from trunk
-        # Release branches run this workflow from trunk, but their checkout lacks the action.
-        if: ${{ hashFiles('ci-tools/.github/actions/setup-wp-cli/action.yml') == '' }}
-        uses: WordPress/wordpress-develop/.github/actions/setup-wp-cli@trunk # zizmor: ignore[unpinned-uses]
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/setup-wp-cli
 
       - name: Download WordPress ${{ inputs.wp }}
         run: wp core download --version="${WP_VERSION}"
