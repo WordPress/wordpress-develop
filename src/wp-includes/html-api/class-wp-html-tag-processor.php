@@ -2159,14 +2159,11 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Parses attributes.
+	 * Parses attributes exhaustively in a tag.
 	 *
-	 * This method must parse all attributes in a tag up to its closing `>`. After calling this
-	 * function, the parser is guaranteed to be positioned at the closing `>` of the tag or at the
-	 * end of the document if the tag is incomplete.
-	 *
-	 * This function will set the parser state to `STATE_INCOMPLETE_INPUT` if the tag is incomplete
-	 * and the parser reaches the end of the document before finding a closing `>`.
+	 * After calling this function, the processor will either be at the tag-closing `>` or the
+	 * parser state will be set to `self::STATE_INCOMPLETE_INPUT` if the end of the document is
+	 * reached before attribute parsing finishes.
 	 *
 	 * @since 7.3.0
 	 * @ignore
