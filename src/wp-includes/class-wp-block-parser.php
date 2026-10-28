@@ -422,7 +422,7 @@ class WP_Block_Parser {
 		}
 
 		if ( isset( $implicitly_closed ) ) {
-			$this->output[] = $implicitly_closed;
+			$this->output[] = (array) $implicitly_closed;
 		}
 	}
 }
