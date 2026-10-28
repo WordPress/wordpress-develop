@@ -354,23 +354,15 @@ class Tests_Admin_wpPluginsListTableRowMeta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the test plugin, including any left over by an interrupted run.
+	 * Removes the test plugin.
 	 */
 	private function remove_plugin() {
-		if ( $this->slug ) {
+		if ( is_multisite() && $this->slug ) {
 			$dir = WP_PLUGIN_DIR . '/' . $this->slug;
 
 			if ( is_dir( $dir ) ) {
 				$this->rmdir( $dir );
 				$this->delete_folders( $dir );
-			}
-		}
-
-		$dirs = glob( WP_PLUGIN_DIR . '/row-meta-plugin-*', GLOB_ONLYDIR );
-		if ( is_array( $dirs ) ) {
-			foreach ( $dirs as $leftover ) {
-				$this->rmdir( $leftover );
-				$this->delete_folders( $leftover );
 			}
 		}
 	}
