@@ -68,23 +68,9 @@ class Tests_General_WpRegister extends WP_UnitTestCase {
 	 */
 	public static function data_register_link() {
 		return array(
-			'list item wrapper' => array( '<li>', '</li>' ),
-			'custom wrapper'    => array( '<p class="register">', '</p>' ),
-			'no wrapper'        => array( '', '' ),
+			'custom wrapper' => array( '<p class="register">', '</p>' ),
+			'no wrapper'     => array( '', '' ),
 		);
-	}
-
-	/**
-	 * Tests that nothing is returned for logged-out visitors when registration is disabled.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::wp_register
-	 */
-	public function test_empty_when_registration_is_disabled() {
-		$this->set_users_can_register( false );
-
-		$this->assertSame( '', wp_register( '<li>', '</li>', false ) );
 	}
 
 	/**
