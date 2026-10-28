@@ -965,7 +965,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertFalse( $before_action_fired, 'before_execute_ability action should not be fired on permission failure' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired on permission failure' );
-		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error on permission failure' );
+		$this->assertWPError( $result, 'Should return WP_Error on permission failure' );
 	}
 
 	/**
@@ -1005,7 +1005,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if execution fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when execution returns WP_Error' );
-		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error from execution callback' );
+		$this->assertWPError( $result, 'Should return WP_Error from execution callback' );
 	}
 
 	/**
@@ -1049,7 +1049,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if output validation fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when output validation fails' );
-		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error for output validation failure' );
+		$this->assertWPError( $result, 'Should return WP_Error for output validation failure' );
 	}
 
 	/**
@@ -1123,7 +1123,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_normalize_input', $filter );
 
-		$this->assertInstanceOf( WP_Error::class, $result, 'Filter returning WP_Error should propagate as the execute() result.' );
+		$this->assertWPError( $result, 'Filter returning WP_Error should propagate as the execute() result.' );
 		$this->assertSame( 'normalize_halt', $result->get_error_code(), 'WP_Error code should be preserved.' );
 	}
 
@@ -1203,7 +1203,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_permission_result', $filter );
 
-		$this->assertInstanceOf( WP_Error::class, $result, 'Denied permission should produce a WP_Error.' );
+		$this->assertWPError( $result, 'Denied permission should produce a WP_Error.' );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
@@ -1458,7 +1458,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		remove_filter( 'wp_pre_execute_ability', $filter );
 
-		$this->assertInstanceOf( WP_Error::class, $result, 'WP_Error from filter should be returned as-is.' );
+		$this->assertWPError( $result, 'WP_Error from filter should be returned as-is.' );
 		$this->assertSame( 'pre_short_circuit', $result->get_error_code() );
 	}
 
@@ -1600,7 +1600,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_execute_result', $filter );
 
-		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertWPError( $result );
 		$this->assertSame( 'execute_failed', $result->get_error_code(), 'Filter saw the expected WP_Error and passed it through.' );
 	}
 
@@ -1751,7 +1751,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute( 'invalid' );
 
-		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertWPError( $result );
 		$this->assertSame( 'custom_error', $result->get_error_code() );
 	}
 
@@ -1898,7 +1898,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertWPError( $result );
 		$this->assertSame( 'custom_output_error', $result->get_error_code() );
 	}
 

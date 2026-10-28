@@ -385,7 +385,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
 		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-		$this->assertNotEquals( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
+		$this->assertNotSame( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
 	}
 
 	public function test_wp_update_term_alias_of_no_term_group() {

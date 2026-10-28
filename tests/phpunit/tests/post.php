@@ -279,7 +279,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$after_draft_counts = wp_count_posts();
 		$this->assertSame( '1', $after_draft_counts->draft );
 		$this->assertSame( '2', $after_draft_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$after_trash_counts = wp_count_posts();
 		$this->assertSame( '1', $after_trash_counts->trash );
 		$this->assertSame( '2', $after_trash_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
 	/**
