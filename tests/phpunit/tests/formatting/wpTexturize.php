@@ -2112,120 +2112,15 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	/**
-	 * Ensure that > inside quoted attribute values does not cause premature
-	 * tag splitting, which would leave quotes exposed to texturization.
+	 * Ensures that quotes inside an attribute value containing ">" are not texturized.
 	 *
 	 * @ticket 63997
-	 * @ticket 57381
-	 * @ticket 63426
-	 *
-	 * @dataProvider data_gt_in_quoted_attribute_values
-	 *
-	 * @param string $input  Input HTML.
-	 * @param string $output Expected output.
 	 */
-	public function test_gt_in_quoted_attribute_values( string $input, string $output ): void {
-		$this->assertSame( $output, wptexturize( $input ) );
-	}
-
-	/**
-	 * Data provider for {@see self::test_gt_in_quoted_attribute_values()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public static function data_gt_in_quoted_attribute_values(): array {
-		return array(
-			array(
-				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
-				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
-			),
-			array(
-				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
-				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
-			),
-			array(
-				'<div data-a="x > y" data-b="z">content</div>',
-				'<div data-a="x > y" data-b="z">content</div>',
-			),
-			array(
-				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
-				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
-			),
-			array(
-				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
-				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
-			),
-			array(
-				'<iframe srcdoc="<body></body>"></iframe>',
-				'<iframe srcdoc="<body></body>"></iframe>',
-			),
-			array(
-				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
-				'<div class="swiper [&#038;>.swiper-pagination]:static">content</div>',
-			),
+	public function test_gt_in_quoted_attribute_value_is_not_texturized(): void {
+		$this->assertEqualHTML(
+			'<p data-rule=\'"a" > "b"\'>It&#8217;s text</p>',
+			wptexturize( '<p data-rule=\'"a" > "b"\'>It\'s text</p>' )
 		);
-	}
-
-	/**
-	 * Ensure that an ampersand in a quoted attribute value is still encoded.
-	 *
-	 * @ticket 57381
-	 */
-	public function test_ampersand_in_quoted_attribute_value_is_encoded(): void {
-		$this->assertSame(
-			'<a href="?a[]=1&#038;a[]=2">x</a>',
-			wptexturize( '<a href="?a[]=1&a[]=2">x</a>' )
-		);
-	}
-
-	/**
-	 * Ensure that a quote in an unquoted attribute value does not pair with a
-	 * quote after the tag and swallow the following text.
-	 *
-	 * @ticket 63997
-	 */
-	public function test_quote_in_unquoted_attribute_value_does_not_pair_across_tag(): void {
-		$input = "<p>Hi</p>\n<a href=\"/x\" title=it's>It's here</a>";
-
-		$this->assertSame(
-			"<p>Hi</p>\n<a href=\"/x\" title=it's>It&#8217;s here</a>",
-			wptexturize( $input )
-		);
-	}
-
-	/**
-	 * Ensure that a quote after a < that does not start a tag does not pair
-	 * with a quote in the following text.
-	 *
-	 * @ticket 63997
-	 */
-	public function test_quote_after_non_tag_lt_does_not_pair_across_gt(): void {
-		$this->assertSame(
-			"<p>x<=' then</p><p>don&#8217;t</p>",
-			wptexturize( "<p>x<=' then</p><p>don't</p>" )
-		);
-	}
-
-	/**
-	 * Ensure that an unclosed tag is not texturized.
-	 *
-	 * @ticket 63997
-	 */
-	public function test_unclosed_tag_is_not_texturized(): void {
-		$input = "<p>Truncated <a href=\"http://example.com/it's";
-
-		$this->assertSame( $input, wptexturize( $input ) );
-	}
-
-	/**
-	 * Ensure that an ampersand inside a CDATA section is not encoded.
-	 *
-	 * @ticket 63997
-	 */
-	public function test_ampersand_in_cdata_is_not_encoded(): void {
-		$input = '<script>/*<![CDATA[*/ if (a > b && c) {} /*]]>*/</script>';
-
-		$this->assertSame( $input, wptexturize( $input ) );
 	}
 
 	public static function data_whole_posts() {

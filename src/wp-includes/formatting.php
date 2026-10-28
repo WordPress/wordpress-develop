@@ -660,33 +660,13 @@ function get_html_split_regex() {
 			.     $cdata
 			. ')';
 
-		// Keep in sync with the element pattern in _get_wptexturize_split_regex().
-		$element =
-			'(?(?=[a-zA-Z])'                   // Does a tag name follow?
-			.     '(?:'                        // Unroll the loop: Consume everything until > is found.
-			.         '[^>=]++'                // Consume anything but > and =.
-			.     '|'
-			.         '=[ \t\f\r\n]*'          // Attribute value follows.
-			.         '(?:'
-			.             '"[^"]*"'            // Double-quoted value, which may contain >.
-			.         '|'
-			.             '\'[^\']*\''         // Single-quoted value, which may contain >.
-			.         '|'
-			.             '[^> \t\f\r\n]*+'    // Unquoted value.
-			.         ')'
-			.     ')*+'                        // Loop possessively.
-			. '|'                              // ...else not a tag, so quotes are not special.
-			.     '[^>]*+'
-			. ')'
-			. '>?';                            // End of element. If not found, match all input.
-
 		$regex =
 			'/('                // Capture the entire match.
 			.     '<'           // Find start of element.
 			.     '(?'          // Conditional expression follows.
 			.         $escaped  // Find end of escaped element.
 			.     '|'           // ...else...
-			.         $element  // Find end of element, allowing > inside quoted attribute values.
+			.         '(?:[^>=]++|=[ \t\f\r\n]*+(?:"[^"]*+"|\'[^\']*+\')?)*+>?' // Find end of normal element, skipping quoted attribute values.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -719,32 +699,12 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 			. ')*+'         // Loop possessively.
 			. '(?:-->)?';   // End of comment. If not found, match all input.
 
-		// Keep in sync with the element pattern in get_html_split_regex().
-		$element =
-			'(?(?=[a-zA-Z])'                   // Does a tag name follow?
-			.     '(?:'                        // Unroll the loop: Consume everything until > is found.
-			.         '[^>=]++'                // Consume anything but > and =.
-			.     '|'
-			.         '=[ \t\f\r\n]*'          // Attribute value follows.
-			.         '(?:'
-			.             '"[^"]*"'            // Double-quoted value, which may contain >.
-			.         '|'
-			.             '\'[^\']*\''         // Single-quoted value, which may contain >.
-			.         '|'
-			.             '[^> \t\f\r\n]*+'    // Unquoted value.
-			.         ')'
-			.     ')*+'                        // Loop possessively.
-			. '|'                              // ...else not a tag, so quotes are not special.
-			.     '[^>]*+'
-			. ')'
-			. '>?';                            // End of element. If not found, match all input.
-
 		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
 			'<'                  // Find start of element.
 			. '(?(?=!--)'        // Is this a comment?
 			.     $comment_regex // Find end of comment.
 			. '|'
-			.     $element       // Find end of element.
+			.     '(?:[^>=]++|=[ \t\f\r\n]*+(?:"[^"]*+"|\'[^\']*+\')?)*+>?' // Find end of element, skipping quoted attribute values. If not found, match all input.
 			. ')';
 		// phpcs:enable
 	}
