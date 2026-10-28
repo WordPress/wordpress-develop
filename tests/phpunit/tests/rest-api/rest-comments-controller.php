@@ -174,6 +174,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		}
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'bug-post' );
+		unregister_post_type( 'no-notes' );
+		unregister_post_type( 'no-note' );
+
+		parent::tear_down();
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 
