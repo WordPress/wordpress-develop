@@ -33,7 +33,7 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests get_the_comments_pagination() when there is only one comment page or no comments.
+	 * Tests get_the_comments_pagination() when there is only one comment page.
 	 *
 	 * @ticket 65819
 	 */
@@ -75,7 +75,7 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 		global $wp_query;
 
 		$wp_query->max_num_comment_pages = 3;
-		set_query_var( 'cpage', 1 );
+		set_query_var( 'cpage', 2 );
 
 		$pagination = get_the_comments_pagination(
 			array(
@@ -90,6 +90,7 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'class="navigation custom-pagination-class"', $pagination );
 		$this->assertStringContainsString( 'aria-label="Custom ARIA Label"', $pagination );
 		$this->assertStringContainsString( 'Custom Navigation', $pagination );
+		$this->assertStringContainsString( 'Go Previous', $pagination );
 		$this->assertStringContainsString( 'Go Next', $pagination );
 	}
 
