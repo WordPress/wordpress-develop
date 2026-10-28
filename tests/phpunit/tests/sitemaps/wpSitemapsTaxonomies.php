@@ -260,7 +260,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	 *
 	 * @param string $taxonomy The taxonomy to test.
 	 */
-	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( $taxonomy ) {
+	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( string $taxonomy ) {
 		register_taxonomy( 'valid_custom_taxonomy', 'post', array( 'public' => true ) );
 
 		$post_id = self::factory()->post->create();
@@ -273,6 +273,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertIsArray( $terms );
 		$count = count( $terms );
 		if ( $count < 5 ) {
 			$terms = array_merge( $terms, self::factory()->term->create_many( 5 - $count, array( 'taxonomy' => $taxonomy ) ) );
@@ -309,11 +310,11 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_sitemap_does_not_404_for_valid_sitemap_subtypes
+	 * Data provider for {@see self::test_sitemap_does_not_404_for_valid_sitemap_subtypes()}.
 	 *
-	 * return array<string, array<string>>
+	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
 	 */
-	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes() {
+	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
 		return array(
 			'category'              => array( 'category' ),
 			'valid custom taxonomy' => array( 'valid_custom_taxonomy' ),

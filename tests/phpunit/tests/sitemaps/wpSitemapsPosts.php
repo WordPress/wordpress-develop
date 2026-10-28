@@ -650,7 +650,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @param string $post_type The post type to test.
 	 */
-	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( $post_type ) {
+	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( string $post_type ) {
 		register_post_type( 'valid_cpt', array( 'public' => true ) );
 
 		self::factory()->post->create_many( 5, array( 'post_type' => $post_type ) );
@@ -684,11 +684,11 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_sitemap_does_not_404_for_valid_sitemap_subtypes
+	 * Data provider for {@see self::test_sitemap_does_not_404_for_valid_sitemap_subtypes()}.
 	 *
-	 * return array<string, array<string>>
+	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
 	 */
-	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes() {
+	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
 		return array(
 			'post'      => array( 'post' ),
 			'valid cpt' => array( 'valid_cpt' ),
