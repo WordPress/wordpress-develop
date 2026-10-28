@@ -134,16 +134,9 @@ jobs:
           php-version: '${{ matrix.php }}'
           coverage: none
 
-      # This job does not check out the repository, so only fetch the action.
-      - name: Check out the WP-CLI setup action
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          path: ci-tools
-          sparse-checkout: .github/actions/setup-wp-cli
-          persist-credentials: false
-
+      # This job does not check out the repository: `$/` fetches the action from this workflow's commit.
       - name: Set up WP-CLI
-        uses: ./ci-tools/.github/actions/setup-wp-cli
+        uses: $/.github/actions/setup-wp-cli
         with:
           version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || 'latest' }}
 
