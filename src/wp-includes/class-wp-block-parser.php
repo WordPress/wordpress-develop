@@ -394,7 +394,7 @@ class WP_Block_Parser {
 	 * @internal
 	 * @since 7.2.0
 	 */
-	public function implicitly_close_and_add_all_open_blocks() {
+	public function implicitly_close_and_add_all_open_blocks(): void {
 		$implicitly_closed = null;
 		$last_freeform     = null;
 
