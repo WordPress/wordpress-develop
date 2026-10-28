@@ -11,13 +11,6 @@
 class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 
 	/**
-	 * Number used to give each test plugin a unique slug, since plugin files are included once.
-	 *
-	 * @var int
-	 */
-	private static $counter = 0;
-
-	/**
 	 * The slug of the test plugin.
 	 *
 	 * @var string
@@ -25,11 +18,11 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 	private $slug;
 
 	/**
-	 * Whether $_GET['networkwide'] was set before the test.
+	 * The original value of $_GET['networkwide'] before the test.
 	 *
-	 * @var bool
+	 * @var mixed
 	 */
-	private $had_networkwide;
+	private $old_networkwide;
 
 	/**
 	 * The redirect locations passed to wp_redirect().
@@ -47,21 +40,29 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 		update_option( 'active_plugins', array( 'zzz/zzz.php' ) );
 		update_site_option( 'active_sitewide_plugins', array() );
 
-		$this->slug            = 'activation-test-plugin-' . ++self::$counter;
-		$this->had_networkwide = array_key_exists( 'networkwide', $_GET );
+		$this->slug            = 'activation-test-plugin-' . wp_generate_password( 8, false );
+		$this->old_networkwide = array_key_exists( 'networkwide', $_GET ) ? $_GET['networkwide'] : null;
 		$this->redirects       = array();
 
 		add_filter( 'wp_redirect', array( $this, 'record_redirect' ) );
 	}
 
 	/**
-	 * Removes the test plugin and restores $_GET.
+	 * Removes the test plugin and restores global state.
 	 */
 	public function tear_down() {
+		global $wp_plugin_paths;
+
 		$this->remove_plugin();
 		wp_cache_delete( 'plugins', 'plugins' );
 
-		if ( ! $this->had_networkwide ) {
+		if ( is_array( $wp_plugin_paths ) ) {
+			unset( $wp_plugin_paths[ WP_PLUGIN_DIR . '/' . $this->get_file() ] );
+		}
+
+		if ( null !== $this->old_networkwide ) {
+			$_GET['networkwide'] = $this->old_networkwide;
+		} else {
 			unset( $_GET['networkwide'] );
 		}
 
@@ -98,6 +99,10 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 		$this->assertWPError( $result, 'An error should be returned.' );
 		$this->assertSame( 'plugin_php_incompatible', $result->get_error_code(), 'The error code should match.' );
 		$this->assertSame( array( 'zzz/zzz.php' ), get_option( 'active_plugins' ), 'The active plugins should not change.' );
+
+		if ( is_multisite() ) {
+			$this->assertSame( array(), get_site_option( 'active_sitewide_plugins' ), 'The active sitewide plugins should not change.' );
+		}
 	}
 
 	/**
@@ -113,13 +118,18 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 		$this->assertNull( activate_plugin( $this->get_file() ), 'Nothing should be returned.' );
 		$this->assertSame( array( $this->get_file(), 'zzz/zzz.php' ), get_option( 'active_plugins' ), 'The plugin should be added in order.' );
 		$this->assertSame(
-			array(
-				array( 'activate_plugin', array( $this->get_file(), false ) ),
-				array( "activate_{$this->get_file()}", array( false ) ),
-				array( 'activated_plugin', array( $this->get_file(), false ) ),
-			),
-			$actions->calls,
+			array( 'activate_plugin', "activate_{$this->get_file()}", 'activated_plugin' ),
+			$actions->get_hook_names(),
 			'The activation hooks should fire in order.'
+		);
+		$this->assertSame(
+			array(
+				array( $this->get_file(), false ),
+				array( false ),
+				array( $this->get_file(), false ),
+			),
+			$actions->get_args(),
+			'The activation hooks should receive the expected arguments.'
 		);
 	}
 
@@ -147,7 +157,7 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 
 		$this->assertNull( activate_plugin( $this->get_file(), '', false, true ), 'Nothing should be returned.' );
 		$this->assertContains( $this->get_file(), get_option( 'active_plugins' ), 'The plugin should be active.' );
-		$this->assertSame( array(), $actions->calls, 'No activation hooks should fire.' );
+		$this->assertSame( array(), $actions->get_events(), 'No activation hooks should fire.' );
 	}
 
 	/**
@@ -163,7 +173,7 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 
 		$this->assertNull( activate_plugin( $this->get_file(), 'plugins.php' ), 'Nothing should be returned.' );
 		$this->assertSame( array( $this->get_file() ), get_option( 'active_plugins' ), 'The active plugins should not change.' );
-		$this->assertSame( array(), $actions->calls, 'No activation hooks should fire.' );
+		$this->assertSame( array(), $actions->get_events(), 'No activation hooks should fire.' );
 		$this->assertSame( array(), $this->redirects, 'No redirect should be sent.' );
 	}
 
@@ -216,7 +226,20 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 		$this->assertSame( array( $this->get_file() ), array_keys( get_site_option( 'active_sitewide_plugins' ) ), 'The plugin should be network active.' );
 		$this->assertSame( array( 'zzz/zzz.php' ), get_option( 'active_plugins' ), 'The site plugins should not change.' );
 		$this->assertSame( 1, $_GET['networkwide'], 'The back-compat request value should be set.' );
-		$this->assertSame( array( 'activate_plugin', array( $this->get_file(), true ) ), $actions->calls[0], 'The hooks should receive true.' );
+		$this->assertSame(
+			array( 'activate_plugin', "activate_{$this->get_file()}", 'activated_plugin' ),
+			$actions->get_hook_names(),
+			'The activation hooks should fire in order.'
+		);
+		$this->assertSame(
+			array(
+				array( $this->get_file(), true ),
+				array( true ),
+				array( $this->get_file(), true ),
+			),
+			$actions->get_args(),
+			'The activation hooks should receive the expected arguments.'
+		);
 	}
 
 	/**
@@ -229,8 +252,26 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 	public function test_should_activate_network_only_plugin_network_wide() {
 		$this->create_plugin( " * Network: true\n" );
 
+		$actions = $this->watch_activation_hooks();
+
 		$this->assertNull( activate_plugin( $this->get_file() ), 'Nothing should be returned.' );
 		$this->assertArrayHasKey( $this->get_file(), get_site_option( 'active_sitewide_plugins' ), 'The plugin should be network active.' );
+		$this->assertSame( array( 'zzz/zzz.php' ), get_option( 'active_plugins' ), 'The site plugins should not change.' );
+		$this->assertSame( 1, $_GET['networkwide'], 'The back-compat request value should be set.' );
+		$this->assertSame(
+			array( 'activate_plugin', "activate_{$this->get_file()}", 'activated_plugin' ),
+			$actions->get_hook_names(),
+			'The activation hooks should fire in order.'
+		);
+		$this->assertSame(
+			array(
+				array( $this->get_file(), true ),
+				array( true ),
+				array( $this->get_file(), true ),
+			),
+			$actions->get_args(),
+			'The activation hooks should receive the expected arguments.'
+		);
 	}
 
 	/**
@@ -261,26 +302,18 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Records the activation hooks.
+	 * Records the activation hooks using MockAction.
 	 *
-	 * @return object An object whose $calls property lists the hook names and arguments.
+	 * @return MockAction The mock action recording hook calls.
 	 */
 	private function watch_activation_hooks() {
-		$recorder        = new stdClass();
-		$recorder->calls = array();
+		$mock = new MockAction();
 
 		foreach ( array( 'activate_plugin', "activate_{$this->get_file()}", 'activated_plugin' ) as $hook ) {
-			add_action(
-				$hook,
-				static function ( ...$args ) use ( $recorder, $hook ) {
-					$recorder->calls[] = array( $hook, $args );
-				},
-				10,
-				2
-			);
+			add_action( $hook, array( $mock, 'action' ), 10, 2 );
 		}
 
-		return $recorder;
+		return $mock;
 	}
 
 	/**
@@ -319,7 +352,7 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 
 		if ( is_dir( $dir ) ) {
 			$this->rmdir( $dir );
-			rmdir( $dir );
+			$this->delete_folders( $dir );
 		}
 	}
 }
