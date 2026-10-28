@@ -4,6 +4,13 @@
  * @group query
  */
 class Tests_Query_ParseQuery extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Data provider for test_parse_query_s_type.
 	 *
