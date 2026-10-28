@@ -23,14 +23,14 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 	private $original_request_uri;
 
 	/**
-	 * The original globals the sorting callback reads.
+	 * The original globals changed by the list-table fixture.
 	 *
 	 * @var array
 	 */
 	private $original_globals = array();
 
 	/**
-	 * Saves the request URI and the sorting globals.
+	 * Saves the request URI and the list-table globals.
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -40,10 +40,14 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 			'orderby' => $GLOBALS['orderby'] ?? null,
 			'order'   => $GLOBALS['order'] ?? null,
 		);
+
+		if ( array_key_exists( 'status', $GLOBALS ) ) {
+			$this->original_globals['status'] = $GLOBALS['status'];
+		}
 	}
 
 	/**
-	 * Restores the request, the request URI and the sorting globals.
+	 * Restores the request, the request URI and the list-table globals.
 	 */
 	public function tear_down() {
 		foreach ( self::$request_keys as $key ) {
@@ -55,6 +59,8 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 		} else {
 			$_SERVER['REQUEST_URI'] = $this->original_request_uri;
 		}
+
+		unset( $GLOBALS['status'] );
 
 		foreach ( $this->original_globals as $name => $value ) {
 			$GLOBALS[ $name ] = $value;
