@@ -122,6 +122,12 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader Text"', $pagination );
+
+		$pagination = get_the_posts_pagination(
+			array( 'screen_reader_text' => 'Fallback Screen Reader Text' )
+		);
+
+		$this->assertStringContainsString( 'aria-label="Fallback Screen Reader Text"', $pagination );
 	}
 
 	/**
@@ -158,6 +164,9 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_posts_pagination_echoes() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( home_url( '/' ) );
+
 		global $wp_query;
 
 		$wp_query = new WP_Query(
@@ -168,9 +177,28 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = get_the_posts_pagination();
+		add_filter(
+			'navigation_markup_template',
+			static function () {
+				return '<nav class="%1$s" aria-label="%4$s"><h2>%2$s</h2>%3$s</nav>';
+			}
+		);
+
+		$expected = '<nav class="echo-pagination" aria-label="Echo ARIA"><h2>Echo Reader</h2>' .
+			'<a class="page-numbers" href="https://example.org/page/1/">1</a>' . "\n" .
+			'<span aria-current="page" class="page-numbers current">2</span>' . "\n" .
+			'<a class="page-numbers" href="https://example.org/page/3/">3</a></nav>';
 
 		$this->expectOutputString( $expected );
-		the_posts_pagination();
+		the_posts_pagination(
+			array(
+				'base'               => 'https://example.org/page/%#%/',
+				'format'             => '',
+				'prev_next'          => false,
+				'class'              => 'echo-pagination',
+				'screen_reader_text' => 'Echo Reader',
+				'aria_label'         => 'Echo ARIA',
+			)
+		);
 	}
 }
