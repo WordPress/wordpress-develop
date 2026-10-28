@@ -32,7 +32,7 @@ class WpMkdirPTest extends WP_UnitTestCase {
 
 	public function test_folder_is_made() {
 		$upload_dir           = wp_upload_dir();
-		$target               = $upload_dir['basedir'] . '/test';
+		$target               = $upload_dir['basedir'] . '/wp-mkdir-p-test-' . wp_generate_password( 6, false );
 		$this->created_dirs[] = $target;
 
 		$this->assertTrue( wp_mkdir_p( $target ) );
@@ -61,7 +61,7 @@ class WpMkdirPTest extends WP_UnitTestCase {
 
 	public function test_permissions_are_set() {
 		$upload_dir           = wp_upload_dir();
-		$target               = $upload_dir['basedir'] . '/permission_test';
+		$target               = $upload_dir['basedir'] . '/wp-mkdir-p-perm-test-' . wp_generate_password( 6, false );
 		$this->created_dirs[] = $target;
 		$parent_stat          = stat( $upload_dir['basedir'] );
 
