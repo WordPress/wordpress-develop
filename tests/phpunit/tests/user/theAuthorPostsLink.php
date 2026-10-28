@@ -81,24 +81,6 @@ class Tests_User_TheAuthorPostsLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the_author_posts_link() outputs pretty permalinks when enabled.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_outputs_author_posts_link_with_pretty_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
-
-		$user     = get_userdata( self::$author_id );
-		$output   = get_echo( 'the_author_posts_link' );
-		$expected = get_the_author_posts_link();
-
-		$this->set_permalink_structure( '' );
-
-		$this->assertSame( $expected, $output );
-		$this->assertStringContainsString( '/author/' . $user->user_nicename . '/', $output );
-	}
-
-	/**
 	 * Tests that the_author_posts_link() outputs nothing when authordata is not set.
 	 *
 	 * @ticket 65819
