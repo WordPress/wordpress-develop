@@ -33,6 +33,8 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		update_option( 'blogname', 'Test Blog' );
+
 		$this->mail = null;
 		add_filter( 'pre_wp_mail', array( $this, 'capture_mail' ), 10, 2 );
 	}
@@ -101,13 +103,17 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 	 * Tests the email for failed updates.
 	 *
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_failed_core_results
+	 *
+	 * @param false|WP_Error $core_result The failed core update result.
 	 */
-	public function test_should_report_failed_updates() {
+	public function test_should_report_failed_updates( $core_result ) {
 		$filter = new MockAction();
 		add_filter( 'automatic_updates_debug_email', array( $filter, 'filter' ), 10, 3 );
 
 		$update_results = array(
-			'core'   => array( $this->result( 'WordPress 9.9', false ) ),
+			'core'   => array( $this->result( 'WordPress 9.9', $core_result ) ),
 			'plugin' => array( $this->result( 'Plugin A', true ), $this->result( 'Plugin B', false ), $this->result( 'Plugin C', null ) ),
 		);
 
@@ -138,6 +144,18 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 
 		$this->assertSame( 3, $args[0][1], 'The filter should receive the number of failures.' );
 		$this->assertSame( $update_results, $args[0][2], 'The filter should receive the update results.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_failed_core_results() {
+		return array(
+			'false result' => array( false ),
+			'error result' => array( new WP_Error( 'core_update_failed', 'Core update failed.' ) ),
+		);
 	}
 
 	/**
