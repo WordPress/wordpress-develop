@@ -583,10 +583,6 @@ class WP_HTML_Style_Attribute_Processor {
 		$this->declarations = array();
 
 		$processor = WP_CSS_Token_Processor::create( $this->style );
-		if ( null === $processor ) {
-			$this->parsed = true;
-			return;
-		}
 
 		while ( $processor->next_token() ) {
 			$this->tokens[] = $processor->get_token();
@@ -1675,7 +1671,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$processor = WP_CSS_Token_Processor::create( $property_name );
-		if ( null === $processor || ! $processor->next_token() ) {
+		if ( ! $processor->next_token() ) {
 			return false;
 		}
 
@@ -1692,7 +1688,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$sentinel_processor = WP_CSS_Token_Processor::create( $property_name . ': sentinel' );
-		if ( null === $sentinel_processor || ! $sentinel_processor->next_token() ) {
+		if ( ! $sentinel_processor->next_token() ) {
 			return false;
 		}
 
@@ -1726,9 +1722,6 @@ class WP_HTML_Style_Attribute_Processor {
 
 		$sentinel_property = '--wp-style-attribute-processor-sentinel';
 		$processor         = WP_CSS_Token_Processor::create( $value . ';' . $sentinel_property . ':1' );
-		if ( null === $processor ) {
-			return false;
-		}
 
 		$stack            = array();
 		$top_level_tokens = array();
