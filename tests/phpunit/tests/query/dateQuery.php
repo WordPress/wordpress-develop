@@ -19,6 +19,12 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 		$this->q = new WP_Query();
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'foo' );
+
+		parent::tear_down();
+	}
+
 	public function _get_query_result( $args = array() ) {
 		$args = wp_parse_args(
 			$args,
