@@ -152,6 +152,17 @@ class Walker_Nav_Menu extends Walker {
 	 * @param int              $depth             Depth of menu item. Used for padding.
 	 * @param stdClass         $args              An object of wp_nav_menu() arguments.
 	 * @param int              $current_object_id Optional. ID of the current menu item. Default 0.
+	 *
+	 * @phpstan-param object{
+	 *     ID: int|string,
+	 *     title: string,
+	 *     classes?: string[],
+	 *     target?: string,
+	 *     xfn?: string,
+	 *     url?: string|false,
+	 *     attr_title?: string,
+	 *     current?: bool,
+	 * } $data_object
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
