@@ -282,6 +282,7 @@ jobs:
           path: |
             src/wp-content/themes/${{ matrix.theme }}
             !src/wp-content/themes/${{ matrix.theme }}/node_modules
+            !src/wp-content/themes/${{ matrix.theme }}/.nvmrc
           if-no-files-found: error
           include-hidden-files: true
 
