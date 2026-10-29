@@ -479,8 +479,18 @@ window.wp = window.wp || {};
 			pageOpt.remove();
 		}
 
-		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor').show();
-		$('.ptitle', editRow).trigger( 'focus' );
+		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor');
+
+		$.post( ajaxurl, {
+			action: 'inline-edit-custom-box',
+			post_ID: id,
+			_inline_edit: $( ':input[name="_inline_edit"]', editRow ).val()
+		} ).done( function( response ) {
+			$( '.inline-edit-custom-boxes', editRow ).html( response );
+		} ).always( function() {
+			$( editRow ).show();
+			$( '.ptitle', editRow ).trigger( 'focus' );
+		} );
 
 		return false;
 	},
