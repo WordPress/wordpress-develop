@@ -189,4 +189,19 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 			$metadata
 		);
 	}
+
+	/**
+	 * Tests that the QuickTime tags of a real file without ID3 are kept, beside what was read from its stream.
+	 *
+	 * @ticket 00000
+	 *
+	 * @covers ::wp_read_video_metadata
+	 */
+	public function test_wp_read_video_metadata_keeps_quicktime_tags() {
+		$metadata = wp_read_video_metadata( DIR_TESTDATA . '/uploads/small-video.mp4' );
+
+		$this->assertSame( 'HandBrake 0.9.4 2009112300', $metadata['encoding_tool'] );
+		$this->assertSame( 'H.264/MPEG-4 AVC', $metadata['codec'] );
+		$this->assertSame( 1269120551, $metadata['created_timestamp'] );
+	}
 }
