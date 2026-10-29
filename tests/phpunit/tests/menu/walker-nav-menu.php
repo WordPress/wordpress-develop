@@ -171,7 +171,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 			'link_after'  => '',
 		);
 
-		// @phpstan-ignore argument.type (A stdClass is intentionally passed, as plugins do via the wp_nav_menu_objects filter; a WP_Post would not reproduce the warning since WP_Post::__get() handles undefined properties.)
 		$this->walker->start_el( $output, $item, 0, $args );
 
 		$this->assertStringNotContainsString( 'aria-current', $output );
