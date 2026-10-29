@@ -415,7 +415,7 @@ class WP_Block {
 		$this->refresh_parsed_block_dependents();
 		// The refresh keeps the previous inner blocks when there are none.
 		if ( empty( $blocks ) ) {
-			$this->inner_blocks = array();
+			$this->inner_blocks = new WP_Block_List( array() );
 		}
 	}
 
