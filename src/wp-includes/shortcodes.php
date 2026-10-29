@@ -797,6 +797,8 @@ class WP_Shortcode_Processor {
 
 	private $parsing_spans = array();
 
+	private $paused_parsing_spans = array();
+
 	/**
 	 * @var WP_Token_Map
 	 */
@@ -866,7 +868,7 @@ class WP_Shortcode_Processor {
 	}
 
 	public static function find_all_shortcode_spans( string $document, ?array $recognized_tags = null ) {
-		$processor = new self( $document, $recognized_tags );
+		$processor = new self( $document, $recognized_tags, self::MODE_RECURSIVE );
 
 		$shortcodes = array();
 		while ( $processor->next_shortcode() ) {
@@ -945,10 +947,14 @@ class WP_Shortcode_Processor {
 		array_shift( $this->parsing_spans );
 
 		$parsing_span = $this->parsing_spans[0] ?? null;
+		if ( null === $parsing_span ) {
+			$this->bytes_already_parsed = strlen( $this->document );
+			return;
+		}
 
-		$this->bytes_already_parsed = null === $parsing_span
-			? strlen( $this->document )
-			: $parsing_span->start;
+		// Are we re-entering a paused span?
+		$unpaused_at                = array_pop( $this->paused_parsing_spans );
+		$this->bytes_already_parsed = $unpaused_at ?? $parsing_span->start;
 	}
 
 	public function next_shortcode() {
@@ -1080,7 +1086,12 @@ class WP_Shortcode_Processor {
 					$this->content_length       = $closer_byte_offset - $end_at - 1;
 
 					if ( self::MODE_RECURSIVE === $this->recursion_mode ) {
-						$this->parsing_spans[] = new WP_HTML_Span( $this->content_start_at, $this->content_length );
+						$this->paused_parsing_spans[] = $this->bytes_already_parsed;
+						array_unshift(
+							$this->parsing_spans,
+							new WP_HTML_Span( $this->content_start_at, $this->content_length )
+						);
+						$this->bytes_already_parsed = $this->content_start_at;
 					}
 
 					return true;
