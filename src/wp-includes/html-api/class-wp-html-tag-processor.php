@@ -2219,25 +2219,33 @@ class WP_HTML_Tag_Processor {
 			$attribute_name              = substr( $this->html, $attribute_start, $name_length );
 			$this->bytes_already_parsed += $name_length;
 
-			$this->skip_whitespace();
-			if ( $this->bytes_already_parsed >= $doc_length ) {
-				$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-				break;
-			}
-
-			$has_value = '=' === $this->html[ $this->bytes_already_parsed ];
-			if ( $has_value ) {
-				++$this->bytes_already_parsed;
+			// There is no whitespace to skip when `=` follows the name.
+			if ( '=' !== $this->html[ $this->bytes_already_parsed ] ) {
 				$this->skip_whitespace();
 				if ( $this->bytes_already_parsed >= $doc_length ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 					break;
 				}
+			}
 
-				switch ( $this->html[ $this->bytes_already_parsed ] ) {
+			$has_value = '=' === $this->html[ $this->bytes_already_parsed ];
+			if ( $has_value ) {
+				++$this->bytes_already_parsed;
+
+				// There is no whitespace to skip when a quote follows `=`.
+				$quote = $this->html[ $this->bytes_already_parsed ] ?? '';
+				if ( '"' !== $quote && "'" !== $quote ) {
+					$this->skip_whitespace();
+					if ( $this->bytes_already_parsed >= $doc_length ) {
+						$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+						break;
+					}
+					$quote = $this->html[ $this->bytes_already_parsed ];
+				}
+
+				switch ( $quote ) {
 					case "'":
 					case '"':
-						$quote                      = $this->html[ $this->bytes_already_parsed ];
 						$value_start                = $this->bytes_already_parsed + 1;
 						$end_quote_at               = strpos( $this->html, $quote, $value_start );
 						$end_quote_at               = false === $end_quote_at ? $doc_length : $end_quote_at;
