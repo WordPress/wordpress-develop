@@ -48,28 +48,28 @@ jobs:
             }
 
             // Check if the author has opened other pull requests in the repository.
-            const prs = await github.rest.pulls.list( {
-              owner,
-              repo,
-              creator: author,
-              state: 'all',
-              per_page: 2,
+            const query = `repo:${ owner }/${ repo } is:pr author:${ author }`;
+            const searchResults = await github.rest.search.issuesAndPullRequests( {
+              q: query,
+              per_page: 5,
             } );
 
-            if ( prs.data.length > 1 ) {
+            const otherPRs = searchResults.data.items.filter( ( item ) => item.number !== pr.number );
+            if ( otherPRs.length > 0 ) {
               core.info( `Author @${ author } has already opened other pull requests. Skipping welcome comment.` );
               return;
             }
 
             // Check if a welcome comment already exists to avoid duplicate comments.
-            const comments = ( await github.rest.issues.listComments( {
+            const comments = await github.paginate( github.rest.issues.listComments, {
               owner,
               repo,
               issue_number: pr.number,
-            } ) ).data;
+              per_page: 100,
+            } );
 
             const hasWelcomeComment = comments.some( ( comment ) =>
-              comment.user.type === 'Bot' && comment.body.includes( 'first pull request to `wordpress-develop`' )
+              comment.user && comment.user.type === 'Bot' && comment.body.includes( 'first pull request to `wordpress-develop`' )
             );
 
             if ( hasWelcomeComment ) {
