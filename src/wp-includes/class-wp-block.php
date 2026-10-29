@@ -400,6 +400,7 @@ class WP_Block {
 		 */
 		$markup = wp_kses_post( $value );
 		if ( $wp_embed instanceof WP_Embed ) {
+			$markup = $wp_embed->run_shortcode( $markup );
 			$markup = $wp_embed->autoembed( $markup );
 		}
 		$blocks = self::prepare_bound_inner_blocks( parse_blocks( $markup ) );
