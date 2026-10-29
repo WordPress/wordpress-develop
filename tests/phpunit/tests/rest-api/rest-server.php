@@ -1716,7 +1716,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Tests that a string `_method` query parameter overrides the request method and any other value is rejected.
+	 * Tests that a valid `_method` query parameter overrides the request method and an invalid one is rejected.
 	 *
 	 * @ticket 66385
 	 *
@@ -1764,9 +1764,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$invalid_param_error = '{"code":"rest_invalid_param","message":"Invalid parameter(s): _method"}';
 
 		return array(
-			'string'            => array( 'post', 200, '"POST"' ),
-			'list array'        => array( array( 'DELETE' ), 400, $invalid_param_error ),
-			'associative array' => array( array( 'x' => 'DELETE' ), 400, $invalid_param_error ),
+			'lowercase method' => array( 'post', 200, '"POST"' ),
+			'custom method'    => array( 'PURGE', 400, $invalid_param_error ),
+			'trailing newline' => array( "POST\n", 400, $invalid_param_error ),
+			'list array'       => array( array( 'DELETE' ), 400, $invalid_param_error ),
 		);
 	}
 

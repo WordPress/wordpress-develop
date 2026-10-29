@@ -418,17 +418,23 @@ class WP_REST_Server {
 		}
 
 		/*
-		 * Reject a non-string method override, such as `?_method[]=DELETE`, instead of
-		 * serving the request with a method other than the one the client asked for.
+		 * The `_method` query parameter overrides the request method below. Accept only a
+		 * common HTTP method, in any case, and reject anything else, such as an array or a
+		 * custom method, with a 400. The pattern ends with `\z` because `$` also matches
+		 * before a trailing newline.
 		 */
-		if ( isset( $_GET['_method'] ) && ! is_string( $_GET['_method'] ) ) {
-			echo $this->json_error(
-				'rest_invalid_param',
-				/* translators: %s: List of invalid parameters. */
-				sprintf( __( 'Invalid parameter(s): %s' ), '_method' ),
-				400
-			);
-			return false;
+		$method = null;
+		if ( isset( $_GET['_method'] ) ) {
+			$method = wp_unslash( $_GET['_method'] );
+			if ( ! is_string( $method ) || ! preg_match( '/^(?:GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH|QUERY)\z/i', $method ) ) {
+				echo $this->json_error(
+					'rest_invalid_param',
+					/* translators: %s: List of invalid parameters. */
+					sprintf( __( 'Invalid parameter(s): %s' ), '_method' ),
+					400
+				);
+				return false;
+			}
 		}
 
 		if ( empty( $path ) ) {
@@ -449,8 +455,8 @@ class WP_REST_Server {
 		 * header.
 		 */
 		$method_overridden = false;
-		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( $_GET['_method'] );
+		if ( $method ) {
+			$request->set_method( $method );
 		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
 			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 			$method_overridden = true;
