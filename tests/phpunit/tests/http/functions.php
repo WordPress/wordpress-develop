@@ -402,6 +402,28 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies parent-domain cookies are accepted and sent on redirect.
+	 *
+	 * Complements WP_HTTP_UnitTestCase::test_cookie_handling(), which cannot set
+	 * a meaningful `Domain=.example.test` attribute against the IP-based local
+	 * HTTP fixture.
+	 *
+	 * @ticket 21182
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_parent_domain_cookie_is_sent_on_redirect() {
+		$this->use_mock_transport();
+
+		$response = wp_remote_get( 'http://api.example.test/cookie-wildcard-test' );
+
+		$this->assertNotWPError( $response );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $response ) );
+	}
+
+	/**
 	 * @ticket 43231
 	 *
 	 * @covers WP_HTTP_Requests_Response::__construct

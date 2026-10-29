@@ -668,6 +668,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Prefers the local redirection fixture when available. Falls back to the
 	 * live api.wordpress.org script only when the fixture was not started.
 	 *
+	 * Uses `header-check` so the assertion proves the custom Host header reached
+	 * the server, not only that some response body was returned.
+	 *
 	 * @ticket 24182
 	 * @ticket 63914
 	 *
@@ -684,8 +687,12 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$port = isset( $parts['port'] ) ? (int) $parts['port'] : null;
 
 		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			/*
+			 * Local fixture host is already an IP. Send a different Host value so
+			 * the test fails if the transport ignores the caller-supplied header.
+			 */
 			$ip          = $host;
-			$host_header = $host;
+			$host_header = 'localhost';
 		} else {
 			$ip          = gethostbyname( $host );
 			$host_header = $host;
@@ -696,7 +703,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			$url         .= ':' . $port;
 			$host_header .= ':' . $port;
 		}
-		$url .= $parts['path'] . '?print-pass=1';
+		$url .= $parts['path'] . '?header-check';
 
 		$args = array(
 			'headers'     => array(
@@ -709,7 +716,24 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = $this->wp_remote_get( $url, $args );
 
 		$this->assertNotWPError( $res );
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
+
+		$received_headers = array();
+		foreach ( explode( "\n", wp_remote_retrieve_body( $res ) ) as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				continue;
+			}
+
+			$header_parts = explode( ':', $line, 2 );
+			if ( 2 !== count( $header_parts ) ) {
+				continue;
+			}
+
+			$received_headers[ strtolower( $header_parts[0] ) ] = $header_parts[1];
+		}
+
+		$this->assertArrayHasKey( 'host', $received_headers );
+		$this->assertSame( $host_header, $received_headers['host'] );
 	}
 
 	/**
@@ -740,6 +764,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Uses the local redirection fixture when available so cookie acceptance and
 	 * rejection checks do not depend on a live api.wordpress.org request.
+	 *
+	 * Parent-domain (`Domain=.example.test`) acceptance is covered separately by
+	 * Tests_HTTP_Functions::test_parent_domain_cookie_is_sent_on_redirect(), because
+	 * an IP-based fixture cannot set a meaningful parent-domain cookie attribute.
 	 *
 	 * @ticket 21182
 	 * @ticket 63914
