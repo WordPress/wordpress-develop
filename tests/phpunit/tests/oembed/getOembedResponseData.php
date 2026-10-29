@@ -14,8 +14,8 @@ class Tests_oEmbed_GetOembedResponseData extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		global $wp_post_statuses;
-		unset( $wp_post_statuses['public'], $wp_post_statuses['private_foo'] );
+		_unregister_post_status( 'public' );
+		_unregister_post_status( 'private_foo' );
 		parent::tear_down();
 	}
 
