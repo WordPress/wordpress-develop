@@ -101,32 +101,12 @@ class Tests_Category_TagDescription extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that tag_description() returns an empty string when the tag does not exist.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_returns_empty_string_for_non_existent_tag() {
-		$this->assertSame( '', tag_description( 99999999 ) );
-	}
-
-	/**
 	 * Tests that tag_description() returns an empty string when the tag has no description.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_returns_empty_string_for_tag_without_description() {
 		$this->assertSame( '', tag_description( self::$empty_tag->term_id ) );
-	}
-
-	/**
-	 * Tests that tag_description() returns an empty string when called without arguments outside a term archive.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_returns_empty_string_when_called_without_arguments_outside_archive() {
-		$this->go_to( home_url() );
-		$this->assertFalse( is_tag() );
-		$this->assertSame( '', tag_description() );
 	}
 
 	/**

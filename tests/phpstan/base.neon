@@ -351,30 +351,10 @@ parameters:
 			- ../../src/wp-includes/pomo
 			- ../../src/wp-includes/rss.php
 			- ../../src/wp-includes/sodium_compat
-	typeAliases:
-		# A callable that may not be defined in the current scope.
-		Maybe_Callable: '''
-			callable|string|array{
-				0: string|object,
-				1: string,
-			}
-		'''
 
-		# The properties of a block style as WP_Block_Styles_Registry stores them, which is
-		# more than its register() hash accepts: `name` is required for a style to be
-		# registered at all, and `label` is filled in from the name when the caller omits
-		# it, so both are always present on the way back out. The shape stays open because
-		# the array is stored verbatim, so a caller's own keys survive — including into the
-		# REST response, which does not set `additionalProperties` to false. Read from
-		# procedural files as well as classes, which is why it is declared here.
-		Block_Style_Properties: '''
-			array{
-				name: string,
-				label: string,
-				inline_style?: string,
-				style_handle?: string,
-				is_default?: bool,
-				style_data?: array<string, mixed>,
-				...
-			}
-		'''
+	# No global `typeAliases` are defined here, since docblocks in src/ that use them are not
+	# self-contained: the aliases are lost from the stubs generated from core, and anyone who
+	# analyzes against core would have to define each one. Declare an alias with `@phpstan-type`
+	# on a class, and import it with `@phpstan-import-type` into other classes, instead. A type
+	# used by functions has to be repeated until PHPStan supports declaring an alias with
+	# `@phpstan-type` outside a class: https://github.com/phpstan/phpstan/issues/9164

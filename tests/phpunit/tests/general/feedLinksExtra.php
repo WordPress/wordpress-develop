@@ -136,6 +136,11 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		wp_set_object_terms( self::$post_with_cpt_id, 'tax_term', self::$tax_id );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( self::$tax_id );
+		unregister_post_type( self::$post_type );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -159,6 +164,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'labels'      => array( 'name' => 'CPT for feed_links_extra()' ),
 			)
 		);
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( self::$tax_id );
+		unregister_post_type( self::$post_type );
+
+		parent::tear_down();
 	}
 
 	/**
