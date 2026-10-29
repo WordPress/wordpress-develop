@@ -987,7 +987,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	 * @return array<int, array{string, string|null, string|null, string|null}>
 	 */
 	private static function significant_tokens( $css ) {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$token = $processor->get_token();

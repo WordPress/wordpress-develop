@@ -4285,7 +4285,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		);
 	}
 
-	$processor    = WP_HTML_Style_Attribute_Processor::create( $css );
+	$processor    = new WP_HTML_Style_Attribute_Processor( $css );
 	$declarations = array();
 
 	while ( $processor->next_declaration() ) {
