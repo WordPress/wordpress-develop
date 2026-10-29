@@ -373,6 +373,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			}
 
 			$this->mime_type = $this->get_mime_type( $this->image->getImageFormat() );
+
+			// ImageMagick 6 can report an AVIF image as HEIC when using the libheif delegate.
+			if ( wp_is_heic_image_mime_type( $this->mime_type ) && 'image/avif' === wp_get_image_mime( $this->file ) ) {
+				$this->mime_type = 'image/avif';
+			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'invalid_image', $e->getMessage(), $this->file );
 		}
