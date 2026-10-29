@@ -351,9 +351,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @deprecated 2.8.0 Use wp_xmlrpc_server::login()
 	 * @see wp_xmlrpc_server::login()
 	 *
-	 * @param string $username User's username.
-	 * @param string $password User's password.
+	 * @param mixed $username User's username.
+	 * @param mixed $password User's password.
 	 * @return bool Whether authentication passed.
+	 *
+	 * @phpstan-assert-if-true =scalar $username
+	 * @phpstan-assert-if-true =scalar $password
 	 */
 	public function login_pass_ok(
 		$username,
