@@ -42,13 +42,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		_unregister_post_status( 'foo' );
-		unregister_post_type( 'wptests_pt' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 23167
 	 */
