@@ -979,7 +979,6 @@ function get_hooked_blocks() {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			$hooked_blocks[ $anchor_block_type ]                       ??= array();
 			$hooked_blocks[ $anchor_block_type ][ $relative_position ] ??= array();
 			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}

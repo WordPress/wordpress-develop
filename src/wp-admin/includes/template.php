@@ -1098,8 +1098,6 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 
 	$page = $screen->id;
 
-	$wp_meta_boxes                      ??= array();
-	$wp_meta_boxes[ $page ]             ??= array();
 	$wp_meta_boxes[ $page ][ $context ] ??= array();
 
 	foreach ( array_keys( $wp_meta_boxes[ $page ] ) as $a_context ) {
@@ -1494,8 +1492,6 @@ function remove_meta_box( $id, $screen, $context ) {
 
 	$page = $screen->id;
 
-	$wp_meta_boxes                      ??= array();
-	$wp_meta_boxes[ $page ]             ??= array();
 	$wp_meta_boxes[ $page ][ $context ] ??= array();
 
 	foreach ( array( 'high', 'core', 'default', 'low' ) as $priority ) {
