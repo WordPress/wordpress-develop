@@ -53,16 +53,18 @@ class Tests_Category_WalkCategoryTree extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_uses_default_walker_category() {
+		$this->set_permalink_structure( '' );
 		$elements = array( self::$parent, self::$child );
 		$args     = array(
 			'style'              => 'list',
 			'use_desc_for_title' => 0,
 		);
 
-		$default_walker = new Walker_Category();
-		$expected       = $default_walker->walk( $elements, 0, $args );
+		$expected = "\t" . '<li class="cat-item cat-item-' . self::$parent->term_id . '"><a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$parent->term_id . '">Parent Category</a>' . "\n" .
+			"<ul class='children'>\n" .
+			"\t" . '<li class="cat-item cat-item-' . self::$child->term_id . '"><a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$child->term_id . '">Child Category</a>' . "\n" .
+			"</li>\n</ul>\n</li>\n";
 
-		$this->assertStringContainsString( 'cat-item-' . self::$child->term_id, $expected );
 		$this->assertSame( $expected, walk_category_tree( $elements, 0, $args ) );
 	}
 
@@ -73,6 +75,7 @@ class Tests_Category_WalkCategoryTree extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_falls_back_to_default_walker_when_walker_arg_is_invalid() {
+		$this->set_permalink_structure( '' );
 		$elements = array( self::$parent, self::$child );
 		$args     = array(
 			'style'              => 'list',
@@ -80,10 +83,11 @@ class Tests_Category_WalkCategoryTree extends WP_UnitTestCase {
 			'walker'             => new stdClass(),
 		);
 
-		$default_walker = new Walker_Category();
-		$expected       = $default_walker->walk( $elements, 0, $args );
+		$expected = "\t" . '<li class="cat-item cat-item-' . self::$parent->term_id . '"><a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$parent->term_id . '">Parent Category</a>' . "\n" .
+			"<ul class='children'>\n" .
+			"\t" . '<li class="cat-item cat-item-' . self::$child->term_id . '"><a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$child->term_id . '">Child Category</a>' . "\n" .
+			"</li>\n</ul>\n</li>\n";
 
-		$this->assertStringContainsString( 'cat-item-' . self::$child->term_id, $expected );
 		$this->assertSame( $expected, walk_category_tree( $elements, 0, $args ) );
 	}
 
