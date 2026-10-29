@@ -327,23 +327,71 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 	 * @covers WP_REST_Font_Collections_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		$collection = WP_Font_Library::get_instance()->get_font_collection( 'mock-col-slug' );
-		$controller = new WP_REST_Font_Collections_Controller();
-		$request    = new WP_REST_Request( 'GET', '/wp/v2/font-collections/mock-col-slug' );
-		$response   = $controller->prepare_item_for_response( $collection, $request );
+		$font_families = array(
+			array(
+				'font_family_settings' => array(
+					'name'       => 'Open Sans',
+					'slug'       => 'open-sans',
+					'fontFamily' => '"Open Sans", sans-serif',
+					'preview'    => 'https://example.com/open-sans.png',
+					'fontFace'   => array(
+						array(
+							'fontFamily' => 'Open Sans',
+							'fontStyle'  => 'normal',
+							'fontWeight' => '400',
+							'src'        => 'https://example.com/open-sans.woff2',
+						),
+					),
+				),
+				'categories'           => array( 'sans-serif' ),
+			),
+		);
+
+		wp_register_font_collection(
+			'test-prepare-item',
+			array(
+				'name'          => 'Test Collection',
+				'description'   => 'Test description',
+				'font_families' => $font_families,
+				'categories'    => array(
+					array(
+						'name' => 'Sans Serif',
+						'slug' => 'sans-serif',
+					),
+				),
+			)
+		);
+
+		try {
+			$collection = WP_Font_Library::get_instance()->get_font_collection( 'test-prepare-item' );
+			$controller = new WP_REST_Font_Collections_Controller();
+			$request    = new WP_REST_Request( 'GET', '/wp/v2/font-collections/test-prepare-item' );
+			$response   = $controller->prepare_item_for_response( $collection, $request );
+		} finally {
+			wp_unregister_font_collection( 'test-prepare-item' );
+		}
 
 		$this->assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 'mock-col-slug', $data['slug'] );
-		$this->assertSame( 'My collection', $data['name'] );
-		$this->assertIsArray( $data['font_families'] );
-		$this->assertSame( array(), $data['categories'] );
+		$this->assertSame( 'test-prepare-item', $data['slug'] );
+		$this->assertSame( 'Test Collection', $data['name'] );
+		$this->assertSame( 'Test description', $data['description'] );
+		$this->assertSame( $font_families, $data['font_families'] );
+		$this->assertSame(
+			array(
+				array(
+					'name' => 'Sans Serif',
+					'slug' => 'sans-serif',
+				),
+			),
+			$data['categories']
+		);
 
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'self', $links );
-		$this->assertSame( rest_url( 'wp/v2/font-collections/mock-col-slug' ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/font-collections/test-prepare-item' ), $links['self'][0]['href'] );
 		$this->assertArrayHasKey( 'collection', $links );
 		$this->assertSame( rest_url( 'wp/v2/font-collections' ), $links['collection'][0]['href'] );
 	}
