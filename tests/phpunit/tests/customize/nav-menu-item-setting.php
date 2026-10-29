@@ -44,6 +44,12 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$wp_customize       = $this->wp_customize;
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'press_release' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
