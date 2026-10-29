@@ -518,4 +518,32 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
 	}
+
+	/**
+	 * Tests that the SSH2 host key fingerprint is only read from its constant and is never stored.
+	 *
+	 * @ticket 66390
+	 *
+	 * @covers ::request_filesystem_credentials
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_request_filesystem_credentials_reads_fingerprint_only_from_constant() {
+		define( 'FTP_HOST', 'example.org' );
+		define( 'FTP_USER', 'user' );
+		define( 'FTP_PASS', 'pass' );
+
+		update_option( 'ftp_credentials', array( 'fingerprint' => 'STORED' ) );
+		$_POST['fingerprint'] = 'SUBMITTED';
+
+		$credentials = request_filesystem_credentials( '', 'ssh2' );
+		$this->assertSame( '', $credentials['fingerprint'], 'Submitted and stored fingerprints should be ignored.' );
+
+		define( 'FTP_HOST_FINGERPRINT', 'AA:BB' );
+
+		$credentials = request_filesystem_credentials( '', 'ssh2' );
+		$this->assertSame( 'AA:BB', $credentials['fingerprint'], 'The fingerprint should be read from FTP_HOST_FINGERPRINT.' );
+		$this->assertArrayNotHasKey( 'fingerprint', get_option( 'ftp_credentials' ), 'The fingerprint should not be stored.' );
+	}
 }
