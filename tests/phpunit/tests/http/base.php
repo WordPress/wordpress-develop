@@ -790,9 +790,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Verifies parent-domain cookies are accepted and sent on redirect.
 	 *
-	 * Complements test_cookie_handling(): an IP-based local fixture cannot set a
-	 * meaningful `Domain=.example.test` attribute, so this named-origin mock keeps
-	 * that acceptance check deterministic without a live network request.
+	 * Complements test_cookie_handling(): the IP-based local fixture intentionally
+	 * omits parent-domain cookies, so this named-origin mock keeps Domain=.example.test
+	 * acceptance deterministic without a live network request.
 	 *
 	 * @ticket 21182
 	 * @ticket 63914
