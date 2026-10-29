@@ -20,21 +20,18 @@ The processor's north star is:
 
 ## Construction
 
-Creation uses:
+Creation uses the public constructor:
 
 ```php
-WP_HTML_Style_Attribute_Processor::create( $decoded_css_text )
+new WP_HTML_Style_Attribute_Processor( $decoded_css_text )
 ```
 
-The constructor is private. `create()` accepts only string input and returns a
-processor instance of the called class. The implementation must remain
-compatible with WordPress' supported PHP versions, so the runtime signature may
-use PHPDoc and explicit validation instead of PHP syntax unavailable in those
-versions.
-
-Callers must not pass raw `WP_HTML_Tag_Processor::get_attribute( 'style' )`
-results directly unless they have already checked that the result is a string.
-Missing or boolean attributes are an HTML-layer concern, not accepted CSS text.
+The constructor accepts a string, `true` or `null`, the values
+`WP_HTML_Tag_Processor::get_attribute( 'style' )` returns. `true` (an attribute
+with no value) and `null` (a missing attribute) give an empty style. Any other
+type throws a `TypeError`. The implementation must remain compatible with
+WordPress' supported PHP versions, so the runtime signature uses PHPDoc and
+explicit validation instead of a union type.
 
 Parsing is lazy. Creating a processor does not scan the style text until cursor
 movement, mutation validation, or serialization requires it.
@@ -63,7 +60,7 @@ The internal declaration data consists of:
 Initial public methods:
 
 ```php
-public static function create( $decoded_css_text );
+public function __construct( $decoded_css_text );
 public function next_declaration( ?string $property_name = null ): bool;
 public function get_property_name(): ?string;
 public function is_important(): ?bool;
@@ -82,7 +79,7 @@ The processor exposes a declaration value as tokens, through
 string would be re-tokenized by every consumer.
 
 Bookmarks, seek, and rewind are out of scope. Callers that need to rescan should
-create a new processor from the updated style text.
+construct a new processor from the updated style text.
 
 ## Cursor Semantics
 
@@ -102,11 +99,8 @@ declaration, the cursor remains on the same logical declaration.
 remains invalid until a later `next_declaration()` advances to the appended
 declaration.
 
-`next_declaration()` flushes pending safe edits before advancing because
-advancement must reflect the updated declaration list.
-
-Current-position getters should reflect successful pending edits without forcing
-a full reparse where practical, following HTML API style.
+A successful mutation updates the style text and the declaration list before
+it returns, so later getters and `next_declaration()` see the updated list.
 
 Each successful mutation parses the whole style text again. Removing most of the
 declarations of a long style one at a time therefore takes time that grows with
@@ -148,7 +142,7 @@ value tokens are included. A declaration with no value tokens, such as
 `color:;`, returns an empty list.
 
 Offsets index the current style text, which `get_updated_style()` returns.
-Before any mutation that is the text passed to `create()`. A successful
+Before any mutation that is the text passed to the constructor. A successful
 mutation reparses the updated text, and the offsets follow it.
 
 Re-tokenizing the source slice from the first token's start to the end of the
@@ -332,7 +326,7 @@ self-contained and do not receive EOF repair.
 
 Tests should cover:
 
-- private construction and `create()` behavior;
+- construction, including `true`, `null` and other non-string input;
 - decoded string input boundary;
 - declaration traversal, duplicate preservation, and property-name matching;
 - getter `null` behavior off-cursor;
