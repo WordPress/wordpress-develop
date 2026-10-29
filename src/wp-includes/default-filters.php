@@ -306,6 +306,7 @@ add_filter( 'tiny_mce_before_init', '_mce_set_direction' );
 add_filter( 'teeny_mce_before_init', '_mce_set_direction' );
 add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
 add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
+add_filter( 'wp_kses_force_legacy_parser', '__return_false' );
 add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
@@ -318,6 +319,7 @@ add_filter( 'pre_comment_content', '_wp_kses_sanitize_note_mention_classes', 11 
 add_filter( 'comment_email', 'antispambot' );
 add_filter( 'option_tag_base', '_wp_filter_taxonomy_base' );
 add_filter( 'option_category_base', '_wp_filter_taxonomy_base' );
+add_filter( 'option_wp_random_base', '_wp_filter_taxonomy_base' );
 add_filter( 'the_posts', '_close_comments_for_old_posts', 10, 2 );
 add_filter( 'comments_open', '_close_comments_for_old_post', 10, 2 );
 add_filter( 'pings_open', '_close_comments_for_old_post', 10, 2 );
@@ -344,6 +346,9 @@ add_action( 'application_password_failed_authentication', 'rest_application_pass
 add_action( 'application_password_did_authenticate', 'rest_application_password_collect_status', 10, 2 );
 add_filter( 'rest_authentication_errors', 'rest_application_password_check_errors', 90 );
 add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
+
+// Application password notifications.
+add_action( 'wp_create_application_password', 'wp_application_password_created_notification', 10, 2 );
 
 // Actions.
 add_action( 'wp_head', '_wp_render_title_tag', 1 );
@@ -395,6 +400,7 @@ add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
 add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
+add_action( 'login_footer', 'wp_prefetch_admin_assets', 21 ); // By the footer, the login screen has enqueued everything it loads, so those are skipped.
 add_action( 'login_init', 'send_frame_options_header', 10, 0 );
 add_action( 'login_init', 'wp_admin_headers' );
 
@@ -489,6 +495,15 @@ add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
 add_action( 'post_updated', 'wp_check_for_changed_dates', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
+// Random content redirects, see WP::handle_random().
+add_filter( 'split_the_query', 'wp_random_content_split_the_query', 10, 2 );
+add_action( 'wp_after_insert_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 4 );
+add_action( 'after_delete_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 2 );
+
+// Regenerate rewrite rules in the new site language, they can contain translated slugs.
+add_action( 'add_option_WPLANG', 'wp_flush_rewrite_rules_on_site_language_change', 10, 0 );
+add_action( 'update_option_WPLANG', 'wp_flush_rewrite_rules_on_site_language_change', 10, 0 );
+
 // Nonce check for post previews.
 add_action( 'init', '_show_post_preview' );
 
@@ -536,6 +551,7 @@ add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
+add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
 add_action( 'after_password_reset', 'wp_password_change_notification' );
 add_action( 'register_new_user', 'wp_send_new_user_notifications' );
 add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
@@ -544,11 +560,13 @@ add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
 add_action( 'init', 'rest_api_init' );
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 add_action( 'rest_api_init', 'register_initial_settings', 10 );
+add_filter( 'rest_pre_update_setting', 'rest_restrict_privacy_policy_page_setting_update', 10, 2 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 add_action( 'parse_request', 'rest_api_loaded' );
 
 // Abilities API.
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+add_action( 'wp_abilities_api_init', '_wp_register_initial_settings_for_abilities', 1 );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 // Connectors API.
@@ -616,7 +634,7 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_command_palette_assets' );
-add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
+add_action( 'admin_head', 'wp_print_view_transitions_render_blocking_link' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
@@ -691,6 +709,7 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
 add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings' );
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
+add_action( 'delete_attachment', '_wp_delete_edit_root_attachment_id' );
 
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
@@ -699,6 +718,8 @@ add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-upload.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-media-new.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
@@ -822,15 +843,24 @@ add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadat
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
 // View Config API.
-foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template', 'attachment' ) as $post_type ) {
 	// Base definitions run before the default priority, so third-party
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
 	add_filter(
-		"get_entity_view_config_postType_{$post_type}",
-		"_wp_get_entity_view_config_post_type_{$post_type}",
+		"get_entity_view_config_posttype_{$post_type}",
+		"_wp_get_entity_view_config_posttype_{$post_type}",
 		5
 	);
 }
+add_filter( 'get_entity_view_config_root_site', '_wp_get_entity_view_config_root_site', 5 );
+
+// Entity Actions API.
+add_action( 'admin_footer', '_wp_add_entity_action_modules_to_editor_script', 10, 0 );
+add_filter( 'block_editor_rest_api_preload_paths', '_wp_preload_entity_actions', 10, 2 );
+
+// Entity Fields API.
+add_action( 'admin_footer', '_wp_add_entity_field_modules_to_editor_script', 10, 0 );
+add_filter( 'block_editor_rest_api_preload_paths', '_wp_preload_entity_fields', 10, 2 );
 
 unset( $filter, $action, $post_type );

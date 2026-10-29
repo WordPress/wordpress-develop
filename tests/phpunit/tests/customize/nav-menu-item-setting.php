@@ -44,6 +44,12 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$wp_customize       = $this->wp_customize;
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'press_release' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
@@ -190,7 +196,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Hello World', $value['original_title'] );
 
@@ -273,7 +279,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Salutations', $value['original_title'] );
 	}
@@ -456,7 +462,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$current_items = wp_get_nav_menu_items( $menu_id );
 		$setting->preview();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 
 		$last_item = array_pop( $preview_items );
 		$this->assertSame( $new_item_id, $last_item->db_id );
@@ -505,7 +511,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 		$setting->preview();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 	}
 
@@ -559,7 +565,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		);
 		foreach ( $invalid_urls as $invalid_url ) {
 			$url_setting = $setting->sanitize( array( 'url' => $invalid_url ) );
-			$this->assertInstanceOf( 'WP_Error', $url_setting );
+			$this->assertWPError( $url_setting );
 			$this->assertSame( 'invalid_url', $url_setting->get_error_code() );
 		}
 
@@ -588,11 +594,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 			'menu_item_parent' => 0,
 			'position'         => -123,
 			'type'             => 'customb',
-			'title'            => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o Hi<script>unfilteredHtml()</script>' : '\o/ o\'o HiunfilteredHtml()',
+			'title'            => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o Hi<script>unfilteredHtml()</script>' : '\o/ o\'o Hi',
 			'url'              => '',
 			'target'           => 'onclick',
-			'attr_title'       => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o <b>bolded</b><script>unfilteredHtml()</script>' : '\o/ o\'o <b>bolded</b>unfilteredHtml()',
-			'description'      => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o <b>Hello world</b><script>unfilteredHtml()</script>' : '\o/ o\'o <b>Hello world</b>unfilteredHtml()',
+			'attr_title'       => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o <b>bolded</b><script>unfilteredHtml()</script>' : '\o/ o\'o <b>bolded</b>',
+			'description'      => current_user_can( 'unfiltered_html' ) ? '\o/ o\'o <b>Hello world</b><script>unfilteredHtml()</script>' : '\o/ o\'o <b>Hello world</b>',
 			'classes'          => 'hello  inject',
 			'xfn'              => 'hello  inject',
 			'status'           => 'draft',
@@ -632,9 +638,10 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$post          = get_post( $nav_menu_item_id );
 		$nav_menu_item = wp_setup_nav_menu_item( clone $post );
 
-		$this->assertEquals( $expected_sanitized['object_id'], $nav_menu_item->object_id );
+		// Cast expected IDs to strings to match post meta values from wp_setup_nav_menu_item().
+		$this->assertSame( (string) $expected_sanitized['object_id'], $nav_menu_item->object_id );
 		$this->assertSame( $expected_sanitized['object'], $nav_menu_item->object );
-		$this->assertEquals( $expected_sanitized['menu_item_parent'], $nav_menu_item->menu_item_parent );
+		$this->assertSame( (string) $expected_sanitized['menu_item_parent'], $nav_menu_item->menu_item_parent );
 		$this->assertSame( $expected_sanitized['position'], $post->menu_order );
 		$this->assertSame( $expected_sanitized['type'], $nav_menu_item->type );
 		$this->assertSame( $expected_sanitized['title'], $post->post_title );
@@ -697,8 +704,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$updated_item              = $menu_items[ $i ];
 		$post_value['post_status'] = $post_value['status'];
 		unset( $post_value['status'] );
+
+		// Cast object_id to string to match post meta values from wp_setup_nav_menu_item().
+		$post_value['object_id'] = (string) $post_value['object_id'];
 		foreach ( $post_value as $key => $value ) {
-			$this->assertEquals( $value, $updated_item->$key, "Key $key mismatch" );
+			$this->assertSame( $value, $updated_item->$key, "Key $key mismatch" );
 		}
 
 		// Verify the Ajax responses is being amended.
@@ -762,7 +772,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$current_items = wp_get_nav_menu_items( $menu_id );
 		$setting->save();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 
 		$last_item = array_pop( $preview_items );
 		$this->assertSame( $setting->post_id, $last_item->db_id );
@@ -770,8 +780,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		unset( $post_value['status'] );
 		$post_value['menu_order'] = $post_value['position'];
 		unset( $post_value['position'] );
+
+		// Cast object_id to string to match post meta values from wp_setup_nav_menu_item().
+		$post_value['object_id'] = (string) $post_value['object_id'];
 		foreach ( $post_value as $key => $value ) {
-			$this->assertEquals( $value, $last_item->$key, "Mismatch for $key property." );
+			$this->assertSame( $value, $last_item->$key, "Mismatch for $key property." );
 		}
 
 		// Verify the Ajax responses is being amended.
@@ -825,7 +838,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 		$setting->save();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 
 		// Verify the Ajax responses is being amended.

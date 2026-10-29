@@ -42,6 +42,13 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		_unregister_post_status( 'foo' );
+		unregister_post_type( 'wptests_pt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 23167
 	 */
@@ -90,7 +97,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// Force last_changed to increment.
 		clean_post_cache( $pages[0]->ID );
-		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertNotSame( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
 		get_post( $pages[0]->ID );
 		$num_queries = get_num_queries();
 

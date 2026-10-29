@@ -339,6 +339,11 @@ switch ( $wp_list_table->current_action() ) {
 
 		<ul>
 		<?php
+		/**
+		 * @global wpdb $wpdb WordPress database abstraction object.
+		 */
+		global $wpdb;
+
 		$go_delete          = 0;
 		$users_have_content = false;
 
@@ -351,7 +356,7 @@ switch ( $wp_list_table->current_action() ) {
 					/* translators: 1: User ID, 2: User login. */
 					__( 'ID #%1$s: %2$s <strong>The current user will not be deleted.</strong>' ),
 					$id,
-					$user->user_login
+					esc_html( $user->user_login )
 				);
 				echo "</li>\n";
 			} else {
@@ -402,7 +407,7 @@ switch ( $wp_list_table->current_action() ) {
 					printf(
 						/* translators: 1: User login. 2: User ID */
 						__( '%1$s (ID #%2$s): This user does not have any content.' ),
-						'<strong>' . $user->user_login . '</strong>',
+						'<strong>' . esc_html( $user->user_login ) . '</strong>',
 						$id
 					);
 					?>
@@ -416,7 +421,7 @@ switch ( $wp_list_table->current_action() ) {
 					printf(
 						/* translators: 1: User login, 2: User ID. */
 						__( '%1$s (ID #%2$s): What should be done with the content owned by this user?' ),
-						'<strong>' . $user->user_login . '</strong>',
+						'<strong>' . esc_html( $user->user_login ) . '</strong>',
 						$id
 					);
 					?>
@@ -568,7 +573,7 @@ switch ( $wp_list_table->current_action() ) {
 					/* translators: 1: User ID, 2: User login. */
 					__( 'ID #%1$s: %2$s <strong>Sorry, you are not allowed to remove this user.</strong>' ),
 					$id,
-					$user->user_login
+					esc_html( $user->user_login )
 				);
 				echo "</li>\n";
 			} else {
@@ -581,7 +586,7 @@ switch ( $wp_list_table->current_action() ) {
 					/* translators: 1: User ID, 2: User login. */
 					__( 'ID #%1$s: %2$s' ),
 					$id,
-					$user->user_login
+					esc_html( $user->user_login )
 				);
 				echo "</li>\n";
 

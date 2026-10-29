@@ -37,6 +37,16 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'test_taxonomy' );
+		unregister_taxonomy( 'private_taxonomy' );
+		unregister_taxonomy( 'non_queryable_tax' );
+		unregister_taxonomy( 'public_taxonomy' );
+		unregister_taxonomy( 'non_queryable_taxonomy' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test getting a URL list for default taxonomies via
 	 * WP_Sitemaps_Taxonomies::get_url_list().
@@ -45,8 +55,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		// Add the default category to the list of categories we're testing.
 		$categories = array_merge( array( 1 ), self::$cats );
 
-		// Create a test post to calculate update times.
-		$post = self::factory()->post->create_and_get(
+		// Create a test post so the test terms are assigned and counted.
+		self::factory()->post->create(
 			array(
 				'tags_input'    => self::$post_tags,
 				'post_category' => $categories,
@@ -58,7 +68,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$cat_list = $tax_provider->get_url_list( 1, 'category' );
 
 		$expected_cats = array_map(
-			static function ( $id ) use ( $post ) {
+			static function ( $id ) {
 				return array(
 					'loc' => get_term_link( $id, 'category' ),
 				);
@@ -71,7 +81,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$tag_list = $tax_provider->get_url_list( 1, 'post_tag' );
 
 		$expected_tags = array_map(
-			static function ( $id ) use ( $post ) {
+			static function ( $id ) {
 				return array(
 					'loc' => get_term_link( $id, 'post_tag' ),
 				);
@@ -97,10 +107,10 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
-		$post = self::factory()->post->create_and_get( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
 
 		$expected = array_map(
-			static function ( $id ) use ( $taxonomy, $post ) {
+			static function ( $id ) use ( $taxonomy ) {
 				return array(
 					'loc' => get_term_link( $id, $taxonomy ),
 				);

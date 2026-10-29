@@ -16,7 +16,7 @@ class Tests_oEmbed_wpFilterOembedIframeTitleAttribute extends WP_UnitTestCase {
 		$this->assertEqualHTML( $expected, $actual );
 	}
 
-	public function data_oembed_iframe_title_attribute() {
+	public static function data_oembed_iframe_title_attribute() {
 		return array(
 			array(
 				'<p>Foo</p><iframe src=""></iframe><b>Bar</b>',
