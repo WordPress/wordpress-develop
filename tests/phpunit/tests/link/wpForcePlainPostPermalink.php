@@ -29,8 +29,7 @@ class Tests_Link_WpForcePlainPostPermalink extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		global $wp_post_statuses;
-		unset( $wp_post_statuses['wptests_public'] );
+		_unregister_post_status( 'wptests_public' );
 		parent::tear_down();
 	}
 
