@@ -393,7 +393,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item_invalid_theme_dirname() {
+	public static function data_get_theme_item_invalid_theme_dirname() {
 		return array(
 			'+'                      => array(
 				'theme_dirname' => 'my+theme+',
@@ -457,7 +457,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item() {
+	public static function data_get_theme_item() {
 		return array(
 			'alphabetic'                     => array( 'mytheme' ),
 			'alphanumeric'                   => array( 'mythemev1' ),

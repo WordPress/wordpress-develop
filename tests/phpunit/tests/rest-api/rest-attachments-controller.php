@@ -1068,7 +1068,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array<string, array{ 0: mixed, 1: int }>
 	 */
-	public function data_valid_filesize_meta(): array {
+	public static function data_valid_filesize_meta(): array {
 		return array(
 			'integer string'      => array( '123456', 123456 ),
 			'float string'        => array( '123.4', 123 ),
@@ -1123,7 +1123,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_invalid_filesize_meta(): array {
+	public static function data_invalid_filesize_meta(): array {
 		return array(
 			'non-numeric string'      => array( 'corrupt' ),
 			'boolean'                 => array( true ),
@@ -2851,7 +2851,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array
 	 */
-	public function rest_upload_filename_spaces() {
+	public static function rest_upload_filename_spaces() {
 		return array(
 			'filename with spaces'  => array(
 				'Filename With Spaces.jpg',
@@ -3613,7 +3613,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array[]
 	 */
-	public function data_still_heic_mime_types() {
+	public static function data_still_heic_mime_types() {
 		return array(
 			'heic' => array( 'image/heic' ),
 			'heif' => array( 'image/heif' ),
@@ -3664,7 +3664,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array[]
 	 */
-	public function data_heic_sequence_mime_types() {
+	public static function data_heic_sequence_mime_types() {
 		return array(
 			'heic-sequence' => array( 'image/heic-sequence' ),
 			'heif-sequence' => array( 'image/heif-sequence' ),
@@ -6087,7 +6087,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @return array[]
 	 */
-	public function data_create_item_from_url_rejects_non_image_extension() {
+	public static function data_create_item_from_url_rejects_non_image_extension() {
 		return array(
 			'PHP script'       => array( 'https://example.com/evil.php' ),
 			'HTML document'    => array( 'https://example.com/page.html' ),

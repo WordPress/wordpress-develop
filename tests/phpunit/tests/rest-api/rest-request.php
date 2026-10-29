@@ -341,7 +341,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_non_post_body_parameters() {
+	public static function data_non_post_body_parameters() {
 		return array(
 			array( 'PUT' ),
 			array( 'PATCH' ),
@@ -813,7 +813,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		return new WP_Error( 'some-error', 'This is not valid!' );
 	}
 
-	public function data_from_url() {
+	public static function data_from_url() {
 		return array(
 			array(
 				'permalink_structure' => '/%post_name%/',
@@ -1110,7 +1110,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_method_should_detect_method_ignoring_case() {
+	public static function data_is_method_should_detect_method_ignoring_case() {
 		return array(
 			// GET.
 			'GET same case'          => array( 'GET', 'GET', true ),

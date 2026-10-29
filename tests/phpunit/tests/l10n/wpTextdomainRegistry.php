@@ -349,7 +349,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_text_domains_sharing_a_prefix() {
+	public static function data_text_domains_sharing_a_prefix() {
 		return array(
 			// "internationalized-plugin-{de_DE,es_ES}.mo" exist, "internationalized-*" do not.
 			'prefix of a domain with .mo files'     => array( 'internationalized', 'de_DE' ),
@@ -386,7 +386,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_domains_locales() {
+	public static function data_domains_locales() {
 		return array(
 			'Non-existent plugin'                      => array(
 				'unknown-plugin',

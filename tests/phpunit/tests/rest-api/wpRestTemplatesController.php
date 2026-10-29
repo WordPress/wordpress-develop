@@ -416,7 +416,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function data_get_item_works_with_a_single_slash() {
+	public static function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -485,7 +485,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_get_item_with_valid_theme_dirname() {
+	public static function data_get_item_with_valid_theme_dirname() {
 		$theme_root_dir = DIR_TESTDATA . '/themedir1/';
 		return array(
 			'template parts: parent theme'                => array(
@@ -1092,7 +1092,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_with_is_wp_suggestion() {
+	public static function data_create_item_with_is_wp_suggestion() {
 		$expected = array(
 			'id'             => 'default//page-rigas',
 			'theme'          => 'default',

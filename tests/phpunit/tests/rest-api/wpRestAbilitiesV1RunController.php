@@ -1320,7 +1320,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_malformed_json_provider(): array {
+	public static function data_malformed_json_provider(): array {
 		return array(
 			'Missing value'              => array( '{"input": }' ),
 			'Trailing comma in array'    => array( '{"input": [1, 2, }' ),
@@ -1458,7 +1458,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_http_methods_provider(): array {
+	public static function data_invalid_http_methods_provider(): array {
 		return array(
 			'PATCH'  => array( 'PATCH' ),
 			'PUT'    => array( 'PUT' ),
@@ -1582,7 +1582,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * @return array<string, array{0: array, 1: mixed, 2: mixed}> Schema, raw input, and the
 	 *                                                            expected coerced value.
 	 */
-	public function data_input_is_coerced(): array {
+	public static function data_input_is_coerced(): array {
 		$object_schema = array(
 			'type'       => 'object',
 			'properties' => array(
@@ -1782,7 +1782,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: array}> Schema and the invalid raw input.
 	 */
-	public function data_invalid_input_returns_400(): array {
+	public static function data_invalid_input_returns_400(): array {
 		$schema = array(
 			'type'                 => 'object',
 			'properties'           => array(
