@@ -155,6 +155,10 @@ function shortcode_exists( $tag ) {
  * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
+	if ( false !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		return WP_Shortcode_Processor::contains_any_shortcode( $content, $tag );
+	}
+
 	if ( ! str_contains( $content, '[' ) ) {
 		return false;
 	}
@@ -789,6 +793,8 @@ class WP_Shortcode_Processor {
 
 	private $shortcode_length = -1;
 
+	private $shortcode_name = null;
+
 	private $content_start_at = -1;
 
 	private $content_length = -1;
@@ -806,6 +812,9 @@ class WP_Shortcode_Processor {
 
 		$this->document = $document;
 
+		/**
+		 * @todo Optimize passing in a cached lookup.
+		 */
 		$this->registered_shortcodes = WP_Token_Map::from_array(
 			$recognized_tags
 				? array_fill_keys( $recognized_tags, true )
@@ -813,6 +822,48 @@ class WP_Shortcode_Processor {
 		);
 
 		$this->find_closers();
+	}
+
+	/**
+	 * @see \has_shortcode()
+	 *
+	 * @param string $document
+	 * @param string[] $shortcode_tag_names
+	 * @return bool
+	 */
+	public static function contains_any_shortcode( string $document, array ...$shortcode_tag_names ): bool {
+		/*
+		 * Hypothesis: storing these offsets in two arrays will take better advantage of ILP
+		 * when popping the elements than would storing them as an array pair inside a single
+		 * array.
+		 */
+		$content_starts  = array( 0 );
+		$content_lengths = array( strlen( $document ) );
+
+		/**
+		 * @todo Fast lookup that starts with linear contiguous scans under a certain count
+		 *       but then switches to a constant-time lookup after a certain size, to prevent
+		 *       N✕M iteration when the sought-after key doesn’t exist. Quick filter?
+		 */
+		$sought_names = array_fill_keys( $shortcode_tag_names, true );
+
+		while ( count( $content_starts ) > 0 ) {
+			$content_chunk = substr( $document, array_pop( $content_starts ), array_pop( $content_lengths ) );
+			$processor     = new self( $content_chunk );
+
+			while ( $processor->next_shortcode() ) {
+				if ( isset( $sought_names[ $processor->get_name() ] ) ) {
+					return true;
+				}
+
+				if ( $processor->content_start_at > 0 && $processor->content_length > 0 ) {
+					$content_starts[]  = $processor->content_start_at;
+					$content_lengths[] = $processor->content_length;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public static function find_all_shortcode_spans( string $document, ?array $recognized_tags = null ) {
@@ -826,6 +877,10 @@ class WP_Shortcode_Processor {
 		}
 
 		return $shortcodes;
+	}
+
+	public function get_name(): ?string {
+		return $this->shortcode_name;
 	}
 
 	/**
@@ -964,7 +1019,8 @@ class WP_Shortcode_Processor {
 			 * Try to find a matching closing tag. If it exists, this has content,
 			 * otherwise it’s just a standalone shortcode without content.
 			 */
-			$name = substr( $document, $name_at, $name_length );
+			$name                 = substr( $document, $name_at, $name_length );
+			$this->shortcode_name = $name;
 
 			// If no closer could potentially exist, this is a standalone tag.
 			if ( ! isset( $this->closing_tags[ $name ] ) ) {
