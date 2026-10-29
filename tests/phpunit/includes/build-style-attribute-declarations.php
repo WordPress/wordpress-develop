@@ -26,7 +26,7 @@ function build_style_attribute_declarations( string $style ): ?array {
 		);
 	};
 
-	$processor          = WP_HTML_Style_Attribute_Processor::create( $style );
+	$processor          = new WP_HTML_Style_Attribute_Processor( $style );
 	$declarations       = array();
 	$declaration_tokens = 0;
 
@@ -48,7 +48,7 @@ function build_style_attribute_declarations( string $style ): ?array {
 
 		// The serializer separates tokens that would read as one with an empty comment.
 		$serialized = WP_CSS_Token_Serializer::serialize( $tokens );
-		$reader     = WP_CSS_Token_Processor::create( $serialized );
+		$reader     = new WP_CSS_Token_Processor( $serialized );
 		$value      = '';
 		while ( $reader->next_token() ) {
 			$token  = $reader->get_token();
@@ -62,7 +62,7 @@ function build_style_attribute_declarations( string $style ): ?array {
 	}
 
 	// Any token not counted above, other than whitespace, a comment or a `;`, is not part of a declaration.
-	$reader = WP_CSS_Token_Processor::create( $style );
+	$reader = new WP_CSS_Token_Processor( $style );
 	while ( $reader->next_token() ) {
 		$token = $reader->get_token();
 		if ( ! $is_ignored( $token ) && WP_CSS_Token_Processor::TOKEN_SEMICOLON !== $token->get_type() ) {

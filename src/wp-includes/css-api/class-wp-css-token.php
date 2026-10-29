@@ -17,7 +17,7 @@
  * Example:
  *
  * ```php interactive
- * $processor = WP_CSS_Token_Processor::create( 'font-family: "Exo\20 2"' );
+ * $processor = new WP_CSS_Token_Processor( 'font-family: "Exo\20 2"' );
  * $tokens    = array();
  * while ( $processor->next_token() ) {
  *     $tokens[] = $processor->get_token();
@@ -226,7 +226,7 @@ final class WP_CSS_Token {
 	 * Example:
 	 *
 	 * ```php interactive
-	 * $processor = WP_CSS_Token_Processor::create( '"a\\62 c"' );
+	 * $processor = new WP_CSS_Token_Processor( '"a\\62 c"' );
 	 * $processor->next_token();
 	 * echo $processor->get_token()->get_value();
 	 * // Outputs: abc
@@ -291,7 +291,7 @@ final class WP_CSS_Token {
 	 * Example:
 	 *
 	 * ```php interactive
-	 * $processor = WP_CSS_Token_Processor::create( '"abc' );
+	 * $processor = new WP_CSS_Token_Processor( '"abc' );
 	 * $processor->next_token();
 	 * $token = $processor->get_token();
 	 * echo $token->get_type() . "\n";

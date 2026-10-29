@@ -17,7 +17,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers WP_CSS_Token_Processor::get_token
 	 */
 	public function test_get_token_matches_spec( string $css, array $expected_tokens ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$tokens[] = $processor->get_token();
@@ -71,7 +71,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers WP_CSS_Token_Processor::get_token
 	 */
 	public function test_get_token_returns_null_without_a_current_token(): void {
-		$processor = WP_CSS_Token_Processor::create( 'a' );
+		$processor = new WP_CSS_Token_Processor( 'a' );
 		$this->assertNull( $processor->get_token(), 'There is no token before next_token().' );
 
 		$this->assertTrue( $processor->next_token() );
@@ -89,7 +89,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers ::get_value
 	 */
 	public function test_value_decodes_after_the_processor_moves_on(): void {
-		$processor = WP_CSS_Token_Processor::create( '\\66 oo "b\\61 r" url(b\\61 z) #\\31 a 1\\70 x' );
+		$processor = new WP_CSS_Token_Processor( '\\66 oo "b\\61 r" url(b\\61 z) #\\31 a 1\\70 x' );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$tokens[] = $processor->get_token();
@@ -126,7 +126,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers ::get_flag
 	 */
 	public function test_flag( string $css, string $expected_type, ?string $expected_flag ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$this->assertTrue( $processor->next_token() );
 
 		$token = $processor->get_token();
@@ -162,7 +162,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers ::is_terminated
 	 */
 	public function test_is_terminated( string $css, bool $expected ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$this->assertTrue( $processor->next_token() );
 
 		$token = $processor->get_token();
@@ -196,7 +196,7 @@ class Tests_CssApi_WpCssToken extends WP_UnitTestCase {
 	 * @covers ::get_value
 	 */
 	public function test_comment_value( string $css, string $expected ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_COMMENT, $processor->get_token_type() );
 

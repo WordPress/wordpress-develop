@@ -95,7 +95,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		$serialized = WP_CSS_Token_Serializer::escape_ident( $input );
 		$this->assertSame( $expected, $serialized );
 
-		$processor = WP_CSS_Token_Processor::create( $serialized );
+		$processor = new WP_CSS_Token_Processor( $serialized );
 		if ( '' === $input ) {
 			$this->assertFalse( $processor->next_token() );
 			return;
@@ -490,7 +490,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	 */
 	public function test_serialize_accepts_a_generator(): void {
 		$generator = ( static function ( string $css ): Generator {
-			$processor = WP_CSS_Token_Processor::create( $css );
+			$processor = new WP_CSS_Token_Processor( $css );
 			while ( $processor->next_token() ) {
 				yield $processor->get_token();
 			}
@@ -550,7 +550,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	 * @return WP_CSS_Token[] Tokens.
 	 */
 	private static function tokenize( string $css ): array {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$tokens[] = $processor->get_token();

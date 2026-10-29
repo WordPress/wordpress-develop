@@ -51,7 +51,7 @@
  * Basic iteration:
  *
  * ```php interactive
- * $processor = WP_CSS_Token_Processor::create( 'width: 10px;' );
+ * $processor = new WP_CSS_Token_Processor( 'width: 10px;' );
  * while ( $processor->next_token() ) {
  *     echo $processor->get_token_type() . "\n";
  * }
@@ -67,7 +67,7 @@
  *
  * ```php interactive
  * $css       = "color: red;\ncolor: \"re\nd\";";
- * $processor = WP_CSS_Token_Processor::create( $css );
+ * $processor = new WP_CSS_Token_Processor( $css );
  * while ( $processor->next_token() ) {
  *     if ( WP_CSS_Token_Processor::TOKEN_BAD_STRING === $processor->get_token_type() ) {
  *         echo "Bad string at byte {$processor->get_token_start()}, {$processor->get_token_length()} bytes long.\n";
@@ -403,32 +403,17 @@ class WP_CSS_Token_Processor {
 	private $token_is_terminated = true;
 
 	/**
-	 * Constructor for the CSS processor.
-	 *
-	 * Do not instantiate directly. Use WP_CSS_Token_Processor::create() instead.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @param string $css CSS source to tokenize.
-	 */
-	private function __construct( string $css ) {
-		$this->css    = $css;
-		$this->length = strlen( $css );
-	}
-
-	/**
-	 * Creates a CSS processor for the given CSS string.
+	 * Constructor.
 	 *
 	 * The CSS is read as UTF-8. Convert CSS in another encoding to UTF-8 first.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param string $css CSS source to tokenize.
-	 * @return static The created processor.
 	 */
-	public static function create( string $css ) {
-		return new static( $css );
+	public function __construct( string $css ) {
+		$this->css    = $css;
+		$this->length = strlen( $css );
 	}
 
 	/**
@@ -441,6 +426,8 @@ class WP_CSS_Token_Processor {
 	 * @since 7.3.0
 	 *
 	 * @return bool Whether a token was found.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		$this->after_token();
@@ -729,7 +716,7 @@ class WP_CSS_Token_Processor {
 	 * Example:
 	 *
 	 * ```php interactive
-	 * $processor = WP_CSS_Token_Processor::create( 'a "b"' );
+	 * $processor = new WP_CSS_Token_Processor( 'a "b"' );
 	 * $tokens    = array();
 	 * while ( $processor->next_token() ) {
 	 *     $tokens[] = $processor->get_token();
@@ -1413,7 +1400,7 @@ class WP_CSS_Token_Processor {
 
 		$codepoint_byte_length = $new_at - $at;
 		$codepoint             = self::utf8_ord( substr( $this->css, $at, $codepoint_byte_length ) );
-		if ( null !== $codepoint && $codepoint >= 0x80 ) {
+		if ( $codepoint >= 0x80 ) {
 			return $codepoint_byte_length;
 		}
 		return 0;
