@@ -426,6 +426,8 @@ class WP_CSS_Token_Processor {
 	 * @since 7.3.0
 	 *
 	 * @return bool Whether a token was found.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		$this->after_token();
