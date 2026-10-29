@@ -476,7 +476,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ use_global_function: bool, only_enqueue: bool }>
 	 */
-	public function data_test_register_and_enqueue_script_module(): array {
+	public static function data_test_register_and_enqueue_script_module(): array {
 		$data = array();
 
 		foreach ( array( true, false ) as $use_global_function ) {
@@ -1409,7 +1409,7 @@ HTML;
 	 *
 	 * @return array<string, array{fetchpriority: string}>
 	 */
-	public function data_provider_fetchpriority_values(): array {
+	public static function data_provider_fetchpriority_values(): array {
 		return array(
 			'auto' => array( 'fetchpriority' => 'auto' ),
 			'low'  => array( 'fetchpriority' => 'low' ),
@@ -1555,7 +1555,7 @@ HTML;
 	 *
 	 * @return array<string, array{enqueues: string[], expected: array}>
 	 */
-	public function data_provider_to_test_fetchpriority_bumping(): array {
+	public static function data_provider_to_test_fetchpriority_bumping(): array {
 		return array(
 			'enqueue_bajo'          => array(
 				'enqueues' => array( 'bajo' ),

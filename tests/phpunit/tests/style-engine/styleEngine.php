@@ -54,7 +54,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_style_engine_get_styles() {
+	public static function data_wp_style_engine_get_styles() {
 		return array(
 			'default_return_value'                         => array(
 				'block_styles'    => array(),

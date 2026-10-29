@@ -74,7 +74,7 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_is_development_mode() {
+	public static function data_wp_is_development_mode(): array {
 		return array(
 			'core mode, testing for core'              => array(
 				'core',
