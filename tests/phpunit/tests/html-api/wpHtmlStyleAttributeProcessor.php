@@ -761,6 +761,26 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::next_declaration
+	 * @covers ::remove_declaration
+	 * @covers ::get_updated_style
+	 */
+	public function test_remove_declaration_in_a_named_loop_removes_every_matching_declaration() {
+		$processor = new WP_HTML_Style_Attribute_Processor( 'color: red; width: 1px; color: blue; color: green; height: 2px; COLOR: black' );
+
+		$removed = 0;
+		while ( $processor->next_declaration( 'color' ) ) {
+			$this->assertTrue( $processor->remove_declaration() );
+			++$removed;
+		}
+
+		$this->assertSame( 4, $removed );
+		$this->assertSame( 'width: 1px; height: 2px;', $processor->get_updated_style() );
+	}
+
+	/**
 	 * @covers ::remove_declaration
 	 * @covers ::get_property_name
 	 * @covers ::is_important

@@ -25,7 +25,64 @@
  * declaration list model of CSS. Multiple declarations with the same property
  * name remain separate entries and can be inspected or changed individually.
  *
+ * ## Setting a property
+ *
+ * To set a property, remove its declarations in one `next_declaration( $name )`
+ * loop, then call append_declaration().
+ *
+ * Example:
+ *
+ * ```php interactive
+ * $styles = new WP_HTML_Style_Attribute_Processor( 'background-image: url(a.png); color: red' );
+ * while ( $styles->next_declaration( 'background-image' ) ) {
+ *     $styles->remove_declaration();
+ * }
+ * $styles->append_declaration( 'background-image', WP_CSS_Builder::url( 'https://example.com/b.png' ) );
+ * echo $styles->get_updated_style();
+ * // Outputs: color: red; background-image: url("https://example.com/b.png");
+ * ```
+ *
+ * The cursor moves forward only. After one `next_declaration( $name )` loop
+ * ends, a second one finds nothing. To set several properties, remove all of
+ * their declarations in one `next_declaration()` loop that compares
+ * get_property_name() with each name, then append each declaration.
+ *
+ * Example:
+ *
+ * ```php interactive
+ * $values = array(
+ *     'color' => 'green',
+ *     'width' => '2px',
+ * );
+ * $styles = new WP_HTML_Style_Attribute_Processor( 'color: red; width: 1px; COLOR: blue; height: 2px' );
+ * while ( $styles->next_declaration() ) {
+ *     if ( isset( $values[ $styles->get_property_name() ] ) ) {
+ *         $styles->remove_declaration();
+ *     }
+ * }
+ * foreach ( $values as $name => $value ) {
+ *     $styles->append_declaration( $name, $value );
+ * }
+ * echo $styles->get_updated_style();
+ * // Outputs: height: 2px; color: green; width: 2px;
+ * ```
+ *
+ * The appended declaration is last, so it overrides earlier declarations that
+ * set the same thing, shorthands included:
+ *
+ * - In `background-image: url(a); background: red`, setting `background-image`
+ *   to `url(b)` gives `background: red; background-image: url(b);`, which shows
+ *   image b.
+ * - In `background-color: blue`, setting `background` to `url(c)` gives
+ *   `background-color: blue; background: url(c);`. The shorthand resets the
+ *   color.
+ *
+ * set_value() keeps the declaration where it is, so a later shorthand still
+ * overrides it.
+ *
  * @since 7.3.0
+ *
+ * @see WP_CSS_Builder
  */
 class WP_HTML_Style_Attribute_Processor {
 	/**
