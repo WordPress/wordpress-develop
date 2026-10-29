@@ -665,17 +665,42 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP Requests using an IP URL, with a HOST header specified.
 	 *
+	 * Prefers the local redirection fixture when available. Falls back to the
+	 * live api.wordpress.org script only when the fixture was not started.
+	 *
 	 * @ticket 24182
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_ip_url_with_host_header() {
-		$ip   = gethostbyname( 'api.wordpress.org' );
-		$url  = 'http://' . $ip . '/core/tests/1.0/redirection.php?print-pass=1';
+		$parts = wp_parse_url( $this->redirection_script );
+		$this->assertIsArray( $parts );
+		$this->assertNotEmpty( $parts['host'] );
+		$this->assertNotEmpty( $parts['path'] );
+
+		$host = $parts['host'];
+		$port = isset( $parts['port'] ) ? (int) $parts['port'] : null;
+
+		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			$ip          = $host;
+			$host_header = $host;
+		} else {
+			$ip          = gethostbyname( $host );
+			$host_header = $host;
+		}
+
+		$url = 'http://' . $ip;
+		if ( $port ) {
+			$url         .= ':' . $port;
+			$host_header .= ':' . $port;
+		}
+		$url .= $parts['path'] . '?print-pass=1';
+
 		$args = array(
 			'headers'     => array(
-				'Host' => 'api.wordpress.org',
+				'Host' => $host_header,
 			),
 			'timeout'     => 30,
 			'redirection' => 0,
@@ -713,13 +738,17 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP Cookie handling.
 	 *
+	 * Uses the local redirection fixture when available so cookie acceptance and
+	 * rejection checks do not depend on a live api.wordpress.org request.
+	 *
 	 * @ticket 21182
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_cookie_handling() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?cookie-test=1';
+		$url = $this->redirection_script . '?cookie-test=1';
 
 		$res = $this->wp_remote_get( $url );
 

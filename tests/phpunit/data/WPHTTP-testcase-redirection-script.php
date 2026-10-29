@@ -98,11 +98,39 @@ if ( isset( $_GET['multiple-location-headers'] ) ) {
 
 if ( isset( $_GET['cookie-test'] ) ) {
 	if ( 'test-cookie' != $_GET['cookie-test'] ) {
-		setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
-		setcookie( 'api_test_cookie_minimal', 'value'  );
-		setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
-		setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
-		setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
+		/*
+		 * Live api.wordpress.org keeps the historical Domain/Path attributes.
+		 * The local HTTP fixture (typically 127.0.0.1) uses host-only cookies and
+		 * a path under the fixture script so the same acceptance/rejection checks
+		 * still exercise WP_Http cookie handling without a remote host.
+		 */
+		$request_host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '';
+		$request_host = preg_replace( '/:\d+$/', '', $request_host );
+		$is_wp_org    = (bool) preg_match( '/(^|\.)wordpress\.org$/i', $request_host );
+
+		if ( $is_wp_org ) {
+			setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
+			setcookie( 'api_test_cookie_minimal', 'value' );
+			setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
+			setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
+			setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
+		} else {
+			$request_path = parse_url( $url, PHP_URL_PATH );
+			$cookie_path  = '/';
+			if ( is_string( $request_path ) && '' !== $request_path && '/' !== $request_path ) {
+				$cookie_path = rtrim( str_replace( '\\', '/', dirname( $request_path ) ), '/' ) . '/';
+				if ( '/' !== $cookie_path[0] ) {
+					$cookie_path = '/' . $cookie_path;
+				}
+			}
+
+			setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, $cookie_path );
+			setcookie( 'api_test_cookie_minimal', 'value' );
+			setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
+			setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/' );
+			setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/' );
+		}
+
 		header( "Location: $url?cookie-test=test-cookie" );
 		exit;
 	}
