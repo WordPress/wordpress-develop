@@ -66,6 +66,8 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			'array username'      => array( array( 'subscriber' ), 'subscriber' ),
 			'array password'      => array( 'subscriber', array( 'subscriber' ) ),
 			'IXR_Base64 password' => array( 'subscriber', new IXR_Base64( 'subscriber' ) ),
+			'null username'       => array( null, 'subscriber' ),
+			'null password'       => array( 'subscriber', null ),
 		);
 	}
 
@@ -80,6 +82,26 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertFalse( $this->myxmlrpcserver->login( 12345, 67890 ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 403, $this->myxmlrpcserver->error->code );
+	}
+
+	/**
+	 * Tests that numeric credentials, which XML-RPC sends as `<int>` values,
+	 * continue to authenticate.
+	 *
+	 * @ticket 65600
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 */
+	public function test_login_with_integer_credentials_succeeds(): void {
+		self::factory()->user->create(
+			array(
+				'user_login' => '12345',
+				'user_pass'  => '67890',
+				'role'       => 'subscriber',
+			)
+		);
+
+		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 12345, 67890 ) ); // @phpstan-ignore argument.type, argument.type (Integer arguments passed intentionally, as XML-RPC can send them.)
 	}
 
 	/**
