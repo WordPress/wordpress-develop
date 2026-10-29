@@ -114,7 +114,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_valid_icon_names() {
+	public static function data_valid_icon_names() {
 		return array(
 			'single character'                => array( 'test-collection/a' ),
 			'simple name'                     => array( 'test-collection/icon' ),
@@ -150,7 +150,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $this->registry->is_registered( $name ) );
 	}
 
-	public function data_invalid_icon_names() {
+	public static function data_invalid_icon_names() {
 		return array(
 			'integer name'            => array( 1 ),
 			'null name'               => array( null ),
@@ -337,7 +337,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ input: non-falsy-string, expected: non-falsy-string }>
 	 */
-	public function data_sanitize_icon_content(): array {
+	public static function data_sanitize_icon_content(): array {
 		return array(
 			'allows fill and clip rules on svg'            => array(
 				'input'    => '<svg fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"><path d="M0 0" /></svg>',
@@ -500,11 +500,44 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66338
+	 *
+	 * @covers ::get_content
+	 */
+	public function test_get_content_sanitizes_non_core_icon_file() {
+		$path = $this->create_temp_icon_file( '<svg><script>alert( 1 )</script><path d="M0 0"/></svg>' );
+
+		$this->registry->register(
+			'test-collection/from-file',
+			array(
+				'label'     => 'From File',
+				'file_path' => $path,
+			)
+		);
+
+		$icon = $this->registry->get_registered_icon( 'test-collection/from-file' );
+		$this->assertStringContainsString( '<path', $icon['content'] );
+		$this->assertStringNotContainsString( '<script', $icon['content'] );
+	}
+
+	/**
+	 * Should serve a core icon unsanitized (sanitizing would lowercase `viewBox`, which would fail this test).
+	 *
+	 * @ticket 66338
+	 *
+	 * @covers ::get_content
+	 */
+	public function test_get_content_does_not_sanitize_core_icon() {
+		$icon = $this->original_registry->get_registered_icon( 'core/pencil' );
+		$this->assertSame( file_get_contents( ABSPATH . WPINC . '/images/icon-library/pencil.svg' ), $icon['content'] );
+	}
+
+	/**
 	 * Provides icon files that cannot yield valid content.
 	 *
 	 * @return array<string, array{0: string|null, 1: string}> Data sets of [ $contents, $extension ].
 	 */
-	public function data_invalid_icon_files() {
+	public static function data_invalid_icon_files() {
 		return array(
 			'missing file'        => array( null, 'svg' ),
 			'non-svg extension'   => array( '<svg><path d="M0 0"/></svg>', 'txt' ),
@@ -590,7 +623,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
-	public function data_invalid_keywords() {
+	public static function data_invalid_keywords() {
 		return array(
 			'null'                 => array( null ),
 			'a string'             => array( 'alpha' ),
@@ -761,7 +794,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
-	public function data_get_admin_icon_name_for_dashicon_without_replacement() {
+	public static function data_get_admin_icon_name_for_dashicon_without_replacement() {
 		return array(
 			'Dashicon without replacement' => array( 'dashicons-heart' ),
 			'Dashicon name without prefix' => array( 'admin-post' ),

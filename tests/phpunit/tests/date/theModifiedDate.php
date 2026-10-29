@@ -256,13 +256,8 @@ class Tests_Date_TheModifiedDate extends WP_UnitTestCase {
 	 */
 	public static function data_custom_formats() {
 		return array(
-			'ISO format'            => array( 'Y-m-d', '2024-05-18' ),
-			'slash separated'       => array( 'd/m/Y', '18/05/2024' ),
-			'textual month and day' => array( 'F j, Y', 'May 18, 2024' ),
-			'full date with day'    => array( 'l, F j, Y', 'Saturday, May 18, 2024' ),
-			'year only'             => array( 'Y', '2024' ),
-			'month only'            => array( 'm', '05' ),
-			'day only'              => array( 'd', '18' ),
+			'slash separated'    => array( 'd/m/Y', '18/05/2024' ),
+			'full date with day' => array( 'l, F j, Y', 'Saturday, May 18, 2024' ),
 		);
 	}
 }

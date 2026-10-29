@@ -64,8 +64,8 @@ class Tests_Category_SanitizeCategory extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 15, $result['term_id'] );
-		$this->assertSame( esc_attr( '<b>Category</b>' ), $result['name'] );
-		$this->assertSame( esc_html( '<p>Description</p>' ), $result['description'] );
+		$this->assertSame( '&lt;b&gt;Category&lt;/b&gt;', $result['name'] );
+		$this->assertSame( '&lt;p&gt;Description&lt;/p&gt;', $result['description'] );
 		$this->assertSame( 0, $result['count'] );
 		$this->assertSame( 3, $result['parent'] );
 		$this->assertSame( 0, $result['term_group'] );
