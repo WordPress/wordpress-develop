@@ -34,7 +34,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @return array Array of tokens with type, raw, startIndex, endIndex, value, unit and numberType.
 	 */
 	public static function collect_tokens( string $css, ?array $keys = null ): array {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$tokens    = array();
 
 		while ( $processor->next_token() ) {
@@ -77,7 +77,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_string_backslash_newline
 	 */
 	public function test_string_backslash_newline( string $css, string $expected_value ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
@@ -104,7 +104,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @ticket 65738
 	 */
 	public function test_string_backslash_eof(): void {
-		$processor = WP_CSS_Token_Processor::create( "'string\\" );
+		$processor = new WP_CSS_Token_Processor( "'string\\" );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
@@ -118,7 +118,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_url_backslash_newline
 	 */
 	public function test_url_backslash_newline( string $css ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_BAD_URL, $processor->get_token_type() );
@@ -144,7 +144,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @ticket 65738
 	 */
 	public function test_url_backslash_eof(): void {
-		$processor = WP_CSS_Token_Processor::create( 'url(string\\' );
+		$processor = new WP_CSS_Token_Processor( 'url(string\\' );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_URL, $processor->get_token_type() );
@@ -161,7 +161,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_preprocessed_token_keeps_source_bytes
 	 */
 	public function test_preprocessed_token_keeps_source_bytes( string $css, string $expected_type, ?string $expected_value ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( $expected_type, $processor->get_token_type() );
@@ -208,7 +208,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_ident_backslash_newline
 	 */
 	public function test_ident_backslash_newline( string $css ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_IDENT, $processor->get_token_type() );
@@ -235,7 +235,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @ticket 65738
 	 */
 	public function test_ident_backslash_eof(): void {
-		$processor = WP_CSS_Token_Processor::create( 'abc\\' );
+		$processor = new WP_CSS_Token_Processor( 'abc\\' );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_IDENT, $processor->get_token_type() );
@@ -248,7 +248,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @ticket 65738
 	 */
 	public function test_bad_string_token_value_is_null(): void {
-		$processor = WP_CSS_Token_Processor::create( "'str\ning'" );
+		$processor = new WP_CSS_Token_Processor( "'str\ning'" );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_BAD_STRING, $processor->get_token_type() );
@@ -262,7 +262,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_is_terminated
 	 */
 	public function test_is_terminated( string $css, string $expected_type, bool $expected ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertNull( $processor->get_token(), 'Before the first token there is nothing to report.' );
 
@@ -316,7 +316,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @ticket 65738
 	 */
 	public function test_is_terminated_resets_between_tokens(): void {
-		$processor = WP_CSS_Token_Processor::create( "'a\nb" );
+		$processor = new WP_CSS_Token_Processor( "'a\nb" );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_BAD_STRING, $processor->get_token_type() );
@@ -338,7 +338,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_hash_tokens_expose_type_flags
 	 */
 	public function test_hash_tokens_expose_type_flags( string $css, array $expected_tokens ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		foreach ( $expected_tokens as $expected_token ) {
 			$this->assertTrue( $processor->next_token() );
@@ -447,7 +447,7 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_token_type_flag
 	 */
 	public function test_token_type_flag( string $css, ?string $expected_type ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( $expected_type, $processor->get_token()->get_flag() );
@@ -2183,7 +2183,7 @@ CSS;
 	 * @dataProvider data_comment_value
 	 */
 	public function test_comment_value_keeps_escapes( string $css, string $expected ): void {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_COMMENT, $processor->get_token_type() );
 
@@ -2586,7 +2586,7 @@ CSS;
 	 * the closing quote must not appear in the token value.
 	 */
 	public function test_decode_range_respects_length_boundary(): void {
-		$processor = WP_CSS_Token_Processor::create( '"hello\\41 world"; color: red;' );
+		$processor = new WP_CSS_Token_Processor( '"hello\\41 world"; color: red;' );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
@@ -2599,7 +2599,7 @@ CSS;
 	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
 	 */
 	public function test_decode_escape_at_hex_limit_is_six_digits(): void {
-		$processor = WP_CSS_Token_Processor::create( '"\\0000411rest"' );
+		$processor = new WP_CSS_Token_Processor( '"\\0000411rest"' );
 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
