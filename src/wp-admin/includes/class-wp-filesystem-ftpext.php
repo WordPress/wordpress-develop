@@ -402,6 +402,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
+		if ( $source === $destination ) {
+			return false;
+		}
+
+		if ( $overwrite && $this->exists( $destination ) && ! $this->delete( $destination ) ) {
+			return false;
+		}
 		$content = $this->get_contents( $source );
 
 		if ( false === $content ) {
