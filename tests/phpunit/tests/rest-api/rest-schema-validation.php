@@ -268,7 +268,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_different_types_of_value_and_enum_elements() {
+	public static function data_different_types_of_value_and_enum_elements() {
 		return array(
 			// enum with integers
 			array(
@@ -838,7 +838,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_type_object_pattern_properties() {
+	public static function data_type_object_pattern_properties() {
 		return array(
 			array( array(), array(), true ),
 			array( array(), array( 'propA' => 'a' ), true ),
@@ -1092,7 +1092,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_multiply_of() {
+	public static function data_multiply_of() {
 		return array(
 			array( 0, 2, true ),
 			array( 4, 2, true ),
@@ -1236,7 +1236,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_required_property() {
+	public static function data_required_property() {
 		return array(
 			array(
 				array(
@@ -1316,7 +1316,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_required_nested_property() {
+	public static function data_required_nested_property() {
 		return array(
 			array(
 				array(
@@ -1462,7 +1462,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_required_deeply_nested_property() {
+	public static function data_required_deeply_nested_property() {
 		return array(
 			array(
 				array(),
@@ -1678,7 +1678,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_unique_items() {
+	public static function data_unique_items() {
 		$all_types = array( 'object', 'array', 'null', 'number', 'integer', 'boolean', 'string' );
 
 		// the following test suites is not supported at the moment
@@ -1828,7 +1828,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_any_of() {
+	public static function data_any_of() {
 		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/anyof.json' ), true );
 		$skip   = array(
 			'anyOf with boolean schemas, all true',
@@ -1879,7 +1879,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_one_of() {
+	public static function data_one_of() {
 		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/oneof.json' ), true );
 		$skip   = array(
 			'oneOf with boolean schemas, all true',
@@ -1928,7 +1928,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_combining_operation_error_message() {
+	public static function data_combining_operation_error_message() {
 		return array(
 			array(
 				10,
