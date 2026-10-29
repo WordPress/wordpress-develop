@@ -4753,10 +4753,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		$possible_sizes = apply_filters(
 			'image_size_names_choose',
 			array(
-				'thumbnail' => __( 'Thumbnail' ),
-				'medium'    => __( 'Medium' ),
-				'large'     => __( 'Large' ),
-				'full'      => __( 'Full Size' ),
+				'thumbnail'    => __( 'Thumbnail' ),
+				'medium'       => __( 'Medium' ),
+				'medium_large' => __( 'Medium Large' ),
+				'large'        => __( 'Large' ),
+				'full'         => __( 'Full Size' ),
 			)
 		);
 		unset( $possible_sizes['full'] );
