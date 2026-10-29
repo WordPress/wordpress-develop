@@ -60,6 +60,18 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'restless' );
+		unregister_post_type( 'new_post_type' );
+		unregister_taxonomy( 'new_tag' );
+		_unregister_post_status( 'test' );
+
+		parent::tear_down();
+	}
+
 	public function test_parse_post_content_single_page() {
 		global $multipage, $pages, $numpages;
 

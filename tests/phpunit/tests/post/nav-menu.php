@@ -18,6 +18,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	public function tear_down() {
 		unregister_post_type( 'fooo-bar-baz' );
 		unregister_post_type( 'books' );
+		unregister_taxonomy( 'wptests_tax' );
 
 		parent::tear_down();
 	}
