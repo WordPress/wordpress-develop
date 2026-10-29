@@ -15,7 +15,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	/**
 	 * The REST server instance for the current test.
 	 *
-	 * @var WP_REST_Server
+	 * @var Spy_REST_Server
 	 */
 	protected $server;
 
@@ -108,7 +108,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 		parent::set_up();
 
 		global $wp_rest_server;
-		$wp_rest_server = new WP_REST_Server();
+		$wp_rest_server = new Spy_REST_Server();
 		$this->server   = $wp_rest_server;
 		do_action( 'rest_api_init' );
 
@@ -206,12 +206,18 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 			'no global parameter' => array( array() ),
 			'_fields'             => array( array( '_fields' => 'title' ) ),
 			'_embed'              => array( array( '_embed' => '1' ) ),
+			'_fields and _embed'  => array(
+				array(
+					'_fields' => 'title',
+					'_embed'  => '1',
+				),
+			),
 		);
 	}
 
 	/**
-	 * An empty result is encoded as a JSON object, which the output schema requires,
-	 * also when the global `_fields` or `_embed` parameter is given.
+	 * An empty result is served as a JSON object, which the output schema requires,
+	 * also when the global `_fields` and `_embed` parameters are given.
 	 *
 	 * @ticket 66267
 	 * @dataProvider data_global_params
@@ -219,25 +225,20 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @param array<string, string> $global_params The global parameters sent with the request.
 	 */
 	public function test_no_matching_setting_is_encoded_as_an_empty_object( array $global_params ): void {
-		$request = $this->run_request(
+		$_GET = array_merge(
 			array(
-				'group'  => 'reading',
-				'fields' => 'title',
-			)
+				'input' => array(
+					'group'  => 'reading',
+					'fields' => 'title',
+				),
+			),
+			$global_params
 		);
-		foreach ( $global_params as $name => $value ) {
-			$request->set_param( $name, $value );
-		}
 
-		$response = $this->server->dispatch( $request );
+		$this->server->serve_request( self::RUN_ROUTE );
 
-		$this->assertSame( 200, $response->get_status(), 'Filters that match no setting should be accepted.' );
-
-		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
-		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		$data     = $this->server->response_to_data( $response, isset( $global_params['_embed'] ) );
-
-		$this->assertSame( '{}', wp_json_encode( $data ), 'The empty result should be encoded as an empty object.' );
+		$this->assertSame( 200, $this->server->status, 'Filters that match no setting should be accepted.' );
+		$this->assertSame( '{}', $this->server->sent_body, 'The empty result should be served as an empty object.' );
 	}
 
 	/**

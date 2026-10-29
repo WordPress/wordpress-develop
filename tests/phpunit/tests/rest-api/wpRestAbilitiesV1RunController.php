@@ -745,10 +745,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
-	 * Each result is requested without global parameters, with `_fields` and `_embed`,
-	 * and with a link that a `rest_post_dispatch` filter adds, alone and embedded.
+	 * Each result is requested without global parameters, with `_fields` and `_embed`
+	 * alone and together, and with a link that a `rest_post_dispatch` filter adds,
+	 * alone and embedded.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 * @return array<string, array{0: string, 1: array<string, string>, 2: bool, 3: string}>
 	 */
 	public static function data_output_is_prepared_for_json_clients(): array {
 		$results = array(
@@ -762,10 +763,26 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'string'                  => array( 'test/string-output', '"value"' ),
 		);
 
+		// No result has the `other` field, so filtering would leave none of the result.
+		$requests = array(
+			'no global parameters'      => array( array(), false ),
+			'_fields'                   => array( array( '_fields' => 'other' ), false ),
+			'_embed'                    => array( array( '_embed' => '1' ), false ),
+			'_fields and _embed'        => array(
+				array(
+					'_fields' => 'other',
+					'_embed'  => '1',
+				),
+				false,
+			),
+			'response link'             => array( array(), true ),
+			'response link with _embed' => array( array( '_embed' => '1' ), true ),
+		);
+
 		$data = array();
-		foreach ( $results as $label => $result ) {
-			foreach ( array( 'none', '_fields', '_embed', 'link', 'embedded link' ) as $global_param ) {
-				$data[ "{$label}, {$global_param}" ] = array( $result[0], $global_param, $result[1] );
+		foreach ( $results as $result_label => $result ) {
+			foreach ( $requests as $request_label => $request ) {
+				$data[ "{$result_label}, {$request_label}" ] = array( $result[0], $request[0], $request[1], $result[1] );
 			}
 		}
 
@@ -779,21 +796,16 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * @ticket 66267
 	 * @dataProvider data_output_is_prepared_for_json_clients
 	 *
-	 * @param string $ability_name The ability name.
-	 * @param string $global_param The global parameter sent with the request, 'link' or
-	 *                             'embedded link' for a link added by a filter, or 'none'.
-	 * @param string $expected     The expected encoded result.
+	 * @param string                $ability_name The ability name.
+	 * @param array<string, string> $query_params The global parameters sent with the request.
+	 * @param bool                  $add_link     Whether a `rest_post_dispatch` filter adds an embeddable link.
+	 * @param string                $expected     The expected encoded result.
 	 */
-	public function test_output_is_prepared_for_json_clients( string $ability_name, string $global_param, string $expected ): void {
+	public function test_output_is_prepared_for_json_clients( string $ability_name, array $query_params, bool $add_link, string $expected ): void {
 		$request = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
-		if ( '_fields' === $global_param ) {
-			// No result has this field, so filtering would leave none of the result.
-			$request->set_param( '_fields', 'other' );
-		} elseif ( '_embed' === $global_param || 'embedded link' === $global_param ) {
-			$request->set_param( '_embed', '1' );
-		}
+		$request->set_query_params( $query_params );
 
-		if ( 'link' === $global_param || 'embedded link' === $global_param ) {
+		if ( $add_link ) {
 			add_filter(
 				'rest_post_dispatch',
 				static function ( $response ) {
@@ -809,9 +821,131 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		$data     = $this->server->response_to_data( $response, $request->has_param( '_embed' ) );
+		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+		$data     = $this->server->response_to_data( $response, $embed );
 
 		$this->assertSame( $expected, wp_json_encode( $data ), 'The result should be encoded as expected.' );
+	}
+
+	/**
+	 * Data provider for test_links_in_the_result_are_not_embedded().
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_links_in_the_result_are_not_embedded(): array {
+		return array(
+			'every link'        => array( '1' ),
+			'the link relation' => array( 'author' ),
+		);
+	}
+
+	/**
+	 * Tests that the global `_embed` parameter leaves the `_links` returned by an ability
+	 * unchanged, without requesting the linked resources.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_links_in_the_result_are_not_embedded
+	 *
+	 * @param string $embed The `_embed` parameter sent with the request.
+	 */
+	public function test_links_in_the_result_are_not_embedded( string $embed ): void {
+		$result = array(
+			'id'     => 1,
+			'_links' => array(
+				'author' => array(
+					array(
+						'href'       => rest_url( '/wp-abilities/v1/abilities' ),
+						'embeddable' => true,
+					),
+				),
+			),
+		);
+		$this->register_test_ability(
+			'test/links-output',
+			array(
+				'label'               => 'Links Output',
+				'description'         => 'Returns an object with its own embeddable link.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () use ( $result ) {
+					return $result;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/links-output/run' );
+		$request->set_query_params( array( '_embed' => $embed ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+
+		$dispatch = new MockAction();
+		add_filter( 'rest_pre_dispatch', array( $dispatch, 'filter' ) );
+		$data = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
+
+		$this->assertSame( $result, $data, 'The links returned by the ability should be left unchanged.' );
+		$this->assertSame( 0, $dispatch->get_call_count(), 'No linked resource should be requested.' );
+	}
+
+	/**
+	 * Data provider for test_preloaded_output_is_prepared_for_json_clients().
+	 *
+	 * @return array<string, array{0: array<string, string>, 1: mixed, 2: string, 3: string}>
+	 */
+	public static function data_preloaded_output_is_prepared_for_json_clients(): array {
+		return array(
+			'empty object'                     => array( array( 'type' => 'object' ), array(), '', '{}' ),
+			'empty object, _fields and _embed' => array( array( 'type' => 'object' ), array(), '?_fields=other&_embed=1', '{}' ),
+			'string'                           => array( array( 'type' => 'string' ), 'value', '', '"value"' ),
+			'string, _fields and _embed'       => array( array( 'type' => 'string' ), 'value', '?_fields=other&_embed=1', '"value"' ),
+		);
+	}
+
+	/**
+	 * Tests that preloading a read-only ability run keeps the result prepared for
+	 * JSON clients, also with the global `_fields` and `_embed` parameters.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_preloaded_output_is_prepared_for_json_clients
+	 *
+	 * @param array<string, string> $output_schema The ability output schema.
+	 * @param mixed                 $result        The ability result.
+	 * @param string                $query         The query string of the preloaded path.
+	 * @param string                $expected      The expected encoded preloaded body.
+	 */
+	public function test_preloaded_output_is_prepared_for_json_clients( array $output_schema, $result, string $query, string $expected ): void {
+		$this->register_test_ability(
+			'test/readonly-output',
+			array(
+				'label'               => 'Read-only Output',
+				'description'         => 'Returns a value from a read-only ability.',
+				'category'            => 'general',
+				'output_schema'       => $output_schema,
+				'execute_callback'    => static function () use ( $result ) {
+					return $result;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$path    = '/wp-abilities/v1/abilities/test/readonly-output/run' . $query;
+		$preload = rest_preload_api_request( array(), $path );
+
+		$this->assertArrayHasKey( $path, $preload, 'The ability run should be preloaded.' );
+		$this->assertSame( $expected, wp_json_encode( $preload[ $path ]['body'] ), 'The preloaded result should be encoded as expected.' );
 	}
 
 	/**
