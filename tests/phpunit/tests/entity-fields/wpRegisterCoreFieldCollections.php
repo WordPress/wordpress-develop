@@ -63,6 +63,9 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * Restores the theme features a test changed.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'test_book' );
+		unregister_post_type( 'test_note' );
+
 		global $_wp_theme_features;
 
 		$_wp_theme_features = $this->theme_features;

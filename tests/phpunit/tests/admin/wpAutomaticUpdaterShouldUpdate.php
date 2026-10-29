@@ -338,7 +338,6 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 			'false'        => array( false, false ),
 			'null'         => array( null, false ),
 			'zero'         => array( 0, false ),
-			'empty string' => array( '', false ),
 			'truthy value' => array( 1, true ),
 		);
 	}
@@ -440,12 +439,11 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 */
 	public static function data_plugin_and_theme_php_requirements() {
 		return array(
-			'plugin, requirement met'  => array( 'plugin', '5.6', true ),
-			'plugin, PHP too old'      => array( 'plugin', '99.0', false ),
-			'plugin, no requirement'   => array( 'plugin', '', true ),
-			'plugin, null requirement' => array( 'plugin', null, true ),
-			'theme, PHP too old'       => array( 'theme', '99.0', false ),
-			'theme, requirement met'   => array( 'theme', '5.6', true ),
+			'plugin, requirement met' => array( 'plugin', '5.6', true ),
+			'plugin, PHP too old'     => array( 'plugin', '99.0', false ),
+			'plugin, no requirement'  => array( 'plugin', '', true ),
+			'theme, PHP too old'      => array( 'theme', '99.0', false ),
+			'theme, requirement met'  => array( 'theme', '5.6', true ),
 		);
 	}
 

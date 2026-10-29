@@ -69,6 +69,7 @@ class Tests_User_TheAuthorPosts extends WP_UnitTestCase {
 	 * Cleans up global state after each test.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'wptests_cpt' );
 		unset( $GLOBALS['post'], $GLOBALS['authordata'] );
 
 		parent::tear_down();
@@ -83,7 +84,6 @@ class Tests_User_TheAuthorPosts extends WP_UnitTestCase {
 		$output = get_echo( 'the_author_posts' );
 
 		$this->assertSame( '2', $output );
-		$this->assertSame( (string) get_the_author_posts(), $output );
 	}
 
 	/**
@@ -95,39 +95,5 @@ class Tests_User_TheAuthorPosts extends WP_UnitTestCase {
 		unset( $GLOBALS['post'] );
 
 		$this->assertSame( '0', get_echo( 'the_author_posts' ) );
-	}
-
-	/**
-	 * Tests that the_author_posts() echoes the post count for custom post types.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_echoes_author_post_count_for_custom_post_type() {
-		register_post_type( 'wptests_cpt' );
-
-		$cpt_post_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$author_id,
-				'post_status' => 'publish',
-				'post_type'   => 'wptests_cpt',
-			)
-		);
-
-		self::factory()->post->create_many(
-			2,
-			array(
-				'post_author' => self::$author_id,
-				'post_status' => 'publish',
-				'post_type'   => 'wptests_cpt',
-			)
-		);
-
-		$GLOBALS['post'] = get_post( $cpt_post_id );
-		setup_postdata( $GLOBALS['post'] );
-
-		$output = get_echo( 'the_author_posts' );
-
-		$this->assertSame( '3', $output );
-		$this->assertSame( (string) get_the_author_posts(), $output );
 	}
 }

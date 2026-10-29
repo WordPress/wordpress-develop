@@ -10,6 +10,14 @@
  * @group meta-revisions
  */
 class Tests_Post_MetaRevisions extends WP_UnitTestCase {
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'custom_type' );
+		parent::tear_down();
+	}
+
 
 	/**
 	 * Callback function to add the revisioned keys.
