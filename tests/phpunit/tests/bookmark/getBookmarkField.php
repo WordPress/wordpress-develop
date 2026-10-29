@@ -122,6 +122,8 @@ class Tests_Bookmark_GetBookmarkField extends WP_UnitTestCase {
 		$bookmark->link_name = $raw_name;
 		wp_cache_set( $bookmark_id, $bookmark, 'bookmark' );
 
+		remove_all_filters( 'link_name' );
+
 		$result = get_bookmark_field( 'link_name', $bookmark_id, 'attribute' );
 
 		$this->assertSame(
