@@ -7,6 +7,12 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 	protected $deleted_term;
 	protected $object_ids;
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 33485
 	 * @ticket 35213

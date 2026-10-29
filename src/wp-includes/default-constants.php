@@ -90,7 +90,7 @@ function wp_initial_constants() {
 
 	// Add define( 'WP_DEBUG', true ); to wp-config.php to enable display of notices during development.
 	if ( ! defined( 'WP_DEBUG' ) ) {
-		if ( wp_get_development_mode() || 'development' === wp_get_environment_type() ) {
+		if ( wp_get_development_mode() || 'development' === wp_get_environment_type() || 'local' === wp_get_environment_type() ) {
 			define( 'WP_DEBUG', true );
 		} else {
 			define( 'WP_DEBUG', false );
@@ -115,8 +115,8 @@ function wp_initial_constants() {
 	}
 
 	/*
-	 * Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified,
-	 * non-concatenated scripts and stylesheets.
+	 * Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified
+	 * scripts and stylesheets.
 	 */
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		if ( ! empty( $wp_version ) ) {
@@ -301,14 +301,14 @@ function wp_cookie_constants() {
 	 * @since 1.2.0
 	 */
 	if ( ! defined( 'COOKIEPATH' ) ) {
-		define( 'COOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'home' ) . '/' ) );
+		define( 'COOKIEPATH', (string) preg_replace( '|https?://[^/]+|i', '', get_option( 'home' ) . '/' ) );
 	}
 
 	/**
 	 * @since 1.5.0
 	 */
 	if ( ! defined( 'SITECOOKIEPATH' ) ) {
-		define( 'SITECOOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'siteurl' ) . '/' ) );
+		define( 'SITECOOKIEPATH', (string) preg_replace( '|https?://[^/]+|i', '', get_option( 'siteurl' ) . '/' ) );
 	}
 
 	/**
@@ -322,7 +322,7 @@ function wp_cookie_constants() {
 	 * @since 2.6.0
 	 */
 	if ( ! defined( 'PLUGINS_COOKIE_PATH' ) ) {
-		define( 'PLUGINS_COOKIE_PATH', preg_replace( '|https?://[^/]+|i', '', WP_PLUGIN_URL ) );
+		define( 'PLUGINS_COOKIE_PATH', (string) preg_replace( '|https?://[^/]+|i', '', WP_PLUGIN_URL ) );
 	}
 
 	/**
@@ -434,6 +434,6 @@ function wp_templating_constants() {
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwentyfive' );
+		define( 'WP_DEFAULT_THEME', 'ipsum' );
 	}
 }

@@ -22,6 +22,14 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 		self::$auto_draft_id = $factory->post->create( array( 'post_status' => 'auto-draft' ) );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'tax_51292' );
+		parent::tear_down();
+	}
+
 	public function test_wp_publish_post() {
 		$draft_id = self::factory()->post->create(
 			array(
@@ -88,11 +96,11 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_title' => '<script>Test</script>',
+				'post_title' => 'Talking about: <script>Test</script>',
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertSame( '<script>Test</script>', $post->post_title );
+		$this->assertSame( 'Talking about: <script>Test</script>', $post->post_title );
 		$this->assertSame( 'draft', $post->post_status );
 
 		kses_init_filters();
@@ -107,7 +115,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 		kses_remove_filters();
 
 		$post = get_post( $post->ID );
-		$this->assertSame( 'Test', $post->post_title );
+		$this->assertSame( 'Talking about: ', $post->post_title );
 	}
 
 	/**

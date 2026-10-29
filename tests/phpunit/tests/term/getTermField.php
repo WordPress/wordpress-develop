@@ -32,6 +32,11 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		register_taxonomy( self::$taxonomy, 'post' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( self::$taxonomy );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 34245
 	 */

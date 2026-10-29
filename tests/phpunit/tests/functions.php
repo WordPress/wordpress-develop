@@ -144,7 +144,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[][]
 	 */
-	public function data_path_join() {
+	public static function data_path_join() {
 		return array(
 			// Absolute paths.
 			'absolute path should return path' => array(
@@ -201,7 +201,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_normalize_path( $path ) );
 	}
 
-	public function data_wp_normalize_path() {
+	public static function data_wp_normalize_path() {
 		return array(
 			// Windows paths.
 			array( 'C:\\www\\path\\', 'C:/www/path/' ),
@@ -419,7 +419,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * (if the image editor in PHP supports it).
 	 *
 	 * @param array $formats
-	 *
 	 * @return array
 	 */
 	public function image_editor_output_format_handler( $formats ) {
@@ -610,7 +609,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_add_query_arg_removes_question_mark() {
+	public static function data_add_query_arg_removes_question_mark() {
 		return array(
 			'anchor'                                     => array(
 				'url'      => 'http://example.org?#anchor',
@@ -742,7 +741,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_device_can_upload() {
+	public static function data_device_can_upload() {
 		return array(
 			// iPhone iOS 5.0.1, Safari 5.1.
 			array(
@@ -1113,10 +1112,11 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
-	public function data_mysql_to_rfc3339() {
+	public static function data_mysql_to_rfc3339() {
 		return array(
 			array( '2016-03-15T18:54:46', '15-03-2016 18:54:46' ),
 			array( '2016-03-02T19:13:25', '2016-03-02 19:13:25' ),
@@ -1182,7 +1182,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$this->assertSame( $ini_limit_before, $ini_limit_after );
 		$this->assertFalse( $raised_limit );
-		$this->assertEquals( WP_MAX_MEMORY_LIMIT, $ini_limit_after );
+		$this->assertSame( (string) WP_MAX_MEMORY_LIMIT, $ini_limit_after );
 	}
 
 	/**
@@ -1300,7 +1300,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function data_wp_get_image_mime() {
+	public static function data_wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1404,7 +1404,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_getimagesize().
 	 */
-	public function data_wp_getimagesize() {
+	public static function data_wp_getimagesize() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1613,7 +1613,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
-	public function data_wp_check_filetype_and_ext() {
+	public static function data_wp_check_filetype_and_ext() {
 		$data = array(
 			// Standard image.
 			array(
@@ -1878,7 +1878,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_validate_file() {
+	public static function data_validate_file() {
 		return array(
 
 			// Allowed files:
@@ -1984,6 +1984,121 @@ class Tests_Functions extends WP_UnitTestCase {
 				0,
 			),
 
+			/*
+			 * Windows UNC and device paths.
+			 *
+			 * wp_normalize_path() folds backslashes to forward slashes but
+			 * deliberately preserves a leading '//' for network shares, so
+			 * these arrive with no colon at offset 1 and must be matched on
+			 * the '//' prefix instead.
+			 */
+			array(
+				'//system07/C$/',
+				array(),
+				2,
+			),
+			array(
+				'//Server2/Share/Test/Foo.txt',
+				array(),
+				2,
+			),
+			array(
+				'//127.0.0.1/c$/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//./c:/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//?/c:/temp/test-file.txt',
+				array(),
+				2,
+			),
+			array(
+				'//./UNC/LOCALHOST/c$/temp/test-file.txt',
+				array(),
+				2,
+			),
+			// The backslash form a Windows caller actually supplies.
+			array(
+				'\\\\system07\\C$\\',
+				array(),
+				2,
+			),
+			// Shortest matching input.
+			array(
+				'//',
+				array(),
+				2,
+			),
+			// A UNC path is rejected even when explicitly allowed, matching
+			// the precedence the drive-letter check already has.
+			array(
+				'//system07/C$/foo.php',
+				array( '//system07/C$/foo.php' ),
+				2,
+			),
+
+			/*
+			 * Absolute POSIX paths are NOT rejected. validate_file() has never
+			 * screened them and does not begin to here. Callers needing that
+			 * must check separately; core's convention is to concatenate onto
+			 * a trusted base directory and stat the result.
+			 */
+			array(
+				'/etc/passwd',
+				array(),
+				0,
+			),
+			array(
+				'/Server2/Share/Test/Foo.txt',
+				array(),
+				0,
+			),
+			array(
+				'/',
+				array(),
+				0,
+			),
+			/*
+			 * A deliberate exception. POSIX.1 leaves a pathname beginning with
+			 * two successive slashes implementation-defined, and Linux resolves
+			 * it as a single slash, so this is a valid POSIX path. It is still
+			 * rejected: after normalization it cannot be told apart from a UNC
+			 * path, and wp_normalize_path() already preserves a leading '//' on
+			 * the assumption that it denotes a network share.
+			 */
+			array(
+				'//home/user/file.php',
+				array(),
+				2,
+			),
+
+			/*
+			 * Stream wrappers stay allowed via two different mechanisms.
+			 * A registered wrapper keeps its '://' through wp_normalize_path()'s
+			 * scheme split; an unregistered one has its '//' collapsed. Neither
+			 * ends up with a leading '//'.
+			 */
+			array(
+				'php://memory',
+				array(),
+				0,
+			),
+			array(
+				'file:///tmp/test-file.txt',
+				array(),
+				0,
+			),
+			array(
+				'myapp://foo/bar',
+				array(),
+				0,
+			),
+
 			// Disallowed files:
 			array(
 				'foo.ext',
@@ -2030,7 +2145,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_is_stream() {
+	public static function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
 			array( 'http://example.com', true ),
@@ -2070,7 +2185,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_human_readable_duration() {
+	public static function data_human_readable_duration() {
 		return array(
 			// Valid ii:ss cases.
 			array( '0:0', '0 minutes, 0 seconds' ),
@@ -2134,7 +2249,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 
-	public function data_wp_is_json_media_type() {
+	public static function data_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
@@ -2153,7 +2268,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
 		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
-		$this->assertNotEquals( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
+		$this->assertNotSame( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
 		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
