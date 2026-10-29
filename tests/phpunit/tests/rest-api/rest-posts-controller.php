@@ -115,7 +115,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function tear_down() {
-		global $wp_post_statuses;
 
 		if ( true === $this->attachments_created ) {
 			$this->remove_added_uploads();
@@ -131,7 +130,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		unregister_taxonomy( 'status' );
 
-		unset( $wp_post_statuses['testpubstatus'], $wp_post_statuses['testprivtatus'] );
+		_unregister_post_status( 'testpubstatus' );
+		_unregister_post_status( 'testprivtatus' );
 
 		parent::tear_down();
 	}
