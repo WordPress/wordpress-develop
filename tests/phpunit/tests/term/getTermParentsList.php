@@ -22,11 +22,17 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	public static function wpTearDownAfterClass() {
 		wp_delete_term( self::$c1->term_id, 'wptests_tax' );
 		wp_delete_term( self::$c2->term_id, 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax' );
 	}
 
 	public function set_up() {
 		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
 	}
 
 	public function test_should_return_wp_error_for_empty_id() {
