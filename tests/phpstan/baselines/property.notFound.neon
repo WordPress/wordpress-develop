@@ -254,16 +254,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/category-template.php
 		-
-			message: '#^Access to an undefined property WP_Post\:\:\$current\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-includes/class-walker-nav-menu.php
-		-
-			message: '#^Access to an undefined property WP_Post\:\:\$title\.$#'
-			identifier: property.notFound
-			count: 2
-			path: ../../../src/wp-includes/class-walker-nav-menu.php
-		-
 			message: '#^Access to an undefined property WP_Error\|WP_Term\:\:\$object_id\.$#'
 			identifier: property.notFound
 			count: 1
