@@ -43,8 +43,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		global $wp_post_statuses;
-		unset( $wp_post_statuses['foo'] );
+		_unregister_post_status( 'foo' );
 		unregister_post_type( 'wptests_pt' );
 
 		parent::tear_down();
