@@ -246,6 +246,53 @@ class WP_Admin_Bar {
 	}
 
 	/**
+	 * Dashicons back-compat: removes the first empty `<span class="ab-icon">` from a node title.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $title Node title.
+	 * @return string|false Title without the empty icon element, or false if it has none.
+	 */
+	private static function remove_empty_icon_element( $title ) {
+		$processor = new class( $title ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Removes the HTML from the given bookmark to the end of the current token.
+			 *
+			 * @param string $bookmark_name Bookmark at the start of the HTML to remove.
+			 */
+			public function remove_since_bookmark( $bookmark_name ): void {
+				$this->set_bookmark( 'here' );
+				$start = $this->bookmarks[ $bookmark_name ]->start;
+				$end   = $this->bookmarks['here']->start + $this->bookmarks['here']->length;
+				$this->seek( $bookmark_name );
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement( $start, $end - $start, '' );
+			}
+		};
+
+		$query = array(
+			'tag_name'   => 'SPAN',
+			'class_name' => 'ab-icon',
+		);
+
+		while ( $processor->next_tag( $query ) ) {
+			$processor->set_bookmark( 'opener' );
+
+			$processor->next_token();
+			if ( '#text' === $processor->get_token_type() && '' === trim( $processor->get_modifiable_text() ) ) {
+				$processor->next_token();
+			}
+
+			if ( 'SPAN' === $processor->get_tag() && $processor->is_tag_closer() ) {
+				$processor->remove_since_bookmark( 'opener' );
+				return $processor->get_updated_html();
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * @since 3.3.0
 	 *
 	 * @param array $args
@@ -651,10 +698,12 @@ class WP_Admin_Bar {
 
 		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title, so that a node given an icon does not also show its Dashicon element.
 		if ( $has_default_icon_in_title || wp_is_valid_icon_name( $icon_name ) ) {
-			$title = preg_replace( '/<span\b[^>]*\bclass=(["\'])(?:[^"\']*\s)?ab-icon(?:\s[^"\']*)?\1[^>]*>\s*<\/span>/', '', (string) $title, 1, $count );
+			$title_without_icon_element = self::remove_empty_icon_element( (string) $title );
 
-			// Without one, a core node whose icon was drawn in it gets no default icon.
-			if ( ! $count && $has_default_icon_in_title ) {
+			if ( false !== $title_without_icon_element ) {
+				$title = $title_without_icon_element;
+			} elseif ( $has_default_icon_in_title ) {
+				// Without one, a core node whose icon was drawn in it gets no default icon.
 				$default_icon = false;
 			}
 		}

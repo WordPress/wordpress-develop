@@ -1298,9 +1298,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 */
 	public static function data_icon_argument_replaces_empty_icon_element(): array {
 		return array(
-			'empty icon element'       => array( '<span class="ab-icon" aria-hidden="true"></span>' ),
-			'Dashicons class'          => array( '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>' ),
-			'Dashicons class and font' => array( '<span class="ab-icon dashicons dashicons-edit"></span>' ),
+			'empty icon element' => array( '<span class="ab-icon" aria-hidden="true"></span>' ),
+			'Dashicons class'    => array( '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>' ),
+			'whitespace inside'  => array( "<span class=\"ab-icon\">\n\t</span>" ),
 		);
 	}
 
