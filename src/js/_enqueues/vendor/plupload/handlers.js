@@ -285,7 +285,7 @@ function switchUploader( s ) {
 	}
 }
 
-function uploadError( fileObj, errorCode, message, up ) {
+function uploadError( fileObj, errorCode, message, up, errorObj ) {
 	var hundredmb = 100 * 1024 * 1024, max;
 
 	switch ( errorCode ) {
@@ -321,7 +321,11 @@ function uploadError( fileObj, errorCode, message, up ) {
 
 			break;
 		case plupload.HTTP_ERROR:
-			wpQueueError( pluploadL10n.http_error );
+			if ( errorObj && errorObj.status === 413 ) {
+				wpQueueError( pluploadL10n.http_error_413 );
+			} else {
+				wpQueueError( pluploadL10n.http_error );
+			}
 			break;
 		case plupload.INIT_ERROR:
 			jQuery( '.media-upload-form' ).addClass( 'html-uploader' );
@@ -643,7 +647,7 @@ jQuery( document ).ready( function( $ ) {
 				return;
 			}
 
-			uploadError( error.file, error.code, error.message, up );
+			uploadError( error.file, error.code, error.message, up, error );
 			up.refresh();
 		});
 

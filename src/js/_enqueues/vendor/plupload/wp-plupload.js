@@ -484,7 +484,11 @@ window.wp = window.wp || {};
 			return pluploadL10n.file_exceeds_size_limit.replace( '%s', file.name );
 		},
 
-		'HTTP_ERROR': function( file ) {
+		'HTTP_ERROR': function( file, data ) {
+			if ( data && data.status === 413 ) {
+				return pluploadL10n.http_error_413;
+			}
+
 			if ( file.type && file.type.indexOf( 'image/' ) === 0 ) {
 				return pluploadL10n.http_error_image;
 			}
