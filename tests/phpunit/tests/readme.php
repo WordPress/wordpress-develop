@@ -103,13 +103,43 @@ class Tests_Readme extends WP_UnitTestCase {
 		$response   = $this->wp_remote_get( $url );
 
 		if ( is_wp_error( $response ) ) {
-			$this->markTestSkipped(
-				sprintf(
-					'Could not contact %1$s to check versions: %2$s',
-					$host,
-					$response->get_error_message()
-				)
-			);
+			$error_message           = $response->get_error_message();
+			$is_availability_failure = false;
+
+			if ( 'http_request_failed' === $response->get_error_code() ) {
+				$availability_patterns = array(
+					'Could not resolve host',
+					'Failed to connect',
+					'Connection refused',
+					'unable to connect to',
+					'Connection timed out',
+					'Network is unreachable',
+					'Host is down',
+					'getaddrinfo failed',
+					'name or service not known',
+					'temporary failure in name resolution',
+					'Operation timed out',
+				);
+
+				foreach ( $availability_patterns as $pattern ) {
+					if ( false !== stripos( $error_message, $pattern ) ) {
+						$is_availability_failure = true;
+						break;
+					}
+				}
+			}
+
+			if ( $is_availability_failure ) {
+				$this->markTestSkipped(
+					sprintf(
+						'Could not contact %1$s to check versions: %2$s',
+						$host,
+						$error_message
+					)
+				);
+			}
+
+			$this->assertNotWPError( $response );
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
@@ -131,5 +161,113 @@ class Tests_Readme extends WP_UnitTestCase {
 		}
 
 		return $response_body;
+	}
+
+	/**
+	 * @ticket 63914
+	 */
+	public function test_get_response_body_skips_on_host_resolution_failure() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_failed', 'cURL error 6: Could not resolve host: endoflife.date' );
+			}
+		);
+
+		try {
+			$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+			$this->fail( 'Expected test to be skipped.' );
+		} catch ( PHPUnit\Framework\SkippedTestError $e ) {
+			$this->assertStringContainsString( 'Could not contact endoflife.date to check versions: cURL error 6: Could not resolve host: endoflife.date', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * @ticket 63914
+	 */
+	public function test_get_response_body_fails_on_invalid_url() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+			}
+		);
+
+		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
+		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+	}
+
+	/**
+	 * @ticket 63914
+	 */
+	public function test_get_response_body_fails_on_request_not_executed() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_not_executed', 'User has blocked requests through HTTP.' );
+			}
+		);
+
+		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
+		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+	}
+
+	/**
+	 * @ticket 63914
+	 *
+	 * @dataProvider data_availability_status_codes
+	 *
+	 * @param int $status_code The HTTP status code.
+	 */
+	public function test_get_response_body_skips_on_server_availability_status_codes( $status_code ) {
+		add_filter(
+			'pre_http_request',
+			static function () use ( $status_code ) {
+				return array(
+					'response' => array( 'code' => $status_code ),
+					'body'     => 'Service Unavailable',
+				);
+			}
+		);
+
+		try {
+			$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+			$this->fail( 'Expected test to be skipped.' );
+		} catch ( PHPUnit\Framework\SkippedTestError $e ) {
+			$this->assertStringContainsString( "Response code: $status_code", $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Data provider for server availability status codes.
+	 *
+	 * @return array[]
+	 */
+	public static function data_availability_status_codes() {
+		return array(
+			'429 Too Many Requests' => array( 429 ),
+			'500 Server Error'      => array( 500 ),
+			'502 Bad Gateway'       => array( 502 ),
+			'503 Unavailable'       => array( 503 ),
+			'504 Gateway Timeout'   => array( 504 ),
+		);
+	}
+
+	/**
+	 * @ticket 63914
+	 */
+	public function test_get_response_body_fails_on_404_status_code() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return array(
+					'response' => array( 'code' => 404 ),
+					'body'     => 'Not Found',
+				);
+			}
+		);
+
+		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
+		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
 	}
 }
