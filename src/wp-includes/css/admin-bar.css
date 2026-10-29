@@ -289,8 +289,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar .ab-icon,
 #wpadminbar .ab-item::before {
 	position: relative;
-	color: #a7aaad;
-	color: rgba(240, 246, 252, 0.6);
+	color: #dcdcde;
+	color: rgba(240, 246, 252, 0.85);
 	transition: color 0.1s ease-in-out;
 }
 

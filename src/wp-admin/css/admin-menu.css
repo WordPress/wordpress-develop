@@ -303,8 +303,8 @@ div.wp-menu-image::before {
 }
 
 #adminmenu div.wp-menu-image {
-	color: #a7aaad;
-	color: rgba(240, 246, 252, 0.6);
+	color: #dcdcde;
+	color: rgba(240, 246, 252, 0.85);
 	transition: color 0.1s ease-in-out;
 }
 
