@@ -242,7 +242,7 @@ class WP_CSS_Token_Serializer {
 	 * Example:
 	 *
 	 * ```php interactive
-	 * $processor = WP_CSS_Token_Processor::create( 'url( a&b ) calc(1px  +  2px' );
+	 * $processor = new WP_CSS_Token_Processor( 'url( a&b ) calc(1px  +  2px' );
 	 * $tokens    = array();
 	 * while ( $processor->next_token() ) {
 	 *     $tokens[] = $processor->get_token();
