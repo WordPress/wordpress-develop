@@ -556,7 +556,7 @@ class WP_Admin_Bar {
 				?>
 			</div>
 			<?php if ( $skip_past_toolbar ) { ?>
-				<div id="wp-toolbar-skip-target" tabindex="-1"></div>
+				<div id="wp-toolbar-skip-target"></div>
 			<?php } ?>
 		</div>
 

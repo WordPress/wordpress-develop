@@ -980,7 +980,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertGreaterThan(
 			strrpos( $admin_bar_html, 'ab-item' ),
-			strpos( $admin_bar_html, '<div id="wp-toolbar-skip-target" tabindex="-1"></div>' ),
+			strpos( $admin_bar_html, '<div id="wp-toolbar-skip-target"></div>' ),
 			'The "Skip toolbar" link target should follow all toolbar items.'
 		);
 	}
