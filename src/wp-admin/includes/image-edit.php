@@ -1121,8 +1121,8 @@ function wp_save_image( $post_id ) {
 				$height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 				$crop   = ( $nocrop ) ? false : $_wp_additional_image_sizes[ $size ]['crop'];
 			} else {
-				$height = get_option( "{$size}_size_h" );
-				$width  = get_option( "{$size}_size_w" );
+				$height = (int) get_option( "{$size}_size_h" );
+				$width  = (int) get_option( "{$size}_size_w" );
 				$crop   = ( $nocrop ) ? false : get_option( "{$size}_crop" );
 			}
 
@@ -1133,7 +1133,16 @@ function wp_save_image( $post_id ) {
 			);
 		}
 
-		$meta['sizes'] = array_merge( $meta['sizes'], $img->multi_resize( $_sizes ) );
+		/*
+		 * Sizes that were regenerated but could not be created for the edited image
+		 * (for example, when a rotation makes the image smaller than the size) are removed,
+		 * so the metadata does not keep pointing at the unedited files.
+		 * Sizes that were not part of this edit are kept.
+		 */
+		$meta['sizes'] = array_merge(
+			array_diff_key( $meta['sizes'], $_sizes ),
+			$img->multi_resize( $_sizes )
+		);
 	}
 
 	unset( $img );
