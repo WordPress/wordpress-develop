@@ -67,6 +67,7 @@ class Tests_Comment_PrivacyPingFilter extends WP_UnitTestCase {
 		return array(
 			'string 1'     => array( '1' ),
 			'integer 1'    => array( 1 ),
+			'integer 0'    => array( 0 ),
 			'empty string' => array( '' ),
 		);
 	}
