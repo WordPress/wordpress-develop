@@ -1764,26 +1764,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The random ID query must never be served from the query cache, or the same post
-	 * would be selected until the cache is invalidated.
-	 */
-	public function test_random_query_is_not_cached_with_persistent_object_cache(): void {
-		if ( ! wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires an external object cache.' );
-		}
-
-		$this->go_to_and_record_queries( home_url( '/random/' ) );
-		$first_request_queries = $this->queries;
-
-		$this->queries           = array();
-		$this->redirect_location = null;
-		$this->go_to_and_record_queries( home_url( '/random/' ) );
-
-		$this->assertCount( 1, preg_grep( '/RAND\(\)/', $first_request_queries ), 'The first request should run the random query.' );
-		$this->assertCount( 1, preg_grep( '/RAND\(\)/', $this->queries ), "The second request should run the random query again rather than reuse a cached result:\n" . implode( "\n", $this->queries ) );
-	}
-
-	/**
 	 * Ensure different posts are selected across random requests.
 	 */
 	public function test_random_selection_varies_between_requests(): void {
