@@ -5,6 +5,11 @@
  */
 class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'wp_getTerms_custom_taxonomy' );
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'username', 'password', 'category' ) );
 		$this->assertIXRError( $result );

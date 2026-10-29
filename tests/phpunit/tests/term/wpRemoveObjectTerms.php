@@ -4,6 +4,11 @@
  * @group taxonomy
  */
 class Tests_Term_WpRemoveObjectTerms extends WP_UnitTestCase {
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 34338
 	 */
