@@ -170,7 +170,7 @@ EOD;
 		$this->assertEqualHTML( $expected, $actual );
 	}
 
-	public function data_wp_filter_pre_oembed_custom_result() {
+	public static function data_wp_filter_pre_oembed_custom_result() {
 		return array(
 			array(
 				'<blockquote></blockquote><iframe title=""></iframe>',

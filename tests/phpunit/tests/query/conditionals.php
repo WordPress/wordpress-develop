@@ -42,6 +42,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'ptawtq' );
+		unregister_post_type( 'thearray' );
+		unregister_post_type( 'test_hierarchical' );
+		parent::tear_down();
+	}
+
 	public function test_home() {
 		$this->go_to( '/' );
 		$this->assertQueryTrue( 'is_home', 'is_front_page' );

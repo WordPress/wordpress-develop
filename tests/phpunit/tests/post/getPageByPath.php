@@ -4,6 +4,12 @@
  * @group post
  */
 class Tests_Post_GetPageByPath extends WP_UnitTestCase {
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 15665
 	 */

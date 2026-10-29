@@ -426,7 +426,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_cancel_comment_reply_link() {
+	public static function data_get_cancel_comment_reply_link() {
 		return array(
 			'text as empty string, a valid post ID and an approved comment'    => array(
 				'text'       => '',
@@ -538,7 +538,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_allow_reply_to_an_approved_comment() {
+	public static function data_should_allow_reply_to_an_approved_comment() {
 		return array(
 			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
 			'a WP_Post object' => array( 'comment_post' => 'POST' ),
@@ -618,7 +618,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_existent_posts() {
+	public static function data_non_existent_posts() {
 		return array(
 			'an unapproved comment and a non-existent post ID' => array(
 				'replytocom'   => false,
@@ -678,7 +678,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_parent_comments() {
+	public static function data_parent_comments() {
 		return array(
 			'an unapproved parent comment (ID)'      => array(
 				'replytocom'   => false,
@@ -772,7 +772,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_comment_reply_id() {
+	public static function data_get_comment_reply_id() {
 		return array(
 			'no comment ID set ($_GET["replytocom"])'     => array(
 				'replytocom' => false,
@@ -1846,7 +1846,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_trash_comment_trashes_child_notes.
 	 */
-	public function data_comment_approved_statuses() {
+	public static function data_comment_approved_statuses() {
 		return array(
 			array( '1' ),
 			array( '0' ),
@@ -2263,7 +2263,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public function data_non_note_comment_types() {
+	public static function data_non_note_comment_types() {
 		return array(
 			'comment'   => array( 'comment' ),
 			'pingback'  => array( 'pingback' ),

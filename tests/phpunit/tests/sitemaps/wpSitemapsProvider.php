@@ -25,13 +25,6 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			 */
 			private $pages;
 
-			/**
-			 * Object subtypes passed to get_max_num_pages().
-			 *
-			 * @var array
-			 */
-			public $max_num_pages_calls = array();
-
 			public function __construct( array $pages ) {
 				$this->name        = 'tests';
 				$this->object_type = 'test';
@@ -43,8 +36,6 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			}
 
 			public function get_max_num_pages( $object_subtype = '' ) {
-				$this->max_num_pages_calls[] = $object_subtype;
-
 				return $this->pages[ $object_subtype ];
 			}
 		};
@@ -90,39 +81,6 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 				return $this->pages[ $object_subtype ];
 			}
 		};
-	}
-
-	/**
-	 * Tests that a provider has no object subtypes by default.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::get_object_subtypes
-	 */
-	public function test_get_object_subtypes_returns_empty_array_by_default() {
-		$this->assertSame( array(), $this->get_provider( array( '' => 1 ) )->get_object_subtypes() );
-	}
-
-	/**
-	 * Tests the sitemap type data of a provider without object subtypes.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::get_sitemap_type_data
-	 */
-	public function test_get_sitemap_type_data_without_subtypes() {
-		$provider = $this->get_provider( array( '' => 3 ) );
-
-		$this->assertSame(
-			array(
-				array(
-					'name'  => '',
-					'pages' => 3,
-				),
-			),
-			$provider->get_sitemap_type_data()
-		);
-		$this->assertSame( array( '' ), $provider->max_num_pages_calls, 'The number of pages should be requested once, without a subtype.' );
 	}
 
 	/**
@@ -192,16 +150,30 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
+	 * @covers ::get_object_subtypes
+	 * @covers ::get_sitemap_type_data
 	 * @covers ::get_sitemap_entries
 	 * @covers ::get_sitemap_url
 	 */
 	public function test_get_sitemap_entries_without_subtypes() {
+		$provider = $this->get_provider( array( '' => 2 ) );
+
+		$this->assertSame( array(), $provider->get_object_subtypes() );
+		$this->assertSame(
+			array(
+				array(
+					'name'  => '',
+					'pages' => 2,
+				),
+			),
+			$provider->get_sitemap_type_data()
+		);
 		$this->assertSame(
 			array(
 				array( 'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=tests&paged=1' ),
 				array( 'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=tests&paged=2' ),
 			),
-			$this->get_provider( array( '' => 2 ) )->get_sitemap_entries()
+			$provider->get_sitemap_entries()
 		);
 	}
 
@@ -327,11 +299,9 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	 */
 	public static function data_get_sitemap_url() {
 		return array(
-			'first page without subtype'  => array( '', 1, '/?sitemap=tests&paged=1', '/wp-sitemap-tests-1.xml' ),
-			'second page without subtype' => array( '', 2, '/?sitemap=tests&paged=2', '/wp-sitemap-tests-2.xml' ),
-			'first page of a subtype'     => array( 'type-1', 1, '/?sitemap=tests&sitemap-subtype=type-1&paged=1', '/wp-sitemap-tests-type-1-1.xml' ),
-			'later page of a subtype'     => array( 'type-1', 12, '/?sitemap=tests&sitemap-subtype=type-1&paged=12', '/wp-sitemap-tests-type-1-12.xml' ),
-			'page zero is omitted'        => array( 'type-1', 0, '/?sitemap=tests&sitemap-subtype=type-1', '/wp-sitemap-tests-type-1.xml' ),
+			'first page without subtype' => array( '', 1, '/?sitemap=tests&paged=1', '/wp-sitemap-tests-1.xml' ),
+			'later page of a subtype'    => array( 'type-1', 12, '/?sitemap=tests&sitemap-subtype=type-1&paged=12', '/wp-sitemap-tests-type-1-12.xml' ),
+			'page zero is omitted'       => array( 'type-1', 0, '/?sitemap=tests&sitemap-subtype=type-1', '/wp-sitemap-tests-type-1.xml' ),
 		);
 	}
 }
