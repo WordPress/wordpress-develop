@@ -5481,6 +5481,8 @@ function wp_is_numeric_array( $data ): bool {
  * @param bool|string $field      Optional. A field from the object to place instead
  *                                of the entire object. Default false.
  * @return array A list of objects or object fields.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
 	if ( ! is_array( $input_list ) ) {
