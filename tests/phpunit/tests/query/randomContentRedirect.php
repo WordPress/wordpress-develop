@@ -1736,8 +1736,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	public function test_random_post_is_loaded_by_id_after_the_random_query(): void {
 		global $wpdb;
 
-		wp_cache_flush();
-
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
 		$this->assertLessThanOrEqual( 2, count( $this->queries ), "No more than two database queries should be made to select the random post:\n" . implode( "\n", $this->queries ) );
