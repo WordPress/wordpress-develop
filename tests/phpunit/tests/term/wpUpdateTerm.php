@@ -4,6 +4,14 @@
  * @group taxonomy
  */
 class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_update_term_taxonomy_does_not_exist() {
 		$found = wp_update_term( 1, 'bar' );
 
