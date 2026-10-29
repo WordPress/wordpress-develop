@@ -697,31 +697,25 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Lazily-built index of attributes found within an HTML tag, keyed by the attribute name.
 	 *
+	 * This is `null` until the index is built for the current tag.
+	 *
 	 * Example:
 	 *
-	 *     // Supposing the parser is working through this content
-	 *     // and stops after recognizing the `id` attribute.
-	 *     // <div id="test-4" class=outline title="data:text/plain;base64=asdk3nk1j3fo8">
-	 *     //                 ^ parsing will continue from this point.
-	 *     $this->attributes = array(
-	 *         'id' => new WP_HTML_Attribute_Token( 'id', 9, 6, 5, 11, false )
-	 *     );
-	 *
-	 *     // When picking up parsing again, or when asking to find the
-	 *     // `class` attribute we will continue and add to this array.
+	 *     // <div id="test-4" class=outline>
 	 *     $this->attributes = array(
 	 *         'id'    => new WP_HTML_Attribute_Token( 'id', 9, 6, 5, 11, false ),
 	 *         'class' => new WP_HTML_Attribute_Token( 'class', 23, 7, 17, 13, false )
 	 *     );
 	 *
-	 *     // Note that only the `class` attribute value is stored in the index.
-	 *     // That's because it is the only value used by this class at the moment.
-	 *
 	 * @since 6.2.0
-	 * @var WP_HTML_Attribute_Token[]
-	 * @phpstan-var array<non-empty-string, WP_HTML_Attribute_Token>
+	 * @since 7.3.0 Built when first needed instead of when the tag is parsed.
+	 *
+	 * @see WP_HTML_Tag_Processor::index_attributes()
+	 *
+	 * @var WP_HTML_Attribute_Token[]|null
+	 * @phpstan-var array<non-empty-string, WP_HTML_Attribute_Token>|null
 	 */
-	private $attributes = array();
+	private $attributes = null;
 
 	/**
 	 * Tracks spans of duplicate attributes on a given tag, used for removing
@@ -1076,8 +1070,6 @@ class WP_HTML_Tag_Processor {
 		$tag_name_length       = $this->tag_name_length;
 		$tag_ends_at           = $this->token_starts_at + $this->token_length;
 		$has_self_closing_flag = $this->has_self_closing_flag;
-		$attributes            = $this->attributes;
-		$duplicate_attributes  = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
 		switch ( $tag_name ) {
@@ -1134,8 +1126,6 @@ class WP_HTML_Tag_Processor {
 		$this->tag_name_starts_at    = $tag_name_starts_at;
 		$this->tag_name_length       = $tag_name_length;
 		$this->has_self_closing_flag = $has_self_closing_flag;
-		$this->attributes            = $attributes;
-		$this->duplicate_attributes  = $duplicate_attributes;
 
 		return true;
 	}
@@ -2167,8 +2157,13 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 7.3.0
 	 * @ignore
+	 *
+	 * @see WP_HTML_Tag_Processor::index_attributes()
+	 *
+	 * @param bool $collect Optional. Whether to add the attributes to the attribute index.
+	 *                      Otherwise, only find the end of the tag. Default false.
 	 */
-	private function parse_all_attributes(): void {
+	private function parse_all_attributes( bool $collect = false ): void {
 		$doc_length = strlen( $this->html );
 
 		while ( true ) {
@@ -2216,7 +2211,6 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$attribute_start             = $this->bytes_already_parsed;
-			$attribute_name              = substr( $this->html, $attribute_start, $name_length );
 			$this->bytes_already_parsed += $name_length;
 
 			// There is no whitespace to skip when `=` follows the name.
@@ -2271,9 +2265,11 @@ class WP_HTML_Tag_Processor {
 				break;
 			}
 
-			if ( $this->is_closing_tag ) {
+			if ( ! $collect ) {
 				continue;
 			}
+
+			$attribute_name = substr( $this->html, $attribute_start, $name_length );
 
 			/*
 			 * > There must never be two or more attributes on
@@ -2320,6 +2316,35 @@ class WP_HTML_Tag_Processor {
 				$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
 			}
 		}
+	}
+
+	/**
+	 * Builds the attribute index for the current tag if it has not been built.
+	 *
+	 * Tags are scanned without indexing their attributes. The index is built
+	 * by parsing the tag's attributes again the first time it is needed.
+	 *
+	 * @since 7.3.0
+	 * @ignore
+	 *
+	 * @phpstan-assert array<non-empty-string, WP_HTML_Attribute_Token> $this->attributes
+	 */
+	private function index_attributes(): void {
+		if ( null !== $this->attributes ) {
+			return;
+		}
+
+		$this->attributes = array();
+
+		// Attributes on closing tags are ignored.
+		if ( $this->is_closing_tag ) {
+			return;
+		}
+
+		$was_at                     = $this->bytes_already_parsed;
+		$this->bytes_already_parsed = $this->tag_name_starts_at + $this->tag_name_length;
+		$this->parse_all_attributes( true );
+		$this->bytes_already_parsed = $was_at;
 	}
 
 	/**
@@ -2386,7 +2411,7 @@ class WP_HTML_Tag_Processor {
 		$this->text_starts_at           = 0;
 		$this->text_length              = 0;
 		$this->is_closing_tag           = null;
-		$this->attributes               = array();
+		$this->attributes               = null;
 		$this->comment_type             = null;
 		$this->text_node_classification = self::TEXT_IS_GENERIC;
 		$this->duplicate_attributes     = null;
@@ -2412,6 +2437,7 @@ class WP_HTML_Tag_Processor {
 			$existing_class = '';
 		}
 
+		$this->index_attributes();
 		if ( false === $existing_class && isset( $this->attributes['class'] ) ) {
 			$existing_class = $this->get_decoded_attribute_value( $this->attributes['class'] );
 		}
@@ -2851,6 +2877,7 @@ class WP_HTML_Tag_Processor {
 			return $enqueued_value;
 		}
 
+		$this->index_attributes();
 		if ( ! isset( $this->attributes[ $comparable ] ) ) {
 			return null;
 		}
@@ -2933,6 +2960,7 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$comparable = strtolower( $prefix );
+		$this->index_attributes();
 
 		/*
 		 * For the `class` attribute, ensure that enqueued class changes from
@@ -4656,6 +4684,7 @@ class WP_HTML_Tag_Processor {
 		 */
 		$comparable_name = strtolower( $name );
 
+		$this->index_attributes();
 		if ( isset( $this->attributes[ $comparable_name ] ) ) {
 			/*
 			 * Update an existing attribute.
@@ -4748,6 +4777,7 @@ class WP_HTML_Tag_Processor {
 		 * after calling `set_attribute()` for the same attribute
 		 * and when that attribute wasn't originally present.
 		 */
+		$this->index_attributes();
 		if ( ! isset( $this->attributes[ $name ] ) ) {
 			if ( isset( $this->lexical_updates[ $name ] ) ) {
 				unset( $this->lexical_updates[ $name ] );
