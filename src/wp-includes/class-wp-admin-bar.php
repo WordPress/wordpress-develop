@@ -717,6 +717,12 @@ class WP_Admin_Bar {
 			$icon = _wp_admin_bar_icon( $icon_name );
 
 			if ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+				// Dashicons back-compat: restore the original title instead of showing an empty icon wrapper.
+				if ( $title !== $node->title ) {
+					$title = $node->title;
+					$icon  = '';
+				}
+
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(

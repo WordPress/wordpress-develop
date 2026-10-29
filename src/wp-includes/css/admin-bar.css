@@ -279,7 +279,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 /* Dashicons back-compat: hide an icon drawn on `.ab-item::before` so it doesn't show next to the SVG icon. */
-#wpadminbar .ab-item:has(> .ab-icon.svg-icon)::before {
+#wpadminbar .ab-item:has(> .ab-icon.svg-icon > svg)::before {
 	display: none;
 }
 

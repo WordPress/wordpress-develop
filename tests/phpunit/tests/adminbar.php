@@ -1374,6 +1374,32 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Dashicons back-compat: an icon that is not registered keeps the empty icon element of the title in its place.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 *
+	 * @expectedIncorrectUsage WP_Admin_Bar::_render_item
+	 */
+	public function test_unregistered_icon_keeps_empty_icon_element(): void {
+		$title     = '<span class="ab-icon dashicons-before dashicons-chart-bar"></span>Label';
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'my-plugin/not-registered',
+				'title' => $title,
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'svg-icon', $html, 'No SVG icon element should be rendered.' );
+		$this->assertStringContainsString( $title, $html, 'The empty icon element should be kept in the title.' );
+	}
+
+	/**
 	 * Dashicons back-compat: `add_node()` used to ignore an `icon` key, so a value that is not an icon name still renders nothing.
 	 *
 	 * @ticket 65089
