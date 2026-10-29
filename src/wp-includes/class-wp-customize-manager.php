@@ -3518,7 +3518,6 @@ final class WP_Customize_Manager {
 				preg_match( $namespace_pattern, $raw_setting_id, $matches )
 			);
 			if ( $is_theme_mod_setting ) {
-				$theme_mod_settings[ $matches['stylesheet'] ]                         ??= array();
 				$theme_mod_settings[ $matches['stylesheet'] ][ $matches['setting_id'] ] = $setting_params;
 
 				if ( $this->get_stylesheet() === $matches['stylesheet'] ) {

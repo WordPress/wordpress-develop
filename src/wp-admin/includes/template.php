@@ -1150,8 +1150,6 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 		$priority = 'low';
 	}
 
-	$wp_meta_boxes[ $page ][ $context ][ $priority ] ??= array();
-
 	$wp_meta_boxes[ $page ][ $context ][ $priority ][ $id ] = array(
 		'id'       => $id,
 		'title'    => $title,

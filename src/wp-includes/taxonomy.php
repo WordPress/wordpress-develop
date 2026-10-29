@@ -4032,7 +4032,6 @@ function update_object_term_cache( $object_ids, $object_type ) {
 	foreach ( $non_cached_ids as $id ) {
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( ! isset( $object_terms[ $id ][ $taxonomy ] ) ) {
-				$object_terms[ $id ]            ??= array();
 				$object_terms[ $id ][ $taxonomy ] = array();
 			}
 		}

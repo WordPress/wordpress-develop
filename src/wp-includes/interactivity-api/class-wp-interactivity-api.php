@@ -282,7 +282,6 @@ final class WP_Interactivity_API {
 	 * @return array Data for the Interactivity Router script module.
 	 */
 	public function filter_script_module_interactivity_router_data( array $data ): array {
-		$data['i18n']          ??= array();
 		$data['i18n']['loading'] = __( 'Loading page, please wait.' );
 		$data['i18n']['loaded']  = __( 'Page Loaded.' );
 		return $data;
