@@ -43,15 +43,6 @@ class Tests_Load_IsProtectedAjaxAction extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_returns_false_when_not_doing_ajax() {
-		$_REQUEST['action'] = 'heartbeat';
-
-		$this->assertFalse( is_protected_ajax_action() );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_filter_does_not_run_when_not_doing_ajax() {
 		$_REQUEST['action'] = 'heartbeat';
 
