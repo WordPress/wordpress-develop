@@ -291,13 +291,15 @@ jobs:
           cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
 
       - name: Run performance tests
+        id: performance-tests
         run: npm run test:performance
         env:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        # Without test results, a failed setup step would report a second failure here.
+        if: ${{ always() && steps.performance-tests.outcome != 'skipped' }}
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}
           path: artifacts
