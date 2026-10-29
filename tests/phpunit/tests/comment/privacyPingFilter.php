@@ -10,44 +10,13 @@ class Tests_Comment_PrivacyPingFilter extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 */
-	public function test_returns_sites_when_blog_is_public() {
-		add_filter(
-			'pre_option_blog_public',
-			static function () {
-				return '1';
-			}
-		);
-
-		$sites = "http://example.com\nhttp://example.org";
-
-		$this->assertSame( $sites, privacy_ping_filter( $sites ) );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_returns_empty_string_when_blog_is_not_public() {
-		add_filter(
-			'pre_option_blog_public',
-			static function () {
-				return '0';
-			}
-		);
-
-		$this->assertSame( '', privacy_ping_filter( "http://example.com\nhttp://example.org" ) );
-	}
-
-	/**
-	 * Non-'0' public values keep the sites list (strict comparison).
 	 *
-	 * @ticket 65819
+	 * @dataProvider data_privacy_ping_filter
 	 *
-	 * @dataProvider data_public_blog_values
-	 *
-	 * @param mixed $blog_public Option value for blog_public.
+	 * @param mixed  $blog_public Option value for blog_public.
+	 * @param string $expected    Expected return value.
 	 */
-	public function test_returns_sites_for_non_zero_public_values( $blog_public ) {
+	public function test_privacy_ping_filter( $blog_public, $expected ) {
 		add_filter(
 			'pre_option_blog_public',
 			static function () use ( $blog_public ) {
@@ -55,20 +24,26 @@ class Tests_Comment_PrivacyPingFilter extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( 'http://example.com', privacy_ping_filter( 'http://example.com' ) );
+		$sites = 'http://example.com';
+
+		$this->assertSame( $expected, privacy_ping_filter( $sites ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
+	 * Integer `0` is intentionally omitted. `privacy_ping_filter()` compares
+	 * strictly with string `'0'`, so integer `0` currently keeps the sites list.
+	 * That looks incorrect for a private site and should not be locked in here.
+	 *
 	 * @return array[]
 	 */
-	public static function data_public_blog_values() {
+	public static function data_privacy_ping_filter() {
 		return array(
-			'string 1'     => array( '1' ),
-			'integer 1'    => array( 1 ),
-			'integer 0'    => array( 0 ),
-			'empty string' => array( '' ),
+			'public, string 1'  => array( '1', 'http://example.com' ),
+			'public, integer 1' => array( 1, 'http://example.com' ),
+			'private, string 0' => array( '0', '' ),
+			'empty string'      => array( '', 'http://example.com' ),
 		);
 	}
 }
