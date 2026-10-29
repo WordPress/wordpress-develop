@@ -26,8 +26,8 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $username, $password ) );
 
 		$this->assertIXRError( $result );
-		$this->assertSame( 403, $result->code );
-		$this->assertSame( 'Incorrect username or password.', $result->message );
+		$this->assertSame( 400, $result->code );
+		$this->assertSame( 'The username and password arguments should be strings.', $result->message );
 	}
 
 	/**
