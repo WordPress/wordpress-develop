@@ -76,17 +76,6 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-		unregister_taxonomy( 'wptests_tax_2' );
-		unregister_taxonomy( 'wptests_tax_3' );
-		unregister_taxonomy( 'wptests_tax_4' );
-		unregister_taxonomy( 'wptests_tax_5' );
-		unregister_taxonomy( 'wptests_tax_6' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 5809
 	 */
