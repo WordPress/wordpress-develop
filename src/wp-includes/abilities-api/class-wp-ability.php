@@ -572,15 +572,15 @@ class WP_Ability {
 	 * remove unknown properties or cast invalid values, hiding validation errors.
 	 * This method does not apply defaults or run input validation filters.
 	 *
-	 * If sanitization produces an error, including in a nested value, the original
-	 * input is returned to preserve the set of inputs accepted by validation.
+	 * If sanitization produces an error, including in a nested value, an invalid
+	 * input error is returned to prevent execution with uncoerced values.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @see validate_input()
 	 *
 	 * @param mixed $input Validated ability input.
-	 * @return mixed Coerced input, or the original input when it cannot be safely coerced.
+	 * @return mixed|WP_Error Coerced input, or WP_Error when it cannot be safely coerced.
 	 */
 	public function coerce_input( $input ) {
 		$schema = $this->get_input_schema();
@@ -591,35 +591,45 @@ class WP_Ability {
 		$sanitized = rest_sanitize_value_from_schema( $input, $schema, 'input' );
 
 		// Values unique before coercion can collide after casting, even in nested arrays.
-		if ( self::input_contains_error( $sanitized ) ) {
-			return $input;
+		$error = self::get_input_error( $sanitized );
+		if ( is_wp_error( $error ) ) {
+			return new WP_Error(
+				'ability_invalid_input',
+				sprintf(
+					/* translators: %1$s ability name, %2$s error message. */
+					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					$this->name,
+					$error->get_error_message()
+				)
+			);
 		}
 
 		return $sanitized;
 	}
 
 	/**
-	 * Determines whether a sanitized value is, or contains, a WP_Error.
+	 * Retrieves the first WP_Error in a sanitized value.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param mixed $value The value to inspect.
-	 * @return bool True if the value is, or contains, a WP_Error.
+	 * @return WP_Error|null The first error found, or null if the value contains no errors.
 	 */
-	private static function input_contains_error( $value ): bool {
+	private static function get_input_error( $value ): ?WP_Error {
 		if ( is_wp_error( $value ) ) {
-			return true;
+			return $value;
 		}
 
 		if ( is_array( $value ) ) {
 			foreach ( $value as $item ) {
-				if ( self::input_contains_error( $item ) ) {
-					return true;
+				$error = self::get_input_error( $item );
+				if ( is_wp_error( $error ) ) {
+					return $error;
 				}
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	/**
@@ -987,6 +997,9 @@ class WP_Ability {
 		}
 
 		$input = $this->coerce_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $input;
+		}
 
 		$has_permissions = $this->check_permissions( $input );
 		if ( true !== $has_permissions ) {

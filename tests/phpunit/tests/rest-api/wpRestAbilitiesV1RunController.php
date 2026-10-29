@@ -1575,6 +1575,25 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Provides query-string and JSON-body transports for the run endpoint.
+	 *
+	 * @return array
+	 */
+	public static function data_coercion_transports(): array {
+		return array(
+			'GET'    => array( 'GET', array( 'readonly' => true ) ),
+			'POST'   => array( 'POST', array() ),
+			'DELETE' => array(
+				'DELETE',
+				array(
+					'destructive' => true,
+					'idempotent'  => true,
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that REST transports deliver schema-coerced input to the ability.
 	 *
 	 * @ticket 65594
@@ -1622,22 +1641,75 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides query-string and JSON-body transports for the run endpoint.
+	 * Provides transports and input sources for input that fails coercion.
 	 *
 	 * @return array
 	 */
-	public static function data_coercion_transports(): array {
+	public static function data_coercion_error_inputs(): array {
 		return array(
-			'GET'    => array( 'GET', array( 'readonly' => true ) ),
-			'POST'   => array( 'POST', array() ),
-			'DELETE' => array(
-				'DELETE',
-				array(
-					'destructive' => true,
-					'idempotent'  => true,
-				),
-			),
+			'query input'      => array( 'GET', 'request' ),
+			'JSON input'       => array( 'POST', 'request' ),
+			'schema default'   => array( 'POST', 'default' ),
+			'normalizer input' => array( 'POST', 'filter' ),
 		);
+	}
+
+	/**
+	 * Tests that coercion failures use existing REST error handling before permission checks.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_coercion_error_inputs
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $source Source of the input that fails coercion.
+	 */
+	public function test_coercion_error_returns_400( string $method, string $source ): void {
+		$input  = array( '1', '01' );
+		$schema = array(
+			'type'        => 'array',
+			'items'       => array( 'type' => 'integer' ),
+			'uniqueItems' => true,
+		);
+		if ( 'default' === $source ) {
+			$schema['default'] = $input;
+		}
+		if ( 'filter' === $source ) {
+			add_filter(
+				'wp_ability_normalize_input',
+				static function () use ( $input ) {
+					return $input;
+				}
+			);
+		}
+
+		$unexpected_callback = function () {
+			$this->fail( 'Coercion errors must stop permission checks and execution.' );
+		};
+		$this->register_test_ability(
+			'test/coercion-error',
+			array(
+				'label'               => 'Coercion Error',
+				'description'         => 'Rejects inputs that cannot be coerced.',
+				'category'            => 'general',
+				'input_schema'        => $schema,
+				'permission_callback' => $unexpected_callback,
+				'execute_callback'    => $unexpected_callback,
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => 'GET' === $method ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( $method, 'test/coercion-error', 'request' === $source ? $input : null );
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		if ( 'request' === $source ) {
+			$this->assertSame( 'rest_invalid_param', $data['code'] );
+			$this->assertSame( 'ability_invalid_input', $data['data']['details']['input']['code'] );
+		} else {
+			$this->assertSame( 'ability_invalid_input', $data['code'] );
+		}
 	}
 
 	/**
@@ -1807,6 +1879,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Provides explicit input and an omitted input using the schema default.
+	 *
+	 * @return array
+	 */
+	public static function data_permission_callback_input(): array {
+		return array(
+			'explicit input' => array( array( 'count' => '10' ) ),
+			'default input'  => array( null ),
+		);
+	}
+
+	/**
 	 * Tests that the permission callback receives natively typed input.
 	 *
 	 * Coercion runs before `check_ability_permissions()`, so an ability that inspects its input
@@ -1855,17 +1939,5 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertNotEmpty( $seen->types, 'The permission callback should have run.' );
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
 		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
-	}
-
-	/**
-	 * Provides explicit input and an omitted input using the schema default.
-	 *
-	 * @return array
-	 */
-	public static function data_permission_callback_input(): array {
-		return array(
-			'explicit input' => array( array( 'count' => '10' ) ),
-			'default input'  => array( null ),
-		);
 	}
 }

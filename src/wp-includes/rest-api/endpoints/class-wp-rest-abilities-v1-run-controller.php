@@ -183,7 +183,11 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $this->ensure_error_status( $is_valid, 400 );
 		}
 
-		$input  = $ability->coerce_input( $input );
+		$input = $ability->coerce_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $this->ensure_error_status( $input, 400 );
+		}
+
 		$result = $ability->check_permissions( $input );
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => rest_authorization_required_code() ) );
@@ -241,11 +245,10 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes the run input by coercing it to the ability's input schema.
 	 *
-	 * Retains the `input` argument `sanitize_callback` so supplied request input is
-	 * sanitized before the permission and execution callbacks, preserving the existing
-	 * REST lifecycle. `check_ability_permissions()` and `WP_Ability::execute()` also
-	 * coerce input after normalization and validation, including defaults and values
-	 * supplied by normalization filters.
+	 * Registered as the `input` argument `sanitize_callback` so request input is coerced
+	 * before any route callback runs, regardless of transport. `check_ability_permissions()`
+	 * and `WP_Ability::execute()` coerce the input again after normalization and validation,
+	 * so schema defaults and values from normalization filters are coerced too.
 	 *
 	 * @since 7.1.0
 	 *
@@ -253,7 +256,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @param mixed           $input   Raw input extracted from the request.
 	 * @param WP_REST_Request $request The request object.
-	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
+	 * @return mixed|WP_Error Coerced input, raw input when validation fails, or WP_Error when coercion fails.
 	 */
 	public function sanitize_input_for_ability( $input, $request ) {
 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
