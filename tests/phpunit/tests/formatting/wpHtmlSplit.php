@@ -60,29 +60,33 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 */
 	public static function data_gt_in_quoted_attribute_value(): array {
 		return array(
-			'Double-quoted value'     => array(
+			'Double-quoted value'                   => array(
 				'<p data-rule="a > b">text</p>',
 				array( '', '<p data-rule="a > b">', 'text', '</p>', '' ),
 			),
-			'Single-quoted value'     => array(
+			'Single-quoted value'                   => array(
 				"<p data-rule='a > b'>text</p>",
 				array( '', "<p data-rule='a > b'>", 'text', '</p>', '' ),
 			),
-			'Markup in srcdoc'        => array(
+			'Markup in srcdoc'                      => array(
 				'<iframe srcdoc="<p>inner</p>">outer</iframe>',
 				array( '', '<iframe srcdoc="<p>inner</p>">', 'outer', '</iframe>', '' ),
 			),
-			'Tailwind variant class'  => array(
+			'Tailwind variant class'                => array(
 				'<div class="[&>p]:m-0">text</div>',
 				array( '', '<div class="[&>p]:m-0">', 'text', '</div>', '' ),
 			),
-			'Apostrophe in unquoted'  => array(
+			'Apostrophe in unquoted'                => array(
 				"<a title=it's>it's</a>",
 				array( '', "<a title=it's>", "it's", '</a>', '' ),
 			),
-			'Unclosed tag still ends' => array(
+			'Unclosed tag still ends'               => array(
 				'text <a href="unfinished',
 				array( 'text ', '<a href="unfinished', '' ),
+			),
+			'Quote in <= is not an attribute value' => array(
+				"<p>x <=' y is not a tag</p><p>and this isn't an attribute</p>",
+				array( '', '<p>', 'x ', "<=' y is not a tag</p>", '', '<p>', "and this isn't an attribute", '</p>', '' ),
 			),
 		);
 	}
