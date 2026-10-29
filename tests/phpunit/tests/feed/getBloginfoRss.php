@@ -55,7 +55,7 @@ class Tests_Feed_GetBloginfoRss extends WP_UnitTestCase {
 	 */
 	public function test_filter_receives_converted_value_and_show() {
 		$filter = new MockAction();
-		add_filter( 'get_bloginfo_rss', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'get_bloginfo_rss', array( $filter, 'filter_append' ), 10, 2 );
 
 		add_filter(
 			'pre_option_blogname',
@@ -66,7 +66,7 @@ class Tests_Feed_GetBloginfoRss extends WP_UnitTestCase {
 
 		$result = get_bloginfo_rss( 'name' );
 
-		$this->assertSame( 'Feed Name', $result );
+		$this->assertSame( 'Feed Name_append', $result );
 		$this->assertSame( 1, $filter->get_call_count() );
 		$this->assertSame( array( 'Feed Name', 'name' ), $filter->get_args()[0] );
 	}
