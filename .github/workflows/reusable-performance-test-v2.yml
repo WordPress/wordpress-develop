@@ -159,6 +159,9 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        # A hung install would otherwise run until the 6 hour job limit. The cap
+        # leaves room for slow downloads.
+        timeout-minutes: 15
         run: npm exec --no -- playwright install --with-deps chromium
 
       - name: Start Docker environment
