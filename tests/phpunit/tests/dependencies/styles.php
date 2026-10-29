@@ -113,7 +113,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_awkward_handles_are_supported_consistently() {
+	public static function data_awkward_handles_are_supported_consistently() {
 		return array(
 			'some spaces'       => array( 'with some spaces' ),
 			'snowman'           => array( 'with-☃-snowman' ),
@@ -287,7 +287,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_normalize_relative_css_links() {
+	public static function data_normalize_relative_css_links() {
 		return array(
 			'Double quotes, same path'                     => array(
 				'css'      => 'p {background:url( "image0.svg" );}',
@@ -453,7 +453,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, get_echo( 'wp_print_styles' ) );
 	}
 
-	public function data_styles_with_media() {
+	public static function data_styles_with_media() {
 		return array(
 			array(
 				"media='all'",
@@ -1044,7 +1044,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{src: string, ver: string|bool|null, expected_url: string, handle?: string}> Data provider.
 	 */
-	public function data_duplicate_query_vars_and_fragments_preserved_in_styles(): array {
+	public static function data_duplicate_query_vars_and_fragments_preserved_in_styles(): array {
 		$ver = get_bloginfo( 'version' );
 
 		return array(
@@ -1090,7 +1090,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_varying_versions_handle_args() {
+	public static function data_varying_versions_handle_args() {
 		$default_version = get_bloginfo( 'version' );
 
 		return array(
