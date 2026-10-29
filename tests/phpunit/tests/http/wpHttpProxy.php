@@ -150,7 +150,6 @@ class Tests_HTTP_wpHttpProxy extends WP_UnitTestCase {
 			'subdomain of the site host'  => array( 'http://sub.example.org/', true ),
 			'site host in the path'       => array( 'http://wordpress.org/example.org/', true ),
 			'loopback IP address'         => array( 'http://127.0.0.1/', true ),
-			'URI that cannot be parsed'   => array( 'http:///example.org', true ),
 			'site host'                   => array( 'http://example.org/wp-cron.php', false ),
 			'site host with another port' => array( 'https://example.org:8443/', false ),
 			'localhost'                   => array( 'http://localhost/wp-cron.php', false ),

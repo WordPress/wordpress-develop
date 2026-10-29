@@ -101,10 +101,22 @@ class Tests_Category_GetTheTags extends WP_UnitTestCase {
 	public function test_applies_get_the_tags_filter() {
 		$filter = new MockAction();
 		add_filter( 'get_the_tags', array( $filter, 'filter' ) );
+		add_filter(
+			'get_the_tags',
+			static function () {
+				return array();
+			},
+			20
+		);
 
 		$tags = get_the_tags( self::$post->ID );
 
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( $tags ), $filter->get_args()[0] );
+		$args = $filter->get_args()[0];
+		$this->assertCount( 1, $args );
+		$this->assertCount( 1, $args[0] );
+		$this->assertSame( self::$tag->term_id, $args[0][0]->term_id );
+		$this->assertSame( 'post_tag', $args[0][0]->taxonomy );
+		$this->assertSame( array(), $tags );
 	}
 }
