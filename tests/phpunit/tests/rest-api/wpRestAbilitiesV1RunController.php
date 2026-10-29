@@ -443,6 +443,118 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an object result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-object-output',
+			array(
+				'label'               => 'Nested Empty Object In Object Output',
+				'description'         => 'Returns an object result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return (object) array( 'settings' => array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a JsonSerializable result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-json-serializable-output',
+			array(
+				'label'               => 'Nested Empty Object In JsonSerializable Output',
+				'description'         => 'Returns a JsonSerializable result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return new class() implements JsonSerializable {
+						public function jsonSerialize(): array {
+							return array( 'settings' => array() );
+						}
+					};
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns an empty list.
+		$this->register_test_ability(
+			'test/empty-list-output',
+			array(
+				'label'               => 'Empty List Output',
+				'description'         => 'Returns an empty list.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a list of strings.
+		$this->register_test_ability(
+			'test/string-list-output',
+			array(
+				'label'               => 'String List Output',
+				'description'         => 'Returns a list of strings.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'string' ),
+				),
+				'execute_callback'    => static function () {
+					return array( 'a', 'b' );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a string.
+		$this->register_test_ability(
+			'test/string-output',
+			array(
+				'label'               => 'String Output',
+				'description'         => 'Returns a string.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'string',
+				),
+				'execute_callback'    => static function () {
+					return 'value';
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -633,39 +745,73 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
-	 * @return array<string, array{0: string, 1: string}>
+	 * Each result is requested without global parameters, with `_fields` and `_embed`,
+	 * and with a link that a `rest_post_dispatch` filter adds, alone and embedded.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
 	public static function data_output_is_prepared_for_json_clients(): array {
-		return array(
-			'root empty object stays unchanged'  => array( 'test/empty-object-output', '[]' ),
-			'nested empty object'                => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
-			'numeric collection stays unchanged' => array( 'test/empty-object-list-output', '[[]]' ),
+		$results = array(
+			'root empty object'       => array( 'test/empty-object-output', '{}' ),
+			'nested empty object'     => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
+			'numeric collection'      => array( 'test/empty-object-list-output', '[{}]' ),
+			'object result'           => array( 'test/nested-empty-object-in-object-output', '{"settings":{}}' ),
+			'JsonSerializable result' => array( 'test/nested-empty-object-in-json-serializable-output', '{"settings":{}}' ),
+			'root empty list'         => array( 'test/empty-list-output', '[]' ),
+			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
+			'string'                  => array( 'test/string-output', '"value"' ),
 		);
+
+		$data = array();
+		foreach ( $results as $label => $result ) {
+			foreach ( array( 'none', '_fields', '_embed', 'link', 'embedded link' ) as $global_param ) {
+				$data[ "{$label}, {$global_param}" ] = array( $result[0], $global_param, $result[1] );
+			}
+		}
+
+		return $data;
 	}
 
 	/**
-	 * Tests that ability results are prepared for JSON clients without breaking
-	 * the global `_fields` and `_embed` parameters.
+	 * Tests that ability results are prepared for JSON clients, and that the global
+	 * `_fields` and `_embed` parameters and response links leave them unchanged.
 	 *
 	 * @ticket 66267
 	 * @dataProvider data_output_is_prepared_for_json_clients
 	 *
 	 * @param string $ability_name The ability name.
+	 * @param string $global_param The global parameter sent with the request, 'link' or
+	 *                             'embedded link' for a link added by a filter, or 'none'.
 	 * @param string $expected     The expected encoded result.
 	 */
-	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
-		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $global_param, string $expected ): void {
+		$request = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		if ( '_fields' === $global_param ) {
+			// No result has this field, so filtering would leave none of the result.
+			$request->set_param( '_fields', 'other' );
+		} elseif ( '_embed' === $global_param || 'embedded link' === $global_param ) {
+			$request->set_param( '_embed', '1' );
+		}
+
+		if ( 'link' === $global_param || 'embedded link' === $global_param ) {
+			add_filter(
+				'rest_post_dispatch',
+				static function ( $response ) {
+					$response->add_link( 'alternate', rest_url( '/wp-abilities/v1/abilities' ), array( 'embeddable' => true ) );
+					return $response;
+				}
+			);
+		}
+
 		$response = $this->server->dispatch( $request );
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected, wp_json_encode( $response->get_data() ) );
-
-		$request->set_param( '_fields', 'settings' );
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
 
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+		$data     = $this->server->response_to_data( $response, $request->has_param( '_embed' ) );
 
-		$this->assertSame( $expected, wp_json_encode( $this->server->response_to_data( $response, true ) ) );
+		$this->assertSame( $expected, wp_json_encode( $data ), 'The result should be encoded as expected.' );
 	}
 
 	/**
