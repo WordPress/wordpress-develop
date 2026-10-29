@@ -18,14 +18,11 @@ class Tests_Readme extends WP_UnitTestCase {
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 		$this->assertIsString( $readme, 'readme.html should exist and be readable.' );
 
-		$this->assertSame( 1, preg_match( '#Recommendations.*PHP</a> version <strong>([0-9.]+)#s', $readme, $php_matches ), 'readme.html should declare a recommended PHP version.' );
-		$this->assertNotEmpty( $php_matches[1], 'Recommended PHP version should not be empty.' );
+		$this->assertSame( 1, preg_match( '#Recommendations.*PHP</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended PHP version.' );
 
-		$this->assertSame( 1, preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]+)#s', $readme, $mysql_matches ), 'readme.html should declare a recommended MySQL version.' );
-		$this->assertNotEmpty( $mysql_matches[1], 'Recommended MySQL version should not be empty.' );
+		$this->assertSame( 1, preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended MySQL version.' );
 
-		$this->assertSame( 1, preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]+)#s', $readme, $mariadb_matches ), 'readme.html should declare a recommended MariaDB version.' );
-		$this->assertNotEmpty( $mariadb_matches[1], 'Recommended MariaDB version should not be empty.' );
+		$this->assertSame( 1, preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended MariaDB version.' );
 	}
 
 	/**
