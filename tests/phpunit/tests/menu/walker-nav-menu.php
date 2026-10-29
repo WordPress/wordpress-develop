@@ -106,7 +106,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a{$expected}>{$post_title}</a>", $output );
 	}
 
-	public function data_start_el_with_empty_attributes() {
+	public static function data_start_el_with_empty_attributes() {
 		return array(
 			array(
 				'',
@@ -187,7 +187,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_walker_nav_menu_start_el_should_add_rel_privacy_policy_to_privacy_policy_url() {
+	public static function data_walker_nav_menu_start_el_should_add_rel_privacy_policy_to_privacy_policy_url() {
 		return array(
 			'no xfn value'                          => array(
 				'expected' => 'rel="privacy-policy"',
@@ -411,7 +411,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_build_atts_should_build_attributes() {
+	public static function data_build_atts_should_build_attributes() {
 		return array(
 			'an empty attributes array'                   => array(
 				'atts'     => array(),

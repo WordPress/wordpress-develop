@@ -2877,7 +2877,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test data.
 	 */
-	public function data_get_stylesheet_with_axial_block_gap() {
+	public static function data_get_stylesheet_with_axial_block_gap() {
 		return array(
 			'different row and column gaps' => array(
 				array(
