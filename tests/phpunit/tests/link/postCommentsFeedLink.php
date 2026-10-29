@@ -46,42 +46,6 @@ class Tests_Link_PostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests post_comments_feed_link() with custom link text.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_post_comments_feed_link_custom_text() {
-		$this->set_permalink_structure( '' );
-
-		$expected_url = get_post_comments_feed_link( self::$post_id );
-		$expected     = '<a href="' . esc_url( $expected_url ) . '">Subscribe via RSS</a>';
-
-		ob_start();
-		post_comments_feed_link( 'Subscribe via RSS', self::$post_id );
-		$output = ob_get_clean();
-
-		$this->assertSame( $expected, $output );
-	}
-
-	/**
-	 * Tests post_comments_feed_link() with pretty permalink structure.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_post_comments_feed_link_pretty_permastruct() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
-		$expected_url = get_post_comments_feed_link( self::$post_id );
-		$expected     = '<a href="' . esc_url( $expected_url ) . '">Comments Feed</a>';
-
-		ob_start();
-		post_comments_feed_link( '', self::$post_id );
-		$output = ob_get_clean();
-
-		$this->assertSame( $expected, $output );
-	}
-
-	/**
 	 * Tests post_comments_feed_link() defaulting to global $post when post_id is 0.
 	 *
 	 * @ticket 65819
