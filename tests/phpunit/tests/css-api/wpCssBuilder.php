@@ -136,7 +136,7 @@ class Tests_CssApi_WpCssBuilder extends WP_UnitTestCase {
 	 * @return WP_CSS_Token[] Tokens.
 	 */
 	private static function tokenize( string $css ): array {
-		$processor = WP_CSS_Token_Processor::create( $css );
+		$processor = new WP_CSS_Token_Processor( $css );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$tokens[] = $processor->get_token();
