@@ -41,18 +41,17 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$GLOBALS['wp_styles']          = $this->old_wp_styles;
-		$GLOBALS['wp_scripts']         = $this->old_wp_scripts;
-		$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+		$GLOBALS['wp_styles']  = $this->old_wp_styles;
+		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 
 		add_action( 'wp_default_styles', 'wp_default_styles' );
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
 
-		if ( current_theme_supports( 'wp-block-styles' ) ) {
-			remove_theme_support( 'wp-block-styles' );
+		try {
+			parent::tear_down();
+		} finally {
+			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
 		}
-
-		parent::tear_down();
 	}
 
 	/**
@@ -500,7 +499,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_style
 	 */
 	public function test_block_styles_for_editing_without_theme_support() {
-		// Confirm we are without theme support by default.
+		remove_theme_support( 'wp-block-styles' );
+
+		// Confirm we are without theme support.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
@@ -539,7 +540,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_style
 	 */
 	public function test_no_block_styles_for_viewing_without_theme_support() {
-		// Confirm we are without theme support by default.
+		remove_theme_support( 'wp-block-styles' );
+
+		// Confirm we are without theme support.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );

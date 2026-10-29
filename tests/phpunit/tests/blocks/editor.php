@@ -83,9 +83,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			switch_theme( $this->original_stylesheet );
 		}
 
-		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
-
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
+		}
 	}
 
 	protected ?WP_Scripts $original_wp_scripts;
