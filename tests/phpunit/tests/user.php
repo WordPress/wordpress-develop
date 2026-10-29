@@ -1752,6 +1752,32 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66337
+	 *
+	 * @dataProvider data_email_filters_should_return_unslashed_email
+	 *
+	 * @param string $filter Filter name.
+	 * @param string $email  Email address passed to the filter.
+	 */
+	public function test_email_filters_should_return_unslashed_email( $filter, $email ) {
+		$this->assertSame( "o'brien@example.com", apply_filters( $filter, $email ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_email_filters_should_return_unslashed_email() {
+		return array(
+			'pre_user_email, unslashed'           => array( 'pre_user_email', "o'brien@example.com" ),
+			'pre_user_email, slashed'             => array( 'pre_user_email', "o\\'brien@example.com" ),
+			'pre_comment_author_email, unslashed' => array( 'pre_comment_author_email', "o'brien@example.com" ),
+			'pre_comment_author_email, slashed'   => array( 'pre_comment_author_email', "o\\'brien@example.com" ),
+		);
+	}
+
+	/**
+	 * @ticket 66337
 	 */
 	public function test_wp_update_user_should_reject_existing_email_with_apostrophe() {
 		self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
