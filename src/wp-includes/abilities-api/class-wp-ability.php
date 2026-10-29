@@ -521,26 +521,30 @@ class WP_Ability {
 	/**
 	 * Normalizes the input for the ability, applying the default value from the input schema when needed.
 	 *
-	 * When no input is provided and the input schema is defined with a top-level `default` key, this method returns
-	 * the value of that key. If the input schema does not define a `default`, or if the input schema is empty,
-	 * this method returns null. If input is provided, it is returned as-is.
+	 * When no input is provided, the top-level schema default is used if defined.
+	 * Missing object properties with declared defaults are filled recursively, including
+	 * objects within arrays. Existing property values, including null, are preserved.
+	 * Missing containers without a default are not created, and array items are not added.
 	 *
 	 * The {@see 'wp_ability_normalize_input'} filter fires after the built-in default-value handling,
 	 * allowing plugins to transform the result.
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_normalize_input` filter.
+	 * @since 7.2.0 Applies defaults to missing properties in nested objects and arrays.
 	 *
 	 * @param mixed $input Optional. The raw input provided for the ability. Default `null`.
 	 * @return mixed The normalized input, or a `WP_Error` if a filter returned one.
 	 */
 	public function normalize_input( $input = null ) {
+		$input_schema = $this->get_input_schema();
 		if ( null === $input ) {
-			$input_schema = $this->get_input_schema();
 			if ( array_key_exists( 'default', $input_schema ) ) {
 				$input = $input_schema['default'];
 			}
 		}
+
+		$input = $this->apply_input_defaults( $input, $input_schema );
 
 		/**
 		 * Filters the normalized input for an ability.
@@ -560,6 +564,60 @@ class WP_Ability {
 		 * @param WP_Ability $ability      The ability instance.
 		 */
 		return apply_filters( 'wp_ability_normalize_input', $input, $this->name, $this );
+	}
+
+	/**
+	 * Applies declared defaults to missing object properties in an input value.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value  The input value.
+	 * @param array $schema The schema describing the value.
+	 * @return mixed The input with defaults applied.
+	 */
+	private function apply_input_defaults( $value, array $schema ) {
+		if ( ! is_array( $value ) && ! $value instanceof stdClass ) {
+			return $value;
+		}
+
+		$type = $schema['type'] ?? null;
+		if ( is_array( $type ) ) {
+			$type = rest_get_best_type_for_value( $value, $type );
+		}
+
+		if ( 'array' === $type && is_array( $value ) && isset( $schema['items'] ) && is_array( $schema['items'] ) ) {
+			foreach ( $value as $index => $item ) {
+				$value[ $index ] = $this->apply_input_defaults( $item, $schema['items'] );
+			}
+		} elseif ( 'object' === $type ) {
+			$properties = (array) $value;
+			foreach ( $schema['properties'] ?? array() as $name => $property_schema ) {
+				if ( ! array_key_exists( $name, $properties ) && array_key_exists( 'default', $property_schema ) ) {
+					$properties[ $name ] = $property_schema['default'];
+				}
+			}
+
+			foreach ( $properties as $name => $property_value ) {
+				$property_schema = $schema['properties'][ $name ] ?? rest_find_matching_pattern_property_schema( $name, $schema );
+				if ( null === $property_schema && isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+					$property_schema = $schema['additionalProperties'];
+				}
+				if ( is_array( $property_schema ) ) {
+					$properties[ $name ] = $this->apply_input_defaults( $property_value, $property_schema );
+				}
+			}
+
+			if ( $value instanceof stdClass ) {
+				$value = clone $value;
+				foreach ( $properties as $name => $property_value ) {
+					$value->$name = $property_value;
+				}
+			} else {
+				$value = $properties;
+			}
+		}
+
+		return $value;
 	}
 
 	/**
