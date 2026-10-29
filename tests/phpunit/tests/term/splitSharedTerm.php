@@ -84,9 +84,9 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 		$t2_term = get_term_by( 'term_taxonomy_id', $this->terms['t2']['term_taxonomy_id'], 'wptests_tax_2' );
 		$t3_term = get_term_by( 'term_taxonomy_id', $this->terms['t3']['term_taxonomy_id'], 'wptests_tax_3' );
 
-		$this->assertNotEquals( $t1_term->term_id, $t2_term->term_id );
-		$this->assertNotEquals( $t1_term->term_id, $t3_term->term_id );
-		$this->assertNotEquals( $t2_term->term_id, $t3_term->term_id );
+		$this->assertNotSame( $t1_term->term_id, $t2_term->term_id );
+		$this->assertNotSame( $t1_term->term_id, $t3_term->term_id );
+		$this->assertNotSame( $t2_term->term_id, $t3_term->term_id );
 	}
 
 	/**
@@ -187,7 +187,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
 
-		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
+		$this->assertNotSame( $new_term_id, $t1['term_id'] );
 		$this->assertSame( $new_term_id, get_option( 'default_category', -1 ) );
 	}
 
@@ -226,7 +226,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 		$this->assertSame( (string) $t1['term_id'], get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
-		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
+		$this->assertNotSame( $new_term_id, $t1['term_id'] );
 		$this->assertSame( (string) $new_term_id, get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 	}
 

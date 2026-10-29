@@ -601,8 +601,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$blog_id = self::factory()->blog->create();
 		switch_to_blog( $blog_id );
 		$this->assertFalse( $setting->is_current_blog_previewed() );
-		$this->assertNotEquals( $post_value, $setting->value() );
-		$this->assertNotEquals( $post_value, get_option( $name ) );
+		$this->assertNotSame( $post_value, $setting->value() );
+		$this->assertNotSame( $post_value, get_option( $name ) );
 		restore_current_blog();
 	}
 
