@@ -2112,15 +2112,98 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	/**
-	 * Ensures that quotes inside an attribute value containing ">" are not texturized.
+	 * Ensures that a ">" inside a quoted attribute value does not expose the
+	 * rest of the tag to texturizing.
+	 *
+	 * @ticket 63997
+	 * @ticket 57381
+	 * @ticket 63426
+	 *
+	 * @dataProvider data_gt_in_quoted_attribute_value
+	 *
+	 * @param string $input    HTML to texturize.
+	 * @param string $expected Expected HTML.
+	 */
+	public function test_gt_in_quoted_attribute_value( string $input, string $expected ): void {
+		$this->assertEqualHTML( $expected, wptexturize( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_gt_in_quoted_attribute_value(): array {
+		return array(
+			'Double quotes inside a single-quoted value' => array(
+				'<p data-rule=\'a > 0 ? "yes" : "no"\'>It\'s text</p>',
+				'<p data-rule=\'a > 0 ? "yes" : "no"\'>It&#8217;s text</p>',
+			),
+			'Single quotes inside a double-quoted value' => array(
+				"<p data-rule=\"a > 0 ? 'yes' : 'no'\">It's text</p>",
+				"<p data-rule=\"a > 0 ? 'yes' : 'no'\">It&#8217;s text</p>",
+			),
+			'Ticket 63997: template attribute'           => array(
+				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
+				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
+			),
+			'Ticket 63426: markup in srcdoc'             => array(
+				'<iframe srcdoc="<p>It\'s inner</p>"></iframe>',
+				'<iframe srcdoc="<p>It\'s inner</p>"></iframe>',
+			),
+			'Ticket 57381: Tailwind variant'             => array(
+				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
+				'<div class="swiper [&amp;>.swiper-pagination]:static">content</div>',
+			),
+		);
+	}
+
+	/**
+	 * Ensures that inputs wptexturize() already handled are texturized the same
+	 * way as before.
+	 *
+	 * @ticket 63997
+	 *
+	 * @dataProvider data_unchanged_texturizing
+	 *
+	 * @param string $input    HTML to texturize.
+	 * @param string $expected Expected HTML.
+	 */
+	public function test_unchanged_texturizing( string $input, string $expected ): void {
+		$this->assertEqualHTML( $expected, wptexturize( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unchanged_texturizing(): array {
+		return array(
+			'Apostrophe in an unquoted value does not reach the next tag' => array(
+				"<p>Hi</p>\n<a href=\"/x\" title=it's>It's here</a>",
+				"<p>Hi</p>\n<a href=\"/x\" title=it's>It&#8217;s here</a>",
+			),
+			'Stray quote after an unquoted value'       => array(
+				'<b class=x">It\'s bold</b>',
+				'<b class=x">It&#8217;s bold</b>',
+			),
+			'Quote after a < that does not start a tag' => array(
+				"<p>x <=' y is not a tag</p><p>and this isn't an attribute</p>",
+				"<p>x <=' y is not a tag</p><p>and this isn&#8217;t an attribute</p>",
+			),
+		);
+	}
+
+	/**
+	 * Ensures that an unclosed tag at the end of the input is not texturized.
 	 *
 	 * @ticket 63997
 	 */
-	public function test_gt_in_quoted_attribute_value_is_not_texturized(): void {
-		$this->assertEqualHTML(
-			'<p data-rule=\'"a" > "b"\'>It&#8217;s text</p>',
-			wptexturize( '<p data-rule=\'"a" > "b"\'>It\'s text</p>' )
-		);
+	public function test_unclosed_tag_is_not_texturized(): void {
+		$input = "<p>Truncated <a href=\"http://example.com/it's";
+
+		$this->assertSame( $input, wptexturize( $input ) );
 	}
 
 	public static function data_whole_posts() {

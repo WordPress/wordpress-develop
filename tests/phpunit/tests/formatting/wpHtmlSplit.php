@@ -60,31 +60,71 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 */
 	public static function data_gt_in_quoted_attribute_value(): array {
 		return array(
-			'Double-quoted value'                   => array(
+			'Double-quoted value'              => array(
 				'<p data-rule="a > b">text</p>',
 				array( '', '<p data-rule="a > b">', 'text', '</p>', '' ),
 			),
-			'Single-quoted value'                   => array(
+			'Single-quoted value'              => array(
 				"<p data-rule='a > b'>text</p>",
 				array( '', "<p data-rule='a > b'>", 'text', '</p>', '' ),
 			),
-			'Markup in srcdoc'                      => array(
-				'<iframe srcdoc="<p>inner</p>">outer</iframe>',
-				array( '', '<iframe srcdoc="<p>inner</p>">', 'outer', '</iframe>', '' ),
+			'Several values, one containing >' => array(
+				'<p data-a="a > b" data-b="c &gt; d">text</p>',
+				array( '', '<p data-a="a > b" data-b="c &gt; d">', 'text', '</p>', '' ),
 			),
-			'Tailwind variant class'                => array(
-				'<div class="[&>p]:m-0">text</div>',
-				array( '', '<div class="[&>p]:m-0">', 'text', '</div>', '' ),
+			'Ticket 63997: template attribute' => array(
+				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
+				array( '', '<div data-template="Label <% value %>" data-label="{A \'message\' string}">', 'Content', '</div>', '' ),
 			),
-			'Apostrophe in unquoted'                => array(
-				"<a title=it's>it's</a>",
-				array( '', "<a title=it's>", "it's", '</a>', '' ),
+			'Ticket 63426: markup in srcdoc'   => array(
+				'<iframe srcdoc="<body></body>"></iframe>',
+				array( '', '<iframe srcdoc="<body></body>">', '', '</iframe>', '' ),
 			),
-			'Unclosed tag still ends'               => array(
-				'text <a href="unfinished',
-				array( 'text ', '<a href="unfinished', '' ),
+			'Ticket 57381: Tailwind variant'   => array(
+				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
+				array( '', '<div class="swiper [&>.swiper-pagination]:static">', 'content', '</div>', '' ),
 			),
-			'Quote in <= is not an attribute value' => array(
+		);
+	}
+
+	/**
+	 * Ensures that inputs the split already handled split the same way as before.
+	 *
+	 * @ticket 63997
+	 *
+	 * @dataProvider data_unchanged_splits
+	 *
+	 * @param string   $input  HTML to split.
+	 * @param string[] $output Expected split.
+	 */
+	public function test_unchanged_splits( string $input, array $output ): void {
+		$this->assertSame( $output, wp_html_split( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unchanged_splits(): array {
+		return array(
+			'Apostrophe in an unquoted value does not reach the next tag' => array(
+				"<p>Hi</p>\n<a href=\"/x\" title=it's>It's here</a>",
+				array( '', '<p>', 'Hi', '</p>', "\n", "<a href=\"/x\" title=it's>", "It's here", '</a>', '' ),
+			),
+			'Stray quote after an unquoted value'        => array(
+				'<b class=x">hello</b>',
+				array( '', '<b class=x">', 'hello', '</b>', '' ),
+			),
+			'Unclosed tag matches the rest of the input' => array(
+				"<p>Truncated <a href=\"http://example.com/it's",
+				array( '', '<p>', 'Truncated ', "<a href=\"http://example.com/it's", '' ),
+			),
+			'Quote in an attribute name'                 => array(
+				'<div "=noquote id="quote">x',
+				array( '', '<div "=noquote id="quote">', 'x' ),
+			),
+			'Quote after a < that does not start a tag'  => array(
 				"<p>x <=' y is not a tag</p><p>and this isn't an attribute</p>",
 				array( '', '<p>', 'x ', "<=' y is not a tag</p>", '', '<p>', "and this isn't an attribute", '</p>', '' ),
 			),
