@@ -73,7 +73,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		global $wp_post_statuses;
 
 		unregister_post_type( 'mapped_meta_caps' );
 		unregister_post_type( 'unmapped_meta_caps' );
@@ -84,7 +83,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		unregister_taxonomy( 'ctax' );
 		unregister_taxonomy( 'test_tax' );
 
-		unset( $wp_post_statuses['floating'], $wp_post_statuses['not-floating'] );
+		_unregister_post_status( 'floating' );
+		_unregister_post_status( 'not-floating' );
 
 		parent::tear_down();
 	}
