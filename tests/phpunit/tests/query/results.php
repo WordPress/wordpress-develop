@@ -301,6 +301,12 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->q = new WP_Query();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'handbook' );
+
+		parent::tear_down();
+	}
+
 	public function test_query_default() {
 		$posts = $this->q->query( '' );
 

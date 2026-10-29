@@ -409,6 +409,41 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group sidebar
+	 * @ticket 22116
+	 */
+	public function test_dynamic_sidebar_id_takes_priority_over_sanitized_name() {
+		// Register a sidebar with the name 'Widget Area 121' (sanitizes to 'widget-area-121').
+		register_sidebar(
+			array(
+				'id'   => 'widget-area-127',
+				'name' => 'Widget Area 121',
+			)
+		);
+
+		/*
+		 * Register a second sidebar whose ID is 'widget-area-121' —
+		 * the same as the sanitized name of the first sidebar.
+		 */
+		register_sidebar(
+			array(
+				'id'   => 'widget-area-121',
+				'name' => 'Widget Area 121',
+			)
+		);
+
+		add_action( 'dynamic_sidebar_before', array( $this, 'retrieve_sidebar_id' ), 10, 2 );
+
+		/*
+		 * Passing 'widget-area-121' as an exact ID should resolve to that sidebar directly,
+		 * not to 'widget-area-127' whose sanitized name also equals 'widget-area-121'.
+		 */
+		dynamic_sidebar( 'widget-area-121' );
+
+		$this->assertSame( 'widget-area-121', $this->sidebar_index );
+	}
+
+	/**
 	 * @see WP_Widget_Search::form()
 	 */
 	public function test_wp_widget_search_form() {
@@ -1217,7 +1252,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertSameSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
 
 		// Sidebar_widgets option was not updated.
-		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+		$this->assertNotSame( $sidebars_widgets, wp_get_sidebars_widgets() );
 	}
 
 	public function test_retrieve_widgets_with_single_widget() {

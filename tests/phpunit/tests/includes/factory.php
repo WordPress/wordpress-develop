@@ -12,6 +12,12 @@ class TestFactoryFor extends WP_UnitTestCase {
 		$this->category_factory = new WP_UnitTest_Factory_For_Term( self::factory(), 'category' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	public function test_create_creates_a_category() {
 		$id = $this->category_factory->create();
 		$this->assertInstanceOf( WP_Term::class, get_term_by( 'id', $id, 'category' ) );

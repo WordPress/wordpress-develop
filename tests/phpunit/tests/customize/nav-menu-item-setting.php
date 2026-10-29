@@ -456,7 +456,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$current_items = wp_get_nav_menu_items( $menu_id );
 		$setting->preview();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 
 		$last_item = array_pop( $preview_items );
 		$this->assertSame( $new_item_id, $last_item->db_id );
@@ -505,7 +505,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 		$setting->preview();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 	}
 
@@ -559,7 +559,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		);
 		foreach ( $invalid_urls as $invalid_url ) {
 			$url_setting = $setting->sanitize( array( 'url' => $invalid_url ) );
-			$this->assertInstanceOf( 'WP_Error', $url_setting );
+			$this->assertWPError( $url_setting );
 			$this->assertSame( 'invalid_url', $url_setting->get_error_code() );
 		}
 
@@ -766,7 +766,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$current_items = wp_get_nav_menu_items( $menu_id );
 		$setting->save();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 
 		$last_item = array_pop( $preview_items );
 		$this->assertSame( $setting->post_id, $last_item->db_id );
@@ -832,7 +832,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 		$setting->save();
 		$preview_items = wp_get_nav_menu_items( $menu_id );
-		$this->assertNotEquals( count( $current_items ), count( $preview_items ) );
+		$this->assertNotSame( count( $current_items ), count( $preview_items ) );
 		$this->assertContains( $delete_item_id, wp_list_pluck( $current_items, 'db_id' ) );
 
 		// Verify the Ajax responses is being amended.
