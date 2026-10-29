@@ -170,6 +170,19 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_are_usable_salt_values_rejects_translated_placeholder(): void {
+		$provider = new WP_Secrets_Config_Key_Provider();
+		$filter   = static function ( $translation, $text ) {
+			return 'put your unique phrase here' === $text ? 'mettez une phrase unique ici' : $translation;
+		};
+
+		add_filter( 'gettext', $filter, 10, 2 );
+		$result = $this->invoke_private( $provider, 'are_usable_salt_values', array( 'mettez une phrase unique ici', 'a real salt' ) );
+		remove_filter( 'gettext', $filter, 10 );
+
+		$this->assertFalse( $result );
+	}
+
 	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
