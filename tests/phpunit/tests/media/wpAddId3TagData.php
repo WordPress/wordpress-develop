@@ -158,4 +158,35 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that tags from files without ID3 do not replace what was read from the stream.
+	 *
+	 * @ticket 00000
+	 */
+	public function test_wp_add_id3_tag_data_keeps_stream_data_over_tags_without_id3() {
+		$metadata = array(
+			'encoder' => 'Lavf58.3.100',
+			'length'  => 3,
+		);
+		$data     = array(
+			'tags' => array(
+				'vorbiscomment' => array(
+					'title'   => array( 'Aurora Rising' ),
+					'encoder' => array( 'Lavc58.3.100 flac' ),
+				),
+			),
+		);
+
+		wp_add_id3_tag_data( $metadata, $data );
+
+		$this->assertSame(
+			array(
+				'encoder' => 'Lavf58.3.100',
+				'length'  => 3,
+				'title'   => 'Aurora Rising',
+			),
+			$metadata
+		);
+	}
 }

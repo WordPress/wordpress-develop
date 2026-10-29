@@ -3650,7 +3650,8 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 	/*
 	 * Files without ID3 tags, such as FLAC, Ogg and M4A, keep their tags in another format:
 	 * Vorbis comments, QuickTime atoms, APE, RIFF INFO or ASF. Use the first of these,
-	 * under the names ID3 gives the same tags.
+	 * under the names ID3 gives the same tags, without replacing what was read from the
+	 * stream itself, such as its encoder.
 	 */
 	if ( ! $has_id3 && ! empty( $data['tags'] ) && is_array( $data['tags'] ) ) {
 		$id3_keys = array(
@@ -3671,7 +3672,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 
 			foreach ( $tags as $key => $list ) {
 				$key = $id3_keys[ $key ] ?? $key;
-				if ( 'length' !== $key && 'picture' !== $key && ! empty( $list ) ) {
+				if ( 'length' !== $key && 'picture' !== $key && ! isset( $metadata[ $key ] ) && ! empty( $list ) ) {
 					$metadata[ $key ] = is_array( $list ) ? wp_kses_post_deep( reset( $list ) ) : wp_kses_post( $list );
 				}
 			}
