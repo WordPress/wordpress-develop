@@ -879,6 +879,151 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::append_declaration
+	 * @covers ::remove_declaration
+	 * @covers ::set_important
+	 * @covers ::set_value
+	 *
+	 * @dataProvider data_mutations
+	 *
+	 * @param string  $style      Style text.
+	 * @param array[] $operations Method name and arguments of each call. Every call must return true.
+	 * @param int     $index      Index of the declaration the cursor reads next after the calls.
+	 */
+	public function test_mutations_leave_the_declarations_a_new_processor_reads( string $style, array $operations, int $index ) {
+		$processor = new WP_HTML_Style_Attribute_Processor( $style );
+
+		foreach ( $operations as $operation ) {
+			$method = array_shift( $operation );
+			$this->assertTrue( $processor->$method( ...$operation ), "Expected {$method}() to return true." );
+		}
+
+		$reread = new WP_HTML_Style_Attribute_Processor( $processor->get_updated_style() );
+
+		$this->assertSame(
+			array_slice( self::read_remaining_declarations( $reread ), $index ),
+			self::read_remaining_declarations( $processor )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, array[], int}>
+	 */
+	public static function data_mutations(): array {
+		$style = 'color: red; width: calc(1px + 2px) !important; --x: "a" b; background: url(a.png)';
+		$open  = 'color: red; width: calc(1px + var(--gap';
+
+		return array(
+			'set_value() on the first declaration'      => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'set_value', 'rgb(1 2 3 / 50%)' ) ),
+				0,
+			),
+			'set_value() on a middle declaration'       => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'set_value', 'calc(100% - 2 * var(--gap, 10px))', false ) ),
+				1,
+			),
+			'set_important() adds the priority'         => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'set_important', true ) ),
+				0,
+			),
+			'set_important() removes the priority'      => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'set_important', false ) ),
+				1,
+			),
+			'set_important() closes blocks open at EOF' => array(
+				$open,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'set_important', true ) ),
+				1,
+			),
+			'remove_declaration() on the first'         => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'remove_declaration' ) ),
+				0,
+			),
+			'remove_declaration() on a middle one'      => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'remove_declaration' ) ),
+				1,
+			),
+			'remove_declaration() on the last'          => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'next_declaration' ), array( 'next_declaration' ), array( 'remove_declaration' ) ),
+				3,
+			),
+			'append_declaration() before the first'     => array(
+				$style,
+				array( array( 'append_declaration', 'padding', '1px 2px' ) ),
+				0,
+			),
+			'append_declaration() on a declaration'     => array(
+				$style,
+				array( array( 'next_declaration' ), array( 'next_declaration' ), array( 'append_declaration', 'padding', '1px 2px', true ) ),
+				1,
+			),
+			'append_declaration() closes blocks at EOF' => array(
+				$open,
+				array( array( 'append_declaration', 'padding', '1px 2px' ) ),
+				0,
+			),
+			'mixed calls'                               => array(
+				$style,
+				array(
+					array( 'next_declaration' ),
+					array( 'set_value', 'blue', true ),
+					array( 'append_declaration', 'border', '1px solid' ),
+					array( 'set_important', false ),
+					array( 'next_declaration' ),
+					array( 'remove_declaration' ),
+					array( 'append_declaration', 'margin', '0' ),
+					array( 'next_declaration' ),
+					array( 'set_value', '"b" c' ),
+					array( 'set_important', true ),
+					array( 'next_declaration', 'background' ),
+					array( 'remove_declaration' ),
+				),
+				2,
+			),
+		);
+	}
+
+	/**
+	 * Reads the current declaration, or the next one when the cursor is not on one, and every declaration after it.
+	 *
+	 * @param WP_HTML_Style_Attribute_Processor $processor Processor whose cursor moves to the end.
+	 * @return array[] Name, priority, value tokens and serialization of each declaration.
+	 */
+	private static function read_remaining_declarations( WP_HTML_Style_Attribute_Processor $processor ): array {
+		$declarations = array();
+		if ( null === $processor->get_property_name() && ! $processor->next_declaration() ) {
+			return $declarations;
+		}
+
+		do {
+			$declarations[] = array(
+				'name'       => $processor->get_property_name(),
+				'important'  => $processor->is_important(),
+				'tokens'     => array_map(
+					static function ( WP_CSS_Token $token ): array {
+						return array( $token->get_type(), $token->get_flag(), $token->get_value(), $token->get_unit(), $token->get_start(), $token->get_length(), $token->is_terminated() );
+					},
+					$processor->get_value_tokens()
+				),
+				'serialized' => $processor->serialize_declaration(),
+			);
+		} while ( $processor->next_declaration() );
+
+		return $declarations;
+	}
+
+	/**
 	 * @covers ::append_declaration
 	 * @covers ::get_updated_style
 	 */

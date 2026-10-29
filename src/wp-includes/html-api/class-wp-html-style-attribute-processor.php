@@ -111,26 +111,6 @@ class WP_HTML_Style_Attribute_Processor {
 	private $current_declaration_removed = false;
 
 	/**
-	 * Lexical updates to apply to the original style attribute value.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @var array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}>
-	 */
-	private $lexical_updates = array();
-
-	/**
-	 * Sequence counter used to keep lexical updates in queue order.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @var int
-	 */
-	private $lexical_update_order = 0;
-
-	/**
 	 * Constructor.
 	 *
 	 * `true` and `null` give an empty style.
@@ -295,27 +275,19 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		if (
-			! $this->is_current_declaration_replacement_safe(
-				$declaration,
-				$declaration['start'],
-				$declaration['after'] - $declaration['start'],
-				$text,
-				$is_important,
-				$parsed_value
-			)
-		) {
-			return false;
-		}
-
-		$this->queue_lexical_update(
+		$updated = $this->verify_current_declaration_replacement(
+			$declaration,
 			$declaration['start'],
 			$declaration['after'] - $declaration['start'],
 			$text,
-			$this->current_declaration
+			$is_important,
+			$parsed_value
 		);
+		if ( null === $updated ) {
+			return false;
+		}
 
-		$this->apply_lexical_updates( $this->current_declaration );
+		$this->apply_update( $updated, $this->current_declaration );
 
 		return true;
 	}
@@ -343,73 +315,52 @@ class WP_HTML_Style_Attribute_Processor {
 				return false;
 			}
 
-			$insert_at   = $declaration['value_end'];
 			$insert_text = ' !important';
-			if (
-				! $this->is_current_declaration_replacement_safe(
-					$declaration,
-					$declaration['value_end'],
-					0,
-					$insert_text,
-					true
-				)
-			) {
+			$updated     = $this->verify_current_declaration_replacement(
+				$declaration,
+				$declaration['value_end'],
+				0,
+				$insert_text,
+				true
+			);
+			if ( null === $updated ) {
 				$eof_repair    = strlen( $this->style ) === $declaration['after']
 					? $this->get_eof_repair( $declaration['after'] )
 					: null;
 				$current_value = substr( $this->style, $declaration['value_start'], $declaration['after'] - $declaration['value_start'] );
 
-				if (
-					null === $eof_repair ||
-					'' === $eof_repair ||
-					! $this->is_current_declaration_replacement_safe(
-						$declaration,
-						$declaration['after'],
-						0,
-						$eof_repair . $insert_text,
-						true,
-						trim( $current_value . $eof_repair, self::WHITESPACE )
-					)
-				) {
+				if ( null === $eof_repair || '' === $eof_repair ) {
 					return false;
 				}
 
-				$insert_at   = $declaration['after'];
-				$insert_text = $eof_repair . $insert_text;
+				$updated = $this->verify_current_declaration_replacement(
+					$declaration,
+					$declaration['after'],
+					0,
+					$eof_repair . $insert_text,
+					true,
+					trim( $current_value . $eof_repair, self::WHITESPACE )
+				);
 			}
-
-			$this->queue_lexical_update(
-				$insert_at,
-				0,
-				$insert_text,
-				$this->current_declaration
-			);
 		} else {
 			if ( null === $declaration['important_start'] || null === $declaration['important_end'] ) {
 				return false;
 			}
 
-			if (
-				! $this->is_current_declaration_replacement_safe(
-					$declaration,
-					$declaration['important_start'],
-					$declaration['important_end'] - $declaration['important_start'],
-					'',
-					false
-				)
-			) {
-				return false;
-			}
-
-			$this->queue_lexical_update(
+			$updated = $this->verify_current_declaration_replacement(
+				$declaration,
 				$declaration['important_start'],
 				$declaration['important_end'] - $declaration['important_start'],
 				'',
-				$this->current_declaration
+				false
 			);
 		}
 
-		$this->apply_lexical_updates( $this->current_declaration );
+		if ( null === $updated ) {
+			return false;
+		}
+
+		$this->apply_update( $updated, $this->current_declaration );
 
 		return true;
 	}
@@ -439,18 +390,12 @@ class WP_HTML_Style_Attribute_Processor {
 		$remove_end   = $this->get_offset_after_following_whitespace( $declaration['after'] );
 		$replacement  = ( $remove_start > 0 && $remove_end < strlen( $this->style ) ) ? ' ' : '';
 
-		if ( ! $this->is_remove_declaration_safe( $this->current_declaration, $remove_start, $remove_end - $remove_start, $replacement ) ) {
+		$updated = $this->verify_declaration_removal( $this->current_declaration, $remove_start, $remove_end - $remove_start, $replacement );
+		if ( null === $updated ) {
 			return false;
 		}
 
-		$this->queue_lexical_update(
-			$remove_start,
-			$remove_end - $remove_start,
-			$replacement,
-			$this->current_declaration
-		);
-
-		$this->apply_lexical_updates( $this->current_declaration - 1, true );
+		$this->apply_update( $updated, $this->current_declaration - 1, true );
 
 		return true;
 	}
@@ -498,23 +443,18 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		if ( ! $this->is_parseable_append( $repair_at, $eof_repair, $separator, $declaration_text, $old_declaration_count, $name, $parsed_value, $important ) ) {
+		$updated = $this->verify_append( $repair_at, $eof_repair, $separator, $declaration_text, $old_declaration_count, $name, $parsed_value, $important );
+		if ( null === $updated ) {
 			return false;
 		}
-
-		$this->queue_lexical_update(
-			$repair_at,
-			0,
-			$eof_repair . $separator . $declaration_text,
-			null
-		);
 
 		$append_after_exhausted_cursor = $this->current_declaration >= $old_declaration_count;
 		$current_after_append          = $append_after_exhausted_cursor
 			? $old_declaration_count - 1
 			: $this->current_declaration;
 
-		$this->apply_lexical_updates(
+		$this->apply_update(
+			$updated,
 			$current_after_append,
 			$this->current_declaration_removed || $append_after_exhausted_cursor
 		);
@@ -530,35 +470,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return string Updated decoded CSS text value for the style attribute.
 	 */
 	public function get_updated_style(): string {
-		if ( empty( $this->lexical_updates ) ) {
-			return $this->style;
-		}
-
-		usort(
-			$this->lexical_updates,
-			static function ( $a, $b ) {
-				if ( $a['start'] !== $b['start'] ) {
-					return $a['start'] - $b['start'];
-				}
-
-				return $a['order'] - $b['order'];
-			}
-		);
-
-		$updates = $this->merge_overlapping_lexical_updates( $this->lexical_updates );
-
-		$bytes_already_copied = 0;
-		$output               = '';
-
-		foreach ( $updates as $update ) {
-			$output              .= substr( $this->style, $bytes_already_copied, $update['start'] - $bytes_already_copied );
-			$output              .= $update['text'];
-			$bytes_already_copied = $update['start'] + $update['length'];
-		}
-
-		$output .= substr( $this->style, $bytes_already_copied );
-
-		return $output;
+		return $this->style;
 	}
 
 	/**
@@ -1027,7 +939,7 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Checks whether a replacement preserves the current declaration's structure.
+	 * Parses the style with a replacement and checks that it preserves the current declaration's structure.
 	 *
 	 * @since 7.3.0
 	 * @ignore
@@ -1038,9 +950,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param string                                                                                                                                                                                                                        $text               Replacement text.
 	 * @param bool                                                                                                                                                                                                                          $expected_important Expected important flag after replacement.
 	 * @param string|null                                                                                                                                                                                                                   $expected_value     Optional expected value source after replacement.
-	 * @return bool Whether the replacement is safe.
+	 * @return self|null Parsed processor for the replaced style, or null when the replacement is not safe.
 	 */
-	private function is_current_declaration_replacement_safe( array $declaration, int $start, int $length, string $text, bool $expected_important, ?string $expected_value = null ): bool {
+	private function verify_current_declaration_replacement( array $declaration, int $start, int $length, string $text, bool $expected_important, ?string $expected_value = null ): ?self {
 		$candidate_style = substr( $this->style, 0, $start ) . $text . substr( $this->style, $start + $length );
 		$candidate       = new self( $candidate_style );
 		$candidate->ensure_parsed();
@@ -1049,7 +961,7 @@ class WP_HTML_Style_Attribute_Processor {
 			count( $candidate->declarations ) !== count( $this->declarations ) ||
 			! isset( $candidate->declarations[ $this->current_declaration ] )
 		) {
-			return false;
+			return null;
 		}
 
 		$updated_declaration = $candidate->declarations[ $this->current_declaration ];
@@ -1057,7 +969,7 @@ class WP_HTML_Style_Attribute_Processor {
 			$updated_declaration['name'] !== $declaration['name'] ||
 			$updated_declaration['important'] !== $expected_important
 		) {
-			return false;
+			return null;
 		}
 
 		$old_value = trim(
@@ -1069,11 +981,13 @@ class WP_HTML_Style_Attribute_Processor {
 			self::WHITESPACE
 		);
 
-		return null === $expected_value ? $old_value === $new_value : $expected_value === $new_value;
+		$is_safe = null === $expected_value ? $old_value === $new_value : $expected_value === $new_value;
+
+		return $is_safe ? $candidate : null;
 	}
 
 	/**
-	 * Checks whether removing a declaration preserves remaining structure.
+	 * Parses the style with a declaration removed and checks that the remaining structure is preserved.
 	 *
 	 * @since 7.3.0
 	 * @ignore
@@ -1082,15 +996,15 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param int    $start               Byte offset at which to start the replacement.
 	 * @param int    $length              Number of bytes to replace.
 	 * @param string $text                Replacement text.
-	 * @return bool Whether the removal is safe.
+	 * @return self|null Parsed processor for the style without the declaration, or null when the removal is not safe.
 	 */
-	private function is_remove_declaration_safe( int $removed_declaration, int $start, int $length, string $text ): bool {
+	private function verify_declaration_removal( int $removed_declaration, int $start, int $length, string $text ): ?self {
 		$candidate_style = substr( $this->style, 0, $start ) . $text . substr( $this->style, $start + $length );
 		$candidate       = new self( $candidate_style );
 		$candidate->ensure_parsed();
 
 		if ( count( $candidate->declarations ) !== count( $this->declarations ) - 1 ) {
-			return false;
+			return null;
 		}
 
 		$candidate_index = 0;
@@ -1100,7 +1014,7 @@ class WP_HTML_Style_Attribute_Processor {
 			}
 
 			if ( ! isset( $candidate->declarations[ $candidate_index ] ) ) {
-				return false;
+				return null;
 			}
 
 			$candidate_declaration = $candidate->declarations[ $candidate_index ];
@@ -1118,13 +1032,13 @@ class WP_HTML_Style_Attribute_Processor {
 				$candidate_declaration['important'] !== $declaration['important'] ||
 				$candidate_value !== $value
 			) {
-				return false;
+				return null;
 			}
 
 			++$candidate_index;
 		}
 
-		return true;
+		return $candidate;
 	}
 
 	/**
@@ -1152,76 +1066,27 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Applies queued lexical updates and reparses the updated style attribute value.
+	 * Replaces the style text, tokens and declarations with those of a verified update.
 	 *
 	 * @since 7.3.0
 	 * @ignore
 	 *
+	 * @param self $updated                     Parsed processor for the updated style.
 	 * @param int  $current_declaration         Declaration index to keep before the next cursor advance.
 	 * @param bool $current_declaration_removed Optional. Whether the current declaration was removed.
 	 */
-	private function apply_lexical_updates( int $current_declaration, bool $current_declaration_removed = false ): void {
-		$this->style = $this->get_updated_style();
+	private function apply_update( self $updated, int $current_declaration, bool $current_declaration_removed = false ): void {
+		$this->style        = $updated->style;
+		$this->tokens       = $updated->tokens;
+		$this->declarations = $updated->declarations;
+		$this->parsed       = true;
 
-		$this->lexical_updates             = array();
-		$this->lexical_update_order        = 0;
 		$this->current_declaration         = $current_declaration;
 		$this->current_declaration_removed = $current_declaration_removed;
-		$this->parsed                      = false;
-
-		$this->parse();
 
 		if ( $this->current_declaration >= count( $this->declarations ) ) {
 			$this->current_declaration = count( $this->declarations );
 		}
-	}
-
-	/**
-	 * Queues a lexical update, replacing any earlier update for the same declaration.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @param int      $start       Byte offset at which to start the update.
-	 * @param int      $length      Number of bytes to replace.
-	 * @param string   $text        Replacement text.
-	 * @param int|null $declaration Declaration index associated with the update.
-	 */
-	private function queue_lexical_update( int $start, int $length, string $text, ?int $declaration ): void {
-		if ( null !== $declaration ) {
-			foreach ( $this->lexical_updates as $index => $update ) {
-				if ( $update['declaration'] === $declaration ) {
-					unset( $this->lexical_updates[ $index ] );
-				}
-			}
-		}
-
-		$this->lexical_updates[] = array(
-			'start'       => $start,
-			'length'      => $length,
-			'text'        => $text,
-			'declaration' => $declaration,
-			'order'       => $this->lexical_update_order++,
-		);
-	}
-
-	/**
-	 * Checks whether an append has already been queued at a byte offset.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @param int $insert_at Byte offset.
-	 * @return bool Whether an append has already been queued at the offset.
-	 */
-	private function has_queued_append_at( int $insert_at ): bool {
-		foreach ( $this->lexical_updates as $update ) {
-			if ( null === $update['declaration'] && $insert_at === $update['start'] && 0 === $update['length'] ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/**
@@ -1237,10 +1102,6 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return string Separator text.
 	 */
 	private function get_append_separator( int $insert_at ): string {
-		if ( $this->has_queued_append_at( $insert_at ) ) {
-			return ' ';
-		}
-
 		$last_token = $this->get_last_top_level_non_ignored_token_before( $insert_at );
 
 		if ( null === $last_token ) {
@@ -1391,7 +1252,7 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Checks whether an appended declaration will parse as a new declaration.
+	 * Parses the style with a declaration appended and checks that it parses as a new declaration.
 	 *
 	 * Malformed existing declarations can leave the append point inside an
 	 * unclosed component value. In that case preserving the original text and
@@ -1408,9 +1269,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param string $expected_name          Expected parsed property name.
 	 * @param string $expected_value         Expected parsed value source.
 	 * @param bool   $expected_important     Expected important flag.
-	 * @return bool Whether the appended declaration is parseable.
+	 * @return self|null Parsed processor for the style with the declaration, or null when it does not parse as a new declaration.
 	 */
-	private function is_parseable_append( int $insert_at, string $eof_repair, string $separator, string $declaration_text, int $old_declaration_count, string $expected_name, string $expected_value, bool $expected_important ): bool {
+	private function verify_append( int $insert_at, string $eof_repair, string $separator, string $declaration_text, int $old_declaration_count, string $expected_name, string $expected_value, bool $expected_important ): ?self {
 		$expected_start  = $insert_at + strlen( $eof_repair ) + strlen( $separator );
 		$expected_after  = $expected_start + strlen( $declaration_text );
 		$candidate_style = substr( $this->style, 0, $insert_at ) . $eof_repair . $separator . $declaration_text . substr( $this->style, $insert_at );
@@ -1418,7 +1279,7 @@ class WP_HTML_Style_Attribute_Processor {
 		$candidate->ensure_parsed();
 
 		if ( count( $candidate->declarations ) !== $old_declaration_count + 1 ) {
-			return false;
+			return null;
 		}
 
 		foreach ( $candidate->declarations as $declaration ) {
@@ -1428,72 +1289,17 @@ class WP_HTML_Style_Attribute_Processor {
 					self::WHITESPACE
 				);
 
-				return (
+				$is_parseable = (
 					$expected_name === $declaration['name'] &&
 					$expected_value === $parsed_value &&
 					$expected_important === $declaration['important']
 				);
+
+				return $is_parseable ? $candidate : null;
 			}
 		}
 
-		return false;
-	}
-
-	/**
-	 * Merges overlapping lexical updates into non-overlapping replacements.
-	 *
-	 * Adjacent declaration removals may share separator whitespace, and appends
-	 * may be queued inside a range removed from the original style. This method
-	 * collapses those updates while preserving the requested replacement text.
-	 *
-	 * @since 7.3.0
-	 * @ignore
-	 *
-	 * @param array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}> $updates Lexical updates.
-	 * @return array<int, array{start:int, length:int, text:string, declaration:int|null, order:int}> Merged updates.
-	 */
-	private function merge_overlapping_lexical_updates( array $updates ): array {
-		$merged = array();
-
-		foreach ( $updates as $update ) {
-			if ( empty( $merged ) ) {
-				$merged[] = $update;
-				continue;
-			}
-
-			$last_index = count( $merged ) - 1;
-			$last       = $merged[ $last_index ];
-			$last_end   = $last['start'] + $last['length'];
-			$update_end = $update['start'] + $update['length'];
-
-			if ( $update['start'] > $last_end ) {
-				$merged[] = $update;
-				continue;
-			}
-
-			$text = $update['text'];
-			if ( 0 === $last['start'] && '' === $last['text'] && 0 === $update['length'] ) {
-				$text = ltrim( $text, ';' . self::WHITESPACE );
-			}
-
-			$merged[ $last_index ]['length'] = max( $last_end, $update_end ) - $last['start'];
-			$merged[ $last_index ]['text']   = $last['text'] . $text;
-		}
-
-		foreach ( $merged as $index => $update ) {
-			if ( 0 !== $update['start'] || '' !== $update['text'] ) {
-				continue;
-			}
-
-			$end = $update['length'];
-			while ( $end < strlen( $this->style ) && false !== strpos( self::WHITESPACE, $this->style[ $end ] ) ) {
-				++$end;
-			}
-
-			$merged[ $index ]['length'] = $end;
-		}
-
-		return $merged;
+		return null;
 	}
 
 	/**
