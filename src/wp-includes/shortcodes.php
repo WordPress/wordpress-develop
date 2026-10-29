@@ -194,6 +194,17 @@ function has_shortcode( $content, $tag ) {
  * @return string[] An array of registered shortcode names found in the content.
  */
 function get_shortcode_tags_in_content( $content ) {
+	if ( false !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		$processor = new WP_Shortcode_Processor( $content, null, WP_Shortcode_Processor::MODE_RECURSIVE );
+		$seen      = array();
+
+		while ( $processor->next_shortcode() ) {
+			$seen[ $processor->get_name() ] = true;
+		}
+
+		return array_keys( $seen );
+	}
+
 	if ( ! str_contains( $content, '[' ) ) {
 		return array();
 	}
@@ -782,6 +793,10 @@ function strip_shortcode_tag( $m ) {
 class WP_Shortcode_Processor {
 	private $document;
 
+	private $recursion_mode = self::MODE_NON_RECURSIVE;
+
+	private $parsing_spans = array();
+
 	/**
 	 * @var WP_Token_Map
 	 */
@@ -807,21 +822,22 @@ class WP_Shortcode_Processor {
 
 	private $closing_tags_lengths = array();
 
-	public function __construct( string $document, ?array $recognized_tags = null ) {
+	public function __construct( string $document, ?array $recognized_tags = null, string $recursion_mode = self::MODE_NON_RECURSIVE ) {
 		global $shortcode_tags;
 
-		$this->document = $document;
+		$this->document       = $document;
+		$this->recursion_mode = $recursion_mode;
 
 		/**
 		 * @todo Optimize passing in a cached lookup.
 		 */
 		$this->registered_shortcodes = WP_Token_Map::from_array(
-			$recognized_tags
-				? array_fill_keys( $recognized_tags, true )
-				: $shortcode_tags
+			array_fill_keys( $recognized_tags ?? array_keys( $shortcode_tags ), '' )
 		);
 
 		$this->find_closers();
+
+		$this->parsing_spans[] = new WP_HTML_Span( 0, strlen( $document ) );
 	}
 
 	/**
@@ -831,35 +847,18 @@ class WP_Shortcode_Processor {
 	 * @param string[] $shortcode_tag_names
 	 * @return bool
 	 */
-	public static function contains_any_shortcode( string $document, array ...$shortcode_tag_names ): bool {
-		/*
-		 * Hypothesis: storing these offsets in two arrays will take better advantage of ILP
-		 * when popping the elements than would storing them as an array pair inside a single
-		 * array.
-		 */
-		$content_starts  = array( 0 );
-		$content_lengths = array( strlen( $document ) );
-
+	public static function contains_any_shortcode( string $document, string ...$shortcode_tag_names ): bool {
 		/**
 		 * @todo Fast lookup that starts with linear contiguous scans under a certain count
 		 *       but then switches to a constant-time lookup after a certain size, to prevent
 		 *       N✕M iteration when the sought-after key doesn’t exist. Quick filter?
 		 */
 		$sought_names = array_fill_keys( $shortcode_tag_names, true );
+		$processor    = new self( $document, null, self::MODE_RECURSIVE );
 
-		while ( count( $content_starts ) > 0 ) {
-			$content_chunk = substr( $document, array_pop( $content_starts ), array_pop( $content_lengths ) );
-			$processor     = new self( $content_chunk );
-
-			while ( $processor->next_shortcode() ) {
-				if ( isset( $sought_names[ $processor->get_name() ] ) ) {
-					return true;
-				}
-
-				if ( $processor->content_start_at > 0 && $processor->content_length > 0 ) {
-					$content_starts[]  = $processor->content_start_at;
-					$content_lengths[] = $processor->content_length;
-				}
+		while ( $processor->next_shortcode() ) {
+			if ( isset( $sought_names[ $processor->get_name() ] ) ) {
+				return true;
 			}
 		}
 
@@ -872,7 +871,7 @@ class WP_Shortcode_Processor {
 		$shortcodes = array();
 		while ( $processor->next_shortcode() ) {
 			$shortcodes[] = array( $processor->shortcode_starts_at, $processor->shortcode_length, $processor->content_start_at, $processor->content_length );
-			$shortcode = substr( $document, $processor->shortcode_starts_at, $processor->shortcode_length );
+			$shortcode    = substr( $document, $processor->shortcode_starts_at, $processor->shortcode_length );
 			echo "\e[33m@ {$processor->shortcode_starts_at}\e[90m: \e[34m{$shortcode}\e[m\n";
 		}
 
@@ -942,10 +941,26 @@ class WP_Shortcode_Processor {
 		}
 	}
 
-	protected function next_shortcode() {
+	private function enter_next_parsing_span(): void {
+		array_shift( $this->parsing_spans );
+
+		$parsing_span = $this->parsing_spans[0] ?? null;
+
+		$this->bytes_already_parsed = null === $parsing_span
+			? strlen( $this->document )
+			: $parsing_span->start;
+	}
+
+	public function next_shortcode() {
+		$parsing_span = $this->parsing_spans[0] ?? null;
+
+		if ( null === $parsing_span ) {
+			return false;
+		}
+
 		$document = $this->document;
 		$at       = $this->bytes_already_parsed;
-		$end      = strlen( $document );
+		$end      = $parsing_span->start + $parsing_span->length;
 
 		$this->shortcode_starts_at = -1;
 		$this->shortcode_length    = -1;
@@ -954,10 +969,10 @@ class WP_Shortcode_Processor {
 		$this->is_self_closing     = false;
 
 		while ( $at < $end ) {
-			$next_bracket_at = strpos( $document, '[', $at );
-			if ( false === $next_bracket_at ) {
-				$this->bytes_already_parsed = $end;
-				return false;
+			$next_bracket_at = $at + strcspn( $document, '[', $at, $end - $at );
+			if ( $next_bracket_at >= $end ) {
+				$this->enter_next_parsing_span();
+				return $this->next_shortcode();
 			}
 
 			$is_escaped_shortcode = '[' === ( $document[ $next_bracket_at + 1 ] ?? '' );
@@ -974,7 +989,8 @@ class WP_Shortcode_Processor {
 				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" .
 				"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x20" .
 				'&/<=>[]',
-				$name_at
+				$name_at,
+				$end - $name_at
 			);
 
 			if ( 0 === $name_length ) {
@@ -994,14 +1010,14 @@ class WP_Shortcode_Processor {
 				continue;
 			}
 
-			$end_at = strpos( $document, ']', $after_name );
-			if ( false === $end_at ) {
-				$this->bytes_already_parsed = $end;
-				return false;
+			$end_at = $after_name + strcspn( $document, ']', $after_name, $end - $after_name );
+			if ( $end_at >= $end ) {
+				$this->enter_next_parsing_span();
+				return $this->next_shortcode();
 			}
 
 			// This is a fully-escaped token, ignore.
-			if ( $is_escaped_shortcode && ']' === ( $document[ $end_at + 1 ] ?? '' ) ) {
+			if ( $is_escaped_shortcode && ']' === ( $document[ $end_at + 1 ] ?? '' ) && ( $end_at + 1 ) < $end ) {
 				$at = $end_at + 1;
 				continue;
 			}
@@ -1041,9 +1057,14 @@ class WP_Shortcode_Processor {
 				$closer_length      = $this->closing_tags_lengths[ $i ];
 				$closer_name_length = $closer_length - 3;
 
+				// No closer exists within this parsing span.
+				if ( $closer_byte_offset + $closer_length > $end ) {
+					break;
+				}
+
 				// The search for the closing tag is a byte-for-byte match.
 				if (
-					$closer_name_length === $name_length ||
+					$closer_name_length === $name_length &&
 					0 === substr_compare( $document, $name, $closer_byte_offset + 2, $name_length )
 				) {
 					// Escaped shortcodes can capture content inside them too.
@@ -1057,6 +1078,11 @@ class WP_Shortcode_Processor {
 					$this->shortcode_length     = $this->bytes_already_parsed - $this->shortcode_starts_at;
 					$this->content_start_at     = $end_at + 1;
 					$this->content_length       = $closer_byte_offset - $end_at - 1;
+
+					if ( self::MODE_RECURSIVE === $this->recursion_mode ) {
+						$this->parsing_spans[] = new WP_HTML_Span( $this->content_start_at, $this->content_length );
+					}
+
 					return true;
 				}
 			}
@@ -1066,7 +1092,11 @@ class WP_Shortcode_Processor {
 			return true;
 		}
 
-		$this->bytes_already_parsed = $end;
-		return false;
+		$this->enter_next_parsing_span();
+		return $this->next_shortcode();
 	}
+
+	const MODE_RECURSIVE = 'recursive';
+
+	const MODE_NON_RECURSIVE = 'non-recursive';
 }
