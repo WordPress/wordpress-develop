@@ -136,10 +136,13 @@ jobs:
 
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
         run: |
-          npm run env:cli -- plugin install gutenberg \
-          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
-          --path="/var/www/${LOCAL_DIR}"
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+            --output gutenberg.zip \
+            "https://downloads.wordpress.org/plugin/gutenberg${GUTENBERG_VERSION:+.$GUTENBERG_VERSION}.zip"
+          npm run env:cli -- plugin install gutenberg.zip --path="/var/www/${LOCAL_DIR}"
+          rm gutenberg.zip
         env:
           GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
 
