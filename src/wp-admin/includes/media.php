@@ -3623,11 +3623,14 @@ function attachment_submitbox_metadata() {
  * Parses ID3v2, ID3v1, and getID3 comments to extract usable data.
  *
  * @since 3.6.0
+ * @since 7.3.0 Reads the tags of files without ID3, such as FLAC, Ogg and M4A.
  *
  * @param array $metadata An existing array with data.
  * @param array $data     Data supplied by ID3 tags.
  */
 function wp_add_id3_tag_data( &$metadata, $data ) {
+	$has_id3 = false;
+
 	foreach ( array( 'id3v2', 'id3v1' ) as $version ) {
 		if ( ! empty( $data[ $version ]['comments'] ) ) {
 			foreach ( $data[ $version ]['comments'] as $key => $list ) {
@@ -3637,6 +3640,39 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 					if ( 'terms_of_use' === $key && str_starts_with( $metadata[ $key ], 'yright notice.' ) ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];
 					}
+				}
+			}
+			$has_id3 = true;
+			break;
+		}
+	}
+
+	/*
+	 * Files without ID3 tags, such as FLAC, Ogg and M4A, keep their tags in another format:
+	 * Vorbis comments, QuickTime atoms, APE, RIFF INFO or ASF. Use the first of these,
+	 * under the names ID3 gives the same tags.
+	 */
+	if ( ! $has_id3 && ! empty( $data['tags'] ) && is_array( $data['tags'] ) ) {
+		$id3_keys = array(
+			'albumartist'   => 'band',
+			'album_artist'  => 'band',
+			'date'          => 'year',
+			'creation_date' => 'year',
+			'tracknumber'   => 'track_number',
+			'discnumber'    => 'part_of_a_set',
+			'disc_number'   => 'part_of_a_set',
+			'lyrics'        => 'unsynchronised_lyric',
+		);
+
+		foreach ( $data['tags'] as $tags ) {
+			if ( empty( $tags ) || ! is_array( $tags ) ) {
+				continue;
+			}
+
+			foreach ( $tags as $key => $list ) {
+				$key = $id3_keys[ $key ] ?? $key;
+				if ( 'length' !== $key && 'picture' !== $key && ! empty( $list ) ) {
+					$metadata[ $key ] = is_array( $list ) ? wp_kses_post_deep( reset( $list ) ) : wp_kses_post( $list );
 				}
 			}
 			break;
