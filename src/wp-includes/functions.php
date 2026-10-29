@@ -5523,8 +5523,10 @@ function wp_filter_object_list( $input_list, $args = array(), $operator = 'and',
  * @param string $operator   Optional. The logical operation to perform. 'AND' means
  *                           all elements from the array must match. 'OR' means only
  *                           one element needs to match. 'NOT' means no elements may
- *                           match. Default 'AND'.
+ *                           match. The value is case-insensitive. Default 'AND'.
  * @return array Array of found values.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
 	return wp_filter_object_list( $input_list, $args, $operator );

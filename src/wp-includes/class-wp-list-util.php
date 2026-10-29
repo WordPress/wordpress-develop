@@ -92,8 +92,10 @@ class WP_List_Util {
 	 * @param string $operator Optional. The logical operation to perform. 'AND' means
 	 *                         all elements from the array must match. 'OR' means only
 	 *                         one element needs to match. 'NOT' means no elements may
-	 *                         match. Default 'AND'.
+	 *                         match. The value is case-insensitive. Default 'AND'.
 	 * @return array Array of found values.
+	 *
+	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
 	 */
 	public function filter( $args = array(), $operator = 'AND' ) {
 		if ( empty( $args ) ) {
