@@ -58,7 +58,7 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 	/**
 	 * Tests that tags from files without ID3, such as FLAC, Ogg and M4A, are kept under ID3's names.
 	 *
-	 * @ticket 00000
+	 * @ticket 66417
 	 *
 	 * @dataProvider data_wp_add_id3_tag_data_keeps_tags_without_id3
 	 *
@@ -162,7 +162,7 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 	/**
 	 * Tests that tags from files without ID3 do not replace what was read from the stream.
 	 *
-	 * @ticket 00000
+	 * @ticket 66417
 	 */
 	public function test_wp_add_id3_tag_data_keeps_stream_data_over_tags_without_id3() {
 		$metadata = array(
@@ -193,7 +193,7 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 	/**
 	 * Tests that the QuickTime tags of a real file without ID3 are kept, beside what was read from its stream.
 	 *
-	 * @ticket 00000
+	 * @ticket 66417
 	 *
 	 * @covers ::wp_read_video_metadata
 	 */
