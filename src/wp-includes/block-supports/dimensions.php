@@ -153,7 +153,7 @@ function wp_render_dimensions_support( $block_content, $block ) {
 
 		if ( $tags->next_tag() ) {
 			$existing_style  = $tags->get_attribute( 'style' );
-			$style_processor = WP_HTML_Style_Attribute_Processor::create( is_string( $existing_style ) ? $existing_style : '' );
+			$style_processor = new WP_HTML_Style_Attribute_Processor( $existing_style );
 
 			foreach ( $styles['declarations'] as $property => $value ) {
 				$style_processor->append_declaration( $property, $value );
