@@ -97,6 +97,7 @@ remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' 
 
 $wp_rewrite->init();
 $wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+create_initial_taxonomies();
 $wp_rewrite->flush_rules();
 
 if ( $multisite ) {
@@ -116,5 +117,6 @@ if ( $multisite ) {
 
 	$wp_rewrite->init();
 	$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+	create_initial_taxonomies();
 	$wp_rewrite->flush_rules();
 }

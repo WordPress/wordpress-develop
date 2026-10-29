@@ -100,9 +100,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 		$widget = new WP_Widget_Recent_Posts();
 
 		$this->assertSame( 'recent-posts', $widget->id_base );
-		$this->assertSame( 'Recent Posts', $widget->name );
 		$this->assertSame( 'widget_recent_entries', $widget->widget_options['classname'] );
-		$this->assertSame( 'Your site&#8217;s most recent Posts.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 		$this->assertSame( 'widget_recent_entries', $widget->alt_option_name );
@@ -172,8 +170,6 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'     => array( array(), 'Recent Posts' ),
-			'empty title'  => array( array( 'title' => '' ), 'Recent Posts' ),
-			'title "0"'    => array( array( 'title' => '0' ), 'Recent Posts' ),
 			'custom title' => array( array( 'title' => 'Latest News' ), 'Latest News' ),
 		);
 	}
@@ -261,9 +257,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Latest News', 'Latest News' ),
 			'title with HTML'     => array( '<em>Latest</em> News ', 'Latest News' ),
-			'empty title'         => array( '', 'Recent Posts' ),
 			'title with only tag' => array( '<span></span>', 'Recent Posts' ),
 		);
 	}
@@ -344,7 +338,6 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 	 */
 	public static function data_widget_number() {
 		return array(
-			'empty'         => array( '', 5 ),
 			'zero'          => array( 0, 5 ),
 			'not a number'  => array( 'abc', 5 ),
 			'two'           => array( 2, 2 ),

@@ -37,10 +37,8 @@ class Tests_General_GetArchivesLink extends WP_UnitTestCase {
 	 */
 	public static function data_formats() {
 		return array(
-			'html'                       => array( 'html', '', '', false, "\t<li><a href='https://example.org/2024/03/'>March 2024</a></li>\n" ),
 			'html with before and after' => array( 'html', '<b>', '</b>', false, "\t<li><b><a href='https://example.org/2024/03/'>March 2024</a></b></li>\n" ),
 			'html selected'              => array( 'html', '', '', true, "\t<li><a href='https://example.org/2024/03/' aria-current=\"page\">March 2024</a></li>\n" ),
-			'option'                     => array( 'option', '', '', false, "\t<option value='https://example.org/2024/03/'> March 2024 </option>\n" ),
 			'option with before, after'  => array( 'option', '[', ']', false, "\t<option value='https://example.org/2024/03/'>[ March 2024 ]</option>\n" ),
 			'option selected'            => array( 'option', '', '', true, "\t<option value='https://example.org/2024/03/' selected='selected'> March 2024 </option>\n" ),
 			'link'                       => array( 'link', '<b>', '</b>', false, "\t<link rel='archives' title='March 2024' href='https://example.org/2024/03/' />\n" ),

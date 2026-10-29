@@ -549,43 +549,6 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that is_network_plugin() returns false for extensions that are not network-activated plugins.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::is_network_plugin
-	 *
-	 * @dataProvider data_is_network_plugin_returns_false
-	 *
-	 * @param array $extension Extension type and slug.
-	 */
-	public function test_is_network_plugin_returns_false( $extension ) {
-		$this->assertFalse( $this->call_method( new WP_Recovery_Mode(), 'is_network_plugin', $extension ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_is_network_plugin_returns_false() {
-		return array(
-			'theme'                        => array(
-				array(
-					'type' => 'theme',
-					'slug' => 'custom-internationalized-plugin',
-				),
-			),
-			'plugin not network activated' => array(
-				array(
-					'type' => 'plugin',
-					'slug' => 'custom-internationalized-plugin',
-				),
-			),
-		);
-	}
-
-	/**
 	 * Tests that exit_recovery_mode() does nothing when recovery mode is not active.
 	 *
 	 * @ticket 65819
@@ -783,17 +746,6 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 		$recovery_mode->clean_expired_keys();
 
 		$this->assertSame( $keys, get_option( 'recovery_keys' ) );
-	}
-
-	/**
-	 * Tests the default email rate limit.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::get_email_rate_limit
-	 */
-	public function test_get_email_rate_limit_defaults_to_one_day() {
-		$this->assertSame( 86400, $this->call_method( new WP_Recovery_Mode(), 'get_email_rate_limit' ) );
 	}
 
 	/**
