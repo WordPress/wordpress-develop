@@ -582,7 +582,7 @@ class WP_HTML_Style_Attribute_Processor {
 		$this->tokens       = array();
 		$this->declarations = array();
 
-		$processor = WP_CSS_Token_Processor::create( $this->style );
+		$processor = new WP_CSS_Token_Processor( $this->style );
 
 		while ( $processor->next_token() ) {
 			$this->tokens[] = $processor->get_token();
@@ -1535,7 +1535,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return string Value text.
 	 */
 	private function serialize_value( string $value ): string {
-		$processor = WP_CSS_Token_Processor::create( $value );
+		$processor = new WP_CSS_Token_Processor( $value );
 		$tokens    = array();
 		while ( $processor->next_token() ) {
 			$tokens[] = $processor->get_token();
@@ -1670,7 +1670,7 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		$processor = WP_CSS_Token_Processor::create( $property_name );
+		$processor = new WP_CSS_Token_Processor( $property_name );
 		if ( ! $processor->next_token() ) {
 			return false;
 		}
@@ -1687,7 +1687,7 @@ class WP_HTML_Style_Attribute_Processor {
 			return false;
 		}
 
-		$sentinel_processor = WP_CSS_Token_Processor::create( $property_name . ': sentinel' );
+		$sentinel_processor = new WP_CSS_Token_Processor( $property_name . ': sentinel' );
 		if ( ! $sentinel_processor->next_token() ) {
 			return false;
 		}
@@ -1721,7 +1721,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$sentinel_property = '--wp-style-attribute-processor-sentinel';
-		$processor         = WP_CSS_Token_Processor::create( $value . ';' . $sentinel_property . ':1' );
+		$processor         = new WP_CSS_Token_Processor( $value . ';' . $sentinel_property . ':1' );
 
 		$stack            = array();
 		$top_level_tokens = array();

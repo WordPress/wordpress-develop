@@ -238,7 +238,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$slice = substr( $style, $first->get_start(), $last->get_start() + $last->get_length() - $first->get_start() );
 
 		$expected  = array();
-		$tokenizer = WP_CSS_Token_Processor::create( $slice );
+		$tokenizer = new WP_CSS_Token_Processor( $slice );
 		while ( $tokenizer->next_token() ) {
 			$token      = $tokenizer->get_token();
 			$expected[] = array( $token->get_type(), $token->get_flag(), $token->get_value(), $token->get_unit(), $token->is_terminated() );
