@@ -2733,6 +2733,28 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 66409
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_create_item_with_data_exceeds_multisite_max_filesize_removes_temp_file() {
+		wp_set_current_user( self::$author_id );
+		update_site_option( 'fileupload_maxk', 1 );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		$temp_files = glob( get_temp_dir() . 'canola-*.tmp' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_upload_file_too_big', $response, 400 );
+		$this->assertSame( $temp_files, glob( get_temp_dir() . 'canola-*.tmp' ), 'The temporary file should be removed when the upload is rejected.' );
+	}
+
+	/**
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
