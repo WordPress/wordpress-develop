@@ -48,7 +48,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	public function test_login_rejects_non_scalar_credentials( $username, $password ): void {
 		$this->make_user_by_role( 'subscriber' );
 
-		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) ); // @phpstan-ignore argument.type, argument.type (Non-string arguments passed intentionally to test error scenario.)
+		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 400, $this->myxmlrpcserver->error->code );
 
@@ -101,7 +101,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 12345, 67890 ) ); // @phpstan-ignore argument.type, argument.type (Integer arguments passed intentionally, as XML-RPC can send them.)
+		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 12345, 67890 ) );
 	}
 
 	/**
