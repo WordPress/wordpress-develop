@@ -666,7 +666,7 @@ function get_html_split_regex() {
 			.     '(?'          // Conditional expression follows.
 			.         $escaped  // Find end of escaped element.
 			.     '|'           // ...else...
-			.         '[^>]*>?' // Find end of normal element.
+			.         '[^>\t\n\f\r \/]*+(?:[^>=]++|=[ \t\f\r\n]*+(?:"[^"]*+"|\'[^\']*+\')?)*+>?' // Find end of normal element, skipping quoted attribute values after the tag name.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -704,7 +704,7 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 			. '(?(?=!--)'        // Is this a comment?
 			.     $comment_regex // Find end of comment.
 			. '|'
-			.     '[^>]*>?'      // Find end of element. If not found, match all input.
+			.     '[^>\t\n\f\r \/]*+(?:[^>=]++|=[ \t\f\r\n]*+(?:"[^"]*+"|\'[^\']*+\')?)*+>?' // Find end of element, skipping quoted attribute values after the tag name. If not found, match all input.
 			. ')';
 		// phpcs:enable
 	}
