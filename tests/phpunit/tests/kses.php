@@ -2995,4 +2995,31 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Tests that the pre_kses filter receives its documented context arguments.
+	 *
+	 * @ticket 65819
+	 * @covers ::wp_kses_hook
+	 */
+	public function test_pre_kses_filter_receives_context_arguments() {
+		$received = null;
+		$filter   = static function ( $content, $allowed_html, $allowed_protocols ) use ( &$received ) {
+			$received = array( $content, $allowed_html, $allowed_protocols );
+			return $content;
+		};
+
+		// Run before the default priority-10 filters so the probe sees these exact inputs.
+		add_filter( 'pre_kses', $filter, 9, 3 );
+		try {
+			wp_kses_hook( 'content', 'data', array( 'http', 'https' ) );
+		} finally {
+			remove_filter( 'pre_kses', $filter, 9 );
+		}
+
+		$this->assertSame(
+			array( 'content', 'data', array( 'http', 'https' ) ),
+			$received
+		);
+	}
 }
