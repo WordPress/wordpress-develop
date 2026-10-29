@@ -350,9 +350,37 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		fclose( $file );
 	}
 
-	$obscura              = wp_generate_password( 32, false, false );
-	$file_basename        = 'wp-personal-data-file-' . $obscura;
-	$html_report_filename = wp_unique_filename( $exports_dir, $file_basename . '.html' );
+	$archive_filename_needs_update = false;
+	$archive_pathname_is_legacy    = false;
+
+	// This meta value is used from version 5.5.
+	$archive_filename = get_post_meta( $request_id, '_export_file_name', true );
+
+	// This one stored an absolute path and is used for backward compatibility.
+	$archive_pathname = get_post_meta( $request_id, '_export_file_path', true );
+
+	// If a filename meta exists, use it.
+	if ( ! empty( $archive_filename ) ) {
+		$file_basename    = pathinfo( $archive_filename, PATHINFO_FILENAME );
+		$archive_pathname = $exports_dir . $archive_filename;
+	} elseif ( ! empty( $archive_pathname ) ) {
+		// If a full path meta exists, use it and create the new meta value.
+		$archive_filename = basename( $archive_pathname );
+		$file_basename    = pathinfo( $archive_filename, PATHINFO_FILENAME );
+
+		$archive_filename_needs_update = true;
+		$archive_pathname_is_legacy    = true;
+	} else {
+		// If there's no filename or full path stored, create a new file.
+		$obscura          = wp_generate_password( 32, false, false );
+		$file_basename    = 'wp-personal-data-file-' . $obscura;
+		$archive_filename = $file_basename . '.zip';
+		$archive_pathname = $exports_dir . $archive_filename;
+
+		$archive_filename_needs_update = true;
+	}
+
+	$html_report_filename = $file_basename . '.html';
 	$html_report_pathname = wp_normalize_path( $exports_dir . $html_report_filename );
 	$json_report_filename = $file_basename . '.json';
 	$json_report_pathname = wp_normalize_path( $exports_dir . $json_report_filename );
@@ -509,30 +537,14 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	 */
 	$error = false;
 
-	// This meta value is used from version 5.5.
-	$archive_filename = get_post_meta( $request_id, '_export_file_name', true );
-
-	// This one stored an absolute path and is used for backward compatibility.
-	$archive_pathname = get_post_meta( $request_id, '_export_file_path', true );
-
-	// If a filename meta exists, use it.
-	if ( ! empty( $archive_filename ) ) {
-		$archive_pathname = $exports_dir . $archive_filename;
-	} elseif ( ! empty( $archive_pathname ) ) {
-		// If a full path meta exists, use it and create the new meta value.
-		$archive_filename = basename( $archive_pathname );
-
+	if ( $archive_filename_needs_update ) {
 		update_post_meta( $request_id, '_export_file_name', $archive_filename );
+	}
 
+	if ( $archive_pathname_is_legacy ) {
 		// Remove the back-compat meta values.
 		delete_post_meta( $request_id, '_export_file_url' );
 		delete_post_meta( $request_id, '_export_file_path' );
-	} else {
-		// If there's no filename or full path stored, create a new file.
-		$archive_filename = $file_basename . '.zip';
-		$archive_pathname = $exports_dir . $archive_filename;
-
-		update_post_meta( $request_id, '_export_file_name', $archive_filename );
 	}
 
 	$archive_url = $exports_url . $archive_filename;
