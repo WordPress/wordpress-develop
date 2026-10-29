@@ -1112,28 +1112,31 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertCount( 3, $results );
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value-a',
-				'suffix'    => null,
-				'unique_id' => 'plugin-a',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value-a',
+				'suffix'         => null,
+				'unique_id'      => 'plugin-a',
+				'attribute_name' => 'data-wp-test---plugin-a',
 			),
 			$results[0]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value-b',
-				'suffix'    => null,
-				'unique_id' => 'plugin-b',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value-b',
+				'suffix'         => null,
+				'unique_id'      => 'plugin-b',
+				'attribute_name' => 'data-wp-test---plugin-b',
 			),
 			$results[1]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value-c',
-				'suffix'    => null,
-				'unique_id' => 'plugin-c',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value-c',
+				'suffix'         => null,
+				'unique_id'      => 'plugin-c',
+				'attribute_name' => 'data-wp-test---plugin-c',
 			),
 			$results[2]
 		);
@@ -1152,37 +1155,41 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertCount( 4, $results );
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value1',
-				'suffix'    => 'suffix-a',
-				'unique_id' => 'id-1',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value1',
+				'suffix'         => 'suffix-a',
+				'unique_id'      => 'id-1',
+				'attribute_name' => 'data-wp-test--suffix-a---id-1',
 			),
 			$results[0]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value2',
-				'suffix'    => 'suffix-a',
-				'unique_id' => 'id-2',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value2',
+				'suffix'         => 'suffix-a',
+				'unique_id'      => 'id-2',
+				'attribute_name' => 'data-wp-test--suffix-a---id-2',
 			),
 			$results[1]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value3',
-				'suffix'    => 'suffix-b',
-				'unique_id' => 'id-1',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value3',
+				'suffix'         => 'suffix-b',
+				'unique_id'      => 'id-1',
+				'attribute_name' => 'data-wp-test--suffix-b---id-1',
 			),
 			$results[2]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'myPlugin',
-				'value'     => 'value4',
-				'suffix'    => 'suffix-c',
-				'unique_id' => 'id-1',
+				'namespace'      => 'myPlugin',
+				'value'          => 'value4',
+				'suffix'         => 'suffix-c',
+				'unique_id'      => 'id-1',
+				'attribute_name' => 'data-wp-test--suffix-c---id-1',
 			),
 			$results[3]
 		);
@@ -1208,19 +1215,21 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertCount( 2, $results );
 		$this->assertSame(
 			array(
-				'namespace' => 'namespace-a',
-				'value'     => 'value1',
-				'suffix'    => null,
-				'unique_id' => 'id-a',
+				'namespace'      => 'namespace-a',
+				'value'          => 'value1',
+				'suffix'         => null,
+				'unique_id'      => 'id-a',
+				'attribute_name' => 'data-wp-test---id-a',
 			),
 			$results[0]
 		);
 		$this->assertSame(
 			array(
-				'namespace' => 'namespace-b',
-				'value'     => 'value2',
-				'suffix'    => null,
-				'unique_id' => 'id-b',
+				'namespace'      => 'namespace-b',
+				'value'          => 'value2',
+				'suffix'         => null,
+				'unique_id'      => 'id-b',
+				'attribute_name' => 'data-wp-test---id-b',
 			),
 			$results[1]
 		);
@@ -1266,10 +1275,11 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'namespace' => 'myPlugin',
-					'value'     => 'kept',
-					'suffix'    => 'valid',
-					'unique_id' => null,
+					'namespace'      => 'myPlugin',
+					'value'          => 'kept',
+					'suffix'         => 'valid',
+					'unique_id'      => null,
+					'attribute_name' => 'data-wp-test--valid',
 				),
 			),
 			$get_directive_entries->invoke( $this->interactivity, $p, 'test' )

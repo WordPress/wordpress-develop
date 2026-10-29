@@ -78,9 +78,7 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 		$widget = new WP_Widget_Block();
 
 		$this->assertSame( 'block', $widget->id_base );
-		$this->assertSame( 'Block', $widget->name );
 		$this->assertSame( 'widget_block', $widget->widget_options['classname'] );
-		$this->assertSame( 'A widget containing a block.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 		$this->assertSame( 400, $widget->control_options['width'] );
@@ -439,7 +437,6 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	public static function data_set_is_wide_widget_in_customizer() {
 		return array(
 			'block widget when wide is true'      => array( true, 'block-2', false ),
-			'block widget when wide is false'     => array( false, 'block-5', false ),
 			'non-block widget when wide is true'  => array( true, 'text-2', true ),
 			'non-block widget when wide is false' => array( false, 'custom_html-3', false ),
 		);

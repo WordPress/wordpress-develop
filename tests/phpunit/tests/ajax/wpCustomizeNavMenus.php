@@ -86,6 +86,12 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 		$wp_customize       = $this->wp_customize;
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'privilege' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Helper to keep it DRY
 	 *

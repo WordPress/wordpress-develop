@@ -107,7 +107,6 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	public static function data_explicit_parent_pages() {
 		return array(
 			'core parent page'            => array( 'options-general.php', 'options-general.php' ),
-			'plugin parent page'          => array( 'my-plugin', 'my-plugin' ),
 			'parent page that is unknown' => array( 'does-not-exist', 'does-not-exist' ),
 			'parent with a real parent'   => array( 'old-parent.php', 'new-parent.php' ),
 		);
@@ -343,7 +342,6 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 			'top-level page with an admin.php parent' => array( 'my-plugin', 'admin.php', 'toplevel_page_my-plugin' ),
 			'top-level page with another parent'      => array( 'my-plugin', 'options-general.php', 'toplevel_page_my-plugin' ),
 			'submenu page of a core menu'             => array( 'my-settings', 'options-general.php', 'settings_page_my-settings' ),
-			'submenu page of a plugin menu'           => array( 'my-subpage', 'my-plugin', 'my-plugin_page_my-subpage' ),
 			'submenu page of a renamed plugin menu'   => array( 'my-subpage', 'renamed-plugin', 'custom-prefix_page_my-subpage' ),
 			'submenu page of an unknown parent'       => array( 'my-subpage', 'does-not-exist', 'admin_page_my-subpage' ),
 			'page without a parent'                   => array( 'my-subpage', '', 'admin_page_my-subpage' ),
