@@ -1859,19 +1859,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									continue;
 								}
 
-								/*
-								 * An Interactivity API binding replaces an attribute value when the content
-								 * is rendered, after KSES has checked it. Where KSES restricts attribute values
-								 * on an element, only bindings of attributes it allows there with any value
-								 * are kept.
-								 */
-								if (
-									str_starts_with( $name, 'data-wp-bind--' ) &&
-									_wp_kses_directive_binds_value_restricted_attribute( $name, $this->allowed_html[ $tag_name ] )
-								) {
-									continue;
-								}
-
 								$raw_value = $this->get_attribute( $name );
 								$value     = is_string( $raw_value ) ? $raw_value : '';
 
@@ -2720,21 +2707,6 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		}
 	}
 
-	/*
-	 * An Interactivity API binding replaces an attribute value when the content is rendered,
-	 * after KSES has checked it. Where KSES restricts attribute values on an element, only
-	 * bindings of attributes it allows there with any value are kept.
-	 */
-	if (
-		str_starts_with( $name_low, 'data-wp-bind--' ) &&
-		_wp_kses_directive_binds_value_restricted_attribute( $name_low, $allowed_attr )
-	) {
-		$name  = '';
-		$value = '';
-		$whole = '';
-		return false;
-	}
-
 	if ( 'style' === $name_low ) {
 		$decoded_value = WP_HTML_Decoder::decode_attribute( $value );
 		$new_value     = safecss_filter_attr( $decoded_value );
@@ -3411,8 +3383,7 @@ function wp_kses_normalize_entities3( $matches ) {
  * U+0008 BACKSPACE), as are surrogates and U+FFFE/U+FFFF.
  *
  * Prefer the newer Unicode/UTF-8 helpers (for example {@see wp_is_valid_utf8()})
- * rather than extending call sites here. See
- * https://make.wordpress.org/core/2025/11/18/modernizing-utf-8-support-in-wordpress-6-9/
+ * rather than extending call sites here.
  *
  * The ranges match the XML definition:
  *
@@ -3427,6 +3398,7 @@ function wp_kses_normalize_entities3( $matches ) {
  * @since 2.7.0
  *
  * @link https://www.w3.org/TR/xml/#charsets
+ * @link https://make.wordpress.org/core/2025/11/18/modernizing-utf-8-support-in-wordpress-6-9/
  *
  * @param int $i Code point to check.
  * @return bool Whether the code point is allowed by the XML Char production.
@@ -4259,92 +4231,6 @@ function _wp_kses_allow_pdf_objects( $url ) {
 		|| str_starts_with( $url, "https://$upload_host$upload_port/" )
 	) {
 		return true;
-	}
-
-	return false;
-}
-
-/**
- * Determines whether KSES restricts the value of any attribute of an element.
- *
- * An attribute rule other than `required` and `valueless` restricts the value itself,
- * for example `values` or `value_callback`.
- *
- * @since 7.1.4
- * @access private
- * @ignore
- *
- * @param array|bool $allowed_attributes The attributes KSES allows on the element.
- * @return bool Whether KSES restricts the value of any attribute of the element.
- */
-function _wp_kses_restricts_attribute_values( $allowed_attributes ): bool {
-	if ( ! is_array( $allowed_attributes ) ) {
-		return false;
-	}
-
-	foreach ( $allowed_attributes as $attribute_rules ) {
-		if ( ! is_array( $attribute_rules ) ) {
-			continue;
-		}
-		foreach ( array_keys( $attribute_rules ) as $rule ) {
-			if ( ! in_array( strtolower( (string) $rule ), array( 'required', 'valueless' ), true ) ) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-/**
- * Determines whether a directive binds an attribute whose value KSES restricts.
- *
- * This only applies to elements for which KSES restricts the value of at least one
- * attribute. On those elements, a `data-wp-bind` directive is reported unless it binds
- * an attribute which KSES allows there with any value. KSES calls this to keep such a
- * directive out of content saved by an author who cannot post unfiltered HTML.
- *
- * @since 7.1.4
- * @access private
- * @ignore
- *
- * @param string     $directive_name     The directive attribute name, in lowercase.
- * @param array|bool $allowed_attributes The attributes KSES allows on the element.
- * @return bool Whether the directive binds an attribute whose value KSES restricts.
- */
-function _wp_kses_directive_binds_value_restricted_attribute( string $directive_name, $allowed_attributes ): bool {
-	if ( ! str_starts_with( $directive_name, 'data-wp-bind--' ) ) {
-		return false;
-	}
-
-	if ( ! _wp_kses_restricts_attribute_values( $allowed_attributes ) ) {
-		return false;
-	}
-
-	/*
-	 * Both the whole remainder of the name and the part before a unique ID are checked, so
-	 * that the result does not depend on how the unique ID is parsed. A binding with a unique
-	 * ID is not applied at all, so removing one changes nothing.
-	 */
-	$bound_attribute  = substr( $directive_name, strlen( 'data-wp-bind--' ) );
-	$bound_attributes = array( $bound_attribute );
-	$unique_id_index  = strpos( $bound_attribute, '---' );
-	if ( false !== $unique_id_index ) {
-		$bound_attributes[] = substr( $bound_attribute, 0, $unique_id_index );
-	}
-
-	foreach ( $bound_attributes as $attribute_name ) {
-		if ( isset( $allowed_attributes[ $attribute_name ] ) ) {
-			$rules = $allowed_attributes[ $attribute_name ];
-		} elseif ( 1 === preg_match( '/^data-[a-z0-9_-]+$/', $attribute_name ) && isset( $allowed_attributes['data-*'] ) ) {
-			$rules = $allowed_attributes['data-*'];
-		} else {
-			return true;
-		}
-
-		if ( ! $rules || is_array( $rules ) ) {
-			return true;
-		}
 	}
 
 	return false;
