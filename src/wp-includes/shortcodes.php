@@ -155,7 +155,7 @@ function shortcode_exists( $tag ) {
  * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
-	if ( false !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
 		return WP_Shortcode_Processor::contains_any_shortcode( $content, $tag );
 	}
 
@@ -194,7 +194,7 @@ function has_shortcode( $content, $tag ) {
  * @return string[] An array of registered shortcode names found in the content.
  */
 function get_shortcode_tags_in_content( $content ) {
-	if ( false !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
 		$processor = new WP_Shortcode_Processor( $content, null, WP_Shortcode_Processor::MODE_RECURSIVE );
 		$seen      = array();
 
@@ -741,9 +741,6 @@ function strip_shortcodes( $content ) {
 		return $content;
 	}
 
-	// Find all registered tag names in $content.
-	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
-
 	$tags_to_remove = array_keys( $shortcode_tags );
 
 	/**
@@ -755,6 +752,33 @@ function strip_shortcodes( $content ) {
 	 * @param string $content        Content shortcodes are being removed from.
 	 */
 	$tags_to_remove = apply_filters( 'strip_shortcodes_tagnames', $tags_to_remove, $content );
+
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		$unwanted  = array_fill_keys( $tags_to_remove, true );
+		$buffer    = '';
+		$was_at    = 0;
+		$processor = new WP_Shortcode_Processor( $content );
+		while ( $processor->next_shortcode() ) {
+			if ( isset( $unwanted[ $processor->get_name() ] ) ) {
+				$span    = $processor->get_span();
+				$buffer .= substr( $content, $was_at, $span->start - $was_at );
+				$was_at  = $span->start + $span->length;
+			}
+		}
+
+		if ( 0 === $was_at ) {
+			return $content;
+		}
+
+		if ( $was_at < strlen( $content ) ) {
+			$buffer .= substr( $content, $was_at );
+		}
+
+		return $buffer;
+	}
+
+	// Find all registered tag names in $content.
+	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
 
 	$tagnames = array_intersect( $tags_to_remove, $matches[1] );
 
@@ -882,6 +906,14 @@ class WP_Shortcode_Processor {
 
 	public function get_name(): ?string {
 		return $this->shortcode_name;
+	}
+
+	public function get_span(): ?WP_HTML_Span {
+		if ( $this->shortcode_starts_at < 0 ) {
+			return null;
+		}
+
+		return new WP_HTML_Span( $this->shortcode_starts_at, $this->shortcode_length );
 	}
 
 	/**
