@@ -73,6 +73,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax1' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Ensure cache keys are generated without WPDB placeholders.
 	 *

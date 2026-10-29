@@ -675,7 +675,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		 * allow for duplicate slugs.
 		 */
 		$this->assertSame( 'foo-2', $new_term->slug );
-		$this->assertNotEquals( $new_term->term_id, $term->term_id );
+		$this->assertNotSame( $new_term->term_id, $term->term_id );
 
 		_unregister_taxonomy( 'wptests_tax', 'post' );
 	}
@@ -764,7 +764,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
 		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
 
-		$this->assertNotEquals( $t1['term_id'], $t2['term_id'] );
+		$this->assertNotSame( $t1['term_id'], $t2['term_id'] );
 	}
 
 	public function test_wp_insert_term_should_return_term_id_and_term_taxonomy_id() {

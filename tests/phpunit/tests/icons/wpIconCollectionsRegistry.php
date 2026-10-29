@@ -46,7 +46,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_valid_collection_slugs() {
+	public static function data_valid_collection_slugs() {
 		return array(
 			'simple slug'            => array( 'mycollection' ),
 			'digit at the start'     => array( '1-collection' ),
@@ -78,7 +78,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_invalid_collection_slugs() {
+	public static function data_invalid_collection_slugs() {
 		return array(
 			'non-string slug'         => array( 1 ),
 			'contains slash'          => array( 'plugin/icons' ),
@@ -244,7 +244,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_boolean_public_properties() {
+	public static function data_boolean_public_properties() {
 		return array(
 			'public collection'     => array( true ),
 			'non-public collection' => array( false ),
@@ -282,7 +282,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_boolean_public_properties() {
+	public static function data_non_boolean_public_properties() {
 		return array(
 			'string'  => array( 'false' ),
 			'integer' => array( 0 ),
