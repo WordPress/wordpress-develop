@@ -664,7 +664,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_front_page() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_front_page() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
@@ -709,7 +709,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog index'  => array( home_url( '/blog/' ), false ),
@@ -757,7 +757,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog index'  => array( home_url( '/blog/' ), false ),

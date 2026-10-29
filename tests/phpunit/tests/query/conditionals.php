@@ -1649,7 +1649,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 */
-	public function data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set() {
+	public static function data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set() {
 		// Get the list of `is_*()` conditional tags.
 		$functions = array_filter(
 			get_class_methods( 'WP_Query' ),
@@ -1691,7 +1691,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	 *     @type false|null $expected      Expected return value.
 	 * }
 	 */
-	public function data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set() {
+	public static function data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set() {
 		return array(
 			array( 'have_posts', false ),
 			array( 'in_the_loop', false ),

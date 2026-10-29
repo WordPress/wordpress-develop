@@ -9,7 +9,7 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_parse_query_s_types() {
+	public static function data_parse_query_s_types() {
 		return array(
 			'array input returns empty string' => array( array( 'foo' ), '' ),
 			'string input returns string'      => array( 'foo', 'foo' ),

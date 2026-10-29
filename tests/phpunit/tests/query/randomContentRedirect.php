@@ -297,7 +297,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_random_urls(): array {
+	public static function data_random_urls(): array {
 		return array(
 			'pretty permalink'         => array( '/random/' ),
 			'pretty without slash'     => array( '/random' ),
@@ -685,7 +685,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string[]}>
 	 */
-	public function data_wp_get_random_content_post_types(): array {
+	public static function data_wp_get_random_content_post_types(): array {
 		return array(
 			'home'                 => array( '/?random', array( 'post' ) ),
 			'category'             => array( '/?random&category_name=arts', array( 'post' ) ),
@@ -749,7 +749,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, string>}>
 	 */
-	public function data_ineligible_posts(): array {
+	public static function data_ineligible_posts(): array {
 		return array(
 			'draft'              => array( array( 'post_status' => 'draft' ) ),
 			'pending'            => array( array( 'post_status' => 'pending' ) ),
@@ -876,7 +876,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_feed_urls(): array {
+	public static function data_feed_urls(): array {
 		return array(
 			'site feed'     => array( '/feed/?random' ),
 			'category feed' => array( '/category/arts/feed/?random' ),
@@ -939,7 +939,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_non_redirecting_http_methods(): array {
+	public static function data_non_redirecting_http_methods(): array {
 		return array(
 			'POST'    => array( 'POST' ),
 			'PUT'     => array( 'PUT' ),
@@ -974,7 +974,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_redirecting_http_methods(): array {
+	public static function data_redirecting_http_methods(): array {
 		return array(
 			'GET'            => array( 'GET' ),
 			'HEAD'           => array( 'HEAD' ),
@@ -1083,7 +1083,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_permalink_structures(): array {
+	public static function data_permalink_structures(): array {
 		return array(
 			'post name'          => array( '/%postname%/' ),
 			'date and post name' => array( '/%year%/%monthnum%/%postname%/' ),
@@ -1159,7 +1159,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, callable[]>
 	 */
-	public function data_page_named_random_changes(): array {
+	public static function data_page_named_random_changes(): array {
 		return array(
 			'renamed'     => array(
 				static function ( int $page_id ): void {
@@ -1392,7 +1392,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: bool}>
 	 */
-	public function data_is_random(): array {
+	public static function data_is_random(): array {
 		return array(
 			'random home'                => array( '/random/', true ),
 			'random category archive'    => array( '/random/category/arts/', true ),
@@ -1602,7 +1602,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: bool|int}>
 	 */
-	public function data_query_vars_overriding_the_limit(): array {
+	public static function data_query_vars_overriding_the_limit(): array {
 		$overrides = array(
 			'nopaging'               => array( 'nopaging', true ),
 			'posts_per_archive_page' => array( 'posts_per_archive_page', 10 ),
@@ -1799,7 +1799,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed, 1: bool}>
 	 */
-	public function data_enabled_filter_values(): array {
+	public static function data_enabled_filter_values(): array {
 		return array(
 			'default true' => array( true, true ),
 			'false'        => array( false, false ),
@@ -1967,7 +1967,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_unsupported_random_paths(): array {
+	public static function data_unsupported_random_paths(): array {
 		return array(
 			'pagination' => array( '/random/page/2/' ),
 			'feed'       => array( '/random/feed/' ),
@@ -2036,7 +2036,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_random_requests(): array {
+	public static function data_random_requests(): array {
 		return array(
 			'random post'          => array( '/random/' ),
 			'random empty archive' => array( '/random/category/empty/' ),
@@ -2124,7 +2124,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_post_name_at_the_root_structures(): array {
+	public static function data_post_name_at_the_root_structures(): array {
 		return array(
 			'post name' => array( '/%postname%/' ),
 			'pathinfo'  => array( '/index.php/%postname%/' ),

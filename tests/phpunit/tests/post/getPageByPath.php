@@ -123,7 +123,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string|string[]>> {
 	 */
-	public function data_page_post_types(): array {
+	public static function data_page_post_types(): array {
 		return array(
 			'string'             => array( 'page' ),
 			'array of one type'  => array( array( 'page' ) ),
