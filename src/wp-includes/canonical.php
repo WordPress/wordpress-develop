@@ -66,6 +66,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return null;
 	}
 
+	// Don't redirect URLs with commas in query parameters (Bug #62920).
+	if ( isset( $_SERVER['QUERY_STRING'] ) && strpos( $_SERVER['QUERY_STRING'], ',' ) !== false ) {
+		return false;
+	}
+
 	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
 		// Build the URL in the address bar.
 		$requested_url  = is_ssl() ? 'https://' : 'http://';
