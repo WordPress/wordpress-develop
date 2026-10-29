@@ -10,6 +10,26 @@
 class Tests_Theme_LocateTemplate extends WP_UnitTestCase {
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests that a template name containing a parent directory segment
 	 * is only located when it resolves inside an allowed directory.
 	 *

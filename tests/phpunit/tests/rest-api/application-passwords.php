@@ -43,7 +43,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 		$actual = WP_Application_Passwords::create_new_application_password( self::$user_id, $args );
 
-		$this->assertInstanceOf( WP_Error::class, $actual );
+		$this->assertWPError( $actual );
 		$this->assertSame( $expected['error_code'], $actual->get_error_code() );
 		$this->assertSame( $expected['error_message'], $actual->get_error_message( $expected['error_code'] ) );
 	}
@@ -167,7 +167,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 	public function test_update_application_password_when_no_password_found( array $update ) {
 		$actual = WP_Application_Passwords::update_application_password( self::$user_id, '', $update );
 
-		$this->assertInstanceOf( WP_Error::class, $actual );
+		$this->assertWPError( $actual );
 		$this->assertSame( 'application_password_not_found', $actual->get_error_code() );
 		$this->assertSame( 'Could not find an application password with that id.', $actual->get_error_message( 'application_password_not_found' ) );
 	}

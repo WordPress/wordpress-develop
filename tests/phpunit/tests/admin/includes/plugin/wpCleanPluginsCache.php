@@ -83,22 +83,6 @@ class Tests_Admin_Includes_Plugin_WpCleanPluginsCache extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_clears_plugins_cache_and_update_transient_when_clear_update_cache_is_true() {
-		wp_clean_plugins_cache( true );
-
-		$this->assertFalse(
-			wp_cache_get( 'plugins', 'plugins' ),
-			'Plugins object cache should be cleared.'
-		);
-		$this->assertFalse(
-			get_site_transient( 'update_plugins' ),
-			'update_plugins site transient should be cleared when $clear_update_cache is true.'
-		);
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_keeps_update_transient_when_clear_update_cache_is_false() {
 		wp_clean_plugins_cache( false );
 

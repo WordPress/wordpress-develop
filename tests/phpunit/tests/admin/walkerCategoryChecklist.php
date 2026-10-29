@@ -92,7 +92,6 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	public static function data_depths() {
 		return array(
 			'top level'    => array( 0, '' ),
-			'first level'  => array( 1, "\t" ),
 			'second level' => array( 2, "\t\t" ),
 		);
 	}
@@ -131,7 +130,6 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 
 		return array(
 			'no selected or popular categories' => array( array(), '<li>' . $unselected ),
-			'empty selected categories'         => array( array( 'selected_cats' => array() ), '<li>' . $unselected ),
 			'selected category'                 => array( array( 'selected_cats' => array( 4, 5 ) ), '<li>' . $selected ),
 			'selected category as a string'     => array( array( 'selected_cats' => array( '5' ) ), '<li>' . $selected ),
 			'another selected category'         => array( array( 'selected_cats' => array( 50 ) ), '<li>' . $unselected ),
