@@ -243,8 +243,11 @@ jobs:
         run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
 
       - name: Import mock data
+        # Neither curl nor the import's attachment downloads time out quickly, so a
+        # stalled download could otherwise run until the 6 hour job limit.
+        timeout-minutes: 5
         run: |
-          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          curl --fail --no-progress-meter --location --retry 5 --retry-all-errors -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
 
