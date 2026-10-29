@@ -15,12 +15,11 @@
  * delimiting braces. It does not parse HTML attribute syntax, decode character
  * references, or operate on raw HTML markup.
  *
- * String values read from {@see WP_HTML_Tag_Processor::get_attribute()} can be
- * passed to this class, and values returned by
+ * Values read from {@see WP_HTML_Tag_Processor::get_attribute()} can be passed
+ * to the constructor, and values returned by
  * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} can be passed
- * back to {@see WP_HTML_Tag_Processor::set_attribute()}. Missing and boolean
- * style attributes are an HTML concern and must be handled before creating this
- * processor.
+ * back to {@see WP_HTML_Tag_Processor::set_attribute()}. A missing (`null`) or
+ * boolean (`true`) style attribute gives an empty style.
  *
  * Unlike associative-array based style helpers, this processor preserves the
  * declaration list model of CSS. Multiple declarations with the same property
@@ -134,32 +133,22 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Constructor.
 	 *
-	 * Do not instantiate directly. Use
-	 * {@see WP_HTML_Style_Attribute_Processor::create()} instead.
+	 * `true` and `null` give an empty style.
 	 *
 	 * @since 7.3.0
-	 * @ignore
 	 *
-	 * @param string $style Decoded CSS text value from a style attribute.
+	 * @param string|true|null $decoded_css_text Decoded CSS text value from a style attribute.
 	 */
-	private function __construct( string $style ) {
-		$this->style = $style;
-	}
+	public function __construct( $decoded_css_text ) {
+		if ( true === $decoded_css_text || null === $decoded_css_text ) {
+			$decoded_css_text = '';
+		}
 
-	/**
-	 * Creates a processor for decoded CSS text from a style attribute.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $decoded_css_text Decoded CSS text value from a style attribute.
-	 * @return static Created processor.
-	 */
-	public static function create( $decoded_css_text ) {
 		if ( ! is_string( $decoded_css_text ) ) {
 			throw new TypeError( __METHOD__ . '(): Argument #1 ($decoded_css_text) must be of type string' );
 		}
 
-		return new static( $decoded_css_text );
+		$this->style = $decoded_css_text;
 	}
 
 	/**
@@ -231,7 +220,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * Token offsets index the current style text, which
 	 * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} returns.
-	 * Before any mutation that is the text passed to `create()`.
+	 * Before any mutation that is the text passed to the constructor.
 	 *
 	 * @since 7.3.0
 	 *
