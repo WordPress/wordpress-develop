@@ -502,7 +502,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
 	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
-		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
+		// The editor doesn't render inner blocks bindings yet.
+		$supported_block_attributes = array_values( array_diff( get_block_bindings_supported_attributes( $block_type ), array( 'innerBlocks' ) ) );
 		if ( ! empty( $supported_block_attributes ) ) {
 			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
 		}
