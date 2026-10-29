@@ -474,6 +474,31 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Parses the plain-text body from the redirection script `header-check` endpoint.
+	 *
+	 * @param string $body Response body.
+	 * @return array Header name => value pairs.
+	 */
+	protected function parse_header_check_body( $body ) {
+		$headers = array();
+
+		foreach ( explode( "\n", $body ) as $line ) {
+			if ( empty( $line ) ) {
+				continue;
+			}
+
+			$parts = explode( ':', $line, 2 );
+			if ( 2 !== count( $parts ) ) {
+				continue;
+			}
+
+			$headers[ $parts[0] ] = $parts[1];
+		}
+
+		return $headers;
+	}
+
+	/**
 	 * @ticket 11888
 	 *
 	 * @covers ::wp_remote_request
@@ -489,15 +514,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 
-		$headers = array();
-		foreach ( explode( "\n", $res['body'] ) as $key => $value ) {
-			if ( empty( $value ) ) {
-				continue;
-			}
-			$parts = explode( ':', $value, 2 );
-			unset( $headers[ $key ] );
-			$headers[ $parts[0] ] = $parts[1];
-		}
+		$headers = $this->parse_header_check_body( $res['body'] );
 
 		$this->assertArrayHasKey( 'test1', $headers );
 		$this->assertSame( 'test', $headers['test1'] );
@@ -717,20 +734,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 
-		$received_headers = array();
-		foreach ( explode( "\n", wp_remote_retrieve_body( $res ) ) as $line ) {
-			$line = trim( $line );
-			if ( '' === $line ) {
-				continue;
-			}
-
-			$header_parts = explode( ':', $line, 2 );
-			if ( 2 !== count( $header_parts ) ) {
-				continue;
-			}
-
-			$received_headers[ strtolower( $header_parts[0] ) ] = $header_parts[1];
-		}
+		$received_headers = $this->parse_header_check_body( wp_remote_retrieve_body( $res ) );
 
 		$this->assertArrayHasKey( 'host', $received_headers );
 		$this->assertSame( $host_header, $received_headers['host'] );
