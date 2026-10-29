@@ -182,7 +182,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		if ( ! is_string( $decoded_css_text ) ) {
-			throw new TypeError( __METHOD__ . '(): Argument #1 ($decoded_css_text) must be of type string' );
+			throw new TypeError( __METHOD__ . '(): Argument #1 ($decoded_css_text) must be of type string|true|null' );
 		}
 
 		$this->style = $decoded_css_text;
