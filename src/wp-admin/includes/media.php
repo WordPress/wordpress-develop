@@ -3626,7 +3626,7 @@ function attachment_submitbox_metadata() {
  * @since 7.3.0 Reads the tags of files without ID3, such as FLAC, Ogg and M4A.
  *
  * @param array $metadata An existing array with data.
- * @param array $data     Data supplied by ID3 tags.
+ * @param array $data     Data read by getID3.
  */
 function wp_add_id3_tag_data( &$metadata, $data ) {
 	$has_id3 = false;
@@ -3648,10 +3648,9 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 	}
 
 	/*
-	 * Files without ID3 tags, such as FLAC, Ogg and M4A, keep their tags in another format:
-	 * Vorbis comments, QuickTime atoms, APE, RIFF INFO or ASF. Use the first of these,
-	 * under the names ID3 gives the same tags, without replacing what was read from the
-	 * stream itself, such as its encoder.
+	 * Files without ID3, such as FLAC, Ogg and M4A, keep their tags as Vorbis comments,
+	 * QuickTime atoms, APE, RIFF INFO or ASF. Read the first set under ID3's names,
+	 * without replacing what was read from the stream, such as its encoder.
 	 */
 	if ( ! $has_id3 && ! empty( $data['tags'] ) && is_array( $data['tags'] ) ) {
 		$id3_keys = array(
