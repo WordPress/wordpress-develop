@@ -93,7 +93,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	 * @covers wp_xmlrpc_server::login
 	 */
 	public function test_login_with_integer_credentials_succeeds(): void {
-		self::factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'user_login' => '12345',
 				'user_pass'  => '67890',
@@ -101,7 +101,9 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 12345, 67890 ) );
+		$user = $this->myxmlrpcserver->login( 12345, 67890 );
+		$this->assertInstanceOf( WP_User::class, $user, 'The login should succeed.' );
+		$this->assertSame( $user_id, $user->ID, 'The login should authenticate the user with the matching credentials.' );
 	}
 
 	/**
