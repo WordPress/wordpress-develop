@@ -1398,7 +1398,7 @@ class WP_CSS_Token_Processor {
 
 		$codepoint_byte_length = $new_at - $at;
 		$codepoint             = self::utf8_ord( substr( $this->css, $at, $codepoint_byte_length ) );
-		if ( null !== $codepoint && $codepoint >= 0x80 ) {
+		if ( $codepoint >= 0x80 ) {
 			return $codepoint_byte_length;
 		}
 		return 0;
