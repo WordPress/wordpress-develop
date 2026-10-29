@@ -5108,6 +5108,59 @@ function wp_parse_list( $input_list ): array {
 }
 
 /**
+ * Generator for a foreach loop to step through values in an unescaped HTML
+ * attribute whose type is a set of space-separated tokens, such as `class`.
+ *
+ * > A set of space-separated tokens is a string containing zero or more
+ * > words (known as tokens) separated by one or more ASCII whitespace,
+ * > where words consist of any string of one or more characters, none
+ * > of which are ASCII whitespace.
+ *
+ * Certain HTML attributes, such as `class`, `rel`, and `sizes`, store their
+ * values using this syntax. Use this function to split such decoded
+ * attribute values into their tokens.
+ *
+ * This is a purely lexical operation on a plain-text string: tokens are
+ * neither deduplicated nor case-normalized, and no character references are
+ * decoded. The input must already be a fully decoded attribute value, not
+ * raw markup, since whitespace produced by a character reference (such as
+ * `&#x20;`) would otherwise be treated differently here than it is by an
+ * HTML parser. To read the class names of an HTML tag, use
+ * {@see WP_HTML_Tag_Processor::class_list()} instead.
+ *
+ * ```php interactive
+ * foreach ( wp_html_attribute_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
+ *   echo "{$token} ";
+ * }
+ * // Outputs: "wp-block is-style-outline "
+ * ```
+ *
+ * @since 7.2.0
+ *
+ * @link https://html.spec.whatwg.org/#attributes-3
+ * @link https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#set-of-space-separated-tokens
+ *
+ * @param string $decoded_attribute_value Full un-escaped attribute value to split.
+ * @return Generator<int, non-empty-string> Tokens in order of appearance.
+ */
+function wp_html_attribute_split_space_separated_tokens( string $decoded_attribute_value ): Generator {
+	$at           = strspn( $decoded_attribute_value, " \t\f\r\n" );
+	$input_length = strlen( $decoded_attribute_value );
+	while ( $at < $input_length ) {
+		// Find the byte length until the next boundary.
+		$length = strcspn( $decoded_attribute_value, " \t\f\r\n", $at );
+		if ( 0 === $length ) {
+			return;
+		}
+
+		yield substr( $decoded_attribute_value, $at, $length );
+
+		$at += $length;
+		$at += strspn( $decoded_attribute_value, " \t\f\r\n", $at );
+	}
+}
+
+/**
  * Cleans up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
