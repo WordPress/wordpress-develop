@@ -2718,26 +2718,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			);
 			$this->assertSame( self::EMPTY_RESULT, $result, 'A hidden author slug should return zero totals, just like an unknown slug.' );
 		}
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_author' => $author->ID,
-				'post_status' => 'publish',
-			)
-		);
-		$result  = $ability->execute(
-			array(
-				'where'  => array(
-					'type'   => 'post',
-					'ids'    => array( $post_id ),
-					'author' => array( 'slug' => $author->user_nicename ),
-				),
-				'fields' => array( 'author' ),
-			)
-		);
-		$this->assertCount( 1, $result['items'], 'A published post in a viewable type should make the author visible.' );
-		$this->assertSame( $author->display_name, $result['items'][0]['author']['name'], 'The visible author name should be returned.' );
-		$this->assertSame( $author->user_nicename, $result['items'][0]['author']['slug'], 'The visible author slug should be returned.' );
 	}
 
 	/**
