@@ -240,7 +240,11 @@ jobs:
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
 
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
+        run: |
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors -O https://downloads.wordpress.org/plugin/wordpress-importer.zip
+          npm run env:cli -- plugin install wordpress-importer.zip --activate --path="/var/www/${LOCAL_DIR}"
+          rm wordpress-importer.zip
 
       - name: Import mock data
         run: |
