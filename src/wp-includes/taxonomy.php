@@ -3728,8 +3728,7 @@ function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	}
 
 	if ( wp_defer_term_counting() ) {
-		$_deferred[ $taxonomy ] ??= array();
-		$_deferred[ $taxonomy ]   = array_unique( array_merge( $_deferred[ $taxonomy ], $terms ) );
+		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ] ?? array(), $terms ) );
 		return true;
 	}
 
