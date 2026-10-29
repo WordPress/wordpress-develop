@@ -245,7 +245,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param int[]  $post_ids Allowed post IDs.
 	 * @param string $message  Message to display on failure.
-
 	 *
 	 * @phpstan-assert !null $this->redirect_location
 	 */
