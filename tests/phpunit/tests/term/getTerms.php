@@ -24,6 +24,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		unregister_taxonomy( 'wptests_tax_1' );
 		unregister_taxonomy( 'countries' );
 		unregister_taxonomy( 'hierarchical_fields' );
+		unregister_taxonomy( 'food' );
+		unregister_taxonomy( 'deep' );
+		unregister_taxonomy( 'location' );
 
 		parent::tear_down();
 	}
