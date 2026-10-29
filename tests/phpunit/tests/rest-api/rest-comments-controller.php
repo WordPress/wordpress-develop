@@ -4804,6 +4804,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function data_curated_reaction_keys() {
 		return array(
+			'thumbs up'   => array( '1f44d' ),
+			'plus'        => array( '2795' ),
 			'2764'        => array( '2764' ),
 			'celebration' => array( '1f389' ),
 			'smile'       => array( '1f604' ),
@@ -4985,7 +4987,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function data_uncurated_reaction_keys() {
 		return array(
-			'uncurated emoji'         => array( '1f44d' ),
+			'uncurated emoji'         => array( '1f525' ),
 			'ZWJ sequence'            => array( '1f468-200d-1f4bb' ),
 			'with variation selector' => array( '2764-fe0f' ),
 			'uppercase key'           => array( '1F680' ),
