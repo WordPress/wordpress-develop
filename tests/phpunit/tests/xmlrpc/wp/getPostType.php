@@ -23,6 +23,11 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		register_post_type( $this->cpt_name, $this->cpt_args );
 	}
 
+	public function tear_down() {
+		unregister_post_type( $this->cpt_name );
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPostType( array( 1, 'username', 'password', 'post' ) );
 		$this->assertIXRError( $result );

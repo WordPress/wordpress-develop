@@ -72,6 +72,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'batman' );
+		unregister_taxonomy( 'robin' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Registers metadata fields for tests that exercise term metadata.
 	 */
