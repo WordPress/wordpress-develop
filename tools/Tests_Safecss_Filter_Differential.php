@@ -99,7 +99,7 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 	 * Normalizes a declaration list to name => [normalized value, important] for comparison.
 	 */
 	private static function declarations( string $css ): array {
-		$processor = WP_HTML_Style_Attribute_Processor::create( $css );
+		$processor = new WP_HTML_Style_Attribute_Processor( $css );
 		$decls     = array();
 		while ( $processor->next_declaration() ) {
 			$value = implode( '', array_map( static fn( $t ) => substr( $css, $t->get_start(), $t->get_length() ), $processor->get_value_tokens() ) );
