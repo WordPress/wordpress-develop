@@ -86,8 +86,8 @@
 <!-- /wp:group -->
 
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Subscribe', 'Name of the Subscribe element', 'ipsum' ); ?>"},"align":"full","style":{"spacing":{"margin":{"top":"0","bottom":"0"},"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|70"}}},"layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--70)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Subscribe Wrapper', 'Name of the Subscribe Wrapper element', 'ipsum' ); ?>"},"style":{"border":{"radius":"10px"},"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}},"elements":{"link":{"color":{"text":"var:preset|color|theme-1"}}}},"backgroundColor":"theme-6","textColor":"theme-1","layout":{"type":"constrained","justifyContent":"left"}} -->
-<div class="wp-block-group has-theme-1-color has-theme-6-background-color has-text-color has-background has-link-color" style="border-radius:10px;padding-top:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Title and Paragraph', 'Name of the Title and Paragraph element', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--70)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Subscribe Wrapper', 'Name of the Subscribe Wrapper element', 'ipsum' ); ?>"},"style":{"border":{"radius":"10px"},"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}},"elements":{"link":{"color":{"text":"var:preset|color|base"}}}},"backgroundColor":"accent-3","textColor":"base","layout":{"type":"constrained","justifyContent":"left"}} -->
+<div class="wp-block-group has-base-color has-accent-3-background-color has-text-color has-background has-link-color" style="border-radius:10px;padding-top:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Title and Paragraph', 'Name of the Title and Paragraph element', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"constrained"}} -->
 <div class="wp-block-group"><!-- wp:heading {"style":{"typography":{"textAlign":"left"}},"fontSize":"x-large"} -->
 <h2 class="wp-block-heading has-text-align-left has-x-large-font-size"><?php esc_html_e( 'The next post can find you.', 'ipsum' ); ?></h2>
 <!-- /wp:heading -->
@@ -98,8 +98,8 @@
 <!-- /wp:group -->
 
 <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"left"}} -->
-<div class="wp-block-buttons"><!-- wp:button {"textColor":"theme-1","className":"is-style-outline","style":{"elements":{"link":{"color":{"text":"var:preset|color|theme-1"}}}},"borderColor":"theme-1"} -->
-<div class="wp-block-button is-style-outline"><a class="wp-block-button__link has-theme-1-color has-text-color has-link-color has-border-color has-theme-1-border-color wp-element-button"><?php esc_html_e( 'Subscribe', 'ipsum' ); ?></a></div>
+<div class="wp-block-buttons"><!-- wp:button {"textColor":"base","className":"is-style-outline","style":{"elements":{"link":{"color":{"text":"var:preset|color|base"}}}},"borderColor":"base"} -->
+<div class="wp-block-button is-style-outline"><a class="wp-block-button__link has-base-color has-text-color has-link-color has-border-color has-base-border-color wp-element-button"><?php esc_html_e( 'Subscribe', 'ipsum' ); ?></a></div>
 <!-- /wp:button --></div>
 <!-- /wp:buttons --></div>
 <!-- /wp:group --></div>
