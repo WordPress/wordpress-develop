@@ -102,6 +102,11 @@ a:active {
  * https://github.com/WordPress/gutenberg/issues/35884
  */
 
+.wp-site-blocks {
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
 .wp-site-blocks,
 body > .is-root-container,
 .edit-post-visual-editor__post-title-wrapper,
