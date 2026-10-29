@@ -2995,4 +2995,230 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_srcset_is_sanitized_by_element
+	 *
+	 * @param bool   $legacy_parser Whether to run the legacy parser instead of the HTML API one.
+	 * @param string $html          Input HTML.
+	 * @param string $expected      Expected output.
+	 */
+	public function test_srcset_is_sanitized_by_element( bool $legacy_parser, string $html, string $expected ) {
+		if ( $legacy_parser ) {
+			add_filter( 'wp_kses_force_legacy_parser', '__return_true' );
+		}
+
+		$allowed_html = array(
+			'img'    => array(
+				'src'    => true,
+				'srcset' => true,
+			),
+			'source' => array( 'srcset' => true ),
+			'link'   => array(
+				'rel'         => true,
+				'imagesrcset' => true,
+			),
+			'span'   => array( 'srcset' => true ),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Returns each case once per parser.
+	 *
+	 * @return array<string, array{bool, string, string}>
+	 */
+	public function data_srcset_is_sanitized_by_element() {
+		$cases = array(
+			'allowed candidates are kept'               => array(
+				'<img src="a.jpg" srcset="a.jpg 1x, https://example.com/b.jpg 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x, https://example.com/b.jpg 2x">',
+			),
+			'disallowed candidate is removed from img'  => array(
+				'<img src="a.jpg" srcset="a.jpg 1x, javascript:alert(1) 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x">',
+			),
+			'every candidate disallowed empties srcset' => array(
+				'<img src="a.jpg" srcset="javascript:alert(1) 1x, vbscript:msgbox(1) 2x">',
+				'<img src="a.jpg" srcset="">',
+			),
+			'character references are decoded first'    => array(
+				'<img src="a.jpg" srcset="a.jpg 1x,&#32;javascript:alert(1) 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x">',
+			),
+			'source srcset is sanitized'                => array(
+				'<source srcset="javascript:alert(1) 1x, a.webp 2x">',
+				'<source srcset="a.webp 2x">',
+			),
+			'link imagesrcset is sanitized'             => array(
+				'<link rel="preload" imagesrcset="a.jpg 1x, javascript:alert(1) 2x">',
+				'<link rel="preload" imagesrcset="a.jpg 1x">',
+			),
+			// Browsers do not read srcset on other elements, so the value is not parsed as one.
+			'srcset on another element is left alone'   => array(
+				'<span srcset="javascript:alert(1) 1x">text</span>',
+				'<span srcset="javascript:alert(1) 1x">text</span>',
+			),
+			'src is still sanitized as a single URL'    => array(
+				'<img src="javascript:alert(1)" srcset="a.jpg 1x">',
+				'<img src="alert(1)" srcset="a.jpg 1x">',
+			),
+		);
+
+		$data = array();
+		foreach ( $cases as $name => $case ) {
+			$data[ "{$name} (HTML API parser)" ] = array( false, ...$case );
+			$data[ "{$name} (legacy parser)" ]   = array( true, ...$case );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_one_attr_sanitizes_srcset
+	 *
+	 * @param string $element  Element the attribute belongs to.
+	 * @param string $input    Attribute as written.
+	 * @param string $expected Filtered attribute.
+	 */
+	public function test_one_attr_sanitizes_srcset( string $element, string $input, string $expected ) {
+		add_filter(
+			'wp_kses_allowed_html',
+			static function ( $tags ) {
+				$tags['img']['srcset']  = true;
+				$tags['span']['srcset'] = true;
+				return $tags;
+			}
+		);
+
+		$this->assertSame( $expected, wp_kses_one_attr( $input, $element ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string, string}>
+	 */
+	public function data_one_attr_sanitizes_srcset() {
+		return array(
+			'allowed candidates are kept'             => array(
+				'img',
+				'srcset="a.jpg 1x, b.jpg 2x"',
+				'srcset="a.jpg 1x, b.jpg 2x"',
+			),
+			'disallowed candidate is removed'         => array(
+				'img',
+				'srcset="a.jpg 1x, javascript:alert(1) 2x"',
+				'srcset="a.jpg 1x"',
+			),
+			'character references are decoded first'  => array(
+				'img',
+				'srcset="a.jpg 1x,&#32;javascript:alert(1) 2x"',
+				'srcset="a.jpg 1x"',
+			),
+			'ampersand in a kept URL stays escaped'   => array(
+				'img',
+				'srcset="a.jpg?x=1&amp;y=2 1x, javascript:alert(1) 2x"',
+				'srcset="a.jpg?x=1&amp;y=2 1x"',
+			),
+			'srcset on another element is left alone' => array(
+				'span',
+				'srcset="javascript:alert(1) 1x"',
+				'srcset="javascript:alert(1) 1x"',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_responsive_image_markup_in_post_content
+	 *
+	 * @param bool   $legacy_parser Whether to run the legacy parser instead of the HTML API one.
+	 * @param string $html          Input HTML.
+	 * @param string $expected      Expected output.
+	 */
+	public function test_responsive_image_markup_in_post_content( bool $legacy_parser, string $html, string $expected ) {
+		if ( $legacy_parser ) {
+			add_filter( 'wp_kses_force_legacy_parser', '__return_true' );
+		}
+
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Returns each case once per parser.
+	 *
+	 * @return array<string, array{bool, string, string}>
+	 */
+	public function data_responsive_image_markup_in_post_content() {
+		$cdn_url = 'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=%d,height=%d,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg';
+
+		$cases = array(
+			'img with every responsive attribute'        => array(
+				'<img src="default.jpg" srcset="small.jpg 480w, medium.jpg 768w, large.jpg 1024w" sizes="(max-width: 480px) 100vw, 50vw" decoding="async" fetchpriority="high" loading="lazy" width="800" height="600" alt="Responsive">',
+				'<img src="default.jpg" srcset="small.jpg 480w, medium.jpg 768w, large.jpg 1024w" sizes="(max-width: 480px) 100vw, 50vw" decoding="async" fetchpriority="high" loading="lazy" width="800" height="600" alt="Responsive">',
+			),
+			'img srcset drops a disallowed candidate'    => array(
+				'<img src="a.jpg" srcset="a.jpg 1x, javascript:alert(1) 2x" alt="">',
+				'<img src="a.jpg" srcset="a.jpg 1x" alt="">',
+			),
+			'img srcset with CDN resizer URLs'           => array(
+				'<img src="' . sprintf( $cdn_url, 824, 550 ) . '" srcset="' . sprintf( $cdn_url, 412, 275 ) . ' 412w, ' . sprintf( $cdn_url, 824, 550 ) . ' 824w" width="824" height="550" alt="">',
+				'<img src="' . sprintf( $cdn_url, 824, 550 ) . '" srcset="' . sprintf( $cdn_url, 412, 275 ) . ' 412w, ' . sprintf( $cdn_url, 824, 550 ) . ' 824w" width="824" height="550" alt="">',
+			),
+			'picture with type fallbacks'                => array(
+				'<picture><source srcset="photo.avif" type="image/avif"><source srcset="photo.webp" type="image/webp"><img src="photo.jpg" alt="Photo" width="800" height="600"></picture>',
+				'<picture><source srcset="photo.avif" type="image/avif"><source srcset="photo.webp" type="image/webp"><img src="photo.jpg" alt="Photo" width="800" height="600"></picture>',
+			),
+			'picture with art direction'                 => array(
+				'<picture><source media="(min-width: 1200px)" srcset="hero-wide-1x.jpg 1x, hero-wide-2x.jpg 2x"><source media="(min-width: 600px)" srcset="hero-400.jpg 400w, hero-800.jpg 800w" sizes="100vw" width="800" height="400"><img src="hero-small.jpg" srcset="hero-300.jpg 300w, hero-600.jpg 600w" sizes="100vw" alt="Hero"></picture>',
+				'<picture><source media="(min-width: 1200px)" srcset="hero-wide-1x.jpg 1x, hero-wide-2x.jpg 2x"><source media="(min-width: 600px)" srcset="hero-400.jpg 400w, hero-800.jpg 800w" sizes="100vw" width="800" height="400"><img src="hero-small.jpg" srcset="hero-300.jpg 300w, hero-600.jpg 600w" sizes="100vw" alt="Hero"></picture>',
+			),
+			'source srcset drops a disallowed candidate' => array(
+				'<picture><source srcset="javascript:void(0) 480w, https://example.com/mobile.webp 480w" type="image/webp"><img src="desktop.jpg" alt=""></picture>',
+				'<picture><source srcset="https://example.com/mobile.webp 480w" type="image/webp"><img src="desktop.jpg" alt=""></picture>',
+			),
+			'source srcset with no allowed candidate'    => array(
+				'<picture><source srcset="bad://pear-mobile.jpeg" media="(max-width: 720px)"><img src="pear.jpeg" alt=""></picture>',
+				'<picture><source srcset="" media="(max-width: 720px)"><img src="pear.jpeg" alt=""></picture>',
+			),
+			'source keeps only its allowed attributes'   => array(
+				'<picture><source srcset="img.jpg" charset="utf-8" onerror="alert(1)"><img src="img.jpg" alt=""></picture>',
+				'<picture><source srcset="img.jpg"><img src="img.jpg" alt=""></picture>',
+			),
+			'empty picture'                              => array(
+				'<picture></picture>',
+				'<picture></picture>',
+			),
+			'video sources keep src'                     => array(
+				'<video controls><source src="movie.mp4" type="video/mp4"><source src="movie.webm" type="video/webm"></video>',
+				'<video controls><source src="movie.mp4" type="video/mp4"><source src="movie.webm" type="video/webm"></video>',
+			),
+			'source src is sanitized as a single URL'    => array(
+				'<video controls><source src="javascript:alert(1)" type="video/mp4"></video>',
+				'<video controls><source src="alert(1)" type="video/mp4"></video>',
+			),
+		);
+
+		$data = array();
+		foreach ( $cases as $name => $case ) {
+			$data[ "{$name} (HTML API parser)" ] = array( false, ...$case );
+			$data[ "{$name} (legacy parser)" ]   = array( true, ...$case );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 29807
+	 */
+	public function test_one_attr_allows_img_srcset_in_post_content() {
+		$this->assertSame( 'srcset="a.jpg 1x, b.jpg 2x"', wp_kses_one_attr( 'srcset="a.jpg 1x, b.jpg 2x"', 'img' ) );
+		$this->assertSame( 'srcset="a.jpg 1x"', wp_kses_one_attr( 'srcset="a.jpg 1x, javascript:alert(1) 2x"', 'img' ) );
+		$this->assertSame( 'sizes="(max-width: 600px) 100vw, 50vw"', wp_kses_one_attr( 'sizes="(max-width: 600px) 100vw, 50vw"', 'img' ) );
+	}
 }
