@@ -23,7 +23,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	 * @param mixed $password Password argument.
 	 */
 	public function test_non_scalar_credentials_should_return_error( $username, $password ): void {
-		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $username, $password ) );
+		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $username, $password ) ); // @phpstan-ignore argument.type (Non-string arguments passed intentionally to test error scenario.)
 
 		$this->assertIXRError( $result );
 		$this->assertSame( 400, $result->code );
@@ -33,7 +33,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * Data provider for test_non_scalar_credentials_should_return_error.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: mixed }>
 	 */
 	public static function data_non_scalar_credentials(): array {
 		return array(
@@ -62,6 +62,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 		$this->assertCount( 1, $result, 'The result should contain a single blog.' );
 
 		$blog = $result[0];
+		$this->assertIsArray( $blog, 'The blog should be an array.' );
 		$this->assertSame( '1', $blog['blogid'], 'The blogid should be that of the only blog.' );
 		$this->assertSame( get_option( 'blogname' ), $blog['blogName'], 'The blogName should match the site name.' );
 		$this->assertFalse( $blog['isAdmin'], 'A subscriber should not be flagged as an administrator.' );
@@ -85,6 +86,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotEmpty( $result, 'The result should not be empty.' );
 
 		$blog = $result[0];
+		$this->assertIsArray( $blog, 'The blog should be an array.' );
 		$this->assertArrayHasKey( 'url', $blog, 'The result should include the url field.' );
 		$this->assertArrayHasKey( 'blogid', $blog, 'The result should include the blogid field.' );
 		$this->assertArrayHasKey( 'blogName', $blog, 'The result should include the blogName field.' );
