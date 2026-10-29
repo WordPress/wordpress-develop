@@ -101,9 +101,8 @@ if ( isset( $_GET['cookie-test'] ) ) {
 		/*
 		 * Live api.wordpress.org keeps the historical Domain/Path attributes.
 		 * The local HTTP fixture (typically 127.0.0.1) uses host-only cookies and
-		 * a path under the fixture script so wrong-host / expired / minimal checks
-		 * still run without a remote host. Parent-domain cookie acceptance is
-		 * covered by Tests_HTTP_Functions::test_parent_domain_cookie_is_sent_on_redirect().
+		 * a path under the fixture script so the same acceptance/rejection checks
+		 * still exercise WP_Http cookie handling without a remote host.
 		 */
 		$request_host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '';
 		$request_host = preg_replace( '/:\d+$/', '', $request_host );

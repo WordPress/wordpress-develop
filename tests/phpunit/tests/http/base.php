@@ -765,10 +765,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Uses the local redirection fixture when available so cookie acceptance and
 	 * rejection checks do not depend on a live api.wordpress.org request.
 	 *
-	 * Parent-domain (`Domain=.example.test`) acceptance is covered separately by
-	 * Tests_HTTP_Functions::test_parent_domain_cookie_is_sent_on_redirect(), because
-	 * an IP-based fixture cannot set a meaningful parent-domain cookie attribute.
-	 *
 	 * @ticket 21182
 	 * @ticket 63914
 	 *
