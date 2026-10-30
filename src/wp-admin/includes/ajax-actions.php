@@ -5448,7 +5448,12 @@ function wp_ajax_health_check_loopback_requests() {
 /**
  * Handles site health check to update the result status via AJAX.
  *
+ * Counts and compact per-test results are saved together. Counts-only requests
+ * remain supported for compatibility, and results-only requests preserve counts.
+ *
  * @since 5.2.0
+ * @since 7.3.0 The submitted counts are validated, and optional per-test statuses
+ *              and timestamps extend the existing transient.
  */
 function wp_ajax_health_check_site_status_result() {
 	check_ajax_referer( 'health-check-site-status-result' );
@@ -5457,7 +5462,41 @@ function wp_ajax_health_check_site_status_result() {
 		wp_send_json_error();
 	}
 
-	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	}
+
+	$counts  = null;
+	$results = null;
+
+	if ( isset( $_POST['counts'] ) ) {
+		if ( ! is_array( $_POST['counts'] ) ) {
+			wp_send_json_error();
+		}
+		$counts = wp_unslash( $_POST['counts'] );
+	}
+
+	if ( isset( $_POST['results'] ) ) {
+		if ( ! is_string( $_POST['results'] ) ) {
+			wp_send_json_error();
+		}
+		$results = json_decode( wp_unslash( $_POST['results'] ), true );
+		if ( ! is_array( $results ) ) {
+			wp_send_json_error();
+		}
+	}
+
+	if ( null !== $results ) {
+		$saved = WP_Site_Health::update_site_status_detail( $results, $counts );
+	} elseif ( null !== $counts ) {
+		$saved = WP_Site_Health::set_site_status_counts( $counts );
+	} else {
+		wp_send_json_error();
+	}
+
+	if ( is_wp_error( $saved ) ) {
+		wp_send_json_error( $saved );
+	}
 
 	wp_send_json_success();
 }

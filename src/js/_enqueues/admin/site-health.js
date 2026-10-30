@@ -107,6 +107,14 @@ jQuery( function( $ ) {
 			return false;
 		}
 
+		/*
+		 * Only these statuses have a section on the screen and are accepted by the
+		 * server-side cache. Any other status would make the whole cache update fail.
+		 */
+		if ( -1 === [ 'good', 'recommended', 'critical' ].indexOf( issue.status ) ) {
+			return false;
+		}
+
 		// Loop over expected data and match the data types.
 		for ( key in minimumExpected ) {
 			value = minimumExpected[ key ];
@@ -160,10 +168,14 @@ jQuery( function( $ ) {
 
 		count = SiteHealth.site_status.issues[ issue.status ];
 
-		// If no test name is supplied, append a placeholder for markup references.
-		if ( typeof issue.test === 'undefined' ) {
-			issue.test = issue.status + count;
-		}
+		/*
+		 * Collect the test name and status so they can be cached server-side. These
+		 * include the asynchronous tests that only run in the browser. Labels are left
+		 * out on purpose, as they are translated and the cache is shared across locales.
+		 */
+		SiteHealth.site_status.results[ issue.test ] = {
+			status: issue.status
+		};
 
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
@@ -254,12 +266,14 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
+			// One request avoids competing counts-only and results-only updates to the shared cache.
 			$.post(
 				ajaxurl,
 				{
 					'action': 'health-check-site-status-result',
 					'_wpnonce': SiteHealth.nonce.site_status_result,
-					'counts': SiteHealth.site_status.issues
+					'counts': SiteHealth.site_status.issues,
+					'results': JSON.stringify( SiteHealth.site_status.results )
 				}
 			);
 

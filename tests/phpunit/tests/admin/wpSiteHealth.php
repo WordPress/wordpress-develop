@@ -513,7 +513,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		);
 	}
 
-
 	/**
 	 * @group ms-required
 	 * @ticket 56040
@@ -706,5 +705,604 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
+	}
+
+	/**
+	 * Registers a controlled set of direct Site Health tests via `site_status_tests`.
+	 *
+	 * @param array<string, mixed[]> $direct Map of result arrays to return, keyed by test name.
+	 * @return Closure The filter callback, so the caller can remove it.
+	 */
+	private function use_fake_site_status_tests( array $direct ): Closure {
+		$tests = array(
+			'direct' => array(),
+			'async'  => array(),
+		);
+
+		foreach ( $direct as $name => $result ) {
+			$tests['direct'][ $name ] = array(
+				'label' => $name,
+				'test'  => static function () use ( $result ) {
+					return $result;
+				},
+			);
+		}
+
+		$filter = static function () use ( $tests ) {
+			return $tests;
+		};
+
+		add_filter( 'site_status_tests', $filter );
+
+		return $filter;
+	}
+
+	/**
+	 * Seeds the detailed Site Health results cache.
+	 *
+	 * @param array<string, mixed[]> $results Map of result arrays keyed by test name.
+	 * @param int                    $time    Timestamp to store for the cache and each result.
+	 */
+	private function seed_site_status_detail( array $results, int $time ): void {
+		foreach ( $results as $test => $result ) {
+			$results[ $test ]['timestamp'] = $time;
+		}
+
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => $results,
+					'timestamp' => $time,
+				)
+			)
+		);
+	}
+
+	/**
+	 * The scheduled check extends the autoloaded counts transient with compact results.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 * @covers ::get_site_status_detail
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_scheduled_check_stores_counts_and_detail_together(): void {
+		$filter = $this->use_fake_site_status_tests(
+			array(
+				'fake_critical'    => array(
+					'test'        => 'fake_critical',
+					'label'       => 'Critical label',
+					'status'      => 'critical',
+					'badge'       => array(
+						'label' => 'Security',
+						'color' => 'red',
+					),
+					'description' => '<p>Critical <strong>description</strong>.</p>',
+					'actions'     => '',
+				),
+				'fake_recommended' => array(
+					'test'        => 'fake_recommended',
+					'label'       => 'Recommended label',
+					'status'      => 'recommended',
+					'description' => '<p>Recommended description.</p>',
+				),
+				'fake_good'        => array(
+					'test'        => 'fake_good',
+					'label'       => 'Good label',
+					'status'      => 'good',
+					'description' => '<p>Good description.</p>',
+				),
+			)
+		);
+
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+
+		$before = time();
+		$this->instance->wp_cron_scheduled_check();
+		$after = time();
+
+		remove_filter( 'site_status_tests', $filter );
+
+		$transient = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$this->assertIsString( $transient );
+		$stored = json_decode( $transient, true );
+		$this->assertSameSets(
+			array( 'good', 'recommended', 'critical', 'results', 'timestamp' ),
+			array_keys( $stored )
+		);
+		$this->assertSame( 1, $stored['good'] );
+		$this->assertSame( 1, $stored['recommended'] );
+		$this->assertSame( 1, $stored['critical'] );
+
+		// The detailed cache holds every result, including the passing one.
+		$detail = WP_Site_Health::get_site_status_detail();
+
+		$results_by_test = $detail['results'];
+
+		$this->assertSame(
+			array( 'fake_critical', 'fake_recommended', 'fake_good' ),
+			array_keys( $results_by_test )
+		);
+
+		// Only locale-independent fields are stored: the test name, status, and timestamp.
+		$this->assertSameSets(
+			array( 'status', 'timestamp' ),
+			array_keys( $results_by_test['fake_critical'] ),
+			'No translated or HTML fields should be cached.'
+		);
+		$this->assertSame( 'critical', $results_by_test['fake_critical']['status'] );
+
+		// Each result carries its own collection timestamp.
+		$this->assertGreaterThanOrEqual( $before, $results_by_test['fake_critical']['timestamp'] );
+		$this->assertLessThanOrEqual( $after, $results_by_test['fake_critical']['timestamp'] );
+
+		// The detail cache exposes counts derived from its own results.
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 1,
+				'critical'    => 1,
+			),
+			$detail['counts'],
+			'Detail counts should be derived from the cached detail results.'
+		);
+	}
+
+	/**
+	 * The shared transient has no expiration, so the database stores it as an autoloaded option.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_status_cache_is_autoloaded_without_expiration(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array( 'fake_good' => array( 'status' => 'good' ) ),
+				array(
+					'good'        => 1,
+					'recommended' => 0,
+					'critical'    => 0,
+				)
+			)
+		);
+		$this->assertArrayHasKey( '_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_load_alloptions() );
+		$this->assertFalse( get_option( '_transient_timeout_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
+	}
+
+	/**
+	 * Only valid results are cached. The scheduled check ignores invalid results
+	 * returned by the result filter, while direct updates return a validation error.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_only_valid_results_are_cached(): void {
+		$invalid_results = array(
+			'non_array_result' => new WP_Error( 'invalid_result' ),
+			'missing_test'     => array( 'status' => 'good' ),
+			'empty_test'       => array(
+				'test'   => '',
+				'status' => 'good',
+			),
+			'invalid_test'     => array(
+				'test'   => array(),
+				'status' => 'good',
+			),
+			'missing_status'   => array( 'test' => 'missing_status' ),
+			'invalid_status'   => array(
+				'test'   => 'invalid_status',
+				'status' => 'invalid',
+			),
+		);
+		$test_results    = array();
+		foreach ( array_merge( array_keys( $invalid_results ), array( 'valid_result' ) ) as $test ) {
+			$test_results[ $test ] = array(
+				'test'   => $test,
+				'status' => 'good',
+			);
+		}
+
+		$tests_filter  = $this->use_fake_site_status_tests( $test_results );
+		$result_filter = static function ( $result ) use ( $invalid_results ) {
+			if ( is_array( $result ) && isset( $invalid_results[ $result['test'] ] ) ) {
+				return $invalid_results[ $result['test'] ];
+			}
+
+			return $result;
+		};
+		add_filter( 'site_status_test_result', $result_filter );
+
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+
+		try {
+			$this->instance->wp_cron_scheduled_check();
+		} finally {
+			remove_filter( 'site_status_test_result', $result_filter );
+			remove_filter( 'site_status_tests', $tests_filter );
+		}
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array( 'valid_result' ), array_keys( $detail['results'] ) );
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			$detail['counts']
+		);
+		$this->assertSame( $detail['counts'], WP_Site_Health::get_site_status_counts() );
+
+		$result = WP_Site_Health::update_site_status_detail(
+			array(
+				'' => array(
+					'status' => 'good',
+				),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid_test', $result->get_error_code() );
+		$this->assertNotSame( '', $result->get_error_message() );
+		$this->assertSame( array( 'valid_result' ), array_keys( WP_Site_Health::get_site_status_detail()['results'] ) );
+	}
+
+	/**
+	 * An unavailable asynchronous test is counted but does not replace a previously
+	 * verified detailed result.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 */
+	public function test_scheduled_check_preserves_verified_result_when_async_test_is_unavailable(): void {
+		$cached_at = time() - 2 * WEEK_IN_SECONDS;
+		$this->seed_site_status_detail(
+			array(
+				'my_async' => array(
+					'status' => 'good',
+				),
+			),
+			$cached_at
+		);
+
+		// Force the asynchronous remote request to fail so the fallback path runs.
+		$http = static function () {
+			return new WP_Error( 'unavailable', 'Service unavailable.' );
+		};
+		add_filter( 'pre_http_request', $http );
+
+		$filter = static function () {
+			return array(
+				'direct' => array(),
+				'async'  => array(
+					'my_async' => array(
+						'label'    => 'My async test',
+						'test'     => 'https://example.invalid/site-health',
+						'has_rest' => true,
+					),
+				),
+			);
+		};
+		add_filter( 'site_status_tests', $filter );
+
+		$this->instance->wp_cron_scheduled_check();
+
+		remove_filter( 'site_status_tests', $filter );
+		remove_filter( 'pre_http_request', $http );
+
+		$detail        = WP_Site_Health::get_site_status_detail();
+		$results_by_id = $detail['results'];
+
+		$this->assertArrayHasKey( 'my_async', $results_by_id );
+		$this->assertSame( 'good', $results_by_id['my_async']['status'] );
+		$this->assertSame( $cached_at, $results_by_id['my_async']['timestamp'] );
+		$this->assertSame( 1, WP_Site_Health::get_site_status_counts()['recommended'] );
+	}
+
+	/**
+	 * The scheduled check overwrites an existing result when it collects a newer verified result.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::wp_cron_scheduled_check
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_scheduled_check_stores_freshest_verified_result(): void {
+		$this->seed_site_status_detail(
+			array(
+				'fake_async' => array(
+					'status' => 'good',
+				),
+			),
+			time()
+		);
+
+		$filter = $this->use_fake_site_status_tests(
+			array(
+				'fake_async' => array(
+					'test'   => 'fake_async',
+					'status' => 'critical',
+				),
+			)
+		);
+
+		$this->instance->wp_cron_scheduled_check();
+
+		remove_filter( 'site_status_tests', $filter );
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertCount( 1, $detail['results'] );
+		$this->assertSame( 'critical', array_first( $detail['results'] )['status'] );
+	}
+
+	/**
+	 * The detail accessor distinguishes a valid empty cache from a missing or malformed cache.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::get_site_status_detail
+	 * @covers ::get_site_status_counts
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_get_site_status_detail_distinguishes_empty_from_missing_or_malformed_cache(): void {
+		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$this->assertSame(
+			array(
+				'good'        => 0,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
+		$before = time();
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( array() ) );
+		$after = time();
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertGreaterThanOrEqual( $before, $detail['timestamp'] );
+		$this->assertLessThanOrEqual( $after, $detail['timestamp'] );
+		$this->assertIsString( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
+
+		$now = time();
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => array(
+						'missing_timestamp' => array( 'status' => 'good' ),
+					),
+					'timestamp' => $now,
+				)
+			)
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
+		// The schema validation accepts an empty string as an object, but it must not reach the reader.
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => '',
+					'timestamp' => $now,
+				)
+			)
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results' => array(
+						'missing_cache_timestamp' => array(
+							'status'    => 'good',
+							'timestamp' => $now,
+						),
+					),
+				),
+			)
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+	}
+
+	/**
+	 * Old counts-only values can be extended without changing the existing counts.
+	 *
+	 * @ticket 65232
+	 * @covers ::update_site_status_detail
+	 * @covers ::set_site_status_counts
+	 * @covers ::get_site_status_counts
+	 */
+	public function test_extending_legacy_counts_preserves_each_kind_of_data(): void {
+		$counts = array(
+			'good'        => 9,
+			'recommended' => 2,
+			'critical'    => 1,
+		);
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $counts ) );
+		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+		$this->assertSame( 0, WP_Site_Health::get_site_status_detail()['timestamp'] );
+
+		$reads_before = did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( array( 'verified' => array( 'status' => 'good' ) ) ) );
+		$this->assertSame( 1, did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) - $reads_before, 'A results-only update should read the shared cache once.' );
+		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+		$detail = WP_Site_Health::get_site_status_detail();
+
+		$counts['critical'] = 3;
+		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
+		$this->assertSame( $detail, WP_Site_Health::get_site_status_detail() );
+		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+	}
+
+	/**
+	 * Details expire even without a scheduled update; latest-run counts are retained.
+	 *
+	 * @ticket 65232
+	 * @covers ::get_site_status_detail
+	 * @covers ::update_site_status_detail
+	 * @covers ::set_site_status_counts
+	 */
+	public function test_reading_expired_details_preserves_counts(): void {
+		$counts = array(
+			'good'        => 4,
+			'recommended' => 1,
+			'critical'    => 0,
+		);
+		$old    = time() - MONTH_IN_SECONDS - 10;
+		$status = array_merge(
+			$counts,
+			array(
+				'results'   => array(
+					'old' => array(
+						'status'    => 'critical',
+						'timestamp' => $old,
+					),
+					'new' => array(
+						'status'    => 'good',
+						'timestamp' => time(),
+					),
+				),
+				'timestamp' => time(),
+			)
+		);
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $status ) );
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array( 'new' ), array_keys( $detail['results'] ) );
+		$this->assertSame( 1, $detail['counts']['good'] );
+		$this->assertSame( 0, $detail['counts']['critical'] );
+
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( array() ) );
+		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$this->assertSame( array( 'new' ), array_keys( $stored['results'] ), 'A detail update must persist pruning, even with no new results.' );
+
+		$status['results']['new']['timestamp'] = $old;
+		$status['timestamp']                   = $old;
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $status ) );
+		$this->assertSame( array(), WP_Site_Health::get_site_status_detail()['results'] );
+		$this->assertSame( $old, WP_Site_Health::get_site_status_detail()['timestamp'] );
+		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+
+		// A counts-only update must prune expired details without refreshing their age.
+		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
+		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$this->assertSame( array(), $stored['results'] );
+		$this->assertSame( $old, $stored['timestamp'] );
+	}
+
+	/**
+	 * When over the limit, the least useful results are dropped first.
+	 *
+	 * Critical results are kept before recommended ones, and recommended before good.
+	 * Within each status, newer results are kept before older ones.
+	 *
+	 * @ticket 65232
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_update_site_status_detail_limits_stored_results(): void {
+		$cached = array();
+		for ( $i = 0; $i < 500; $i++ ) {
+			$cached[ "cached_$i" ] = array(
+				'status'    => 0 === $i ? 'critical' : 'good',
+				'timestamp' => time() - 1000 + $i,
+			);
+		}
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => $cached,
+					'timestamp' => time(),
+				)
+			)
+		);
+
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array(
+					'cached_2'  => array( 'status' => 'recommended' ),
+					'submitted' => array( 'status' => 'recommended' ),
+				)
+			)
+		);
+		$results = WP_Site_Health::get_site_status_detail()['results'];
+		$this->assertCount( 500, $results );
+		$this->assertArrayHasKey( 'cached_0', $results, 'An old critical result must be kept.' );
+		$this->assertArrayNotHasKey( 'cached_1', $results, 'The oldest good result must be dropped.' );
+		$this->assertSame( 'recommended', $results['cached_2']['status'] );
+		$this->assertArrayHasKey( 'submitted', $results );
+
+		$submitted = array();
+		for ( $i = 0; $i < 500; $i++ ) {
+			$submitted[ "submitted_$i" ] = array( 'status' => 'good' );
+		}
+		$submitted['submitted_critical'] = array( 'status' => 'critical' );
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( $submitted ) );
+
+		$expected = array_merge(
+			array( 'submitted_critical', 'cached_0', 'cached_2', 'submitted' ),
+			array_slice( array_keys( $submitted ), 0, 496 )
+		);
+		$this->assertSame( $expected, array_keys( WP_Site_Health::get_site_status_detail()['results'] ) );
+	}
+
+	/**
+	 * An unchanged cache is a success, but a failed write must still report an error.
+	 *
+	 * @ticket 65232
+	 * @covers ::set_site_status_counts
+	 */
+	public function test_cache_write_failure_returns_error(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$counts = array(
+			'good'        => 1,
+			'recommended' => 0,
+			'critical'    => 0,
+		);
+		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
+		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
+		$before        = get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
+		$prevent_write = static function ( $value, $old_value ) {
+			return $old_value;
+		};
+		$filter        = 'pre_update_option__transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT;
+		add_filter( $filter, $prevent_write, 10, 2 );
+		$counts['good'] = 2;
+		try {
+			$result = WP_Site_Health::set_site_status_counts( $counts );
+		} finally {
+			remove_filter( $filter, $prevent_write );
+		}
+		$this->assertWPError( $result );
+		$this->assertSame( 'set_transient_error', $result->get_error_code() );
+		$this->assertSame( $before, get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
 	}
 }
