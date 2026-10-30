@@ -1658,7 +1658,11 @@ class wp_xmlrpc_server extends IXR_Server {
 						return new IXR_Error( 401, __( 'Sorry, you are not allowed to assign a term to one of the given taxonomies.' ) );
 					}
 
-					$term_ids           = $post_data['terms'][ $taxonomy ];
+					$term_ids = $post_data['terms'][ $taxonomy ];
+					if ( ! is_array( $term_ids ) ) {
+						return new IXR_Error( 403, __( 'Invalid term ID.' ) );
+					}
+
 					$terms[ $taxonomy ] = array();
 					foreach ( $term_ids as $term_id ) {
 						$term = get_term_by( 'id', $term_id, $taxonomy );
@@ -1710,6 +1714,10 @@ class wp_xmlrpc_server extends IXR_Server {
 					}
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
+					if ( ! is_array( $term_names ) ) {
+						return new IXR_Error( 401, __( 'Invalid term name.' ) );
+					}
+
 					foreach ( $term_names as $term_name ) {
 						// Numeric names may arrive as <int> or <double> values.
 						if ( is_int( $term_name ) || is_float( $term_name ) ) {

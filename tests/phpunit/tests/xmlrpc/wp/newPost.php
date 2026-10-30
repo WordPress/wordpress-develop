@@ -383,6 +383,47 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a `terms` or `terms_names` value that is not an array returns an error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_not_array
+	 *
+	 * @param 'terms'|'terms_names' $field            The post field to send.
+	 * @param mixed                 $value            The value to send for the taxonomy.
+	 * @param int                   $expected_code    The expected fault code.
+	 * @param non-empty-string      $expected_message The expected fault message.
+	 */
+	public function test_terms_not_array( string $field, $value, int $expected_code, string $expected_message ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title' => 'Test',
+			$field       => array(
+				'post_tag' => $value,
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( $expected_code, $result->code );
+		$this->assertSame( $expected_message, $result->message );
+	}
+
+	/**
+	 * Data provider for {@see self::test_terms_not_array()}.
+	 *
+	 * @return array<truthy-string, array{ 'terms'|'terms_names', mixed, int, non-empty-string }>
+	 */
+	public function data_terms_not_array(): array {
+		return array(
+			'terms string'       => array( 'terms', '1', 403, 'Invalid term ID.' ),
+			'terms integer'      => array( 'terms', 1, 403, 'Invalid term ID.' ),
+			'terms_names string' => array( 'terms_names', 'foo', 401, 'Invalid term name.' ),
+		);
+	}
+
+	/**
 	 * Tests that a numeric term name in `terms_names` is assigned using its string form.
 	 *
 	 * @ticket 66108
