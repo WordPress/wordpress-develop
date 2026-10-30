@@ -445,7 +445,7 @@ function get_http_origin() {
  *
  * @return string[] Array of origin URLs.
  */
-function get_allowed_http_origins() {
+function get_allowed_http_origins(): array {
 	$admin_url   = admin_url();
 	$home_url    = home_url();
 	$parsed_urls = array(
@@ -479,7 +479,7 @@ function get_allowed_http_origins() {
 	 *
 	 * @param string[] $allowed_origins Array of allowed HTTP origins.
 	 */
-	return apply_filters( 'allowed_http_origins', $allowed_origins );
+	return (array) apply_filters( 'allowed_http_origins', $allowed_origins );
 }
 
 /**
