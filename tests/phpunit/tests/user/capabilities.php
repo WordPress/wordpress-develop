@@ -102,7 +102,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $meta_value;
 	}
 
-	private function _getSingleSitePrimitiveCaps() {
+	private static function _getSingleSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array( 'administrator', 'editor' ),
@@ -184,7 +184,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSitePrimitiveCaps() {
+	private static function _getMultiSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array(),
@@ -372,7 +372,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *     @type string $role The role to test for.
 	 * }
 	 */
-	public function data_single_site_roles_to_check() {
+	public static function data_single_site_roles_to_check() {
 		return array(
 			array( 'anonymous' ),
 			array( 'administrator' ),
@@ -387,11 +387,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
 	}
 
-	protected function getPrimitiveCapsAndRoles() {
+	protected static function getPrimitiveCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSitePrimitiveCaps();
+			return self::_getMultiSitePrimitiveCaps();
 		} else {
-			return $this->_getSingleSitePrimitiveCaps();
+			return self::_getSingleSitePrimitiveCaps();
 		}
 	}
 
@@ -814,9 +814,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( $can_edit_others_post, $user_can_edit );
 	}
 
-	public function data_user_with_role_can_edit_own_post() {
+	public static function data_user_with_role_can_edit_own_post() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -828,9 +828,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function data_user_with_role_can_edit_others_posts() {
+	public static function data_user_with_role_can_edit_others_posts() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -1361,7 +1361,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
 	}
 
-	public function data_authorless_post() {
+	public static function data_authorless_post() {
 		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
@@ -2436,7 +2436,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_block_caps() {
+	public static function data_block_caps() {
 		$post_caps = array(
 			'edit_block',
 			'read_block',
