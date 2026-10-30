@@ -73,9 +73,12 @@
 	<exclude-pattern>/src/wp-includes/blocks/*/*.asset.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/blocks-json.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/build/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/database/mysql-on-sqlite/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/database/mysql-parser/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/parser/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/php-ai-client/*</exclude-pattern>
