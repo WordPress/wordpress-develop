@@ -2554,7 +2554,7 @@ class WP_Query {
 		// Order search results by relevance only when another "orderby" is not specified in the query.
 		if ( ! empty( $query_vars['s'] ) ) {
 			$search_orderby = '';
-			if ( ! empty( $query_vars['search_orderby_title'] ) && ( empty( $query_vars['orderby'] ) && ! $this->is_feed ) || ( isset( $query_vars['orderby'] ) && 'relevance' === $query_vars['orderby'] ) ) {
+			if ( ! empty( $query_vars['search_orderby_title'] ) && ( ( empty( $query_vars['orderby'] ) && ! $this->is_feed ) || ( isset( $query_vars['orderby'] ) && 'relevance' === $query_vars['orderby'] ) ) ) {
 				$search_orderby = $this->parse_search_order( $query_vars );
 			}
 
