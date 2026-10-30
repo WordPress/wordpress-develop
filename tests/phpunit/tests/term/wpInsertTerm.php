@@ -105,7 +105,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_wp_insert_term_non_scalar_term_name()}
 	 *
-	 * @return array<string, array{mixed}>
+	 * @return array<string, array{ mixed }>
 	 */
 	public function data_wp_insert_term_non_scalar_term_name(): array {
 		return array(
