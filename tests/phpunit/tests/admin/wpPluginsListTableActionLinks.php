@@ -48,6 +48,13 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	private $actions;
 
 	/**
+	 * The rendered HTML output of the plugin row.
+	 *
+	 * @var string
+	 */
+	private $row_output = '';
+
+	/**
 	 * The slug of the plugin rendered by the current test.
 	 *
 	 * @var string
@@ -115,8 +122,9 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		update_option( 'active_plugins', array() );
 		update_site_option( 'active_sitewide_plugins', array() );
 
-		$this->actions = null;
-		$this->slug    = 'action-links-plugin-' . wp_generate_password( 8, false );
+		$this->actions    = null;
+		$this->row_output = '';
+		$this->slug       = 'action-links-plugin-' . wp_generate_password( 8, false );
 
 		add_filter( 'plugin_action_links', array( $this, 'capture_actions' ), PHP_INT_MAX );
 
@@ -364,6 +372,16 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		$filter = new MockAction();
 		add_filter( 'plugin_action_links', array( $filter, 'filter' ), 10, 4 );
 
+		$distinctive_link = '<a href="https://example.org/distinctive-action">Distinctive Site Link</a>';
+		add_filter(
+			'plugin_action_links',
+			static function ( $actions ) use ( $distinctive_link ) {
+				$actions['distinctive'] = $distinctive_link;
+				return $actions;
+			},
+			20
+		);
+
 		$this->get_actions();
 
 		$args = $filter->get_args();
@@ -371,6 +389,12 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 		$this->assertSame( $this->get_file(), $args[0][1], 'The filter should receive the plugin file.' );
 		$this->assertSame( 'My Plugin', $args[0][2]['Name'], 'The filter should receive the plugin data.' );
 		$this->assertSame( 'all', $args[0][3], 'The filter should receive the context.' );
+
+		$this->assertStringContainsString(
+			$distinctive_link,
+			$this->row_output,
+			'The rendered row should contain action links added by filters.'
+		);
 	}
 
 	/**
@@ -415,7 +439,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
 
-		get_echo(
+		$this->row_output = get_echo(
 			array( $table, 'single_row' ),
 			array(
 				array(
