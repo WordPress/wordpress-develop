@@ -7789,6 +7789,9 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
  * added to the post meta field ('_wp_old_slug') for storing old slugs for that
  * post.
  *
+ * If the new slug is part of the old slugs, it will be removed from the list,
+ * regardless of the post status.
+ *
  * The most logically usage of this function is redirecting changed post objects, so
  * that those that linked to an changed post will be redirected to the new post.
  *
@@ -7804,23 +7807,30 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
 		return;
 	}
 
-	// We're only concerned with published, non-hierarchical objects.
-	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) )
-		|| is_post_type_hierarchical( $post->post_type )
-	) {
+	// We're only concerned with non-hierarchical objects.
+	if ( is_post_type_hierarchical( $post->post_type ) ) {
 		return;
 	}
 
 	$old_slugs = (array) get_post_meta( $post_id, '_wp_old_slug' );
 
+	/*
+	 * If the new slug was used previously, delete it from the list.
+	 * This is done for any status, so that a slug changed back on an unpublished
+	 * post does not redirect to itself.
+	 */
+	if ( in_array( $post->post_name, $old_slugs, true ) ) {
+		delete_post_meta( $post_id, '_wp_old_slug', $post->post_name );
+	}
+
+	// Only old slugs of published objects are stored.
+	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) ) ) {
+		return;
+	}
+
 	// If we haven't added this old slug before, add it now.
 	if ( ! empty( $post_before->post_name ) && ! in_array( $post_before->post_name, $old_slugs, true ) ) {
 		add_post_meta( $post_id, '_wp_old_slug', $post_before->post_name );
-	}
-
-	// If the new slug was used previously, delete it from the list.
-	if ( in_array( $post->post_name, $old_slugs, true ) ) {
-		delete_post_meta( $post_id, '_wp_old_slug', $post->post_name );
 	}
 }
 
@@ -7833,6 +7843,9 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
  * If the date was changed and not already part of the old dates then it will be
  * added to the post meta field ('_wp_old_date') for storing old dates for that
  * post.
+ *
+ * If the new date is part of the old dates, it will be removed from the list,
+ * regardless of the post status.
  *
  * The most logically usage of this function is redirecting changed post objects, so
  * that those that linked to an changed post will be redirected to the new post.
@@ -7852,23 +7865,30 @@ function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
 		return;
 	}
 
-	// We're only concerned with published, non-hierarchical objects.
-	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) )
-		|| is_post_type_hierarchical( $post->post_type )
-	) {
+	// We're only concerned with non-hierarchical objects.
+	if ( is_post_type_hierarchical( $post->post_type ) ) {
 		return;
 	}
 
 	$old_dates = (array) get_post_meta( $post_id, '_wp_old_date' );
 
+	/*
+	 * If the new date was used previously, delete it from the list.
+	 * This is done for any status, so that a date changed back on an unpublished
+	 * post does not redirect to itself.
+	 */
+	if ( in_array( $new_date, $old_dates, true ) ) {
+		delete_post_meta( $post_id, '_wp_old_date', $new_date );
+	}
+
+	// Only old dates of published objects are stored.
+	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === $post->post_type && 'inherit' === $post->post_status ) ) ) {
+		return;
+	}
+
 	// If we haven't added this old date before, add it now.
 	if ( ! empty( $previous_date ) && ! in_array( $previous_date, $old_dates, true ) ) {
 		add_post_meta( $post_id, '_wp_old_date', $previous_date );
-	}
-
-	// If the new slug was used previously, delete it from the list.
-	if ( in_array( $new_date, $old_dates, true ) ) {
-		delete_post_meta( $post_id, '_wp_old_date', $new_date );
 	}
 }
 
