@@ -143,6 +143,13 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	public function test_sanitize_option_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;
 
+		$known_structure = WP_TESTS_DEFAULT_PERMALINK_STRUCTURE;
+		update_option( 'permalink_structure', $known_structure );
+
+		if ( false === $expected ) {
+			$expected = $known_structure;
+		}
+
 		$old_wp_settings_errors = (array) $wp_settings_errors;
 
 		$actual = sanitize_option( 'permalink_structure', $provided );
@@ -156,10 +163,6 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		} else {
 			$this->assertNotEmpty( $errors );
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
-		}
-
-		if ( false === $expected ) {
-			$expected = get_option( 'permalink_structure' );
 		}
 
 		$this->assertSame( $expected, $actual );

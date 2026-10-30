@@ -42,6 +42,16 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$this->set_permalink_structure( '' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'test_taxonomy' );
+		unregister_taxonomy( 'private_taxonomy' );
+		unregister_taxonomy( 'non_queryable_tax' );
+		unregister_taxonomy( 'public_taxonomy' );
+		unregister_taxonomy( 'non_queryable_taxonomy' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test getting a URL list for default taxonomies via
 	 * WP_Sitemaps_Taxonomies::get_url_list().

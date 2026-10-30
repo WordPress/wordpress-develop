@@ -929,7 +929,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 *
 	 * @return array[]
 	 */
-	public function data_get_items_exact_search() {
+	public static function data_get_items_exact_search() {
 		return array(
 			'general search, one exact match and one partial match' => array(
 				'search_term'  => 'Rye',
@@ -2829,7 +2829,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_create_post_response( $response );
 	}
 
-	public function data_post_dates() {
+	public static function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -3347,7 +3347,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 *
 	 * @return array
 	 */
-	public function data_featured_media_link_permissions() {
+	public static function data_featured_media_link_permissions() {
 		return array(
 			'unauthenticated user with draft parent attachment' => array(
 				'attachment_parent_status' => 'draft',

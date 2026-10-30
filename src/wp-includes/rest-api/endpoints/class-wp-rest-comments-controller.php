@@ -44,12 +44,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return string[] Hex keys for heart, celebration, smile, eyes and rocket.
+	 * @return string[] Hex keys for thumbs up, plus, heart, celebration, smile, eyes and rocket.
 	 *
 	 * @phpstan-return non-empty-list<lowercase-string&non-falsy-string>
 	 */
 	private static function get_note_reaction_keys(): array {
-		return array( '2764', '1f389', '1f604', '1f440', '1f680' );
+		return array( '1f44d', '2795', '2764', '1f389', '1f604', '1f440', '1f680' );
 	}
 
 	/**
@@ -2437,10 +2437,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * Notes are editorial content, so require edit access to the note's post
-		 * rather than the moderate_comments capability.
+		 * Notes and their reactions are editorial content, so require edit access
+		 * to the note's post rather than the moderate_comments capability.
 		 */
-		if ( 'note' === strtolower( $comment->comment_type ) ) {
+		if ( in_array( strtolower( $comment->comment_type ), array( 'note', 'reaction' ), true ) ) {
 			return current_user_can( 'edit_comment', $comment->comment_ID );
 		}
 
