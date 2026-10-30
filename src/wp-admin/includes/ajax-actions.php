@@ -3732,6 +3732,8 @@ function wp_ajax_query_themes() {
  * Applies [embed] Ajax handlers to a string.
  *
  * @since 4.0.0
+ * @since 7.3.0 The media sandbox stylesheet URLs are escaped, and the attributes of their link
+ *              tags can be filtered with {@see 'wp_style_attributes'}.
  *
  * @global WP_Post    $post          Global post object.
  * @global WP_Embed   $wp_embed      WordPress Embed object.
@@ -3824,7 +3826,12 @@ function wp_ajax_parse_embed() {
 		$mce_styles = wpview_media_sandbox_styles();
 
 		foreach ( $mce_styles as $style ) {
-			$styles .= sprintf( '<link rel="stylesheet" href="%s" />', $style );
+			$styles .= wp_get_style_link_tag(
+				array(
+					'rel'  => 'stylesheet',
+					'href' => $style,
+				)
+			);
 		}
 
 		$html = do_shortcode( $parsed );
@@ -3874,6 +3881,8 @@ function wp_ajax_parse_embed() {
 
 /**
  * @since 4.0.0
+ * @since 7.3.0 The media sandbox stylesheet URLs are escaped, and the attributes of their link
+ *              tags can be filtered with {@see 'wp_style_attributes'}.
  *
  * @global WP_Post    $post       Global post object.
  * @global WP_Scripts $wp_scripts Script dependencies object.
@@ -3931,7 +3940,12 @@ function wp_ajax_parse_media_shortcode() {
 	$styles = wpview_media_sandbox_styles();
 
 	foreach ( $styles as $style ) {
-		$head .= '<link rel="stylesheet" href="' . $style . '">';
+		$head .= wp_get_style_link_tag(
+			array(
+				'rel'  => 'stylesheet',
+				'href' => $style,
+			)
+		);
 	}
 
 	if ( ! empty( $wp_scripts ) ) {
