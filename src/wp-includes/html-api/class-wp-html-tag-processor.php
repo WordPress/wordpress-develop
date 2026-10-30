@@ -1220,12 +1220,12 @@ class WP_HTML_Tag_Processor {
 			$at += $length;
 
 			/*
-			 * It's expected that the number of class names for a given tag is relatively small.
-			 * Given this, it is probably faster overall to scan an array for a value rather
-			 * than to use the class name as a key and check if it's a key of $seen.
+			 * `$seen` is keyed by class name. PHP stores a canonical integer string
+			 * such as "123" as the integer key 123, and no other string maps to that
+			 * key, so distinct names stay distinct.
 			 */
-			if ( ! in_array( $name, $seen, true ) ) {
-				$seen[] = $name;
+			if ( ! isset( $seen[ $name ] ) ) {
+				$seen[ $name ] = true;
 				yield $name;
 			}
 
@@ -2492,19 +2492,24 @@ class WP_HTML_Tag_Processor {
 		 */
 		$modified = false;
 
+		/*
+		 * `$seen` and `$to_remove` are keyed by class name. PHP stores a canonical
+		 * integer string such as "123" as the integer key 123, and no other string
+		 * maps to that key, so distinct names stay distinct.
+		 */
 		$seen      = array();
 		$to_remove = array();
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
 		if ( $is_quirks ) {
 			foreach ( $this->classname_updates as $updated_name => $action ) {
 				if ( self::REMOVE_CLASS === $action ) {
-					$to_remove[] = strtolower( $updated_name );
+					$to_remove[ strtolower( $updated_name ) ] = true;
 				}
 			}
 		} else {
 			foreach ( $this->classname_updates as $updated_name => $action ) {
 				if ( self::REMOVE_CLASS === $action ) {
-					$to_remove[] = $updated_name;
+					$to_remove[ $updated_name ] = true;
 				}
 			}
 		}
@@ -2529,17 +2534,17 @@ class WP_HTML_Tag_Processor {
 			$at                   += $name_length;
 
 			// If this class is marked for removal, remove it and move on to the next one.
-			if ( in_array( $comparable_class_name, $to_remove, true ) ) {
+			if ( isset( $to_remove[ $comparable_class_name ] ) ) {
 				$modified = true;
 				continue;
 			}
 
 			// If a class has already been seen then skip it; it should not be added twice.
-			if ( in_array( $comparable_class_name, $seen, true ) ) {
+			if ( isset( $seen[ $comparable_class_name ] ) ) {
 				continue;
 			}
 
-			$seen[] = $comparable_class_name;
+			$seen[ $comparable_class_name ] = true;
 
 			/*
 			 * Otherwise, append it to the new "class" attribute value.
@@ -2562,7 +2567,7 @@ class WP_HTML_Tag_Processor {
 		// Add new classes by appending those which haven't already been seen.
 		foreach ( $this->classname_updates as $name => $operation ) {
 			$comparable_name = $is_quirks ? strtolower( $name ) : $name;
-			if ( self::ADD_CLASS === $operation && ! in_array( $comparable_name, $seen, true ) ) {
+			if ( self::ADD_CLASS === $operation && ! isset( $seen[ $comparable_name ] ) ) {
 				$modified = true;
 
 				$class .= strlen( $class ) > 0 ? ' ' : '';
