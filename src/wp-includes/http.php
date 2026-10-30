@@ -446,13 +446,19 @@ function get_http_origin() {
  * @return string[] Array of origin URLs.
  */
 function get_allowed_http_origins() {
-	$admin_origin = parse_url( admin_url() );
-	$home_origin  = parse_url( home_url() );
+	$admin_url   = admin_url();
+	$home_url    = home_url();
+	$parsed_urls = array(
+		parse_url( $admin_url ),
+	);
+	if ( $admin_url !== $home_url ) {
+		$parsed_urls[] = parse_url( $home_url );
+	}
 
 	// @todo Preserve port?
 	$allowed_origins = array();
 
-	foreach ( array( $admin_origin, $home_origin ) as $parsed_url ) {
+	foreach ( $parsed_urls as $parsed_url ) {
 		if ( ! is_array( $parsed_url ) || ! isset( $parsed_url['host'] ) ) {
 			continue;
 		}
