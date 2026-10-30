@@ -59,18 +59,18 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_hex_colors() {
 		return array(
-			'missing hash'           => array( 'abcdef' ),
-			'empty string'           => array( '' ),
-			'hash only'              => array( '#' ),
-			'too short'              => array( '#ab' ),
-			'4 digits'               => array( '#abcd' ),
-			'5 digits'               => array( '#abcde' ),
-			'too long'               => array( '#abcdef0' ),
-			'non-hex characters'     => array( '#ggg' ),
-			'invalid 6-digit chars'  => array( '#abcdeg' ),
-			'spaces'                 => array( '#abc def' ),
-			'rgb function'           => array( 'rgb(0,0,0)' ),
-			'named color'            => array( 'red' ),
+			'missing hash'          => array( 'abcdef' ),
+			'empty string'          => array( '' ),
+			'hash only'             => array( '#' ),
+			'too short'             => array( '#ab' ),
+			'4 digits'              => array( '#abcd' ),
+			'5 digits'              => array( '#abcde' ),
+			'too long'              => array( '#abcdef0' ),
+			'non-hex characters'    => array( '#ggg' ),
+			'invalid 6-digit chars' => array( '#abcdeg' ),
+			'spaces'                => array( '#abc def' ),
+			'rgb function'          => array( 'rgb(0,0,0)' ),
+			'named color'           => array( 'red' ),
 		);
 	}
 }
