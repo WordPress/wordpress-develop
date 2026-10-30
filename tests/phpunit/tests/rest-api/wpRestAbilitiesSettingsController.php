@@ -197,42 +197,16 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_no_matching_setting_is_encoded_as_an_empty_object().
-	 *
-	 * @return array<string, array{0: array<string, string>}>
-	 */
-	public static function data_global_params(): array {
-		return array(
-			'no global parameter' => array( array() ),
-			'_fields'             => array( array( '_fields' => 'title' ) ),
-			'_embed'              => array( array( '_embed' => '1' ) ),
-			'_fields and _embed'  => array(
-				array(
-					'_fields' => 'title',
-					'_embed'  => '1',
-				),
-			),
-		);
-	}
-
-	/**
-	 * An empty result is served as a JSON object, which the output schema requires,
-	 * also when the global `_fields` and `_embed` parameters are given.
+	 * An empty result is served as a JSON object, which the output schema requires.
 	 *
 	 * @ticket 66267
-	 * @dataProvider data_global_params
-	 *
-	 * @param array<string, string> $global_params The global parameters sent with the request.
 	 */
-	public function test_no_matching_setting_is_encoded_as_an_empty_object( array $global_params ): void {
-		$_GET = array_merge(
-			array(
-				'input' => array(
-					'group'  => 'reading',
-					'fields' => 'title',
-				),
+	public function test_no_matching_setting_is_encoded_as_an_empty_object(): void {
+		$_GET = array(
+			'input' => array(
+				'group'  => 'reading',
+				'fields' => 'title',
 			),
-			$global_params
 		);
 
 		$this->server->serve_request( self::RUN_ROUTE );

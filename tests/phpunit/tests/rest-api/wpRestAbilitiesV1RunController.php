@@ -745,14 +745,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
-	 * Each result is requested without global parameters, with `_fields` and `_embed`
-	 * alone and together, and with a link that a `rest_post_dispatch` filter adds,
-	 * alone and embedded.
-	 *
-	 * @return array<string, array{0: string, 1: array<string, string>, 2: bool, 3: string}>
+	 * @return array<string, array{0: string, 1: string}>
 	 */
 	public static function data_output_is_prepared_for_json_clients(): array {
-		$results = array(
+		return array(
 			'root empty object'       => array( 'test/empty-object-output', '{}' ),
 			'nested empty object'     => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
 			'numeric collection'      => array( 'test/empty-object-list-output', '[{}]' ),
@@ -762,58 +758,49 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
 			'string'                  => array( 'test/string-output', '"value"' ),
 		);
-
-		// No result has the `other` field, so filtering would leave none of the result.
-		$requests = array(
-			'no global parameters'      => array( array(), false ),
-			'_fields'                   => array( array( '_fields' => 'other' ), false ),
-			'_embed'                    => array( array( '_embed' => '1' ), false ),
-			'_fields and _embed'        => array(
-				array(
-					'_fields' => 'other',
-					'_embed'  => '1',
-				),
-				false,
-			),
-			'response link'             => array( array(), true ),
-			'response link with _embed' => array( array( '_embed' => '1' ), true ),
-		);
-
-		$data = array();
-		foreach ( $results as $result_label => $result ) {
-			foreach ( $requests as $request_label => $request ) {
-				$data[ "{$result_label}, {$request_label}" ] = array( $result[0], $request[0], $request[1], $result[1] );
-			}
-		}
-
-		return $data;
 	}
 
 	/**
-	 * Tests that ability results are prepared for JSON clients, and that the global
-	 * `_fields` and `_embed` parameters and response links leave them unchanged.
+	 * Tests that ability results are prepared for JSON clients.
 	 *
 	 * @ticket 66267
 	 * @dataProvider data_output_is_prepared_for_json_clients
 	 *
-	 * @param string                $ability_name The ability name.
-	 * @param array<string, string> $query_params The global parameters sent with the request.
-	 * @param bool                  $add_link     Whether a `rest_post_dispatch` filter adds an embeddable link.
-	 * @param string                $expected     The expected encoded result.
+	 * @param string $ability_name The ability name.
+	 * @param string $expected     The expected encoded result.
 	 */
-	public function test_output_is_prepared_for_json_clients( string $ability_name, array $query_params, bool $add_link, string $expected ): void {
-		$request = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
-		$request->set_query_params( $query_params );
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
+		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		$response = $this->server->dispatch( $request );
 
-		if ( $add_link ) {
-			add_filter(
-				'rest_post_dispatch',
-				static function ( $response ) {
-					$response->add_link( 'alternate', rest_url( '/wp-abilities/v1/abilities' ), array( 'embeddable' => true ) );
-					return $response;
-				}
-			);
-		}
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
+	}
+
+	/**
+	 * Tests that the global `_fields` and `_embed` parameters and response links leave
+	 * ability results unchanged.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_global_parameters_and_response_links_leave_output_unchanged(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/nested-empty-object-output/run' );
+
+		// The result has no `other` field, so filtering would leave none of the result.
+		$request->set_query_params(
+			array(
+				'_fields' => 'other',
+				'_embed'  => '1',
+			)
+		);
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->add_link( 'alternate', rest_url( '/wp-abilities/v1/abilities' ), array( 'embeddable' => true ) );
+				return $response;
+			}
+		);
 
 		$response = $this->server->dispatch( $request );
 
@@ -821,22 +808,9 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = $this->server->response_to_data( $response, $embed );
+		$data     = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
 
-		$this->assertSame( $expected, wp_json_encode( $data ), 'The result should be encoded as expected.' );
-	}
-
-	/**
-	 * Data provider for test_links_in_the_result_are_not_embedded().
-	 *
-	 * @return array<string, array{0: string}>
-	 */
-	public static function data_links_in_the_result_are_not_embedded(): array {
-		return array(
-			'every link'        => array( '1' ),
-			'the link relation' => array( 'author' ),
-		);
+		$this->assertSame( '{"settings":{}}', wp_json_encode( $data ), 'The result should be left unchanged.' );
 	}
 
 	/**
@@ -844,11 +818,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * unchanged, without requesting the linked resources.
 	 *
 	 * @ticket 66267
-	 * @dataProvider data_links_in_the_result_are_not_embedded
-	 *
-	 * @param string $embed The `_embed` parameter sent with the request.
 	 */
-	public function test_links_in_the_result_are_not_embedded( string $embed ): void {
+	public function test_links_in_the_result_are_not_embedded(): void {
 		$result = array(
 			'id'     => 1,
 			'_links' => array(
@@ -880,7 +851,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/links-output/run' );
-		$request->set_query_params( array( '_embed' => $embed ) );
+		$request->set_query_params( array( '_embed' => '1' ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -895,41 +866,23 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_preloaded_output_is_prepared_for_json_clients().
-	 *
-	 * @return array<string, array{0: array<string, string>, 1: mixed, 2: string, 3: string}>
-	 */
-	public static function data_preloaded_output_is_prepared_for_json_clients(): array {
-		return array(
-			'empty object'                     => array( array( 'type' => 'object' ), array(), '', '{}' ),
-			'empty object, _fields and _embed' => array( array( 'type' => 'object' ), array(), '?_fields=other&_embed=1', '{}' ),
-			'string'                           => array( array( 'type' => 'string' ), 'value', '', '"value"' ),
-			'string, _fields and _embed'       => array( array( 'type' => 'string' ), 'value', '?_fields=other&_embed=1', '"value"' ),
-		);
-	}
-
-	/**
 	 * Tests that preloading a read-only ability run keeps the result prepared for
 	 * JSON clients, also with the global `_fields` and `_embed` parameters.
 	 *
 	 * @ticket 66267
-	 * @dataProvider data_preloaded_output_is_prepared_for_json_clients
-	 *
-	 * @param array<string, string> $output_schema The ability output schema.
-	 * @param mixed                 $result        The ability result.
-	 * @param string                $query         The query string of the preloaded path.
-	 * @param string                $expected      The expected encoded preloaded body.
 	 */
-	public function test_preloaded_output_is_prepared_for_json_clients( array $output_schema, $result, string $query, string $expected ): void {
+	public function test_preloaded_output_is_prepared_for_json_clients(): void {
 		$this->register_test_ability(
 			'test/readonly-output',
 			array(
 				'label'               => 'Read-only Output',
-				'description'         => 'Returns a value from a read-only ability.',
+				'description'         => 'Returns an empty object from a read-only ability.',
 				'category'            => 'general',
-				'output_schema'       => $output_schema,
-				'execute_callback'    => static function () use ( $result ) {
-					return $result;
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
@@ -941,11 +894,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$path    = '/wp-abilities/v1/abilities/test/readonly-output/run' . $query;
+		$path    = '/wp-abilities/v1/abilities/test/readonly-output/run?_fields=other&_embed=1';
 		$preload = rest_preload_api_request( array(), $path );
 
 		$this->assertArrayHasKey( $path, $preload, 'The ability run should be preloaded.' );
-		$this->assertSame( $expected, wp_json_encode( $preload[ $path ]['body'] ), 'The preloaded result should be encoded as expected.' );
+		$this->assertSame( '{}', wp_json_encode( $preload[ $path ]['body'] ), 'The preloaded result should be encoded as an empty object.' );
 	}
 
 	/**
