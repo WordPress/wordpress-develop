@@ -4,6 +4,9 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
+	/**
+	 * @var int
+	 */
 	protected static $parent_term;
 	protected static $child_term;
 	protected static $post_tag;
@@ -112,6 +115,47 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 500, $result->code );
 		$this->assertSame( __( 'Empty Term.' ), $result->message );
+	}
+
+	/**
+	 * Tests that a term name that is not a string or number returns an error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_invalid_term_name
+	 *
+	 * @param mixed $name The term name to send.
+	 */
+	public function test_invalid_term_name( $name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_editTerm(
+			array(
+				1,
+				'editor',
+				'editor',
+				self::$parent_term,
+				array(
+					'taxonomy' => 'category',
+					'name'     => $name,
+				),
+			)
+		);
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( 'Invalid term name.', $result->message );
+	}
+
+	/**
+	 * Data provider for {@see self::test_invalid_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ mixed }>
+	 */
+	public function data_invalid_term_name(): array {
+		return array(
+			'array'   => array( array( 'foo' ) ),
+			'boolean' => array( true ),
+		);
 	}
 
 	public function test_empty_term_name() {

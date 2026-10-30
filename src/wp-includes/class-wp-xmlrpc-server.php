@@ -2220,6 +2220,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		// Hold the data of the term.
 		$term_data = array();
 
+		if ( isset( $content_struct['name'] ) && ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
+			return new IXR_Error( 403, __( 'Invalid term name.' ) );
+		}
+
 		$term_data['name'] = trim( $content_struct['name'] );
 		if ( empty( $term_data['name'] ) ) {
 			return new IXR_Error( 403, __( 'The term name cannot be empty.' ) );
@@ -2338,6 +2342,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( isset( $content_struct['name'] ) ) {
+			if ( ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
+				return new IXR_Error( 403, __( 'Invalid term name.' ) );
+			}
+
 			$term_data['name'] = trim( $content_struct['name'] );
 
 			if ( empty( $term_data['name'] ) ) {
