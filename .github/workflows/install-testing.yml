@@ -140,8 +140,14 @@ jobs:
         with:
           version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || 'latest' }}
 
+      # WP-CLI extracts tarballs with PharData, which truncates paths longer than 100 characters.
+      # Nightly builds are only available as a zip, which is not affected.
       - name: Download WordPress
-        run: wp core download --version="${WP_VERSION}"
+        run: |
+          case "${WP_VERSION}" in
+            nightly|trunk) wp core download --version=nightly ;;
+            *) curl -fsSL "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" | tar xz --strip-components=1 ;;
+          esac
         env:
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
@@ -174,6 +180,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      version: ${{ inputs.wp-version || 'nightly' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}

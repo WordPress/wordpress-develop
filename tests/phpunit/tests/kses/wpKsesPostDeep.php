@@ -16,9 +16,7 @@ class Tests_Kses_wpKsesPostDeep extends WP_UnitTestCase {
 		$input  = '<p>Safe</p><script>alert(1)</script>';
 		$result = wp_kses_post_deep( $input );
 
-		$this->assertSame( wp_kses_post( $input ), $result );
-		$this->assertStringContainsString( '<p>Safe</p>', $result );
-		$this->assertStringNotContainsString( '<script', $result );
+		$this->assertSame( '<p>Safe</p>', $result );
 	}
 
 	/**
@@ -34,21 +32,16 @@ class Tests_Kses_wpKsesPostDeep extends WP_UnitTestCase {
 		);
 
 		$expected = array(
-			'title'   => wp_kses_post( $input['title'] ),
+			'title'   => '<strong>Ok</strong>',
 			'nested'  => array(
-				'body' => wp_kses_post( $input['nested']['body'] ),
+				'body' => '<p>Hello</p>',
 			),
-			'allowed' => wp_kses_post( $input['allowed'] ),
+			'allowed' => '<em>emphasis</em>',
 		);
 
 		$result = wp_kses_post_deep( $input );
 
 		$this->assertSame( $expected, $result );
-		$this->assertStringContainsString( '<strong>Ok</strong>', $result['title'] );
-		$this->assertStringNotContainsString( '<script', $result['title'] );
-		$this->assertStringContainsString( '<p>Hello</p>', $result['nested']['body'] );
-		$this->assertStringNotContainsString( '<iframe', $result['nested']['body'] );
-		$this->assertSame( '<em>emphasis</em>', $result['allowed'] );
 	}
 
 	/**
@@ -58,11 +51,8 @@ class Tests_Kses_wpKsesPostDeep extends WP_UnitTestCase {
 		$input       = new stdClass();
 		$input->html = '<p>Ok</p><script>bad</script>';
 
-		$expected = wp_kses_post( $input->html );
-		$result   = wp_kses_post_deep( $input );
+		$result = wp_kses_post_deep( $input );
 
-		$this->assertSame( $expected, $result->html );
-		$this->assertStringContainsString( '<p>Ok</p>', $result->html );
-		$this->assertStringNotContainsString( '<script', $result->html );
+		$this->assertSame( '<p>Ok</p>', $result->html );
 	}
 }

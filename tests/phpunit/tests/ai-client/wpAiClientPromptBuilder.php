@@ -259,7 +259,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed, 1: float}>
 	 */
-	public function data_valid_request_timeout_overrides(): array {
+	public static function data_valid_request_timeout_overrides(): array {
 		return array(
 			'float'    => array( 45.5, 45.5 ),
 			'integer'  => array( 67, 67.0 ),
@@ -302,7 +302,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
-	public function data_invalid_request_timeouts(): array {
+	public static function data_invalid_request_timeouts(): array {
 		return array(
 			'negative number' => array( -1 ),
 			'array'           => array( array() ),
