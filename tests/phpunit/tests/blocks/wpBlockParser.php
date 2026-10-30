@@ -43,6 +43,68 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that implicitly closing a final open block does not repeat content parsed before it.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_documents_ending_in_an_open_block
+	 *
+	 * @param string $document Document whose last block has no closer.
+	 * @param array  $expected Expected block names and inner HTML, in order.
+	 */
+	public function test_implicitly_closed_final_block_does_not_repeat_content( $document, $expected ) {
+		$p      = new WP_Block_Parser();
+		$blocks = array_map(
+			static function ( $block ) {
+				return array( $block['blockName'], $block['innerHTML'] );
+			},
+			$p->parse( $document )
+		);
+
+		$this->assertSame( $expected, $blocks );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_documents_ending_in_an_open_block() {
+		return array(
+			'After a closed block'                  => array(
+				'<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+				array(
+					array( 'core/paragraph', 'A' ),
+					array( 'core/latest-posts', '' ),
+				),
+			),
+			'After leading HTML and a closed block' => array(
+				'Hi<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+				array(
+					array( null, 'Hi' ),
+					array( 'core/paragraph', 'A' ),
+					array( 'core/latest-posts', '' ),
+				),
+			),
+			'After a closed block and HTML'         => array(
+				'<!-- wp:paragraph -->A<!-- /wp:paragraph -->Bye<!-- wp:latest-posts -->',
+				array(
+					array( 'core/paragraph', 'A' ),
+					array( null, 'Bye' ),
+					array( 'core/latest-posts', '' ),
+				),
+			),
+			'After a closed void block'             => array(
+				'<!-- wp:separator /--><!-- wp:group -->A',
+				array(
+					array( 'core/separator', '' ),
+					array( 'core/group', 'A' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * @dataProvider data_parsing_test_filenames
 	 * @ticket 45109
 	 *

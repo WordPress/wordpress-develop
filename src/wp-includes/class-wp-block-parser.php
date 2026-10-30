@@ -411,7 +411,7 @@ class WP_Block_Parser {
 			}
 
 			// Trap potential leading freeform content for the final output.
-			$last_freeform = array( $stack_top->leading_html_start ?? 0, $stack_top->token_start );
+			$last_freeform = array( $stack_top->leading_html_start ?? $stack_top->token_start, $stack_top->token_start );
 
 			if ( isset( $implicitly_closed ) ) {
 				$stack_top->block->innerContent[] = null;
