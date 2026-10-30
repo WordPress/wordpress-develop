@@ -267,7 +267,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getSingleSiteMetaCaps() {
+	private static function _getSingleSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -307,7 +307,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSiteMetaCaps() {
+	private static function _getMultiSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -347,9 +347,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	public function dataAllCapsAndRoles() {
+	public static function dataAllCapsAndRoles() {
 		$data = array();
-		$caps = $this->getAllCapsAndRoles();
+		$caps = self::getAllCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			foreach ( $caps as $cap => $roles ) {
@@ -383,8 +383,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	protected function getAllCapsAndRoles() {
-		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
+	protected static function getAllCapsAndRoles() {
+		return self::getPrimitiveCapsAndRoles() + self::getMetaCapsAndRoles();
 	}
 
 	protected static function getPrimitiveCapsAndRoles() {
@@ -395,11 +395,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	protected function getMetaCapsAndRoles() {
+	protected static function getMetaCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSiteMetaCaps();
+			return self::_getMultiSiteMetaCaps();
 		} else {
-			return $this->_getSingleSiteMetaCaps();
+			return self::_getSingleSiteMetaCaps();
 		}
 	}
 
@@ -407,14 +407,14 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_single_and_multisite_cap_tests_match() {
-		$single_primitive = array_keys( $this->_getSingleSitePrimitiveCaps() );
-		$multi_primitive  = array_keys( $this->_getMultiSitePrimitiveCaps() );
+		$single_primitive = array_keys( self::_getSingleSitePrimitiveCaps() );
+		$multi_primitive  = array_keys( self::_getMultiSitePrimitiveCaps() );
 		sort( $single_primitive );
 		sort( $multi_primitive );
 		$this->assertSame( $single_primitive, $multi_primitive );
 
-		$single_meta = array_keys( $this->_getSingleSiteMetaCaps() );
-		$multi_meta  = array_keys( $this->_getMultiSiteMetaCaps() );
+		$single_meta = array_keys( self::_getSingleSiteMetaCaps() );
+		$multi_meta  = array_keys( self::_getMultiSiteMetaCaps() );
 		sort( $single_meta );
 		sort( $multi_meta );
 		$this->assertSame( $single_meta, $multi_meta );
@@ -424,7 +424,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_all_caps_of_users_are_being_tested() {
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		// `manage_links` is a special case.
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
@@ -1566,7 +1566,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function dataTaxonomies() {
+	public static function dataTaxonomies() {
 		return array(
 			array(
 				'post_tag',
