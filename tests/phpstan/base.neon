@@ -243,6 +243,7 @@ parameters:
 		# Also defined as numeric strings, from options or getenv(). Core casts with (int).
 		WP_POST_REVISIONS: 'bool|int'
 		WP_REPAIRING: 'bool'
+		WP_RUN_CORE_TESTS: 'bool'
 		# Raw getenv() configs also yield false when unset.
 		WP_SITEURL: 'string'
 		WP_START_TIMESTAMP: 'float'
