@@ -153,7 +153,7 @@ function wp_apply_colors_support( WP_Block_Type $block_type, array $block_attrib
  * `getColorClassesAndStyles()`. Does not check block support or skipped
  * serialization.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param array $block_attributes Block attributes.
  * @return array Array with `class` and `style` keys, each present only when non-empty.
