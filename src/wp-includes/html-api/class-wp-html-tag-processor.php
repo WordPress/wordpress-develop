@@ -2216,7 +2216,14 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$attribute_start = $this->bytes_already_parsed;
-			/** @phpstan-var non-empty-string $attribute_name */
+			/**
+			 * Attribute name.
+			 *
+			 * The name is non-empty because whitespace and slashes are skipped, `>` ends parsing,
+			 * and a leading `=` is included. PHPStan cannot infer this, so the type is annotated below.
+			 *
+			 * @var non-empty-string $attribute_name
+			 */
 			$attribute_name              = substr( $this->html, $attribute_start, $name_length );
 			$this->bytes_already_parsed += $name_length;
 
