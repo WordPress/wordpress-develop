@@ -154,6 +154,189 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that sanitizing character references does not activate literal shortcode examples.
+	 *
+	 * @ticket 66208
+	 * @dataProvider data_wp_kses_preserves_shortcode_brackets
+	 *
+	 * @param string $input          HTML to sanitize before processing shortcodes.
+	 * @param string $expected       Expected rendered HTML with character references decoded.
+	 * @param int    $expected_calls Expected shortcode callback calls per rendering.
+	 */
+	public function test_wp_kses_preserves_shortcode_brackets( $input, $expected, $expected_calls ) {
+		global $shortcode_tags;
+
+		$shortcode          = 'kses_bracket_probe';
+		$had_shortcode      = shortcode_exists( $shortcode );
+		$previous_shortcode = $shortcode_tags[ $shortcode ] ?? null;
+		$callback_calls     = 0;
+
+		add_shortcode(
+			$shortcode,
+			static function () use ( &$callback_calls ) {
+				++$callback_calls;
+				return 'kses-bracket-probe-output';
+			}
+		);
+
+		try {
+			$sanitized = $input;
+			for ( $pass = 1; $pass <= 2; ++$pass ) {
+				$previous  = $sanitized;
+				$sanitized = wp_kses_post( $sanitized );
+				$rendered  = do_shortcode( $sanitized );
+
+				$this->assertSame(
+					$expected_calls * $pass,
+					$callback_calls,
+					'Only literal, unescaped shortcode delimiters should invoke the callback.'
+				);
+				$this->assertSame(
+					$expected,
+					html_entity_decode( $rendered, ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+					'Sanitization should preserve the content and shortcode behavior.'
+				);
+
+				if ( 2 === $pass ) {
+					$this->assertSame( $previous, $sanitized, 'Repeated sanitization should be idempotent.' );
+				}
+			}
+		} finally {
+			if ( $had_shortcode ) {
+				add_shortcode( $shortcode, $previous_shortcode );
+			} else {
+				remove_shortcode( $shortcode );
+			}
+		}
+	}
+
+	/**
+	 * Tests escaped shortcode examples through a restricted author's real post-save filters.
+	 *
+	 * @ticket 66208
+	 */
+	public function test_post_save_preserves_shortcode_brackets_for_restricted_author() {
+		global $shortcode_tags;
+
+		$previous_user_id   = get_current_user_id();
+		$shortcode          = 'kses_bracket_probe';
+		$had_shortcode      = shortcode_exists( $shortcode );
+		$previous_shortcode = $shortcode_tags[ $shortcode ] ?? null;
+		$callback_calls     = 0;
+
+		add_shortcode(
+			$shortcode,
+			static function () use ( &$callback_calls ) {
+				++$callback_calls;
+				return 'kses-bracket-probe-output';
+			}
+		);
+
+		try {
+			$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+			wp_set_current_user( $author_id );
+			$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+
+			$post_id = wp_insert_post(
+				wp_slash(
+					array(
+						'post_author'  => $author_id,
+						'post_title'   => 'Escaped shortcode example',
+						'post_status'  => 'publish',
+						'post_content' => '&#91;kses_bracket_probe&#93; [kses_bracket_probe]',
+					)
+				),
+				true
+			);
+			$this->assertNotWPError( $post_id );
+
+			$stored = get_post_field( 'post_content', $post_id, 'raw' );
+			$this->assertSame(
+				'[kses_bracket_probe] [kses_bracket_probe]',
+				html_entity_decode( $stored, ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+				'Saving should preserve both the escaped example and the actual shortcode.'
+			);
+
+			$rendered = do_shortcode( $stored );
+			$this->assertSame( 1, $callback_calls, 'Only the actual shortcode should execute after saving.' );
+			$this->assertSame(
+				'[kses_bracket_probe] kses-bracket-probe-output',
+				html_entity_decode( $rendered, ENT_QUOTES | ENT_HTML5, 'UTF-8' )
+			);
+		} finally {
+			if ( $had_shortcode ) {
+				add_shortcode( $shortcode, $previous_shortcode );
+			} else {
+				remove_shortcode( $shortcode );
+			}
+			wp_set_current_user( $previous_user_id );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_kses_preserves_shortcode_brackets().
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_kses_preserves_shortcode_brackets(): array {
+		$examples = array(
+			'decimal references'                     => array( '&#91;kses_bracket_probe&#93;', '[kses_bracket_probe]', 0 ),
+			'hexadecimal references'                 => array( '&#x5b;kses_bracket_probe&#x5d;', '[kses_bracket_probe]', 0 ),
+			'named references'                       => array( '&lbrack;kses_bracket_probe&rbrack;', '[kses_bracket_probe]', 0 ),
+			'named bracket aliases'                  => array( '&lsqb;kses_bracket_probe&rsqb;', '[kses_bracket_probe]', 0 ),
+			'leading decimal zeros'                  => array( '&#00091;kses_bracket_probe&#00093;', '[kses_bracket_probe]', 0 ),
+			'leading hexadecimal zeros'              => array( '&#x0005B;kses_bracket_probe&#x0005D;', '[kses_bracket_probe]', 0 ),
+			'encoded opener'                         => array( '&#91;kses_bracket_probe]', '[kses_bracket_probe]', 0 ),
+			'encoded closer'                         => array( '[kses_bracket_probe&#93;', '[kses_bracket_probe]', 0 ),
+			'decimal without semicolons'             => array( '&#91kses_bracket_probe&#93', '[kses_bracket_probe]', 0 ),
+			'hexadecimal without semicolons'         => array( '&#x5Bkses_bracket_probe&#x5D', '[kses_bracket_probe]', 0 ),
+			'nested references'                      => array( '&amp;#91;kses_bracket_probe&amp;#93;', '&#91;kses_bracket_probe&#93;', 0 ),
+			'nested closer'                          => array( '&#91;kses_bracket_probe&amp;#93;', '[kses_bracket_probe&#93;', 0 ),
+			'literal shortcode'                      => array( '[kses_bracket_probe]', 'kses-bracket-probe-output', 1 ),
+			'escaped literal shortcode'              => array( '[[kses_bracket_probe]]', '[kses_bracket_probe]', 0 ),
+			'encoded then literal shortcode'         => array( '&#91;kses_bracket_probe&#93; [kses_bracket_probe]', '[kses_bracket_probe] kses-bracket-probe-output', 1 ),
+			'literal then encoded shortcode'         => array( '[kses_bracket_probe] &#91;kses_bracket_probe&#93;', 'kses-bracket-probe-output [kses_bracket_probe]', 1 ),
+			'unknown entity before mixed shortcodes' => array( '&bogus; &#91;kses_bracket_probe&#93; [kses_bracket_probe]', '&bogus; [kses_bracket_probe] kses-bracket-probe-output', 1 ),
+			'non-bracket numeric reference'          => array( '&#910; &#91;kses_bracket_probe&#93;', "\u{038E} [kses_bracket_probe]", 0 ),
+			'ampersand before literal shortcode'     => array( '&amp; [kses_bracket_probe]', '& kses-bracket-probe-output', 1 ),
+		);
+		$contexts = array(
+			'text'      => '%s',
+			'code text' => '<code>%s</code>',
+			'pre text'  => '<pre>%s</pre>',
+		);
+		$data     = array();
+
+		foreach ( $contexts as $context => $template ) {
+			foreach ( $examples as $description => $example ) {
+				$data[ "{$description} in {$context}" ] = array(
+					sprintf( $template, $example[0] ),
+					sprintf( $template, $example[1] ),
+					$example[2],
+				);
+			}
+		}
+
+		$data['normalizes CRLF and CR']        = array(
+			"Before\r\n&#91;kses_bracket_probe&#93;\rAfter",
+			"Before\n[kses_bracket_probe]\nAfter",
+			0,
+		);
+		$data['preserves leading PRE newline'] = array(
+			"<pre>\r\n\r\n&#91;kses_bracket_probe&#93;</pre>",
+			"<pre>\n\n[kses_bracket_probe]</pre>",
+			0,
+		);
+		$data['removes NULL bytes in text']    = array(
+			"Before\x00&#91;kses_bracket_probe&#93;\x00After",
+			'Before[kses_bracket_probe]After',
+			0,
+		);
+
+		return $data;
+	}
+
+	/**
 	 * Test video tag.
 	 *
 	 * @ticket 50167
