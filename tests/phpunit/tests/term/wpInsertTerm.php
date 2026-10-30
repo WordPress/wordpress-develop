@@ -16,6 +16,13 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_insert_delete_term() {
 		$taxonomy = 'wptests_tax';
 		register_taxonomy( $taxonomy, 'post' );

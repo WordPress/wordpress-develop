@@ -61,7 +61,7 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: bool}>
 	 */
-	public function data_built_in_post_types(): array {
+	public static function data_built_in_post_types(): array {
 		return array(
 			'post'       => array( 'post', true ),
 			'page'       => array( 'page', false ),
@@ -97,7 +97,7 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array{public?: bool, publicly_queryable?: bool, has_archive?: bool|string, randomable?: bool}, 1: bool}>
 	 */
-	public function data_randomable_defaults(): array {
+	public static function data_randomable_defaults(): array {
 		return array(
 			'no arguments'                               => array( array(), false ),
 			'public, no archive'                         => array( array( 'public' => true ), false ),
