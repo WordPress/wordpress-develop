@@ -894,11 +894,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/functions.php
-		-
 			message: '#^Parameter \#2 \$fallback_url of function wp_validate_redirect expects string, false given\.$#'
 			identifier: argument.type
 			count: 2
@@ -940,11 +935,6 @@ parameters:
 			path: ../../../src/wp-includes/general-template.php
 		-
 			message: '#^Parameter \#1 \$string of function substr expects string, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string\|false given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
