@@ -1550,7 +1550,7 @@ final class WP_Abilities_Content {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $required Whether the post currently requires a password.
-	 * @param mixed $post     The post being checked; a WP_Post when invoked by the core filter.
+	 * @param mixed $post     The post being checked; a WP_Post or null when invoked by the core filter.
 	 * @return bool Whether the post still requires a password.
 	 */
 	private function allow_password_content( $required, $post ): bool {
