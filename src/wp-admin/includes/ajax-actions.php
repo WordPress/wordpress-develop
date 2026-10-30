@@ -5452,7 +5452,7 @@ function wp_ajax_health_check_loopback_requests() {
  * remain supported for compatibility, and results-only requests preserve counts.
  *
  * @since 5.2.0
- * @since 7.1.0 The submitted counts are validated, and optional per-test statuses
+ * @since 7.3.0 The submitted counts are validated, and optional per-test statuses
  *              and timestamps extend the existing transient.
  */
 function wp_ajax_health_check_site_status_result() {
