@@ -674,6 +674,26 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66380
+	 *
+	 * @covers ::get_dropins
+	 */
+	public function test_get_dropins_includes_secrets_dropin() {
+		$this->_back_up_drop_ins();
+
+		$p1 = $this->_create_plugin( "<?php\n//Test", 'secrets.php', WP_CONTENT_DIR );
+
+		$dropins = get_dropins();
+
+		unlink( $p1[1] );
+
+		$this->assertSame( array( 'secrets.php' ), array_keys( $dropins ) );
+
+		// Clean up.
+		$this->_restore_drop_ins();
+	}
+
+	/**
 	 * @covers ::is_network_only_plugin
 	 */
 	public function test_is_network_only_plugin_hello() {
