@@ -18,20 +18,28 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unset( $GLOBALS['comment'] );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 65819
 	 *
 	 * @covers ::get_comment_type
 	 */
 	public function test_empty_type_normalizes_to_comment() {
-		$comment_id = self::factory()->comment->create(
+		$comment = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_ID' => self::$post_id,
-				'comment_type'    => '',
+				'comment_type'    => 'pingback',
 			)
 		);
 
-		$this->assertSame( 'comment', get_comment_type( $comment_id ) );
+		// Bypass wp_insert_comment() normalization so get_comment_type() is exercised.
+		$comment->comment_type = '';
+
+		$this->assertSame( 'comment', get_comment_type( $comment ) );
 	}
 
 	/**
