@@ -3721,6 +3721,9 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
+ * @since 7.3.0 Parses the declaration list with WP_HTML_Style_Attribute_Processor.
+ *
+ * @see 'wp_kses_force_legacy_css_parser' to opt-out of the new parser-based implementation.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3733,6 +3736,306 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '2.8.1' ); // Never implemented.
 	}
 
+	$default_allowed_attr = array(
+		'background',
+		'background-color',
+		'background-image',
+		'background-position',
+		'background-repeat',
+		'background-size',
+		'background-attachment',
+		'background-blend-mode',
+		'background-clip',
+		'-webkit-background-clip',
+		'-webkit-text-fill-color',
+
+		'border',
+		'border-radius',
+		'border-width',
+		'border-color',
+		'border-style',
+		'border-right',
+		'border-right-color',
+		'border-right-style',
+		'border-right-width',
+		'border-bottom',
+		'border-bottom-color',
+		'border-bottom-left-radius',
+		'border-bottom-right-radius',
+		'border-bottom-style',
+		'border-bottom-width',
+		'border-bottom-right-radius',
+		'border-bottom-left-radius',
+		'border-left',
+		'border-left-color',
+		'border-left-style',
+		'border-left-width',
+		'border-top',
+		'border-top-color',
+		'border-top-left-radius',
+		'border-top-right-radius',
+		'border-top-style',
+		'border-top-width',
+		'border-top-left-radius',
+		'border-top-right-radius',
+
+		'border-spacing',
+		'border-collapse',
+		'caption-side',
+
+		'columns',
+		'column-count',
+		'column-fill',
+		'column-gap',
+		'column-rule',
+		'column-span',
+		'column-width',
+
+		'display',
+
+		'color',
+		'filter',
+		'font',
+		'font-family',
+		'font-size',
+		'font-style',
+		'font-variant',
+		'font-weight',
+		'letter-spacing',
+		'line-height',
+		'text-align',
+		'text-decoration',
+		'text-indent',
+		'text-shadow',
+		'text-transform',
+		'white-space',
+
+		'height',
+		'min-height',
+		'max-height',
+
+		'width',
+		'min-width',
+		'max-width',
+
+		'margin',
+		'margin-right',
+		'margin-bottom',
+		'margin-left',
+		'margin-top',
+		'margin-block-start',
+		'margin-block-end',
+		'margin-inline-start',
+		'margin-inline-end',
+
+		'padding',
+		'padding-right',
+		'padding-bottom',
+		'padding-left',
+		'padding-top',
+		'padding-block-start',
+		'padding-block-end',
+		'padding-inline-start',
+		'padding-inline-end',
+
+		'flex',
+		'flex-basis',
+		'flex-direction',
+		'flex-flow',
+		'flex-grow',
+		'flex-shrink',
+		'flex-wrap',
+
+		'gap',
+		'column-gap',
+		'row-gap',
+
+		'grid-template-columns',
+		'grid-auto-columns',
+		'grid-column-start',
+		'grid-column-end',
+		'grid-column',
+		'grid-column-gap',
+		'grid-template-rows',
+		'grid-auto-rows',
+		'grid-row-start',
+		'grid-row-end',
+		'grid-row',
+		'grid-row-gap',
+		'grid-gap',
+
+		'justify-content',
+		'justify-items',
+		'justify-self',
+		'align-content',
+		'align-items',
+		'align-self',
+
+		'clear',
+		'cursor',
+		'direction',
+		'float',
+		'list-style-type',
+		'object-fit',
+		'object-position',
+		'opacity',
+		'overflow',
+		'vertical-align',
+		'writing-mode',
+
+		'position',
+		'top',
+		'right',
+		'bottom',
+		'left',
+		'z-index',
+		'box-shadow',
+		'aspect-ratio',
+		'container-type',
+
+		'fill',
+		'fill-opacity',
+		'fill-rule',
+
+		'stroke',
+		'stroke-dasharray',
+		'stroke-dashoffset',
+		'stroke-linecap',
+		'stroke-linejoin',
+		'stroke-miterlimit',
+		'stroke-opacity',
+		'stroke-width',
+
+		'color-interpolation',
+		'color-interpolation-filters',
+		'paint-order',
+		'stop-color',
+		'stop-opacity',
+		'flood-color',
+		'flood-opacity',
+		'lighting-color',
+
+		'marker',
+		'marker-end',
+		'marker-mid',
+		'marker-start',
+
+		'clip-path',
+		'clip-rule',
+		'mask',
+		'mask-type',
+
+		'cx',
+		'cy',
+		'r',
+		'rx',
+		'ry',
+		'x',
+		'y',
+		'd',
+
+		'alignment-baseline',
+		'baseline-shift',
+		'dominant-baseline',
+		'glyph-orientation-horizontal',
+		'glyph-orientation-vertical',
+		'text-anchor',
+		'unicode-bidi',
+		'word-spacing',
+
+		'font-size-adjust',
+		'font-stretch',
+
+		'color-rendering',
+		'image-rendering',
+		'shape-rendering',
+		'text-rendering',
+		'vector-effect',
+
+		'transform',
+		'transform-origin',
+
+		'pointer-events',
+		'visibility',
+
+		'anchor-name',
+		'anchor-scope',
+		'position-anchor',
+		'position-area',
+		'position-try',
+		'position-try-fallbacks',
+		'position-try-order',
+		'position-visibility',
+
+		// Custom CSS properties.
+		'--*',
+	);
+
+	/**
+	 * Filters the list of allowed CSS attributes.
+	 *
+	 * Entries that are not strings are ignored, so an array with no string
+	 * entry allows no property. A value that is not an array is replaced with
+	 * the default list.
+	 *
+	 * An empty array disables filtering: the input is returned with C0 control
+	 * characters and `\0` sequences removed.
+	 *
+	 * @since 2.8.1
+	 * @since 7.1.0 Added support for SVG presentation attributes.
+	 * @since 7.2.0 Added support for `background-clip` and its vendor prefixed companions.
+	 * @since 7.3.0 A value that is not an array is replaced with the default list.
+	 *
+	 * @param string[] $attr Array of allowed CSS attributes.
+	 */
+	$allowed_attr = apply_filters( 'safe_style_css', $default_allowed_attr );
+
+	if ( ! is_array( $allowed_attr ) ) {
+		$allowed_attr = $default_allowed_attr;
+	}
+
+	// An empty list disables filtering. Both implementations return the input.
+	if ( empty( $allowed_attr ) ) {
+		return _safecss_filter_attr_legacy( $css, array() );
+	}
+
+	/**
+	 * Filters whether to rely on the legacy parsing inside `safecss_filter_attr()`.
+	 *
+	 * The default implementation parses the declaration list with
+	 * WP_HTML_Style_Attribute_Processor and filters each declaration. The
+	 * legacy implementation splits the text on `;` and `:` and tests the
+	 * pieces with regular expressions. It exists for a transition period so
+	 * sites can restore the previous output while they adapt.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param bool $force_legacy_css_parser Whether to force using the legacy implementation
+	 *                                      instead of relying on the CSS API.
+	 */
+	if ( apply_filters( 'wp_kses_force_legacy_css_parser', false ) ) {
+		return _safecss_filter_attr_legacy( $css, $allowed_attr );
+	}
+
+	return _safecss_filter_attr_declarations( $css, $allowed_attr );
+}
+
+/**
+ * Filters an inline style attribute by splitting it on `;` and `:`.
+ *
+ * This is the implementation safecss_filter_attr() used before 7.3.0. It
+ * runs when the `wp_kses_force_legacy_css_parser` filter returns true.
+ *
+ * @since 7.3.0
+ * @access private
+ * @ignore
+ * @internal
+ *
+ * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
+ * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter.
+ * @return string Filtered string of CSS rules.
+ */
+function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
 	$css = wp_kses_no_null( $css );
 	$css = str_replace( array( "\n", "\r", "\t" ), '', $css );
 
@@ -3740,253 +4043,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
 	$css_array = explode( ';', trim( $css ) );
-
-	/**
-	 * Filters the list of allowed CSS attributes.
-	 *
-	 * @since 2.8.1
-	 * @since 7.1.0 Added support for SVG presentation attributes.
-	 * @since 7.2.0 Added support for `background-clip` and its vendor prefixed companions.
-	 *
-	 * @param string[] $attr Array of allowed CSS attributes.
-	 */
-	$allowed_attr = apply_filters(
-		'safe_style_css',
-		array(
-			'background',
-			'background-color',
-			'background-image',
-			'background-position',
-			'background-repeat',
-			'background-size',
-			'background-attachment',
-			'background-blend-mode',
-			'background-clip',
-			'-webkit-background-clip',
-			'-webkit-text-fill-color',
-
-			'border',
-			'border-radius',
-			'border-width',
-			'border-color',
-			'border-style',
-			'border-right',
-			'border-right-color',
-			'border-right-style',
-			'border-right-width',
-			'border-bottom',
-			'border-bottom-color',
-			'border-bottom-left-radius',
-			'border-bottom-right-radius',
-			'border-bottom-style',
-			'border-bottom-width',
-			'border-bottom-right-radius',
-			'border-bottom-left-radius',
-			'border-left',
-			'border-left-color',
-			'border-left-style',
-			'border-left-width',
-			'border-top',
-			'border-top-color',
-			'border-top-left-radius',
-			'border-top-right-radius',
-			'border-top-style',
-			'border-top-width',
-			'border-top-left-radius',
-			'border-top-right-radius',
-
-			'border-spacing',
-			'border-collapse',
-			'caption-side',
-
-			'columns',
-			'column-count',
-			'column-fill',
-			'column-gap',
-			'column-rule',
-			'column-span',
-			'column-width',
-
-			'display',
-
-			'color',
-			'filter',
-			'font',
-			'font-family',
-			'font-size',
-			'font-style',
-			'font-variant',
-			'font-weight',
-			'letter-spacing',
-			'line-height',
-			'text-align',
-			'text-decoration',
-			'text-indent',
-			'text-shadow',
-			'text-transform',
-			'white-space',
-
-			'height',
-			'min-height',
-			'max-height',
-
-			'width',
-			'min-width',
-			'max-width',
-
-			'margin',
-			'margin-right',
-			'margin-bottom',
-			'margin-left',
-			'margin-top',
-			'margin-block-start',
-			'margin-block-end',
-			'margin-inline-start',
-			'margin-inline-end',
-
-			'padding',
-			'padding-right',
-			'padding-bottom',
-			'padding-left',
-			'padding-top',
-			'padding-block-start',
-			'padding-block-end',
-			'padding-inline-start',
-			'padding-inline-end',
-
-			'flex',
-			'flex-basis',
-			'flex-direction',
-			'flex-flow',
-			'flex-grow',
-			'flex-shrink',
-			'flex-wrap',
-
-			'gap',
-			'column-gap',
-			'row-gap',
-
-			'grid-template-columns',
-			'grid-auto-columns',
-			'grid-column-start',
-			'grid-column-end',
-			'grid-column',
-			'grid-column-gap',
-			'grid-template-rows',
-			'grid-auto-rows',
-			'grid-row-start',
-			'grid-row-end',
-			'grid-row',
-			'grid-row-gap',
-			'grid-gap',
-
-			'justify-content',
-			'justify-items',
-			'justify-self',
-			'align-content',
-			'align-items',
-			'align-self',
-
-			'clear',
-			'cursor',
-			'direction',
-			'float',
-			'list-style-type',
-			'object-fit',
-			'object-position',
-			'opacity',
-			'overflow',
-			'vertical-align',
-			'writing-mode',
-
-			'position',
-			'top',
-			'right',
-			'bottom',
-			'left',
-			'z-index',
-			'box-shadow',
-			'aspect-ratio',
-			'container-type',
-
-			'fill',
-			'fill-opacity',
-			'fill-rule',
-
-			'stroke',
-			'stroke-dasharray',
-			'stroke-dashoffset',
-			'stroke-linecap',
-			'stroke-linejoin',
-			'stroke-miterlimit',
-			'stroke-opacity',
-			'stroke-width',
-
-			'color-interpolation',
-			'color-interpolation-filters',
-			'paint-order',
-			'stop-color',
-			'stop-opacity',
-			'flood-color',
-			'flood-opacity',
-			'lighting-color',
-
-			'marker',
-			'marker-end',
-			'marker-mid',
-			'marker-start',
-
-			'clip-path',
-			'clip-rule',
-			'mask',
-			'mask-type',
-
-			'cx',
-			'cy',
-			'r',
-			'rx',
-			'ry',
-			'x',
-			'y',
-			'd',
-
-			'alignment-baseline',
-			'baseline-shift',
-			'dominant-baseline',
-			'glyph-orientation-horizontal',
-			'glyph-orientation-vertical',
-			'text-anchor',
-			'unicode-bidi',
-			'word-spacing',
-
-			'font-size-adjust',
-			'font-stretch',
-
-			'color-rendering',
-			'image-rendering',
-			'shape-rendering',
-			'text-rendering',
-			'vector-effect',
-
-			'transform',
-			'transform-origin',
-
-			'pointer-events',
-			'visibility',
-
-			'anchor-name',
-			'anchor-scope',
-			'position-anchor',
-			'position-area',
-			'position-try',
-			'position-try-fallbacks',
-			'position-try-order',
-			'position-visibility',
-
-			// Custom CSS properties.
-			'--*',
-		)
-	);
 
 	/*
 	 * CSS attributes that accept URL data types.
@@ -4148,6 +4204,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
+			 * @deprecated 7.3.0 Applied only when the wp_kses_force_legacy_css_parser filter returns true.
 			 *
 			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
 			 * @param string $css_test_string The CSS string to test.
@@ -4166,6 +4223,329 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	}
 
 	return $css;
+}
+
+/**
+ * Filters an inline style attribute by parsing it as a declaration list.
+ *
+ * Parses the list with WP_HTML_Style_Attribute_Processor, drops the
+ * declarations the policy rejects, and joins the
+ * WP_HTML_Style_Attribute_Processor::serialize_declaration() text of the
+ * rest, `property: value;` each, with a space. The unit of rejection is one
+ * declaration.
+ * Declarations CSS drops at parse time never reach the policy because
+ * the processor does not expose them.
+ *
+ * The policy:
+ *
+ *  - The lowercased property name is in the allowed list, whose string
+ *    entries are lowercased once and whose other entries are ignored, or the
+ *    list contains `--*` and the name matches `^--[a-zA-Z0-9_-]+$`.
+ *  - Every function at any depth is in the function allowlist.
+ *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
+ *  - A non-custom property has no bare parenthesis block and no brace
+ *    block at the top level of its value.
+ *  - The value has no `&` delimiter at any depth. The output contains no
+ *    `&`: other tokens escape it, and no property value uses a bare `&`.
+ *  - The value has no `\` or control character delimiter at any depth.
+ *
+ * Checks run on decoded values. Comments are dropped; an empty comment is
+ * written only between two tokens that would otherwise read as other
+ * tokens. For an empty
+ * allowed list safecss_filter_attr() returns the input and does not call
+ * this function.
+ *
+ * A block (a function, `(`, `[` or `{`) or a comment, string or url token
+ * that the input ends inside is closed, as CSS closes it.
+ *
+ * @since 7.3.0
+ * @access private
+ * @ignore
+ * @internal
+ *
+ * @param string $css          A string of CSS rules, decoded from an HTML `style` attribute.
+ * @param array  $allowed_attr Allowed CSS property names after the `safe_style_css` filter. Must be non-empty.
+ *                             Entries that are not strings are ignored.
+ * @return string Filtered string of CSS rules.
+ */
+function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
+	$css               = (string) $css;
+	$allow_custom      = in_array( '--*', $allowed_attr, true );
+	$allowed_protocols = wp_allowed_protocols();
+
+	// Only string entries name properties. The processor lowercases property names; match the list the same way.
+	$allowed_attr = array_map( 'strtolower', array_filter( $allowed_attr, 'is_string' ) );
+
+	if ( has_filter( 'safecss_filter_attr_allow_css' ) ) {
+		_deprecated_hook(
+			'safecss_filter_attr_allow_css',
+			'7.3.0',
+			'',
+			__( 'The hook only runs when the wp_kses_force_legacy_css_parser filter returns true.' )
+		);
+	}
+
+	$processor    = new WP_HTML_Style_Attribute_Processor( $css );
+	$declarations = array();
+
+	while ( $processor->next_declaration() ) {
+		$name      = $processor->get_property_name();
+		$tokens    = $processor->get_value_tokens();
+		$is_custom = str_starts_with( $name, '--' );
+
+		if ( $is_custom ) {
+			if ( ! $allow_custom || ! preg_match( '/^--[a-zA-Z0-9_-]+$/', $name ) ) {
+				continue;
+			}
+		} elseif ( ! in_array( $name, $allowed_attr, true ) ) {
+			continue;
+		}
+
+		if ( ! _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is_custom ) ) {
+			continue;
+		}
+
+		// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
+
+		$declarations[] = $processor->serialize_declaration();
+	}
+
+	return implode( ' ', $declarations );
+}
+
+/**
+ * Checks a declaration value's tokens against the function, URL, structure and delimiter policy.
+ *
+ * @since 7.3.0
+ * @access private
+ * @ignore
+ * @internal
+ *
+ * @param WP_CSS_Token[] $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @param string[]       $allowed_protocols Allowed URL protocols.
+ * @param bool           $is_custom         Whether the declaration is a custom property.
+ * @return bool Whether the value is allowed.
+ */
+function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is_custom ) {
+	// A function is listed when its result depends only on its arguments and Blink, Gecko and WebKit ship it unprefixed.
+	static $allowed_functions = array(
+		// General purpose value functions.
+		'var',
+		'calc',
+		'min',
+		'max',
+		'minmax',
+		'clamp',
+		'repeat',
+		// Math functions.
+		'abs',
+		'sign',
+		'round',
+		'mod',
+		'rem',
+		'pow',
+		'sqrt',
+		'hypot',
+		'log',
+		'exp',
+		'sin',
+		'cos',
+		'tan',
+		'asin',
+		'acos',
+		'atan',
+		'atan2',
+		// Transform functions.
+		'matrix',
+		'matrix3d',
+		'perspective',
+		'rotate',
+		'rotate3d',
+		'rotatex',
+		'rotatey',
+		'rotatez',
+		'scale',
+		'scale3d',
+		'scalex',
+		'scaley',
+		'scalez',
+		'skew',
+		'skewx',
+		'skewy',
+		'translate',
+		'translate3d',
+		'translatex',
+		'translatey',
+		'translatez',
+		// Basic shape functions.
+		'circle',
+		'ellipse',
+		'inset',
+		'path',
+		'polygon',
+		'rect',
+		'shape',
+		'xywh',
+		// Gradients.
+		'linear-gradient',
+		'radial-gradient',
+		'conic-gradient',
+		'repeating-linear-gradient',
+		'repeating-radial-gradient',
+		'repeating-conic-gradient',
+		// Color functions.
+		'rgb',
+		'rgba',
+		'hsl',
+		'hsla',
+		'hwb',
+		'lab',
+		'lch',
+		'oklab',
+		'oklch',
+		'color',
+		'color-mix',
+		'light-dark',
+		// Filter functions.
+		'blur',
+		'brightness',
+		'contrast',
+		'drop-shadow',
+		'grayscale',
+		'hue-rotate',
+		'invert',
+		'opacity',
+		'saturate',
+		'sepia',
+		// Easing functions.
+		'cubic-bezier',
+		'steps',
+		'linear',
+	);
+
+	$count = count( $tokens );
+	$depth = 0;
+	for ( $i = 0; $i < $count; $i++ ) {
+		$token = $tokens[ $i ];
+		$type  = $token->get_type();
+
+		switch ( $type ) {
+			case WP_CSS_Token_Processor::TOKEN_DELIM:
+				$value = $token->get_value();
+				// The output contains no `&`: other tokens escape it, and no property value uses a bare `&`.
+				if ( '&' === $value ) {
+					return false;
+				}
+				// No property value uses a `\` or a control character as a delimiter.
+				if ( '\\' === $value || ord( $value ) < 0x20 || "\x7F" === $value ) {
+					return false;
+				}
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_URL:
+				if ( ! _safecss_filter_attr_url_is_allowed( $token->get_value(), $allowed_protocols ) ) {
+					return false;
+				}
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				// No standard property accepts a bare `( )` or `{ }` block as a top-level value.
+				if ( ! $is_custom && 0 === $depth ) {
+					return false;
+				}
+				++$depth;
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+				// `[ ]` is valid at the top level, as in `grid-template-columns: [a] 1fr`.
+				++$depth;
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+				--$depth;
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				++$depth;
+				break;
+
+			default:
+				continue 2;
+		}
+
+		$function_name = strtolower( (string) $token->get_value() );
+
+		if ( 'url' === $function_name ) {
+			// `url("...")` tokenizes as a function with one string argument, closed by `)` or the end of the input. Anything else inside is invalid CSS.
+			$j = $i + 1;
+			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
+				++$j;
+			}
+			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_STRING !== $tokens[ $j ]->get_type() ) {
+				return false;
+			}
+			$string = $tokens[ $j ];
+			++$j;
+			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
+				++$j;
+			}
+			if ( $j < $count && WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]->get_type() ) {
+				return false;
+			}
+			if ( ! _safecss_filter_attr_url_is_allowed( $string->get_value(), $allowed_protocols ) ) {
+				return false;
+			}
+			// The `)` is consumed with the argument.
+			--$depth;
+			$i = $j;
+			continue;
+		}
+
+		if ( ! in_array( $function_name, $allowed_functions, true ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Checks a decoded URL against the allowed protocols.
+ *
+ * @since 7.3.0
+ * @access private
+ * @ignore
+ * @internal
+ *
+ * @param string|null $url               Decoded URL.
+ * @param string[]    $allowed_protocols Allowed URL protocols.
+ * @return bool Whether the URL is non-empty and unchanged by wp_kses_bad_protocol().
+ */
+function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return false;
+	}
+
+	return wp_kses_bad_protocol( $url, $allowed_protocols ) === $url;
+}
+
+/**
+ * Checks whether a token is whitespace or a comment.
+ *
+ * @since 7.3.0
+ * @access private
+ * @ignore
+ * @internal
+ *
+ * @param WP_CSS_Token $token Token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @return bool Whether the token is whitespace or a comment.
+ */
+function _safecss_filter_attr_is_trivia( $token ) {
+	return WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token->get_type() || WP_CSS_Token_Processor::TOKEN_COMMENT === $token->get_type();
 }
 
 /**
