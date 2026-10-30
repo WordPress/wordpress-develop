@@ -42,6 +42,13 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	private $actions;
 
 	/**
+	 * The rendered HTML output of the plugin row.
+	 *
+	 * @var string
+	 */
+	private $row_output = '';
+
+	/**
 	 * The slug of the plugin rendered by the current test.
 	 *
 	 * @var string
@@ -98,8 +105,9 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 		update_option( 'active_plugins', array() );
 		update_site_option( 'active_sitewide_plugins', array() );
 
-		$this->actions = null;
-		$this->slug    = 'network-action-links-plugin-' . wp_generate_password( 8, false );
+		$this->actions    = null;
+		$this->row_output = '';
+		$this->slug       = 'network-action-links-plugin-' . wp_generate_password( 8, false );
 
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'capture_actions' ), PHP_INT_MAX );
 
@@ -348,6 +356,16 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 		add_filter( "network_admin_plugin_action_links_{$this->get_file()}", array( $file_filter, 'filter' ), 10, 4 );
 		add_filter( 'plugin_action_links', array( $site_filter, 'filter' ) );
 
+		$distinctive_link = '<a href="https://example.org/distinctive-network-action">Distinctive Network Link</a>';
+		add_filter(
+			"network_admin_plugin_action_links_{$this->get_file()}",
+			static function ( $actions ) use ( $distinctive_link ) {
+				$actions['distinctive'] = $distinctive_link;
+				return $actions;
+			},
+			20
+		);
+
 		$this->get_actions();
 
 		$args = $network_filter->get_args();
@@ -359,6 +377,12 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 		$this->assertSame( 'all', $args[0][3], 'The filter should receive the context.' );
 		$this->assertSame( $args, $file_filter->get_args(), 'The plugin-specific filter should receive the same actions, plugin file, plugin data and context.' );
 		$this->assertSame( 0, $site_filter->get_call_count(), 'The site filter should not run.' );
+
+		$this->assertStringContainsString(
+			$distinctive_link,
+			$this->row_output,
+			'The rendered row should contain action links added by filters.'
+		);
 	}
 
 	/**
@@ -393,7 +417,7 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 
 		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins-network' ) );
 
-		get_echo(
+		$this->row_output = get_echo(
 			array( $table, 'single_row' ),
 			array(
 				array(
