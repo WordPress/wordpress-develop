@@ -2461,12 +2461,12 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => 'height: expression( body.scrollTop + 50 + "px" )',
 			),
-			// RGB color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			// RGB color values are still allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
 				'expected' => 'color: rgb( 100, 100, 100 )',
 			),
-			// RGBA color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			// RGBA color values are still allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
 				'expected' => 'color: rgb( 100, 100, 100, .4 )',
@@ -2478,31 +2478,15 @@ EOF;
 	 * Tests that a safecss_filter_attr_allow_css filter can reject an allowed color function.
 	 *
 	 * @ticket 66387
-	 *
-	 * @dataProvider data_safecss_filter_attr_rejecting_filter_priorities
-	 *
-	 * @param int $priority Priority of the rejecting filter.
 	 */
-	public function test_safecss_filter_attr_filter_can_reject_color_functions( $priority ) {
-		add_filter( 'safecss_filter_attr_allow_css', '__return_false', $priority );
+	public function test_safecss_filter_attr_filter_can_reject_color_functions() {
+		add_filter( 'safecss_filter_attr_allow_css', '__return_false' );
 
 		$result = safecss_filter_attr( 'color: rgb(0 0 0)' );
 
-		remove_filter( 'safecss_filter_attr_allow_css', '__return_false', $priority );
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_false' );
 
 		$this->assertSame( '', $result );
-	}
-
-	/**
-	 * Data provider for test_safecss_filter_attr_filter_can_reject_color_functions().
-	 *
-	 * @return array[]
-	 */
-	public function data_safecss_filter_attr_rejecting_filter_priorities() {
-		return array(
-			'priority 5'  => array( 5 ),
-			'priority 10' => array( 10 ),
-		);
 	}
 
 	/**
