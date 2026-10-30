@@ -474,7 +474,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=index' ) );
 
-		$sitemaps->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 
 		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
 
@@ -489,7 +490,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=foo' ) );
 
-		wp_sitemaps_get_server()->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( wp_sitemaps_get_server(), 'render_sitemaps' ) );
 
 		$this->assertTrue( is_404() );
 	}
@@ -505,7 +507,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?sitemap=foo&sitemap-subtype=bar&paged=2' ) );
 
-		wp_sitemaps_get_server()->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( wp_sitemaps_get_server(), 'render_sitemaps' ) );
 
 		$this->assertTrue( is_404() );
 	}
@@ -534,7 +537,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 
-		$sitemaps->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 
 		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
 	}
@@ -568,7 +572,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 
-		$sitemaps->render_sitemaps();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
 
 		$this->assertTrue( is_404(), 'render_sitemaps() should have set a 404.' );
 	}
