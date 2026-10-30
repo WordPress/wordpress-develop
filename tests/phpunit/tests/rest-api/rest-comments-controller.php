@@ -358,15 +358,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 */
 	public static function data_sanitize_comment_statuses(): array {
 		return array(
-			'a single status'        => array( 'approve', array( 'approve' ) ),
-			'a comma-separated list' => array( 'approve,hold', array( 'approve', 'hold' ) ),
-			'an array of statuses'   => array( array( 'approve', 'hold' ), array( 'approve', 'hold' ) ),
-			'mixed case statuses'    => array( 'APPROVE,Hold', array( 'approve', 'hold' ) ),
-			'duplicate statuses'     => array( array( 'approve', 'approve', 'hold' ), array( 'approve', 'hold' ) ),
-			'invalid characters'     => array( 'howdy&nbsp;admin', array( 'howdynbspadmin' ) ),
-			'an empty string'        => array( '', array() ),
-			'a literal 0 status'     => array( '0', array( '0' ) ),
-			'0 mixed with a status'  => array( '0,approve', array( '0', 'approve' ) ),
+			'a single status'             => array( 'approve', array( 'approve' ) ),
+			'a comma-separated list'      => array( 'approve,hold', array( 'approve', 'hold' ) ),
+			'an array of statuses'        => array( array( 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'mixed case statuses'         => array( 'APPROVE,Hold', array( 'approve', 'hold' ) ),
+			'duplicate statuses'          => array( array( 'approve', 'approve', 'hold' ), array( 'approve', 'hold' ) ),
+			'invalid characters'          => array( 'howdy&nbsp;admin', array( 'howdynbspadmin' ) ),
+			'an empty string'             => array( '', array() ),
+			'a literal 0 status'          => array( '0', array( '0' ) ),
+			'0 mixed with a status'       => array( '0,approve', array( '0', 'approve' ) ),
+			'duplicates after sanitizing' => array( array( 'Approve', 'approve', 'APPROVE' ), array( 'approve' ) ),
+			'empty values in an array'    => array( array( '', 'approve', '&', 'hold' ), array( 'approve', 'hold' ) ),
+			'non-scalar values'           => array( array( array( 'approve' ), 'hold', null ), array( 'hold' ) ),
 		);
 	}
 

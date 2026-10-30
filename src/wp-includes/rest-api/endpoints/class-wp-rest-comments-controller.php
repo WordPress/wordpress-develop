@@ -2539,17 +2539,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @phpstan-return list<non-empty-lowercase-string>
 	 */
 	public function sanitize_comment_statuses( $statuses ): array {
-		$statuses = array_unique( array_map( 'sanitize_key', wp_parse_list( $statuses ) ) );
+		if ( ! is_array( $statuses ) ) {
+			$statuses = wp_parse_list( $statuses );
+		}
 
-		// Only drop empty values. A literal '0' is a queryable status, as comments are held with `comment_approved` of '0'.
-		$statuses = array_filter(
-			$statuses,
-			static function ( $status ) {
-				return '' !== $status;
+		$sanitized = array();
+		$seen      = array();
+		foreach ( $statuses as $status ) {
+			if ( ! is_scalar( $status ) ) {
+				continue;
 			}
-		);
 
-		return array_values( $statuses );
+			$key = sanitize_key( $status );
+
+			// Only skip empty values. A literal '0' is a queryable status, as comments are held with `comment_approved` of '0'.
+			if ( '' === $key || isset( $seen[ $key ] ) ) {
+				continue;
+			}
+
+			$seen[ $key ] = true;
+			$sanitized[]  = $key;
+		}
+
+		return $sanitized;
 	}
 
 	/**
