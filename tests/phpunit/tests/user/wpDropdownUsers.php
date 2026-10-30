@@ -203,6 +203,53 @@ class Tests_User_wpDropdownUsers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39090
+	 */
+	public function test_repeated_identical_calls_do_not_run_duplicate_queries() {
+		self::factory()->user->create_many( 2, array( 'role' => 'author' ) );
+
+		// Prime the cache with an initial call.
+		wp_dropdown_users( array( 'echo' => false ) );
+
+		$queries_before = get_num_queries();
+
+		wp_dropdown_users( array( 'echo' => false ) );
+
+		$queries_after = get_num_queries();
+
+		$this->assertSame( $queries_before, $queries_after, 'A second call with identical arguments should be served from cache and not run any additional database queries.' );
+	}
+
+	/**
+	 * @ticket 39090
+	 */
+	public function test_cache_is_invalidated_when_a_user_is_created_between_calls() {
+		$found_before = wp_dropdown_users(
+			array(
+				'echo' => false,
+				'show' => 'user_login',
+			)
+		);
+
+		$queries_before = get_num_queries();
+
+		$new_user = self::factory()->user->create_and_get( array( 'user_login' => 'newly-created-user' ) );
+
+		$found_after = wp_dropdown_users(
+			array(
+				'echo' => false,
+				'show' => 'user_login',
+			)
+		);
+
+		$queries_after = get_num_queries();
+
+		$this->assertGreaterThan( $queries_before, $queries_after, 'Creating a user should invalidate the cache, so the next call should run a new query rather than reusing the stale cached result.' );
+		$this->assertStringNotContainsString( $new_user->user_login, $found_before );
+		$this->assertStringContainsString( $new_user->user_login, $found_after );
+	}
+
+	/**
 	 * @ticket 66012
 	 * @group ms-required
 	 */
