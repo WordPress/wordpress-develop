@@ -424,8 +424,9 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
  * @since Twenty Twenty-One 1.4 Corrected parameter name for `$output`,
  *                              added the `$post` parameter.
  *
- * @param string      $output The password form HTML output.
- * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default is global $post.
+ * @param string           $output The password form HTML output.
+ * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object, or null if no post is found.
+ *                                 Default is global $post.
  * @return string HTML content for password form for password protected post.
  */
 function twenty_twenty_one_password_form( $output, $post = 0 ) {
