@@ -1011,6 +1011,7 @@ final class WP_Screen {
 
 		if ( $has_meta_boxes ) {
 			$additional_settings .= $this->get_meta_box_reordering_option();
+			$additional_settings .= $this->get_on_this_day_option();
 		}
 
 		if ( 'post' === $this->base ) {
@@ -1182,6 +1183,18 @@ final class WP_Screen {
 	private function get_meta_box_reordering_option() {
 		return '<input class="meta-box-reordering-toggle" name="meta-box-reordering" type="checkbox" id="meta-box-reordering" value="enabled"' . checked( wp_is_meta_box_reordering_enabled(), true, false ) . ' />'
 			. '<label for="meta-box-reordering">' . __( 'Allow screen elements to be rearranged' ) . '</label>';
+	}
+
+	/**
+	 * Gets the option to enable or disable meta box reordering.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string Meta box reordering option markup.
+	 */
+	private function get_on_this_day_option(): string {
+		return '<input class="wp-on-this-day-toggle" name="wp-on-this-day-toggle" type="checkbox" id="wp-on-this-day-toggle" value="opt-in"' . checked( wp_is_on_this_day_enabled(), true, false ) . ' />'
+			. '<label for="wp-on-this-day-toggle">' . __( 'Display "On This Day" posts in Activity' ) . '</label>';
 	}
 
 	/**

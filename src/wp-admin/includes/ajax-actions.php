@@ -1819,6 +1819,22 @@ function wp_ajax_meta_box_reordering() {
 }
 
 /**
+ * Handles the On This Day display setting via Ajax.
+ *
+ * @since 7.2.0
+ *
+ * @return never
+ */
+function wp_ajax_on_this_day_display(): void {
+	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
+
+	$enabled = isset( $_POST['enabled'] ) && is_string( $_POST['enabled'] ) && '1' === $_POST['enabled'];
+	update_user_option( get_current_user_id(), 'dashboard_show_on_this_day', $enabled ? 'opt-in' : 'opt-out' );
+
+	wp_die( 1 );
+}
+
+/**
  * Handles updating whether to display the welcome panel via AJAX.
  *
  * @since 3.1.0

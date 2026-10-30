@@ -355,6 +355,21 @@
 				postboxes.setMetaBoxReordering( enabled );
 				postboxes.save_meta_box_reordering_state( enabled );
 			} );
+
+			$( '.wp-on-this-day-toggle' ).on( 'click.postboxes', function() {
+				var enabled = $( this ).prop( 'checked' );
+
+				postboxes.setOnThisDayDisplay( enabled );
+				postboxes.save_on_this_day_display( enabled );
+			} );
+
+			$( '#wp-on-this-day-posts-form button' ).on( 'click.postboxes', function( event ) {
+				event.preventDefault();
+				var enabled = '1' === $( this ).prop( 'value' );
+
+				postboxes.setOnThisDayDisplay( enabled );
+				postboxes.save_on_this_day_display( enabled );
+			} );
 		},
 
 		/**
@@ -496,6 +511,26 @@
 		},
 
 		/**
+		 * Enables or disables the On This Day display in the activity widget.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param {boolean} enabled Whether On This Day should be enabled.
+		 * @return {void}
+		 */
+		setOnThisDayDisplay: function( enabled ) {
+			var $onThisDayWidget = $( '#wp-on-this-day-posts' ),
+				$onThisDayList = $( '#wp-on-this-day-posts-list' ),
+				$onThisDayForm = $( '#wp-on-this-day-posts-form'),
+				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
+
+			$onThisDayForm.hide(); // Always hidden once a choice is made.
+			$onThisDayWidget.toggle( enabled ).toggleClass( 'hidden', ! enabled );
+			$onThisDayList.toggle( enabled );
+			$onThisDayScreenOption.prop( 'checked', enabled );
+		},
+
+		/**
 		 * Saves the state of the postboxes to the server.
 		 *
 		 * It sends two lists, one with all the closed postboxes, one with all the
@@ -555,6 +590,32 @@
 						enabled ?
 							__( 'Rearranging screen elements enabled.' ) :
 							__( 'Rearranging screen elements disabled.' )
+					);
+				}
+			);
+		},
+
+		/**
+		 * Saves the On This Day setting to the server.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param {boolean} enabled Whether On This Day activity is enabled.
+		 * @return {void}
+		 */
+		save_on_this_day_display: function( enabled ) {
+			$.post(
+				ajaxurl,
+				{
+					action: 'on-this-day-display',
+					enabled: enabled ? 1 : 0,
+					screenoptionnonce: $( '#screenoptionnonce' ).val()
+				},
+				function() {
+					wp.a11y.speak(
+						enabled ?
+							__( 'On This Day display is enabled.' ) :
+							__( 'On This Day display is disabled.' )
 					);
 				}
 			);

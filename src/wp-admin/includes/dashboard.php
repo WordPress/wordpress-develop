@@ -1022,6 +1022,25 @@ function wp_dashboard_site_activity() {
  * @return bool False if no posts were found. True otherwise.
  */
 function wp_dashboard_on_this_day( $posts = null ) {
+	if ( 'opt-out' === get_user_option( 'dashboard_show_on_this_day' ) ) {
+		$display_list = false;
+		$display_form = false;
+	} elseif ( 'opt-in' === get_user_option( 'dashboard_show_on_this_day' ) ) {
+		$display_list = true;
+		$display_form = false;
+	} else {
+		/*
+		 * User has not yet chosen to opt-in or -out.
+		 *
+		 * As On This Day features can be distressing in some circumstances,
+		 * users are prompted to opt-in or -out of the feature prior to the
+		 * list of posts being displayed. If they have done neither a form is
+		 * displayed prompting them to make a choice.
+		 */
+		$display_list = false;
+		$display_form = true;
+	}
+
 	if ( null === $posts ) {
 		$posts = wp_dashboard_on_this_day_get_posts();
 	}
@@ -1030,9 +1049,29 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		return false;
 	}
 
-	echo '<div id="on-this-day-posts" class="activity-block">';
-	echo '<h3>' . esc_html__( 'Published On This Day' ) . '</h3>';
-	echo '<ul>';
+	?>
+	<div id="wp-on-this-day-posts" class="activity-block wp-on-this-day-posts-title <?php echo $display_form ? 'hide-if-no-js' : ''; ?> <?php echo ! $display_form && ! $display_list ? 'hidden' : ''; ?>">
+		<h3><?php _e( 'Published On This Day' ); ?></h3>
+	<?php
+
+	if ( $display_form ) :
+		?>
+		<form method="post" id="wp-on-this-day-posts-form">
+		<p>
+			<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' ); ?>
+		</p>
+		<p>
+			<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
+			<button name="enabled" value="1" class="button button-primary"><?php _e( 'Yes' ); ?></button>
+			<button name="enabled" value="0" class="button"><?php _e( 'No' ); ?></button>
+		</p>
+		</form>
+		<?php
+	endif;
+
+	?>
+	<ul id="wp-on-this-day-posts-list" <?php echo $display_list ? '' : 'class="hidden"'; ?>>
+	<?php
 
 	foreach ( $posts as $post ) {
 		/* translators: Date format for posts published in a previous year. */
@@ -1108,13 +1147,32 @@ function wp_dashboard_on_this_day( $posts = null ) {
  * @return WP_Post[] Array of posts ordered by newest first.
  */
 function wp_dashboard_on_this_day_get_posts() {
+	/**
+	 * Filters whether to short-circuit performing the query for the On This Day dashboard query.
+	 *
+	 * Filter to allow the bypassing of the SQL query for the On This Day section of the activity
+	 * widget.
+	 *
+	 * Return null for the default query to run or an array of post IDs to override the built in
+	 * database query. Returning an empty array will have the effect of turning the feature off.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post[]|null $preflight Null to continue, array of post objects to bypass query.
+	 */
+	$preflight = apply_filters( 'pre_wp_dashboard_on_this_day_get_posts', null );
+
+	if ( is_array( $preflight ) ) {
+		return $preflight;
+	}
+
 	$today = current_datetime();
 	$year  = (int) $today->format( 'Y' );
 
 	$args = array(
 		'post_type'              => 'post',
 		'post_status'            => array( 'publish' ),
-		'posts_per_page'         => 10,
+		'posts_per_page'         => 100,
 		'ignore_sticky_posts'    => true,
 		'orderby'                => 'date',
 		'order'                  => 'DESC',

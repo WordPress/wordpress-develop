@@ -79,6 +79,7 @@ $core_actions_post = array(
 	'closed-postboxes',
 	'hidden-columns',
 	'meta-box-reordering',
+	'on-this-day-display',
 	'update-welcome-panel',
 	'menu-get-metabox',
 	'wp-link-ajax',
