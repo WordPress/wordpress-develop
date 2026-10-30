@@ -396,7 +396,7 @@ class WP_Block_Parser {
 	 */
 	public function implicitly_close_and_add_all_open_blocks(): void {
 		$last_closed_block = null;
-		$last_opener_at    = null;
+		$last_opener_at    = strlen( $this->document );
 		$last_leading_html = null;
 
 		/**
@@ -415,7 +415,7 @@ class WP_Block_Parser {
 			 * until the end of the document. For each containing parent, it will run from
 			 * the `prev_offset` until the opening of the block that was just closed.
 			 */
-			$html_length = ( $last_opener_at ?? strlen( $this->document ) ) - $stack_top->prev_offset;
+			$html_length = $last_opener_at - $stack_top->prev_offset;
 			if ( 0 !== $html_length ) {
 				$html = substr( $this->document, $stack_top->prev_offset, $html_length );
 
