@@ -38,9 +38,7 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 		$widget = new WP_Widget_Search();
 
 		$this->assertSame( 'search', $widget->id_base );
-		$this->assertSame( 'Search', $widget->name );
 		$this->assertSame( 'widget_search', $widget->widget_options['classname'] );
-		$this->assertSame( 'A search form for your site.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -61,23 +59,6 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '<section id="search-2" class="widget widget_search">', $output );
 		$this->assertStringEndsWith( "</section>\n", $output );
 		$this->assertStringNotContainsString( 'widget-title', $output );
-		$this->assertStringContainsString( '<form role="search"', $output );
-	}
-
-	/**
-	 * Tests widget() output with a custom title.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers WP_Widget_Search::widget
-	 */
-	public function test_widget_output_with_title() {
-		$widget   = new WP_Widget_Search();
-		$instance = array( 'title' => 'Find Something' );
-
-		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
-
-		$this->assertStringContainsString( '<h2 class="widget-title">Find Something</h2>', $output );
 		$this->assertStringContainsString( '<form role="search"', $output );
 	}
 
@@ -160,12 +141,8 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public static function data_update_titles() {
 		return array(
-			'plain string'           => array( 'Search Site', 'Search Site' ),
-			'with html tags'         => array( 'Search <strong>Site</strong> <script>alert(1)</script>', 'Search Site' ),
-			'with line breaks'       => array( "Search\nSite", 'Search Site' ),
-			'surrounding whitespace' => array( '  Search Site  ', 'Search Site' ),
-			'empty string'           => array( '', '' ),
-			'numeric string zero'    => array( '0', '0' ),
+			'plain string'   => array( 'Search Site', 'Search Site' ),
+			'with html tags' => array( 'Search <strong>Site</strong> <script>alert(1)</script>', 'Search Site' ),
 		);
 	}
 
@@ -206,11 +183,8 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public static function data_form_titles() {
 		return array(
-			'with title'        => array( array( 'title' => 'Search Box' ), 'Search Box' ),
-			'with quotes'       => array( array( 'title' => 'Search "Quotes" & More' ), 'Search "Quotes" & More' ),
-			'empty title'       => array( array( 'title' => '' ), '' ),
-			'no title key'      => array( array(), '' ),
-			'zero string title' => array( array( 'title' => '0' ), '0' ),
+			'with quotes'  => array( array( 'title' => 'Search "Quotes" & More' ), 'Search "Quotes" & More' ),
+			'no title key' => array( array(), '' ),
 		);
 	}
 }

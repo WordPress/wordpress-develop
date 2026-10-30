@@ -40,7 +40,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 	 * @ticket 58557
 	 * @covers WP_Classic_To_Block_Menu_Converter::convert
 	 */
-	public function provider_test_passing_non_menu_object_to_converter_returns_wp_error() {
+	public static function provider_test_passing_non_menu_object_to_converter_returns_wp_error() {
 		return array(
 			array( 1 ),
 			array( -1 ),
