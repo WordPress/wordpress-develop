@@ -123,6 +123,53 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Secrets were stored, then WP_SECRETS_KEY was removed.
+	 *
+	 * The root key is wrapped with a keyring that reads WP_SECRETS_KEY_PREVIOUS,
+	 * because WP_SECRETS_KEY can only be defined once in a process.
+	 *
+	 * @ticket 66380
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_critical_when_the_key_was_removed_after_secrets_were_stored(): void {
+		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'P', 32 ) ) );
+
+		$previous = new WP_Secrets_Config_Key_Provider( true );
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $previous->wrap( random_bytes( 32 ) ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+		$this->assertStringContainsString( 'WP_SECRETS_KEY was changed or removed', $result['description'] );
+	}
+
+	/**
+	 * A keyring from a secrets.php drop-in fails for its own reasons, such as an
+	 * unreachable key service. The result reports its error, and does not send
+	 * the site owner to wp-config.php.
+	 *
+	 * @ticket 66380
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_reports_the_error_of_a_dropin_keyring_that_cannot_unwrap(): void {
+		$keyring = new Mock_Keyring();
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $keyring->wrap( random_bytes( 32 ) ) );
+		$keyring->configure_fail_unwrap();
+
+		$GLOBALS['wp_secrets_keyring'] = $keyring;
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+		$this->assertStringContainsString( 'unwrap() configured to fail', $result['description'] );
+		$this->assertStringNotContainsString( 'WP_SECRETS_KEY', $result['description'] );
+	}
+
+	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -169,10 +216,6 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'critical', $result['status'] );
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
 	/**
 	 * A provider from a secrets.php drop-in does not use the default keyring.
 	 *
@@ -306,6 +349,28 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'WP_Secrets_Config_Key_Provider', $fields['keyring_class']['value'] );
 		$this->assertSame( '1', $fields['record_version']['value'] );
 		$this->assertSame( '1', $fields['site_secret_count']['value'] );
+	}
+
+	/**
+	 * A provider from a secrets.php drop-in does not use the default keyring, so
+	 * the Info tab does not describe it.
+	 *
+	 * @ticket 66380
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_debug_info_does_not_describe_the_keyring_when_a_dropin_replaces_the_provider(): void {
+		$provider = $this->createMock( WP_Secrets_Provider::class );
+		$provider->method( 'get_label' )->willReturn( 'Example Vault' );
+		$provider->method( 'list_secrets' )->willReturn( array() );
+
+		$GLOBALS['wp_secrets_provider'] = $provider;
+
+		$fields = $this->debug_fields( wp_secrets_site_health_debug_info( array() ) );
+
+		$this->assertSame( 'Not used by the provider', $fields['keyring_class']['value'] );
+		$this->assertSame( 'Not used by the provider', $fields['key_source']['value'] );
 	}
 
 	public function test_debug_info_reports_no_dropin_by_default(): void {

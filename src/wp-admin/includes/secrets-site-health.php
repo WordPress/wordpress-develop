@@ -74,6 +74,21 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 }
 
 /**
+ * Whether the active provider protects secrets with the keyring.
+ *
+ * A secrets.php drop-in can replace the whole provider, which then protects secrets
+ * with its own keys. The default keyring, and WP_SECRETS_KEY, are not used at all.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Secrets_Provider $provider The active provider.
+ * @return bool
+ */
+function wp_secrets_site_health_uses_keyring( WP_Secrets_Provider $provider ): bool {
+	return $provider instanceof WP_Secrets_Libsodium_Provider || $provider instanceof WP_Secrets_Broken_Provider;
+}
+
+/**
  * Site Health test: is the site key defined, and in the recommended form?
  *
  * @since 7.2.0
@@ -85,11 +100,7 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 function wp_secrets_site_health_test_key_source(): array {
 	$provider = _wp_secrets_get_provider();
 
-	/*
-	 * A secrets.php drop-in can replace the whole provider, which then protects secrets
-	 * with its own keys. The default keyring, and WP_SECRETS_KEY, are not used at all.
-	 */
-	if ( ! $provider instanceof WP_Secrets_Libsodium_Provider && ! $provider instanceof WP_Secrets_Broken_Provider ) {
+	if ( ! wp_secrets_site_health_uses_keyring( $provider ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API keys are managed by the provider' ),
@@ -134,13 +145,27 @@ function wp_secrets_site_health_test_key_source(): array {
 		$root_key = _wp_secrets_get_key_manager()->get_root_key();
 
 		if ( is_wp_error( $root_key ) ) {
+			/*
+			 * Only the default keyring reads wp-config.php. A keyring from a secrets.php
+			 * drop-in fails for its own reasons, such as an unreachable key service, and
+			 * its error is the useful part.
+			 */
+			$cause = $keyring instanceof WP_Secrets_Config_Key_Provider
+				? __( 'This happens when WP_SECRETS_KEY was changed or removed after secrets were stored. Restoring the previous value fixes it.' )
+				: sprintf(
+					/* translators: %s: Error message from the keyring. */
+					__( 'The keyring of the secrets.php drop-in reported: %s' ),
+					$root_key->get_error_message()
+				);
+
 			return wp_secrets_site_health_result(
 				'secrets_api_key_source',
-				__( 'Secrets API key does not match the stored secrets' ),
+				__( 'Secrets API cannot unlock the stored secrets' ),
 				'critical',
 				sprintf(
-					'<p>%s</p>',
-					esc_html__( 'The configured key cannot decrypt the root key that protects the stored secrets, so no secret can be read or saved. This happens when WP_SECRETS_KEY, LOGGED_IN_KEY, or LOGGED_IN_SALT changed after secrets were stored. Restoring the previous value fixes it.' )
+					'<p>%s</p><p>%s</p>',
+					esc_html__( 'The configured key cannot decrypt the root key that protects the stored secrets, so no secret can be read or saved.' ),
+					esc_html( $cause )
 				)
 			);
 		}
@@ -257,7 +282,7 @@ function wp_secrets_site_health_test_undecryptable(): array {
 			'<p>%s</p><ul>%s</ul><p>%s</p>',
 			esc_html__( 'The following secrets exist but could not be decrypted with the current key.' ),
 			$items,
-			esc_html__( 'This can happen after WP_SECRETS_KEY, LOGGED_IN_KEY, or LOGGED_IN_SALT changed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' )
+			esc_html__( 'This can happen after WP_SECRETS_KEY was changed or removed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' )
 		)
 	);
 }
@@ -392,8 +417,9 @@ function wp_secrets_site_health_count_needing_rotation( bool $network ) {
  * @return array<string, array<string, mixed>>
  */
 function wp_secrets_site_health_debug_info( $info ) {
-	$key_manager = _wp_secrets_get_key_manager();
-	$provider    = _wp_secrets_get_provider();
+	$key_manager  = _wp_secrets_get_key_manager();
+	$provider     = _wp_secrets_get_provider();
+	$uses_keyring = wp_secrets_site_health_uses_keyring( $provider );
 
 	$fields = array(
 		'dropin_active'  => array(
@@ -420,11 +446,11 @@ function wp_secrets_site_health_debug_info( $info ) {
 		),
 		'keyring_class'  => array(
 			'label' => __( 'Keyring class' ),
-			'value' => get_class( $key_manager->get_keyring() ),
+			'value' => $uses_keyring ? get_class( $key_manager->get_keyring() ) : __( 'Not used by the provider' ),
 		),
 		'key_source'     => array(
 			'label' => __( 'Key source' ),
-			'value' => $key_manager->get_keyring()->get_key_source(),
+			'value' => $uses_keyring ? $key_manager->get_keyring()->get_key_source() : __( 'Not used by the provider' ),
 		),
 		'record_version' => array(
 			'label' => __( 'Record format version' ),
