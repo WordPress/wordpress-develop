@@ -2970,8 +2970,11 @@ class WP_HTML_Tag_Processor {
 		/*
 		 * For the `class` attribute, ensure that enqueued class changes from
 		 * `add_class` and `remove_class` are flushed into attribute updates.
+		 * An enqueued `class` attribute update takes precedence over the
+		 * input document in determining whether the attribute exists.
 		 */
-		$has_class = isset( $this->attributes['class'] );
+		$enqueued_class = $this->get_enqueued_attribute_value( 'class' );
+		$has_class      = false === $enqueued_class ? isset( $this->attributes['class'] ) : null !== $enqueued_class;
 		if ( '' === $comparable || str_starts_with( 'class', $comparable ) ) {
 			foreach ( $this->classname_updates as $update ) {
 				if (
