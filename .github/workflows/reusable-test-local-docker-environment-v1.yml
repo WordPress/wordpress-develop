@@ -19,7 +19,7 @@ on:
         type: 'string'
         default: 'latest'
       db-type:
-        description: 'Database type. Valid types are mysql and mariadb'
+        description: 'Database type. Valid types are mysql, mariadb, and sqlite'
         required: false
         type: 'string'
         default: 'mysql'
@@ -73,7 +73,7 @@ jobs:
   # - Tests the reset command.
   # - Ensures version-controlled files are not modified or deleted.
   local-docker-environment-tests:
-    name: ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
+    name: ${{ 'sqlite' == inputs.db-type && 'SQLite' || format( '{0} {1}', 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL', inputs.db-version ) }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -151,7 +151,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql "${LOCAL_DB_TYPE}" --version
+          if [ "${LOCAL_DB_TYPE}" = 'sqlite' ]; then
+            docker compose run --rm php php -r 'echo "SQLite ", ( new PDO( "sqlite::memory:" ) )->query( "SELECT sqlite_version()" )->fetchColumn(), PHP_EOL;'
+          else
+            docker compose run --rm mysql "${LOCAL_DB_TYPE}" --version
+          fi
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i

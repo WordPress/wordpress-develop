@@ -448,6 +448,64 @@ jobs:
       gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
 
   #
+  # Creates PHPUnit test jobs to test SQLite, which is experimental.
+  #
+  # SQLite is used through the bundled MySQL-on-SQLite driver, and the SQLite version is the one included with PHP.
+  # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP version.
+  #
+  test-with-sqlite:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ select-test-coverage, prepare-gutenberg ]
+    permissions:
+      contents: read
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
+    if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
+      startsWith( github.repository, 'WordPress/' ) && (
+        github.repository == 'WordPress/wordpress-develop' || (
+          github.event_name == 'pull_request' && (
+            ! github.event.repository.private ||
+            ! github.event.pull_request.draft ||
+            contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+          )
+        )
+      )
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        db-type: [ 'sqlite' ]
+        multisite: [ false, true ]
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
+
+        exclude:
+          # Outside the full matrix, only the lowest and highest PHP versions are tested.
+          - full-matrix: false
+            php: '8.0'
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      multisite: ${{ matrix.multisite }}
+      phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      report: false
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
+  #
   # Runs the HTML API test group.
   #
   # This test group runs separately due to the large number of tests that are skipped in this group while the
@@ -614,7 +672,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ select-test-coverage, prepare-gutenberg, test-assets, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
+    needs: [ select-test-coverage, prepare-gutenberg, test-assets, test-with-mysql, test-with-mariadb, test-innovation-releases, test-with-sqlite, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

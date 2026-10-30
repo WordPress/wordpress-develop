@@ -124,13 +124,31 @@ jobs:
       db-version: ${{ matrix.db-version }}
       memcached: ${{ matrix.memcached }}
 
+  # Tests the local Docker environment with SQLite, which is experimental.
+  environment-tests-sqlite:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    permissions:
+      contents: read
+    needs: [ build-test-matrix ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: 'sqlite'
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ build-test-matrix, environment-tests-mysql ]
+    needs: [ build-test-matrix, environment-tests-mysql, environment-tests-sqlite ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
