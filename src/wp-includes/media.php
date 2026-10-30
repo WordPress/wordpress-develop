@@ -5281,8 +5281,8 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array   $settings List of media view settings.
-	 * @param WP_Post $post     Post object.
+	 * @param array        $settings List of media view settings.
+	 * @param WP_Post|null $post     Post object, or null if the media modal is not for a specific post.
 	 */
 	$settings = apply_filters( 'media_view_settings', $settings, $post );
 
@@ -5291,8 +5291,8 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string[] $strings Array of media view strings keyed by the name they'll be referenced by in JavaScript.
-	 * @param WP_Post  $post    Post object.
+	 * @param string[]     $strings Array of media view strings keyed by the name they'll be referenced by in JavaScript.
+	 * @param WP_Post|null $post    Post object, or null if the media modal is not for a specific post.
 	 */
 	$strings = apply_filters( 'media_view_strings', $strings, $post );
 
