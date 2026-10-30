@@ -374,6 +374,10 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param string|array $data Escape single string or array of strings.
 	 * @return string|null Returns with string if passed, alters by-reference
 	 *                     when array is passed.
+	 *
+	 * @phpstan-template T of string|array
+	 * @phpstan-param T $data
+	 * @phpstan-param-out T $data
 	 */
 	public function escape( &$data ) {
 		if ( ! is_array( $data ) ) {
@@ -387,6 +391,8 @@ class wp_xmlrpc_server extends IXR_Server {
 				$v = wp_slash( $v );
 			}
 		}
+
+		// @phpstan-ignore paramOut.type (The loop only slashes string values in place, so the shape of T is preserved.)
 		return null;
 	}
 
