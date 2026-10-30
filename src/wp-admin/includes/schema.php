@@ -579,6 +579,11 @@ function populate_options( array $options = array() ) {
 		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
 
+	// 7.3.0
+	if ( ! is_multisite() && ( ! defined( 'WPLANG' ) || '' === WPLANG ) ) {
+		$defaults['WPLANG'] = '';
+	}
+
 	$options = wp_parse_args( $options, $defaults );
 
 	// Set autoload to no for these options.
@@ -1137,6 +1142,11 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 		update_user_meta( $site_user_id, 'source_domain', $domain );
 		update_user_meta( $site_user_id, 'primary_blog', $current_site->blog_id );
+
+		// Let the main site fall back to the network language instead of an empty site language.
+		if ( '' === get_option( 'WPLANG' ) ) {
+			delete_option( 'WPLANG' );
+		}
 
 		// Unable to use update_network_option() while populating the network.
 		$wpdb->insert(
