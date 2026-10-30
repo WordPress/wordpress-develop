@@ -12,6 +12,7 @@ on:
       - trunk
     # Always test the workflow after it's updated.
     paths:
+      - '.github/actions/setup-wp-cli/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
@@ -19,6 +20,7 @@ on:
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
+      - '.github/actions/setup-wp-cli/**'
       - '.github/actions/smoke-check/**'
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
@@ -131,10 +133,21 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && 'wp-cli:2.4.0' || 'wp-cli' }}
 
+      # This job does not check out the repository: `$/` fetches the action from this workflow's commit.
+      - name: Set up WP-CLI
+        uses: $/.github/actions/setup-wp-cli
+        with:
+          version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || 'latest' }}
+
+      # WP-CLI extracts tarballs with PharData, which truncates paths longer than 100 characters.
+      # Nightly builds are only available as a zip, which is not affected.
       - name: Download WordPress
-        run: wp core download --version="${WP_VERSION}"
+        run: |
+          case "${WP_VERSION}" in
+            nightly|trunk) wp core download --version=nightly ;;
+            *) curl -fsSL "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" | tar xz --strip-components=1 ;;
+          esac
         env:
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
@@ -167,6 +180,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      version: ${{ inputs.wp-version || 'nightly' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}

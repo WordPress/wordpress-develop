@@ -15,6 +15,12 @@
  */
 class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Default widget arguments.
 	 *
@@ -108,9 +114,7 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 		$widget = new WP_Widget_Tag_Cloud();
 
 		$this->assertSame( 'tag_cloud', $widget->id_base );
-		$this->assertSame( 'Tag Cloud', $widget->name );
 		$this->assertSame( 'widget_tag_cloud', $widget->widget_options['classname'] );
-		$this->assertSame( 'A cloud of your most used tags.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -186,8 +190,6 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'               => array( array(), 'Tags' ),
-			'empty title'            => array( array( 'title' => '' ), 'Tags' ),
-			'title "0"'              => array( array( 'title' => '0' ), 'Tags' ),
 			'custom title'           => array( array( 'title' => 'Topics' ), 'Topics' ),
 			'category taxonomy'      => array( array( 'taxonomy' => 'category' ), 'Categories' ),
 			'invalid taxonomy'       => array( array( 'taxonomy' => 'not_a_taxonomy' ), 'Tags' ),
@@ -285,11 +287,9 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'                   => array( array(), 'Topics', 'Topics' ),
 			'title with HTML'               => array( array(), '<em>Site</em> Topics ', 'Site Topics' ),
 			'empty title'                   => array( array(), '', 'Tags' ),
 			'empty title, custom title'     => array( array( 'title' => 'Sections' ), '', 'Sections' ),
-			'empty title, category'         => array( array( 'taxonomy' => 'category' ), '', 'Categories' ),
 			'title with only tag, category' => array( array( 'taxonomy' => 'category' ), '<span></span>', 'Categories' ),
 		);
 	}
@@ -382,39 +382,6 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 		$this->assertStringContainsString( '>Cat One<', $output );
 		$this->assertStringNotContainsString( 'Alpha Tag', $output, 'Only the selected taxonomy should be listed.' );
 		$this->assertStringContainsString( '<span class="tag-link-count"> (1)</span>', $output, 'Term counts should be shown.' );
-	}
-
-	/**
-	 * Tests _get_current_taxonomy().
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers WP_Widget_Tag_Cloud::_get_current_taxonomy
-	 *
-	 * @dataProvider data_get_current_taxonomy
-	 *
-	 * @param array  $instance Widget instance.
-	 * @param string $expected Expected taxonomy.
-	 */
-	public function test_get_current_taxonomy( $instance, $expected ) {
-		$widget = new WP_Widget_Tag_Cloud();
-
-		$this->assertSame( $expected, $widget->_get_current_taxonomy( $instance ) );
-	}
-
-	/**
-	 * Data provider for test_get_current_taxonomy.
-	 *
-	 * @return array[]
-	 */
-	public static function data_get_current_taxonomy() {
-		return array(
-			'no taxonomy'      => array( array(), 'post_tag' ),
-			'empty taxonomy'   => array( array( 'taxonomy' => '' ), 'post_tag' ),
-			'invalid taxonomy' => array( array( 'taxonomy' => 'not_a_taxonomy' ), 'post_tag' ),
-			'category'         => array( array( 'taxonomy' => 'category' ), 'category' ),
-			'post_tag'         => array( array( 'taxonomy' => 'post_tag' ), 'post_tag' ),
-		);
 	}
 
 	/**

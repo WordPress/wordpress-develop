@@ -46,7 +46,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_sitemap_requests(): array {
+	public static function data_sitemap_requests(): array {
 		return array(
 			'index'                     => array( '/?sitemap=index' ),
 			'posts provider'            => array( '/?sitemap=posts&sitemap-subtype=post' ),

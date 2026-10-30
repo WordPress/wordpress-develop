@@ -54,7 +54,7 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: string|false|null, 2: array<string, mixed>, 3: string }>
 	 */
-	public function data_builds_rtl_url(): array {
+	public static function data_builds_rtl_url(): array {
 		return array(
 			'rtl true'                    => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => true ), 'http://example.org/wp-admin/css/test-rtl.css?ver=1.0' ),
 			'rtl replace'                 => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => 'replace' ), 'http://example.org/wp-admin/css/test-rtl.css?ver=1.0' ),
@@ -106,7 +106,7 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: 'ltr'|'rtl', 1: string|false, 2: mixed }>
 	 */
-	public function data_returns_null(): array {
+	public static function data_returns_null(): array {
 		return array(
 			'left-to-right text direction' => array( 'ltr', '/wp-admin/css/test.css', true ),
 			'unregistered handle'          => array( 'rtl', false, null ),
@@ -146,7 +146,7 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string|false|null }>
 	 */
-	public function data_matches_ltr_query(): array {
+	public static function data_matches_ltr_query(): array {
 		return array(
 			'version'         => array( '1.0' ),
 			'default version' => array( false ),
@@ -251,7 +251,7 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: true|'replace', 1: positive-int }>
 	 */
-	public function data_matches_printed_href(): array {
+	public static function data_matches_printed_href(): array {
 		return array(
 			'alongside' => array( true, 2 ),
 			'replacing' => array( 'replace', 1 ),

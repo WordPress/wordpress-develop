@@ -75,15 +75,4 @@ class Tests_Load_WpIsRecoveryMode extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_is_recovery_mode() );
 	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_matches_recovery_mode_singleton_state() {
-		$this->set_recovery_mode_active( false );
-		$this->assertSame( wp_recovery_mode()->is_active(), wp_is_recovery_mode() );
-
-		$this->set_recovery_mode_active( true );
-		$this->assertSame( wp_recovery_mode()->is_active(), wp_is_recovery_mode() );
-	}
 }

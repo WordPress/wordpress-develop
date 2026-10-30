@@ -21,10 +21,21 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		self::$user_ids['subscriber'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$user_ids['admin'] );
 		self::register_custom_taxonomy();
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_subscriber' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -202,7 +213,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_edit_term_link() {
+	public static function data_get_edit_term_link() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',

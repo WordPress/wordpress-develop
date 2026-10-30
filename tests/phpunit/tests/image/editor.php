@@ -304,7 +304,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_webp_info().
 	 */
-	public function data_wp_get_webp_info() {
+	public static function data_wp_get_webp_info() {
 		return array(
 			// Standard JPEG.
 			array(
@@ -381,7 +381,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_avif_info().
 	 */
-	public function data_wp_get_avif_info() {
+	public static function data_wp_get_avif_info() {
 		return array(
 			// Standard JPEG.
 			array(
