@@ -83,10 +83,18 @@ function edit_user( $user_id = 0 ) {
 		$maybe_email = wp_unslash( $_POST['email'] );
 		if ( is_string( $maybe_email ) && is_email( $maybe_email ) ) {
 			$user->user_email = $maybe_email;
+			// Checking that the email address is not already registered.
+			$owner_id = email_exists( $user->user_email );
+			if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
+				$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
+			}
 		} else {
 			$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
 		}
+	} else {
+			$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	}
+
 	if ( isset( $_POST['url'] ) ) {
 		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
 			$user->user_url = '';
@@ -206,18 +214,6 @@ function edit_user( $user_id = 0 ) {
 
 	if ( in_array( strtolower( $user->user_login ), array_map( 'strtolower', $illegal_logins ), true ) ) {
 		$errors->add( 'invalid_username', __( '<strong>Error:</strong> Sorry, that username is not allowed.' ) );
-	}
-
-	// Checking email address.
-	if ( empty( $user->user_email ) ) {
-		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
-	} elseif ( ! is_email( $user->user_email ) ) {
-		$errors->add( 'invalid_email', __( '<strong>Error:</strong> The email address is not correct.' ), array( 'form-field' => 'email' ) );
-	} else {
-		$owner_id = email_exists( $user->user_email );
-		if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
-			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
-		}
 	}
 
 	/**
