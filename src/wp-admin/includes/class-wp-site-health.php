@@ -3502,46 +3502,44 @@ class WP_Site_Health {
 				continue;
 			}
 
-			if ( is_string( $test['test'] ) ) {
-				// Check if this test has a REST API endpoint.
-				if ( isset( $test['has_rest'] ) && $test['has_rest'] ) {
-					$result_fetch = wp_remote_get(
-						$test['test'],
-						array(
-							'body' => array(
-								'_wpnonce' => wp_create_nonce( 'wp_rest' ),
-							),
-						)
-					);
-				} else {
-					$result_fetch = wp_remote_post(
-						admin_url( 'admin-ajax.php' ),
-						array(
-							'body' => array(
-								'action'   => $test['test'],
-								'_wpnonce' => wp_create_nonce( 'health-check-site-status' ),
-							),
-						)
-					);
-				}
+			// Check if this test has a REST API endpoint.
+			if ( isset( $test['has_rest'] ) && $test['has_rest'] ) {
+				$result_fetch = wp_remote_get(
+					$test['test'],
+					array(
+						'body' => array(
+							'_wpnonce' => wp_create_nonce( 'wp_rest' ),
+						),
+					)
+				);
+			} else {
+				$result_fetch = wp_remote_post(
+					admin_url( 'admin-ajax.php' ),
+					array(
+						'body' => array(
+							'action'   => $test['test'],
+							'_wpnonce' => wp_create_nonce( 'health-check-site-status' ),
+						),
+					)
+				);
+			}
 
-				if ( ! is_wp_error( $result_fetch ) && 200 === wp_remote_retrieve_response_code( $result_fetch ) ) {
-					$result = json_decode( wp_remote_retrieve_body( $result_fetch ), true );
-				} else {
-					$result = false;
-				}
+			if ( ! is_wp_error( $result_fetch ) && 200 === wp_remote_retrieve_response_code( $result_fetch ) ) {
+				$result = json_decode( wp_remote_retrieve_body( $result_fetch ), true );
+			} else {
+				$result = false;
+			}
 
-				if ( is_array( $result ) ) {
-					$results[] = $result;
-				} else {
-					// Include the test identifier so the unavailable result is counted consistently.
-					$unavailable_tests[ $test_name ] = true;
-					$results[]                       = array(
-						'test'   => $test_name,
-						'status' => 'recommended',
-						'label'  => __( 'A test is unavailable' ),
-					);
-				}
+			if ( is_array( $result ) ) {
+				$results[] = $result;
+			} else {
+				// Include the test identifier so the unavailable result is counted consistently.
+				$unavailable_tests[ $test_name ] = true;
+				$results[]                       = array(
+					'test'   => $test_name,
+					'status' => 'recommended',
+					'label'  => __( 'A test is unavailable' ),
+				);
 			}
 		}
 
