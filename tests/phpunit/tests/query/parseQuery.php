@@ -213,6 +213,68 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure non-scalar 'attachment' value is rejected and attachment flags are not set.
+	 *
+	 * @ticket 65123
+	 */
+	public function test_parse_query_attachment_nonscalar() {
+		$q = new WP_Query();
+		$q->parse_query(
+			array(
+				'attachment' => array( 'foo' => 'bar' ),
+			)
+		);
+
+		$this->assertEmpty( $q->query_vars['attachment'] );
+		$this->assertFalse( $q->is_attachment );
+		$this->assertFalse( $q->is_single );
+	}
+
+	/**
+	 * Ensure a string 'attachment' value sets is_attachment and is_single flags.
+	 *
+	 * @ticket 65123
+	 */
+	public function test_parse_query_attachment_scalar() {
+		$q = new WP_Query();
+		$q->parse_query(
+			array(
+				'attachment' => 'my-image',
+			)
+		);
+
+		$this->assertSame( 'my-image', $q->query_vars['attachment'] );
+		$this->assertTrue( $q->is_attachment );
+		$this->assertTrue( $q->is_single );
+	}
+
+	/**
+	 * Ensure non-scalar post type query var does not cause a fatal error.
+	 *
+	 * @ticket 65123
+	 */
+	public function test_parse_query_post_type_query_var_array() {
+		register_post_type(
+			'wptests_cpt',
+			array(
+				'public'    => true,
+				'query_var' => 'wptests_cpt',
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'post_type'   => 'wptests_cpt',
+				'wptests_cpt' => array( 'foo' => 'bar' ),
+			)
+		);
+
+		unregister_post_type( 'wptests_cpt' );
+
+		$this->assertIsArray( $q->posts );
+	}
+
+	/**
 	 * Tests that a fatal error is not thrown when a hierarchical taxonomy query var
 	 * passed to wp_basename() in ::parse_tax_query() is an array instead of a string.
 	 *
