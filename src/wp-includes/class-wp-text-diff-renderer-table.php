@@ -305,6 +305,11 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		// Compute word diffs for each matched pair using the inline diff.
 		foreach ( $orig_matches as $o => $f ) {
 			if ( is_numeric( $o ) && is_numeric( $f ) ) {
+				// Avoid expensive word-level diffs for long lines; show the complete lines instead.
+				if ( strlen( $orig[ $o ] ) > 10000 || strlen( $final[ $f ] ) > 10000 ) {
+					continue;
+				}
+
 				$text_diff = new Text_Diff( 'auto', array( array( $orig[ $o ] ), array( $final[ $f ] ) ) );
 				$renderer  = new $this->inline_diff_renderer();
 				$diff      = $renderer->render( $text_diff );
