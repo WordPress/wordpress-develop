@@ -934,7 +934,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( '0000-00-00 00:00:00' === $date ) {
 			return new IXR_Date( '00000000T00:00:00Z' );
 		}
-		return new IXR_Date( mysql2date( 'Ymd\TH:i:s', $date, false ) );
+		return new IXR_Date( strtotime( $date . ' +0000' ) );
 	}
 
 	/**
@@ -946,7 +946,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
 		if ( '0000-00-00 00:00:00' !== $date && '0000-00-00 00:00:00' === $date_gmt ) {
-			return new IXR_Date( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $date, false ), 'Ymd\TH:i:s' ) );
+			return new IXR_Date( get_gmt_from_date( $date, 'Ymd\TH:i:s' ) );
 		}
 		return $this->_convert_date( $date_gmt );
 	}
@@ -1837,7 +1837,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( isset( $content_struct['if_not_modified_since'] ) ) {
 			// If the post has been modified since the date provided, return an error.
-			if ( mysql2date( 'U', $post['post_modified_gmt'] ) > $content_struct['if_not_modified_since']->getTimestamp() ) {
+			if ( strtotime( $post['post_modified_gmt'] . ' +0000' ) > $content_struct['if_not_modified_since']->getTimestamp() ) {
 				return new IXR_Error( 409, __( 'There is a revision of this post that is more recent.' ) );
 			}
 		}

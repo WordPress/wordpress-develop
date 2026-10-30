@@ -78,4 +78,31 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 		$this->assertFalse( $password_status_with_password );
 		$this->assertArrayHasKey( 'Cache-Control', $headers_with_password );
 	}
+
+	/**
+	 * @ticket 48936
+	 */
+	public function test_send_headers_sets_last_modified_for_feeds_in_gmt() {
+		update_option( 'timezone_string', 'Europe/Helsinki' );
+
+		add_filter(
+			'wp_headers',
+			function ( $headers ) {
+				$this->headers_sent = $headers;
+				return $headers;
+			}
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_date'     => '2020-08-29 04:51:00',
+				'post_date_gmt' => '2020-08-29 01:51:00',
+			)
+		);
+
+		$this->go_to( get_feed_link() );
+
+		$this->assertArrayHasKey( 'Last-Modified', $this->headers_sent );
+		$this->assertSame( 'Sat, 29 Aug 2020 01:51:00 GMT', $this->headers_sent['Last-Modified'] );
+	}
 }

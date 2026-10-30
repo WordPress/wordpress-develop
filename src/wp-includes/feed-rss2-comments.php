@@ -97,7 +97,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 		<link><?php comment_link(); ?></link>
 
 		<dc:creator><![CDATA[<?php echo get_comment_author_rss(); ?>]]></dc:creator>
-		<pubDate><?php echo mysql2date( 'D, d M Y H:i:s +0000', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ?></pubDate>
+		<pubDate><?php echo get_comment_time( 'D, d M Y H:i:s +0000', true, false ); ?></pubDate>
 		<guid isPermaLink="false"><?php comment_guid(); ?></guid>
 
 		<?php if ( post_password_required( $comment_post ) ) : ?>
