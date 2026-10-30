@@ -176,7 +176,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_exceptions() {
+	public static function data_exceptions() {
 		return array(
 			array(
 				'n # 2',              // Invalid expression to parse.

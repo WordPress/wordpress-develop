@@ -25,6 +25,7 @@ module.exports = function(grunt) {
 			'wp-content/index.php',
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
+			'wp-content/themes/ipsum/**',
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
@@ -531,6 +532,9 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/language-chooser.js' ]: [ './src/js/_enqueues/lib/language-chooser.js' ],
 					[ WORKING_DIR + 'wp-admin/js/link.js' ]: [ './src/js/_enqueues/admin/link.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media-gallery.js' ]: [ './src/js/_enqueues/deprecated/media-gallery.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-frame-upload.js' ]: [ './src/js/_enqueues/admin/media-frame-upload.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-new-upload.js' ]: [ './src/js/_enqueues/admin/media-new-upload.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-upload-pipeline.js' ]: [ './src/js/_enqueues/admin/media-upload-pipeline.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media-upload.js' ]: [ './src/js/_enqueues/admin/media-upload.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media.js' ]: [ './src/js/_enqueues/admin/media.js' ],
 					[ WORKING_DIR + 'wp-admin/js/nav-menu.js' ]: [ './src/js/_enqueues/lib/nav-menu.js' ],
@@ -1325,6 +1329,9 @@ module.exports = function(grunt) {
 					'src/wp-admin/js/language-chooser.js': 'src/js/_enqueues/lib/language-chooser.js',
 					'src/wp-admin/js/link.js': 'src/js/_enqueues/admin/link.js',
 					'src/wp-admin/js/media-gallery.js': 'src/js/_enqueues/deprecated/media-gallery.js',
+					'src/wp-admin/js/media-frame-upload.js': 'src/js/_enqueues/admin/media-frame-upload.js',
+					'src/wp-admin/js/media-new-upload.js': 'src/js/_enqueues/admin/media-new-upload.js',
+					'src/wp-admin/js/media-upload-pipeline.js': 'src/js/_enqueues/admin/media-upload-pipeline.js',
 					'src/wp-admin/js/media-upload.js': 'src/js/_enqueues/admin/media-upload.js',
 					'src/wp-admin/js/media.js': 'src/js/_enqueues/admin/media.js',
 					'src/wp-admin/js/nav-menu.js': 'src/js/_enqueues/lib/nav-menu.js',
@@ -1709,7 +1716,7 @@ module.exports = function(grunt) {
 	if( grunt.option( 'minimal-copy' ) ) {
 		var copyFilesOptions = grunt.config.get( 'copy.files.files' );
 		copyFilesOptions[0].src.push( '!wp-content/plugins/**' );
-		copyFilesOptions[0].src.push( '!wp-content/themes/!(twenty*)/**' );
+		copyFilesOptions[0].src.push( '!wp-content/themes/!(twenty*|ipsum)/**' );
 		grunt.config.set( 'copy.files.files', copyFilesOptions );
 	}
 

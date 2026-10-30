@@ -30,7 +30,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_preload_resources() {
+	public static function data_preload_resources() {
 		return array(
 			'basic_preload'          => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",

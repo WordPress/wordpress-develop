@@ -3047,12 +3047,13 @@ function _wp_register_initial_settings_for_abilities(): void {
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
  *
- * @param string $option_group A settings group name. Should correspond to an allowed option key name.
- *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', and 'options'.
- * @param string $option_name  The name of an option to sanitize and save.
- * @param array  $args {
- *     Data used to describe the setting when registered.
+ * @param string         $option_group A settings group name. Should correspond to an allowed option key name.
+ *                                     Default allowed option key names include 'general', 'discussion', 'media',
+ *                                     'reading', 'writing', and 'options'.
+ * @param string         $option_name  The name of an option to sanitize and save.
+ * @param array|callable $args {
+ *     Data used to describe the setting when registered. For backward compatibility, a callable
+ *     may be passed instead, which is used as the `$sanitize_callback`.
  *
  *     @type string        $type              The type of data associated with this setting.
  *                                            Valid values are 'string', 'boolean', 'integer', 'number', 'array',
@@ -3181,9 +3182,11 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
  *
- * @param string   $option_group The settings group name used during registration.
- * @param string   $option_name  The name of the option to unregister.
- * @param callable $deprecated   Optional. Deprecated.
+ * @param string $option_group The settings group name used during registration.
+ * @param string $option_name  The name of the option to unregister.
+ * @param string $deprecated   Optional. Deprecated.
+ *
+ * @phpstan-param '' $deprecated
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	global $new_allowed_options, $wp_registered_settings;

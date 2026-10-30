@@ -184,11 +184,6 @@ parameters:
 			count: 5
 			path: ../../../src/wp-admin/includes/class-wp-plugins-list-table.php
 		-
-			message: '#^Variable \$authors_dropdown might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
-		-
 			message: '#^Variable \$badge_class might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -783,11 +778,6 @@ parameters:
 			identifier: variable.undefined
 			count: 3
 			path: ../../../src/wp-includes/ms-settings.php
-		-
-			message: '#^Variable \$wp_version might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/script-loader.php
 		-
 			message: '#^Variable \$wp_template_path might not be defined\.$#'
 			identifier: variable.undefined

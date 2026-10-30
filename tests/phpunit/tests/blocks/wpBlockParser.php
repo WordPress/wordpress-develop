@@ -20,6 +20,111 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	protected static $fixtures_dir;
 
 	/**
+	 * Ensures that a basic block parses into the expected data structure.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_parses_basic_empty_block() {
+		$p      = new WP_Block_Parser();
+		$blocks = $p->parse( '<!-- wp:block -->' );
+
+		$this->assertSame(
+			array(
+				array(
+					'blockName'    => 'core/block',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '',
+					'innerContent' => array(),
+				),
+			),
+			$blocks
+		);
+	}
+
+	/**
+	 * Ensures that implicitly closing a final open block does not repeat content parsed before it.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_documents_with_implicit_closings
+	 *
+	 * @param string[] $tokens List of block and HTML tokens comprising a document, where the first
+	 *                         is a partial document ending in open blocks, while the rest are the
+	 *                         explicit closers corresponding to those open blocks.
+	 */
+	public function test_implicitly_closed_blocks_is_equivalent_to_explicitly_closed( $tokens ) {
+		$parser        = new WP_Block_Parser();
+		$full_document = $parser->parse( implode( '', $tokens ) );
+		$document      = array_shift( $tokens );
+
+		foreach ( $tokens as $token ) {
+			$document .= $token;
+
+			$this->assertSame(
+				$full_document,
+				$parser->parse( $document ),
+				'Should have implicitly closed open blocks as if the closers had been there.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, list<non-empty-string>>
+	 */
+	public static function data_documents_with_implicit_closings() {
+		return array(
+			'After a closed block'                  => array(
+				array(
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'After leading HTML and a closed block' => array(
+				array(
+					'Hi<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'After a closed block and HTML'         => array(
+				array(
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph -->Bye<!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'Deeply-nested open blocks'             => array(
+				array(
+					'0<!-- wp:a -->1<!-- wp:b -->2<!-- wp:c -->3<!-- wp:d -->4',
+					'<!-- /wp:d -->',
+					'<!-- /wp:c -->',
+					'<!-- /wp:b -->',
+					'<!-- /wp:a -->',
+				),
+			),
+			'After a closed void block'             => array(
+				array(
+					'<!-- wp:separator /--><!-- wp:group -->A',
+					'<!-- /wp:group -->',
+				),
+			),
+			'With the wrong closer'                 => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:closer -->',
+				),
+			),
+			'With an invalid closer'                => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:opener /-->',
+				),
+			),
+		);
+	}
+
+	/**
 	 * @dataProvider data_parsing_test_filenames
 	 * @ticket 45109
 	 *
@@ -113,5 +218,44 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 */
 	protected function strip_r( $input ) {
 		return str_replace( "\r", '', $input );
+	}
+
+	/**
+	 * Ensures that implicitly closed inner blocks are added as arrays, like every other parsed block.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_implicitly_closed_inner_blocks_are_arrays() {
+		$processor = new WP_Block_Parser();
+		$blocks    = $processor->parse( '<!-- wp:group --><!-- wp:columns --><!-- wp:paragraph -->B' );
+
+		$this->assertSame(
+			array(
+				array(
+					'blockName'    => 'core/group',
+					'attrs'        => array(),
+					'innerBlocks'  => array(
+						array(
+							'blockName'    => 'core/columns',
+							'attrs'        => array(),
+							'innerBlocks'  => array(
+								array(
+									'blockName'    => 'core/paragraph',
+									'attrs'        => array(),
+									'innerBlocks'  => array(),
+									'innerHTML'    => 'B',
+									'innerContent' => array( 'B' ),
+								),
+							),
+							'innerHTML'    => '',
+							'innerContent' => array( null ),
+						),
+					),
+					'innerHTML'    => '',
+					'innerContent' => array( null ),
+				),
+			),
+			$blocks
+		);
 	}
 }

@@ -21,12 +21,30 @@ class WP_Icons_Registry {
 	protected $registered_icons = array();
 
 	/**
+	 * Resolved path of the core icon library directory.
+	 *
+	 * @since 7.2.0
+	 * @var string|false|null
+	 */
+	private $core_icon_library_directory = null;
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @since 7.0.0
 	 * @var WP_Icons_Registry|null
 	 */
 	protected static $instance = null;
+
+	/**
+	 * Names of the icons that replace Dashicons, keyed by Dashicon class name.
+	 *
+	 * Built from the icon library manifest on first use.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, string>|null
+	 */
+	protected $dashicon_replacements = null;
 
 	/**
 	 * Constructor.
@@ -357,6 +375,7 @@ class WP_Icons_Registry {
 	 * Retrieves the content of a registered icon.
 	 *
 	 * @since 7.0.0
+	 * @since 7.2.0 Core icons skip sanitization.
 	 *
 	 * @param string $icon_name Icon name including namespace.
 	 * @return string|null The content of the icon, if found.
@@ -380,7 +399,12 @@ class WP_Icons_Registry {
 				return null;
 			}
 
-			$content = $this->sanitize_icon_content( file_get_contents( $icon_path ) );
+			$content = file_get_contents( $icon_path );
+
+			// Core icons are trusted, so skip the costly sanitization.
+			if ( ! $this->is_core_icon_file( $icon_path ) ) {
+				$content = $this->sanitize_icon_content( $content );
+			}
 
 			if ( empty( $content ) ) {
 				wp_trigger_error(
@@ -393,6 +417,22 @@ class WP_Icons_Registry {
 			$this->registered_icons[ $icon_name ]['content'] = $content;
 		}
 		return $this->registered_icons[ $icon_name ]['content'];
+	}
+
+	/**
+	 * Determines whether an icon file is a core icon.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $icon_path Icon file path, resolved with `realpath()`.
+	 * @return bool Whether the file is in the core icon library.
+	 */
+	private function is_core_icon_file( $icon_path ) {
+		if ( null === $this->core_icon_library_directory ) {
+			$this->core_icon_library_directory = realpath( ABSPATH . WPINC . '/images/icon-library' );
+		}
+
+		return is_string( $this->core_icon_library_directory ) && str_starts_with( $icon_path, $this->core_icon_library_directory . DIRECTORY_SEPARATOR );
 	}
 
 	/**
@@ -481,6 +521,49 @@ class WP_Icons_Registry {
 	 */
 	public function is_registered( $icon_name ) {
 		return isset( $this->registered_icons[ $icon_name ] );
+	}
+
+	/**
+	 * Returns the name of the icon that replaces a Dashicon in the admin interface.
+	 *
+	 * The replacements come from the `dashicons` property of the `core-admin`
+	 * icons in the icon library manifest.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $dashicon Dashicon class name, such as `dashicons-admin-post`.
+	 * @return string|null Namespaced name of the replacement icon, such as `core-admin/pin`,
+	 *                     or null if the Dashicon has no replacement or the replacement
+	 *                     is not registered.
+	 */
+	public function get_admin_icon_name_for_dashicon( $dashicon ) {
+		if ( ! is_string( $dashicon ) ) {
+			return null;
+		}
+
+		if ( null === $this->dashicon_replacements ) {
+			$this->dashicon_replacements = array();
+
+			$manifest_path = ABSPATH . WPINC . '/assets/icon-library-manifest.php';
+			$manifest      = is_readable( $manifest_path ) ? include $manifest_path : array();
+
+			foreach ( is_array( $manifest ) ? $manifest : array() as $icon_name => $icon_data ) {
+				if (
+					empty( $icon_data['dashicons'] ) ||
+					! in_array( 'core-admin', $icon_data['collections'] ?? array(), true )
+				) {
+					continue;
+				}
+
+				foreach ( $icon_data['dashicons'] as $replaced_dashicon ) {
+					$this->dashicon_replacements[ $replaced_dashicon ] = 'core-admin/' . $icon_name;
+				}
+			}
+		}
+
+		$icon_name = $this->dashicon_replacements[ $dashicon ] ?? null;
+
+		return null !== $icon_name && $this->is_registered( $icon_name ) ? $icon_name : null;
 	}
 
 	/**

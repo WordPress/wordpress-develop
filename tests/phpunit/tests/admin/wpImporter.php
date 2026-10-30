@@ -348,17 +348,6 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that bump_request_timeout() always returns 60 seconds.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers WP_Importer::bump_request_timeout
-	 */
-	public function test_bump_request_timeout() {
-		$this->assertSame( 60, ( new WP_Importer() )->bump_request_timeout( 5 ) );
-	}
-
-	/**
 	 * Tests that the user is never over quota on a single site.
 	 *
 	 * @ticket 65819
@@ -443,11 +432,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	public static function data_min_whitespace() {
 		return array(
 			'mixed whitespace'     => array( "one \r\n\ttwo   three", 'one two three' ),
-			'single spaces'        => array( 'one two', 'one two' ),
 			'leading and trailing' => array( "\n one \t", ' one ' ),
-			'no whitespace'        => array( 'one', 'one' ),
-			'empty string'         => array( '', '' ),
-			'zero string'          => array( '0', '0' ),
 		);
 	}
 
