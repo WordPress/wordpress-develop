@@ -93,27 +93,28 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_insert_term_invalid_term_name_type
 	 *
-	 * @param mixed $name The term name to insert.
+	 * @param mixed            $name                The term name to insert.
+	 * @param non-empty-string $expected_error_code The expected error code.
 	 */
-	public function test_wp_insert_term_invalid_term_name_type( $name ): void {
+	public function test_wp_insert_term_invalid_term_name_type( $name, string $expected_error_code ): void {
 		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing invalid types.)
 
 		$this->assertWPError( $found );
-		$this->assertSame( 'empty_term_name', $found->get_error_code() );
+		$this->assertSame( $expected_error_code, $found->get_error_code() );
 	}
 
 	/**
 	 * Data provider for {@see self::test_wp_insert_term_invalid_term_name_type()}.
 	 *
-	 * @return array<truthy-string, array{ mixed }>
+	 * @return array<truthy-string, array{ mixed, non-empty-string }>
 	 */
 	public function data_wp_insert_term_invalid_term_name_type(): array {
 		return array(
-			'array'  => array( array( 'foo', 'bar' ) ),
-			'object' => array( new stdClass() ),
-			'true'   => array( true ),
-			'false'  => array( false ),
-			'null'   => array( null ),
+			'array'  => array( array( 'foo', 'bar' ), 'invalid_term_name' ),
+			'object' => array( new stdClass(), 'invalid_term_name' ),
+			'true'   => array( true, 'invalid_term_name' ),
+			'false'  => array( false, 'empty_term_name' ),
+			'null'   => array( null, 'empty_term_name' ),
 		);
 	}
 

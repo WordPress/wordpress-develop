@@ -2603,7 +2603,14 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term_id', __( 'Invalid term ID.' ) );
 	}
 
-	if ( ! ( is_string( $term ) || is_int( $term ) || is_float( $term ) ) || '' === trim( (string) $term ) ) {
+	// Null and false are treated as a missing name rather than an invalid one, as they were before.
+	if ( null === $term || false === $term ) {
+		$term = '';
+	} elseif ( ! ( is_string( $term ) || is_int( $term ) || is_float( $term ) ) ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
+	if ( '' === trim( (string) $term ) ) {
 		return new WP_Error( 'empty_term_name', __( 'A name is required for this term.' ) );
 	}
 
