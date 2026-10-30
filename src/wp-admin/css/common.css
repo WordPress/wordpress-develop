@@ -1750,6 +1750,10 @@ div.error.notice-alt {
 	margin: 25px 20px 0 2px;
 }
 
+#wp-admin-notices .update-nag {
+	display: block;
+}
+
 ul#dismissed-updates {
 	display: none;
 }
