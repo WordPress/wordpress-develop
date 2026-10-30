@@ -1387,6 +1387,82 @@ HTML
 	}
 
 	/**
+	 * Invalid sticky options must not break Query Loop queries or select post IDs.
+	 *
+	 * @ticket 60276
+	 *
+	 * @dataProvider data_build_query_vars_with_invalid_sticky_posts
+	 *
+	 * @param mixed  $option_value  Stored sticky posts value.
+	 * @param bool   $option_exists Whether the option should exist.
+	 * @param string $sticky_mode   The Query Loop sticky posts mode.
+	 */
+	public function test_build_query_vars_from_block_query_with_invalid_sticky_posts( $option_value, $option_exists, $sticky_mode ) {
+		$post_ids = $this->factory()->post->create_many( 2 );
+		if ( $option_exists ) {
+			update_option( 'sticky_posts', $option_value );
+		} else {
+			delete_option( 'sticky_posts' );
+		}
+		$stored_option = get_option( 'sticky_posts' );
+
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+		$parsed_blocks = parse_blocks( '<!-- wp:example /-->' );
+		$context       = array(
+			'query' => array(
+				'sticky'  => $sticky_mode,
+				'exclude' => array( $post_ids[0] ),
+			),
+		);
+		$block         = new WP_Block( $parsed_blocks[0], $context, $this->registry );
+		$query_args    = build_query_vars_from_query_block( $block, 1 );
+		$expected      = array(
+			'post_type'    => 'post',
+			'order'        => 'DESC',
+			'orderby'      => 'date',
+			'post__not_in' => array( $post_ids[0] ),
+			'tax_query'    => array(),
+		);
+		if ( 'only' === $sticky_mode ) {
+			$expected['post__in']            = array( 0 );
+			$expected['ignore_sticky_posts'] = 1;
+		} elseif ( 'ignore' === $sticky_mode ) {
+			$expected['ignore_sticky_posts'] = 1;
+		}
+		$this->assertSame( $expected, $query_args );
+
+		$query = new WP_Query( $query_args );
+		$this->assertSame(
+			'only' === $sticky_mode ? array() : array( $post_ids[1] ),
+			wp_list_pluck( $query->posts, 'ID' )
+		);
+		$this->assertSame( $stored_option, get_option( 'sticky_posts' ), 'Building the query must not rewrite the stored option.' );
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function data_build_query_vars_with_invalid_sticky_posts() {
+		$options = array(
+			'empty string'    => array( '', true ),
+			'nonempty string' => array( 'not-an-array', true ),
+			'numeric string'  => array( '123', true ),
+			'missing option'  => array( false, false ),
+			'empty array'     => array( array(), true ),
+		);
+		$cases   = array();
+		foreach ( $options as $option_name => $option ) {
+			foreach ( array( 'exclude', 'only', 'ignore' ) as $sticky_mode ) {
+				$cases[ $option_name . ', ' . $sticky_mode ] = array( $option[0], $option[1], $sticky_mode );
+			}
+		}
+		return $cases;
+	}
+
+	/**
 	 * @ticket 56467
 	 */
 	public function test_query_loop_block_query_vars_filter() {
