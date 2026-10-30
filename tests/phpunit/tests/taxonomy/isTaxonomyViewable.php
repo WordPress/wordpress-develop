@@ -12,6 +12,14 @@ class Tests_Taxonomy_IsTaxonomyViewable extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax_non_viewable', 'wptests_pt', array( 'publicly_queryable' => false ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax_viewable' );
+		unregister_taxonomy( 'wptests_tax_non_viewable' );
+		unregister_post_type( 'wptests_pt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 44466
 	 */

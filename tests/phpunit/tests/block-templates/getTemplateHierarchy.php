@@ -59,7 +59,7 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 	 *
 	 * @return array
 	 */
-	public function data_get_template_hierarchy() {
+	public static function data_get_template_hierarchy() {
 		return array(
 			'front-page'                               => array(
 				'args'     => array( 'front-page' ),

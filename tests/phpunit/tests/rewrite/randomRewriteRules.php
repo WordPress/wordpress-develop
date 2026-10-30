@@ -29,6 +29,14 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		 */
 		delete_option( 'wp_random_base' );
 
+		unregister_post_type( 'wptests_book' );
+		unregister_post_type( 'wptests_film' );
+		unregister_post_type( 'wptests_note' );
+		unregister_post_type( 'wptests_private' );
+		unregister_taxonomy( 'wptests_genre' );
+		unregister_taxonomy( 'wptests_hidden' );
+		unregister_taxonomy( 'wptests_norewrite' );
+
 		parent::tear_down();
 	}
 
@@ -77,7 +85,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_core_random_rewrite_rules(): array {
+	public static function data_core_random_rewrite_rules(): array {
 		return array(
 			'any post'    => array( 'random/?$', 'index.php?random=1' ),
 			'category'    => array( 'random/category/(.+?)/?$', 'index.php?category_name=$matches[1]&random=1' ),
@@ -493,7 +501,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public function data_random_base_default_is_translated(): array {
+	public static function data_random_base_default_is_translated(): array {
 		return array(
 			'translated'        => array( 'zufall', 'zufall' ),
 			'empty translation' => array( '', 'random' ),
@@ -677,7 +685,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_permalink_structures(): array {
+	public static function data_permalink_structures(): array {
 		return array(
 			'post name'          => array( '/%postname%/' ),
 			'verbose page rules' => array( '/%category%/%postname%/' ),
@@ -719,7 +727,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: array<string, string>}>
 	 */
-	public function data_random_urls(): array {
+	public static function data_random_urls(): array {
 		return array(
 			'random'                    => array( '/random/', array( 'random' => '1' ) ),
 			'random without slash'      => array( '/random', array( 'random' => '1' ) ),
@@ -808,7 +816,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, string|bool>}>
 	 */
-	public function data_pages_that_do_not_conflict(): array {
+	public static function data_pages_that_do_not_conflict(): array {
 		return array(
 			'slug starting with random' => array( array( 'post_name' => 'random-is-just-patterns-we-cant-decipher' ) ),
 			'draft page named random'   => array(
@@ -945,7 +953,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: bool}>
 	 */
-	public function data_post_permalinks_share_random_base(): array {
+	public static function data_post_permalinks_share_random_base(): array {
 		return array(
 			'post name'                => array( '/%postname%/', true ),
 			'post name without slash'  => array( '/%postname%', true ),
@@ -984,7 +992,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_post_name_at_the_root_structures(): array {
+	public static function data_post_name_at_the_root_structures(): array {
 		return array(
 			'post name' => array( '/%postname%/' ),
 			'pathinfo'  => array( '/index.php/%postname%/' ),
@@ -1011,7 +1019,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: array<string, string>}>
 	 */
-	public function data_posts_that_do_not_conflict(): array {
+	public static function data_posts_that_do_not_conflict(): array {
 		return array(
 			'blog prefix'              => array( '/blog/%postname%/', array() ),
 			'date and post name'       => array( '/%year%/%monthnum%/%postname%/', array() ),

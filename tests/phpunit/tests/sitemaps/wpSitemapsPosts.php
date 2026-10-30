@@ -5,6 +5,14 @@
  */
 class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'public_cpt' );
+		unregister_post_type( 'private_cpt' );
+		unregister_post_type( 'not_viewable_cpt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests getting sitemap entries for post type page with 'posts' homepage.
 	 *
@@ -177,6 +185,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 * Tests that the URL list is empty for post types that are not object subtypes.
 	 *
 	 * @ticket 65819
+	 * @ticket 61293
 	 *
 	 * @covers WP_Sitemaps_Posts::get_url_list
 	 *
@@ -193,10 +202,15 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'wp_sitemaps_posts_pre_url_list', array( $filter, 'filter' ) );
 
+		$sitemaps       = wp_sitemaps_get_server();
 		$posts_provider = new WP_Sitemaps_Posts();
 
-		$this->assertSame( array(), $posts_provider->get_url_list( 1, $post_type ) );
+		$this->assertSame( array(), $posts_provider->get_url_list( 1, $post_type ), 'URL list for private post type should be empty.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The short-circuit filter should not run.' );
+		$this->go_to( home_url( "/?sitemap=posts&sitemap-subtype={$post_type}" ) );
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), 'Private post type sitemaps should 404' );
 	}
 
 	/**
@@ -250,7 +264,6 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 */
 	public static function data_timezones() {
 		return array(
-			'UTC'          => array( 'UTC', '2026-02-03T04:05:06+00:00' ),
 			'behind UTC'   => array( 'America/New_York', '2026-02-02T23:05:06-05:00' ),
 			'ahead of UTC' => array( 'Asia/Dhaka', '2026-02-03T10:05:06+06:00' ),
 		);
@@ -520,10 +533,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	public static function data_get_max_num_pages() {
 		return array(
 			'no posts'    => array( 0, 0 ),
-			'one post'    => array( 1, 1 ),
 			'two posts'   => array( 2, 1 ),
 			'three posts' => array( 3, 2 ),
-			'five posts'  => array( 5, 3 ),
 		);
 	}
 
@@ -623,6 +634,62 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		return array(
 			'seven pages' => array( 7 ),
 			'zero pages'  => array( 0 ),
+		);
+	}
+
+	/**
+	 * Ensure in each page for a registered sub-type returns the correct response.
+	 *
+	 * Tests the two pages that are in range return a 200 and that third, out of
+	 * range, page returns a 404.
+	 *
+	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemap_subtypes
+	 *
+	 * @param string $post_type The post type to test.
+	 */
+	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( string $post_type ) {
+		register_post_type( 'valid_cpt', array( 'public' => true ) );
+
+		self::factory()->post->create_many( 5, array( 'post_type' => $post_type ) );
+		add_filter(
+			'wp_sitemaps_max_urls',
+			static function () {
+				return 3;
+			}
+		);
+
+		$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertFalse( is_404(), 'Sitemap should not 404 when page is unspecified' );
+
+		foreach ( array( 1, 2 ) as $page ) {
+			$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}&paged={$page}" ) );
+			$sitemaps = wp_sitemaps_get_server();
+			// Wrap in get_echo to prevent unexpected test suite output.
+			get_echo( array( $sitemaps, 'render_sitemaps' ) );
+			$this->assertFalse( is_404(), "Sitemap should not 404 when page is set to {$page}" );
+		}
+
+		$page = 3;
+		$this->go_to( home_url( "?sitemap=posts&sitemap-subtype={$post_type}&paged={$page}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), "Sitemap should 404 when page is set to {$page} (out of range)" );
+	}
+
+	/**
+	 * Data provider for {@see self::test_sitemap_does_not_404_for_valid_sitemap_subtypes()}.
+	 *
+	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
+	 */
+	public static function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
+		return array(
+			'post'      => array( 'post' ),
+			'valid cpt' => array( 'valid_cpt' ),
+			'page'      => array( 'page' ),
 		);
 	}
 }

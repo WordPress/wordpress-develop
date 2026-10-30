@@ -60,6 +60,18 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'restless' );
+		unregister_post_type( 'new_post_type' );
+		unregister_taxonomy( 'new_tag' );
+		_unregister_post_status( 'test' );
+
+		parent::tear_down();
+	}
+
 	public function test_parse_post_content_single_page() {
 		global $multipage, $pages, $numpages;
 
@@ -279,7 +291,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$after_draft_counts = wp_count_posts();
 		$this->assertSame( '1', $after_draft_counts->draft );
 		$this->assertSame( '2', $after_draft_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
 	/**
@@ -300,7 +312,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$after_trash_counts = wp_count_posts();
 		$this->assertSame( '1', $after_trash_counts->trash );
 		$this->assertSame( '2', $after_trash_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
 	/**
