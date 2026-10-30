@@ -95,20 +95,20 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * wp_set_secret() so it bypasses the static _wp_secrets_get_key_manager(), whose
 	 * request-scoped root-key cache (ADR 0009) would otherwise keep serving the
 	 * already-unwrapped key and mask the misconfiguration this test defines below.
+	 * Its keyring reads WP_SECRETS_KEY_PREVIOUS, because WP_SECRETS_KEY can only be
+	 * defined once in a process.
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
 	public function test_key_unavailable_is_wp_error_not_null(): void {
-		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
-			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
-		}
+		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'P', 32 ) ) );
 
 		$provider = new WP_Secrets_Libsodium_Provider(
 			new WP_Secrets_Option_Store(),
-			new WP_Secrets_Key_Manager( new WP_Secrets_Config_Key_Provider() )
+			new WP_Secrets_Key_Manager( new WP_Secrets_Config_Key_Provider( true ) )
 		);
-		$provider->set( 'myplugin/api-key', 'value' );
+		$this->assertTrue( $provider->set( 'myplugin/api-key', 'value' ) );
 
 		define( 'WP_SECRETS_KEY', 424242 );
 
@@ -120,7 +120,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Written under the ambient salt-fallback key, then read back after the stored
+	 * Written under the suite's key, then read back after the stored
 	 * wrapped root key has been corrupted – simulating the option row being
 	 * damaged after secrets already exist. get_master_key() must fail before
 	 * decryption is ever attempted, since a usable root key was never obtained.
