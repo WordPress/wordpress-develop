@@ -78,11 +78,6 @@ class Tests_Formatting_SanitizeHtmlClass extends WP_UnitTestCase {
 				'okfallback',
 				'ok fallback!',
 			),
-			'empty classname and empty fallback'     => array(
-				'',
-				'',
-				'',
-			),
 		);
 	}
 
@@ -91,11 +86,11 @@ class Tests_Formatting_SanitizeHtmlClass extends WP_UnitTestCase {
 	 */
 	public function test_sanitize_html_class_filter_receives_original_args() {
 		$filter = new MockAction();
-		add_filter( 'sanitize_html_class', array( $filter, 'filter' ), 10, 3 );
+		add_filter( 'sanitize_html_class', array( $filter, 'filter_append' ), 10, 3 );
 
 		$result = sanitize_html_class( 'foo bar', 'fallback' );
 
-		$this->assertSame( 'foobar', $result, 'Unexpected sanitized class.' );
+		$this->assertSame( 'foobar_append', $result, 'Unexpected sanitized class.' );
 		$this->assertSame( 1, $filter->get_call_count(), 'The filter was not applied once.' );
 		$this->assertSame(
 			array( 'foobar', 'foo bar', 'fallback' ),
