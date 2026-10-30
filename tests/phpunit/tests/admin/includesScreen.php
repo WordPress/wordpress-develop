@@ -157,6 +157,12 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
+		unregister_post_type( 'value-add' );
+		unregister_post_type( 'edit-some-thing' );
+		unregister_post_type( 'comments' );
+		unregister_post_type( 'tags' );
+		unregister_post_type( 'type_shows_in_rest' );
+
 		parent::tear_down();
 	}
 
@@ -639,7 +645,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	/**
 	 * Data provider for testing is_block_editor.
 	 */
-	public function data_is_block_editor() {
+	public static function data_is_block_editor() {
 		return array(
 			array(
 				// Edit post: Post type supports `show_in_rest`, no filters.

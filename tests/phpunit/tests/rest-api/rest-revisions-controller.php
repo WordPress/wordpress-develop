@@ -1405,4 +1405,366 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_revision_invalid_page_number', $response, 400 );
 	}
+
+	/**
+	 * A revision's meta only includes the meta keys that are revisioned.
+	 *
+	 * Meta keys without `revisions_enabled` are never stored on a revision, so
+	 * reading them from the revision would report their default value instead.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_meta_only_includes_revisioned_meta_keys() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'revisioned_meta', $data['meta'], 'Revisioned meta should be included.' );
+		$this->assertSame( 'revisioned value', $data['meta']['revisioned_meta'], 'Revisioned meta should be read from the revision.' );
+		$this->assertArrayNotHasKey( 'non_revisioned_meta', $data['meta'], 'Meta that is not revisioned should not be included.' );
+	}
+
+	/**
+	 * Each revision in the collection only includes the meta keys that are revisioned.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_items_meta_only_includes_revisioned_meta_keys() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$post_id = $this->create_post_with_revisioned_meta( 'revisioned value' );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 2, $data );
+
+		foreach ( $data as $revision ) {
+			$this->assertArrayHasKey( 'revisioned_meta', $revision['meta'], 'Revisioned meta should be included.' );
+			$this->assertArrayNotHasKey( 'non_revisioned_meta', $revision['meta'], 'Meta that is not revisioned should not be included.' );
+		}
+	}
+
+	/**
+	 * The schema for a revision's meta only describes the meta keys that are revisioned.
+	 *
+	 * A new controller is used because the post type's controller caches its
+	 * schema when the routes are registered, before the meta keys are.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revisions_Controller::get_item_schema
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_schema_meta_only_includes_revisioned_meta_keys() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$controller = new WP_REST_Revisions_Controller( 'post' );
+		$properties = $controller->get_item_schema()['properties']['meta']['properties'];
+
+		$this->assertArrayHasKey( 'revisioned_meta', $properties, 'Revisioned meta should be described.' );
+		$this->assertArrayNotHasKey( 'non_revisioned_meta', $properties, 'Meta that is not revisioned should not be described.' );
+	}
+
+	/**
+	 * Meta keys added with the `wp_post_revision_meta_keys` filter are included.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_meta_includes_meta_keys_from_revision_meta_keys_filter() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		add_filter(
+			'wp_post_revision_meta_keys',
+			static function ( $keys ) {
+				$keys[] = 'non_revisioned_meta';
+				return $keys;
+			}
+		);
+
+		$post_id = self::factory()->post->create();
+		update_post_meta( $post_id, 'non_revisioned_meta', 'filtered value' );
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'Revised content.',
+			)
+		);
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'non_revisioned_meta', $data['meta'] );
+		$this->assertSame( 'filtered value', $data['meta']['non_revisioned_meta'] );
+	}
+
+	/**
+	 * Revisioned meta keys with a custom REST name are included under that name.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_meta_uses_rest_name_of_revisioned_meta_keys() {
+		register_post_meta(
+			'post',
+			'revisioned_meta',
+			array(
+				'show_in_rest'      => array( 'name' => 'revisioned_alias' ),
+				'single'            => true,
+				'type'              => 'string',
+				'revisions_enabled' => true,
+			)
+		);
+		register_post_meta(
+			'post',
+			'non_revisioned_meta',
+			array(
+				'show_in_rest' => array( 'name' => 'non_revisioned_alias' ),
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+
+		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'revisioned_alias', $data['meta'] );
+		$this->assertSame( 'revisioned value', $data['meta']['revisioned_alias'] );
+		$this->assertArrayNotHasKey( 'revisioned_meta', $data['meta'] );
+		$this->assertArrayNotHasKey( 'non_revisioned_alias', $data['meta'] );
+	}
+
+	/**
+	 * Restoring a revision the way the block editor does restores the revisioned
+	 * meta and leaves meta that is not revisioned alone.
+	 *
+	 * This matches wp_restore_post_revision(), which only restores the keys
+	 * returned by wp_post_revision_meta_keys().
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_restoring_revision_keeps_meta_that_is_not_revisioned() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$post_id = $this->create_post_with_revisioned_meta( 'old value' );
+		update_post_meta( $post_id, 'revisioned_meta', 'new value' );
+		update_post_meta( $post_id, 'non_revisioned_meta', 'kept value' );
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		wp_set_current_user( self::$editor_id );
+		$response = $this->restore_revision_like_the_block_editor( '/wp/v2/posts/' . $post_id, $revision_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Revised content.', get_post( $post_id )->post_content, 'The content should be restored.' );
+		$this->assertSame( 'old value', get_post_meta( $post_id, 'revisioned_meta', true ), 'Revisioned meta should be restored.' );
+		$this->assertSame( 'kept value', get_post_meta( $post_id, 'non_revisioned_meta', true ), 'Meta that is not revisioned should be kept.' );
+	}
+
+	/**
+	 * Restoring a pattern revision the way the block editor does keeps its sync status.
+	 *
+	 * `wp_pattern_sync_status` is not revisioned, so the revision used to report
+	 * it as null. Saving that null deleted the status of unsynced patterns,
+	 * turning them into synced patterns, and failed for synced patterns.
+	 *
+	 * @ticket 66329
+	 *
+	 * @dataProvider data_pattern_sync_statuses
+	 *
+	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
+	 *
+	 * @param string $sync_status Sync status of the pattern. Empty for synced patterns.
+	 */
+	public function test_restoring_pattern_revision_keeps_sync_status( $sync_status ) {
+		// Registered meta keys are cleared after each test, so register the sync status again.
+		wp_create_initial_post_meta();
+
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_block',
+				'post_content' => 'Original content.',
+				'meta_input'   => $sync_status ? array( 'wp_pattern_sync_status' => $sync_status ) : array(),
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => $pattern_id,
+				'post_content' => 'Revised content.',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => $pattern_id,
+				'post_content' => 'Latest content.',
+			)
+		);
+		$revision_id = $this->get_oldest_revision_id( $pattern_id );
+
+		wp_set_current_user( self::$editor_id );
+		$response = $this->restore_revision_like_the_block_editor( '/wp/v2/blocks/' . $pattern_id, $revision_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Revised content.', get_post( $pattern_id )->post_content, 'The content should be restored.' );
+		$this->assertSame( $sync_status, get_post_meta( $pattern_id, 'wp_pattern_sync_status', true ), 'The sync status should be kept.' );
+	}
+
+	/**
+	 * Data provider for test_restoring_pattern_revision_keeps_sync_status().
+	 *
+	 * @return array[]
+	 */
+	public static function data_pattern_sync_statuses() {
+		return array(
+			'synced pattern'           => array( '' ),
+			'unsynced pattern'         => array( 'unsynced' ),
+			'partially synced pattern' => array( 'partial' ),
+		);
+	}
+
+	/**
+	 * A `wp_post_revision_meta_keys` filter that doesn't return an array doesn't break revision responses.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_with_non_array_revision_meta_keys_filter() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		add_filter( 'wp_post_revision_meta_keys', '__return_false' );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data()['meta'] );
+	}
+
+	/**
+	 * Registers a revisioned and a non-revisioned meta key for posts.
+	 */
+	private function register_revisioned_and_non_revisioned_meta() {
+		register_post_meta(
+			'post',
+			'revisioned_meta',
+			array(
+				'show_in_rest'      => true,
+				'single'            => true,
+				'type'              => 'string',
+				'revisions_enabled' => true,
+			)
+		);
+		register_post_meta(
+			'post',
+			'non_revisioned_meta',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+	}
+
+	/**
+	 * Creates a post with two revisions, the older of which stores a revisioned meta value.
+	 *
+	 * @param string $value Value of the `revisioned_meta` key when the older revision is saved.
+	 * @return int Post ID.
+	 */
+	private function create_post_with_revisioned_meta( $value ) {
+		$post_id = self::factory()->post->create( array( 'post_content' => 'Original content.' ) );
+
+		update_post_meta( $post_id, 'revisioned_meta', $value );
+		update_post_meta( $post_id, 'non_revisioned_meta', 'non-revisioned value' );
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'Revised content.',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'Latest content.',
+			)
+		);
+
+		return $post_id;
+	}
+
+	/**
+	 * Gets the ID of a post's oldest revision.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return int Revision ID.
+	 */
+	private function get_oldest_revision_id( $post_id ) {
+		$revisions = wp_get_post_revisions( $post_id );
+
+		return end( $revisions )->ID;
+	}
+
+	/**
+	 * Restores a revision the way the block editor's restoreRevision() action does.
+	 *
+	 * The revision is read with the `edit` context, then its content and meta
+	 * are saved to the parent post.
+	 *
+	 * @param string $parent_route Route of the parent post, such as `/wp/v2/posts/1`.
+	 * @param int    $revision_id  Revision ID.
+	 * @return WP_REST_Response Response to saving the parent post.
+	 */
+	private function restore_revision_like_the_block_editor( $parent_route, $revision_id ) {
+		$request = new WP_REST_Request( 'GET', $parent_route . '/revisions/' . $revision_id );
+		$request->set_param( 'context', 'edit' );
+		$revision = rest_get_server()->dispatch( $request )->get_data();
+
+		$request = new WP_REST_Request( 'POST', $parent_route );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'content' => $revision['content']['raw'],
+					'meta'    => $revision['meta'],
+				)
+			)
+		);
+
+		return rest_get_server()->dispatch( $request );
+	}
 }

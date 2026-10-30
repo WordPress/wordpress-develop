@@ -3421,7 +3421,7 @@ function retrieve_password( $user_login = '' ) {
 	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
 	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
 	 *
-	 * @see https://core.trac.wordpress.org/tickets/42957
+	 * @link https://core.trac.wordpress.org/ticket/42957
 	 */
 	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
@@ -5126,12 +5126,17 @@ function wp_validate_user_request_key(
 	#[\SensitiveParameter]
 	$key
 ) {
-	$request_id       = absint( $request_id );
-	$request          = wp_get_user_request( $request_id );
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request( $request_id );
+
+	if ( ! $request ) {
+		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
+	}
+
 	$saved_key        = $request->confirm_key;
 	$key_request_time = $request->modified_timestamp;
 
-	if ( ! $request || ! $saved_key || ! $key_request_time ) {
+	if ( ! $saved_key || ! $key_request_time ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 
