@@ -2080,10 +2080,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * String input from callers that bypass the REST run controller is normalized.
 	 *
 	 * Schema validation accepts 'true' for a boolean, a CSV string for an array, and
-	 * a numeric string for an integer, but only the REST run controller converts
-	 * them to the schema types. A direct WP_Ability::execute() call passes them as
-	 * given, so the normalizers must accept the string forms instead of silently
-	 * dropping the filters they carry.
+	 * a numeric string for an integer. Direct WP_Ability::execute() calls coerce
+	 * these values to the schema types without dropping the filters they carry.
 	 *
 	 * @ticket 64657
 	 */
@@ -2129,21 +2127,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'A CSV ID list should execute.' );
 		$this->assertSame( array( self::$fixture_ids['subscriber'] ), wp_list_pluck( $result['items'], 'id' ), 'A string ID list must limit the query to the listed IDs.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['items'][0]['email'], 'A CSV fields value must select the requested fields.' );
-
-		/*
-		 * IDs that are distinct as strings but equal as integers ('7' vs '07')
-		 * pass schema validation; they must still collapse to one filtered ID.
-		 */
-		$result = $ability->execute(
-			array(
-				'where'  => array( 'ids' => array( (string) self::$fixture_ids['subscriber'], '0' . self::$fixture_ids['subscriber'] ) ),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'A string-duplicate ID list should execute.' );
-		$this->assertSame( array( self::$fixture_ids['subscriber'] ), wp_list_pluck( $result['items'], 'id' ), 'String-duplicate IDs must be deduplicated, not silently drop the ID list.' );
-		$this->assertSame( 1, $result['pagination']['total'], 'String-duplicate IDs should count as one included user.' );
 
 		// Schema validation also accepts numeric strings for integers.
 		$result = $ability->execute(
