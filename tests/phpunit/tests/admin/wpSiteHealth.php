@@ -815,11 +815,6 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 1, $stored['good'] );
 		$this->assertSame( 1, $stored['recommended'] );
 		$this->assertSame( 1, $stored['critical'] );
-		// An external object cache stores transients outside of the options table.
-		if ( ! wp_using_ext_object_cache() ) {
-			$this->assertArrayHasKey( '_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_load_alloptions() );
-			$this->assertFalse( get_option( '_transient_timeout_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
-		}
 
 		// The detailed cache holds every result, including the passing one.
 		$detail = WP_Site_Health::get_site_status_detail();
@@ -853,6 +848,32 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$detail['counts'],
 			'Detail counts should be derived from the cached detail results.'
 		);
+	}
+
+	/**
+	 * The shared transient has no expiration, so the database stores it as an autoloaded option.
+	 *
+	 * @ticket 65232
+	 *
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_status_cache_is_autoloaded_without_expiration(): void {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array( 'fake_good' => array( 'status' => 'good' ) ),
+				array(
+					'good'        => 1,
+					'recommended' => 0,
+					'critical'    => 0,
+				)
+			)
+		);
+		$this->assertArrayHasKey( '_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_load_alloptions() );
+		$this->assertFalse( get_option( '_transient_timeout_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) );
 	}
 
 	/**
