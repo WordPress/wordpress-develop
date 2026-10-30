@@ -137,4 +137,43 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	protected function strip_r( $input ) {
 		return str_replace( "\r", '', $input );
 	}
+
+	/**
+	 * Ensures that implicitly closed inner blocks are added as arrays, like every other parsed block.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_implicitly_closed_inner_blocks_are_arrays() {
+		$processor = new WP_Block_Parser();
+		$blocks    = $processor->parse( '<!-- wp:group --><!-- wp:columns --><!-- wp:paragraph -->B' );
+
+		$this->assertSame(
+			array(
+				array(
+					'blockName'    => 'core/group',
+					'attrs'        => array(),
+					'innerBlocks'  => array(
+						array(
+							'blockName'    => 'core/columns',
+							'attrs'        => array(),
+							'innerBlocks'  => array(
+								array(
+									'blockName'    => 'core/paragraph',
+									'attrs'        => array(),
+									'innerBlocks'  => array(),
+									'innerHTML'    => 'B',
+									'innerContent' => array( 'B' ),
+								),
+							),
+							'innerHTML'    => '',
+							'innerContent' => array( null ),
+						),
+					),
+					'innerHTML'    => '',
+					'innerContent' => array( null ),
+				),
+			),
+			$blocks
+		);
+	}
 }
