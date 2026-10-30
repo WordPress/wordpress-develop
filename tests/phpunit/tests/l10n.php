@@ -127,6 +127,43 @@ class Tests_L10n extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a PHP translation file that was deleted after the list of
+	 * translation files was cached is skipped.
+	 *
+	 * @ticket 64236
+	 *
+	 * @covers ::wp_get_installed_translations
+	 */
+	public function test_wp_get_installed_translations_skips_deleted_php_translation_file() {
+		global $wp_textdomain_registry;
+
+		$path  = WP_LANG_DIR . '/plugins/';
+		$files = $wp_textdomain_registry->get_language_files_from_path( $path );
+		wp_cache_set( md5( $path ), array_merge( $files, array( $path . 'deleted-plugin-de_DE.l10n.php' ) ), 'translation_files' );
+
+		$installed_translations = wp_get_installed_translations( 'plugins' );
+
+		$this->assertArrayNotHasKey( 'deleted-plugin', $installed_translations, 'The deleted translation should be skipped.' );
+		$this->assertArrayHasKey( 'internationalized-plugin-2', $installed_translations, 'Translations that exist should still be included.' );
+	}
+
+	/**
+	 * @ticket 64236
+	 *
+	 * @covers ::wp_get_l10n_php_file_data
+	 */
+	public function test_wp_get_l10n_php_file_data_returns_empty_values_for_missing_file() {
+		$expected = array(
+			'POT-Creation-Date'  => '',
+			'PO-Revision-Date'   => '',
+			'Project-Id-Version' => '',
+			'X-Generator'        => '',
+		);
+
+		$this->assertSame( $expected, wp_get_l10n_php_file_data( WP_LANG_DIR . '/plugins/missing-plugin-de_DE.l10n.php' ) );
+	}
+
+	/**
 	 * @ticket 35284
 	 *
 	 * @covers ::wp_get_pomo_file_data

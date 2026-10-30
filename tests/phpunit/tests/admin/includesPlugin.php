@@ -19,6 +19,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$this->reset_menu_globals();
+		$this->remove_translated_plugin();
 		parent::tear_down();
 	}
 
@@ -786,6 +787,57 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that deleting a plugin clears the cached list of translation files,
+	 * so code that reads the installed translations afterward doesn't get the deleted files.
+	 *
+	 * @ticket 64236
+	 *
+	 * @covers ::delete_plugins
+	 */
+	public function test_delete_plugins_clears_cached_translation_files() {
+		global $wp_textdomain_registry;
+
+		$l10n_file = $this->create_translated_plugin();
+
+		// Read the installed translations when the update_plugins transient is saved, like WooCommerce does.
+		$translations_on_save = null;
+		set_site_transient( 'update_plugins', (object) array( 'response' => array() ) );
+		add_filter(
+			'pre_set_site_transient_update_plugins',
+			static function ( $value ) use ( &$translations_on_save ) {
+				$translations_on_save = wp_get_installed_translations( 'plugins' );
+				return $value;
+			}
+		);
+
+		$deleted = delete_plugins( array( 'delete-plugin-translations/delete-plugin-translations.php' ) );
+
+		$this->assertTrue( $deleted, 'The plugin should be deleted.' );
+		$this->assertFileDoesNotExist( $l10n_file, 'The plugin translation should be deleted.' );
+		$this->assertIsArray( $translations_on_save, 'The update_plugins transient should be saved.' );
+		$this->assertArrayNotHasKey( 'delete-plugin-translations', $translations_on_save, 'The deleted translation should not be listed when the transient is saved.' );
+		$this->assertNotContains( $l10n_file, $wp_textdomain_registry->get_language_files_from_path( WP_LANG_DIR . '/plugins/' ), 'The deleted translation should not be in the cached list of translation files.' );
+	}
+
+	/**
+	 * Tests that deleting a plugin also deletes translations added after the list of
+	 * translation files was cached.
+	 *
+	 * @ticket 64236
+	 *
+	 * @covers ::delete_plugins
+	 */
+	public function test_delete_plugins_deletes_translations_added_after_the_list_was_cached() {
+		// Cache the list of translation files before the plugin and its translation exist.
+		wp_get_installed_translations( 'plugins' );
+
+		$l10n_file = $this->create_translated_plugin();
+
+		delete_plugins( array( 'delete-plugin-translations/delete-plugin-translations.php' ) );
+
+		$this->assertFileDoesNotExist( $l10n_file );
+	}
+	/**
 	 * Generate a plugin.
 	 *
 	 * This creates a single-file plugin.
@@ -889,6 +941,39 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		if ( is_dir( $di_bu_dir ) ) {
 			rmdir( $di_bu_dir );
+		}
+	}
+
+	/**
+	 * Creates the delete-plugin-translations plugin with a German translation.
+	 *
+	 * @return string Path to the plugin translation file.
+	 */
+	private function create_translated_plugin() {
+		$plugin_dir = WP_PLUGIN_DIR . '/delete-plugin-translations';
+		$l10n_file  = WP_LANG_DIR . '/plugins/delete-plugin-translations-de_DE.l10n.php';
+
+		mkdir( $plugin_dir );
+		$this->_create_plugin( "<?php\n/*\nPlugin Name: Delete Plugin Translations\n*/", 'delete-plugin-translations.php', $plugin_dir );
+		copy( WP_LANG_DIR . '/plugins/internationalized-plugin-2-de_DE.l10n.php', $l10n_file );
+
+		return $l10n_file;
+	}
+
+	/**
+	 * Removes the delete-plugin-translations plugin and its translation, if a test left them behind.
+	 */
+	private function remove_translated_plugin() {
+		$plugin_dir = WP_PLUGIN_DIR . '/delete-plugin-translations';
+		$l10n_file  = WP_LANG_DIR . '/plugins/delete-plugin-translations-de_DE.l10n.php';
+
+		if ( is_dir( $plugin_dir ) ) {
+			$this->rmdir( $plugin_dir );
+			$this->delete_folders( $plugin_dir );
+		}
+
+		if ( file_exists( $l10n_file ) ) {
+			unlink( $l10n_file );
 		}
 	}
 }
