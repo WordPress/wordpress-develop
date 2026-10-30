@@ -874,7 +874,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *     expected_message: string|null,
 	 * }>
 	 */
-	public function data_has_fatal_error_should_record_fatal_error_details(): array {
+	public static function data_has_fatal_error_should_record_fatal_error_details(): array {
 		return array(
 			'fatal error with a stack trace'    => array(
 				'scrape_result'    => array(
