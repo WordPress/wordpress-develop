@@ -136,8 +136,6 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * Removes the test plugin.
 	 */
 	public function tear_down() {
-		$this->assertEmpty( $this->scrape_results, 'All queued scrape results should be consumed.' );
-
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
 
 		if ( is_multisite() ) {
@@ -147,6 +145,8 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		$this->remove_plugin();
 
 		parent::tear_down();
+
+		$this->assertEmpty( $this->scrape_results, 'All queued scrape results should be consumed.' );
 	}
 
 	/**
