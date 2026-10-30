@@ -57,7 +57,13 @@ test.describe( 'Classic Menus', () => {
 		).toBeVisible();
 
 		// Assign the menu to the theme's primary location and save.
-		await page.getByRole( 'checkbox', { name: 'Primary menu' } ).check();
+		const primaryMenu = page.getByRole( 'checkbox', {
+			name: 'Primary menu',
+		} );
+		// Use the keyboard to avoid the focus-induced scroll described in #65684.
+		await primaryMenu.focus();
+		await page.keyboard.press( 'Space' );
+		await expect( primaryMenu ).toBeChecked();
 
 		// Activate via keyboard: the sticky footer bar can shift on focus
 		// and swallow the first pointer click at certain window heights.
