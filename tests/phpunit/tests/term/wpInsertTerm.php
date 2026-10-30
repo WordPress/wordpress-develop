@@ -103,7 +103,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_wp_insert_term_non_scalar_term_name()}
 	 *
 	 * @return array<string, array{mixed}>
 	 */
@@ -133,7 +133,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_wp_insert_term_numeric_term_name()}.
 	 *
 	 * @return array<string, array{ int|float }>
 	 */
