@@ -1275,7 +1275,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 *
 		 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
 		 *                                 See wp_get_attachment_image().
-		 * @param WP_Post|null $attachment Image attachment post, or null if the attachment lookup failed.
+		 * @param WP_Post|null $attachment Image attachment post, or null if no post is found.
 		 * @param string|int[] $size       Requested image size. Can be any registered image size name, or
 		 *                                 an array of width and height values in pixels (in that order).
 		 */
