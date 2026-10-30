@@ -167,6 +167,10 @@ class Tests_Block_Supports_WpGetBackgroundClassesAndStyles extends WP_UnitTestCa
 				'block_attributes' => 'style',
 				'expected'         => array(),
 			),
+			'attributes are an object'              => array(
+				'block_attributes' => (object) array( 'style' => array() ),
+				'expected'         => array(),
+			),
 		);
 	}
 }
