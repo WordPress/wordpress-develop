@@ -1710,7 +1710,10 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
 					foreach ( $term_names as $term_name ) {
-						if ( ! is_string( $term_name ) ) {
+						// Numeric names may arrive as <int> or <double> values.
+						if ( is_int( $term_name ) || is_float( $term_name ) ) {
+							$term_name = (string) $term_name;
+						} elseif ( ! is_string( $term_name ) ) {
 							return new IXR_Error( 403, __( 'Invalid term name.' ) );
 						}
 

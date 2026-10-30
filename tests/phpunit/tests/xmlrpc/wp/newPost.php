@@ -346,15 +346,15 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a non-string term name in `terms_names` returns an error instead of causing a fatal error.
+	 * Tests that an invalid term name in `terms_names` returns an error instead of causing a fatal error.
 	 *
 	 * @ticket 66108
 	 *
-	 * @dataProvider data_terms_names_non_string_term_name
+	 * @dataProvider data_terms_names_invalid_term_name
 	 *
 	 * @param mixed $term_name The term name to send.
 	 */
-	public function test_terms_names_non_string_term_name( $term_name ): void {
+	public function test_terms_names_invalid_term_name( $term_name ): void {
 		$this->make_user_by_role( 'editor' );
 
 		$post   = array(
@@ -375,10 +375,46 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<string, array{mixed}>
 	 */
-	public function data_terms_names_non_string_term_name(): array {
+	public function data_terms_names_invalid_term_name(): array {
 		return array(
 			'array'   => array( array( 'foo', 'bar' ) ),
-			'integer' => array( 123 ),
+			'boolean' => array( true ),
+		);
+	}
+
+	/**
+	 * Tests that a numeric term name in `terms_names` is assigned using its string form.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_numeric_term_name
+	 *
+	 * @param int|float $term_name The term name to send.
+	 */
+	public function test_terms_names_numeric_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'post_tag' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( array( (string) $term_name ), wp_get_post_tags( (int) $result, array( 'fields' => 'names' ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ int|float }>
+	 */
+	public function data_terms_names_numeric_term_name(): array {
+		return array(
+			'integer' => array( 2024 ),
+			'float'   => array( 1.5 ),
 		);
 	}
 
