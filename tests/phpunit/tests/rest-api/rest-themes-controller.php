@@ -359,7 +359,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( $error_code, $response, 403 );
 	}
 
-	public function data_get_items_by_status() {
+	public static function data_get_items_by_status() {
 		return array(
 			array( 'active', 'rest_cannot_view_active_theme' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -386,7 +386,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function data_get_items_by_status_for_contributor() {
+	public static function data_get_items_by_status_for_contributor() {
 		return array(
 			array( 'active', '' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -1538,7 +1538,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_non_subdir_theme() {
+	public static function data_get_item_non_subdir_theme() {
 		return array(
 			'parent theme'                => array(
 				'theme_dir'     => '/block-theme',
@@ -1586,7 +1586,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_subdirectory_theme() {
+	public static function data_get_item_subdirectory_theme() {
 		return array(
 			'theme2'                      => array(
 				'theme_dir'     => '/subdir/theme2',

@@ -67,7 +67,7 @@ class Tests_Load_WpIsFileModAllowed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_contexts() {
+	public static function data_contexts(): array {
 		return array(
 			'install_plugins'   => array( 'install_plugins' ),
 			'automatic_updater' => array( 'automatic_updater' ),
