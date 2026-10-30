@@ -117,7 +117,9 @@ class WP_Admin_Bar {
 	 *     @type string $id     ID of the item.
 	 *     @type string $title  Title of the node.
 	 *     @type string $icon   Optional. Namespaced icon name in the form "collection/icon-name",
-	 *                          e.g. 'core-admin/pin'. Rendered before the title.
+	 *                          e.g. 'core-admin/pin'. Rendered before the title, and hides a
+	 *                          Dashicon that the node draws in an empty `<span class="ab-icon">`
+	 *                          or on `.ab-item::before`. Ignored if the icon is not registered.
 	 *     @type string $parent Optional. ID of the parent node.
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
@@ -246,46 +248,25 @@ class WP_Admin_Bar {
 	}
 
 	/**
-	 * Dashicons back-compat: removes the first empty `<span class="ab-icon">` from a node title.
+	 * Dashicons back-compat: checks whether a node title has an empty `<span class="ab-icon">`.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $title Node title.
-	 * @return string|false Title without the empty icon element, or false if it has none.
+	 * @return bool True if the title has an empty icon element, else false.
 	 */
-	private static function remove_empty_icon_element( $title ) {
-		$processor = new class( $title ) extends WP_HTML_Tag_Processor {
-			/**
-			 * Removes the HTML from the given bookmark to the end of the current token.
-			 *
-			 * @param string $bookmark_name Bookmark at the start of the HTML to remove.
-			 */
-			public function remove_since_bookmark( $bookmark_name ): void {
-				$this->set_bookmark( 'here' );
-				$start = $this->bookmarks[ $bookmark_name ]->start;
-				$end   = $this->bookmarks['here']->start + $this->bookmarks['here']->length;
-				$this->seek( $bookmark_name );
-
-				$this->lexical_updates[] = new WP_HTML_Text_Replacement( $start, $end - $start, '' );
-			}
-		};
-
-		$query = array(
+	private static function has_empty_icon_element( $title ) {
+		$processor = new WP_HTML_Tag_Processor( $title );
+		$query     = array(
 			'tag_name'   => 'SPAN',
 			'class_name' => 'ab-icon',
 		);
 
 		while ( $processor->next_tag( $query ) ) {
-			$processor->set_bookmark( 'opener' );
-
 			$processor->next_token();
-			if ( '#text' === $processor->get_token_type() && '' === trim( $processor->get_modifiable_text() ) ) {
-				$processor->next_token();
-			}
 
 			if ( 'SPAN' === $processor->get_tag() && $processor->is_tag_closer() ) {
-				$processor->remove_since_bookmark( 'opener' );
-				return $processor->get_updated_html();
+				return true;
 			}
 		}
 
@@ -694,21 +675,12 @@ class WP_Admin_Bar {
 		// Dashicons back-compat: a core node that was given no icon gets its default icon.
 		$default_icon = self::get_default_icon( $node );
 
-		$has_default_icon_in_title = $default_icon && $default_icon['in_title'];
-
-		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title, so that a node given an icon does not also show its Dashicon element.
-		if ( $has_default_icon_in_title || wp_is_valid_icon_name( $icon_name ) ) {
-			$title_without_icon_element = self::remove_empty_icon_element( (string) $title );
-
-			if ( false !== $title_without_icon_element ) {
-				$title = $title_without_icon_element;
-			} elseif ( $has_default_icon_in_title ) {
-				// Without one, a core node whose icon was drawn in it gets no default icon.
-				$default_icon = false;
-			}
+		// Dashicons back-compat: without an empty `<span class="ab-icon">` in the title, the node gets no default icon.
+		if ( $default_icon && $default_icon['in_title'] && ! self::has_empty_icon_element( (string) $title ) ) {
+			$default_icon = false;
 		}
 
-		if ( ! $icon_name && $default_icon ) {
+		if ( ! wp_is_valid_icon_name( $icon_name ) && $default_icon ) {
 			$icon_name = $default_icon['icon'];
 		}
 
@@ -717,12 +689,6 @@ class WP_Admin_Bar {
 			$icon = _wp_admin_bar_icon( $icon_name );
 
 			if ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
-				// Dashicons back-compat: restore the original title instead of showing an empty icon wrapper.
-				if ( $title !== $node->title ) {
-					$title = $node->title;
-					$icon  = '';
-				}
-
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
