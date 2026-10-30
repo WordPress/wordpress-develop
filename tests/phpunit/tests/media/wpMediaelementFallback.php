@@ -73,7 +73,7 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 		wp_mediaelement_fallback( $url );
 
 		$this->assertSame( array( $default_output, $url ), $received_args );
-		$this->assertStringContainsString( '&amp;', $received_args[0] );
+		$this->assertStringContainsString( '&#038;', $received_args[0] );
 		$this->assertSame( $url, $received_args[1] );
 	}
 }
