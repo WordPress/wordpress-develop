@@ -68,6 +68,50 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure requests without the random query variable are not handled.
+	 *
+	 * @ticket 64498
+	 *
+	 * @dataProvider data_requests_without_the_random_query_var
+	 *
+	 * @param array<string, string> $query_vars Query variables for the request.
+	 */
+	public function test_requests_without_the_random_query_var_are_not_handled( array $query_vars ) {
+		$handled = $this->handle_random( $query_vars );
+
+		$this->assertFalse( $handled, 'Requests without the random query variable should not be handled.' );
+		$this->assertNull( $GLOBALS['wp_the_query']->request, 'The main query should be left for WP::main() to run.' );
+		$this->assertNull( $this->redirect_location, 'The request should not redirect.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: array<string, string>}>
+	 */
+	public function data_requests_without_the_random_query_var(): array {
+		return array(
+			'no query vars'    => array( array() ),
+			'other query vars' => array( array( 'post_type' => 'post' ) ),
+		);
+	}
+
+	/**
+	 * Ensure random content requests are not handled when the feature is disabled.
+	 *
+	 * @ticket 64498
+	 */
+	public function test_random_content_requests_are_not_handled_when_disabled() {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$handled = $this->handle_random( array( 'random' => '' ) );
+
+		$this->assertFalse( $handled, 'Random content requests should not be handled when the feature is disabled.' );
+		$this->assertNull( $GLOBALS['wp_the_query']->request, 'The main query should be left for WP::main() to run.' );
+		$this->assertNull( $this->redirect_location, 'The request should not redirect.' );
+	}
+
+	/**
 	 * Ensure random content queries are not served from the query cache.
 	 *
 	 * If the ID query were cached, the same post would be selected until the cache is
