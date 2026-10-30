@@ -202,7 +202,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string}> Test cases.
 	 */
-	public function data_application_password_external_name_keys(): array {
+	public static function data_application_password_external_name_keys(): array {
 		return array(
 			'constant name'             => array( 'constant_name' ),
 			'environment variable name' => array( 'env_var_name' ),

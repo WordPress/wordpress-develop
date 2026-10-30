@@ -107,6 +107,16 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			)
 		);
 
+		self::$fixture_ids['registered'] = $factory->user->create(
+			array(
+				'role'            => 'subscriber',
+				'user_login'      => 'core_users_ability_registered',
+				'user_email'      => 'core-users-ability-registered@example.com',
+				'user_nicename'   => 'core-users-ability-registered',
+				'user_registered' => '2020-01-02 03:04:05',
+			)
+		);
+
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
@@ -241,7 +251,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$ability     = wp_get_ability( 'core/users-query' );
 		$schema      = $ability->get_input_schema();
-		$user_fields = array( 'id', 'name', 'description', 'url', 'link', 'slug', 'avatar_urls', 'username', 'email', 'first_name', 'last_name', 'nickname', 'locale', 'registered_date', 'roles' );
+		$user_fields = array( 'id', 'name', 'description', 'url', 'link', 'slug', 'avatar_urls', 'username', 'email', 'first_name', 'last_name', 'nickname', 'locale', 'registered', 'roles' );
 
 		$this->assertSame( 'object', $schema['type'], 'The users ability input schema should describe an object.' );
 		$this->assertSame( array(), $schema['default'], 'The users ability input schema should default to an unfiltered query.' );
@@ -321,7 +331,29 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertTrue( $fields['uniqueItems'], 'The fields option should reject duplicate field names.' );
 		$this->assertArrayNotHasKey( 'minItems', $fields, 'The fields option should accept an empty list, which selects the default fields.' );
 		$this->assertSame( 'string', $fields['items']['type'], 'The fields option should contain field names.' );
-		$this->assertSameSets( $user_fields, $fields['items']['enum'], 'The fields enum should expose every user field.' );
+		$this->assertSame(
+			array(
+				'id',
+				'name',
+				'description',
+				'url',
+				'link',
+				'slug',
+				'avatar_urls',
+				'username',
+				'email',
+				'first_name',
+				'last_name',
+				'nickname',
+				'locale',
+				'registered',
+				'registered.site',
+				'registered.gmt',
+				'roles',
+			),
+			$fields['items']['enum'],
+			'The fields enum should list every user field, in output order, each followed by the paths of its sub-fields.'
+		);
 		$this->assertContains( 'roles', $fields['items']['enum'], 'The fields enum should expose the roles field.' );
 		$this->assertContains( 'avatar_urls', $fields['items']['enum'], 'The fields enum should expose avatar_urls.' );
 
@@ -384,7 +416,16 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertFalse( $user_schema['additionalProperties'], 'A user should not allow fields besides the user fields.' );
 		$this->assertSame( array( 'id' ), $user_schema['required'], 'Only the always-returned id should be required in a user.' );
 		$this->assertSameSets( $user_fields, array_keys( $user_properties ), 'A user should describe every user field.' );
-		$this->assertSame( 'date-time', $user_properties['registered_date']['format'], 'The registered_date output schema should use date-time format.' );
+		$this->assertSame( 'object', $user_properties['registered']['type'], 'The registered output schema should describe an object.' );
+		$this->assertFalse( $user_properties['registered']['additionalProperties'], 'The registered object should not allow keys besides site and gmt.' );
+		$this->assertArrayNotHasKey( 'required', $user_properties['registered'], 'The registered object should not require either key, since a sub-field path returns only one.' );
+		$this->assertNotEmpty( $user_properties['registered']['description'], 'The registered object should have a description.' );
+		$this->assertSame( array( 'site', 'gmt' ), array_keys( $user_properties['registered']['properties'] ), 'The registered object should describe exactly site and gmt, in that order.' );
+		foreach ( $user_properties['registered']['properties'] as $key => $property ) {
+			$this->assertSame( array( 'string', 'null' ), $property['type'], sprintf( 'The registered.%s value should be a nullable string.', $key ) );
+			$this->assertSame( 'date-time', $property['format'], sprintf( 'The registered.%s value should use the date-time format.', $key ) );
+			$this->assertNotEmpty( $property['description'], sprintf( 'The registered.%s value should have a description.', $key ) );
+		}
 		$this->assertSame( 'uri', $user_properties['link']['format'], 'The link output schema should use uri format.' );
 		$this->assertSame( 'uri', $user_properties['avatar_urls']['additionalProperties']['format'], 'The avatar_urls output schema should use uri format.' );
 		$this->assertArrayNotHasKey( 'format', $user_properties['url'], 'The url output schema must not declare a format, so the empty URL of a user without a website still validates.' );
@@ -537,14 +578,20 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = $ability->execute(
 			array(
 				'where'  => array( 'ids' => array( self::$fixture_ids['public_author'] ) ),
-				'fields' => array( 'id', 'registered_date' ),
+				'fields' => array( 'id', 'registered' ),
 			)
 		);
 		$this->assertIsArray( $result, 'A user should be able to request their registration date.' );
+
+		$registered_timestamp = strtotime( get_userdata( self::$fixture_ids['public_author'] )->user_registered . ' UTC' );
+
 		$this->assertSame(
-			gmdate( 'c', strtotime( get_userdata( self::$fixture_ids['public_author'] )->user_registered ) ),
-			$result['items'][0]['registered_date'],
-			'The registration date should be formatted as an ISO 8601 date-time string.'
+			array(
+				'site' => wp_date( 'c', $registered_timestamp ),
+				'gmt'  => gmdate( 'c', $registered_timestamp ),
+			),
+			$result['items'][0]['registered'],
+			'The registration date should be formatted as ISO 8601 date-time strings in the site timezone and in GMT.'
 		);
 	}
 
@@ -2165,20 +2212,38 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * not part of the supported set is rejected before the ability executes.
 	 *
 	 * @ticket 64657
+	 *
+	 * @dataProvider data_unknown_requested_fields
+	 *
+	 * @param string $field The unknown field name or path to request.
 	 */
-	public function test_unknown_requested_field_fails_schema_validation(): void {
+	public function test_unknown_requested_field_fails_schema_validation( string $field ): void {
 		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
 				'where'  => array( 'ids' => array( self::$fixture_ids['administrator'] ) ),
-				'fields' => array( 'id', 'bogus_field' ),
+				'fields' => array( 'id', $field ),
 			)
 		);
 
-		$this->assertWPError( $result, 'An unknown requested field should fail the request.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Unknown fields should use the invalid input error.' );
+		$this->assertWPError( $result, sprintf( 'The unknown requested field %s should fail the request.', $field ) );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), sprintf( 'The unknown requested field %s should use the invalid input error.', $field ) );
+	}
+
+	/**
+	 * Data provider for field names and paths the fields option does not accept.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_unknown_requested_fields(): array {
+		return array(
+			'unknown field'                => array( 'bogus_field' ),
+			'unknown registered sub-field' => array( 'registered.local' ),
+			'avatar_urls size path'        => array( 'avatar_urls.96' ),
+			'path into a scalar field'     => array( 'email.address' ),
+		);
 	}
 
 	/**
@@ -2324,7 +2389,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A zero registration date is reported as null instead of failing the output.
+	 * A zero registration date is reported as null in both time zones instead of failing
+	 * the output.
 	 *
 	 * The zero date is the `user_registered` column default, so rows inserted without a
 	 * date carry it. It formats with a negative year, which the `date-time` output format
@@ -2333,6 +2399,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_zero_registered_date_is_reported_as_null(): void {
+		update_option( 'timezone_string', 'America/New_York' );
+
 		$user_id = self::factory()->user->create(
 			array(
 				'role'            => 'subscriber',
@@ -2348,26 +2416,321 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = $ability->execute(
 			array(
 				'where'  => array( 'ids' => array( $user_id ) ),
-				'fields' => array( 'id', 'registered_date' ),
+				'fields' => array( 'id', 'registered' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A user with a zero registration date should still be readable.' );
-		$this->assertArrayHasKey( 'registered_date', $result['items'][0], 'A viewable registration date should be present even when the stored date is unusable.' );
-		$this->assertNull( $result['items'][0]['registered_date'], 'A zero registration date should be reported as null.' );
+		$this->assertArrayHasKey( 'registered', $result['items'][0], 'A viewable registration date should be present even when the stored date is unusable.' );
+		$this->assertSame(
+			array(
+				'site' => null,
+				'gmt'  => null,
+			),
+			$result['items'][0]['registered'],
+			'A zero registration date should be reported as null in both time zones.'
+		);
 
 		$collection = $ability->execute(
 			array(
-				'where'  => array( 'ids' => array( $user_id, self::$fixture_ids['administrator'] ) ),
-				'fields' => array( 'id', 'registered_date' ),
+				'where'  => array( 'ids' => array( $user_id, self::$fixture_ids['registered'] ) ),
+				'fields' => array( 'id', 'registered' ),
 			)
 		);
 
 		$this->assertIsArray( $collection, 'One user with a zero registration date should not fail the whole collection.' );
 
-		$registered_dates = wp_list_pluck( $collection['items'], 'registered_date', 'id' );
-		$this->assertNull( $registered_dates[ $user_id ], 'The zero registration date should be reported as null in the collection.' );
-		$this->assertIsString( $registered_dates[ self::$fixture_ids['administrator'] ], 'A valid registration date in the same collection should still be reported.' );
+		$registered_dates = wp_list_pluck( $collection['items'], 'registered', 'id' );
+		$this->assertSame(
+			array(
+				'site' => null,
+				'gmt'  => null,
+			),
+			$registered_dates[ $user_id ],
+			'The zero registration date should be reported as null in both time zones in the collection.'
+		);
+		$this->assertSame(
+			array(
+				'site' => '2020-01-01T22:04:05-05:00',
+				'gmt'  => '2020-01-02T03:04:05+00:00',
+			),
+			$registered_dates[ self::$fixture_ids['registered'] ],
+			'A valid registration date in the same collection should still be reported.'
+		);
+	}
+
+	/**
+	 * A zero registration date is reported as null for each sub-field path on its own.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_registered_sub_field_paths
+	 *
+	 * @param string $field The sub-field path to request.
+	 * @param string $key   The key the path selects inside `registered`.
+	 */
+	public function test_zero_registered_date_sub_field_is_reported_as_null( string $field, string $key ): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'            => 'subscriber',
+				'user_registered' => '0000-00-00 00:00:00',
+			)
+		);
+
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( $user_id ) ),
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, sprintf( 'Requesting %s for a user with a zero registration date should succeed.', $field ) );
+		$this->assertSame( array( $key => null ), $result['items'][0]['registered'], sprintf( 'Requesting %s for a zero registration date should return only that key, as null.', $field ) );
+	}
+
+	/**
+	 * Data provider for the sub-field paths of the registered field.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_registered_sub_field_paths(): array {
+		return array(
+			'registered.site' => array( 'registered.site', 'site' ),
+			'registered.gmt'  => array( 'registered.gmt', 'gmt' ),
+		);
+	}
+
+	/**
+	 * Selecting the registered field or its sub-field paths returns the selected dates.
+	 *
+	 * The site uses a timezone west of UTC, so a path that returned the wrong value could
+	 * not pass.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_registered_field_selections
+	 *
+	 * @param string[]              $fields   The fields to request.
+	 * @param array<string, string> $expected The expected registered object.
+	 */
+	public function test_registered_field_selection_returns_the_selected_dates( array $fields, array $expected ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( self::$fixture_ids['registered'] ) ),
+				'fields' => $fields,
+			)
+		);
+
+		$this->assertIsArray( $result, 'The registered field selection should succeed.' );
+		$this->assertSameSets( array( 'id', 'registered' ), array_keys( $result['items'][0] ), 'Only the ID and the registered object should be returned.' );
+		$this->assertSame( $expected, $result['items'][0]['registered'], 'The registered object should hold exactly the selected dates.' );
+	}
+
+	/**
+	 * Data provider for registered field selections.
+	 *
+	 * @return array<string, array{0: string[], 1: array<string, string>}>
+	 */
+	public static function data_registered_field_selections(): array {
+		return array(
+			'whole registered field' => array(
+				array( 'registered' ),
+				array(
+					'site' => '2020-01-01T22:04:05-05:00',
+					'gmt'  => '2020-01-02T03:04:05+00:00',
+				),
+			),
+			'site path only'         => array(
+				array( 'registered.site' ),
+				array( 'site' => '2020-01-01T22:04:05-05:00' ),
+			),
+			'gmt path only'          => array(
+				array( 'registered.gmt' ),
+				array( 'gmt' => '2020-01-02T03:04:05+00:00' ),
+			),
+			'both paths'             => array(
+				array( 'registered.site', 'registered.gmt' ),
+				array(
+					'site' => '2020-01-01T22:04:05-05:00',
+					'gmt'  => '2020-01-02T03:04:05+00:00',
+				),
+			),
+		);
+	}
+
+	/**
+	 * The site date carries the site's timezone offset and the GMT date the stored instant.
+	 *
+	 * Each date is null on its own when it falls outside the four-digit year range, so a
+	 * stored date near either end of that range can be valid in GMT but not in the site
+	 * timezone, and the lookup still succeeds.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_registered_dates_in_site_timezones
+	 *
+	 * @param string      $timezone_string The timezone_string option.
+	 * @param float       $gmt_offset      The gmt_offset option.
+	 * @param string      $stored          The stored user_registered value, in GMT.
+	 * @param string|null $expected_site   The expected registered.site value.
+	 * @param string|null $expected_gmt    The expected registered.gmt value.
+	 */
+	public function test_registered_dates_use_the_site_timezone_and_gmt( string $timezone_string, float $gmt_offset, string $stored, ?string $expected_site, ?string $expected_gmt ): void {
+		update_option( 'timezone_string', $timezone_string );
+		update_option( 'gmt_offset', $gmt_offset );
+
+		wp_update_user(
+			array(
+				'ID'              => self::$fixture_ids['registered'],
+				'user_registered' => $stored,
+			)
+		);
+
+		$this->assertSame( $stored, get_userdata( self::$fixture_ids['registered'] )->user_registered, 'The fixture user should have the stored registration date.' );
+
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( self::$fixture_ids['registered'] ) ),
+				'fields' => array( 'registered' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The registration date lookup should succeed.' );
+		$this->assertSame(
+			array(
+				'site' => $expected_site,
+				'gmt'  => $expected_gmt,
+			),
+			$result['items'][0]['registered'],
+			'The site date should be the stored instant in the site timezone, the GMT date the stored instant with a UTC offset, each null when out of range.'
+		);
+	}
+
+	/**
+	 * Data provider for registration dates in different site timezones.
+	 *
+	 * @return array<string, array{0: string, 1: float, 2: string, 3: string|null, 4: string|null}>
+	 */
+	public static function data_registered_dates_in_site_timezones(): array {
+		return array(
+			'timezone string, standard time, previous day' => array(
+				'America/New_York',
+				0.0,
+				'2020-01-02 03:04:05',
+				'2020-01-01T22:04:05-05:00',
+				'2020-01-02T03:04:05+00:00',
+			),
+			'timezone string, daylight saving time'        => array(
+				'America/New_York',
+				0.0,
+				'2020-07-01 02:30:00',
+				'2020-06-30T22:30:00-04:00',
+				'2020-07-01T02:30:00+00:00',
+			),
+			'fractional offset east, next year'            => array(
+				'',
+				5.5,
+				'2020-12-31 20:15:30',
+				'2021-01-01T01:45:30+05:30',
+				'2020-12-31T20:15:30+00:00',
+			),
+			'fractional offset west, previous year'        => array(
+				'',
+				-9.5,
+				'2020-01-01 05:00:00',
+				'2019-12-31T19:30:00-09:30',
+				'2020-01-01T05:00:00+00:00',
+			),
+			'UTC site'                                     => array(
+				'',
+				0.0,
+				'2020-01-02 03:04:05',
+				'2020-01-02T03:04:05+00:00',
+				'2020-01-02T03:04:05+00:00',
+			),
+			'Unix epoch on a UTC site'                     => array(
+				'',
+				0.0,
+				'1970-01-01 00:00:00',
+				'1970-01-01T00:00:00+00:00',
+				'1970-01-01T00:00:00+00:00',
+			),
+			'year zero, site date before year zero'        => array(
+				'America/New_York',
+				0.0,
+				'0000-01-01 02:00:00',
+				null,
+				'0000-01-01T02:00:00+00:00',
+			),
+			'year 9999, site date after year 9999'         => array(
+				'',
+				5.5,
+				'9999-12-31 23:00:00',
+				null,
+				'9999-12-31T23:00:00+00:00',
+			),
+		);
+	}
+
+	/**
+	 * The registered field and its sub-field paths are only returned to the user
+	 * themselves and to callers who can edit the user.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_registered_visibility
+	 *
+	 * @param string $role    The fixture whose user runs the query.
+	 * @param string $field   The registered field or sub-field path to request.
+	 * @param bool   $visible Whether the registered key should be returned.
+	 */
+	public function test_registered_is_only_returned_to_self_and_editors( string $role, string $field, bool $visible ): void {
+		wp_set_current_user( self::$fixture_ids[ $role ] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( self::$fixture_ids['public_author'] ) ),
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, sprintf( 'The %1$s fixture should be able to request %2$s for a public author.', $role, $field ) );
+		$this->assertSameSets(
+			$visible ? array( 'id', 'registered' ) : array( 'id' ),
+			array_keys( $result['items'][0] ),
+			sprintf( 'The %1$s fixture should %2$sreceive the registered key for %3$s.', $role, $visible ? '' : 'not ', $field )
+		);
+	}
+
+	/**
+	 * Data provider for registered field visibility.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: bool}>
+	 */
+	public static function data_registered_visibility(): array {
+		return array(
+			'self, registered.site'          => array( 'public_author', 'registered.site', true ),
+			'self, registered.gmt'           => array( 'public_author', 'registered.gmt', true ),
+			'administrator, registered'      => array( 'administrator', 'registered', true ),
+			'administrator, registered.site' => array( 'administrator', 'registered.site', true ),
+			'administrator, registered.gmt'  => array( 'administrator', 'registered.gmt', true ),
+			'editor, registered'             => array( 'editor', 'registered', false ),
+			'subscriber, registered'         => array( 'subscriber', 'registered', false ),
+			'subscriber, registered.site'    => array( 'subscriber', 'registered.site', false ),
+			'subscriber, registered.gmt'     => array( 'subscriber', 'registered.gmt', false ),
+		);
 	}
 
 	/**

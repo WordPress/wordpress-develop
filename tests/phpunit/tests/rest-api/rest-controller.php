@@ -397,7 +397,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertSame( $expected, $fields );
 	}
 
-	public function data_get_fields_for_response() {
+	public static function data_get_fields_for_response() {
 		return array(
 			array(
 				'somestring,someinteger,someinvalidkey',
@@ -692,7 +692,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
-	public function data_filter_nested_registered_rest_fields() {
+	public static function data_filter_nested_registered_rest_fields() {
 		return array(
 			array(
 				'field',
