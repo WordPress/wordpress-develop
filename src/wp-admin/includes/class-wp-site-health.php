@@ -49,6 +49,16 @@ class WP_Site_Health {
 		if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) {
 			$this->timeout_late_cron   = - 15 * MINUTE_IN_SECONDS;
 			$this->timeout_missed_cron = - 1 * HOUR_IN_SECONDS;
+
+			/*
+			 * WP_SYSTEM_CRON_INTERVAL is the interval, in seconds, between runs
+			 * of the external cron scheduler. Allow for it before reporting
+			 * scheduled events as late or missed.
+			 */
+			if ( defined( 'WP_SYSTEM_CRON_INTERVAL' ) && is_int( WP_SYSTEM_CRON_INTERVAL ) && WP_SYSTEM_CRON_INTERVAL > 0 ) {
+				$this->timeout_late_cron   -= WP_SYSTEM_CRON_INTERVAL;
+				$this->timeout_missed_cron -= WP_SYSTEM_CRON_INTERVAL;
+			}
 		}
 
 		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
