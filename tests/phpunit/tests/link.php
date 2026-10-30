@@ -76,6 +76,32 @@ class Tests_Link extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66348
+	 */
+	public function test_wp_get_shortlink_with_query_context() {
+		$post_id = self::factory()->post->create();
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( 0, 'query' ) );
+	}
+
+	/**
+	 * @ticket 66348
+	 */
+	public function test_wp_get_shortlink_with_query_context_and_non_post_queried_object() {
+		$post_id = self::factory()->post->create();
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		// A singular query whose queried object is not a post, with an ID that does not resolve to one.
+		$GLOBALS['wp_query']->queried_object    = (object) array( 'ID' => PHP_INT_MAX );
+		$GLOBALS['wp_query']->queried_object_id = PHP_INT_MAX;
+
+		$this->assertSame( '', wp_get_shortlink( 0, 'query' ) );
+	}
+
+	/**
 	 * @ticket 30910
 	 */
 	public function test_get_permalink_should_not_reveal_post_name_for_post_with_post_status_future() {
