@@ -254,7 +254,9 @@ switch ( $wp_list_table->current_action() ) {
 
 		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
 
-		$reset_count = 0;
+		$reset_count        = 0;
+		$email_failed_count = 0;
+		$failed_count       = 0;
 
 		foreach ( $user_ids as $id ) {
 			if ( ! current_user_can( 'edit_user', $id ) ) {
@@ -267,16 +269,25 @@ switch ( $wp_list_table->current_action() ) {
 			}
 
 			// Send the password reset link.
-			$user = get_userdata( $id );
-			if ( true === retrieve_password( $user->user_login ) ) {
+			$user   = get_userdata( $id );
+			$result = retrieve_password( $user->user_login );
+
+			if ( true === $result ) {
 				++$reset_count;
+			} elseif ( is_wp_error( $result ) && 'retrieve_password_email_failure' === $result->get_error_code() ) {
+				++$email_failed_count;
+			} else {
+				// Any other error, e.g. password resets disallowed for the user.
+				++$failed_count;
 			}
 		}
 
 		$redirect = add_query_arg(
 			array(
-				'reset_count' => $reset_count,
-				'update'      => 'resetpassword',
+				'reset_count'        => $reset_count,
+				'email_failed_count' => $email_failed_count,
+				'failed_count'       => $failed_count,
+				'update'             => 'err_admin_reset' === $update ? $update : 'resetpassword',
 			),
 			$redirect
 		);
@@ -689,23 +700,78 @@ switch ( $wp_list_table->current_action() ) {
 						)
 					);
 					break;
-				case 'resetpassword':
-					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
-					if ( 1 === $reset_count ) {
-						$message = __( 'Password reset link sent.' );
-					} else {
-						/* translators: %s: Number of users. */
-						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
-					}
-					$message    = sprintf( $message, number_format_i18n( $reset_count ) );
+				case 'err_admin_reset':
 					$messages[] = wp_get_admin_notice(
-						$message,
+						__( 'You cannot reset your own password here. Use your profile screen.' ),
 						array(
 							'id'                 => 'message',
-							'additional_classes' => array( 'updated' ),
+							'additional_classes' => array( 'error' ),
 							'dismissible'        => true,
 						)
 					);
+					// Falls through.
+				case 'resetpassword':
+					$reset_count        = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
+					$email_failed_count = isset( $_GET['email_failed_count'] ) ? (int) $_GET['email_failed_count'] : 0;
+					$failed_count       = isset( $_GET['failed_count'] ) ? (int) $_GET['failed_count'] : 0;
+
+					if ( $reset_count > 0 ) {
+						if ( 1 === $reset_count ) {
+							$message = __( 'Password reset link sent.' );
+						} else {
+							/* translators: %s: Number of users. */
+							$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
+						}
+						$message    = sprintf( $message, number_format_i18n( $reset_count ) );
+						$messages[] = wp_get_admin_notice(
+							$message,
+							array(
+								'id'                 => empty( $messages ) ? 'message' : 'message-reset-sent',
+								'additional_classes' => array( 'updated' ),
+								'dismissible'        => true,
+							)
+						);
+					}
+
+					if ( $email_failed_count > 0 ) {
+						$message = sprintf(
+							/* translators: %s: Number of users. */
+							_n(
+								'The password reset link could not be sent to %s user. Your site may not be correctly configured to send emails.',
+								'The password reset links could not be sent to %s users. Your site may not be correctly configured to send emails.',
+								$email_failed_count
+							),
+							number_format_i18n( $email_failed_count )
+						);
+						$messages[] = wp_get_admin_notice(
+							$message,
+							array(
+								'id'                 => empty( $messages ) ? 'message' : 'message-reset-email-error',
+								'additional_classes' => array( 'error' ),
+								'dismissible'        => true,
+							)
+						);
+					}
+
+					if ( $failed_count > 0 ) {
+						$message = sprintf(
+							/* translators: %s: Number of users. */
+							_n(
+								'The password reset link could not be sent to %s user.',
+								'The password reset links could not be sent to %s users.',
+								$failed_count
+							),
+							number_format_i18n( $failed_count )
+						);
+						$messages[] = wp_get_admin_notice(
+							$message,
+							array(
+								'id'                 => empty( $messages ) ? 'message' : 'message-reset-error',
+								'additional_classes' => array( 'error' ),
+								'dismissible'        => true,
+							)
+						);
+					}
 					break;
 				case 'promote':
 					$messages[] = wp_get_admin_notice(
