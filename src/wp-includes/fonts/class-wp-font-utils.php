@@ -254,4 +254,40 @@ class WP_Font_Utils {
 			'woff2' => PHP_VERSION_ID >= 80112 ? 'font/woff2' : 'application/font-woff2',
 		);
 	}
+
+	/**
+	 * Accepts a TTF font file whose detected mime type is either TrueType mime type.
+	 *
+	 * libmagic detects TrueType fonts as font/ttf since version 5.47 and as font/sfnt before,
+	 * and PHP may use either the bundled or the system library.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @access private
+	 *
+	 * @param array        $data      {
+	 *     Values for the extension, mime type, and corrected filename.
+	 *
+	 *     @type string|false $ext             File extension, or false if the file doesn't match a mime type.
+	 *     @type string|false $type            File mime type, or false if the file doesn't match a mime type.
+	 *     @type string|false $proper_filename File name with its correct extension, or false if it cannot be determined.
+	 * }
+	 * @param string       $file      Full path to the file.
+	 * @param string       $filename  The name of the file.
+	 * @param string[]     $mimes     Array of mime types keyed by their file extension regex.
+	 * @param string|false $real_mime The actual mime type or false if the type cannot be determined.
+	 * @return array The file data, with the TTF extension and mime type when accepted.
+	 */
+	public static function allow_ttf_mime_types( $data, $file, $filename, $mimes, $real_mime ) {
+		if (
+			! $data['type']
+			&& in_array( $real_mime, array( 'font/sfnt', 'font/ttf' ), true )
+			&& 'ttf' === strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) )
+		) {
+			$data['ext']  = 'ttf';
+			$data['type'] = $real_mime;
+		}
+
+		return $data;
+	}
 }
