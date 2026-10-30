@@ -4126,9 +4126,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 		$wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $post_id )
 	);
 
-	foreach ( $post_meta_ids as $mid ) {
-		delete_metadata_by_mid( 'post', $mid );
-	}
+	bulk_delete_metadata_by_mid( 'post', $post_meta_ids );
 
 	/**
 	 * Fires immediately before a post is deleted from the database.
@@ -7116,9 +7114,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_defer_comment_counting( false );
 
 	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $post_id ) );
-	foreach ( $post_meta_ids as $mid ) {
-		delete_metadata_by_mid( 'post', $mid );
-	}
+	bulk_delete_metadata_by_mid( 'post', $post_meta_ids );
 
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'delete_post', $post_id, $post );
