@@ -204,6 +204,9 @@ function wp_check_php_mysql_versions() {
 
 	if ( $is_sqlite ) {
 		$has_database_extension = extension_loaded( 'pdo_sqlite' );
+	} elseif ( defined( 'WP_SETUP_CONFIG' ) ) {
+		// The wp-config.php setup offers SQLite when the MySQL extension is missing.
+		$has_database_extension = function_exists( 'mysqli_connect' ) || extension_loaded( 'pdo_sqlite' );
 	} else {
 		$has_database_extension = function_exists( 'mysqli_connect' );
 	}

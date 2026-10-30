@@ -33,13 +33,27 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 
 if ( $existing_config_location ) {
 	/*
-	 * A configuration file already exists, so there is nothing to set up here.
+	 * The second run of the setup, after it has written wp-config.php, creates the
+	 * SQLite database. With WP_SETUP_CONFIG, wpdb doesn't connect while WordPress loads.
+	 */
+	$creates_sqlite_database = isset( $_GET['step'] ) && 3 === (int) $_GET['step'];
+
+	if ( $creates_sqlite_database ) {
+		define( 'WP_SETUP_CONFIG', true );
+	}
+
+	/*
+	 * Otherwise, a configuration file already exists, so there is nothing to set up here.
 	 * Load WordPress through that file, like any other request would, so that the
 	 * site's locale is known and the message below can be translated.
 	 */
 	require_once ABSPATH . 'wp-load.php';
 
 	nocache_headers();
+
+	if ( $creates_sqlite_database ) {
+		setup_config_create_sqlite_database();
+	}
 
 	if ( 'root' === $existing_config_location ) {
 		$message = sprintf(
@@ -133,6 +147,96 @@ function setup_config_display_header( $body_classes = array() ) {
 } // End function setup_config_display_header();
 
 /**
+ * Creates the SQLite database that wp-config.php sets, and continues with the installation.
+ *
+ * This is the second run of the setup, after it has written wp-config.php. The database
+ * is created only now, so that DB_PATH can still be changed in wp-config.php before that.
+ * Without SQLite, it does nothing.
+ *
+ * @ignore
+ * @since 7.3.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function setup_config_create_sqlite_database() {
+	global $wpdb;
+
+	if ( 'sqlite' !== $wpdb->dbengine ) {
+		return;
+	}
+
+	$sqlite_dir = WP_CONTENT_DIR . '/database';
+
+	// The default directory is created only when the database is stored there.
+	if (
+		defined( 'DB_PATH' )
+		&& wp_normalize_path( dirname( DB_PATH ) ) === wp_normalize_path( $sqlite_dir )
+		&& ! setup_config_create_sqlite_directory( $sqlite_dir )
+	) {
+		wp_die(
+			sprintf(
+				/* translators: %s: wp-content/database */
+				__( '<strong>Error:</strong> Unable to create the %s directory for the SQLite database.' ),
+				'<code>wp-content/database</code>'
+			)
+		);
+	}
+
+	// With WP_SETUP_CONFIG, connecting creates a missing database file.
+	$wpdb->db_connect();
+
+	if ( ! empty( $wpdb->error ) ) {
+		wp_die( $wpdb->error->get_error_message() );
+	}
+
+	$language = empty( $_GET['language'] ) ? 'en_US' : preg_replace( '/[^a-zA-Z0-9_]/', '', $_GET['language'] );
+
+	wp_redirect( 'install.php?language=' . $language );
+	exit;
+}
+
+/**
+ * Creates the directory for the SQLite database file, and protects it from web access.
+ *
+ * A new directory is accessible only by the web server user, and it denies all web
+ * requests on Apache. On other web servers, the database file name must stay secret.
+ *
+ * @ignore
+ * @since 7.3.0
+ *
+ * @param string $dir The directory path.
+ * @return bool Whether the directory exists and is protected.
+ */
+function setup_config_create_sqlite_directory( $dir ) {
+	if ( ! is_dir( $dir ) ) {
+		if ( ! wp_mkdir_p( $dir ) ) {
+			return false;
+		}
+		chmod( $dir, 0700 );
+	}
+
+	$files = array(
+		'.htaccess' => "Require all denied\n",
+		'index.php' => "<?php\n// Silence is golden.\n",
+	);
+
+	foreach ( $files as $file => $contents ) {
+		if ( ! file_exists( "$dir/$file" ) && false === file_put_contents( "$dir/$file", $contents ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/*
+ * SQLite is offered when its PHP extension is available. It is the only option
+ * when the MySQL extension is missing.
+ */
+$has_mysqli     = function_exists( 'mysqli_connect' );
+$has_pdo_sqlite = extension_loaded( 'pdo_sqlite' );
+
+/**
  * @global string    $wp_local_package Locale code of the package.
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
  */
@@ -191,6 +295,9 @@ switch ( $step ) {
 	<li><?php _e( 'Database host' ); ?></li>
 	<li><?php _e( 'Table prefix (if you want to run more than one WordPress in a single database)' ); ?></li>
 </ol>
+		<?php if ( $has_pdo_sqlite ) : ?>
+<p><?php _e( 'Alternatively, you can store the database in an SQLite file on this server (experimental). SQLite needs no database server, so you will only need the table prefix.' ); ?></p>
+		<?php endif; ?>
 <p>
 		<?php
 		printf(
@@ -241,17 +348,29 @@ switch ( $step ) {
 <form method="post" action="setup-config.php?step=2">
 	<p><?php _e( 'Below you should enter your database connection details. If you are not sure about these, contact your host.' ); ?></p>
 	<table class="form-table" role="presentation">
+		<?php if ( $has_pdo_sqlite ) : ?>
 		<tr>
+			<th scope="row"><label for="dbengine"><?php _e( 'Database Type' ); ?></label></th>
+			<td>
+				<select name="dbengine" id="dbengine" aria-describedby="dbengine-desc">
+					<option value="mysql"<?php disabled( ! $has_mysqli ); ?>><?php _e( 'MySQL or MariaDB' ); ?></option>
+					<option value="sqlite"<?php selected( ! $has_mysqli ); ?>><?php _e( 'SQLite (experimental)' ); ?></option>
+				</select>
+				<p id="dbengine-desc"><?php _e( 'SQLite uses a database file on this server and needs no connection details.' ); ?></p>
+			</td>
+		</tr>
+		<?php endif; ?>
+		<tr class="mysql-setting">
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
 			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?> />
 			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p></td>
 		</tr>
-		<tr>
+		<tr class="mysql-setting">
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
 			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" />
 			<p id="uname-desc"><?php _e( 'Your database username.' ); ?></p></td>
 		</tr>
-		<tr>
+		<tr class="mysql-setting">
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
 			<td>
 				<div class="wp-pwd">
@@ -264,7 +383,7 @@ switch ( $step ) {
 				<p id="pwd-desc"><?php _e( 'Your database password.' ); ?></p>
 			</td>
 		</tr>
-		<tr>
+		<tr class="mysql-setting">
 			<th scope="row"><label for="dbhost"><?php _e( 'Database Host' ); ?></label></th>
 			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost" />
 			<p id="dbhost-desc">
@@ -287,6 +406,20 @@ switch ( $step ) {
 	<input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>" />
 	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
 </form>
+		<?php if ( $has_pdo_sqlite ) : ?>
+<script>
+( function() {
+	var dbengine = document.getElementById( 'dbengine' );
+	var toggleMysqlSettings = function() {
+		document.querySelectorAll( '.mysql-setting' ).forEach( function( row ) {
+			row.hidden = 'sqlite' === dbengine.value;
+		} );
+	};
+	dbengine.addEventListener( 'change', toggleMysqlSettings );
+	toggleMysqlSettings();
+} )();
+</script>
+		<?php endif; ?>
 		<?php
 		wp_print_scripts( 'password-toggle' );
 		break;
@@ -325,15 +458,31 @@ switch ( $step ) {
 			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
 		}
 
+		$use_sqlite = $has_pdo_sqlite && ( ! $has_mysqli || ( isset( $_POST['dbengine'] ) && 'sqlite' === $_POST['dbengine'] ) );
+
+		if ( $use_sqlite ) {
+			// The second run of the setup creates the database, so that DB_PATH can still be changed before that.
+			$install = str_replace( 'install.php?', 'setup-config.php?step=3&amp;', $install );
+		}
+
 		// Test the DB connection.
 		/**#@+
 		 *
 		 * @ignore
 		 */
-		define( 'DB_NAME', $dbname );
-		define( 'DB_USER', $uname );
-		define( 'DB_PASSWORD', $pwd );
-		define( 'DB_HOST', $dbhost );
+		if ( $use_sqlite ) {
+			define( 'DB_ENGINE', 'sqlite' );
+			define( 'DB_PATH', ':memory:' );
+			define( 'DB_NAME', 'wordpress' );
+			define( 'DB_USER', '' );
+			define( 'DB_PASSWORD', '' );
+			define( 'DB_HOST', '' );
+		} else {
+			define( 'DB_NAME', $dbname );
+			define( 'DB_USER', $uname );
+			define( 'DB_PASSWORD', $pwd );
+			define( 'DB_HOST', $dbhost );
+		}
 		/**#@-*/
 
 		// Re-construct $wpdb with these new values.
@@ -390,6 +539,43 @@ switch ( $step ) {
 			}
 		}
 
+		/*
+		 * If this file doesn't exist, then we are using the wp-config-sample.php
+		 * file one level up, which is for the develop repo.
+		 */
+		if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
+			$path_to_wp_config = ABSPATH . 'wp-config.php';
+		} else {
+			$path_to_wp_config = dirname( ABSPATH ) . '/wp-config.php';
+		}
+
+		// DB_ENGINE and DB_PATH are added only when wp-config-sample.php doesn't define them.
+		if ( $use_sqlite ) {
+			$sqlite_config = '';
+
+			if ( ! preg_grep( '/^define\(\s*\'DB_ENGINE\',[ ]+/', $config_file ) ) {
+				$sqlite_config .= "\r\n/** The database engine. SQLite doesn't use the database username, password, and hostname. */\r\n"
+					. "define( 'DB_ENGINE', 'sqlite' );\r\n";
+			}
+
+			// A host may set the database path in wp-config-sample.php, for example outside the web root.
+			$has_sample_db_path = (bool) preg_grep( '/^define\(\s*\'DB_PATH\',/', $config_file );
+
+			if ( ! $has_sample_db_path ) {
+				// The random file name keeps the database private, even when the web server doesn't block the directory.
+				$sqlite_path = WP_CONTENT_DIR . '/database/.ht.' . wp_generate_password( 32, false ) . '.sqlite';
+
+				// Set the database path relative to wp-config.php, so that the site can be moved.
+				$sqlite_relative_path = substr( $sqlite_path, strlen( dirname( $path_to_wp_config ) ) );
+
+				$sqlite_config .= "\r\n/**\r\n"
+					. " * The SQLite database file. Keep this path secret.\r\n"
+					. " * For better security, move the file outside the web root, and update this path.\r\n"
+					. " */\r\n"
+					. "define( 'DB_PATH', __DIR__ . '" . addcslashes( $sqlite_relative_path, "\\'" ) . "' );\r\n";
+			}
+		}
+
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
 			if ( str_starts_with( $line, '$table_prefix =' ) ) {
@@ -405,11 +591,18 @@ switch ( $step ) {
 			$padding  = $match[2];
 
 			switch ( $constant ) {
+				case 'DB_ENGINE':
+					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . ( $use_sqlite ? 'sqlite' : 'mysql' ) . "' );\r\n";
+					break;
 				case 'DB_NAME':
 				case 'DB_USER':
 				case 'DB_PASSWORD':
 				case 'DB_HOST':
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . addcslashes( constant( $constant ), "\\'" ) . "' );\r\n";
+
+					if ( 'DB_HOST' === $constant && $use_sqlite ) {
+						$config_file[ $line_num ] .= $sqlite_config;
+					}
 					break;
 				case 'DB_CHARSET':
 					if ( 'utf8mb4' === $wpdb->charset || ( ! $wpdb->charset ) ) {
@@ -429,6 +622,22 @@ switch ( $step ) {
 			}
 		}
 		unset( $line );
+
+		// When the setup chose the database location, recommend a safer one.
+		$sqlite_location_note = '';
+
+		if ( $use_sqlite && ! $has_sample_db_path ) {
+			$sqlite_location_note = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: 1: wp-content/database, 2: DB_PATH, 3: wp-config.php */
+					__( 'Your SQLite database will be created in the %1$s directory. For better security, store it outside the web root by changing %2$s in the %3$s file before you run the installation.' ),
+					'<code>wp-content/database</code>',
+					'<code>DB_PATH</code>',
+					'<code>wp-config.php</code>'
+				)
+			);
+		}
 
 		if ( ! is_writable( ABSPATH ) ) :
 			setup_config_display_header();
@@ -458,6 +667,7 @@ switch ( $step ) {
 			?>
 	</label></p>
 <textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly" aria-describedby="wp-config-description"><?php echo $config_text; ?></textarea>
+			<?php echo $sqlite_location_note; ?>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
 <script>
@@ -471,16 +681,6 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 </script>
 			<?php
 		else :
-			/*
-			 * If this file doesn't exist, then we are using the wp-config-sample.php
-			 * file one level up, which is for the develop repo.
-			 */
-			if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
-				$path_to_wp_config = ABSPATH . 'wp-config.php';
-			} else {
-				$path_to_wp_config = dirname( ABSPATH ) . '/wp-config.php';
-			}
-
 			$error_message = '';
 			$handle        = fopen( $path_to_wp_config, 'w' );
 			/*
@@ -523,6 +723,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				?>
 </h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
+				<?php echo $sqlite_location_note; ?>
 
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
 				<?php
