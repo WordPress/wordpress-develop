@@ -2172,11 +2172,6 @@ class WP_HTML_Tag_Processor {
 		$doc_length = strlen( $this->html );
 
 		while ( true ) {
-			// A tag-closing `>` needs no whitespace scan.
-			if ( $this->bytes_already_parsed < $doc_length && '>' === $this->html[ $this->bytes_already_parsed ] ) {
-				break;
-			}
-
 			// Skip whitespace and slashes.
 			$skipped_length              = strspn( $this->html, " \t\f\r\n/", $this->bytes_already_parsed );
 			$this->bytes_already_parsed += $skipped_length;
