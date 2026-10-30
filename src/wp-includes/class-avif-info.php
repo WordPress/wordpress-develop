@@ -37,7 +37,7 @@ const UNDEFINED     = 0;          // Value was not yet parsed.
  *
  * @param string $input     Must be at least $num_bytes-long.
  * @param int    $num_bytes Number of parsed bytes.
- * @return int              Value.
+ * @return int Value.
  */
 function read_big_endian( $input, $num_bytes ) {
   if ( $num_bytes == 1 ) {
@@ -59,7 +59,7 @@ function read_big_endian( $input, $num_bytes ) {
  *
  * @param resource      $handle    Bytes will be read from this resource.
  * @param int           $num_bytes Number of bytes read. Must be greater than 0.
- * @return string|false            The raw bytes or false on failure.
+ * @return string|false The raw bytes or false on failure.
  */
 function read( $handle, $num_bytes ) {
   $data = fread( $handle, $num_bytes );
@@ -71,7 +71,7 @@ function read( $handle, $num_bytes ) {
  *
  * @param resource $handle    Bytes will be skipped from this resource.
  * @param int      $num_bytes Number of skipped bytes. Can be 0.
- * @return bool               True on success or false on failure.
+ * @return bool True on success or false on failure.
  */
 // Skips 'num_bytes' from the 'stream'. 'num_bytes' can be zero.
 function skip( $handle, $num_bytes ) {
@@ -125,7 +125,7 @@ class Features {
    *
    * @param int $target_item_id Id of the item whose features will be bound.
    * @param int $tile_depth     Maximum recursion to search within tile-parent relations.
-   * @return int                FOUND on success or NOT_FOUND on failure.
+   * @return int FOUND on success or NOT_FOUND on failure.
    */
   private function get_item_features( $target_item_id, $tile_depth ) {
     foreach ( $this->props as $prop ) {
@@ -226,7 +226,7 @@ class Box {
    * @param resource $handle              The resource the header will be parsed from.
    * @param int      $num_parsed_boxes    The total number of parsed boxes. Prevents timeouts.
    * @param int      $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return int                          FOUND on success or an error on failure.
+   * @return int FOUND on success or an error on failure.
    */
   public function parse( $handle, &$num_parsed_boxes, $num_remaining_bytes = MAX_SIZE ) {
     // See ISO/IEC 14496-12:2012(E) 4.2
@@ -337,7 +337,7 @@ class Parser {
    * and number of channels, and "auxC" is used for alpha.
    *
    * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return int                     FOUND on success or an error on failure.
+   * @return int FOUND on success or an error on failure.
    */
   private function parse_ipco( $num_remaining_bytes ) {
     $box_index = 1; // 1-based index. Used for iterating over properties.
@@ -492,7 +492,7 @@ class Parser {
    * The "ipco" box contains the properties which are linked to items by the "ipma" box.
    *
    * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return int                     FOUND on success or an error on failure.
+   * @return int FOUND on success or an error on failure.
    */
   private function parse_iprp( $num_remaining_bytes ) {
     do {
@@ -597,7 +597,7 @@ class Parser {
    * when the latter does not have these properties.
    *
    * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return int                     FOUND on success or an error on failure.
+   * @return int FOUND on success or an error on failure.
    */
   private function parse_iref( $num_remaining_bytes ) {
     while ( $num_remaining_bytes > 0 ) {
@@ -671,7 +671,7 @@ class Parser {
    * to find its features.
    *
    * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return int                     FOUND on success or an error on failure.
+   * @return int FOUND on success or an error on failure.
    */
   private function parse_meta( $num_remaining_bytes ) {
     do {
