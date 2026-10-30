@@ -446,14 +446,10 @@ function get_http_origin() {
  * @return string[] Array of origin URLs.
  */
 function get_allowed_http_origins(): array {
-	$admin_url   = admin_url();
-	$home_url    = home_url();
 	$parsed_urls = array(
-		parse_url( $admin_url ),
+		parse_url( admin_url() ),
+		parse_url( home_url() ),
 	);
-	if ( $admin_url !== $home_url ) {
-		$parsed_urls[] = parse_url( $home_url );
-	}
 
 	// @todo Preserve port?
 	$allowed_origins = array();
