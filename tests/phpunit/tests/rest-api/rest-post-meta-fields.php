@@ -728,6 +728,86 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
 	}
 
+	/**
+	 * @ticket 64019
+	 */
+	public function test_set_value_to_null_with_invalid_stored_value() {
+		register_post_meta(
+			'post',
+			'my_meta_key',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'integer',
+			)
+		);
+
+		update_post_meta( self::$post_id, 'my_meta_key', 'not-a-number' );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'meta' => array(
+						'my_meta_key' => null,
+					),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
+		$this->assertSame( 'not-a-number', get_post_meta( self::$post_id, 'my_meta_key', true ) );
+	}
+
+	/**
+	 * Invalid stored values are returned as null, so echoing the response back
+	 * in a request must not delete them.
+	 *
+	 * @ticket 64019
+	 */
+	public function test_set_value_multiple_with_invalid_stored_value_echoed_as_null() {
+		register_post_meta(
+			'post',
+			'my_meta_key',
+			array(
+				'show_in_rest' => true,
+				'single'       => false,
+				'type'         => 'integer',
+			)
+		);
+
+		add_post_meta( self::$post_id, 'my_meta_key', '5' );
+		add_post_meta( self::$post_id, 'my_meta_key', 'not-a-number' );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$meta     = $response->get_data()['meta'];
+
+		$this->assertSame( array( 5, null ), $meta['my_meta_key'] );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'meta' => array(
+						'my_meta_key' => $meta['my_meta_key'],
+					),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
+		$this->assertSame( array( '5', 'not-a-number' ), get_post_meta( self::$post_id, 'my_meta_key', false ) );
+	}
+
 	public function test_set_value_sanitized() {
 		register_meta(
 			'post',

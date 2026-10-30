@@ -167,7 +167,7 @@ abstract class WP_REST_Meta_Fields {
 						$error->add(
 							'rest_invalid_stored_value',
 							/* translators: %s: Custom field key. */
-							sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
+							sprintf( __( 'The %s meta field cannot be reset to null because its stored value does not match its registered schema.' ), $name ),
 							array( 'status' => 500 )
 						);
 						continue;
@@ -185,7 +185,7 @@ abstract class WP_REST_Meta_Fields {
 				$error->add(
 					'rest_invalid_stored_value',
 					/* translators: %s: Custom field key. */
-					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
+					sprintf( __( 'The %s meta field cannot be updated because the request contains null values. This usually means one or more of its stored values do not match its registered schema.' ), $name ),
 					array( 'status' => 500 )
 				);
 				continue;
