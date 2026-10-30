@@ -2975,10 +2975,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30478
+	 * @ticket 66397
 	 *
 	 * @covers WP_Comment_Query::query
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_orderby_array_should_sort_by_comment_ID_DESC_as_fallback_when_not_sorted_by_date() {
+	public function test_orderby_array_should_sort_by_comment_ID_as_fallback_and_should_inherit_order_from_first_clause_when_not_sorted_by_date() {
 		global $wpdb;
 
 		$q     = new WP_Comment_Query();
@@ -2991,7 +2994,58 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( "ORDER BY $wpdb->comments.comment_agent ASC, $wpdb->comments.comment_ID DESC", $q->request );
+		$this->assertStringContainsString( "ORDER BY $wpdb->comments.comment_agent ASC, $wpdb->comments.comment_ID ASC", $q->request );
+	}
+
+	/**
+	 * @ticket 66397
+	 *
+	 * @covers WP_Comment_Query::query
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_orderby_array_should_sort_by_comment_ID_as_fallback_and_should_ignore_order_of_later_clauses_when_not_sorted_by_date() {
+		global $wpdb;
+
+		$q = new WP_Comment_Query();
+		$q->query(
+			array(
+				'fields'  => 'ids',
+				'orderby' => array(
+					'comment_agent'  => 'DESC',
+					'comment_author' => 'ASC',
+				),
+			)
+		);
+
+		$this->assertStringContainsString( "ORDER BY $wpdb->comments.comment_agent DESC, $wpdb->comments.comment_author ASC, $wpdb->comments.comment_ID DESC", $q->request );
+	}
+
+	/**
+	 * @ticket 66397
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_orderby_non_date_field_should_order_by_comment_ID_in_case_of_tie_ASC() {
+		$comments = self::factory()->comment->create_many(
+			5,
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_agent'   => 'Same Agent',
+			)
+		);
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'fields'  => 'ids',
+				'orderby' => 'comment_agent',
+				'order'   => 'ASC',
+			)
+		);
+
+		// $comments is ASC by default.
+		$this->assertSame( $comments, $found );
 	}
 
 	/**
