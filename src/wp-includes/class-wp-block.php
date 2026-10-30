@@ -273,7 +273,8 @@ class WP_Block {
 	 * @since 6.5.0
 	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
 	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
-	 * @since 7.3.0 Replace the inner blocks of the block for an `innerBlocks` binding.
+	 * @since 7.3.0 Replace the inner blocks of the block for an `innerBlocks` binding,
+	 *              which the `__default` binding doesn't add.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -311,7 +312,6 @@ class WP_Block {
 			 * resulting array.
 			 */
 			foreach ( $supported_block_attributes as $attribute_name ) {
-				// Inner blocks are only bound explicitly.
 				if ( 'innerBlocks' === $attribute_name && ! isset( $bindings['innerBlocks'] ) ) {
 					continue;
 				}
@@ -356,7 +356,6 @@ class WP_Block {
 			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
 			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
-			// Inner blocks are blocks, not an attribute.
 			if ( 'innerBlocks' === $attribute_name ) {
 				$this->replace_inner_blocks( $source_value );
 				continue;
@@ -375,36 +374,16 @@ class WP_Block {
 	 * Replaces the inner blocks of the block with the ones a block bindings
 	 * source supplies, before they render.
 	 *
-	 * The value is serialized block markup. An empty string leaves the block
-	 * without inner blocks. Any other value, like the plain text of a field,
-	 * leaves the block with its own inner blocks.
-	 *
 	 * @since 7.3.0
-	 *
-	 * @global WP_Embed $wp_embed WordPress Embed object.
 	 *
 	 * @param mixed $value The value of the source.
 	 */
 	private function replace_inner_blocks( $value ) {
-		global $wp_embed;
-
-		if ( '' !== $value && ! ( is_string( $value ) && '<!-- wp:' === substr( $value, strspn( $value, " \t\n\f\r" ), 8 ) ) ) {
+		if ( ! self::is_inner_blocks_value( $value ) ) {
 			return;
 		}
 
-		/*
-		 * The markup skips the filters that sanitize post content when it's saved,
-		 * and the user who supplied it may not be allowed unfiltered HTML. Like on
-		 * save, this also sanitizes the attributes of the blocks, through the
-		 * `pre_kses` filter.
-		 */
-		$markup = wp_kses_post( $value );
-		if ( $wp_embed instanceof WP_Embed ) {
-			$markup = $wp_embed->run_shortcode( $markup );
-			$markup = $wp_embed->autoembed( $markup );
-		}
-		$blocks = self::prepare_bound_inner_blocks( parse_blocks( $markup ) );
-
+		$blocks        = self::parse_bound_inner_blocks( $value );
 		$inner_content = self::get_inner_content_with_slots( $this->parsed_block['innerContent'] ?? null, count( $blocks ) );
 		if ( null === $inner_content ) {
 			return;
@@ -413,11 +392,52 @@ class WP_Block {
 		$this->parsed_block['innerBlocks']  = $blocks;
 		$this->parsed_block['innerContent'] = $inner_content;
 		$this->parsed_block['innerHTML']    = implode( '', array_filter( $inner_content, 'is_string' ) );
+		$this->inner_blocks                 = new WP_Block_List( array() );
 		$this->refresh_parsed_block_dependents();
-		// The refresh keeps the previous inner blocks when there are none.
-		if ( empty( $blocks ) ) {
-			$this->inner_blocks = new WP_Block_List( array() );
+	}
+
+	/**
+	 * Determines whether the value of a block bindings source supplies inner
+	 * blocks.
+	 *
+	 * Serialized block markup supplies them, and an empty string supplies none.
+	 * Any other value, like the plain text of a field, leaves the block with its
+	 * own inner blocks.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value The value of the source.
+	 * @return bool Whether the value supplies inner blocks.
+	 */
+	private static function is_inner_blocks_value( $value ): bool {
+		return '' === $value || ( is_string( $value ) && str_starts_with( ltrim( $value, " \t\n\f\r" ), '<!-- wp:' ) );
+	}
+
+	/**
+	 * Parses the inner blocks a block bindings source supplies.
+	 *
+	 * The markup never went through the filters that sanitize post content on
+	 * save, and the user who supplied it may not be allowed unfiltered HTML, so
+	 * it is sanitized as on save, attributes of its blocks included. Its embeds
+	 * are expanded as the embeds of the content were, before its blocks render.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @global WP_Embed $wp_embed WordPress Embed object.
+	 *
+	 * @param string $markup The serialized blocks.
+	 * @return array[] The parsed blocks.
+	 */
+	private static function parse_bound_inner_blocks( string $markup ): array {
+		global $wp_embed;
+
+		$markup = wp_kses_post( $markup );
+		if ( $wp_embed instanceof WP_Embed ) {
+			$markup = $wp_embed->run_shortcode( $markup );
+			$markup = $wp_embed->autoembed( $markup );
 		}
+
+		return self::prepare_bound_inner_blocks( parse_blocks( $markup ) );
 	}
 
 	/**
@@ -426,7 +446,8 @@ class WP_Block {
 	 *
 	 * Removes their `innerBlocks` bindings: none of them gets its inner blocks
 	 * from a source, so that two sources whose values bind each other's can't
-	 * render forever.
+	 * render forever. Removes the bindings and metadata this leaves empty, as
+	 * the editor does.
 	 *
 	 * Also removes their custom CSS, which only users who can edit CSS may add:
 	 * whoever supplied the value is unknown.
@@ -447,7 +468,6 @@ class WP_Block {
 
 			if ( isset( $block['attrs']['metadata']['bindings']['innerBlocks'] ) ) {
 				unset( $block['attrs']['metadata']['bindings']['innerBlocks'] );
-				// Drop what's left empty, as the editor does.
 				if ( empty( $block['attrs']['metadata']['bindings'] ) ) {
 					unset( $block['attrs']['metadata']['bindings'] );
 				}
@@ -462,7 +482,11 @@ class WP_Block {
 
 	/**
 	 * Returns the inner content of a block with slots for the given number of
-	 * inner blocks, where its own inner blocks were.
+	 * inner blocks.
+	 *
+	 * The slots replace the block's own inner blocks and the HTML between them.
+	 * A block without inner blocks gets them before the closing tag of the
+	 * element that wraps its content.
 	 *
 	 * @since 7.3.0
 	 *
@@ -476,42 +500,59 @@ class WP_Block {
 			return null;
 		}
 
-		// Keeps the HTML around the block's own inner blocks as it is, and drops
-		// the HTML between them.
-		$slots = array_keys( $inner_content, null, true );
-		if ( $slots ) {
-			return array_merge(
-				array_slice( $inner_content, 0, $slots[0] ),
-				array_fill( 0, $count, null ),
-				array_slice( $inner_content, end( $slots ) + 1 )
-			);
+		$slots     = array_fill( 0, $count, null );
+		$own_slots = array_keys( $inner_content, null, true );
+		if ( $own_slots ) {
+			$before_first_slot = array_slice( $inner_content, 0, $own_slots[0] );
+			$after_last_slot   = array_slice( $inner_content, end( $own_slots ) + 1 );
+			return array_merge( $before_first_slot, $slots, $after_last_slot );
 		}
 
-		/*
-		 * Without any, the block wraps them in one element, so they go before its
-		 * closer. Serializes the HTML token by token, as
-		 * `WP_HTML_Processor::serialize()` does, and starts the second part there.
-		 */
-		$processor = WP_HTML_Processor::create_fragment( implode( '', $inner_content ) );
+		$wrapper_parts = self::split_at_wrapper_closer( implode( '', $inner_content ) );
+		if ( null === $wrapper_parts ) {
+			return null;
+		}
+		return array_merge( array( $wrapper_parts[0] ), $slots, array( $wrapper_parts[1] ) );
+	}
+
+	/**
+	 * Splits the HTML of an element that wraps a block's content before the
+	 * element's closing tag.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $html The HTML of the wrapper element.
+	 * @return string[]|null The HTML before the closing tag and the HTML from it,
+	 *                       or null if the HTML has no wrapper element to split.
+	 */
+	private static function split_at_wrapper_closer( string $html ): ?array {
+		$processor = WP_HTML_Processor::create_fragment( $html );
 		if ( null === $processor ) {
 			return null;
 		}
-		$parts        = array( '', '' );
-		$part         = 0;
-		$closer_depth = null;
+
+		$before                = '';
+		$after                 = '';
+		$depth_outside_wrapper = null;
+		$is_at_wrapper_closer  = false;
 		while ( $processor->next_token() ) {
-			if ( null === $closer_depth && '#tag' === $processor->get_token_type() && ! $processor->is_tag_closer() ) {
-				// A closer is visited at the depth of the element that contains it.
-				$closer_depth = $processor->get_current_depth() - 1;
-			} elseif ( 0 === $part && $processor->is_tag_closer() && $processor->get_current_depth() === $closer_depth ) {
-				$part = 1;
+			if ( null === $depth_outside_wrapper && '#tag' === $processor->get_token_type() && ! $processor->is_tag_closer() ) {
+				$depth_outside_wrapper = $processor->get_current_depth() - 1;
+			} elseif ( $processor->is_tag_closer() && $processor->get_current_depth() === $depth_outside_wrapper ) {
+				$is_at_wrapper_closer = true;
 			}
-			$parts[ $part ] .= $processor->serialize_token();
+
+			if ( $is_at_wrapper_closer ) {
+				$after .= $processor->serialize_token();
+			} else {
+				$before .= $processor->serialize_token();
+			}
 		}
-		if ( 1 !== $part || null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
+
+		if ( ! $is_at_wrapper_closer || null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
 			return null;
 		}
-		return array_merge( array( $parts[0] ), array_fill( 0, $count, null ), array( $parts[1] ) );
+		return array( $before, $after );
 	}
 
 	/**
