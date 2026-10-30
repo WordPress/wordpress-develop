@@ -139,7 +139,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{function_name: string, args: array, expected_msg: string}>
 	 */
-	public function data_unrecognized_keys_in_args(): array {
+	public static function data_unrecognized_keys_in_args(): array {
 		return array(
 			'register_script' => array(
 				'function_name' => 'wp_register_script',
@@ -212,7 +212,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[] Delayed strategies.
 	 */
-	public function data_provider_delayed_strategies() {
+	public static function data_provider_delayed_strategies() {
 		return array(
 			'defer' => array( 'defer' ),
 			'async' => array( 'async' ),
@@ -244,7 +244,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}> Inline script positions.
 	 */
-	public function data_inline_script_positions(): array {
+	public static function data_inline_script_positions(): array {
 		return array(
 			'before' => array( 'before' ),
 			'after'  => array( 'after' ),
@@ -445,7 +445,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function get_data_to_filter_eligible_strategies() {
+	public static function get_data_to_filter_eligible_strategies() {
 		return array(
 			'no_dependents'                       => array(
 				'set_up'   => static function () {
@@ -600,7 +600,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @param string[] $deps      Dependencies for the script.
 	 * @param bool     $in_footer Whether to print the script in the footer.
 	 */
-	protected function register_test_script( $handle, $strategy, $deps = array(), $in_footer = false ) {
+	protected static function register_test_script( $handle, $strategy, $deps = array(), $in_footer = false ) {
 		wp_register_script(
 			$handle,
 			add_query_arg(
@@ -625,8 +625,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @param string[] $deps      Dependencies for the script.
 	 * @param bool     $in_footer Whether to print the script in the footer.
 	 */
-	protected function enqueue_test_script( $handle, $strategy, $deps = array(), $in_footer = false ) {
-		$this->register_test_script( $handle, $strategy, $deps, $in_footer );
+	protected static function enqueue_test_script( $handle, $strategy, $deps = array(), $in_footer = false ) {
+		self::register_test_script( $handle, $strategy, $deps, $in_footer );
 		wp_enqueue_script( $handle );
 	}
 
@@ -636,7 +636,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @param string $handle   Dependency handle to enqueue.
 	 * @param string $position Position.
 	 */
-	protected function add_test_inline_script( $handle, $position ) {
+	protected static function add_test_inline_script( $handle, $position ) {
 		wp_add_inline_script( $handle, sprintf( 'scriptEventLog.push( %s )', wp_json_encode( "{$handle}: {$position} inline" ) ), $position );
 	}
 
@@ -645,7 +645,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_to_test_various_strategy_dependency_chains() {
+	public static function data_provider_to_test_various_strategy_dependency_chains() {
 		$wp_tests_domain = WP_TESTS_DOMAIN;
 
 		return array(
@@ -653,11 +653,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					$handle1 = 'blocking-not-async-without-dependency';
 					$handle2 = 'async-with-blocking-dependency';
-					$this->enqueue_test_script( $handle1, 'blocking', array() );
-					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					self::enqueue_test_script( $handle1, 'blocking', array() );
+					self::enqueue_test_script( $handle2, 'async', array( $handle1 ) );
 					foreach ( array( $handle1, $handle2 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -686,12 +686,12 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$handle1 = 'async-no-dependency';
 					$handle2 = 'async-one-async-dependency';
 					$handle3 = 'async-two-async-dependencies';
-					$this->enqueue_test_script( $handle1, 'async', array() );
-					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
-					$this->enqueue_test_script( $handle3, 'async', array( $handle1, $handle2 ) );
+					self::enqueue_test_script( $handle1, 'async', array() );
+					self::enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					self::enqueue_test_script( $handle3, 'async', array( $handle1, $handle2 ) );
 					foreach ( array( $handle1, $handle2, $handle3 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -728,11 +728,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					$handle1 = 'async-with-blocking-dependent';
 					$handle2 = 'blocking-dependent-of-async';
-					$this->enqueue_test_script( $handle1, 'async', array() );
-					$this->enqueue_test_script( $handle2, 'blocking', array( $handle1 ) );
+					self::enqueue_test_script( $handle1, 'async', array() );
+					self::enqueue_test_script( $handle2, 'blocking', array( $handle1 ) );
 					foreach ( array( $handle1, $handle2 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -760,11 +760,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					$handle1 = 'async-with-defer-dependent';
 					$handle2 = 'defer-dependent-of-async';
-					$this->enqueue_test_script( $handle1, 'async', array() );
-					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					self::enqueue_test_script( $handle1, 'async', array() );
+					self::enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
 					foreach ( array( $handle1, $handle2 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -794,13 +794,13 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$handle2 = 'defer-dependent-of-blocking-bundle-of-none';
 
 					wp_register_script( $handle1, false, array(), null );
-					$this->add_test_inline_script( $handle1, 'before' );
-					$this->add_test_inline_script( $handle1, 'after' );
+					self::add_test_inline_script( $handle1, 'before' );
+					self::add_test_inline_script( $handle1, 'after' );
 
 					// Note: the before script for this will be blocking because the dependency is blocking.
-					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
-					$this->add_test_inline_script( $handle2, 'before' );
-					$this->add_test_inline_script( $handle2, 'after' );
+					self::enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					self::add_test_inline_script( $handle2, 'before' );
+					self::add_test_inline_script( $handle2, 'after' );
 				},
 				'expected_markup' => <<<HTML
 				<script id="blocking-bundle-of-none-js-before">
@@ -830,13 +830,13 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$handle4 = 'defer-dependent-of-blocking-bundle-of-two';
 
 					wp_register_script( $handle1, false, array( $handle2, $handle3 ), null );
-					$this->enqueue_test_script( $handle2, 'blocking' );
-					$this->enqueue_test_script( $handle3, 'blocking' );
-					$this->enqueue_test_script( $handle4, 'defer', array( $handle1 ) );
+					self::enqueue_test_script( $handle2, 'blocking' );
+					self::enqueue_test_script( $handle3, 'blocking' );
+					self::enqueue_test_script( $handle4, 'defer', array( $handle1 ) );
 
 					foreach ( array( $handle2, $handle3, $handle4 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -877,13 +877,13 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					// The eligible loading strategy for this will be forced to be blocking when rendered since $src = false.
 					wp_register_script( $handle1, false, array(), null );
 					wp_scripts()->registered[ $handle1 ]->extra['strategy'] = 'defer'; // Bypass wp_script_add_data() which should no-op with _doing_it_wrong() because of $src=false.
-					$this->add_test_inline_script( $handle1, 'before' );
-					$this->add_test_inline_script( $handle1, 'after' );
+					self::add_test_inline_script( $handle1, 'before' );
+					self::add_test_inline_script( $handle1, 'after' );
 
 					// Note: the before script for this will be blocking because the dependency is blocking.
-					$this->enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
-					$this->add_test_inline_script( $handle2, 'before' );
-					$this->add_test_inline_script( $handle2, 'after' );
+					self::enqueue_test_script( $handle2, 'defer', array( $handle1 ) );
+					self::add_test_inline_script( $handle2, 'before' );
+					self::add_test_inline_script( $handle2, 'after' );
 				},
 				'expected_markup' => <<<HTML
 				<script id="defer-bundle-of-none-js-before">
@@ -910,13 +910,13 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$handle1 = 'blocking-dependency-with-defer-following-dependency';
 					$handle2 = 'defer-dependency-with-blocking-preceding-dependency';
 					$handle3 = 'defer-dependent-of-blocking-and-defer-dependencies';
-					$this->enqueue_test_script( $handle1, 'blocking', array() );
-					$this->enqueue_test_script( $handle2, 'defer', array() );
-					$this->enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
+					self::enqueue_test_script( $handle1, 'blocking', array() );
+					self::enqueue_test_script( $handle2, 'defer', array() );
+					self::enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
 
 					foreach ( array( $handle1, $handle2, $handle3 ) as $dep ) {
-						$this->add_test_inline_script( $dep, 'before' );
-						$this->add_test_inline_script( $dep, 'after' );
+						self::add_test_inline_script( $dep, 'before' );
+						self::add_test_inline_script( $dep, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -954,13 +954,13 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$handle1 = 'defer-dependency-with-blocking-following-dependency';
 					$handle2 = 'blocking-dependency-with-defer-preceding-dependency';
 					$handle3 = 'defer-dependent-of-defer-and-blocking-dependencies';
-					$this->enqueue_test_script( $handle1, 'defer', array() );
-					$this->enqueue_test_script( $handle2, 'blocking', array() );
-					$this->enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
+					self::enqueue_test_script( $handle1, 'defer', array() );
+					self::enqueue_test_script( $handle2, 'blocking', array() );
+					self::enqueue_test_script( $handle3, 'defer', array( $handle1, $handle2 ) );
 
 					foreach ( array( $handle1, $handle2, $handle3 ) as $dep ) {
-						$this->add_test_inline_script( $dep, 'before' );
-						$this->add_test_inline_script( $dep, 'after' );
+						self::add_test_inline_script( $dep, 'before' );
+						self::add_test_inline_script( $dep, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -997,11 +997,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					$handle1 = 'defer-with-async-dependent';
 					$handle2 = 'async-dependent-of-defer';
-					$this->enqueue_test_script( $handle1, 'defer', array() );
-					$this->enqueue_test_script( $handle2, 'async', array( $handle1 ) );
+					self::enqueue_test_script( $handle1, 'defer', array() );
+					self::enqueue_test_script( $handle2, 'async', array( $handle1 ) );
 					foreach ( array( $handle1, $handle2 ) as $handle ) {
-						$this->add_test_inline_script( $handle, 'before' );
-						$this->add_test_inline_script( $handle, 'after' );
+						self::add_test_inline_script( $handle, 'before' );
+						self::add_test_inline_script( $handle, 'after' );
 					}
 				},
 				'expected_markup' => <<<HTML
@@ -1029,8 +1029,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					// Note this should NOT result in no delayed-inline-script-loader script being added.
 					$handle = 'defer-with-before-inline';
-					$this->enqueue_test_script( $handle, 'defer', array() );
-					$this->add_test_inline_script( $handle, 'before' );
+					self::enqueue_test_script( $handle, 'defer', array() );
+					self::add_test_inline_script( $handle, 'before' );
 				},
 				'expected_markup' => <<<HTML
 				<script id="defer-with-before-inline-js-before">
@@ -1044,8 +1044,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 				'set_up'          => function () {
 					// Note this SHOULD result in delayed-inline-script-loader script being added.
 					$handle = 'defer-with-after-inline';
-					$this->enqueue_test_script( $handle, 'defer', array() );
-					$this->add_test_inline_script( $handle, 'after' );
+					self::enqueue_test_script( $handle, 'defer', array() );
+					self::add_test_inline_script( $handle, 'after' );
 				},
 				'expected_markup' => <<<HTML
 				<script src='https://example.com/external.js?script_event_log=defer-with-after-inline:%20script' id='defer-with-after-inline-js' data-wp-strategy='defer'></script>
@@ -1078,16 +1078,16 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 					// The outer alias contains a blocking member, as well as a nested alias that contains defer scripts.
 					wp_register_script( $outer_alias_handle, false, array( $inner_alias_handle, 'outer-bundle-leaf-member' ), null );
-					$this->register_test_script( 'outer-bundle-leaf-member', 'blocking', array() );
+					self::register_test_script( 'outer-bundle-leaf-member', 'blocking', array() );
 
 					// Inner alias only contains delay scripts.
 					wp_register_script( $inner_alias_handle, false, array( 'inner-bundle-member-one', 'inner-bundle-member-two' ), null );
-					$this->register_test_script( 'inner-bundle-member-one', 'defer', array() );
-					$this->register_test_script( 'inner-bundle-member-two', 'defer', array() );
+					self::register_test_script( 'inner-bundle-member-one', 'defer', array() );
+					self::register_test_script( 'inner-bundle-member-two', 'defer', array() );
 
-					$this->enqueue_test_script( 'defer-dependent-of-nested-aliases', 'defer', array( $outer_alias_handle ) );
-					$this->add_test_inline_script( 'defer-dependent-of-nested-aliases', 'before' );
-					$this->add_test_inline_script( 'defer-dependent-of-nested-aliases', 'after' );
+					self::enqueue_test_script( 'defer-dependent-of-nested-aliases', 'defer', array( $outer_alias_handle ) );
+					self::add_test_inline_script( 'defer-dependent-of-nested-aliases', 'before' );
+					self::add_test_inline_script( 'defer-dependent-of-nested-aliases', 'after' );
 				},
 				'expected_markup' => <<<HTML
 				<script src='https://example.com/external.js?script_event_log=inner-bundle-member-one:%20script' id='inner-bundle-member-one-js' data-wp-strategy='defer'></script>
@@ -1112,10 +1112,10 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 					$async_handle2 = 'async2';
 
 					wp_register_script( $alias_handle, false, array( $async_handle1, $async_handle2 ), null );
-					$this->register_test_script( $async_handle1, 'async', array() );
-					$this->register_test_script( $async_handle2, 'async', array() );
+					self::register_test_script( $async_handle1, 'async', array() );
+					self::register_test_script( $async_handle2, 'async', array() );
 
-					$this->enqueue_test_script( 'defer-dependent-of-async-aliases', 'defer', array( $alias_handle ) );
+					self::enqueue_test_script( 'defer-dependent-of-async-aliases', 'defer', array( $alias_handle ) );
 				},
 				'expected_markup' => <<<HTML
 				<script src='https://example.com/external.js?script_event_log=async1:%20script' id='async1-js' defer data-wp-strategy='async'></script>
@@ -1260,7 +1260,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{fetchpriority: string}>
 	 */
-	public function data_provider_fetchpriority_values(): array {
+	public static function data_provider_fetchpriority_values(): array {
 		return array(
 			'auto' => array( 'fetchpriority' => 'auto' ),
 			'low'  => array( 'fetchpriority' => 'low' ),
@@ -1392,7 +1392,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{data: mixed, message: string, expected: bool, stored: array<string|array<string, string>>|null}>
 	 */
-	public function data_add_data_module_dependencies_validation(): array {
+	public static function data_add_data_module_dependencies_validation(): array {
 		return array(
 			'non-array' => array(
 				'data'     => 'not-an-array',
@@ -1468,7 +1468,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *     should_warn: bool,
 	 * }>
 	 */
-	public function data_module_dependencies_require_footer_or_defer(): array {
+	public static function data_module_dependencies_require_footer_or_defer(): array {
 		$base_args = array(
 			'/script.js',
 			array(),
@@ -1631,7 +1631,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{enqueues: string[], expected: string}>
 	 */
-	public function data_provider_to_test_fetchpriority_bumping(): array {
+	public static function data_provider_to_test_fetchpriority_bumping(): array {
 		return array(
 			'enqueue_bajo' => array(
 				'enqueues' => array( 'bajo' ),
@@ -1967,7 +1967,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function get_data_for_test_setting_in_footer_and_strategy() {
+	public static function get_data_for_test_setting_in_footer_and_strategy() {
 		return array(
 			// Passing in_footer and strategy via args array.
 			'async_footer_in_args_array'    => array(
@@ -2647,7 +2647,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_to_test_get_inline_script() {
+	public static function data_provider_to_test_get_inline_script() {
 		return array(
 			'before-blocking' => array(
 				'position'       => 'before',
@@ -3410,7 +3410,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *     @type string $expected  Expected transformation of localization data.
 	 * }
 	 */
-	public function data_wp_localize_script_data_formats() {
+	public static function data_wp_localize_script_data_formats() {
 		return array(
 			// Officially supported formats.
 			array( array( 'array value, no key' ), '["array value, no key"]' ),
@@ -3557,7 +3557,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_script_move_to_footer() {
+	public static function data_provider_script_move_to_footer() {
 		return array(
 			'footer-blocking-dependent-of-defer-head-script' => array(
 				'set_up'             => static function () {
@@ -3847,7 +3847,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_vendor_script_versions_registered_manually() {
+	public static function data_vendor_script_versions_registered_manually() {
 		return array(
 			'backbone'                         => array( 'backbone' ),
 			'clipboard'                        => array( 'clipboard' ),
@@ -4085,7 +4085,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{src: string, ver: string|bool|null, expected_url: string, handle?: string}> Data provider.
 	 */
-	public function data_duplicate_query_vars_and_fragments_preserved_in_scripts(): array {
+	public static function data_duplicate_query_vars_and_fragments_preserved_in_scripts(): array {
 		$ver = get_bloginfo( 'version' );
 
 		return array(
@@ -4131,7 +4131,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_varying_versions_handle_args() {
+	public static function data_varying_versions_handle_args() {
 		$default_version = get_bloginfo( 'version' );
 
 		return array(

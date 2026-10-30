@@ -196,7 +196,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_internal_comment_types(): array {
+	public static function data_internal_comment_types(): array {
 		return array(
 			'note'     => array( 'note' ),
 			'reaction' => array( 'reaction' ),

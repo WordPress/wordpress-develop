@@ -48,7 +48,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	public function test_login_rejects_non_scalar_credentials( $username, $password ): void {
 		$this->make_user_by_role( 'subscriber' );
 
-		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) ); // @phpstan-ignore argument.type, argument.type (Non-string arguments passed intentionally to test error scenario.)
+		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 400, $this->myxmlrpcserver->error->code );
 
@@ -66,6 +66,8 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			'array username'      => array( array( 'subscriber' ), 'subscriber' ),
 			'array password'      => array( 'subscriber', array( 'subscriber' ) ),
 			'IXR_Base64 password' => array( 'subscriber', new IXR_Base64( 'subscriber' ) ),
+			'null username'       => array( null, 'subscriber' ),
+			'null password'       => array( 'subscriber', null ),
 		);
 	}
 
@@ -80,6 +82,28 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertFalse( $this->myxmlrpcserver->login( 12345, 67890 ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 403, $this->myxmlrpcserver->error->code );
+	}
+
+	/**
+	 * Tests that numeric credentials, which XML-RPC sends as `<int>` values,
+	 * continue to authenticate.
+	 *
+	 * @ticket 65600
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 */
+	public function test_login_with_integer_credentials_succeeds(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_login' => '12345',
+				'user_pass'  => '67890',
+				'role'       => 'subscriber',
+			)
+		);
+
+		$user = $this->myxmlrpcserver->login( 12345, 67890 );
+		$this->assertInstanceOf( WP_User::class, $user, 'The login should succeed.' );
+		$this->assertSame( $user_id, $user->ID, 'The login should authenticate the user with the matching credentials.' );
 	}
 
 	/**
