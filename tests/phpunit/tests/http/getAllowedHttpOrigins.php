@@ -12,10 +12,10 @@ class Tests_HTTP_GetAllowedHttpOrigins extends WP_UnitTestCase {
 	/**
 	 * Forces the values returned by admin_url() and home_url().
 	 *
-	 * @param string $admin_url Value to return from admin_url().
-	 * @param string $home_url  Value to return from home_url().
+	 * @param non-falsy-string $admin_url Value to return from admin_url().
+	 * @param non-falsy-string $home_url  Value to return from home_url().
 	 */
-	private function force_urls( $admin_url, $home_url ) {
+	private function force_urls( string $admin_url, string $home_url ): void {
 		add_filter(
 			'admin_url',
 			static function () use ( $admin_url ) {
