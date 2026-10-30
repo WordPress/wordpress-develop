@@ -1715,6 +1715,62 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * Tests that a valid `_method` query parameter overrides the request method and an invalid one is rejected.
+	 *
+	 * @ticket 66385
+	 *
+	 * @covers WP_REST_Server::serve_request
+	 *
+	 * @dataProvider data_serve_request_validates_method_query_param
+	 *
+	 * @param string|array<string> $method_param    Value of the `_method` query parameter.
+	 * @param 200|400              $expected_status Expected response status.
+	 * @param non-empty-string     $expected_body   Expected response body.
+	 */
+	public function test_serve_request_validates_method_query_param( $method_param, int $expected_status, string $expected_body ): void {
+		$server = rest_get_server();
+		$this->assertInstanceOf( Spy_REST_Server::class, $server );
+
+		$server->register_route(
+			'test',
+			'/test/method',
+			array(
+				array(
+					'methods'             => array( 'GET', 'POST' ),
+					'callback'            => static function ( WP_REST_Request $request ) {
+						return new WP_REST_Response( $request->get_method() );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_GET['_method']           = $method_param;
+
+		$server->serve_request( '/test/method' );
+
+		$this->assertSame( $expected_status, $server->status, 'The response status is not as expected.' );
+		$this->assertSame( $expected_body, $server->sent_body, 'The response body is not as expected.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serve_request_validates_method_query_param()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array<string>, 1: 200|400, 2: non-empty-string }>
+	 */
+	public static function data_serve_request_validates_method_query_param(): array {
+		$invalid_param_error = '{"code":"rest_invalid_param","message":"Invalid parameter(s): _method"}';
+
+		return array(
+			'lowercase method' => array( 'post', 200, '"POST"' ),
+			'custom method'    => array( 'PURGE', 400, $invalid_param_error ),
+			'trailing newline' => array( "POST\n", 400, $invalid_param_error ),
+			'list array'       => array( array( 'DELETE' ), 400, $invalid_param_error ),
+		);
+	}
+
 	public function test_serve_request_url_params_are_unslashed() {
 
 		rest_get_server()->register_route(
