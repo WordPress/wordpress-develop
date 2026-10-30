@@ -920,4 +920,108 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'Site title.', $title['description'] );
 		$this->assertNull( $title['default'] );
 	}
+
+	/**
+	 * @ticket 41604
+	 *
+	 * @dataProvider data_update_item_with_unregistered_setting
+	 *
+	 * @param string $method       Request method.
+	 * @param string $content_type Request content type.
+	 */
+	public function test_update_item_with_unregistered_setting( string $method, string $content_type ): void {
+		wp_set_current_user( self::$administrator );
+
+		$original_title = get_option( 'blogname' );
+		$params         = array(
+			'title'                       => 'The new title!',
+			'this_setting_does_not_exist' => 'value',
+		);
+
+		$request = new WP_REST_Request( $method, '/wp/v2/settings' );
+		if ( 'application/json' === $content_type ) {
+			$request->add_header( 'Content-Type', $content_type );
+			$request->set_body( wp_json_encode( $params ) );
+		} else {
+			$request->set_body_params( $params );
+		}
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertSame( 'Invalid parameter(s): this_setting_does_not_exist', $response->get_data()['message'] );
+		$this->assertSame( $original_title, get_option( 'blogname' ), 'No setting should be updated.' );
+		$this->assertFalse( get_option( 'this_setting_does_not_exist' ), 'The unregistered setting should not be created.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string }>
+	 */
+	public static function data_update_item_with_unregistered_setting(): array {
+		return array(
+			'POST with form body' => array( 'POST', 'application/x-www-form-urlencoded' ),
+			'POST with JSON body' => array( 'POST', 'application/json' ),
+			'PUT with JSON body'  => array( 'PUT', 'application/json' ),
+		);
+	}
+
+	/**
+	 * Parameters in the query string are not checked, because they include global
+	 * parameters such as `rest_route` and `_locale`, and settings may be passed
+	 * there in place of the request body.
+	 *
+	 * @ticket 41604
+	 *
+	 * @dataProvider data_update_item_ignores_query_params_that_are_not_settings
+	 *
+	 * @param array $query_params Query parameters.
+	 * @param array $body_params  Body parameters.
+	 */
+	public function test_update_item_ignores_query_params_that_are_not_settings( array $query_params, array $body_params ): void {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_query_params( $query_params );
+		$request->set_body_params( $body_params );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'The new title!', get_option( 'blogname' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: array<string, string>, 1: array<string, string> }>
+	 */
+	public static function data_update_item_ignores_query_params_that_are_not_settings(): array {
+		return array(
+			'plain permalinks'             => array(
+				array( 'rest_route' => '/wp/v2/settings' ),
+				array( 'title' => 'The new title!' ),
+			),
+			'locale parameter'             => array(
+				array( '_locale' => 'user' ),
+				array( 'title' => 'The new title!' ),
+			),
+			'unknown query parameter'      => array(
+				array( 'cache_buster' => '123' ),
+				array( 'title' => 'The new title!' ),
+			),
+			'setting in query, empty body' => array(
+				array( 'title' => 'The new title!' ),
+				array(),
+			),
+			'global parameter in body'     => array(
+				array(),
+				array(
+					'title'    => 'The new title!',
+					'_wpnonce' => 'abc',
+				),
+			),
+		);
+	}
 }
