@@ -1534,6 +1534,11 @@ EOF;
 				'css'      => 'text-shadow: var(--wp--preset--text-shadow--soft)',
 				'expected' => 'text-shadow: var(--wp--preset--text-shadow--soft)',
 			),
+			// `box-sizing` introduced in 7.2.0.
+			array(
+				'css'      => 'box-sizing: border-box',
+				'expected' => 'box-sizing: border-box',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
