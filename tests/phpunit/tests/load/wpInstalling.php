@@ -21,13 +21,6 @@ class Tests_Load_WpInstalling extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_defaults_to_false() {
-		$this->assertFalse( wp_installing() );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_setter_returns_previous_value_and_updates_state() {
 		$this->assertFalse( wp_installing( true ) );
 		$this->assertTrue( wp_installing() );

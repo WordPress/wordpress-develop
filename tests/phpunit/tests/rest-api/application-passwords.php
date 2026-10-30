@@ -48,7 +48,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $expected['error_message'], $actual->get_error_message( $expected['error_code'] ) );
 	}
 
-	public function data_create_new_application_password_validation() {
+	public static function data_create_new_application_password_validation() {
 		return array(
 			'application_password_empty_name when no args' => array(
 				'expected' => array(
@@ -101,7 +101,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $args['name'], $new_item['name'] );
 	}
 
-	public function data_create_new_application_password() {
+	public static function data_create_new_application_password() {
 		return array(
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
@@ -126,7 +126,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $expected, WP_Application_Passwords::application_name_exists_for_user( self::$user_id, $name ) );
 	}
 
-	public function data_application_name_exists_for_user() {
+	public static function data_application_name_exists_for_user() {
 		return array(
 			array( false, 'test1' ),
 			array( false, 'baz' ),
@@ -172,7 +172,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( 'Could not find an application password with that id.', $actual->get_error_message( 'application_password_not_found' ) );
 	}
 
-	public function data_update_application_password() {
+	public static function data_update_application_password() {
 		return array(
 			'should not update when no values given to update' => array(
 				'update'   => array(),
