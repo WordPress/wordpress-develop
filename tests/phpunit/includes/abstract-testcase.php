@@ -40,6 +40,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	private static $original_options = null;
 
 	/**
+	 * The network's super admins before the first test class ran, or null if not multisite or unset.
+	 *
+	 * @var string[]|null
+	 */
+	private static $original_site_admins = null;
+
+	/**
 	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
 	 *
 	 * @var string|null
@@ -102,9 +109,18 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		// Options to restore after each class, see restore_options().
+		/*
+		 * Options and super admins to restore after each class, see restore_options().
+		 * An installed site always has options: no rows means the query failed, and
+		 * restoring to an empty snapshot would delete them all.
+		 */
 		if ( null === self::$original_options ) {
-			self::$original_options = self::get_option_rows();
+			$rows = self::get_option_rows();
+
+			if ( $rows ) {
+				self::$original_options     = $rows;
+				self::$original_site_admins = is_multisite() ? get_site_option( 'site_admins', null ) : null;
+			}
 		}
 
 		/*
@@ -136,7 +152,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		/*
 		 * The cache still holds values the tests' rollbacks undid, and the cleanup reads
-		 * options, e.g. a `site_admins` set in set_up() and rolled back in tear_down().
+		 * options, e.g. update_site_option() would not restore `site_admins` if a rolled
+		 * back test left the original value in the cache.
 		 */
 		self::flush_cache();
 
@@ -161,10 +178,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Restores the options table rows to the ones before the first test class ran.
+	 * Restores the options table rows, and the network's super admins, to the ones
+	 * before the first test class ran.
 	 *
 	 * A test class commits the options it changes while setting up or tearing down,
-	 * e.g. a deleted `blogdescription`, and they would leak into the next classes.
+	 * e.g. a deleted `blogdescription` or super admins replaced with a fixture user,
+	 * and they would leak into the next classes.
 	 */
 	private static function restore_options() {
 		global $wpdb;
@@ -186,6 +205,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			}
 
 			$wpdb->replace( $wpdb->options, (array) $row );
+		}
+
+		if ( null !== self::$original_site_admins ) {
+			update_site_option( 'site_admins', self::$original_site_admins );
 		}
 	}
 
