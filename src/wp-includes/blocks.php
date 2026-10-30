@@ -2282,7 +2282,12 @@ function excerpt_remove_blocks( $content ) {
 	 */
 	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
 
-	$allowed_blocks = array_merge( $allowed_inner_blocks, $allowed_wrapper_blocks );
+	$allowed_blocks = array_merge(
+		$allowed_inner_blocks,
+		$allowed_wrapper_blocks,
+		// Playlist track details are stored in block attributes, see _excerpt_render_playlist_block().
+		array( 'core/playlist' )
+	);
 
 	/**
 	 * Filters the list of blocks that can contribute to the excerpt.
@@ -2308,6 +2313,11 @@ function excerpt_remove_blocks( $content ) {
 		}
 
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
+			if ( 'core/playlist' === $block['blockName'] ) {
+				$output .= _excerpt_render_playlist_block( $block );
+				continue;
+			}
+
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
 					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
@@ -2380,11 +2390,91 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 			continue;
 		}
 
-		if ( empty( $inner_block['innerBlocks'] ) ) {
+		if ( 'core/playlist' === $inner_block['blockName'] ) {
+			$output .= _excerpt_render_playlist_block( $inner_block );
+		} elseif ( empty( $inner_block['innerBlocks'] ) ) {
 			$output .= render_block( $inner_block );
 		} else {
 			$output .= _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
 		}
+	}
+
+	return $output;
+}
+
+/**
+ * Renders the track details of a Playlist block for generating an excerpt.
+ *
+ * The track title, artist, and album are stored in the attributes of the
+ * Playlist Track inner blocks, so the rendered player markup is not used.
+ * The "Unknown artist" and "Unknown album" placeholders set by the editor
+ * are skipped, as are tracks without a title.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array $parsed_block The parsed Playlist block.
+ * @return string The track details, one paragraph per track.
+ */
+function _excerpt_render_playlist_block( $parsed_block ) {
+	$output = '';
+
+	if ( empty( $parsed_block['innerBlocks'] ) ) {
+		return $output;
+	}
+
+	foreach ( $parsed_block['innerBlocks'] as $track ) {
+		if (
+			'core/playlist-track' !== $track['blockName'] ||
+			false === ( $track['attrs']['metadata']['blockVisibility'] ?? null )
+		) {
+			continue;
+		}
+
+		$title  = $track['attrs']['title'] ?? '';
+		$artist = $track['attrs']['artist'] ?? '';
+		$album  = $track['attrs']['album'] ?? '';
+
+		// Skip tracks that cannot be played or have no title.
+		if ( empty( $track['attrs']['id'] ) || ! is_string( $title ) || '' === trim( $title ) ) {
+			continue;
+		}
+
+		if ( ! is_string( $artist ) || __( 'Unknown artist' ) === $artist ) {
+			$artist = '';
+		}
+
+		if ( ! is_string( $album ) || __( 'Unknown album' ) === $album ) {
+			$album = '';
+		}
+
+		if ( '' !== $artist && '' !== $album ) {
+			$details = sprintf(
+				/* translators: %1$s: track title, %2$s: artist name, %3$s: album name. */
+				_x( '%1$s by %2$s from the album %3$s', 'track title, artist name, album name' ),
+				$title,
+				$artist,
+				$album
+			);
+		} elseif ( '' !== $artist ) {
+			$details = sprintf(
+				/* translators: %1$s: track title, %2$s: artist name. */
+				_x( '%1$s by %2$s', 'track title, artist name' ),
+				$title,
+				$artist
+			);
+		} elseif ( '' !== $album ) {
+			$details = sprintf(
+				/* translators: %1$s: track title, %2$s: album name. */
+				_x( '%1$s from the album %2$s', 'track title, album name' ),
+				$title,
+				$album
+			);
+		} else {
+			$details = $title;
+		}
+
+		$output .= '<p>' . esc_html( wp_strip_all_tags( $details ) ) . "</p>\n";
 	}
 
 	return $output;

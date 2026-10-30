@@ -207,4 +207,203 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Hello World', $output );
 	}
+
+	/**
+	 * Tests that the track details of a Playlist block are included in the excerpt.
+	 *
+	 * @ticket 65835
+	 *
+	 * @covers ::_excerpt_render_playlist_block
+	 *
+	 * @dataProvider data_excerpt_remove_blocks_renders_playlist_track_details
+	 *
+	 * @param array  $track_attributes Playlist Track block attributes.
+	 * @param string $expected         The expected excerpt output.
+	 */
+	public function test_excerpt_remove_blocks_renders_playlist_track_details( $track_attributes, $expected ) {
+		$content = $this->get_playlist_block_markup( array( $track_attributes ) );
+
+		$this->assertSame( $expected, excerpt_remove_blocks( $content ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_excerpt_remove_blocks_renders_playlist_track_details() {
+		return array(
+			'title, artist, and album'     => array(
+				'track_attributes' => array(
+					'id'     => 1,
+					'title'  => 'Song',
+					'artist' => 'Singer',
+					'album'  => 'Record',
+				),
+				'expected'         => "<p>Song by Singer from the album Record</p>\n",
+			),
+			'title and artist'             => array(
+				'track_attributes' => array(
+					'id'     => 1,
+					'title'  => 'Song',
+					'artist' => 'Singer',
+				),
+				'expected'         => "<p>Song by Singer</p>\n",
+			),
+			'title and album'              => array(
+				'track_attributes' => array(
+					'id'    => 1,
+					'title' => 'Song',
+					'album' => 'Record',
+				),
+				'expected'         => "<p>Song from the album Record</p>\n",
+			),
+			'title only'                   => array(
+				'track_attributes' => array(
+					'id'    => 1,
+					'title' => 'Song',
+				),
+				'expected'         => "<p>Song</p>\n",
+			),
+			'placeholder artist and album' => array(
+				'track_attributes' => array(
+					'id'     => 1,
+					'title'  => 'Song',
+					'artist' => 'Unknown artist',
+					'album'  => 'Unknown album',
+				),
+				'expected'         => "<p>Song</p>\n",
+			),
+			'HTML in the details'          => array(
+				'track_attributes' => array(
+					'id'     => 1,
+					'title'  => '<b>Song</b> & Dance',
+					'artist' => 'Singer',
+				),
+				'expected'         => "<p>Song &amp; Dance by Singer</p>\n",
+			),
+			'no title'                     => array(
+				'track_attributes' => array(
+					'id'     => 1,
+					'artist' => 'Singer',
+					'album'  => 'Record',
+				),
+				'expected'         => '',
+			),
+			'no ID'                        => array(
+				'track_attributes' => array(
+					'title' => 'Song',
+				),
+				'expected'         => '',
+			),
+			'hidden track'                 => array(
+				'track_attributes' => array(
+					'id'       => 1,
+					'title'    => 'Song',
+					'metadata' => array( 'blockVisibility' => false ),
+				),
+				'expected'         => '',
+			),
+		);
+	}
+
+	/**
+	 * Tests that each track of a Playlist block is included in the excerpt,
+	 * including when the Playlist block is inside a wrapper block.
+	 *
+	 * @ticket 65835
+	 *
+	 * @covers ::_excerpt_render_playlist_block
+	 * @covers ::_excerpt_render_inner_blocks
+	 */
+	public function test_excerpt_remove_blocks_renders_all_playlist_tracks_inside_wrapper_block() {
+		$playlist = $this->get_playlist_block_markup(
+			array(
+				array(
+					'id'    => 1,
+					'title' => 'First song',
+				),
+				array(
+					'id'    => 2,
+					'title' => 'Second song',
+				),
+			)
+		);
+		$content  = "<!-- wp:group -->\n<div class=\"wp-block-group\">{$playlist}</div>\n<!-- /wp:group -->";
+
+		$this->assertSame( "<p>First song</p>\n<p>Second song</p>\n", excerpt_remove_blocks( $content ) );
+	}
+
+	/**
+	 * Tests that the Playlist block can be removed from the excerpt with the
+	 * `excerpt_allowed_blocks` filter.
+	 *
+	 * @ticket 65835
+	 */
+	public function test_excerpt_remove_blocks_skips_playlist_block_removed_by_filter() {
+		$content = $this->get_playlist_block_markup(
+			array(
+				array(
+					'id'    => 1,
+					'title' => 'Song',
+				),
+			)
+		);
+
+		add_filter(
+			'excerpt_allowed_blocks',
+			static function ( $allowed_blocks ) {
+				return array_diff( $allowed_blocks, array( 'core/playlist' ) );
+			}
+		);
+
+		$this->assertSame( '', excerpt_remove_blocks( $content ) );
+	}
+
+	/**
+	 * Tests that the generated excerpt of a post with a Playlist block
+	 * contains the track details.
+	 *
+	 * @ticket 65835
+	 *
+	 * @covers ::wp_trim_excerpt
+	 */
+	public function test_wp_trim_excerpt_includes_playlist_track_details() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_excerpt' => '',
+				'post_content' => $this->get_playlist_block_markup(
+					array(
+						array(
+							'id'     => 1,
+							'title'  => 'First song',
+							'artist' => 'Singer',
+						),
+						array(
+							'id'    => 2,
+							'title' => 'Second song',
+						),
+					)
+				),
+			)
+		);
+
+		$this->assertSame( 'First song by Singer Second song', wp_trim_excerpt( '', $post_id ) );
+	}
+
+	/**
+	 * Returns the markup of a Playlist block with the given tracks.
+	 *
+	 * @param array[] $tracks Attributes of each Playlist Track block.
+	 * @return string The Playlist block markup.
+	 */
+	private function get_playlist_block_markup( $tracks ) {
+		$markup = "<!-- wp:playlist -->\n<figure class=\"wp-block-playlist\"><ol class=\"wp-block-playlist__tracklist\">";
+
+		foreach ( $tracks as $track ) {
+			$markup .= '<!-- wp:playlist-track ' . wp_json_encode( $track ) . ' /-->';
+		}
+
+		return $markup . "</ol></figure>\n<!-- /wp:playlist -->";
+	}
 }
