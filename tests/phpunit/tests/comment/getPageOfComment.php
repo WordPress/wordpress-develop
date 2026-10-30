@@ -36,6 +36,38 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		$this->assertSame( 1, get_page_of_comment( $comment_first[0], array( 'per_page' => 10 ) ) );
 	}
 
+	/**
+	 * Ensures that internal 'note' comments are excluded from the page calculation.
+	 *
+	 * Notes share the comments table but are never displayed in the public comment
+	 * list, so they must not shift the page a regular comment appears on.
+	 *
+	 * @ticket 65642
+	 *
+	 * @covers ::get_page_of_comment
+	 */
+	public function test_notes_should_not_affect_page() {
+		$p = self::factory()->post->create();
+
+		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-14 00:00:00' ) );
+
+		// An internal note dated between the two regular comments must be ignored.
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $p,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+				'comment_parent'   => 0,
+				'comment_date'     => '2013-09-15 00:00:00',
+			)
+		);
+
+		$comment_target = self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-16 00:00:00' ) );
+
+		// Only one regular comment precedes the target, so it is on page 2.
+		$this->assertSame( 2, get_page_of_comment( $comment_target[0], array( 'per_page' => 1 ) ) );
+	}
+
 	public function test_type_pings() {
 		$p   = self::factory()->post->create();
 		$now = time();
