@@ -445,7 +445,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		);
 	}
 
-	public function data_crop() {
+	public static function data_crop() {
 		return array(
 			'src height and width must be greater than 0' => array(
 				'src_x' => 0,
@@ -497,7 +497,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertSame( 'image_crop_error', $actual->get_error_code() );
 	}
 
-	public function data_crop_invalid_dimensions() {
+	public static function data_crop_invalid_dimensions() {
 		return array(
 			'src height must be greater than 0' => array(
 				'src_x' => 0,
