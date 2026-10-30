@@ -192,16 +192,10 @@ class WP_Site_Health {
 			'site_status' => array(
 				'direct'  => array(),
 				'async'   => array(),
-				'issues'  => array(
-					'good'        => 0,
-					'recommended' => 0,
-					'critical'    => 0,
-				),
+				'issues'  => self::get_site_status_counts(),
 				'results' => new stdClass(),
 			),
 		);
-
-		$health_check_js_variables['site_status']['issues'] = self::get_site_status_counts();
 
 		if ( 'site-health' === $screen->id && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
 			$tests = WP_Site_Health::get_tests();
@@ -3566,12 +3560,8 @@ class WP_Site_Health {
 		}
 
 		/*
-		 * Cache the compact results, keyed by test, so consumers can read the
-		 * detailed Site Health status without re-running the tests.
-		 *
-		 * Only verified results are included. An unavailable asynchronous test is still
-		 * reflected in the aggregate counts, but does not replace a previously verified
-		 * detailed result.
+		 * An unavailable test affects this run's counts but must not replace a
+		 * previously verified result, so only verified results are merged into details.
 		 */
 		self::update_site_status_detail( $results_to_store, $counts );
 	}
@@ -3581,7 +3571,8 @@ class WP_Site_Health {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
+	 * @return array Aggregate counts. Each value is `0` when no result has been cached.
+	 * @phpstan-return Test_Status_Counts
 	 */
 	public static function get_site_status_counts(): array {
 		$counts = self::read_site_status_cache();
@@ -3706,8 +3697,17 @@ class WP_Site_Health {
 			uksort(
 				$cached['results'],
 				static function ( $a, $b ) use ( $unsorted, $priority, $position ) {
-					return array( $priority[ $unsorted[ $a ]['status'] ], $unsorted[ $b ]['timestamp'], $position[ $a ] )
-						<=> array( $priority[ $unsorted[ $b ]['status'] ], $unsorted[ $a ]['timestamp'], $position[ $b ] );
+					$status_order = $priority[ $unsorted[ $a ]['status'] ] <=> $priority[ $unsorted[ $b ]['status'] ];
+					if ( 0 !== $status_order ) {
+						return $status_order;
+					}
+
+					$newest_first = $unsorted[ $b ]['timestamp'] <=> $unsorted[ $a ]['timestamp'];
+					if ( 0 !== $newest_first ) {
+						return $newest_first;
+					}
+
+					return $position[ $a ] <=> $position[ $b ];
 				}
 			);
 			$cached['results'] = array_slice( $cached['results'], 0, self::MAX_STORED_RESULTS, true );

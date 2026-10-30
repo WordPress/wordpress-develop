@@ -266,7 +266,7 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
-			// Save counts and verified results together in the shared cache.
+			// One request avoids competing counts-only and results-only updates to the shared cache.
 			$.post(
 				ajaxurl,
 				{
