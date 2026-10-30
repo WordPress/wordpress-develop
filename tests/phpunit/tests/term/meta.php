@@ -18,6 +18,14 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'wptests_tax_3' );
+
+		parent::tear_down();
+	}
+
 	public function test_add() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 

@@ -15,7 +15,7 @@ trait WP_Font_Face_Tests_Datasets {
 	 *
 	 * @return array
 	 */
-	public function data_should_print_given_fonts() {
+	public static function data_should_print_given_fonts() {
 		return array(
 			'single truetype format font'    => array(
 				'fonts'    => array(

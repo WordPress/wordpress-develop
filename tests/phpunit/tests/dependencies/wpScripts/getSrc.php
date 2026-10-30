@@ -51,7 +51,7 @@ class Tests_Dependencies_WpScripts_GetSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: string|false|null, 2: string }>
 	 */
-	public function data_builds_url(): array {
+	public static function data_builds_url(): array {
 		return array(
 			'relative source, default version'      => array( '/wp-includes/js/test.js', false, 'http://example.org/wp-includes/js/test.js?ver=7.2' ),
 			'relative source, explicit version'     => array( '/wp-includes/js/test.js', '1.0', 'http://example.org/wp-includes/js/test.js?ver=1.0' ),
@@ -152,7 +152,7 @@ class Tests_Dependencies_WpScripts_GetSrc extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_filtered_away(): array {
+	public static function data_filtered_away(): array {
 		return array(
 			'empty string' => array( '' ),
 			'false'        => array( false ),
