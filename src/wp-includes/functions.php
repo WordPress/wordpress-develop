@@ -2154,6 +2154,11 @@ function wp_mkdir_p( $target ) {
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
  */
 function path_is_absolute( $path ) {
+	// Only a string can be a path. Anything else, such as a post ID, is not absolute.
+	if ( ! is_string( $path ) ) {
+		return false;
+	}
+
 	/*
 	 * Check to see if the path is a stream and check to see if its an actual
 	 * path or file as realpath() does not support stream wrappers.
