@@ -102,6 +102,9 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 			'dot in key'                   => array( 'plugin/key.name' ),
 			'non-ascii'                    => array( 'plügin/key' ),
 			'one character over the max'   => array( str_repeat( 'a', 85 ) . '/' . str_repeat( 'b', 87 ) ),
+			'newline after key'            => array( "plugin/key\n" ),
+			'newline after namespace'      => array( "plugin\n/key" ),
+			'newline, unnamespaced'        => array( "apikey\n" ),
 		);
 	}
 }
