@@ -454,11 +454,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/user-edit.php
 		-
-			message: '#^Variable \$user_login might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
 			message: '#^Variable \$wp_roles might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
