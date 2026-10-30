@@ -751,6 +751,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 
 	// Populate metadata for the site.
 	populate_site_meta( $site->id, $args['meta'] );
+	_wp_update_site_title( $site->id );
 
 	// Remove all permissions that may exist for the site.
 	$table_prefix = $wpdb->get_blog_prefix();
@@ -890,6 +891,10 @@ function wp_uninitialize_site( $site_id ) {
 	}
 
 	// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
+	if ( is_site_meta_supported() ) {
+		delete_site_meta( $site->id, 'blogname' );
+	}
+
 	if ( $switch ) {
 		restore_current_blog();
 	}
@@ -1355,6 +1360,76 @@ function wp_update_blog_public_option_on_site_update( $site_id, $is_public ) {
 	}
 
 	update_blog_option( $site_id, 'blog_public', $is_public );
+}
+
+/**
+ * Synchronizes a site's searchable title with its saved blogname option.
+ *
+ * Decodes HTML character references to UTF-8 so that searches match the displayed
+ * title. Retries when the saved option changes during a metadata write.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int $site_id Optional. Site ID. Default is the current site ID.
+ * @return int|bool Meta ID if added, true if updated or deleted, false on failure or no change.
+ */
+function _wp_update_site_title( $site_id = 0 ) {
+	global $wpdb;
+	static $syncing = array();
+
+	if ( ! is_site_meta_supported() ) {
+		return false;
+	}
+
+	$site_id = (int) $site_id;
+	if ( ! $site_id ) {
+		$site_id = get_current_blog_id();
+	}
+
+	if ( isset( $syncing[ $site_id ] ) || ! get_site( $site_id ) || ! wp_is_site_initialized( $site_id ) ) {
+		return false;
+	}
+
+	$query = $wpdb->prepare(
+		'SELECT option_value FROM %i WHERE option_name = %s',
+		$wpdb->get_blog_prefix( $site_id ) . 'options',
+		'blogname'
+	);
+
+	$syncing[ $site_id ] = true;
+
+	try {
+		// Index the saved value rather than a title modified by option filters.
+		$option = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+		if ( $wpdb->last_error ) {
+			return false;
+		}
+
+		do {
+			$value = $option ? $option->option_value : null;
+
+			if ( null === $value ) {
+				$result = delete_site_meta( $site_id, 'blogname' );
+			} else {
+				$title  = WP_HTML_Decoder::decode_text_node( $value );
+				$result = update_site_meta( $site_id, 'blogname', wp_slash( $title ) );
+			}
+
+			// An overlapping request or a metadata hook may have changed the option.
+			$option = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			if ( $wpdb->last_error ) {
+				return false;
+			}
+			$current_value = $option ? $option->option_value : null;
+		} while ( $value !== $current_value );
+
+		return $result;
+	} finally {
+		unset( $syncing[ $site_id ] );
+	}
 }
 
 /**

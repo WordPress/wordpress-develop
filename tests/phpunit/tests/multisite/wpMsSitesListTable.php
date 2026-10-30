@@ -16,6 +16,8 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		// Keep the main site's title from matching URL search terms such as "test".
+		update_option( 'blogname', 'Main Site' );
 		$this->table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
 	}
 
@@ -241,5 +243,88 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $this->table->get_views() );
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_sites_list_searches_updated_title_without_flushing_cache() {
+		$site_id = self::factory()->blog->create( array( 'title' => 'Original Catalog 58795' ) );
+
+		$this->assertSame( array( array( $site_id ), 1 ), $this->search_sites( 'Original Catalog 58795' ) );
+		$this->assertSame( array( array(), 0 ), $this->search_sites( 'Café Archive 🐱 58795' ) );
+
+		// Named and numeric character references must match the displayed title.
+		$this->assertTrue( update_blog_option( $site_id, 'blogname', 'Caf&eacute; Archive &#x1F431; 58795' ) );
+		$this->assertSame( array( array( $site_id ), 1 ), $this->search_sites( 'Café Archive 🐱 58795' ) );
+		$this->assertSame( array( array(), 0 ), $this->search_sites( 'Original Catalog 58795' ) );
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_sites_list_matches_url_or_title_and_counts_before_pagination() {
+		$title_id = self::factory()->blog->create( array( 'title' => 'Needle58795 Catalog' ) );
+		$url_id   = self::factory()->blog->create(
+			array(
+				'domain' => 'needle58795.example.org',
+				'path'   => '/needle58795/',
+				'title'  => 'Other Catalog',
+			)
+		);
+		$both_id  = self::factory()->blog->create(
+			array(
+				'domain' => 'both-needle58795.example.org',
+				'path'   => '/both-needle58795/',
+				'title'  => 'Another Needle58795 Catalog',
+			)
+		);
+
+		// Multiple matching metadata rows must not duplicate a site or inflate its count.
+		add_site_meta( $both_id, 'blogname', 'Duplicate Needle58795 Catalog' );
+		add_filter(
+			'sites_network_per_page',
+			static function () {
+				return 2;
+			}
+		);
+
+		$this->assertSame(
+			array( array( $title_id, $url_id ), 3 ),
+			$this->search_sites( 'needle58795', array( 'orderby' => 'blog_id' ) )
+		);
+		$this->assertSame(
+			array( array( $both_id ), 3 ),
+			$this->search_sites(
+				'needle58795',
+				array(
+					'orderby' => 'blog_id',
+					'paged'   => 2,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Searches the network sites list and returns the matching IDs and total.
+	 *
+	 * @param string $search Search term.
+	 * @param array  $args   Additional request arguments.
+	 * @return array List of site IDs and the total number of matches.
+	 */
+	private function search_sites( $search, $args = array() ) {
+		$request = $_REQUEST;
+
+		try {
+			$_REQUEST = array_merge( array( 's' => $search ), $args );
+			$this->table->prepare_items();
+
+			return array(
+				array_map( 'intval', wp_list_pluck( $this->table->items, 'blog_id' ) ),
+				(int) $this->table->get_pagination_arg( 'total_items' ),
+			);
+		} finally {
+			$_REQUEST = $request;
+		}
 	}
 }

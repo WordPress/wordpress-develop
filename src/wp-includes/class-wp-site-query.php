@@ -112,6 +112,7 @@ class WP_Site_Query {
 	 * @since 5.1.0 Introduced the 'update_site_meta_cache', 'meta_query', 'meta_key',
 	 *              'meta_compare_key', 'meta_value', 'meta_type', and 'meta_compare' parameters.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
+	 * @since 7.2.0 Added support for 'blogname' in 'search_columns'.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of site query parameters. Default empty.
@@ -167,8 +168,9 @@ class WP_Site_Query {
 	 *     @type string[]        $lang__in               Array of language IDs to include affiliated sites for. Default empty.
 	 *     @type string[]        $lang__not_in           Array of language IDs to exclude affiliated sites for. Default empty.
 	 *     @type string          $search                 Search term(s) to retrieve matching sites for. Default empty.
-	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'domain' and 'path'.
-	 *                                                   Default empty array.
+	 *     @type string[]        $search_columns         Array of names to be searched. Accepts 'domain', 'path', and
+	 *                                                   'blogname' (the site title stored in site metadata).
+	 *                                                   Default empty array, which searches 'domain' and 'path'.
 	 *     @type bool            $update_site_cache      Whether to prime the cache for found sites. Default true.
 	 *     @type bool            $update_site_meta_cache Whether to prime the metadata cache for found sites. Default true.
 	 *     @type string|string[] $meta_key               Meta key or keys to filter by.
@@ -612,7 +614,7 @@ class WP_Site_Query {
 			$search_columns = array();
 
 			if ( $this->query_vars['search_columns'] ) {
-				$search_columns = array_intersect( $this->query_vars['search_columns'], array( 'domain', 'path' ) );
+				$search_columns = array_intersect( $this->query_vars['search_columns'], array( 'domain', 'path', 'blogname' ) );
 			}
 
 			if ( ! $search_columns ) {
@@ -622,7 +624,8 @@ class WP_Site_Query {
 			/**
 			 * Filters the columns to search in a WP_Site_Query search.
 			 *
-			 * The default columns include 'domain' and 'path.
+			 * The default columns include 'domain' and 'path'. The 'blogname' column
+			 * searches the site title stored in site metadata.
 			 *
 			 * @since 4.6.0
 			 *
@@ -776,10 +779,21 @@ class WP_Site_Query {
 
 		$searches = array();
 		foreach ( $columns as $column ) {
+			if ( 'blogname' === $column ) {
+				if ( is_site_meta_supported() ) {
+					$searches[] = $wpdb->prepare(
+						"EXISTS ( SELECT 1 FROM {$wpdb->blogmeta} AS site_title WHERE site_title.blog_id = {$wpdb->blogs}.blog_id AND site_title.meta_key = %s AND site_title.meta_value LIKE %s )",
+						'blogname',
+						$like
+					);
+				}
+				continue;
+			}
+
 			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 		}
 
-		return '(' . implode( ' OR ', $searches ) . ')';
+		return $searches ? '(' . implode( ' OR ', $searches ) . ')' : '0 = 1';
 	}
 
 	/**

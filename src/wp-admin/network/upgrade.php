@@ -59,9 +59,6 @@ switch ( $action ) {
 
 		$site_ids = get_sites(
 			array(
-				'spam'                   => 0,
-				'deleted'                => 0,
-				'archived'               => 0,
 				'network_id'             => get_current_network_id(),
 				'number'                 => 5,
 				'offset'                 => $n,
@@ -77,6 +74,17 @@ switch ( $action ) {
 		}
 		echo '<ul>';
 		foreach ( (array) $site_ids as $site_id ) {
+			$site = get_site( $site_id );
+			if ( ! $site ) {
+				continue;
+			}
+
+			if ( $site->spam || $site->deleted || $site->archived ) {
+				// Refresh searchable titles without loading an inactive site's administration.
+				_wp_update_site_title( $site_id );
+				continue;
+			}
+
 			switch_to_blog( $site_id );
 			$siteurl     = site_url();
 			$upgrade_url = admin_url( 'upgrade.php?step=upgrade_db' );

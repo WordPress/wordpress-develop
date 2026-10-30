@@ -611,6 +611,21 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 		$this->assertEmpty( $found );
 	}
 
+	/**
+	 * @ticket 58795
+	 */
+	public function test_site_query_title_search_is_opt_in() {
+		$site_id = self::factory()->blog->create( array( 'title' => 'Query Needle58795' ) );
+		$args    = array(
+			'fields' => 'ids',
+			'search' => 'Query Needle58795',
+		);
+
+		$this->assertSame( array(), get_sites( $args ) );
+		$args['search_columns'] = array( 'blogname' );
+		$this->assertSame( array( $site_id ), get_sites( $args ) );
+	}
+
 	public function test_wp_site_query_by_search_with_text_in_domain() {
 		$q     = new WP_Site_Query();
 		$found = $q->query(
