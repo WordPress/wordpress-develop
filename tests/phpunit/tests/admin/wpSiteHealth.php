@@ -1096,6 +1096,21 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertSame( array(), $detail['results'] );
 		$this->assertSame( 0, $detail['timestamp'] );
 
+		// The schema validation accepts an empty string as an object, but it must not reach the reader.
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => '',
+					'timestamp' => $now,
+				)
+			)
+		);
+
+		$detail = WP_Site_Health::get_site_status_detail();
+		$this->assertSame( array(), $detail['results'] );
+		$this->assertSame( 0, $detail['timestamp'] );
+
 		set_transient(
 			WP_Site_Health::STATUS_RESULT_TRANSIENT,
 			wp_json_encode(

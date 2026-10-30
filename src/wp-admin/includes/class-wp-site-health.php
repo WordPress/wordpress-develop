@@ -3770,7 +3770,11 @@ class WP_Site_Health {
 	 * @phpstan-return Stored_Test_Results
 	 */
 	private static function normalize_site_status_detail( array $cached ): array {
-		if ( is_wp_error( rest_validate_value_from_schema( $cached, self::STORED_STATUS_SCHEMA ) ) ) {
+		// The schema validation accepts an empty string as an empty object, so check the type too.
+		if (
+			is_wp_error( rest_validate_value_from_schema( $cached, self::STORED_STATUS_SCHEMA ) )
+			|| ! is_array( $cached['results'] )
+		) {
 			$cached = array(
 				'results'   => array(),
 				'timestamp' => 0,

@@ -107,6 +107,14 @@ jQuery( function( $ ) {
 			return false;
 		}
 
+		/*
+		 * Only these statuses have a section on the screen and are accepted by the
+		 * server-side cache. Any other status would make the whole cache update fail.
+		 */
+		if ( -1 === [ 'good', 'recommended', 'critical' ].indexOf( issue.status ) ) {
+			return false;
+		}
+
 		// Loop over expected data and match the data types.
 		for ( key in minimumExpected ) {
 			value = minimumExpected[ key ];
