@@ -127,7 +127,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 * @param int|float $name The term name to insert.
 	 */
 	public function test_wp_insert_term_numeric_term_name( $name ): void {
-		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing scalars.)
+		$found = wp_insert_term( $name, 'post_tag' );
 
 		$this->assertNotWPError( $found );
 		$term = get_term( $found['term_id'], 'post_tag' );

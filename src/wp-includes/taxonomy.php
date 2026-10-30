@@ -2547,9 +2547,9 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * @since 2.3.0
  * @since 7.2.0 A `$term` that is not a string or number now returns a WP_Error instead of causing a fatal error.
  *
- * @param string       $term     The term name to add.
- * @param string       $taxonomy The taxonomy to which to add the term.
- * @param array|string $args {
+ * @param string|int|float $term     The term name to add. A number is stored as its string form.
+ * @param string           $taxonomy The taxonomy to which to add the term.
+ * @param array|string     $args {
  *     Optional. Array or query string of arguments for inserting a term.
  *
  *     @type string $alias_of    Slug of the term to make this term an alias of.
