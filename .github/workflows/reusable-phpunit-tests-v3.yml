@@ -30,7 +30,7 @@ on:
         required: true
         type: 'string'
       db-type:
-        description: 'Database type. Valid types are mysql and mariadb'
+        description: 'Database type. Valid types are mysql, mariadb, and sqlite'
         required: false
         type: 'string'
         default: 'mysql'
@@ -152,7 +152,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'sqlite' == inputs.db-type && 'SQLite' || format( '{0} {1}', 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL', inputs.db-version ) }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ vars.RUNNERS_NAME || inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || 30 }}
     permissions:
@@ -281,7 +281,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
+          if [ "${LOCAL_DB_TYPE}" = 'sqlite' ]; then
+            docker compose run --rm php php -r 'echo "SQLite ", ( new PDO( "sqlite::memory:" ) )->query( "SELECT sqlite_version()" )->fetchColumn(), PHP_EOL;'
+          else
+            docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
+          fi
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i

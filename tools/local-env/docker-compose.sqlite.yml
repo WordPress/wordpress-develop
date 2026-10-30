@@ -1,0 +1,20 @@
+##
+# Changes the local environment to use SQLite (LOCAL_DB_TYPE=sqlite).
+#
+# SQLite needs no database server, so the MySQL container is only started when
+# its profile is enabled, and no other container depends on it.
+##
+services:
+  wordpress-develop:
+    depends_on: !override
+      php:
+        condition: service_started
+
+  cli:
+    depends_on: !override
+      php:
+        condition: service_started
+
+  mysql:
+    profiles:
+      - mysql

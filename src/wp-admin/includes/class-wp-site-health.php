@@ -1320,6 +1320,102 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if the SQLite version is supported.
+	 *
+	 * This replaces the SQL server test when the SQLite database engine is used.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_sqlite_version() {
+		global $wpdb;
+
+		$sqlite_version = $wpdb->dbh->get_sqlite_version();
+
+		$result = array(
+			'label'       => __( 'SQLite version is supported' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: SQLite version number. */
+					__( 'WordPress stores your site&#8217;s content and settings in an SQLite database file, using SQLite version %s. Support for SQLite is experimental.' ),
+					$sqlite_version
+				)
+			),
+			'actions'     => '',
+			'test'        => 'sqlite_version',
+		);
+
+		if ( version_compare( $sqlite_version, WP_MySQL_On_SQLite::MINIMUM_SQLITE_VERSION, '<' ) ) {
+			$result['status'] = 'critical';
+
+			$result['label']          = __( 'Unsupported SQLite version' );
+			$result['badge']['label'] = __( 'Security' );
+
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: Minimum required SQLite version number. */
+					__( 'WordPress requires SQLite version %s or higher. Contact your web hosting company to correct this.' ),
+					WP_MySQL_On_SQLite::MINIMUM_SQLITE_VERSION
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the SQLite database file is stored outside the web root.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_sqlite_database_location() {
+		$result = array(
+			'label'       => __( 'Your SQLite database file is outside the web root' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Your SQLite database file is stored outside the web root, so the web server can&#8217;t make it public.' )
+			),
+			'actions'     => '',
+			'test'        => 'sqlite_database_location',
+		);
+
+		if ( $this->is_in_web_root( DB_PATH ) ) {
+			$result['status'] = 'recommended';
+			$result['label']  = __( 'Your SQLite database file is in the web root' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p><p>%s</p>',
+				__( 'Your SQLite database file is stored in a directory that the web server can access. If the web server doesn&#8217;t block the file, anyone who knows its location can download it.' ),
+				sprintf(
+					/* translators: 1: DB_PATH, 2: wp-config.php */
+					__( 'For better security, move the database file outside the web root, and update %1$s in the %2$s file.' ),
+					'<code>DB_PATH</code>',
+					'<code>wp-config.php</code>'
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if the site can communicate with WordPress.org.
 	 *
 	 * @since 5.2.0
@@ -2847,10 +2943,15 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
+	 * @since 7.3.0 Replaced the SQL server test with SQLite version and database location tests for SQLite.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return array The list of tests to run.
 	 */
 	public static function get_tests() {
+		global $wpdb;
+
 		$tests = array(
 			'direct' => array(
 				'wordpress_version'            => array(
@@ -2966,6 +3067,21 @@ class WP_Site_Health {
 				),
 			),
 		);
+
+		// SQLite has no database server, so test the SQLite version and the database file instead.
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			unset( $tests['direct']['sql_server'] );
+
+			$tests['direct']['sqlite_version'] = array(
+				'label' => __( 'SQLite version' ),
+				'test'  => 'sqlite_version',
+			);
+
+			$tests['direct']['sqlite_database_location'] = array(
+				'label' => __( 'SQLite database location' ),
+				'test'  => 'sqlite_database_location',
+			);
+		}
 
 		// Conditionally include Authorization header test if the site isn't protected by Basic Auth.
 		if ( ! wp_is_site_protected_by_basic_auth() ) {
@@ -3749,6 +3865,7 @@ class WP_Site_Health {
 	 * Determines whether to suggest using a persistent object cache.
 	 *
 	 * @since 6.1.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -3806,18 +3923,6 @@ class WP_Site_Health {
 			return true;
 		}
 
-		$table_names = implode( "','", array( $wpdb->comments, $wpdb->options, $wpdb->posts, $wpdb->terms, $wpdb->users ) );
-
-		// With InnoDB the `TABLE_ROWS` are estimates, which are accurate enough and faster to retrieve than individual `COUNT()` queries.
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
-				"SELECT TABLE_NAME AS 'table', TABLE_ROWS AS 'rows', SUM(data_length + index_length) as 'bytes' FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') GROUP BY TABLE_NAME;",
-				DB_NAME
-			),
-			OBJECT_K
-		);
-
 		$threshold_map = array(
 			'comments_count' => $wpdb->comments,
 			'options_count'  => $wpdb->options,
@@ -3825,6 +3930,33 @@ class WP_Site_Health {
 			'terms_count'    => $wpdb->terms,
 			'users_count'    => $wpdb->users,
 		);
+
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			/*
+			 * SQLite has no row count estimates, so the rows are counted. The counting
+			 * stops at the threshold, as more rows don't change the result.
+			 */
+			$results = array();
+			foreach ( $threshold_map as $threshold => $table ) {
+				$results[ $table ] = (object) array(
+					'rows' => (int) $wpdb->get_var(
+						$wpdb->prepare( 'SELECT COUNT(*) FROM ( SELECT 1 FROM %i LIMIT %d ) AS limited_rows', $table, $thresholds[ $threshold ] )
+					),
+				);
+			}
+		} else {
+			$table_names = implode( "','", array( $wpdb->comments, $wpdb->options, $wpdb->posts, $wpdb->terms, $wpdb->users ) );
+
+			// With InnoDB the `TABLE_ROWS` are estimates, which are accurate enough and faster to retrieve than individual `COUNT()` queries.
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+					"SELECT TABLE_NAME AS 'table', TABLE_ROWS AS 'rows', SUM(data_length + index_length) as 'bytes' FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') GROUP BY TABLE_NAME;",
+					DB_NAME
+				),
+				OBJECT_K
+			);
+		}
 
 		return array_any( $threshold_map, fn( $table, $threshold ) => $thresholds[ $threshold ] <= $results[ $table ]->rows );
 	}
@@ -3860,5 +3992,36 @@ class WP_Site_Health {
 		 * @param string[] $services The list of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
+	}
+
+	/**
+	 * Checks if a path is in the web root, which is the WordPress, content, or document root directory.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $path The file path.
+	 * @return bool Whether the path is in the web root.
+	 */
+	private function is_in_web_root( $path ) {
+		$normalize = static function ( $path ) {
+			$real_path = realpath( $path );
+			return wp_normalize_path( false !== $real_path ? $real_path : $path );
+		};
+
+		$dirs = array( ABSPATH, WP_CONTENT_DIR );
+
+		if ( ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$dirs[] = $_SERVER['DOCUMENT_ROOT'];
+		}
+
+		$path = $normalize( $path );
+
+		foreach ( $dirs as $dir ) {
+			if ( str_starts_with( $path, trailingslashit( $normalize( $dir ) ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

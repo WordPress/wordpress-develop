@@ -79,7 +79,7 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/link-template.php
 		-
-			message: '#^Call to function wp_die\(\) with arguments non\-falsy\-string, mixed and array\{exit\: false, code\: ''mysql_not_found''\} will always evaluate to true\.$#'
+			message: '#^Call to function wp_die\(\) with arguments non\-falsy\-string, mixed and array\{exit\: false, code\: ''mysql_not_found''\|''sqlite_not_found''\} will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: ../../../src/wp-includes/load.php

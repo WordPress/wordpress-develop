@@ -143,11 +143,12 @@ function wp_populate_basic_auth_from_authorization_header() {
  *
  *   - PHP version
  *   - PHP extensions
- *   - MySQL or MariaDB version (unless a database drop-in is present)
+ *   - MySQL or SQLite PHP extension (unless a database drop-in is present)
  *
  * Dies if requirements are not met.
  *
  * @since 3.0.0
+ * @since 7.3.0 Checks for the SQLite extension when SQLite is used.
  * @access private
  *
  * @global string   $required_php_version    The minimum required PHP version string.
@@ -199,18 +200,33 @@ function wp_check_php_mysql_versions() {
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' )
+	$is_sqlite = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE;
+
+	if ( $is_sqlite ) {
+		$has_database_extension = extension_loaded( 'pdo_sqlite' );
+	} elseif ( defined( 'WP_SETUP_CONFIG' ) ) {
+		// The wp-config.php setup offers SQLite when the MySQL extension is missing.
+		$has_database_extension = function_exists( 'mysqli_connect' ) || extension_loaded( 'pdo_sqlite' );
+	} else {
+		$has_database_extension = function_exists( 'mysqli_connect' );
+	}
+
+	if ( ! $has_database_extension
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 
-		$message = '<p>' . __( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ) . "</p>\n";
+		if ( $is_sqlite ) {
+			$message = '<p>' . __( 'Your PHP installation appears to be missing the SQLite extension which is required by WordPress to use an SQLite database.' ) . "</p>\n";
+		} else {
+			$message = '<p>' . __( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ) . "</p>\n";
+		}
 
 		$message .= '<p>' . sprintf(
-			/* translators: %s: mysqli. */
+			/* translators: %s: The name of a PHP extension, such as mysqli. */
 			__( 'Please check that the %s PHP extension is installed and enabled.' ),
-			'<code>mysqli</code>'
+			$is_sqlite ? '<code>pdo_sqlite</code>' : '<code>mysqli</code>'
 		) . "</p>\n";
 
 		$message .= '<p>' . sprintf(
@@ -221,7 +237,7 @@ function wp_check_php_mysql_versions() {
 
 		$args = array(
 			'exit' => false,
-			'code' => 'mysql_not_found',
+			'code' => $is_sqlite ? 'sqlite_not_found' : 'mysql_not_found',
 		);
 		wp_die(
 			$message,

@@ -1497,6 +1497,7 @@ class WP_Debug_Data {
 	 *
 	 * @since 6.7.0
 	 * @since 7.2.0 Removed the obsolete `COMPRESS_SCRIPTS` and `COMPRESS_CSS` constants.
+	 * @since 7.3.0 Added the `DB_ENGINE` constant.
 	 *
 	 * @return array<string, string|array> The WordPress constants debug data.
 	 */
@@ -1594,6 +1595,11 @@ class WP_Debug_Data {
 				'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
 				'debug' => WP_DEVELOPMENT_MODE,
 			),
+			'DB_ENGINE'           => array(
+				'label' => 'DB_ENGINE',
+				'value' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : __( 'Undefined' ) ),
+				'debug' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : 'undefined' ),
+			),
 			'DB_CHARSET'          => array(
 				'label' => 'DB_CHARSET',
 				'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
@@ -1622,6 +1628,7 @@ class WP_Debug_Data {
 	 * Gets the WordPress database section of the debug data.
 	 *
 	 * @since 6.7.0
+	 * @since 7.3.0 Added the database type, and the SQLite database fields.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -1629,6 +1636,10 @@ class WP_Debug_Data {
 	 */
 	private static function get_wp_database(): array {
 		global $wpdb;
+
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			return self::get_wp_database_sqlite();
+		}
 
 		// Populate the database debug fields.
 		if ( is_object( $wpdb->dbh ) ) {
@@ -1644,6 +1655,11 @@ class WP_Debug_Data {
 		$client_version = $wpdb->dbh->client_info;
 
 		$fields = array(
+			'db_engine'          => array(
+				'label' => __( 'Database type' ),
+				'value' => __( 'MySQL or MariaDB' ),
+				'debug' => 'mysql',
+			),
 			'extension'          => array(
 				'label' => __( 'Database Extension' ),
 				'value' => $extension,
@@ -1693,6 +1709,66 @@ class WP_Debug_Data {
 			'max_connections'    => array(
 				'label' => __( 'Max connections number' ),
 				'value' => self::get_mysql_var( 'max_connections' ),
+			),
+		);
+
+		return array(
+			'label'  => __( 'Database' ),
+			'fields' => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress database section of the debug data for SQLite.
+	 *
+	 * SQLite has no server, user, host, and connection limits.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return array<string, string|array> The database debug data.
+	 */
+	private static function get_wp_database_sqlite(): array {
+		global $wpdb;
+
+		$fields = array(
+			'db_engine'             => array(
+				'label' => __( 'Database type' ),
+				'value' => __( 'SQLite (experimental)' ),
+				'debug' => 'sqlite',
+			),
+			'database_version'      => array(
+				'label' => __( 'SQLite version' ),
+				'value' => $wpdb->dbh->get_sqlite_version(),
+			),
+			'sqlite_driver_version' => array(
+				'label' => __( 'SQLite driver version' ),
+				'value' => SQLITE_DRIVER_VERSION,
+			),
+			'mysql_version'         => array(
+				'label' => __( 'Emulated MySQL version' ),
+				'value' => $wpdb->db_version(),
+			),
+			'database_file'         => array(
+				'label'   => __( 'Database file' ),
+				'value'   => DB_PATH,
+				'private' => true,
+			),
+			'database_prefix'       => array(
+				'label'   => __( 'Table prefix' ),
+				'value'   => $wpdb->prefix,
+				'private' => true,
+			),
+			'database_charset'      => array(
+				'label'   => __( 'Database charset' ),
+				'value'   => $wpdb->charset,
+				'private' => true,
+			),
+			'database_collate'      => array(
+				'label'   => __( 'Database collation' ),
+				'value'   => $wpdb->collate,
+				'private' => true,
 			),
 		);
 
@@ -1871,7 +1947,10 @@ class WP_Debug_Data {
 	/**
 	 * Fetches the total size of all the database tables for the active database user.
 	 *
+	 * With SQLite, this is the size of the database files.
+	 *
 	 * @since 5.2.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -1880,6 +1959,18 @@ class WP_Debug_Data {
 	public static function get_database_size() {
 		global $wpdb;
 		$size = 0;
+
+		// The SQLite database is stored in a file, and in a write-ahead log file, if any.
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			foreach ( array( DB_PATH, DB_PATH . '-wal' ) as $file ) {
+				if ( is_file( $file ) ) {
+					$size += filesize( $file );
+				}
+			}
+
+			return $size;
+		}
+
 		$rows = $wpdb->get_results( 'SHOW TABLE STATUS', ARRAY_A );
 
 		if ( $wpdb->num_rows > 0 ) {

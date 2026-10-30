@@ -73,9 +73,12 @@
 	<exclude-pattern>/src/wp-includes/blocks/*/*.asset.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/blocks-json.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/build/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/database/mysql-on-sqlite/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/database/mysql-parser/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/parser/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/php-ai-client/*</exclude-pattern>
@@ -309,6 +312,11 @@
 	<rule ref="WordPress.DB.RestrictedFunctions">
 		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow the WP DB Class to use the PDO-based SQLite driver. -->
+	<rule ref="WordPress.DB.RestrictedClasses">
+		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 	</rule>
 
 	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders

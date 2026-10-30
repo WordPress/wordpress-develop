@@ -143,6 +143,10 @@ parameters:
 		CUSTOM_TAGS: 'bool'
 		# Raw getenv() configs also yield false. Core treats any falsy value as empty.
 		DB_COLLATE: 'string'
+		# Core supports 'mysql' and 'sqlite', and treats any other value as 'mysql'.
+		DB_ENGINE: 'string'
+		# An absolute path, or ':memory:'. Core rejects any other value.
+		DB_PATH: 'string'
 		# Also defined as 1, 'true', and getenv() strings. Core checks truthiness.
 		DISALLOW_FILE_EDIT: 'bool'
 		DISALLOW_UNFILTERED_HTML: 'bool'
@@ -348,6 +352,9 @@ parameters:
 			- ../../src/wp-includes/class-wp-simplepie-sanitize-kses.php
 			- ../../src/wp-includes/class-wp-text-diff-renderer-inline.php
 			- ../../src/wp-includes/class-wp-text-diff-renderer-table.php
+			- ../../src/wp-includes/database/mysql-on-sqlite
+			- ../../src/wp-includes/database/mysql-parser
+			- ../../src/wp-includes/parser
 			- ../../src/wp-includes/php-ai-client
 			- ../../src/wp-includes/pomo
 			- ../../src/wp-includes/rss.php
