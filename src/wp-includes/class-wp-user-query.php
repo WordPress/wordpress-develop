@@ -948,10 +948,21 @@ class WP_User_Query {
 
 		foreach ( $columns as $column ) {
 			if ( 'ID' === $column ) {
-				$searches[] = $wpdb->prepare( "$column = %s", $search );
+				/*
+				 * Only compare against the ID column when the search is a plain non-negative integer.
+				 * Otherwise MySQL casts the string to a number, so '123abc' would match user 123.
+				 */
+				if ( ctype_digit( (string) $search ) ) {
+					$searches[] = $wpdb->prepare( "$column = %s", $search );
+				}
 			} else {
 				$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 			}
+		}
+
+		// No searchable columns remain, e.g. only 'ID' was requested with a non-numeric search.
+		if ( ! $searches ) {
+			return ' AND 1=0';
 		}
 
 		return ' AND (' . implode( ' OR ', $searches ) . ')';
