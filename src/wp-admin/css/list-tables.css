@@ -1789,8 +1789,222 @@ div.action-links,
 	width: 80px;
 }
 
+.wp-list-table-scroll:focus-visible {
+	outline: 2px solid var(--wp-admin-theme-color);
+	outline-offset: 0;
+}
+
 /* =Media Queries
 -------------------------------------------------------------- */
+
+@media screen and (min-width: 783px) {
+
+	/* Keep the table within a horizontally scrollable viewport. */
+	.wp-list-table-scroll {
+		display: grid;
+		container-type: inline-size;
+		clear: both;
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-x: none;
+		border: 1px solid #c3c4c7;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	}
+
+	/* Wrap preformatted text, including inline preformatting, while preserving whitespace. */
+	.wp-list-table-scroll > .wp-list-table pre {
+		white-space: pre-wrap !important;
+		overflow-wrap: anywhere;
+	}
+
+	/* Keep inline editing forms within the visible table container. */
+	.wp-list-table-scroll .inline-edit-wrapper,
+	.wp-list-table-scroll #replyrow.inline-edit-row fieldset.comment-reply {
+		position: sticky;
+		inset-inline-start: 0;
+		z-index: 2;
+		box-sizing: border-box;
+		width: 100cqi;
+	}
+
+	/* Account for the comment editing cell's 2px padding on each side. */
+	.wp-list-table-scroll #replyrow.inline-edit-row fieldset.comment-reply {
+		inset-inline-start: 2px;
+		float: none;
+		width: calc(100cqi - 4px);
+	}
+
+	.wp-list-table-scroll > .widefat {
+		grid-area: 1 / 1;
+		border: 0;
+		box-shadow: none;
+	}
+
+	/* Keep sort indicators beside their labels when columns shrink. */
+	.wp-list-table-scroll > .wp-list-table th.sortable a,
+	.wp-list-table-scroll > .wp-list-table th.sorted a {
+		display: flex;
+		align-items: center;
+	}
+
+	/* Keep the sort icons' layout boxes from extending past the last column. */
+	.wp-list-table-scroll .sorting-indicators {
+		overflow: clip;
+	}
+
+	/* Keep sorting links' focus indicators inside the scrolling viewport. */
+	.wp-list-table-scroll th.sortable a:focus,
+	.wp-list-table-scroll th.sorted a:focus {
+		box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+		outline-offset: -2px;
+	}
+
+	.wp-list-table-scroll > .fixed {
+		table-layout: auto;
+	}
+
+	/* Preserve the checkbox column's spacing under automatic table layout. */
+	.wp-list-table-scroll > .fixed .check-column {
+		min-width: 2.2em;
+	}
+
+	:where(.wp-list-table-scroll) > .fixed .column-author,
+	:where(.wp-list-table-scroll) > .fixed .column-categories,
+	:where(.wp-list-table-scroll) > .fixed .column-tags,
+	:where(.wp-list-table-scroll) > .fixed .column-date,
+	:where(.wp-list-table-scroll) > .fixed .column-response,
+	:where(.wp-list-table-scroll) > .fixed .column-role,
+	:where(.wp-list-table-scroll) > .fixed .column-slug,
+	:where(.wp-list-table-scroll) > .fixed .column-locations {
+		width: auto;
+	}
+
+	/* Long words, URLs, and filenames must not set the table's intrinsic width. */
+	.wp-list-table-scroll > .fixed .column-primary,
+	.wp-list-table-scroll > .fixed .column-primary *,
+	.wp-list-table-scroll > .fixed .column-author,
+	.wp-list-table-scroll > .fixed .column-author *,
+	.wp-list-table-scroll > .fixed .column-categories,
+	.wp-list-table-scroll > .fixed .column-categories *,
+	.wp-list-table-scroll > .fixed .column-tags,
+	.wp-list-table-scroll > .fixed .column-tags *,
+	.wp-list-table-scroll > .fixed .column-response,
+	.wp-list-table-scroll > .fixed .column-response *,
+	.wp-list-table-scroll > .fixed .column-role,
+	.wp-list-table-scroll > .fixed .column-role *,
+	.wp-list-table-scroll > .fixed .column-slug,
+	.wp-list-table-scroll > .fixed .column-slug *,
+	.wp-list-table-scroll > .fixed .column-locations,
+	.wp-list-table-scroll > .fixed .column-locations * {
+		overflow-wrap: anywhere;
+	}
+
+	.wp-list-table-scroll > .fixed th.column-author,
+	.wp-list-table-scroll > .fixed th.column-categories,
+	.wp-list-table-scroll > .fixed th.column-tags,
+	.wp-list-table-scroll > .fixed th.column-response,
+	.wp-list-table-scroll > .fixed th.column-role,
+	.wp-list-table-scroll > .fixed th.column-slug,
+	.wp-list-table-scroll > .fixed th.column-locations {
+		min-width: 10em;
+	}
+
+	.wp-list-table-scroll > .fixed th.column-comments {
+		min-width: 5.5em;
+	}
+
+	.wp-list-table-scroll > .fixed th.column-date {
+		min-width: 12em;
+	}
+
+	.wp-list-table-scroll > .fixed th.column-primary {
+		min-width: 20em;
+	}
+
+	/* Match the edge fades to Core's row backgrounds. */
+	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr {
+		--list-table-row-background: #fff;
+		position: relative;
+	}
+
+	.wp-list-table-scroll > .striped > tbody > :nth-child(odd),
+	.wp-list-table-scroll > .wp-list-table > tbody > .alternate,
+	.wp-list-table-scroll > .wp-list-table > tbody > .undo {
+		--list-table-row-background: #f6f7f7;
+	}
+
+	.wp-list-table-scroll > .plugins > tbody > tr {
+		--list-table-row-background: #fff;
+	}
+
+	.wp-list-table-scroll > .plugins > tbody > .active {
+		--list-table-row-background: color-mix(in srgb, var(--wp-admin-theme-color) 8%, #fff);
+	}
+
+	.wp-list-table-scroll > .plugins > tbody > .paused {
+		--list-table-row-background: #f6f7f7;
+	}
+
+	.wp-list-table-scroll > .wp-list-table > tbody > :is(.unapproved, .site-spammed, .site-mature) {
+		--list-table-row-background: #fcf9e8;
+	}
+
+	.wp-list-table-scroll > .wp-list-table > tbody > :is(.site-deleted, .site-archived) {
+		--list-table-row-background: #fcf0f1;
+	}
+
+	/* Core applies the 8% keyboard-selection tint to both the row and its cells. */
+	.wp-list-table-scroll > .wp-list-table > tbody > .vim-current {
+		--list-table-row-background: color-mix(in srgb, var(--wp-admin-theme-color) 15.36%, #fff);
+	}
+
+	/* Zero-width sticky cells paint the fades inward without adding column width. */
+	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::before,
+	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::after {
+		content: "";
+		display: table-cell;
+		position: sticky;
+		z-index: 1;
+		width: 0;
+		padding: 0;
+
+		/* WebKit needs a nonzero, nontransparent border to paint the sticky cell's border image. */
+		border: 0 solid var(--list-table-row-background);
+		border-top-width: 1px;
+		pointer-events: none;
+		opacity: 0;
+	}
+
+	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::before {
+		inset-inline-start: 0;
+
+		/* rtl:ignore */
+		border-image: linear-gradient(to right, var(--list-table-row-background), transparent) 0 100% / 0 32px 0 0 / 0 32px 0 0 stretch;
+	}
+
+	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::after {
+		inset-inline-end: 0;
+
+		/* rtl:ignore */
+		border-image: linear-gradient(to left, var(--list-table-row-background), transparent) 0 0 0 100% / 0 0 0 32px / 0 0 0 32px stretch;
+	}
+
+	.wp-list-table-scroll.has-scroll-overflow-start > .wp-list-table > :is(thead, tbody, tfoot) > tr::before,
+	.wp-list-table-scroll.has-scroll-overflow-end > .wp-list-table > :is(thead, tbody, tfoot) > tr::after {
+		opacity: 1;
+	}
+
+	/* Keep the same table grid in editing rows, without covering their forms. */
+	.wp-list-table-scroll > .wp-list-table > tbody > :is(.inline-edit-row, .inline-editor, #replyrow)::before,
+	.wp-list-table-scroll > .wp-list-table > tbody > :is(.inline-edit-row, .inline-editor, #replyrow)::after {
+		visibility: hidden;
+	}
+
+	.rtl .wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::before,
+	.rtl .wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::after {
+		transform: scaleX(-1);
+	}
+}
 
 @media screen and (max-width: 1100px) and (min-width: 782px), (max-width: 480px) {
 	.plugin-card .action-links {
