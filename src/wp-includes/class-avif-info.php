@@ -336,7 +336,6 @@ class Parser {
    * "ispe" is used for width and height, "pixi" and "av1C" are used for bit depth
    * and number of channels, and "auxC" is used for alpha.
    *
-   * @param stream  $handle              The resource the box will be parsed from.
    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
    * @return Status                      FOUND on success or an error on failure.
    */
@@ -492,7 +491,6 @@ class Parser {
    *
    * The "ipco" box contains the properties which are linked to items by the "ipma" box.
    *
-   * @param stream  $handle              The resource the box will be parsed from.
    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
    * @return Status                      FOUND on success or an error on failure.
    */
@@ -598,7 +596,6 @@ class Parser {
    * can be used to infer bit depth and number of channels for the primary item
    * when the latter does not have these properties.
    *
-   * @param stream  $handle              The resource the box will be parsed from.
    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
    * @return Status                      FOUND on success or an error on failure.
    */
@@ -673,7 +670,6 @@ class Parser {
    * It looks for the primary item ID in the "pitm" box and recurses into other boxes
    * to find its features.
    *
-   * @param stream  $handle              The resource the box will be parsed from.
    * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
    * @return Status                      FOUND on success or an error on failure.
    */
