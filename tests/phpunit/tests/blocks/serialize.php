@@ -41,6 +41,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * @param string $original Original block markup.
 	 *
 	 * @ticket 63917
+	 * @ticket 66368
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
@@ -54,6 +55,9 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		return array(
 			'Void block'                                  =>
 				array( '<!-- wp:void /-->' ),
+
+			'Void block with a numeric attribute name'    =>
+				array( '<!-- wp:void {"0":"a"} /-->' ),
 
 			'Freeform content ($block_name = null)'       =>
 				array( 'Example.' ),
@@ -117,6 +121,204 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 				'<!-- wp:attributes {"bs":"\\u005c","bsQuote":"\\u005c\\u0022","bsQuoteBs":"\\u005c\\u0022\\u005c"} /-->',
 			),
 		);
+	}
+
+	/**
+	 * Tests that block attributes are always serialized as a JSON object.
+	 *
+	 * @dataProvider data_serialize_block_attributes
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serialize_block_attributes()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: non-empty-string }>
+	 */
+	public static function data_serialize_block_attributes(): array {
+		return array(
+			'No attributes'                        => array( array(), '{}' ),
+			'String attribute'                     => array( array( 'align' => 'wide' ), '{"align":"wide"}' ),
+			'Numeric attribute name'               => array( array( 0 => 'a' ), '{"0":"a"}' ),
+			'Sequential numeric names'             => array(
+				array(
+					0 => 'a',
+					1 => 'b',
+				),
+				'{"0":"a","1":"b"}',
+			),
+			'Numeric name not starting from zero'  => array( array( 1 => 'a' ), '{"1":"a"}' ),
+			'Name starting with a null byte'       => array( array( "\0" . 'a' => 1 ), '{"\\u0000a":1}' ),
+			'List value'                           => array( array( 'className' => array( 'a', 'b' ) ), '{"className":["a","b"]}' ),
+			'Empty array value'                    => array( array( 'style' => array() ), '{"style":[]}' ),
+			'Characters unsafe in an HTML comment' => array( array( 'text' => '--> <!-- & "' ), '{"text":"\\u002d\\u002d\\u003e \\u003c!\\u002d\\u002d \\u0026 \\u0022"}' ),
+		);
+	}
+
+	/**
+	 * Tests that INF and NAN are serialized as null, as JSON.stringify() does, rather than losing all attributes.
+	 *
+	 * @dataProvider data_serialize_block_attributes_non_finite_numbers
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes_non_finite_numbers( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serialize_block_attributes_non_finite_numbers()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: string }>
+	 */
+	public static function data_serialize_block_attributes_non_finite_numbers(): array {
+		return array(
+			'INF'                      => array(
+				array(
+					'align' => 'wide',
+					'ratio' => INF,
+				),
+				'{"align":"wide","ratio":null}',
+			),
+			'Negative INF'             => array( array( 'ratio' => -INF ), '{"ratio":null}' ),
+			'NAN'                      => array( array( 'ratio' => NAN ), '{"ratio":null}' ),
+			'Nested in an array'       => array( array( 'style' => array( 'ratios' => array( 1.5, INF ) ) ), '{"style":{"ratios":[1.5,null]}}' ),
+			'Numeric attribute name'   => array( array( 0 => INF ), '{"0":null}' ),
+			'Finite floats left alone' => array( array( 'ratio' => 1.5 ), '{"ratio":1.5}' ),
+		);
+	}
+
+	/**
+	 * Tests that invalid UTF-8 is replaced with the replacement character U+FFFD.
+	 *
+	 * @dataProvider data_serialize_block_attributes_invalid_utf8
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes_invalid_utf8( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serialize_block_attributes_invalid_utf8()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: string }>
+	 */
+	public static function data_serialize_block_attributes_invalid_utf8(): array {
+		return array(
+			'Invalid byte'           => array( array( 'content' => "a\xFFb" ), "{\"content\":\"a\u{FFFD}b\"}" ),
+			'Truncated sequence'     => array( array( 'content' => "a\xE2\x82b" ), "{\"content\":\"a\u{FFFD}b\"}" ),
+			'Attribute name'         => array( array( "a\xFF" => 'b' ), "{\"a\u{FFFD}\":\"b\"}" ),
+			'Nested in an array'     => array( array( 'items' => array( "a\xFF" ) ), "{\"items\":[\"a\u{FFFD}\"]}" ),
+			'With INF'               => array(
+				array(
+					'content' => "a\xFF",
+					'ratio'   => INF,
+				),
+				"{\"content\":\"a\u{FFFD}\",\"ratio\":null}",
+			),
+			'Valid UTF-8 left alone' => array( array( 'content' => 'café' ), '{"content":"café"}' ),
+		);
+	}
+
+	/**
+	 * Tests that replacing INF with null does not change a variable that an attribute refers to.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_non_finite_number_reference() {
+		$ratio            = INF;
+		$block_attributes = array( 'ratio' => &$ratio );
+
+		$this->assertSame( '{"ratio":null}', serialize_block_attributes( $block_attributes ) );
+		$this->assertInfinite( $ratio, 'The variable the attribute refers to should not be changed.' );
+	}
+
+	/**
+	 * Tests that attributes which still cannot be encoded are serialized as an empty object.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_encoding_failure() {
+		$block_attributes = array();
+		$nested           = &$block_attributes;
+		for ( $i = 0; $i < 600; $i++ ) {
+			$nested['a'] = array();
+			$nested      = &$nested['a'];
+		}
+		unset( $nested );
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Tests that an INF value does not hide attributes nested too deeply, since json_encode() reports the later error.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_non_finite_number_with_encoding_failure() {
+		$block_attributes = array( 'ratio' => INF );
+		$nested           = &$block_attributes;
+		for ( $i = 0; $i < 600; $i++ ) {
+			$nested['a'] = array();
+			$nested      = &$nested['a'];
+		}
+		unset( $nested );
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Tests that attributes which refer to themselves are serialized as an empty object, rather than causing a fatal error.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_recursion() {
+		$block_attributes         = array( 'align' => 'wide' );
+		$block_attributes['self'] = &$block_attributes;
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Tests that attributes passed as an object are still serialized, rather than causing a fatal error.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_object() {
+		$block_attributes = (object) array( 'align' => 'wide' );
+
+		// @phpstan-ignore argument.type (An object is passed on purpose, since the function encoded one before its attributes were checked for a list.)
+		$this->assertSame( '{"align":"wide"}', serialize_block_attributes( $block_attributes ) );
 	}
 
 	public function test_serialized_block_name() {
@@ -308,6 +510,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * @ticket 59327
 	 * @ticket 59412
+	 * @ticket 66368
 	 *
 	 * @covers ::traverse_and_serialize_blocks
 	 *

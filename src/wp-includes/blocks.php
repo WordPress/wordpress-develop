@@ -1698,12 +1698,82 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * to ensure consistent operation between PHP and JavaScript.
  *
  * @since 5.3.1
+ * @since 7.2.0 Attributes are always serialized as an object, `INF` and `NAN`
+ *              values are serialized as null, invalid UTF-8 is replaced with
+ *              U+FFFD, and an empty object is returned if the attributes cannot
+ *              be encoded.
  *
- * @param array $block_attributes Attributes object.
+ * @param array<string, mixed> $block_attributes Attributes object.
  * @return string Serialized attributes.
+ *
+ * @phpstan-param array<array-key, mixed> $block_attributes
+ * @phpstan-return non-empty-string
  */
-function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+function serialize_block_attributes( $block_attributes ): string {
+	/*
+	 * Attributes are always an object, but an empty array, or one whose keys are numeric
+	 * attribute names counting up from zero, would be encoded as a JSON array. Only these are
+	 * cast to an object, since json_encode() skips object properties whose names start with a
+	 * null byte, which an attribute name decoded from JSON may do.
+	 */
+	$is_list = is_array( $block_attributes ) && array_is_list( $block_attributes );
+
+	/*
+	 * Invalid UTF-8 is replaced with the replacement character U+FFFD, rather than failing to
+	 * encode and leaving wp_json_encode() to replace it with a question mark.
+	 */
+	$flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
+
+	$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
+
+	/*
+	 * JSON cannot represent INF or NAN, so encoding fails if any attribute value is one. The
+	 * JSON.stringify() in serializeAttributes() encodes them as null instead, so do the same
+	 * and try again, rather than losing all the attributes. Values in nested arrays are
+	 * replaced too, but not those in objects, which belong to the caller.
+	 *
+	 * The arrays are copied rather than changed in place, since an element may be a reference
+	 * to a variable of the caller. Only an INF or NAN error is retried, and json_encode() does
+	 * not stop at an INF or NAN value but carries on, so an error further along, such as from
+	 * attributes nested too deeply or referring to themselves, is reported in its place. The
+	 * arrays are therefore no deeper than json_encode() allows. They are still walked no
+	 * deeper than that, but only as a safeguard against unbounded recursion.
+	 */
+	if ( false === $encoded_attributes && JSON_ERROR_INF_OR_NAN === json_last_error() && is_array( $block_attributes ) ) {
+		/**
+		 * Replaces INF and NAN with null in a value and in the arrays it contains.
+		 *
+		 * @param mixed $value Attribute value.
+		 * @param int   $depth How many more levels of arrays to walk.
+		 * @return mixed The value, with INF and NAN replaced.
+		 */
+		$replace_non_finite_numbers = static function ( $value, int $depth ) use ( &$replace_non_finite_numbers ) {
+			if ( is_float( $value ) && ! is_finite( $value ) ) {
+				return null;
+			}
+
+			if ( ! is_array( $value ) || $depth <= 0 ) {
+				return $value;
+			}
+
+			$replaced = array();
+			foreach ( $value as $key => $item ) {
+				$replaced[ $key ] = $replace_non_finite_numbers( $item, $depth - 1 );
+			}
+			return $replaced;
+		};
+
+		$block_attributes = $replace_non_finite_numbers( $block_attributes, 512 );
+
+		// Free the closure now, since it refers to itself and would otherwise wait for the cycle collector.
+		$replace_non_finite_numbers = null;
+
+		$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
+	}
+
+	if ( false === $encoded_attributes ) {
+		return '{}'; // JSON encoding of an empty object.
+	}
 
 	return strtr(
 		$encoded_attributes,
