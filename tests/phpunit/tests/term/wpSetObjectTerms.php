@@ -7,12 +7,64 @@
  */
 class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	protected static $taxonomy = 'category';
+
+	/**
+	 * @var int[]
+	 */
 	protected static $post_ids = array();
 	protected static $term_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many( 5 );
 		self::$term_ids = $factory->term->create_many( 5, array( 'taxonomy' => self::$taxonomy ) );
+	}
+
+	/**
+	 * Tests that a term that is not a string or number returns a WP_Error without changing existing terms.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_invalid_term_type
+	 *
+	 * @param mixed $term The invalid term to set alongside a valid one.
+	 */
+	public function test_invalid_term_type( $term ): void {
+		$post_id = self::$post_ids[0];
+		wp_set_object_terms( $post_id, array( 'existing' ), 'post_tag' );
+
+		$result = wp_set_object_terms( $post_id, array( 'new', $term ), 'post_tag' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'invalid_term_name', $result->get_error_code() );
+		$this->assertSame( array( 'existing' ), wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'names' ) ) );
+		$this->assertNull( term_exists( 'new', 'post_tag' ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_invalid_term_type()}.
+	 *
+	 * @return array<truthy-string, array{ mixed }>
+	 */
+	public function data_invalid_term_type(): array {
+		return array(
+			'array'  => array( array( 'foo' ) ),
+			'object' => array( new stdClass() ),
+			'true'   => array( true ),
+		);
+	}
+
+	/**
+	 * Tests that null and false terms are skipped rather than rejected.
+	 *
+	 * @ticket 66108
+	 */
+	public function test_null_and_false_terms_are_skipped(): void {
+		$post_id = self::$post_ids[0];
+
+		$result = wp_set_object_terms( $post_id, array( 'foo', null, false ), 'post_tag' );
+
+		$this->assertNotWPError( $result );
+		$this->assertSame( array( 'foo' ), wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'names' ) ) );
 	}
 
 	/**
