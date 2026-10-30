@@ -619,6 +619,66 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 65817
+	 *
+	 * @covers wpdb::get_col_info
+	 *
+	 * @dataProvider data_get_col_info_with_out_of_range_offset
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param int $col_offset Column offset past the last column, or a negative offset other than -1.
+	 */
+	public function test_get_col_info_with_out_of_range_offset( int $col_offset ) {
+		global $wpdb;
+
+		$wpdb->get_results( "SELECT ID FROM $wpdb->users" );
+
+		// @phpstan-ignore argument.type (Offsets outside the documented range are passed deliberately.)
+		$this->assertNull( $wpdb->get_col_info( 'name', $col_offset ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ int }>
+	 */
+	public static function data_get_col_info_with_out_of_range_offset(): array {
+		return array(
+			'next offset'     => array( 1 ),
+			'distant offset'  => array( 100 ),
+			'negative offset' => array( -2 ),
+		);
+	}
+
+	/**
+	 * @ticket 65817
+	 *
+	 * @covers wpdb::get_col_info
+	 * @covers wpdb::load_col_info
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_get_col_info_after_field_cursor_is_advanced() {
+		global $wpdb;
+
+		$wpdb->get_results( "SELECT ID, user_login FROM $wpdb->users" );
+
+		// Advance the result's field cursor before the column info is lazy-loaded.
+		$result = $wpdb->result;
+		$this->assertInstanceOf( 'mysqli_result', $result );
+		mysqli_fetch_field( $result ); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_fetch_field
+		mysqli_fetch_field( $result ); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_fetch_field
+
+		$this->assertSame( array( 'ID', 'user_login' ), $wpdb->get_col_info() );
+		$this->assertSame( 'user_login', $wpdb->get_col_info( 'name', 1 ) );
+
+		$col_info = $wpdb->col_info;
+		$this->assertIsArray( $col_info );
+		$this->assertContainsOnlyInstancesOf( 'stdClass', $col_info );
+	}
+
 	public function test_query_and_delete() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
