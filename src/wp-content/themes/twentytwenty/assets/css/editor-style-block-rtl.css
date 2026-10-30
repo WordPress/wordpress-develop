@@ -280,8 +280,10 @@
 /* POST TITLE */
 
 .editor-styles-wrapper .wp-block-post-title {
-	max-width: 1000px;
 	margin: 0 auto;
+}
+
+.editor-styles-wrapper .editor-visual-editor__post-title-wrapper .wp-block-post-title {
 	text-align: center;
 }
 
@@ -1167,6 +1169,16 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper ul.wp-block-post-template {
 	padding-right: 0;
+	max-width: 100%;
+}
+
+.editor-styles-wrapper ul.wp-block-post-template li {
+	max-width: 100%;
+	width: 100%;
+}
+
+.editor-styles-wrapper ul.wp-block-post-template li > * {
+	max-width: inherit;
 }
 
 
