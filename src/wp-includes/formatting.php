@@ -2942,6 +2942,8 @@ function stripslashes_from_strings_only( $value ) {
  *
  * @param mixed $value The array or string to be encoded.
  * @return mixed The encoded value.
+ *
+ * @phpstan-return ($value is array ? array<mixed> : ($value is object ? object : string))
  */
 function urlencode_deep( $value ) {
 	return map_deep( $value, 'urlencode' );
@@ -2954,6 +2956,8 @@ function urlencode_deep( $value ) {
  *
  * @param mixed $value The array or string to be encoded.
  * @return mixed The encoded value.
+ *
+ * @phpstan-return ($value is array ? array<mixed> : ($value is object ? object : string))
  */
 function rawurlencode_deep( $value ) {
 	return map_deep( $value, 'rawurlencode' );
@@ -2966,6 +2970,8 @@ function rawurlencode_deep( $value ) {
  *
  * @param mixed $value The array or string to be decoded.
  * @return mixed The decoded value.
+ *
+ * @phpstan-return ($value is array ? array<mixed> : ($value is object ? object : string))
  */
 function urldecode_deep( $value ) {
 	return map_deep( $value, 'urldecode' );
