@@ -3654,15 +3654,14 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 	 */
 	if ( ! $has_id3 && ! empty( $data['tags'] ) && is_array( $data['tags'] ) ) {
 		$id3_keys = array(
-			'albumartist'    => 'band',
-			'album_artist'   => 'band',
-			'date'           => 'year',
-			'creation_date'  => 'year',
-			'tracknumber'    => 'track_number',
-			'discnumber'     => 'part_of_a_set',
-			'disc_number'    => 'part_of_a_set',
-			'lyrics'         => 'unsynchronised_lyric',
-			'unsyncedlyrics' => 'unsynchronised_lyric',
+			'albumartist'   => 'band',
+			'album_artist'  => 'band',
+			'date'          => 'year',
+			'creation_date' => 'year',
+			'tracknumber'   => 'track_number',
+			'discnumber'    => 'part_of_a_set',
+			'disc_number'   => 'part_of_a_set',
+			'lyrics'        => 'unsynchronised_lyric',
 		);
 
 		foreach ( $data['tags'] as $tags ) {

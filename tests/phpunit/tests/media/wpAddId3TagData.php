@@ -126,20 +126,6 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 					'part_of_a_set' => '1/2',
 				),
 			),
-			'UNSYNCEDLYRICS (Vorbis)'     => array(
-				'data'     => array(
-					'tags' => array(
-						'vorbiscomment' => array(
-							'title'          => array( 'Aurora Rising' ),
-							'unsyncedlyrics' => array( 'First line' ),
-						),
-					),
-				),
-				'expected' => array(
-					'title'                => 'Aurora Rising',
-					'unsynchronised_lyric' => 'First line',
-				),
-			),
 			'ID3 wins over other tags'    => array(
 				'data'     => array(
 					'id3v2' => array(
