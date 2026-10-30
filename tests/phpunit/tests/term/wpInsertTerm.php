@@ -87,30 +87,33 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a non-scalar term name returns a WP_Error instead of causing a fatal error.
+	 * Tests that a term name that is not a string or number returns a WP_Error instead of causing a fatal error.
 	 *
 	 * @ticket 66108
 	 *
-	 * @dataProvider data_wp_insert_term_non_scalar_term_name
+	 * @dataProvider data_wp_insert_term_invalid_term_name_type
 	 *
 	 * @param mixed $name The term name to insert.
 	 */
-	public function test_wp_insert_term_non_scalar_term_name( $name ): void {
-		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing scalars.)
+	public function test_wp_insert_term_invalid_term_name_type( $name ): void {
+		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing invalid types.)
 
 		$this->assertWPError( $found );
 		$this->assertSame( 'empty_term_name', $found->get_error_code() );
 	}
 
 	/**
-	 * Data provider for {@see self::test_wp_insert_term_non_scalar_term_name()}
+	 * Data provider for {@see self::test_wp_insert_term_invalid_term_name_type()}.
 	 *
 	 * @return array<truthy-string, array{ mixed }>
 	 */
-	public function data_wp_insert_term_non_scalar_term_name(): array {
+	public function data_wp_insert_term_invalid_term_name_type(): array {
 		return array(
 			'array'  => array( array( 'foo', 'bar' ) ),
 			'object' => array( new stdClass() ),
+			'true'   => array( true ),
+			'false'  => array( false ),
+			'null'   => array( null ),
 		);
 	}
 
