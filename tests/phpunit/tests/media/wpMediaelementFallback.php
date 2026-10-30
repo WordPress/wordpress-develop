@@ -32,7 +32,7 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 			'<a href="' . $escaped . '">' . $escaped . '</a>',
 			wp_mediaelement_fallback( $url )
 		);
-		$this->assertStringContainsString( '&amp;', $escaped );
+		$this->assertStringContainsString( '&#038;', $escaped );
 	}
 
 	/**
