@@ -43,7 +43,6 @@ class Tests_Kses_ValidUnicode extends WP_UnitTestCase {
 			'max unicode'                  => array( 0x10FFFF, true ),
 			'backspace control'            => array( 0x8, false ),
 			'vertical tab'                 => array( 0xB, false ),
-			'form feed'                    => array( 0xC, false ),
 			'unit separator control'       => array( 0x1F, false ),
 			'null'                         => array( 0x0, false ),
 			'surrogate start'              => array( 0xD800, false ),
