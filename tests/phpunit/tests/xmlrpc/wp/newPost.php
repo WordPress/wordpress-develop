@@ -419,6 +419,45 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an ambiguous numeric term name in a hierarchical taxonomy returns an error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_ambiguous_numeric_term_name
+	 *
+	 * @param string|int $term_name The term name to send.
+	 */
+	public function test_terms_names_ambiguous_numeric_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$parent_cat = wp_create_category( '2024' );
+		wp_create_category( '2024', $parent_cat );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'category' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 401, $result->code );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ string|int }>
+	 */
+	public function data_terms_names_ambiguous_numeric_term_name(): array {
+		return array(
+			'string'  => array( '2024' ),
+			'integer' => array( 2024 ),
+		);
+	}
+
+	/**
 	 * @ticket 28601
 	 */
 	public function test_invalid_post_date_does_not_fatal() {

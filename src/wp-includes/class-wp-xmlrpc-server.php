@@ -1705,7 +1705,8 @@ class wp_xmlrpc_server extends IXR_Server {
 						// Filter out non-ambiguous term names.
 						$ambiguous_tax_term_counts = array_filter( $tax_term_names_count, array( $this, '_is_greater_than_one' ) );
 
-						$ambiguous_terms = array_keys( $ambiguous_tax_term_counts );
+						// Cast back to strings, since array keys turn numeric names into integers.
+						$ambiguous_terms = array_map( 'strval', array_keys( $ambiguous_tax_term_counts ) );
 					}
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
