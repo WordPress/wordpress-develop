@@ -685,7 +685,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
 	 */
-	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
+	public static function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
 		return array(
 			'post'      => array( 'post' ),
 			'valid cpt' => array( 'valid_cpt' ),
