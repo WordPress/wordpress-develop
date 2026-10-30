@@ -93,10 +93,10 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_insert_term_non_scalar_term_name
 	 *
-	 * @param mixed $term The term name to insert.
+	 * @param mixed $name The term name to insert.
 	 */
-	public function test_wp_insert_term_non_scalar_term_name( $term ): void {
-		$found = wp_insert_term( $term, 'post_tag' );
+	public function test_wp_insert_term_non_scalar_term_name( $name ): void {
+		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing scalars.)
 
 		$this->assertWPError( $found );
 		$this->assertSame( 'empty_term_name', $found->get_error_code() );
@@ -121,19 +121,21 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_insert_term_numeric_term_name
 	 *
-	 * @param int|float $term The term name to insert.
+	 * @param int|float $name The term name to insert.
 	 */
-	public function test_wp_insert_term_numeric_term_name( $term ): void {
-		$found = wp_insert_term( $term, 'post_tag' );
+	public function test_wp_insert_term_numeric_term_name( $name ): void {
+		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing scalars.)
 
 		$this->assertNotWPError( $found );
-		$this->assertSame( (string) $term, get_term( $found['term_id'], 'post_tag' )->name );
+		$term = get_term( $found['term_id'], 'post_tag' );
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$this->assertSame( (string) $name, $term->name );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{int|float}>
+	 * @return array<string, array{ int|float }>
 	 */
 	public function data_wp_insert_term_numeric_term_name(): array {
 		return array(
