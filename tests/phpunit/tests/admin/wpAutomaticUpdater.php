@@ -908,4 +908,288 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests plugin and theme auto-update email subjects.
+	 *
+	 * @ticket 66075
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 *
+	 * @dataProvider data_send_plugin_theme_email_subject
+	 *
+	 * @param string $expected   Expected final subject.
+	 * @param string $type       Email type.
+	 * @param array  $successful Successful updates.
+	 * @param array  $failed     Failed updates.
+	 */
+	public function test_send_plugin_theme_email_subject( $expected, $type, $successful, $failed ) {
+		update_option( 'blogname', 'My 100% Site' );
+		delete_option( 'auto_plugin_theme_update_emails' );
+
+		$actual = null;
+
+		add_filter(
+			'wp_mail',
+			static function ( $args ) use ( &$actual ) {
+				$actual = $args['subject'];
+
+				return $args;
+			}
+		);
+
+		self::$send_plugin_theme_email->invokeArgs(
+			self::$updater,
+			array( $type, $successful, $failed )
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for plugin and theme auto-update email subjects.
+	 *
+	 * @return array[]
+	 */
+	public function data_send_plugin_theme_email_subject() {
+		$plugin_a = $this->get_plugin_theme_email_update_item(
+			'plugin',
+			'Plugin &amp; One',
+			'plugin-one/plugin-one.php'
+		);
+
+		$plugin_nested = $this->get_plugin_theme_email_update_item(
+			'plugin',
+			'Plugin &amp;amp; Name',
+			'plugin-nested/plugin-nested.php'
+		);
+
+		$plugin_b = $this->get_plugin_theme_email_update_item(
+			'plugin',
+			'Plugin Two',
+			'plugin-two/plugin-two.php'
+		);
+
+		$plugin_c = $this->get_plugin_theme_email_update_item(
+			'plugin',
+			'Plugin Three',
+			'plugin-three/plugin-three.php'
+		);
+
+		$theme_a = $this->get_plugin_theme_email_update_item(
+			'theme',
+			'Theme One',
+			'theme-one'
+		);
+
+		$theme_b = $this->get_plugin_theme_email_update_item(
+			'theme',
+			'Theme Two',
+			'theme-two'
+		);
+
+		$cases = array(
+			'single successful plugin uses decoded name' => array(
+				'expected'   => '[My 100% Site] Plugin & One was automatically updated',
+				'type'       => 'success',
+				'successful' => array(
+					'plugin' => array( $plugin_a ),
+				),
+				'failed'     => array(),
+			),
+			'nested entity is decoded in final mail subject' => array(
+				'expected'   => '[My 100% Site] Plugin & Name was automatically updated',
+				'type'       => 'success',
+				'successful' => array(
+					'plugin' => array( $plugin_nested ),
+				),
+				'failed'     => array(),
+			),
+			'two successful plugins use count'           => array(
+				'expected'   => '[My 100% Site] 2 plugins were automatically updated',
+				'type'       => 'success',
+				'successful' => array(
+					'plugin' => array( $plugin_a, $plugin_b ),
+				),
+				'failed'     => array(),
+			),
+			'successful plugin and theme retain legacy subject' => array(
+				'expected'   => '[My 100% Site] Some plugins and themes have automatically updated',
+				'type'       => 'success',
+				'successful' => array(
+					'plugin' => array( $plugin_a ),
+					'theme'  => array( $theme_a ),
+				),
+				'failed'     => array(),
+			),
+			'multiple successful plugins and themes retain legacy subject' => array(
+				'expected'   => '[My 100% Site] Some plugins and themes have automatically updated',
+				'type'       => 'success',
+				'successful' => array(
+					'plugin' => array( $plugin_a, $plugin_b, $plugin_c ),
+					'theme'  => array( $theme_a, $theme_b ),
+				),
+				'failed'     => array(),
+			),
+			'single failed theme uses name'              => array(
+				'expected'   => '[My 100% Site] Theme One failed to update',
+				'type'       => 'fail',
+				'successful' => array(),
+				'failed'     => array(
+					'theme' => array( $theme_a ),
+				),
+			),
+			'two failed themes use count'                => array(
+				'expected'   => '[My 100% Site] 2 themes failed to update',
+				'type'       => 'fail',
+				'successful' => array(),
+				'failed'     => array(
+					'theme' => array( $theme_a, $theme_b ),
+				),
+			),
+			'failed plugins and themes retain legacy subject' => array(
+				'expected'   => '[My 100% Site] Some plugins and themes have failed to update',
+				'type'       => 'fail',
+				'successful' => array(),
+				'failed'     => array(
+					'plugin' => array( $plugin_a, $plugin_b, $plugin_c ),
+					'theme'  => array( $theme_a, $theme_b ),
+				),
+			),
+			'mixed email describes failed items only'    => array(
+				'expected'   => '[My 100% Site] Plugin & One failed to update',
+				'type'       => 'mixed',
+				'successful' => array(
+					'theme' => array( $theme_a, $theme_b ),
+				),
+				'failed'     => array(
+					'plugin' => array( $plugin_a ),
+				),
+			),
+		);
+
+		foreach ( array( 'plugin', 'theme' ) as $item_type ) {
+			foreach ( array( 'success', 'fail', 'mixed' ) as $email_type ) {
+				foreach ( array( '', " \t\r\n ", '&#32;&#9;', "\u{00A0}", str_repeat( ' ', 40 ) ) as $index => $name ) {
+					$updates = array(
+						$item_type => array( $this->get_plugin_theme_email_update_item( $item_type, $name, 'example' ) ),
+					);
+					$cases[ "$item_type $email_type blank name $index" ] = array(
+						'expected'   => '[My 100% Site] 1 ' . $item_type . ( 'success' === $email_type ? ' was automatically updated' : ' failed to update' ),
+						'type'       => $email_type,
+						'successful' => 'success' === $email_type ? $updates : array(),
+						'failed'     => 'success' === $email_type ? array() : $updates,
+					);
+				}
+			}
+		}
+
+		$cases['mixed email with both failed item types retains legacy subject'] = array(
+			'expected'   => '[My 100% Site] Some plugins and themes have failed to update',
+			'type'       => 'mixed',
+			'successful' => array( 'plugin' => array( $plugin_b ) ),
+			'failed'     => array(
+				'plugin' => array( $plugin_a ),
+				'theme'  => array( $theme_a ),
+			),
+		);
+
+		$cases['long name is truncated in final mail subject'] = array(
+			'expected'   => '[My 100% Site] ' . str_repeat( 'a', 35 ) . "\u{2026} was automatically updated",
+			'type'       => 'success',
+			'successful' => array( 'plugin' => array( $this->get_plugin_theme_email_update_item( 'plugin', str_repeat( 'a', 36 ), 'long-name' ) ) ),
+			'failed'     => array(),
+		);
+
+		return $cases;
+	}
+
+	/**
+	 * Tests preparation of names used in auto-update email subjects.
+	 *
+	 * @ticket 66075
+	 *
+	 * @covers WP_Automatic_Updater::prepare_plugin_theme_auto_update_email_subject_name
+	 *
+	 * @dataProvider data_prepare_plugin_theme_auto_update_email_subject_name
+	 *
+	 * @param string $expected Expected prepared name.
+	 * @param string $name     Input name.
+	 */
+	public function test_prepare_plugin_theme_auto_update_email_subject_name( $expected, $name ) {
+		$method = new ReflectionMethod(
+			self::$updater,
+			'prepare_plugin_theme_auto_update_email_subject_name'
+		);
+
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$this->assertSame(
+			$expected,
+			$method->invoke( self::$updater, $name )
+		);
+	}
+
+	/**
+	 * Data provider for auto-update email subject-name preparation.
+	 *
+	 * @return array[]
+	 */
+	public function data_prepare_plugin_theme_auto_update_email_subject_name() {
+		return array(
+			'34 ASCII code points remain unchanged' => array(
+				'expected' => str_repeat( 'a', 34 ),
+				'name'     => str_repeat( 'a', 34 ),
+			),
+			'35 ASCII code points remain unchanged' => array(
+				'expected' => str_repeat( 'a', 35 ),
+				'name'     => str_repeat( 'a', 35 ),
+			),
+			'36 ASCII code points are shortened'    => array(
+				'expected' => str_repeat( 'a', 35 ) . "\u{2026}",
+				'name'     => str_repeat( 'a', 36 ),
+			),
+			'four-byte code points are counted'     => array(
+				'expected' => str_repeat( "\u{1F642}", 35 ) . "\u{2026}",
+				'name'     => str_repeat( "\u{1F642}", 36 ),
+			),
+			'entities are decoded before counting'  => array(
+				'expected' => str_repeat( 'a', 33 ) . '&b',
+				'name'     => str_repeat( 'a', 33 ) . '&amp;b',
+			),
+			'invalid UTF-8 is scrubbed'             => array(
+				'expected' => "Plugin \u{FFFD} Name",
+				'name'     => "Plugin \xC0 Name",
+			),
+			'nested entities decode one layer'      => array(
+				'expected' => 'Plugin &amp; Name',
+				'name'     => 'Plugin &amp;amp; Name',
+			),
+		);
+	}
+
+	/**
+	 * Creates an update result used by the email-subject tests.
+	 *
+	 * @param string $type Plugin or theme.
+	 * @param string $name Item name.
+	 * @param string $slug Plugin file or theme stylesheet.
+	 * @return object Update result.
+	 */
+	private function get_plugin_theme_email_update_item( $type, $name, $slug ) {
+		$item = (object) array(
+			'current_version' => '1.0.0',
+			'new_version'     => '2.0.0',
+			'url'             => '',
+		);
+
+		$item->{$type} = $slug;
+
+		return (object) array(
+			'name' => $name,
+			'item' => $item,
+		);
+	}
 }
