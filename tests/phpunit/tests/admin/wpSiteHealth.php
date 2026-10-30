@@ -707,4 +707,39 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
 	}
+
+	/**
+	 * @ticket 56134
+	 *
+	 * @covers ::get_test_plugin_version
+	 */
+	public function test_get_test_plugin_version_with_no_active_plugins() {
+		update_option( 'active_plugins', array() );
+
+		$result = $this->instance->get_test_plugin_version();
+
+		$this->assertStringContainsString( 'Your site does not have any active plugins.', $result['description'] );
+	}
+
+	/**
+	 * @ticket 56134
+	 *
+	 * @covers ::get_test_theme_version
+	 */
+	public function test_get_test_theme_version_with_no_installed_themes() {
+		$orig_theme_directories = $GLOBALS['wp_theme_directories'];
+
+		$GLOBALS['wp_theme_directories'] = array();
+		wp_clean_themes_cache();
+		unset( $GLOBALS['wp_themes'] );
+
+		$result = $this->instance->get_test_theme_version();
+
+		$GLOBALS['wp_theme_directories'] = $orig_theme_directories;
+		wp_clean_themes_cache();
+		unset( $GLOBALS['wp_themes'] );
+
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertStringContainsString( 'Your site does not have any installed themes.', $result['description'] );
+	}
 }
