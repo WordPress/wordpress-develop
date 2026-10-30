@@ -552,4 +552,43 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
 		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
 	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_attachment_hooks_receive_unsanitized_postarr() {
+		$captured = array();
+		$callback = static function () use ( &$captured ) {
+			$args                         = func_get_args();
+			$captured[ current_action() ] = end( $args );
+		};
+
+		add_action( 'add_attachment', $callback, 10, 2 );
+		add_action( 'edit_attachment', $callback, 10, 2 );
+		add_action( 'attachment_updated', $callback, 10, 4 );
+
+		$attachment_id = wp_insert_attachment(
+			array(
+				'post_title'     => 'Attachment',
+				'post_mime_type' => 'image/jpeg',
+				'my_custom_arg'  => 'abc',
+			)
+		);
+
+		$this->assertIsArray( $captured['add_attachment'] );
+		$this->assertSame( 'abc', $captured['add_attachment']['my_custom_arg'] );
+
+		wp_update_post(
+			array(
+				'ID'            => $attachment_id,
+				'post_title'    => 'Updated attachment',
+				'my_custom_arg' => 'abc',
+			)
+		);
+
+		$this->assertIsArray( $captured['edit_attachment'] );
+		$this->assertSame( 'abc', $captured['edit_attachment']['my_custom_arg'] );
+		$this->assertIsArray( $captured['attachment_updated'] );
+		$this->assertSame( 'abc', $captured['attachment_updated']['my_custom_arg'] );
+	}
 }

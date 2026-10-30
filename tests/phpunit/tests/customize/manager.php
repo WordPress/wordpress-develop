@@ -3693,6 +3693,35 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			$this->assertSame( $video_url, $sanitized );
 		}
 	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_trash_changeset_post_passes_empty_unsanitized_postarr() {
+		$args = array(
+			'post_type'    => 'customize_changeset',
+			'post_content' => wp_json_encode( array( 'blogname' => array( 'value' => 'Test' ) ) ),
+			'post_name'    => wp_generate_uuid4(),
+			'post_status'  => 'draft',
+		);
+
+		$post_id = wp_insert_post( $args );
+		$manager = $this->create_test_manager( $args['post_name'] );
+
+		$captured = null;
+		add_action(
+			'save_post',
+			static function ( $post_id, $post, $update, $unsanitized_postarr = null ) use ( &$captured ) {
+				$captured = $unsanitized_postarr;
+			},
+			10,
+			4
+		);
+
+		$manager->trash_changeset_post( $post_id );
+
+		$this->assertSame( array(), $captured );
+	}
 }
 
 require_once ABSPATH . WPINC . '/class-wp-customize-setting.php';

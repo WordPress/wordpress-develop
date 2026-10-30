@@ -1548,4 +1548,156 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * @ticket 60038
+	 *
+	 * @dataProvider data_save_post_hooks
+	 *
+	 * @param string $hook Hook name.
+	 */
+	public function test_save_post_hooks_receive_unsanitized_postarr( $hook ) {
+		$captured = null;
+		add_action(
+			$hook,
+			static function ( $post_id, $post, $update, $unsanitized_postarr = null ) use ( &$captured ) {
+				$captured = $unsanitized_postarr;
+			},
+			10,
+			4
+		);
+
+		wp_insert_post(
+			array(
+				'post_title'    => 'Original title',
+				'post_status'   => 'publish',
+				'my_custom_arg' => 'abc',
+			)
+		);
+
+		$this->assertIsArray( $captured );
+		$this->assertSame( 'abc', $captured['my_custom_arg'] );
+		$this->assertSame( 'Original title', $captured['post_title'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_save_post_hooks() {
+		return array(
+			'save_post'      => array( 'save_post' ),
+			'save_post_post' => array( 'save_post_post' ),
+			'wp_insert_post' => array( 'wp_insert_post' ),
+		);
+	}
+
+	/**
+	 * @ticket 60038
+	 *
+	 * @dataProvider data_update_hooks
+	 *
+	 * @param string $hook          Hook name.
+	 * @param int    $accepted_args Number of arguments the callback accepts.
+	 */
+	public function test_update_hooks_receive_unsanitized_postarr( $hook, $accepted_args ) {
+		$post_id  = self::factory()->post->create();
+		$captured = null;
+		add_action(
+			$hook,
+			static function () use ( &$captured ) {
+				$captured = func_get_args()[ func_num_args() - 1 ];
+			},
+			10,
+			$accepted_args
+		);
+
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_title'    => 'Updated title',
+				'my_custom_arg' => 'abc',
+			)
+		);
+
+		$this->assertIsArray( $captured );
+		$this->assertSame( 'abc', $captured['my_custom_arg'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_update_hooks() {
+		return array(
+			'pre_post_update' => array( 'pre_post_update', 3 ),
+			'edit_post'       => array( 'edit_post', 3 ),
+			'edit_post_post'  => array( 'edit_post_post', 3 ),
+			'post_updated'    => array( 'post_updated', 4 ),
+		);
+	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_unsanitized_postarr_is_not_sanitized() {
+		$captured = null;
+		add_action(
+			'save_post',
+			static function ( $post_id, $post, $update, $unsanitized_postarr = null ) use ( &$captured ) {
+				$captured = $unsanitized_postarr;
+			},
+			10,
+			4
+		);
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'  => 'Title',
+				'post_name'   => 'My Slug',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( 'my-slug', get_post_field( 'post_name', $post_id ) );
+		$this->assertSame( 'My Slug', $captured['post_name'] );
+	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_add_trashed_suffix_filter_receives_unsanitized_postarr() {
+		$trashed_id = self::factory()->post->create(
+			array(
+				'post_name'   => 'foo',
+				'post_status' => 'publish',
+			)
+		);
+		wp_trash_post( $trashed_id );
+
+		$captured = null;
+		add_filter(
+			'add_trashed_suffix_to_trashed_posts',
+			static function ( $add_suffix, $post_name, $post_id, $unsanitized_postarr = null ) use ( &$captured ) {
+				$captured = $unsanitized_postarr;
+				return $add_suffix;
+			},
+			10,
+			4
+		);
+
+		wp_insert_post(
+			array(
+				'post_title'    => 'Foo',
+				'post_name'     => 'foo',
+				'post_status'   => 'publish',
+				'my_custom_arg' => 'abc',
+			)
+		);
+
+		$this->assertIsArray( $captured );
+		$this->assertSame( 'abc', $captured['my_custom_arg'] );
+	}
 }

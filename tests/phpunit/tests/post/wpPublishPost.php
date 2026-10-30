@@ -272,4 +272,30 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 			'wp_publish_post failed to add default term for custom taxonomy.'
 		);
 	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_wp_publish_post_passes_empty_unsanitized_postarr() {
+		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$captured = array();
+		$callback = static function ( $post_id ) use ( $draft_id, &$captured ) {
+			if ( $post_id !== $draft_id ) {
+				return;
+			}
+
+			$args                         = func_get_args();
+			$captured[ current_action() ] = end( $args );
+		};
+
+		add_action( 'edit_post', $callback, 10, 3 );
+		add_action( 'save_post', $callback, 10, 4 );
+		add_action( 'wp_insert_post', $callback, 10, 4 );
+
+		wp_publish_post( $draft_id );
+
+		$this->assertSame( array(), $captured['edit_post'] );
+		$this->assertSame( array(), $captured['save_post'] );
+		$this->assertSame( array(), $captured['wp_insert_post'] );
+	}
 }

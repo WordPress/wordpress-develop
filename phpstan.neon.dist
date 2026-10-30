@@ -97,6 +97,17 @@ parameters:
 			path: src/wp-includes/canonical.php
 			count: 1
 
+		# Both the `edit_post_{$field}` filter in sanitize_post_field() and the `edit_post_{$post->post_type}` action
+		# normalize to the hook name "edit_post_{...}", so PHPStan compares every call of the action against the
+		# filter's two documented parameters. The two are different hooks with different signatures.
+		-
+			message: '#^do_action\(\) for hook "edit_post_\{\.\.\.\}" provides 3 arguments, but the hook is documented with 2 parameters\.$#'
+			identifier: wordpress.hookParamCountMismatch
+			paths:
+				- src/wp-includes/class-wp-customize-manager.php
+				- src/wp-includes/comment.php
+				- src/wp-includes/post.php
+
 		# In core, @internal is advisory for extenders: it marks a symbol that plugins should not rely on. Core itself is
 		# one codebase and its own uses of these symbols are intended. PHPStan scopes @internal by root namespace, and
 		# since core symbols live in the global namespace, it reports every use outside the declaring class or file.

@@ -5124,12 +5124,15 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * Filters whether or not to add a `__trashed` suffix to the name of trashed posts that match the name of the updated post.
 		 *
 		 * @since 5.4.0
+		 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 		 *
-		 * @param bool   $add_trashed_suffix Whether to attempt to add the suffix.
-		 * @param string $post_name          The name of the post being updated.
-		 * @param int    $post_id            Post ID.
+		 * @param bool   $add_trashed_suffix  Whether to attempt to add the suffix.
+		 * @param string $post_name           The name of the post being updated.
+		 * @param int    $post_id             Post ID.
+		 * @param array  $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+		 *                                    originally passed to wp_insert_post().
 		 */
-		$add_trashed_suffix = apply_filters( 'add_trashed_suffix_to_trashed_posts', true, $post_name, $post_id );
+		$add_trashed_suffix = apply_filters( 'add_trashed_suffix_to_trashed_posts', true, $post_name, $post_id, $unsanitized_postarr );
 
 		if ( $add_trashed_suffix ) {
 			wp_add_trashed_suffix_to_post_name_for_trashed_posts( $post_name, $post_id );
@@ -5224,11 +5227,14 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * Fires immediately before an existing post is updated in the database.
 		 *
 		 * @since 2.5.0
+		 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 		 *
-		 * @param int   $post_id Post ID.
-		 * @param array $data    Array of unslashed post data.
+		 * @param int   $post_id             Post ID.
+		 * @param array $data                Array of unslashed post data.
+		 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+		 *                                   originally passed to wp_insert_post().
 		 */
-		do_action( 'pre_post_update', $post_id, $data );
+		do_action( 'pre_post_update', $post_id, $data, $unsanitized_postarr );
 
 		if ( false === $wpdb->update( $wpdb->posts, $data, $where ) ) {
 			if ( $wp_error ) {
@@ -5418,10 +5424,13 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			 * Fires once an existing attachment has been updated.
 			 *
 			 * @since 2.0.0
+			 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 			 *
-			 * @param int $post_id Attachment ID.
+			 * @param int   $post_id             Attachment ID.
+			 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
+			 *                                   as originally passed to wp_insert_post().
 			 */
-			do_action( 'edit_attachment', $post_id );
+			do_action( 'edit_attachment', $post_id, $unsanitized_postarr );
 
 			$post_after = get_post( $post_id );
 
@@ -5429,22 +5438,28 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			 * Fires once an existing attachment has been updated.
 			 *
 			 * @since 4.4.0
+			 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 			 *
-			 * @param int     $post_id      Post ID.
-			 * @param WP_Post $post_after   Post object following the update.
-			 * @param WP_Post $post_before  Post object before the update.
+			 * @param int     $post_id             Post ID.
+			 * @param WP_Post $post_after          Post object following the update.
+			 * @param WP_Post $post_before         Post object before the update.
+			 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
+			 *                                     as originally passed to wp_insert_post().
 			 */
-			do_action( 'attachment_updated', $post_id, $post_after, $post_before );
+			do_action( 'attachment_updated', $post_id, $post_after, $post_before, $unsanitized_postarr );
 		} else {
 
 			/**
 			 * Fires once an attachment has been added.
 			 *
 			 * @since 2.0.0
+			 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 			 *
-			 * @param int $post_id Attachment ID.
+			 * @param int   $post_id             Attachment ID.
+			 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data
+			 *                                   as originally passed to wp_insert_post().
 			 */
-			do_action( 'add_attachment', $post_id );
+			do_action( 'add_attachment', $post_id, $unsanitized_postarr );
 		}
 
 		return $post_id;
@@ -5463,21 +5478,29 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 *  - `edit_post_page`
 		 *
 		 * @since 5.1.0
+		 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 		 *
-		 * @param int     $post_id Post ID.
-		 * @param WP_Post $post    Post object.
+		 * @param int     $post_id             Post ID.
+		 * @param WP_Post $post                Post object.
+		 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+		 *                                     originally passed to wp_insert_post().
+		 *                                     Empty array when the hook fires outside of wp_insert_post().
 		 */
-		do_action( "edit_post_{$post->post_type}", $post_id, $post );
+		do_action( "edit_post_{$post->post_type}", $post_id, $post, $unsanitized_postarr );
 
 		/**
 		 * Fires once an existing post has been updated.
 		 *
 		 * @since 1.2.0
+		 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 		 *
-		 * @param int     $post_id Post ID.
-		 * @param WP_Post $post    Post object.
+		 * @param int     $post_id             Post ID.
+		 * @param WP_Post $post                Post object.
+		 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+		 *                                     originally passed to wp_insert_post().
+		 *                                     Empty array when the hook fires outside of wp_insert_post().
 		 */
-		do_action( 'edit_post', $post_id, $post );
+		do_action( 'edit_post', $post_id, $post, $unsanitized_postarr );
 
 		$post_after = get_post( $post_id );
 
@@ -5485,12 +5508,15 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * Fires once an existing post has been updated.
 		 *
 		 * @since 3.0.0
+		 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 		 *
-		 * @param int     $post_id      Post ID.
-		 * @param WP_Post $post_after   Post object following the update.
-		 * @param WP_Post $post_before  Post object before the update.
+		 * @param int     $post_id             Post ID.
+		 * @param WP_Post $post_after          Post object following the update.
+		 * @param WP_Post $post_before         Post object before the update.
+		 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+		 *                                     originally passed to wp_insert_post().
 		 */
-		do_action( 'post_updated', $post_id, $post_after, $post_before );
+		do_action( 'post_updated', $post_id, $post_after, $post_before, $unsanitized_postarr );
 	}
 
 	/**
@@ -5505,34 +5531,46 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	 *  - `save_post_page`
 	 *
 	 * @since 3.7.0
+	 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated.
+	 * @param int     $post_id             Post ID.
+	 * @param WP_Post $post                Post object.
+	 * @param bool    $update              Whether this is an existing post being updated.
+	 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+	 *                                     originally passed to wp_insert_post().
+	 *                                     Empty array when the hook fires outside of wp_insert_post().
 	 */
-	do_action( "save_post_{$post->post_type}", $post_id, $post, $update );
+	do_action( "save_post_{$post->post_type}", $post_id, $post, $update, $unsanitized_postarr );
 
 	/**
 	 * Fires once a post has been saved.
 	 *
 	 * @since 1.5.0
+	 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated.
+	 * @param int     $post_id             Post ID.
+	 * @param WP_Post $post                Post object.
+	 * @param bool    $update              Whether this is an existing post being updated.
+	 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+	 *                                     originally passed to wp_insert_post().
+	 *                                     Empty array when the hook fires outside of wp_insert_post().
 	 */
-	do_action( 'save_post', $post_id, $post, $update );
+	do_action( 'save_post', $post_id, $post, $update, $unsanitized_postarr );
 
 	/**
 	 * Fires once a post has been saved.
 	 *
 	 * @since 2.0.0
+	 * @since 7.3.0 The `$unsanitized_postarr` parameter was added.
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated.
+	 * @param int     $post_id             Post ID.
+	 * @param WP_Post $post                Post object.
+	 * @param bool    $update              Whether this is an existing post being updated.
+	 * @param array   $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed post data as
+	 *                                     originally passed to wp_insert_post().
+	 *                                     Empty array when the hook fires outside of wp_insert_post().
 	 */
-	do_action( 'wp_insert_post', $post_id, $post, $update );
+	do_action( 'wp_insert_post', $post_id, $post, $update, $unsanitized_postarr );
 
 	if ( $fire_after_hooks ) {
 		wp_after_insert_post( $post, $update, $post_before );
@@ -5690,19 +5728,19 @@ function wp_publish_post( $post ) {
 	wp_transition_post_status( 'publish', $old_status, $post );
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( "edit_post_{$post->post_type}", $post->ID, $post );
+	do_action( "edit_post_{$post->post_type}", $post->ID, $post, array() );
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( 'edit_post', $post->ID, $post );
+	do_action( 'edit_post', $post->ID, $post, array() );
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( "save_post_{$post->post_type}", $post->ID, $post, true );
+	do_action( "save_post_{$post->post_type}", $post->ID, $post, true, array() );
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( 'save_post', $post->ID, $post, true );
+	do_action( 'save_post', $post->ID, $post, true, array() );
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( 'wp_insert_post', $post->ID, $post, true );
+	do_action( 'wp_insert_post', $post->ID, $post, true, array() );
 
 	wp_after_insert_post( $post, true, $post_before );
 }

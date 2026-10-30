@@ -100,4 +100,24 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	public function _return_100() {
 		return 100;
 	}
+
+	/**
+	 * @ticket 60038
+	 */
+	public function test_edit_post_receives_empty_unsanitized_postarr() {
+		$post_id  = self::factory()->post->create();
+		$captured = null;
+		add_action(
+			'edit_post',
+			static function ( $post_id, $post, $unsanitized_postarr = null ) use ( &$captured ) {
+				$captured = $unsanitized_postarr;
+			},
+			10,
+			3
+		);
+
+		wp_update_comment_count_now( $post_id );
+
+		$this->assertSame( array(), $captured );
+	}
 }
