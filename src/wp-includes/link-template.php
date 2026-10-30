@@ -3716,7 +3716,10 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && str_starts_with( $plugin, $mu_plugin_dir ) ) {
+	// Map symlinked plugins back to their location inside the (mu-)plugins directory.
+	$plugin_path = wp_get_plugin_path_from_realpath( $plugin );
+
+	if ( ! empty( $plugin_path ) && str_starts_with( $plugin_path, $mu_plugin_dir ) ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -3724,8 +3727,8 @@ function plugins_url( $path = '', $plugin = '' ) {
 
 	$url = set_url_scheme( $url );
 
-	if ( ! empty( $plugin ) && is_string( $plugin ) ) {
-		$folder = dirname( plugin_basename( $plugin ) );
+	if ( ! empty( $plugin_path ) && is_string( $plugin_path ) ) {
+		$folder = dirname( plugin_basename( $plugin_path ) );
 		if ( '.' !== $folder ) {
 			$url .= '/' . ltrim( $folder, '/' );
 		}

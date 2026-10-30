@@ -788,24 +788,13 @@ function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $
  *
  * @since 1.5.0
  *
- * @global array $wp_plugin_paths
+ * @see wp_get_plugin_path_from_realpath()
  *
  * @param string $file The filename of plugin.
  * @return string The name of a plugin.
  */
 function plugin_basename( $file ) {
-	global $wp_plugin_paths;
-
-	// $wp_plugin_paths contains normalized paths.
-	$file = wp_normalize_path( $file );
-
-	arsort( $wp_plugin_paths );
-
-	foreach ( $wp_plugin_paths as $dir => $realdir ) {
-		if ( str_starts_with( $file, $realdir ) ) {
-			$file = $dir . substr( $file, strlen( $realdir ) );
-		}
-	}
+	$file = wp_get_plugin_path_from_realpath( $file );
 
 	$plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
@@ -819,7 +808,7 @@ function plugin_basename( $file ) {
 /**
  * Register a plugin's real path.
  *
- * This is used in plugin_basename() to resolve symlinked paths.
+ * This is used in plugin_basename() and plugins_url() to resolve symlinked paths.
  *
  * @since 3.9.0
  *
@@ -1055,4 +1044,45 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string
 	}
 
 	return null;
+}
+
+/**
+ * Gets the registered path of a plugin file from its real path.
+ *
+ * Plugins located outside of the plugins or must-use plugins directories and
+ * symlinked into them are loaded from their real path, so `__FILE__` points to
+ * the real location. This maps such a path back to the location inside the
+ * plugins or must-use plugins directory, using the paths registered with
+ * {@see wp_register_plugin_realpath()}.
+ *
+ * @since 7.3.0
+ *
+ * @see wp_register_plugin_realpath()
+ *
+ * @global array $wp_plugin_paths
+ *
+ * @param string $file Path to a plugin file, typically `__FILE__`.
+ * @return string Normalized path to the file inside the plugins or must-use plugins
+ *                directory if its real path was registered, otherwise the normalized
+ *                path that was passed in.
+ */
+function wp_get_plugin_path_from_realpath( $file ) {
+	global $wp_plugin_paths;
+
+	// $wp_plugin_paths contains normalized paths.
+	$file = wp_normalize_path( $file );
+
+	if ( empty( $wp_plugin_paths ) || '' === $file ) {
+		return $file;
+	}
+
+	arsort( $wp_plugin_paths );
+
+	foreach ( $wp_plugin_paths as $dir => $realdir ) {
+		if ( str_starts_with( $file, $realdir ) ) {
+			$file = $dir . substr( $file, strlen( $realdir ) );
+		}
+	}
+
+	return $file;
 }
