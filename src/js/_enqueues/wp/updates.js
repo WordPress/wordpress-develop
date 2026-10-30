@@ -428,6 +428,7 @@
 	 * Sends a message from a modal to the main screen to update buttons in plugin cards.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Added the `oldVersion` and `newVersion` parameters.
 	 *
 	 * @param {Object} data                 An object of data to use for the button.
 	 * @param {string} data.slug            The plugin's slug.
@@ -439,6 +440,8 @@
 	 * @param {string} [data.href]          Optional. The button's URL.
 	 * @param {string} [data.pluginName]    Optional. The plugin's name.
 	 * @param {string} [data.plugin]        Optional. The plugin file, relative to the plugins directory.
+	 * @param {string} [data.oldVersion]    Optional. The plugin's version before an update.
+	 * @param {string} [data.newVersion]    Optional. The plugin's version after an update.
 	 */
 	wp.updates.setCardButtonStatus = function( data ) {
 		var target = window.parent === window ? null : window.parent;
@@ -604,6 +607,10 @@
 				{
 					status: 'updated-plugin',
 					slug: response.slug,
+					plugin: response.plugin,
+					pluginName: response.pluginName,
+					oldVersion: response.oldVersion,
+					newVersion: response.newVersion,
 					removeClasses: 'updating-message',
 					addClasses: 'button-disabled updated-message',
 					text: buttonText,
@@ -3207,40 +3214,11 @@
 		} );
 
 		/**
-		 * Click handler for updating a plugin from the details modal on `plugin-install.php`.
-		 *
-		 * @since 4.2.0
-		 *
-		 * @param {Event} event Event interface.
-		 */
-		$( '#plugin_update_from_iframe' ).on( 'click', function( event ) {
-			var target = window.parent === window ? null : window.parent,
-				update;
-
-			$.support.postMessage = !! window.postMessage;
-
-			if ( false === $.support.postMessage || null === target || -1 !== window.parent.location.pathname.indexOf( 'update-core.php' ) ) {
-				return;
-			}
-
-			event.preventDefault();
-
-			update = {
-				action: 'update-plugin',
-				data:   {
-					plugin: $( this ).data( 'plugin' ),
-					slug:   $( this ).data( 'slug' )
-				}
-			};
-
-			target.postMessage( JSON.stringify( update ), window.location.origin );
-		} );
-
-		/**
 		 * Handles postMessage events.
 		 *
 		 * @since 4.2.0
 		 * @since 4.6.0 Switched `update-plugin` action to use the queue.
+		 * @since 7.2.0 Updates the plugin's row and the update counts after an update from the plugin details modal.
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -3295,6 +3273,35 @@
 				}
 
 				$message.text( message.text );
+
+				/*
+				 * The plugin was updated inside the plugin details modal, which shows its own
+				 * result. Bring the screen behind the modal up to date as well.
+				 */
+				if ( 'updated-plugin' === message.status ) {
+					wp.updates.decrementCount( 'plugin' );
+
+					if ( ( 'plugins' === pagenow || 'plugins-network' === pagenow ) && message.plugin ) {
+						var $pluginRow = $( 'tr[data-plugin="' + message.plugin + '"]' )
+								.removeClass( 'update is-enqueued' )
+								.addClass( 'updated' ),
+							$pluginVersion = $pluginRow.find( '.plugin-version-author-uri' );
+
+						$pluginRow.find( '.update-message' )
+							.removeClass( 'updating-message notice-warning' )
+							.addClass( 'updated-message notice-success' )
+							.find( 'p' )
+							.attr( 'aria-label', message.ariaLabel )
+							.text( message.text );
+
+						if ( message.oldVersion && message.newVersion && $pluginVersion.length ) {
+							$pluginVersion.html( $pluginVersion.html().replace( message.oldVersion, message.newVersion ) );
+						}
+
+						// Clear the "time to next auto-update" text.
+						$pluginRow.find( '.auto-update-time' ).empty();
+					}
+				}
 			}
 
 			if ( 'undefined' === typeof message.action ) {
