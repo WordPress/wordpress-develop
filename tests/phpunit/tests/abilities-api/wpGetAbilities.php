@@ -185,6 +185,79 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->assertSame( array(), $result );
 	}
 
+	/**
+	 * Tests filtering by single category matches an ability where that category is secondary.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_by_single_category_matches_secondary_category(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/multi-cat', array( 'categories' => array( 'math', 'text' ) ) );
+		$this->register_test_ability( 'test/math-only', array( 'category' => 'math' ) );
+		$this->register_test_ability( 'test/media-only', array( 'category' => 'media' ) );
+
+		$result = wp_get_abilities( array( 'category' => 'text' ) );
+		$names  = array_map(
+			static function ( WP_Ability $a ) {
+				return $a->get_name();
+			},
+			$result
+		);
+
+		$this->assertContains( 'test/multi-cat', $names );
+		$this->assertNotContains( 'test/math-only', $names );
+		$this->assertNotContains( 'test/media-only', $names );
+	}
+
+	/**
+	 * Tests filtering by categories array matches abilities belonging to any of the categories.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_by_categories_matches_any_category(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/math-add', array( 'category' => 'math' ) );
+		$this->register_test_ability( 'test/text-upper', array( 'category' => 'text' ) );
+		$this->register_test_ability( 'test/media-crop', array( 'category' => 'media' ) );
+
+		$result = wp_get_abilities( array( 'categories' => array( 'math', 'media' ) ) );
+		$names  = array_map(
+			static function ( WP_Ability $a ) {
+				return $a->get_name();
+			},
+			$result
+		);
+
+		$this->assertContains( 'test/math-add', $names );
+		$this->assertContains( 'test/media-crop', $names );
+		$this->assertNotContains( 'test/text-upper', $names );
+	}
+
+	/**
+	 * Tests filtering by categories array when ability has multiple categories.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_by_categories_with_multiple_categories_on_ability(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/multi-cat', array( 'categories' => array( 'math', 'text' ) ) );
+		$this->register_test_ability( 'test/media-only', array( 'category' => 'media' ) );
+
+		$result = wp_get_abilities( array( 'categories' => array( 'text' ) ) );
+		$names  = array_map(
+			static function ( WP_Ability $a ) {
+				return $a->get_name();
+			},
+			$result
+		);
+
+		$this->assertContains( 'test/multi-cat', $names );
+		$this->assertNotContains( 'test/media-only', $names );
+	}
+
 	// -------------------------------------------------------------------------
 	// Namespace filter
 	// -------------------------------------------------------------------------

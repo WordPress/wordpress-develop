@@ -2440,4 +2440,125 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $ability->check_permissions() );
 	}
+
+	/**
+	 * Tests that providing a single category string sets both get_category and get_categories.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::get_category
+	 * @covers WP_Ability::get_categories
+	 * @covers WP_Ability::has_category
+	 */
+	public function test_single_category_sets_get_category_and_get_categories() {
+		$args             = self::$test_ability_properties;
+		$args['category'] = 'math';
+		unset( $args['categories'] );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 'math', $ability->get_category() );
+		$this->assertSame( array( 'math' ), $ability->get_categories() );
+		$this->assertTrue( $ability->has_category( 'math' ) );
+		$this->assertFalse( $ability->has_category( 'system' ) );
+	}
+
+	/**
+	 * Tests that providing a categories array sets both get_category and get_categories.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::get_category
+	 * @covers WP_Ability::get_categories
+	 * @covers WP_Ability::has_category
+	 */
+	public function test_categories_array_sets_get_category_and_get_categories() {
+		$args               = self::$test_ability_properties;
+		$args['categories'] = array( 'math', 'system' );
+		unset( $args['category'] );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 'math', $ability->get_category() );
+		$this->assertSame( array( 'math', 'system' ), $ability->get_categories() );
+		$this->assertTrue( $ability->has_category( 'math' ) );
+		$this->assertTrue( $ability->has_category( 'system' ) );
+		$this->assertFalse( $ability->has_category( 'general' ) );
+	}
+
+	/**
+	 * Tests that providing both category and categories merges them with category as primary.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::get_category
+	 * @covers WP_Ability::get_categories
+	 * @covers WP_Ability::has_category
+	 */
+	public function test_both_category_and_categories_merges_with_category_as_primary() {
+		$args               = self::$test_ability_properties;
+		$args['category']   = 'primary';
+		$args['categories'] = array( 'secondary', 'primary' );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 'primary', $ability->get_category() );
+		$this->assertSame( array( 'primary', 'secondary' ), $ability->get_categories() );
+		$this->assertTrue( $ability->has_category( 'primary' ) );
+		$this->assertTrue( $ability->has_category( 'secondary' ) );
+	}
+
+	/**
+	 * Tests that providing empty categories array throws InvalidArgumentException.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_empty_categories_throws_exception() {
+		$args               = self::$test_ability_properties;
+		$args['categories'] = array();
+		unset( $args['category'] );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties `categories` must be a non-empty array of strings.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that categories array with non-string items throws InvalidArgumentException.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_invalid_categories_item_throws_exception() {
+		$args               = self::$test_ability_properties;
+		$args['categories'] = array( 'valid', 123 );
+		unset( $args['category'] );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties `categories` must contain only non-empty strings.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that categories array with empty string throws InvalidArgumentException.
+	 *
+	 * @ticket 66367
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_empty_string_in_categories_throws_exception() {
+		$args               = self::$test_ability_properties;
+		$args['categories'] = array( 'valid', '   ' );
+		unset( $args['category'] );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties `categories` must contain only non-empty strings.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
 }

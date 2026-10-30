@@ -280,6 +280,7 @@ declare( strict_types = 1 );
  * @since 6.9.0
  * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+ * @since 7.2.0 Added the `categories` argument.
  * @since 7.2.0 Added the `required_capabilities` argument.
  *
  * @see WP_Abilities_Registry::register()
@@ -297,9 +298,11 @@ declare( strict_types = 1 );
  *     @type string               $label                 Required. The human-readable label for the ability.
  *     @type string               $description           Required. A detailed description of what the ability does
  *                                                       and when it should be used.
- *     @type string               $category              Optional. The ability category slug this ability belongs to.
+ *     @type string               $category              Optional. The primary ability category slug this ability belongs to.
  *                                                       Defaults to `uncategorized`. Custom categories must be registered
  *                                                       via `wp_register_ability_category()` before registering the ability.
+ *     @type list<string>         $categories            Optional. List of ability category slugs this ability belongs to.
+ *                                                       Each custom category must be registered via `wp_register_ability_category()`.
  *     @type callable             $execute_callback      Required. A callback function to execute when the ability is invoked.
  *                                                       Receives optional mixed input data and must return either a result
  *                                                       value (any type) or a `WP_Error` object on failure.
@@ -544,6 +547,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
  * @since 7.2.0 Added the `has_required_capabilities` argument.
+ * @since 7.2.0 Added the `categories` argument and updated `category` to match any assigned category.
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
@@ -551,8 +555,10 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     Optional. Arguments to filter the returned abilities. Default empty array.
  *     Omitted filters do not restrict the results.
  *
- *     @type string          $category                  Optional. Filter by category slug. Only abilities whose category
- *                                                      exactly matches the given slug are included.
+ *     @type string          $category                  Optional. Filter by category slug. Only abilities that belong to
+ *                                                      the given category are included.
+ *     @type list<string>    $categories                Optional. Filter by category slugs. Only abilities that belong to
+ *                                                      at least one of the given categories are included.
  *     @type string          $namespace                 Optional. Filter by ability namespace prefix. Pass the namespace
  *                                                      without a trailing slash, e.g. `'woocommerce'` matches
  *                                                      `'woocommerce/create-order'`.
@@ -585,6 +591,7 @@ function wp_get_abilities( array $args = array() ): array {
 	$abilities = $registry->get_all_registered();
 
 	$category                  = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
+	$categories                = isset( $args['categories'] ) && is_array( $args['categories'] ) ? array_filter( $args['categories'], 'is_string' ) : array();
 	$namespace                 = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
 	$meta                      = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
 	$has_required_capabilities = ! empty( $args['has_required_capabilities'] );
@@ -595,7 +602,12 @@ function wp_get_abilities( array $args = array() ): array {
 
 	foreach ( $abilities as $name => $ability ) {
 		// Step 1a: Filter by category.
-		if ( '' !== $category && $ability->get_category() !== $category ) {
+		if ( '' !== $category && ! $ability->has_category( $category ) ) {
+			continue;
+		}
+
+		// Step 1a2: Filter by categories.
+		if ( ! empty( $categories ) && empty( array_intersect( $categories, $ability->get_categories() ) ) ) {
 			continue;
 		}
 
