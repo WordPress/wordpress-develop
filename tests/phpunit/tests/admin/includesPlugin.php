@@ -201,6 +201,31 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A page listed only in $_wp_submenu_nopriv, for example by code that fills
+	 * that registry directly, must still be considered to exist.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_checks_the_submenu_nopriv_registry() {
+		global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv, $_wp_nopriv_pages;
+
+		$_registered_pages  = array();
+		$_wp_menu_nopriv    = array();
+		$_wp_nopriv_pages   = array();
+		$_wp_submenu_nopriv = array(
+			'options-general.php' => array( 'mt-only-in-submenu-nopriv' => true ),
+		);
+
+		$plugin_page = 'mt-only-in-submenu-nopriv';
+		$this->assertTrue( wp_admin_page_exists(), 'A page in $_wp_submenu_nopriv should exist.' );
+
+		$plugin_page = 'mt-not-registered-anywhere';
+		$this->assertFalse( wp_admin_page_exists(), 'A page in no registry should not exist.' );
+	}
+
+	/**
 	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
