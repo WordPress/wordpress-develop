@@ -452,17 +452,15 @@ function get_allowed_http_origins() {
 	// @todo Preserve port?
 	$allowed_origins = array();
 
-	// An insecure origin is only allowed when the URL is not served over HTTPS.
-	if ( isset( $admin_origin['host'] ) ) {
-		$allowed_origins[] = 'https://' . $admin_origin['host'];
-		if ( isset( $admin_origin['scheme'] ) && 'https' !== $admin_origin['scheme'] ) {
-			$allowed_origins[] = 'http://' . $admin_origin['host'];
+	foreach ( array( $admin_origin, $home_origin ) as $parsed_url ) {
+		if ( ! is_array( $parsed_url ) || ! isset( $parsed_url['host'] ) ) {
+			continue;
 		}
-	}
-	if ( isset( $home_origin['host'] ) ) {
-		$allowed_origins[] = 'https://' . $home_origin['host'];
-		if ( isset( $home_origin['scheme'] ) && 'https' !== $home_origin['scheme'] ) {
-			$allowed_origins[] = 'http://' . $home_origin['host'];
+		$allowed_origins[] = 'https://' . $parsed_url['host'];
+
+		// An insecure origin is only allowed when the URL is not served over HTTPS.
+		if ( isset( $parsed_url['scheme'] ) && 'https' !== $parsed_url['scheme'] ) {
+			$allowed_origins[] = 'http://' . $parsed_url['host'];
 		}
 	}
 
