@@ -643,6 +643,23 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp-edit-post does not load the content styles outside the editor canvas.
+	 *
+	 * @ticket 66420
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	public function test_wp_edit_post_does_not_depend_on_content_styles() {
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$deps = $GLOBALS['wp_styles']->registered['wp-edit-post']->deps;
+
+		$this->assertContains( 'wp-block-library-editor', $deps );
+		$this->assertNotContains( 'wp-edit-blocks', $deps );
+		$this->assertSame( array(), $GLOBALS['wp_styles']->registered['wp-block-library-editor']->deps );
+	}
+
+	/**
 	 * @group assets
 	 *
 	 * @ticket 58394
