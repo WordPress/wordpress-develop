@@ -391,19 +391,17 @@ switch ( $step ) {
 		}
 
 		/*
-		 * Generate a dedicated key for the Secrets API, so that stored secrets do not depend on
-		 * LOGGED_IN_KEY and LOGGED_IN_SALT, which are routinely changed. Without a CSPRNG the key is
-		 * left out, and the Secrets API derives its key from those salts instead.
+		 * The Secrets API key is generated like the salts above, but written as base64-encoded
+		 * random bytes, the form the Secrets API uses as raw key material.
 		 */
 		try {
 			$secrets_key = base64_encode( random_bytes( 32 ) );
 		} catch ( Exception $ex ) {
-			$secrets_key = '';
+			$secrets_key = wp_generate_password( 64, true, true );
 		}
 
-		$add_secrets_key = '' !== $secrets_key && ! preg_grep( '/^define\(\s*\'WP_SECRETS_KEY\',/', $config_file );
-
-		$key = 0;
+		$key             = 0;
+		$has_secrets_key = false;
 		foreach ( $config_file as $line_num => $line ) {
 			if ( str_starts_with( $line, '$table_prefix =' ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
@@ -444,6 +442,10 @@ switch ( $step ) {
 				case 'NONCE_SALT':
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . $secret_keys[ $key++ ] . "' );\r\n";
 					break;
+				case 'WP_SECRETS_KEY':
+					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . $secrets_key . "' );\r\n";
+					$has_secrets_key          = true;
+					break;
 			}
 
 			if ( 'NONCE_SALT' === $constant ) {
@@ -452,8 +454,8 @@ switch ( $step ) {
 		}
 		unset( $line );
 
-		// Add the key after the keys and salts, outside their group, whose advice to change them does not apply to it.
-		if ( $add_secrets_key && isset( $nonce_salt_line ) ) {
+		// A custom or older localized wp-config-sample.php may not define the key: add it after the salts.
+		if ( ! $has_secrets_key && isset( $nonce_salt_line ) ) {
 			$secrets_key_lines = array(
 				"\r\n",
 				"/**\r\n",
