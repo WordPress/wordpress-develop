@@ -5897,7 +5897,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		}
 	} else {
 		// Post slugs must be unique across all posts.
-		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND post_type = %s AND ID != %d LIMIT 1";
+		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND post_type IN ( %s, 'attachment' ) AND ID != %d LIMIT 1";
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_type, $post_id ) );
 
 		$post = get_post( $post_id );
