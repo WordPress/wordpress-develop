@@ -3721,6 +3721,7 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
+ *              Added support for `rotate`.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3908,6 +3909,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'box-shadow',
 			'aspect-ratio',
 			'container-type',
+			'rotate',
 
 			'fill',
 			'fill-opacity',
