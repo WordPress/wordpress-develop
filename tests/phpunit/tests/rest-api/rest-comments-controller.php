@@ -6524,4 +6524,132 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertSame( array(), $response->get_data()['reaction_summary'] );
 	}
+
+	/**
+	 * Registers a post type whose REST controller grants or denies read access, and creates an approved comment on a post of that type.
+	 *
+	 * @param string $post_type Post type to register.
+	 * @param bool   $allow     Whether the custom controller allows reading posts.
+	 * @return int Comment ID.
+	 */
+	private function create_comment_on_post_type_with_custom_rest_controller( $post_type, $allow ) {
+		register_post_type(
+			$post_type,
+			array(
+				'public'       => true,
+				'show_in_rest' => true,
+				'supports'     => array( 'title', 'editor', 'comments' ),
+			)
+		);
+
+		get_post_type_object( $post_type )->rest_controller = new class( $post_type, $allow ) extends WP_REST_Posts_Controller {
+			private $allow;
+
+			public function __construct( $post_type, $allow ) {
+				parent::__construct( $post_type );
+				$this->allow = $allow;
+			}
+
+			public function check_read_permission( $post ) {
+				return $this->allow;
+			}
+		};
+
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
+
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 40383
+	 *
+	 * @covers WP_REST_Comments_Controller::check_read_post_permission
+	 */
+	public function test_get_items_uses_custom_post_type_controller_to_check_read_permission() {
+		$comment_id = $this->create_comment_on_post_type_with_custom_rest_controller( 'restricted_cpt', false );
+		$post_id    = (int) get_comment( $comment_id )->comment_post_ID;
+
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $post_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		_unregister_post_type( 'restricted_cpt' );
+
+		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
+	}
+
+	/**
+	 * @ticket 40383
+	 *
+	 * @covers WP_REST_Comments_Controller::check_read_post_permission
+	 */
+	public function test_get_item_uses_custom_post_type_controller_to_check_read_permission() {
+		$comment_id = $this->create_comment_on_post_type_with_custom_rest_controller( 'restricted_cpt', false );
+
+		wp_set_current_user( 0 );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id ) );
+
+		_unregister_post_type( 'restricted_cpt' );
+
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+	}
+
+	/**
+	 * @ticket 40383
+	 *
+	 * @covers WP_REST_Comments_Controller::check_read_post_permission
+	 */
+	public function test_get_item_allows_reading_comment_when_custom_post_type_controller_grants_access() {
+		$comment_id = $this->create_comment_on_post_type_with_custom_rest_controller( 'permissive_cpt', true );
+
+		wp_set_current_user( 0 );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id ) );
+
+		_unregister_post_type( 'permissive_cpt' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $comment_id, $response->get_data()['id'] );
+	}
+
+	/**
+	 * @ticket 40383
+	 *
+	 * @covers WP_REST_Comments_Controller::check_read_post_permission
+	 */
+	public function test_get_item_falls_back_to_posts_controller_for_non_posts_controller() {
+		register_post_type(
+			'non_posts_ctrl',
+			array(
+				'public'                => true,
+				'show_in_rest'          => true,
+				'supports'              => array( 'title', 'editor', 'comments' ),
+				'rest_controller_class' => WP_REST_Post_Types_Controller::class,
+			)
+		);
+
+		$post_id    = self::factory()->post->create( array( 'post_type' => 'non_posts_ctrl' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id ) );
+
+		_unregister_post_type( 'non_posts_ctrl' );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
 }
