@@ -108,6 +108,19 @@ scripts from the built `build/` directory, so a plain `npm run grunt qunit`
 requires a completed `npm run build` first without a build, every test fails
 with a `jQuery is not defined` error.
 
+#### To use SQLite
+
+WordPress can store its data in an SQLite database file instead of MySQL (experimental). To use SQLite in the development environment, set `LOCAL_DB_TYPE=sqlite` in the `.env` file, and then restart and reinstall the environment:
+
+```
+npm run env:restart
+npm run env:install
+```
+
+The site and the PHP tests then use SQLite, and no database container is started. The database files are stored in the `wp-content/database` directory.
+
+The SQLite support uses the MySQL-on-SQLite driver in `src/wp-includes/database/mysql-on-sqlite`, with the MySQL parser in `src/wp-includes/database/mysql-parser` and the generic parser in `src/wp-includes/parser`. See [tools/mysql-on-sqlite](tools/mysql-on-sqlite/README.md) for how to update them.
+
 #### To lint the workflow files
 
 GitHub Actions workflows operate in a privileged software supply chain environment, therefore all workflow files must adhere to a high degree of quality and security standards.

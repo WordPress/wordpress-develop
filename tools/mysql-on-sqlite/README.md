@@ -52,5 +52,15 @@ Like other bundled libraries, the directories are excluded from the Core coding 
 
 1. Run the installer with the new version.
 2. Review the changes with `git status src/wp-includes/parser src/wp-includes/database` and `git diff src/wp-includes/parser src/wp-includes/database`.
-3. Run the PHPUnit tests with both SQLite and MySQL.
+3. Run the PHPUnit tests with both SQLite and MySQL. To use SQLite in the local development environment, set `LOCAL_DB_TYPE=sqlite` in the `.env` file, and run `npm run env:restart`, `npm run env:install`, and `npm run test:php`.
 4. Commit the changes, and link to the release notes at `https://github.com/WordPress/sqlite-database-integration/releases/tag/v<version>`.
+
+## How Core Uses the Driver
+
+WordPress uses SQLite when the `DB_ENGINE` constant is set to `sqlite`, and the `DB_PATH` constant is set to the absolute path of the database file. The `wpdb` class then loads the driver with `database/mysql-on-sqlite/load.php`, but only when the `WP_MySQL_On_SQLite` class doesn't exist yet. This lets a `db.php` drop-in, such as the one from the SQLite Database Integration plugin, use its own version of the driver.
+
+Keep the database file outside the web root, where the web server can't serve it, and set `DB_PATH` to its location. Hosts can set `DB_PATH` in `wp-config.php`, or in `wp-config-sample.php`, which the `wp-config.php` setup then keeps. When `DB_PATH` isn't set, the setup sets it to a random file name in `wp-content/database`, a directory that denies web access only on Apache. The setup creates the database only when you run the installation, so changing `DB_PATH` in `wp-config.php` before that is enough to use another location. Later, Site Health recommends moving a database that is in the web root. When you move an existing database, also move its `-wal` and `-shm` files, if they exist.
+
+WordPress doesn't create a missing database file, except in the `wp-config.php` setup and in installs from the command line, such as `wp core install`. An empty database would make the site look not installed, and anyone could install it. When you write `wp-config.php` yourself and install the site over the web, create the database file first, for example as an empty file.
+
+Like in the plugin, the optional `SQLITE_BUSY_TIMEOUT` and `SQLITE_JOURNAL_MODE` constants are passed to the driver. For example, a database on a network file system may need `define( 'SQLITE_JOURNAL_MODE', 'DELETE' );`, as the default WAL mode doesn't work there.
