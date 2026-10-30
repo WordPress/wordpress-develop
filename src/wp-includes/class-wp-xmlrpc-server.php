@@ -3571,6 +3571,10 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to add a category.' ) );
 		}
 
+		if ( isset( $category['name'] ) && ! ( is_string( $category['name'] ) || is_int( $category['name'] ) || is_float( $category['name'] ) ) ) {
+			return new IXR_Error( 403, __( 'Invalid term name.' ) );
+		}
+
 		/*
 		 * If no slug was provided, make it empty
 		 * so that WordPress will generate one.
