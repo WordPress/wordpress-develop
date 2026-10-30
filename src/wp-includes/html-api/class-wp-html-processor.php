@@ -475,7 +475,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * fragment. Special care must be taken when processing fragments that are expected to appear
 	 * in specific contexts. SVG and TABLE are good examples, but there are others.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-parsing-algorithm
 	 *
 	 * @since 6.8.0
 	 *
@@ -779,6 +779,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.2 Refactored so subclasses may extend.
 	 *
 	 * @return bool Whether a token was parsed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		return $this->next_visitable_token();
@@ -1494,7 +1496,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * >   that token and move on to the next one. (Newlines at the start of pre blocks
 		 * >   are ignored as an authoring convenience.)
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html
+		 * @link https://html.spec.whatwg.org/multipage/parsing.html
 		 */
 		if ( $in_html && ( 'TEXTAREA' === $tag_name || 'PRE' === $tag_name || 'LISTING' === $tag_name ) ) {
 			$html .= "\n";
@@ -1561,8 +1563,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1632,10 +1634,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1730,10 +1733,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-before-head-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-before-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1830,8 +1834,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2053,8 +2057,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2155,10 +2159,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-head-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2302,8 +2307,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2773,27 +2778,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->remove_node( $node );
 					return true;
+				} else {
+					/*
+					 * > If the stack of open elements does not have a form element in scope,
+					 * > then this is a parse error; return and ignore the token.
+					 *
+					 * Note that unlike in the clause above, this is checking for any FORM in scope.
+					 */
+					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
+						// Parse error: ignore the token.
+						return $this->step();
+					}
+
+					$this->generate_implied_end_tags();
+
+					if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
+						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+					}
+
+					$this->state->stack_of_open_elements->pop_until( 'FORM' );
+					return true;
 				}
-
-				/*
-				 * > If the stack of open elements does not have a form element in scope,
-				 * > then this is a parse error; return and ignore the token.
-				 *
-				 * Note that unlike in the clause above, this is checking for any FORM in scope.
-				 */
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
-					// Parse error: ignore the token.
-					return $this->step();
-				}
-
-				$this->generate_implied_end_tags();
-
-				if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
-					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
-				}
-
-				$this->state->stack_of_open_elements->pop_until( 'FORM' );
-				return true;
+				break;
 
 			/*
 			 * > An end tag whose tag name is "p"
@@ -3355,6 +3361,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return $this->in_body_any_other_end_tag();
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
 	}
 
 	/**
@@ -3365,12 +3373,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor::step_in_body
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
 	private function in_body_any_other_end_tag(): bool {
+		$node       = null;
 		$token_name = $this->get_token_name();
 
 		/*
@@ -3414,10 +3423,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3470,7 +3480,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 * > Otherwise, insert the characters given by the pending table
 					 * > character tokens list.
 					 *
-					 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
+					 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 					 */
 					if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
 						$this->insert_html_element( $this->state->current_token );
@@ -3674,8 +3684,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3694,8 +3704,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3779,8 +3789,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incolgroup
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-incolgroup
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3886,10 +3896,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3992,8 +4003,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intr
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intr
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4103,8 +4114,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intd
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intd
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4208,8 +4219,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intemplate
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4340,8 +4351,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4431,8 +4442,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4553,8 +4564,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4641,8 +4652,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4706,8 +4717,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4777,8 +4788,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inforeign
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inforeign
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4963,18 +4974,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 			}
 			return true;
-		} else {
-			/*
-			 * > An end tag whose name is "script", if the current node is an SVG script element.
-			 */
-			if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-				$this->state->stack_of_open_elements->pop();
-				return true;
-			}
+		}
 
-			/*
-			 * > Any other end tag
-			 */
+		/*
+		 * > An end tag whose name is "script", if the current node is an SVG script element.
+		 */
+		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
+			$this->state->stack_of_open_elements->pop();
+			return true;
+		}
+
+		/*
+		 * > Any other end tag
+		 */
+		if ( $this->is_tag_closer() ) {
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
@@ -5074,6 +5087,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
 	}
 
 	/*
@@ -5092,7 +5107,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
-		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
+		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
 		}
@@ -5352,7 +5367,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+	 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
@@ -5752,7 +5767,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#close-a-p-element
+	 * @link https://html.spec.whatwg.org/#close-a-p-element
 	 */
 	private function close_a_p_element(): void {
 		$this->generate_implied_end_tags( 'P' );
@@ -5766,7 +5781,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0 Full spec support.
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
+	 * @link https://html.spec.whatwg.org/#generate-implied-end-tags
 	 *
 	 * @param string|null $except_for_this_element Perform as if this element doesn't exist in the stack of open elements.
 	 */
@@ -5805,7 +5820,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @see WP_HTML_Processor::generate_implied_end_tags
-	 * @see https://html.spec.whatwg.org/#generate-implied-end-tags
+	 * @link https://html.spec.whatwg.org/#generate-implied-end-tags
 	 */
 	private function generate_implied_end_tags_thoroughly(): void {
 		$elements_with_implied_end_tags = array(
@@ -5842,7 +5857,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * > has only one element in it (fragment case); otherwise, the adjusted current
 	 * > node is the current node.
 	 *
-	 * @see https://html.spec.whatwg.org/#adjusted-current-node
+	 * @link https://html.spec.whatwg.org/#adjusted-current-node
 	 *
 	 * @since 6.7.0
 	 * @ignore
@@ -5869,7 +5884,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#reconstruct-the-active-formatting-elements
+	 * @link https://html.spec.whatwg.org/#reconstruct-the-active-formatting-elements
 	 *
 	 * @return bool Whether any formatting elements needed to be reconstructed.
 	 */
@@ -5910,7 +5925,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
 	 */
 	private function reset_insertion_mode_appropriately(): void {
 		// Set the first node.
@@ -6066,7 +6081,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
+	 * @link https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 */
 	private function run_adoption_agency_algorithm(): void {
 		$budget       = 1000;
@@ -6177,7 +6192,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * >   4. Clear the list of active formatting elements up to the last marker.
 	 * >   5. Switch the insertion mode to "in row".
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#close-the-cell
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#close-the-cell
 	 *
 	 * @since 6.7.0
 	 * @ignore
@@ -6201,7 +6216,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
+	 * @link https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
@@ -6215,7 +6230,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#insert-a-foreign-element
+	 * @link https://html.spec.whatwg.org/#insert-a-foreign-element
 	 *
 	 * @param WP_HTML_Token $token                     Insert this token. The token's namespace and
 	 *                                                 insertion point will be updated correctly.
@@ -6242,7 +6257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * Here, there's no DOM node onto which the element will be appended, so the
 			 * parser will skip this step.
 			 *
-			 * @see https://html.spec.whatwg.org/#insert-an-element-at-the-adjusted-insertion-location
+			 * @link https://html.spec.whatwg.org/#insert-an-element-at-the-adjusted-insertion-location
 			 */
 		}
 
@@ -6283,7 +6298,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#mathml-text-integration-point
+	 * @link https://html.spec.whatwg.org/#mathml-text-integration-point
 	 *
 	 * @return bool Whether the current token is a MathML integration point.
 	 */
@@ -6320,7 +6335,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#html-integration-point
+	 * @link https://html.spec.whatwg.org/#html-integration-point
 	 *
 	 * @return bool Whether the current token is an HTML integration point.
 	 */
@@ -6368,7 +6383,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#special
+	 * @link https://html.spec.whatwg.org/#special
 	 *
 	 * @param WP_HTML_Token|string $tag_name Node to check, or only its name if in the HTML namespace.
 	 * @return bool Whether the element of the given name is in the special category.
@@ -6489,7 +6504,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#void-elements
+	 * @link https://html.spec.whatwg.org/#void-elements
 	 *
 	 * @param string $tag_name Name of HTML tag to check.
 	 * @return bool Whether the given tag is an HTML Void Element.
@@ -6531,7 +6546,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *     null    === self::get_encoding( 'UTF-7' );
 	 *     null    === self::get_encoding( 'utf8; charset=' );
 	 *
-	 * @see https://encoding.spec.whatwg.org/#concept-encoding-get
+	 * @link https://encoding.spec.whatwg.org/#concept-encoding-get
 	 *
 	 * @todo As this parser only supports UTF-8, only the UTF-8
 	 *       encodings are detected. Add more as desired, but the

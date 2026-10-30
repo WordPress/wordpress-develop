@@ -25,6 +25,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		unregister_post_type( 'post-type-1' );
+		unregister_post_type( 'post-type-2' );
+		unregister_post_type( 'post-type-3' );
+
 		unset( $this->to_exclude );
 		parent::tear_down();
 	}
@@ -3640,7 +3644,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -3665,7 +3669,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -5445,13 +5449,15 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper method to create standard test comments for note type exclusion tests.
+	 * Helper method to create standard test comments for internal comment type
+	 * exclusion tests.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 A 'reaction' comment is created alongside the 'note'.
 	 *
-	 * @return array<'comment'|'pingback'|'note', int> Array of comments created.
+	 * @return array<'comment'|'pingback'|'note'|'reaction', int> Array of comments created.
 	 */
-	protected function create_note_type_test_comments(): array {
+	protected function create_internal_comment_type_test_comments(): array {
 		return array(
 			'comment'  => self::factory()->comment->create(
 				array(
@@ -5473,19 +5479,27 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 					'comment_type'     => 'note',
 				)
 			),
+			'reaction' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'reaction',
+				)
+			),
 		);
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
-	 * @dataProvider data_note_type_exclusion
+	 * @dataProvider data_internal_comment_type_exclusion
 	 *
 	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
 	 * @param string[]                    $expected_types Expected comment types.
 	 */
-	public function test_note_type_exclusion( array $query_args, array $expected_types ) {
-		$this->create_note_type_test_comments();
+	public function test_internal_comment_type_exclusion( array $query_args, array $expected_types ) {
+		$this->create_internal_comment_type_test_comments();
 
 		$query = new WP_Comment_Query();
 		$found = $query->query( array_merge( $query_args, array( 'fields' => 'ids' ) ) );
@@ -5507,7 +5521,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
-	public function data_note_type_exclusion(): array {
+	public static function data_internal_comment_type_exclusion(): array {
 		return array(
 			'default query excludes note'        => array(
 				'query_args'     => array(),
@@ -5519,7 +5533,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			),
 			'type all includes note'             => array(
 				'query_args'     => array( 'type' => 'all' ),
-				'expected_types' => array( 'comment', 'pingback', 'note' ),
+				'expected_types' => array( 'comment', 'pingback', 'note', 'reaction' ),
 			),
 			'explicit note type'                 => array(
 				'query_args'     => array( 'type' => 'note' ),
@@ -5541,17 +5555,34 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'query_args'     => array( 'type__not_in' => array( 'note' ) ),
 				'expected_types' => array( 'comment', 'pingback' ),
 			),
+			'explicit reaction type'             => array(
+				'query_args'     => array( 'type' => 'reaction' ),
+				'expected_types' => array( 'reaction' ),
+			),
+			'type__in with reaction'             => array(
+				'query_args'     => array( 'type__in' => array( 'reaction' ) ),
+				'expected_types' => array( 'reaction' ),
+			),
+			'type__in with note and reaction'    => array(
+				'query_args'     => array( 'type__in' => array( 'note', 'reaction' ) ),
+				'expected_types' => array( 'note', 'reaction' ),
+			),
+			'type__not_in with reaction'         => array(
+				'query_args'     => array( 'type__not_in' => array( 'reaction' ) ),
+				'expected_types' => array( 'comment', 'pingback' ),
+			),
 		);
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_note_type_not_duplicated_in_type__not_in() {
+	public function test_internal_comment_types_not_duplicated_in_type__not_in() {
 		global $wpdb;
 
-		$comments = $this->create_note_type_test_comments();
+		$comments = $this->create_internal_comment_type_test_comments();
 
 		$query = new WP_Comment_Query();
 		$found = $query->query(
@@ -5563,15 +5594,23 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $comments['comment'], $comments['pingback'] ), $found );
 		$this->assertNotContains( $comments['note'], $found );
-		$note_count = substr_count( $wpdb->last_query, "'note'" );
-		$this->assertSame( 1, $note_count, 'The note type should only appear once in the query' );
+		$this->assertNotContains( $comments['reaction'], $found );
+
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
+			$this->assertSame(
+				1,
+				substr_count( $wpdb->last_query, "'" . $internal_type . "'" ),
+				"The {$internal_type} type should only appear once in the query"
+			);
+		}
 	}
 
 	/**
 	 * @ticket 64145
+	 * @ticket 64638
 	 * @covers ::get_comment_count
 	 */
-	public function test_get_comment_count_excludes_note_type() {
+	public function test_get_comment_count_excludes_internal_comment_types() {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
@@ -5592,6 +5631,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '0',
 				'comment_type'     => 'note',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'reaction',
 			)
 		);
 

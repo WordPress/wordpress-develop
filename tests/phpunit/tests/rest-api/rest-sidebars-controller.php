@@ -56,9 +56,17 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_widgets_init();
 	}
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		wp_set_current_user( self::$admin_id );
 
 		// Unregister all widgets and sidebars.
@@ -67,6 +75,14 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$_wp_sidebars_widgets   = array();
 		$sidebars_widgets       = array();
 		update_option( 'sidebars_widgets', array() );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	public function clean_up_global_scope() {
@@ -719,12 +735,17 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The create_item() method does not exist for sidebar.
+	 * Sidebars collection is read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -1106,21 +1127,96 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The delete_item() method does not exist for sidebar.
+	 * Sidebars item route is not deletable; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			)
+		);
+
+		$route = '/wp/v2/sidebars/sidebar-1';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The prepare_item() method does not exist for sidebar.
+	 * @ticket 40538
 	 *
-	 * @doesNotPerformAssertions
+	 * @covers WP_REST_Sidebars_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name'        => 'Test sidebar',
+				'description' => 'Test description',
+			)
+		);
+
+		$raw_sidebar = array(
+			'id'   => 'sidebar-1',
+			'name' => 'Test sidebar',
+		);
+
+		$controller = new WP_REST_Sidebars_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/sidebars/sidebar-1' );
+		$response   = $controller->prepare_item_for_response( $raw_sidebar, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'sidebar-1', $data['id'] );
+		$this->assertSame( 'Test sidebar', $data['name'] );
+		$this->assertSame( 'Test description', $data['description'] );
+		$this->assertSame( 'active', $data['status'] );
+		$this->assertSame( array(), $data['widgets'] );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( 'wp/v2/sidebars/sidebar-1' ), $links['self'][0]['href'] );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertSame( rest_url( 'wp/v2/sidebars' ), $links['collection'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Sidebars_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			)
+		);
+
+		$raw_sidebar = array(
+			'id'   => 'sidebar-1',
+			'name' => 'Test sidebar',
+		);
+
+		$controller = new WP_REST_Sidebars_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/sidebars/sidebar-1' );
+		$request->set_param( '_fields', 'id,name' );
+
+		$response = $controller->prepare_item_for_response( $raw_sidebar, $request );
+
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when _links is not in _fields.' );
 	}
 
 	/**

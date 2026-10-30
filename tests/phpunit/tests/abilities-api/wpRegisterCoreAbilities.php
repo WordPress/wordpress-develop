@@ -20,16 +20,23 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 
-		// Ensure core abilities are registered for these tests.
-		// Temporarily remove the unhook functions so we can register core abilities.
-		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		global $wp_current_filter;
 
-		// Add the core registration hooks and fire the actions.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
+		// Ensure core abilities and categories are registered for these tests.
+		// Pop in finally so a setup exception cannot leave the simulated action on the stack.
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		try {
+			wp_register_core_ability_categories();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
+
+		$wp_current_filter[] = 'wp_abilities_api_init';
+		try {
+			wp_register_core_abilities();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 	}
 
 	/**
@@ -38,10 +45,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @since 6.9.0
 	 */
 	public static function tear_down_after_class(): void {
-		// Re-add the unhook functions for subsequent tests.
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
 		// Remove the core abilities and their categories.
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
@@ -298,9 +301,10 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @ticket 64146
 	 */
 	public function test_core_get_environment_info_executes(): void {
-		// Requires manage_options.
+		// Requires access to Site Health diagnostics.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
 		$ability      = wp_get_ability( 'core/get-environment-info' );
 		$environment  = wp_get_environment_type();
@@ -312,6 +316,62 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
+	}
+
+	/**
+	 * Tests that managing site options does not grant access to environment information.
+	 *
+	 * @ticket 66369
+	 */
+	public function test_core_get_environment_info_requires_site_health_access(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_cap( 'manage_options' );
+
+		$this->assertTrue( current_user_can( 'manage_options' ) );
+		$this->assertFalse( current_user_can( 'view_site_health_checks' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that Site Health access can be delegated without granting site management access.
+	 *
+	 * @ticket 66369
+	 */
+	public function test_core_get_environment_info_allows_delegated_site_health_access(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$this->assertFalse( current_user_can( 'manage_options' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertIsArray( $result );
+	}
+
+	/**
+	 * Tests that multisite site administrators cannot access environment information.
+	 *
+	 * @ticket 66369
+	 * @group ms-required
+	 */
+	public function test_core_get_environment_info_denies_multisite_site_administrator(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$this->assertFalse( is_super_admin() );
+		$this->assertTrue( current_user_can( 'manage_options' ) );
+		$this->assertFalse( current_user_can( 'view_site_health_checks' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
@@ -353,7 +413,8 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 */
 	public function test_core_get_environment_info_filters_fields(): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
 		$ability = wp_get_ability( 'core/get-environment-info' );
 
@@ -378,7 +439,8 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 */
 	public function test_core_get_environment_info_rejects_invalid_fields(): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
 		$ability = wp_get_ability( 'core/get-environment-info' );
 
@@ -390,6 +452,84 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests field selection through direct execution, without REST input coercion.
+	 *
+	 * @ticket 66370
+	 *
+	 * @dataProvider data_core_ability_field_lists
+	 *
+	 * @param string         $ability_name    Ability name.
+	 * @param array|stdClass $input           Ability input.
+	 * @param array|null     $expected_fields Expected fields, or null for invalid input.
+	 */
+	public function test_core_ability_field_lists( string $ability_name, $input, ?array $expected_fields ): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$ability = wp_get_ability( $ability_name );
+		$result  = $ability->execute( $input );
+
+		if ( null === $expected_fields ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+			return;
+		}
+
+		$expected = $ability->execute();
+		$this->assertIsArray( $expected );
+		if ( ! empty( $expected_fields ) ) {
+			$expected = array_intersect_key( $expected, array_flip( $expected_fields ) );
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $result );
+	}
+
+	/**
+	 * Provides array and string field selections for the core information abilities.
+	 *
+	 * @return array
+	 */
+	public static function data_core_ability_field_lists(): array {
+		$abilities = array(
+			'core/get-site-info'        => array( 'name', 'url' ),
+			'core/get-user-info'        => array( 'id', 'display_name' ),
+			'core/get-environment-info' => array( 'environment', 'php_version' ),
+		);
+		$datasets  = array();
+
+		foreach ( $abilities as $ability_name => $fields ) {
+			$cases = array(
+				'array'           => array( $fields, $fields ),
+				'csv'             => array( implode( ',', $fields ), $fields ),
+				'reversed array'  => array( array_reverse( $fields ), $fields ),
+				'reversed csv'    => array( implode( ',', array_reverse( $fields ) ), $fields ),
+				'whitespace'      => array( implode( " \t\n", $fields ), $fields ),
+				'duplicates'      => array( ', ' . implode( ',, ', $fields ) . ',' . $fields[0] . ',', $fields ),
+				'empty array'     => array( array(), array() ),
+				'empty string'    => array( '', array() ),
+				'only separators' => array( " , \t\n,, ", array() ),
+				'invalid csv'     => array( $fields[0] . ',not_a_real_field', null ),
+				'invalid array'   => array( array( $fields[0], 'not_a_real_field' ), null ),
+			);
+
+			foreach ( $cases as $case => $values ) {
+				$input = array( 'fields' => $values[0] );
+
+				$datasets[ $ability_name . ': ' . $case ] = array( $ability_name, $input, $values[1] );
+			}
+
+			$datasets[ $ability_name . ': object input' ] = array(
+				$ability_name,
+				(object) array( 'fields' => $fields ),
+				$fields,
+			);
+		}
+
+		return $datasets;
 	}
 
 	/**

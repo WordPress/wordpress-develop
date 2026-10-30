@@ -114,21 +114,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-widgets.php
 		-
-			message: '#^Property WP_Http_Cookie\:\:\$domain \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$name \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$value \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
 			message: '#^Property WP_Post\:\:\$ID \(int\<0, max\>\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
@@ -159,11 +144,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-partial.php
 		-
-			message: '#^Property WP_HTML_Text_Replacement\:\:\$text \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 2
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Property WP_Post\:\:\$post_status \(string\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
@@ -174,7 +154,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
 		-
-			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string\>\) in isset\(\) is not nullable\.$#'
+			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string, true\>\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
