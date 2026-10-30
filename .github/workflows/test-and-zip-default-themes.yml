@@ -44,6 +44,29 @@ on:
         required: true
         type: string
         default: 'trunk'
+      theme:
+        description: 'The theme to test and zip'
+        required: true
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - ipsum
+          - twentytwentyfive
+          - twentytwentyfour
+          - twentytwentythree
+          - twentytwentytwo
+          - twentytwentyone
+          - twentytwenty
+          - twentynineteen
+          - twentyseventeen
+          - twentysixteen
+          - twentyfifteen
+          - twentyfourteen
+          - twentythirteen
+          - twentytwelve
+          - twentyeleven
+          - twentyten
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -74,6 +97,7 @@ jobs:
     outputs:
       themes: ${{ steps.set-themes.outputs.themes }}
       build_themes: ${{ steps.set-themes.outputs.build_themes }}
+      has_build_themes: ${{ steps.set-themes.outputs.has_build_themes }}
     steps:
       - name: Determine themes to test and zip
         id: set-themes
@@ -105,9 +129,19 @@ jobs:
               'twentytwenty',
               'twentynineteen',
             ];
-            core.setOutput( 'themes', JSON.stringify( allThemes ) );
-            core.setOutput( 'build_themes', JSON.stringify( buildThemes ) );
+            const selected = context.eventName === 'workflow_dispatch' ? ( context.payload.inputs?.theme || 'all' ) : 'all';
 
+            if ( selected !== 'all' && ! allThemes.includes( selected ) ) {
+              core.setFailed( 'Unknown theme selected.' );
+              return;
+            }
+
+            const themes = selected === 'all' ? allThemes : [ selected ];
+            const filteredBuildThemes = buildThemes.filter( ( theme ) => themes.includes( theme ) );
+
+            core.setOutput( 'themes', JSON.stringify( themes ) );
+            core.setOutput( 'build_themes', JSON.stringify( filteredBuildThemes ) );
+            core.setOutput( 'has_build_themes', filteredBuildThemes.length > 0 );
 
   # Checks for zero-byte files.
   #
@@ -172,6 +206,8 @@ jobs:
       contents: read
     needs: [ determine-themes ]
     timeout-minutes: 10
+    # Skip this job before expanding an empty build matrix.
+    if: ${{ needs.determine-themes.outputs.has_build_themes == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -266,7 +302,12 @@ jobs:
       contents: read
     needs: [ determine-themes, check-for-empty-files, test-build-scripts ]
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: |
+      ! cancelled() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      needs.determine-themes.result == 'success' &&
+      needs.check-for-empty-files.result == 'success' &&
+      ( needs.test-build-scripts.result == 'success' || needs.test-build-scripts.result == 'skipped' )
     strategy:
       fail-fast: false
       matrix:
