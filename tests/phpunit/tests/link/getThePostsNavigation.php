@@ -76,7 +76,7 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_the_posts_navigation() {
+	public static function data_get_the_posts_navigation() {
 		return array(
 			'older posts'                 => array(
 				'post_per_page' => 1,
