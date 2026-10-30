@@ -35,9 +35,9 @@ const UNDEFINED     = 0;          // Value was not yet parsed.
 /**
  * Reads an unsigned integer with most significant bits first.
  *
- * @param binary string $input     Must be at least $num_bytes-long.
- * @param int           $num_bytes Number of parsed bytes.
- * @return int                     Value.
+ * @param string $input     Must be at least $num_bytes-long.
+ * @param int    $num_bytes Number of parsed bytes.
+ * @return int              Value.
  */
 function read_big_endian( $input, $num_bytes ) {
   if ( $num_bytes == 1 ) {
@@ -57,9 +57,9 @@ function read_big_endian( $input, $num_bytes ) {
 /**
  * Reads bytes and advances the stream position by the same count.
  *
- * @param stream               $handle    Bytes will be read from this resource.
- * @param int                  $num_bytes Number of bytes read. Must be greater than 0.
- * @return binary string|false            The raw bytes or false on failure.
+ * @param stream        $handle    Bytes will be read from this resource.
+ * @param int           $num_bytes Number of bytes read. Must be greater than 0.
+ * @return string|false            The raw bytes or false on failure.
  */
 function read( $handle, $num_bytes ) {
   $data = fread( $handle, $num_bytes );
