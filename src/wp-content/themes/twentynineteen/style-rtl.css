@@ -5545,20 +5545,16 @@ body.page .main-navigation {
 @media only screen and (min-width: 768px) {
   .entry .entry-content .wp-block-cover-image.alignfull .wp-block-cover-image-text,
   .entry .entry-content .wp-block-cover-image.alignfull .wp-block-cover-text,
-  .entry .entry-content .wp-block-cover-image.alignfull h2,
   .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-image-text,
-  .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-text,
-  .entry .entry-content .wp-block-cover.alignfull h2 {
+  .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-text {
     max-width: calc(66.6666666667vw - 28px);
   }
 }
 @media only screen and (min-width: 1168px) {
   .entry .entry-content .wp-block-cover-image.alignfull .wp-block-cover-image-text,
   .entry .entry-content .wp-block-cover-image.alignfull .wp-block-cover-text,
-  .entry .entry-content .wp-block-cover-image.alignfull h2,
   .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-image-text,
-  .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-text,
-  .entry .entry-content .wp-block-cover.alignfull h2 {
+  .entry .entry-content .wp-block-cover.alignfull .wp-block-cover-text {
     max-width: calc(50vw - 28px);
   }
 }
