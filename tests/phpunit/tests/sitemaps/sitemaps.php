@@ -92,6 +92,11 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		self::$test_provider = new WP_Sitemaps_Test_Provider();
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Helper function to get all sitemap entries data.
 	 *

@@ -158,9 +158,8 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		foreach ( $entries as $key => $entry ) {
 
 			// Get post for comparison.
-			$id = xml_find( $entries[ $key ]['child'], 'id' );
-			preg_match( '/\?p=(\d+)/', $id[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$id   = xml_find( $entries[ $key ]['child'], 'id' );
+			$post = get_post( url_to_postid( $id[0]['content'] ) );
 
 			// Author.
 			$author = xml_find( $entries[ $key ]['child'], 'author', 'name' );

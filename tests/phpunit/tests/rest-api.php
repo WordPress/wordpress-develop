@@ -906,7 +906,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_url_generation() {
 		// In pretty permalinks case, we expect a path of wp-json/ with no query.
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-json/', get_rest_url() );
 
 		// In index permalinks case, we expect a path of index.php/wp-json/ with no query.

@@ -77,7 +77,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// This seems to break something.
 		update_option( 'use_smilies', false );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 	}
 
@@ -244,8 +243,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$post = get_post( url_to_postid( $guid[0]['content'] ) );
 
 			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
@@ -332,8 +330,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$post = get_post( url_to_postid( $guid[0]['content'] ) );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );

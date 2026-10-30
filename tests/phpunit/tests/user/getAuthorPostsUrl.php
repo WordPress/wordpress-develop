@@ -49,6 +49,8 @@ class Tests_User_GetAuthorPostsUrl extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_query_string_url_without_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$this->assertSame(
 			'http://' . WP_TESTS_DOMAIN . '/?author=' . self::$author_id,
 			get_author_posts_url( self::$author_id )
@@ -99,7 +101,7 @@ class Tests_User_GetAuthorPostsUrl extends WP_UnitTestCase {
 		$this->assertSame( 1, $filter->get_call_count() );
 		$this->assertSame(
 			array(
-				'http://' . WP_TESTS_DOMAIN . '/?author=' . self::$author_id,
+				'http://' . WP_TESTS_DOMAIN . '/author/' . self::$author_nicename . '/',
 				self::$author_id,
 				self::$author_nicename,
 			),

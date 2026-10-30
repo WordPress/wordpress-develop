@@ -57,6 +57,12 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 		);
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * @ticket 34068
 	 */

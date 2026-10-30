@@ -20,7 +20,6 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 
 		$this->home_url = get_option( 'home' );

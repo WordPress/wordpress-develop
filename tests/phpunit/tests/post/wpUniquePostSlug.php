@@ -300,8 +300,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_daylike_slugs_should_not_be_suffixed_if_permalink_structure_does_not_result_in_a_clash_with_day_archives() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'post',

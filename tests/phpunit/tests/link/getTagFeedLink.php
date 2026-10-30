@@ -38,6 +38,8 @@ class Tests_Link_GetTagFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_plain_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$this->assertSame(
 			home_url( '?feed=rss2&amp;tag=testing' ),
 			get_tag_feed_link( self::$tag_id )

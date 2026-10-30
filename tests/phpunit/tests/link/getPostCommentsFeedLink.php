@@ -4,6 +4,11 @@
  * @covers ::get_post_comments_feed_link
  */
 class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
 
 	public function test_post_link() {
 		$post_id = self::factory()->post->create();

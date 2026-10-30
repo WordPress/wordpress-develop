@@ -48,8 +48,6 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 				return content_url( 'themes/stylesheet' );
 			}
 		);
-
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
 	public function tear_down(): void {
