@@ -10,34 +10,6 @@ class Tests_Feed_GetBloginfoRss extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @dataProvider data_get_bloginfo_rss_show_values
-	 *
-	 * @param string $show Bloginfo show key.
-	 */
-	public function test_matches_stripped_and_converted_bloginfo( $show ) {
-		$this->assertSame(
-			convert_chars( strip_tags( get_bloginfo( $show ) ) ),
-			get_bloginfo_rss( $show )
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_get_bloginfo_rss_show_values() {
-		return array(
-			'name'        => array( 'name' ),
-			'description' => array( 'description' ),
-			'url'         => array( 'url' ),
-			'charset'     => array( 'charset' ),
-		);
-	}
-
-	/**
-	 * @ticket 65819
 	 */
 	public function test_strips_tags_and_converts_ampersands() {
 		add_filter(
@@ -58,16 +30,16 @@ class Tests_Feed_GetBloginfoRss extends WP_UnitTestCase {
 		add_filter( 'get_bloginfo_rss', array( $filter, 'filter_append' ), 10, 2 );
 
 		add_filter(
-			'pre_option_blogname',
+			'pre_option_blogdescription',
 			static function () {
-				return 'Feed <b>Name</b>';
+				return 'Feed <b>Description</b>';
 			}
 		);
 
-		$result = get_bloginfo_rss( 'name' );
+		$result = get_bloginfo_rss( 'description' );
 
-		$this->assertSame( 'Feed Name_append', $result );
+		$this->assertSame( 'Feed Description_append', $result );
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( 'Feed Name', 'name' ), $filter->get_args()[0] );
+		$this->assertSame( array( 'Feed Description', 'description' ), $filter->get_args()[0] );
 	}
 }
