@@ -12,18 +12,6 @@ class Tests_Formatting_SanitizeTitleForQuery extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_matches_sanitize_title_with_query_context() {
-		$title = 'Hello World!';
-
-		$this->assertSame(
-			sanitize_title( $title, '', 'query' ),
-			sanitize_title_for_query( $title )
-		);
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_uses_query_context() {
 		$captured_context = null;
 

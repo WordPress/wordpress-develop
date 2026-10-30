@@ -82,10 +82,13 @@ jobs:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
+        # See the "Projects" section in tests/e2e/README.md.
+        test-group: [ 'parallel', 'serial' ]
         # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ 'E2E Tests' ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      test-group: ${{ matrix.test-group }}
 
   slack-notifications:
     name: Slack Notifications
