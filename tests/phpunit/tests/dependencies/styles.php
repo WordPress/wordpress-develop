@@ -658,7 +658,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @dataProvider data_provider_test_wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles( ?string $additional_inline_style, ?int $styles_inline_size_limit ) {
-		$rel_path = 'css/classic-themes.css';
+		$rel_path = 'css/wp-block-template-skip-link.css';
 		$src_url  = includes_url( $rel_path );
 		$src_path = ABSPATH . WPINC . '/' . $rel_path;
 		$css      = file_get_contents( $src_path );
@@ -767,8 +767,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_wp_maybe_inline_styles_dequeue_styles() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
-		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
-		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/wp-block-template-skip-link.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/wp-block-template-skip-link.css' );
 
 		wp_enqueue_style( 'test-handle' );
 
@@ -792,8 +792,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_wp_maybe_inline_styles_multiple_runs() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
-		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
-		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/wp-block-template-skip-link.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/wp-block-template-skip-link.css' );
 
 		wp_enqueue_style( 'test-handle' );
 
@@ -833,7 +833,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 */
 	public function test_wp_maybe_inline_styles_no_src() {
 		wp_register_style( 'test-handle', false );
-		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/wp-block-template-skip-link.css' );
 
 		wp_enqueue_style( 'test-handle' );
 
@@ -849,7 +849,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles_no_path() {
-		$url = '/' . WPINC . '/css/classic-themes.css';
+		$url = '/' . WPINC . '/css/wp-block-template-skip-link.css';
 		wp_register_style( 'test-handle', $url );
 
 		wp_enqueue_style( 'test-handle' );
@@ -900,7 +900,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles_good_path_with_zero_file_size_provided() {
-		$style_path = '/css/classic-themes.css';
+		$style_path = '/css/wp-block-template-skip-link.css';
 
 		// This simulates the file having a zero size.
 		add_filter(
