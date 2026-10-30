@@ -166,8 +166,8 @@ function wp_font_dir( $create_dir = true ) {
  * @since 6.5.0
  * @access private
  *
- * @param string $font_dir The font directory.
- * @return string The modified font directory.
+ * @param array $font_dir Array of information about the upload directory.
+ * @return array Array of information about the font upload directory.
  */
 function _wp_filter_font_directory( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
