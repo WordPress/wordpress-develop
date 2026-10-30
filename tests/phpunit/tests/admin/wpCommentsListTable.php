@@ -279,4 +279,62 @@ OPTIONS;
 			'all type requested'                 => array( 'all' ),
 		);
 	}
+
+	/**
+	 * Tests that the response column of a comment on a post of an unregistered post type
+	 * shows the post title as plain text, rather than reading labels of a null object.
+	 *
+	 * @ticket 36058
+	 *
+	 * @covers WP_Comments_List_Table::column_response
+	 */
+	public function test_column_response_should_not_link_post_of_unregistered_post_type() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$post_id    = self::factory()->post->create(
+			array(
+				'post_type'  => 'wptests_unregistered',
+				'post_title' => 'Post of an unregistered type',
+			)
+		);
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		$GLOBALS['post'] = get_post( $post_id );
+
+		// The capability check for the comment count bubble reports the unregistered post type.
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+
+		ob_start();
+		$this->table->column_response( get_comment( $comment_id ) );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'Post of an unregistered type', $output, 'The post title should be shown.' );
+		$this->assertStringNotContainsString( 'comments-edit-item-link', $output, 'The edit link should be omitted.' );
+		$this->assertStringNotContainsString( 'comments-view-item-link', $output, 'The view link should be omitted.' );
+	}
+
+	/**
+	 * Tests that the date of an approved comment on a post of an unregistered post type
+	 * is not linked to a comment permalink that cannot work.
+	 *
+	 * @ticket 36058
+	 *
+	 * @covers WP_Comments_List_Table::column_date
+	 */
+	public function test_column_date_should_not_link_comment_on_unregistered_post_type() {
+		$post_id    = self::factory()->post->create( array( 'post_type' => 'wptests_unregistered' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		ob_start();
+		$this->table->column_date( get_comment( $comment_id ) );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'submitted-on', $output, 'The date should be shown.' );
+		$this->assertStringNotContainsString( '<a ', $output, 'The date should not be linked.' );
+	}
 }
