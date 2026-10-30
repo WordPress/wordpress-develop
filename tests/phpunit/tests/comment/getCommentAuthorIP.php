@@ -104,7 +104,14 @@ class Tests_Comment_GetCommentAuthorIP extends WP_UnitTestCase {
 	 * @covers ::get_comment_author_IP
 	 */
 	public function test_comment_author_ip_echoes_escaped_value() {
-		$this->expectOutputString( '192.0.2.10' );
+		add_filter(
+			'get_comment_author_IP',
+			static function () {
+				return '<b>192.0.2.10</b>';
+			}
+		);
+
+		$this->expectOutputString( '&lt;b&gt;192.0.2.10&lt;/b&gt;' );
 		comment_author_IP( self::$comment->comment_ID );
 	}
 }
