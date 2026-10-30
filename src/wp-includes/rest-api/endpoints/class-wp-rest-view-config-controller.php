@@ -155,10 +155,10 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'kind'            => $kind,
 			'name'            => $name,
 			'version'         => WP_View_Config_Data::LATEST_VERSION,
-			'default_view'    => $this->cast_empty_objects( $config['default_view'], $schema['properties']['default_view'] ),
-			'default_layouts' => $this->cast_empty_objects( $config['default_layouts'], $schema['properties']['default_layouts'] ),
-			'view_list'       => $this->cast_empty_objects( $config['view_list'], $schema['properties']['view_list'] ),
-			'form'            => $this->cast_empty_objects( $config['form'], $schema['properties']['form'] ),
+			'default_view'    => wp_prepare_json_value_for_client( $config['default_view'], $schema['properties']['default_view'] ),
+			'default_layouts' => wp_prepare_json_value_for_client( $config['default_layouts'], $schema['properties']['default_layouts'] ),
+			'view_list'       => wp_prepare_json_value_for_client( $config['view_list'], $schema['properties']['view_list'] ),
+			'form'            => wp_prepare_json_value_for_client( $config['form'], $schema['properties']['form'] ),
 		);
 
 		return rest_ensure_response( $response );
@@ -168,75 +168,17 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Recursively casts empty arrays to objects where the schema types them as
 	 * objects.
 	 *
-	 * PHP cannot distinguish an empty associative array from an empty list, so
-	 * `json_encode()` always serializes `array()` as a JSON array (`[]`). The
-	 * REST schema, however, types several values as objects, which must encode
-	 * as `{}`. This walks the value against its schema and casts any empty,
-	 * object-typed array to an object. Non-empty associative arrays already
-	 * encode as objects, so they are left as arrays and only recursed into to
-	 * fix any nested empty objects.
-	 *
-	 * Union schemas (`oneOf`/`anyOf`) are handled only for the empty-array case:
-	 * an empty value is cast to an object when any branch allows an object. Such
-	 * values are not recursed into, which is sufficient for the form schema
-	 * where they never contain empty nested objects.
-	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Uses wp_prepare_json_value_for_client().
+	 *
+	 * @see wp_prepare_json_value_for_client()
 	 *
 	 * @param mixed $value  The value to normalize.
 	 * @param array $schema The schema node describing the value.
 	 * @return mixed The normalized value, with empty object-typed arrays cast to objects.
 	 */
 	protected function cast_empty_objects( $value, $schema ) {
-		if ( ! is_array( $value ) || ! is_array( $schema ) ) {
-			return $value;
-		}
-
-		if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
-			$branches = isset( $schema['oneOf'] ) ? $schema['oneOf'] : $schema['anyOf'];
-			if ( array() === $value ) {
-				foreach ( $branches as $branch ) {
-					if ( is_array( $branch ) && in_array( 'object', (array) ( isset( $branch['type'] ) ? $branch['type'] : array() ), true ) ) {
-						return (object) array();
-					}
-				}
-			}
-			return $value;
-		}
-
-		$types = (array) ( isset( $schema['type'] ) ? $schema['type'] : array() );
-
-		if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
-			foreach ( $value as $index => $item ) {
-				$value[ $index ] = $this->cast_empty_objects( $item, $schema['items'] );
-			}
-			return $value;
-		}
-
-		if ( in_array( 'object', $types, true ) ) {
-			if ( isset( $schema['properties'] ) ) {
-				foreach ( $schema['properties'] as $property => $property_schema ) {
-					if ( array_key_exists( $property, $value ) ) {
-						$value[ $property ] = $this->cast_empty_objects( $value[ $property ], $property_schema );
-					}
-				}
-			}
-			if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-				foreach ( $value as $key => $item ) {
-					if ( isset( $schema['properties'][ $key ] ) ) {
-						continue;
-					}
-					$value[ $key ] = $this->cast_empty_objects( $item, $schema['additionalProperties'] );
-				}
-			}
-
-			// Empty object-typed arrays must serialize as {} to match the schema.
-			if ( array() === $value ) {
-				return (object) array();
-			}
-		}
-
-		return $value;
+		return is_array( $schema ) ? wp_prepare_json_value_for_client( $value, $schema ) : $value;
 	}
 
 	/**
@@ -391,15 +333,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	/**
 	 * Returns the schema properties shared by all view types (ViewBase), excluding 'type'.
 	 *
+	 * Note that `search` and `page` are not part of the schema: they are managed
+	 * via the URL, which is their only source of truth.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @return array Schema properties for the base view configuration.
 	 */
 	protected function get_view_base_schema() {
 		return array(
-			'search'                => array(
-				'type' => 'string',
-			),
 			'filters'               => array(
 				'type'  => 'array',
 				'items' => array(
@@ -443,9 +385,6 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 						'enum' => array( 'asc', 'desc' ),
 					),
 				),
-			),
-			'page'                  => array(
-				'type' => 'integer',
 			),
 			'perPage'               => array(
 				'type' => 'integer',
@@ -511,17 +450,21 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'width'    => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'maxWidth' => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The maximum width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'minWidth' => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The minimum width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'align'    => array(
-					'type' => 'string',
-					'enum' => array( 'start', 'center', 'end' ),
+					'description' => __( 'The horizontal alignment of the column content.' ),
+					'type'        => 'string',
+					'enum'        => array( 'start', 'center', 'end' ),
 				),
 			),
 		);
@@ -539,6 +482,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'styles'       => array(
+					'description'          => __( 'Column styles keyed by field id, for the columns listed in the view fields. The primary column (title, media, and description fields) ignores these styles; in the table layout it takes the width left over by the other columns, or the last column does when there is no primary column.' ),
 					'type'                 => 'object',
 					'additionalProperties' => $this->get_column_style_schema(),
 				),
@@ -629,6 +573,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * matching the TypeScript Layout union in dataviews/src/types/dataform.ts.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added the `showPlaceholderIfEmpty` property to the panel layout.
 	 *
 	 * @return array Schema for a form layout object.
 	 */
@@ -653,15 +598,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 				array(
 					'type'       => 'object',
 					'properties' => array(
-						'type'           => array(
+						'type'                   => array(
 							'type' => 'string',
 							'enum' => array( 'panel' ),
 						),
-						'labelPosition'  => array(
+						'labelPosition'          => array(
 							'type' => 'string',
 							'enum' => array( 'top', 'side', 'none' ),
 						),
-						'openAs'         => array(
+						'openAs'                 => array(
 							'oneOf' => array(
 								array(
 									'type' => 'string',
@@ -684,7 +629,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'summary'        => array(
+						'summary'                => array(
 							'oneOf' => array(
 								array( 'type' => 'string' ),
 								array(
@@ -695,9 +640,12 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'editVisibility' => array(
+						'editVisibility'         => array(
 							'type' => 'string',
 							'enum' => array( 'always', 'on-hover' ),
+						),
+						'showPlaceholderIfEmpty' => array(
+							'type' => 'boolean',
 						),
 					),
 				),

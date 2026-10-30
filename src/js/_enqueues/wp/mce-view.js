@@ -4,7 +4,7 @@
 
 /* global tinymce */
 
-/*
+/**
  * The TinyMCE view API.
  *
  * Note: this API is "experimental" meaning that it will probably change
@@ -25,6 +25,11 @@
  * |  |  |- ...
  * |- registered view
  * |  |- ...
+ *
+ * @param {Window}       window    The global window object.
+ * @param {Object}       wp        The WordPress global object.
+ * @param {Object}       shortcode The shortcode API.
+ * @param {JQueryStatic} $         The jQuery object.
  */
 ( function( window, wp, shortcode, $ ) {
 	'use strict';
@@ -88,8 +93,8 @@
 		 * replacing any matches with markers,
 		 * and creates a new instance for every match.
 		 *
-		 * @param {string} content The string to scan.
-		 * @param {tinymce.Editor} editor The editor.
+		 * @param {string}         content The string to scan.
+		 * @param {tinymce.Editor} editor  The editor.
 		 *
 		 * @return {string} The string with markers.
 		 */
@@ -190,7 +195,7 @@
 		/**
 		 * Get a view instance.
 		 *
-		 * @param {(string|HTMLElement)} object The textual representation of the view or the view node.
+		 * @param {string|HTMLElement} object The textual representation of the view or the view node.
 		 *
 		 * @return {wp.mce.View} The view instance or undefined.
 		 */
@@ -296,7 +301,7 @@
 		/**
 		 * Whether or not to display a loader.
 		 *
-		 * @type {Boolean}
+		 * @type {boolean}
 		 */
 		loader: true,
 
@@ -308,7 +313,7 @@
 		/**
 		 * Returns the content to render in the view node.
 		 *
-		 * @return {*}
+		 * @return {*} The content.
 		 */
 		getContent: function() {
 			return this.content;
@@ -615,6 +620,9 @@
 
 				iframeDoc.close();
 
+				/**
+				 * Resizes the iframe to fit its content.
+				 */
 				function resize() {
 					var $iframe;
 
@@ -643,6 +651,9 @@
 					}, 3000 );
 				}
 
+				/**
+				 * Adds a MutationObserver to the iframe's body to watch for changes and resize accordingly.
+				 */
 				function addObserver() {
 					observer = new MutationObserver( _.debounce( resize, 100 ) );
 
@@ -675,6 +686,8 @@
 
 		/**
 		 * Sets a loader for all view nodes tied to this view instance.
+		 *
+		 * @param {string} dashicon The dashicon ID. Optional.
 		 */
 		setLoader: function( dashicon ) {
 			this.setContent(
@@ -705,7 +718,7 @@
 		 *
 		 * @param {string} content The string to scan.
 		 *
-		 * @return {Object}
+		 * @return {void|Object} An object with the match index, content and options, or undefined if no match was found.
 		 */
 		match: function( content ) {
 			var match = shortcode.next( this.type, content );
@@ -761,15 +774,27 @@
 	} );
 } )( window, window.wp, window.wp.shortcode, window.jQuery );
 
-/*
+/**
  * The WordPress core TinyMCE views.
+ *
  * Views for the gallery, audio, video, playlist and embed shortcodes,
  * and a view for embeddable URLs.
+ *
+ * @param {Window}       window The global window object.
+ * @param {Object}       views  The wp.mce.views object.
+ * @param {Object}       media  The wp.media object.
+ * @param {JQueryStatic} $      The jQuery object.
  */
 ( function( window, views, media, $ ) {
 	var base, gallery, av, embed,
 		schema, parser, serializer;
 
+	/**
+	 * Verifies that a given string is valid HTML.
+	 *
+	 * @param {string} string The string to verify.
+	 * @return {string} The verified string.
+	 */
 	function verifyHTML( string ) {
 		var settings = {};
 

@@ -53,7 +53,7 @@ class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 	 *
 	 * @param string $flag       The name of the flag being set or unset on a site.
 	 * @param string $flag_value '0' or '1'. The value of the flag being set.
-	 * @param string $action     The hook expected to fire for the flag name and flag combination.
+	 * @param string $hook       The hook expected to fire for the flag name and flag combination.
 	 *
 	 * @dataProvider data_flag_hooks
 	 */
@@ -84,7 +84,7 @@ class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 		$this->assertSame( 1, $test_action_counter->get_call_count() );
 	}
 
-	public function data_flag_hooks() {
+	public static function data_flag_hooks() {
 		return array(
 			array( 'spam', '0', 'make_ham_blog' ),
 			array( 'spam', '1', 'make_spam_blog' ),
@@ -110,7 +110,7 @@ class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 		$this->assertSame( $expected, $site->path );
 	}
 
-	public function data_single_directory_path() {
+	public static function data_single_directory_path() {
 		return array(
 			array( 'my_path', '/my_path/' ),
 			array( 'my_path//', '/my_path/' ),

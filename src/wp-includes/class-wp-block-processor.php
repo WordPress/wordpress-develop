@@ -538,6 +538,7 @@ class WP_Block_Processor {
 	 * associated with token boundaries still point to the delimiters even
 	 * when processing HTML spans, so there’s no need to track them independently.
 	 *
+	 * @since 6.9.0
 	 * @var 'push'|'void'|'pop'|null
 	 */
 	private $next_stack_op = null;
@@ -831,6 +832,11 @@ class WP_Block_Processor {
 					$this->open_blocks_at[]         = $after_prev_delimiter;
 					$this->open_blocks_length[]     = 0;
 					$this->was_void                 = true;
+
+					if ( $backup > 0 ) {
+						$this->last_error = self::INCOMPLETE_INPUT;
+					}
+
 					return true;
 				}
 
@@ -973,12 +979,31 @@ class WP_Block_Processor {
 			 * This also matches the behavior in the official block parser,
 			 * even though it allows for matching invalid JSON content.
 			 *
+			 * The delimiter must also be a single complete HTML comment.
+			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$comment_closing_at = strpos( $text, '-->', $json_at );
-			if ( false === $comment_closing_at ) {
+			$after_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+
+			/*
+			 * The reported end of the comment could be after the end of the document if
+			 * no actual end was found, so differentiate a comment ending at the end of
+			 * the document from documents with missing comment ends.
+			 */
+			if ( $after_comment_end >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
 				goto incomplete;
 			}
+
+			/*
+			 * Only normative comment closers are recognized block delimiters,
+			 * so skip past any HTML comments ending in `--!>`.
+			 */
+			if ( '!' === $text[ $after_comment_end - 2 ] ) {
+				$at = $after_comment_end;
+				continue;
+			}
+
+			$comment_closing_at = $after_comment_end - 3;
 
 			// <!-- /wp:core/paragraph {"dropCap":true} /⃨-->
 			if ( '/' === $text[ $comment_closing_at - 1 ] ) {
@@ -1001,7 +1026,7 @@ class WP_Block_Processor {
 					break;
 				}
 
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $after_comment_end;
 				continue;
 			}
 
@@ -1009,6 +1034,7 @@ class WP_Block_Processor {
 			 * There's JSON, so attempt to find its boundary.
 			 *
 			 * @todo It’s likely faster to scan forward instead of in reverse.
+			 * @todo Skip ahead with `strcspn()` and decide only on syntax characters.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true}⃨ ⃨/-->
 			 */
@@ -1030,7 +1056,7 @@ class WP_Block_Processor {
 						break 2;
 
 					default:
-						++$at;
+						$at = $after_comment_end;
 						continue 3;
 				}
 			}
@@ -1040,7 +1066,7 @@ class WP_Block_Processor {
 			 * mandatory whitespace is missing.
 			 */
 			if ( 0 === $json_length || 0 === $after_json_whitespace_length ) {
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $after_comment_end;
 				continue;
 			}
 
@@ -1051,6 +1077,19 @@ class WP_Block_Processor {
 
 		// The end of the document was reached without a match.
 		if ( self::MATCHED !== $this->state ) {
+			// Stop at top-level free-form HTML at the end of the document.
+			if ( $after_prev_delimiter < $end ) {
+				$this->state                    = self::HTML_SPAN;
+				$this->after_previous_delimiter = $after_prev_delimiter;
+				$this->matched_delimiter_at     = $end;
+				$this->matched_delimiter_length = 0;
+				$this->open_blocks_at[]         = $after_prev_delimiter;
+				$this->open_blocks_length[]     = 0;
+				$this->was_void                 = true;
+
+				return true;
+			}
+
 			$this->state = self::COMPLETE;
 			return false;
 		}
@@ -1238,20 +1277,16 @@ class WP_Block_Processor {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array[]|null {
-	 *     Array of block structures.
+	 * @return array|null {
+	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
 	 *
-	 *     @type array ...$0 {
-	 *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
-	 *
-	 *         @type string|null $blockName    Name of block.
-	 *         @type array       $attrs        Attributes from block comment delimiters.
-	 *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                         have the same structure as this one.
-	 *         @type string      $innerHTML    HTML from inside block comment delimiters.
-	 *         @type array       $innerContent List of string fragments and null markers where
-	 *                                         inner blocks were found.
-	 *     }
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where
+	 *                                     inner blocks were found.
 	 * }
 	 */
 	public function extract_full_block_and_advance(): ?array {
@@ -1275,6 +1310,10 @@ class WP_Block_Processor {
 			'innerContent' => array(),
 		);
 
+		if ( self::VOID === $this->get_delimiter_type() ) {
+			return $block;
+		}
+
 		$depth = $this->get_depth();
 		while ( $this->next_token() && $this->get_depth() > $depth ) {
 			if ( $this->is_html() ) {
@@ -1294,17 +1333,6 @@ class WP_Block_Processor {
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
-			}
-
-			/*
-			 * Because the parser has advanced past the closing block token, it
-			 * may be matched on an HTML span. This needs to be processed before
-			 * moving on to the next token at the start of the next loop iteration.
-			 */
-			if ( $this->is_html() ) {
-				$chunk                   = $this->get_html_content();
-				$block['innerHTML']     .= $chunk;
-				$block['innerContent'][] = $chunk;
 			}
 		}
 
@@ -1330,7 +1358,7 @@ class WP_Block_Processor {
 			$comment_starting_at + 2 + $span_of_dashes < $search_end &&
 			'>' === $text[ $comment_starting_at + 2 + $span_of_dashes ]
 		) {
-			return $comment_starting_at + $span_of_dashes + 1;
+			return $comment_starting_at + 2 + $span_of_dashes + 1;
 		}
 
 		// Otherwise, there are other characters inside the comment, find the first `-->` or `--!>`.
@@ -1350,7 +1378,7 @@ class WP_Block_Processor {
 				return $closer_must_be_at + 1;
 			}
 
-			++$now_at;
+			$now_at = $closer_must_be_at;
 		}
 
 		return $search_end;
@@ -1441,6 +1469,8 @@ class WP_Block_Processor {
 	 *     $is_core_paragraph = $processor->is_block_type( 'paragraph' );
 	 *     $is_core_paragraph = $processor->is_block_type( 'core/paragraph' );
 	 *     $is_formula        = $processor->is_block_type( 'math-block/formula' );
+	 *
+	 * @since 6.9.0
 	 *
 	 * @param string $block_type Block type name for the desired block.
 	 *                           E.g. "paragraph", "core/paragraph", "math-blocks/formula".
@@ -1573,8 +1603,8 @@ class WP_Block_Processor {
 	 *
 	 * @see self::is_block_type()
 	 *
-	 * @param string[] $block_type Optional. Is the matched block type one of these?
-	 *                             If none are provided, will not test block type.
+	 * @param string ...$block_type Optional. Is the matched block type one of these?
+	 *                              If none are provided, will not test block type.
 	 * @return bool Whether the matched block delimiter opens a block, and whether it
 	 *              opens a block of one of the given block types, if provided.
 	 */
@@ -1609,6 +1639,8 @@ class WP_Block_Processor {
 	 * @see self::is_non_whitespace_html()
 	 *
 	 * @return bool Whether the processor is matched on an HTML span.
+	 *
+	 * @phpstan-impure
 	 */
 	public function is_html(): bool {
 		return self::HTML_SPAN === $this->state;

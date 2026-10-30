@@ -17,6 +17,12 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 		$this->year_url  = get_year_link( gmdate( 'Y' ) );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'taco' );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(
 			8,
@@ -220,7 +226,7 @@ EOF;
 
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
 
-		$expected = join(
+		$expected = implode(
 			'',
 			array_map(
 				static function ( $id ) {

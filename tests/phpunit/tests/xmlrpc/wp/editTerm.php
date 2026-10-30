@@ -26,6 +26,11 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'username', 'password', 'category', 1 ) );
 		$this->assertIXRError( $result );
@@ -190,7 +195,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsBool( $result );
 
 		$term = get_term( self::$child_term, 'category' );
-		$this->assertEquals( '0', $term->parent );
+		$this->assertSame( 0, $term->parent );
 	}
 
 	public function test_parent_invalid() {

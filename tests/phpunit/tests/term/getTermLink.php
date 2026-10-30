@@ -17,9 +17,20 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		}
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		self::register_custom_taxonomy();
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax2' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -274,7 +285,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_term_link_filter_should_receive_term_object() {
+	public static function data_term_link_filter_should_receive_term_object() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',
@@ -325,9 +336,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
+	public static function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
 		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
 
-		return $this->text_array_to_dataprovider( $taxonomies );
+		return self::text_array_to_dataprovider( $taxonomies );
 	}
 }

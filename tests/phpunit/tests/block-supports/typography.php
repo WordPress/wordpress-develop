@@ -23,22 +23,29 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->test_block_name = null;
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		$theme_root_callback = function () {
-			return $this->theme_root;
-		};
-		add_filter( 'theme_root', $theme_root_callback );
-		add_filter( 'stylesheet_root', $theme_root_callback );
-		add_filter( 'template_root', $theme_root_callback );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		// Clear caches.
 		wp_clean_themes_cache();
@@ -51,14 +58,34 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	public function tear_down() {
 		// Restores the original theme directory setup.
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
+
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		// Resets test block name.
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 
+		// Resets script modules enqueued while rendering fit text.
+		$GLOBALS['wp_script_modules'] = null;
+
 		parent::tear_down();
+	}
+
+	/**
+	 * Filters the theme root to use the test data directory.
+	 *
+	 * @return string Theme root path.
+	 */
+	public function filter_theme_root() {
+		return $this->theme_root;
 	}
 
 	/**
@@ -289,6 +316,39 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a classname is generated for a text shadow preset.
+	 *
+	 * @covers ::wp_apply_typography_support
+	 */
+	public function test_should_generate_classname_for_text_shadow() {
+		$this->test_block_name = 'test/text-shadow-with-class';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'typography' => array(
+						'textShadow' => true,
+					),
+				),
+			)
+		);
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( $this->test_block_name );
+		$block_atts = array( 'textShadow' => 'light' );
+
+		$actual   = wp_apply_typography_support( $block_type, $block_atts );
+		$expected = array( 'class' => 'has-light-text-shadow' );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * Tests generating font size values, including fluid formulae, from fontSizes preset.
 	 *
 	 * @ticket 56467
@@ -309,7 +369,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $settings         Theme JSON settings array that overrides any global theme settings.
-	 * @param string $expected_output Expected output.
+	 * @param string $expected_output  Expected output.
 	 */
 	public function test_wp_get_typography_font_size_value( $font_size_preset, $settings, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size_preset, $settings );
@@ -322,7 +382,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_fixtures() {
+	public static function data_generate_font_size_preset_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size_preset' => array(
@@ -817,7 +877,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size                   {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -825,7 +885,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $size CSS font-size value, including units where applicable.
 	 * }
 	 * @param bool   $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
-	 * @param string $expected_output Expected output of wp_get_typography_font_size_value().
+	 * @param string $expected_output             Expected output of wp_get_typography_font_size_value().
 	 */
 	public function test_wp_get_typography_font_size_value_should_use_fluid_typography_deprecated( $font_size, $should_use_fluid_typography, $expected_output ) {
 		$actual = wp_get_typography_font_size_value( $font_size, $should_use_fluid_typography );
@@ -838,7 +898,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
+	public static function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size'                   => array(
@@ -867,7 +927,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_generate_should_override_theme_settings_fixtures
 	 *
-	 * @param array  $font_size                     {
+	 * @param array  $font_size       {
 	 *     Required. A font size as represented in the fontSizes preset format as seen in theme.json.
 	 *
 	 *     @type string $name Name of the font size preset.
@@ -889,7 +949,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_should_override_theme_settings_fixtures() {
+	public static function data_generate_should_override_theme_settings_fixtures() {
 		return array(
 			'returns clamp value when theme activates fluid typography' => array(
 				'font_size'       => array(
@@ -1016,7 +1076,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_block_supports_font_size_fixtures() {
+	public static function data_generate_block_supports_font_size_fixtures() {
 		return array(
 			'returns value when fluid typography is not active' => array(
 				'font_size_value' => '15px',
@@ -1094,7 +1154,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
+	public static function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
 		return array(
 			'default_return_content'                       => array(
 				'block_content'               => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:4rem;font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
@@ -1136,6 +1196,80 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `has-fit-text` class name is added to the block wrapper when the
+	 * `fitText` attribute is set.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 *
+	 * @dataProvider data_should_add_fit_text_class_name
+	 *
+	 * @param non-falsy-string $block_content  HTML block content.
+	 * @param non-falsy-string $expected_class Expected value of the class attribute on the block wrapper.
+	 */
+	public function test_should_add_fit_text_class_name( string $block_content, string $expected_class ) {
+		$block = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(
+				'fitText' => true,
+			),
+		);
+
+		$actual = wp_render_typography_support( $block_content, $block );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$processor->next_tag();
+
+		$this->assertSame( $expected_class, $processor->get_attribute( 'class' ), 'The block wrapper does not have the expected class names.' );
+		$this->assertSame( 1, substr_count( $actual, 'has-fit-text' ), 'The class name should be added exactly once, to the outermost tag only.' );
+	}
+
+	/**
+	 * Data provider for test_should_add_fit_text_class_name().
+	 *
+	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
+	 */
+	public static function data_should_add_fit_text_class_name(): array {
+		return array(
+			'wrapper without a class attribute' => array(
+				'block_content'  => '<h1>Site Title</h1>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with existing class names' => array(
+				'block_content'  => '<h1 class="wp-block-site-title"><a href="https://example.com">Site Title</a></h1>',
+				'expected_class' => 'wp-block-site-title has-fit-text',
+			),
+			'wrapper with an already serialized class name' => array(
+				'block_content'  => '<p class="has-fit-text">A paragraph</p>',
+				'expected_class' => 'has-fit-text',
+			),
+			'wrapper with inner blocks'         => array(
+				'block_content'  => '<div class="wp-block-group"><p>A paragraph inside a group</p></div>',
+				'expected_class' => 'wp-block-group has-fit-text',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the `has-fit-text` class name is not added when the block does not
+	 * opt in to the fit text support.
+	 *
+	 * @ticket 65973
+	 *
+	 * @covers ::wp_render_typography_support
+	 */
+	public function test_should_not_add_fit_text_class_name_without_fit_text_attribute() {
+		$block_content = '<h1 class="wp-block-site-title">Site Title</h1>';
+		$block         = array(
+			'blockName' => 'core/site-title',
+			'attrs'     => array(),
+		);
+
+		$this->assertSame( $block_content, wp_render_typography_support( $block_content, $block ) );
+	}
+
+	/**
 	 * Tests that valid font size values are parsed.
 	 *
 	 * @ticket 56467
@@ -1156,7 +1290,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_size_wp_get_typography_value_and_unit() {
+	public static function data_valid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: 10vh with default units do not match' => array(
 				'raw_value' => '10vh',
@@ -1243,7 +1377,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_invalid_size_wp_get_typography_value_and_unit() {
+	public static function data_invalid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: null'  => array( null ),
 			'size: false' => array( false ),
@@ -1262,7 +1396,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_get_computed_fluid_typography_value
 	 *
-	 * @param array  $args {
+	 * @param array  $args            {
 	 *      Optional. An associative array of values to calculate a fluid formula for font size. Default is empty array.
 	 *
 	 *     @type string $maximum_viewport_width Maximum size up to which type will have fluidity.
@@ -1271,7 +1405,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *     @type string $minimum_font_size      Minimum font size for any clamp() calculation.
 	 *     @type int    $scale_factor           A scale factor to determine how fast a font scales within boundaries.
 	 * }
-	 * @param string $expected_output             Expected value of style property from wp_apply_typography_support().
+	 * @param string $expected_output Expected value of style property from wp_apply_typography_support().
 	 */
 	public function test_wp_get_computed_fluid_typography_value( $args, $expected_output ) {
 		$actual = wp_get_computed_fluid_typography_value( $args );
@@ -1283,7 +1417,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_computed_fluid_typography_value() {
+	public static function data_wp_get_computed_fluid_typography_value() {
 		return array(
 			'returns clamped value with valid args' => array(
 				'args'            => array(
