@@ -46,7 +46,17 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * Tears down the test fixture.
 	 */
 	public function tear_down() {
+		global $wp_rewrite;
+
 		unregister_post_type( 'wp_tests_private' );
+
+		remove_filter( 'month_link', array( $this, 'filter_month_link_add_lang_prefix' ) );
+		remove_rewrite_tag( '%lang%' );
+		unset(
+			$wp_rewrite->extra_rules_top['([a-z]{2})/([0-9]{4})/?$'],
+			$wp_rewrite->extra_rules_top['([a-z]{2})/([0-9]{4})/([0-9]{1,2})/?$']
+		);
+		flush_rewrite_rules( false );
 
 		parent::tear_down();
 	}
@@ -77,6 +87,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		if ( false !== strpos( $test_url, '%d' ) ) {
 			if ( false !== strpos( $test_url, '/?author=%d' ) ) {
 				$test_url = sprintf( $test_url, self::$author_id );
+				if ( is_string( $expected ) ) {
+					$expected = sprintf( $expected, self::$author_id );
+				}
 			}
 			if ( false !== strpos( $test_url, '?cat=%d' ) ) {
 				$test_url = sprintf( $test_url, self::$terms[ $expected['url'] ] );
@@ -84,6 +97,43 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		}
 
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
+	}
+
+	/**
+	 * Date archives prefixed with a plugin-added rewrite var should still be canonicalized.
+	 *
+	 * @ticket 17661
+	 */
+	public function test_canonical_date_archive_with_custom_rewrite_prefix() {
+		add_rewrite_tag( '%lang%', '([a-z]{2})' );
+		add_rewrite_rule( '([a-z]{2})/([0-9]{4})/?$', 'index.php?lang=$matches[1]&year=$matches[2]', 'top' );
+		add_rewrite_rule( '([a-z]{2})/([0-9]{4})/([0-9]{1,2})/?$', 'index.php?lang=$matches[1]&year=$matches[2]&monthnum=$matches[3]', 'top' );
+		flush_rewrite_rules( false );
+
+		add_filter( 'month_link', array( $this, 'filter_month_link_add_lang_prefix' ) );
+
+		$this->assertCanonical(
+			'/en/2008/?monthnum=9',
+			array(
+				'url' => '/en/2008/09/',
+				'qv'  => array(
+					'lang'     => 'en',
+					'year'     => '2008',
+					'monthnum' => '09',
+				),
+			),
+			17661
+		);
+	}
+
+	/**
+	 * Adds an /en/ prefix to month archive links, as a translation plugin would.
+	 *
+	 * @param string $link Month archive link.
+	 * @return string Filtered link.
+	 */
+	public function filter_month_link_add_lang_prefix( $link ) {
+		return str_replace( home_url( '/' ), home_url( '/en/' ), $link );
 	}
 
 	public static function data_canonical() {
@@ -179,18 +229,17 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				),
 				17661,
 			),
-			/*
 			array(
 				'/2008/?category_name=cat-a',
-					array(
-						'url' => '/2008/?category_name=cat-a',
-						'qv'  => array(
-							'category_name' => 'cat-a',
-							'year'          => '2008'
-						)
-					)
+				array(
+					'url' => '/2008/?category_name=cat-a',
+					'qv'  => array(
+						'category_name' => 'cat-a',
+						'year'          => '2008',
+					),
+				),
+				17661,
 			),
-			*/
 
 			// Pages.
 			array( '/child-page-1/', '/parent-page/child-page-1/' ),
@@ -251,13 +300,21 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			array( '/?year=2008', '/2008/' ),
 
+			// Dates on non-date archives should not redirect to the date archive.
+			array( '/category/cat-a/?year=2008', '/category/cat-a/?year=2008', 17661 ), // No redirect.
+			array( '/tag/post-formats/?year=2008', '/tag/post-formats/?year=2008', 17661 ), // No redirect.
+			array( '/category/cat-a/?m=2008', '/category/cat-a/?m=2008', 17661 ), // No redirect.
+
 			array( '/2012/13/', '/2012/' ),
 			array( '/2012/11/51/', '/2012/11/', 0, array( 'WP_Date_Query' ) ),
 
 			// Authors.
 			array( '/?author=%d', '/author/canonical-author/' ),
-			// array( '/?author=%d&year=2008', '/2008/?author=3'),
-			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
+			array( '/?author=%d&year=2008', '/2008/?author=%d', 17661 ),
+			array( '/2008/?author=%d', '/2008/?author=%d', 17661 ), // No redirect.
+			array( '/author/canonical-author/?year=2008', '/author/canonical-author/?year=2008', 17661 ), // No redirect.
+			array( '/author/canonical-author/?year=2008&monthnum=9', '/author/canonical-author/?year=2008&monthnum=9', 17661 ), // No redirect.
+			array( '/author/canonical-author/page/2/?year=2008', '/author/canonical-author/page/2/?year=2008', 17661 ), // No redirect.
 			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
 
 			// Feeds.

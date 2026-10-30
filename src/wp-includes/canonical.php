@@ -223,6 +223,20 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 		}
 	} elseif ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks() ) {
+		/*
+		 * Skip the date redirects below when the rewrite rule, rather than $_GET, matched
+		 * an author or term archive, so that /author/name/?year=2008 is not sent to /2008/.
+		 */
+		$rewrite_matched_archive = false;
+
+		if ( is_date() ) {
+			$rewrite_vars            = array_diff( array_keys( (array) $wp_query->query ), array_keys( $_GET ) );
+			$archive_vars            = array_merge(
+				array( 'author', 'author_name', 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ),
+				array_filter( wp_list_pluck( get_taxonomies( array(), 'objects' ), 'query_var' ) )
+			);
+			$rewrite_matched_archive = (bool) array_intersect( $rewrite_vars, $archive_vars );
+		}
 
 		// Rewriting of old ?p=X, ?m=2004, ?m=200401, ?m=20040101.
 		if ( is_attachment()
@@ -274,7 +288,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			if ( $redirect_url ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
 			}
-		} elseif ( ! empty( $_GET['m'] ) && ( is_year() || is_month() || is_day() ) ) {
+		} elseif ( ! empty( $_GET['m'] ) && ( is_year() || is_month() || is_day() ) && ! $rewrite_matched_archive ) {
 			$m = get_query_var( 'm' );
 
 			switch ( strlen( $m ) ) {
@@ -293,7 +307,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['query'] = remove_query_arg( 'm', $redirect['query'] );
 			}
 			// Now moving on to non ?m=X year/month/day links.
-		} elseif ( is_date() ) {
+		} elseif ( is_date() && ! $rewrite_matched_archive ) {
 			$year  = get_query_var( 'year' );
 			$month = get_query_var( 'monthnum' );
 			$day   = get_query_var( 'day' );
