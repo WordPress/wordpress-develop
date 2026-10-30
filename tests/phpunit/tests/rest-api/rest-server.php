@@ -161,7 +161,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @return array
 	 */
-	public function data_envelope_params() {
+	public static function data_envelope_params() {
 		return array(
 			array( '1' ),
 			array( 'true' ),
@@ -1116,7 +1116,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_response_to_data_embedding() {
+	public static function data_response_to_data_embedding() {
 		return array(
 			array(
 				array( 'author', 'wp:term', 'https://wordpress.org' ),
@@ -1337,7 +1337,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_index_should_return_help_and_not_name() {
+	public static function data_get_index_should_return_help_and_not_name() {
 		return self::text_array_to_dataprovider( array( '_links', '_embedded' ) );
 	}
 
@@ -1432,7 +1432,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_index_should_return_site_icon_and_site_logo_fields() {
+	public static function data_get_index_should_return_site_icon_and_site_logo_fields() {
 		return array(
 			'no site_logo or site_icon fields'   => array(
 				'fields'            => 'name',
@@ -1951,7 +1951,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *     }
 	 * }
 	 */
-	public function data_rest_send_refreshed_nonce() {
+	public static function data_rest_send_refreshed_nonce() {
 		return array(
 			array( true, true ),
 			array( true, false ),
@@ -2312,7 +2312,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_batch_v1_opt_in() {
+	public static function data_batch_v1_opt_in() {
 		return array(
 			'missing'             => array( null, false ),
 			'invalid type'        => array( true, false ),

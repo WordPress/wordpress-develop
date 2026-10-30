@@ -25,6 +25,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		unregister_post_type( 'post-type-1' );
+		unregister_post_type( 'post-type-2' );
+		unregister_post_type( 'post-type-3' );
+
 		unset( $this->to_exclude );
 		parent::tear_down();
 	}
