@@ -643,6 +643,36 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Tag slugs matching feed endpoint names should not be stripped from the URL.
+	 *
+	 * @ticket 21700
+	 *
+	 * @dataProvider data_canonical_tag_slug_matching_feed_endpoint
+	 */
+	public function test_canonical_tag_slug_matching_feed_endpoint( $slug, $path ) {
+		self::factory()->tag->create( array( 'slug' => $slug ) );
+		$post_id = self::factory()->post->create();
+		wp_set_post_tags( $post_id, $slug );
+
+		$this->assertCanonical( $path, $path );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_canonical_tag_slug_matching_feed_endpoint() {
+		$data = array();
+		foreach ( array( 'rss', 'feed', 'rss2', 'rdf', 'atom' ) as $slug ) {
+			$data[ "$slug feed" ]  = array( $slug, "/tag/$slug/feed/" );
+			$data[ "$slug paged" ] = array( $slug, "/tag/$slug/page/2/" );
+			$data[ $slug ]         = array( $slug, "/tag/$slug/" );
+		}
+		return $data;
+	}
+
+	/**
 	 * Test canonical redirects for attachment pages when the option is disabled.
 	 *
 	 * @ticket 57913
