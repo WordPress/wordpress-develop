@@ -57,6 +57,58 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Selects the themes to check, build, and package.
+  determine-themes:
+    name: Determine Themes
+    runs-on: ubuntu-24.04
+    permissions: {}
+    timeout-minutes: 5
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
+    outputs:
+      themes: ${{ steps.set-themes.outputs.themes }}
+      build_themes: ${{ steps.set-themes.outputs.build_themes }}
+    steps:
+      - name: Determine themes to test and zip
+        id: set-themes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const allThemes = [
+              'ipsum',
+              'twentytwentyfive',
+              'twentytwentyfour',
+              'twentytwentythree',
+              'twentytwentytwo',
+              'twentytwentyone',
+              'twentytwenty',
+              'twentynineteen',
+              'twentyseventeen',
+              'twentysixteen',
+              'twentyfifteen',
+              'twentyfourteen',
+              'twentythirteen',
+              'twentytwelve',
+              'twentyeleven',
+              'twentyten',
+            ];
+            const buildThemes = [
+              'twentytwentyfive',
+              'twentytwentytwo',
+              'twentytwentyone',
+              'twentytwenty',
+              'twentynineteen',
+            ];
+            core.setOutput( 'themes', JSON.stringify( allThemes ) );
+            core.setOutput( 'build_themes', JSON.stringify( buildThemes ) );
+
+
   # Checks for zero-byte files.
   #
   # Occasionally, binary files such as images and fonts are added to themes incorrectly.
@@ -70,36 +122,12 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    needs: [ determine-themes ]
     timeout-minutes: 10
-    if: |
-      github.repository == 'WordPress/wordpress-develop' || (
-        github.event_name == 'pull_request' && (
-          ! github.event.repository.private ||
-          ! github.event.pull_request.draft ||
-          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
-        )
-      )
     strategy:
       fail-fast: false
       matrix:
-        theme: [
-          'ipsum',
-          'twentytwentyfive',
-          'twentytwentyfour',
-          'twentytwentythree',
-          'twentytwentytwo',
-          'twentytwentyone',
-          'twentytwenty',
-          'twentynineteen',
-          'twentyseventeen',
-          'twentysixteen',
-          'twentyfifteen',
-          'twentyfourteen',
-          'twentythirteen',
-          'twentytwelve',
-          'twentyeleven',
-          'twentyten'
-        ]
+        theme: ${{ fromJson( needs.determine-themes.outputs.themes ) }}
 
     steps:
       - name: Checkout repository
@@ -142,25 +170,12 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    needs: [ determine-themes ]
     timeout-minutes: 10
-    if: |
-      github.repository == 'WordPress/wordpress-develop' || (
-        github.event_name == 'pull_request' && (
-          ! github.event.repository.private ||
-          ! github.event.pull_request.draft ||
-          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
-        )
-      )
     strategy:
       fail-fast: false
       matrix:
-        theme: [
-            'twentytwentyfive',
-            'twentytwentytwo',
-            'twentytwentyone',
-            'twentytwenty',
-            'twentynineteen',
-        ]
+        theme: ${{ fromJson( needs.determine-themes.outputs.build_themes ) }}
 
     defaults:
       run:
@@ -249,30 +264,13 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    needs: [ check-for-empty-files, test-build-scripts ]
+    needs: [ determine-themes, check-for-empty-files, test-build-scripts ]
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
-        theme: [
-            'ipsum',
-            'twentytwentyfive',
-            'twentytwentyfour',
-            'twentytwentythree',
-            'twentytwentytwo',
-            'twentytwentyone',
-            'twentytwenty',
-            'twentynineteen',
-            'twentyseventeen',
-            'twentysixteen',
-            'twentyfifteen',
-            'twentyfourteen',
-            'twentythirteen',
-            'twentytwelve',
-            'twentyeleven',
-            'twentyten'
-        ]
+        theme: ${{ fromJson( needs.determine-themes.outputs.themes ) }}
 
     steps:
       - name: Checkout repository
@@ -335,7 +333,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ check-for-empty-files, bundle-theme, test-build-scripts ]
+    needs: [ determine-themes, check-for-empty-files, bundle-theme, test-build-scripts ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
