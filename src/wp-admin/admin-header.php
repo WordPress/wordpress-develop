@@ -95,9 +95,19 @@ _wp_admin_html_begin();
 <title><?php echo esc_html( $admin_title ); ?></title>
 <?php
 
+/*
+ * The dependencies of `colors` and the `utils` script are prefetched from the login screen by
+ * wp_prefetch_admin_assets(), which needs updating if these change.
+ */
 wp_enqueue_style( 'colors' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
+
+/*
+ * View transitions animate the admin menu, so they are only enqueued on screens that print it.
+ * Iframe screens such as Thickbox modals do not load this header and so do not opt in.
+ */
+wp_enqueue_view_transitions_admin_css();
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
@@ -241,6 +251,10 @@ if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
 }
 
+if ( ! wp_is_meta_box_reordering_enabled() ) {
+	$admin_body_class .= ' meta-box-reordering-disabled';
+}
+
 $admin_body_class .= ' wp-theme-' . sanitize_html_class( get_template() );
 if ( is_child_theme() ) {
 	$admin_body_class .= ' wp-child-theme-' . sanitize_html_class( get_stylesheet() );
@@ -273,6 +287,8 @@ unset( $error_get_last );
  *    and no-js cannot be removed.
  *
  * @since 2.3.0
+ * @since 7.2.0 Also applied in the Customizer context, where the body tag does not
+ *              have the wp-admin class.
  *
  * @param string $classes Space-separated list of CSS classes.
  */

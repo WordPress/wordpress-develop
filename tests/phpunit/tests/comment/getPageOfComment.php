@@ -157,7 +157,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1, $page_comments );
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**

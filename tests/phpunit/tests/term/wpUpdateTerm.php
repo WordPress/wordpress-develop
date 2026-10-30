@@ -4,6 +4,14 @@
  * @group taxonomy
  */
 class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_update_term_taxonomy_does_not_exist() {
 		$found = wp_update_term( 1, 'bar' );
 
@@ -385,7 +393,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
 		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-		$this->assertNotEquals( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
+		$this->assertNotSame( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
 	}
 
 	public function test_wp_update_term_alias_of_no_term_group() {
@@ -616,6 +624,8 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( $found['term_id'] );
 		$this->assertNotEmpty( $found['term_taxonomy_id'] );
 		$this->assertNotEmpty( $term_by_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_by_id, $term_by_slug );
 		$this->assertEquals( $term_by_id, $term_by_ttid );
 	}
@@ -801,5 +811,56 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
+	}
+
+	/**
+	 * wp_update_term() shares the uniquifier with wp_insert_term().
+	 *
+	 * @ticket 46010
+	 */
+	public function test_wp_update_term_child_with_long_encoded_slug_should_be_updated() {
+		$taxonomy = 'wptests_tax';
+		register_taxonomy( $taxonomy, 'post', array( 'hierarchical' => true ) );
+
+		// This name percent-encodes to a 116 character slug.
+		$name = 'Категория на продукта';
+
+		$parent = wp_insert_term( $name, $taxonomy );
+		$this->assertNotWPError( $parent );
+
+		$child = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy,
+				'name'     => 'Child',
+				'slug'     => 'child',
+				'parent'   => $parent['term_id'],
+			)
+		);
+
+		/*
+		 * Clearing the slug field on the Edit Category screen regenerates the slug
+		 * from the name, which then collides with the parent and gets suffixed.
+		 */
+		$found = wp_update_term(
+			$child,
+			$taxonomy,
+			array(
+				'name'   => $name,
+				'slug'   => '',
+				'parent' => $parent['term_id'],
+			)
+		);
+
+		$this->assertNotWPError( $found, 'The term could not be updated.' );
+
+		$updated = get_term( $child );
+
+		// wp_update_term() ignores the return value of $wpdb->update(), so an
+		// overlong slug leaves the whole row unwritten without reporting an error.
+		$this->assertSame( $name, $updated->name, 'The term name was not updated.' );
+		$this->assertNotSame( 'child', $updated->slug, 'The term slug was not updated.' );
+		$this->assertLessThanOrEqual( 200, strlen( $updated->slug ) );
+
+		_unregister_taxonomy( $taxonomy );
 	}
 }

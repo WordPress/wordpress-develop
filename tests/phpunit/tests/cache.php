@@ -57,7 +57,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	 *     @type bool  $valid Whether the key should be considered valid.
 	 * }
 	 */
-	public function data_is_valid_key() {
+	public static function data_is_valid_key() {
 		return array(
 			'false'          => array( false, false ),
 			'null'           => array( null, false ),
@@ -403,6 +403,7 @@ class Tests_Cache extends WP_UnitTestCase {
 			// External caches will contain property values that contain non-matching resource IDs.
 			$this->assertInstanceOf( 'WP_Object_Cache', $wp_object_cache );
 		} else {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $wp_object_cache, $new_blank_cache_object );
 		}
 	}

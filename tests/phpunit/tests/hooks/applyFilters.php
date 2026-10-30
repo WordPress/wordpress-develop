@@ -83,7 +83,7 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_integers() {
+	public static function data_priority_callback_order_with_integers() {
 		return array(
 			'int DESC' => array(
 				'priorities'          => array( 10, 9 ),
@@ -101,7 +101,7 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_unhappy_path_nonintegers() {
+	public static function data_priority_callback_order_with_unhappy_path_nonintegers() {
 		return array(
 			// Numbers as strings and floats.
 			'int as string DESC'               => array(

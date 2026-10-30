@@ -227,7 +227,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
 
 		$errors = $theme->errors();
-		$this->assertInstanceOf( WP_Error::class, $errors, 'The theme was not read back from the cache in an error state.' );
+		$this->assertWPError( $errors, 'The theme was not read back from the cache in an error state.' );
 		$this->assertSame( 'theme_child_invalid', $errors->get_error_code(), 'The theme was not read back from the cache with the expected error.' );
 		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not restored from the cache.' );
 	}
@@ -525,7 +525,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_block_theme() {
+	public static function data_is_block_theme() {
 		return array(
 			'default - non-block theme' => array(
 				'theme_dir' => 'default',
@@ -567,7 +567,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_file_path() {
+	public static function data_get_file_path() {
 		return array(
 			'no theme: no file given'              => array(
 				'theme_dir' => 'nonexistent',

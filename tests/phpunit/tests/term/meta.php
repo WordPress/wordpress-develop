@@ -18,6 +18,14 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'wptests_tax_3' );
+
+		parent::tear_down();
+	}
+
 	public function test_add() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
@@ -453,13 +461,12 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$expected = array(
 			'meta_key'   => 'foo',
 			'meta_value' => 'bar',
-			'meta_id'    => $term_meta_id,
-			'term_id'    => $t,
+			'meta_id'    => (string) $term_meta_id,
+			'term_id'    => (string) $t,
 		);
 
 		$found = $meta[0];
-
-		$this->assertEquals( $expected, $found );
+		$this->assertSame( $expected, $found );
 	}
 
 	/**
@@ -492,7 +499,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( $args, $this->last_register_meta_call['args'] );
 	}
 
-	public function data_register_term_meta() {
+	public static function data_register_term_meta() {
 		return array(
 			array( 'wptests_tax', 'registered_key1', array( 'single' => true ) ),
 			array( 'category', 'registered_key2', array() ),
@@ -526,7 +533,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertEmpty( $actual );
 	}
 
-	public function data_unregister_term_meta() {
+	public static function data_unregister_term_meta() {
 		return array(
 			array( 'wptests_tax', 'registered_key1' ),
 			array( 'category', 'registered_key2' ),

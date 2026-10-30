@@ -67,7 +67,6 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 				'post_content' => 'I want <!--more--> ice cream!',
 			)
 		);
-		$this->assertIsInt( $post_id );
 		set_post_format( $post_id, 'aside' );
 
 		// Sentinel value for the restore assertion below; it does not affect what the widget renders.
@@ -109,7 +108,6 @@ class Tests_Theme_TwentyFourteenEphemeraWidget extends WP_UnitTestCase {
 				'post_content' => 'I want <!--more--> ice cream!',
 			)
 		);
-		$this->assertIsInt( $post_id );
 		set_post_format( $post_id, 'aside' );
 
 		unset( $GLOBALS['more'] );

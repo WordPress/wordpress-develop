@@ -49,6 +49,16 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt_public' );
+		unregister_post_type( 'wptests_pt_private' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
@@ -194,7 +204,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertStringContainsString( "ORDER BY $full_key", $q->query_orderby );
 	}
 
-	public function data_orderby_should_convert_non_prefixed_keys() {
+	public static function data_orderby_should_convert_non_prefixed_keys() {
 		return array(
 			array( 'nicename', 'user_nicename' ),
 			array( 'email', 'user_email' ),
@@ -218,9 +228,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[3], self::$author_ids[1], self::$author_ids[0], self::$author_ids[2] );
+		$expected = array( (string) self::$author_ids[3], (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[2] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -240,9 +250,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -262,9 +272,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] );
+		$expected = array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] );
 
-		$this->assertEquals( $expected, $q->get_results() );
+		$this->assertSame( $expected, $q->get_results() );
 	}
 
 	/**
@@ -289,7 +299,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[2], self::$author_ids[0] ), $q->results );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[2], (string) self::$author_ids[0] ), $q->results );
 	}
 
 	/**
@@ -332,7 +342,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $u3, $u1, $u2 ), $q->results );
+		$this->assertSame( array( (string) $u3, (string) $u1, (string) $u2 ), $q->results );
 	}
 
 	/**
@@ -366,7 +376,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[2], self::$author_ids[0], self::$author_ids[1] ), $q->results );
+		$this->assertSame( array( (string) self::$author_ids[2], (string) self::$author_ids[0], (string) self::$author_ids[1] ), $q->results );
 	}
 
 	/**
@@ -399,8 +409,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[3] ), $q->get_results() );
 	}
 
 	/**
@@ -420,8 +429,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected_orderby = 'ORDER BY FIELD( ' . $wpdb->users . '.ID, ' . self::$author_ids[1] . ',' . self::$author_ids[0] . ',' . self::$author_ids[3] . ' )';
 		$this->assertStringContainsString( $expected_orderby, $q->query_orderby );
 
-		// assertEquals() respects order but ignores type (get_results() returns numeric strings).
-		$this->assertEquals( array( self::$author_ids[1], self::$author_ids[0], self::$author_ids[3] ), $q->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[1], (string) self::$author_ids[0], (string) self::$author_ids[3] ), $q->get_results() );
 	}
 
 	/**
@@ -568,7 +576,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $query->query_orderby );
 		$this->assertNotEmpty( $query->query_where );
 		$this->assertNotEmpty( $query->query_vars );
-		$this->assertNotEquals( $_query_vars, $query->query_vars );
+		$this->assertNotSame( $_query_vars, $query->query_vars );
 
 		// All values get reset.
 		$query->prepare_query( array( 'number' => 8 ) );
@@ -585,7 +593,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertSame( $_query_vars, $query->query_vars );
 
 		$query->prepare_query( array( 'number' => -1 ) );
-		$this->assertNotEquals( 'LIMIT -1', $query->query_limit );
+		$this->assertNotSame( 'LIMIT -1', $query->query_limit );
 		$this->assertEmpty( $query->query_limit );
 	}
 
@@ -639,7 +647,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$author_ids[0], self::$author_ids[1] ), $query->get_results() );
+		$this->assertSame( array( (string) self::$author_ids[0], (string) self::$author_ids[1] ), $query->get_results() );
 	}
 
 	public function test_roles_and_caps_should_be_populated_for_default_value_of_blog_id() {
@@ -1301,7 +1309,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( self::$contrib_id, self::$editor_ids[2] ), $q->results );
+		$this->assertSame( array( (string) self::$contrib_id, (string) self::$editor_ids[2] ), $q->results );
 	}
 
 	/**
@@ -2014,7 +2022,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returning_field_subset_as_string() {
+	public static function data_returning_field_subset_as_string() {
 		$data = array(
 			'id'            => array(
 				'fields'   => 'id',
@@ -2096,7 +2104,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returning_field_subset_as_array() {
+	public static function data_returning_field_subset_as_array() {
 		$data = array(
 			'id'                 => array(
 				'fields'   => array( 'id' ),
@@ -2372,7 +2380,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_compat_fields() {
+	public static function data_compat_fields() {
 		return array(
 			'results'     => array(
 				'property_name' => 'results',

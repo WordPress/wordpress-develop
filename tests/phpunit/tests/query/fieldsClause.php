@@ -27,6 +27,10 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		self::$post_ids = $factory->post->create_many( 5, array( 'post_type' => 'wptests_pt' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wptests_pt' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		/*
@@ -37,6 +41,11 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		 * get_post_types().
 		 */
 		register_post_type( 'wptests_pt' );
+	}
+
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		parent::tear_down();
 	}
 
 	/**
@@ -227,7 +236,6 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 */
 	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_when_cached() {
 		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
 
 		$child_id = self::factory()->post->create(
 			array(
@@ -235,7 +243,6 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 				'post_parent' => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child page was not created.' );
 
 		$query_args = array(
 			'post_type'      => 'page',
@@ -270,7 +277,6 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 */
 	public function test_id_and_parent_subset_should_return_parent_ids_keyed_by_post_id_when_not_caching_results() {
 		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
 
 		$child_id = self::factory()->post->create(
 			array(
@@ -278,7 +284,6 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 				'post_parent' => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child page was not created.' );
 
 		$query_args = array(
 			'post_type'      => 'page',

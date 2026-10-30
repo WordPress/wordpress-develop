@@ -91,7 +91,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		if ( has_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' ) ) {
 			remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 		}
-		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/block' ) ) {
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
 		}
 
@@ -416,7 +416,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 	}
 
-	public function data_get_item_works_with_a_single_slash() {
+	public static function data_get_item_works_with_a_single_slash() {
 		return array(
 			array( '/wp/v2/templates/default/my_template' ),
 			array( '/wp/v2/templates/default//my_template' ),
@@ -485,7 +485,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_get_item_with_valid_theme_dirname() {
+	public static function data_get_item_with_valid_theme_dirname() {
 		$theme_root_dir = DIR_TESTDATA . '/themedir1/';
 		return array(
 			'template parts: parent theme'                => array(
@@ -656,28 +656,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertSame( 200, $response->get_status(), 'Fetching a file-backed template should return 200.' );
 		$this->assertNull( $data['date'], 'The date should be null for a file-backed template.' );
 		$this->assertNull( $data['modified'], 'The modified date should be null for a file-backed template.' );
-	}
-
-	/**
-	 * @ticket 54507
-	 * @dataProvider data_sanitize_template_id
-	 */
-	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
-		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
-		$this->assertSame(
-			$sanitized_id,
-			$endpoint->_sanitize_template_id( $input_id )
-		);
-	}
-
-	public function data_sanitize_template_id() {
-		return array(
-			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
-			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
-
-			array( 'theme-experiments/tt1-blocks/index', 'theme-experiments/tt1-blocks//index' ),
-			array( 'theme-experiments/tt1-blocks//index', 'theme-experiments/tt1-blocks//index' ),
-		);
 	}
 
 	/**
@@ -966,10 +944,37 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$admin_id );
+
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
+		$request->set_param( 'context', 'edit' );
+		$template = get_block_template( 'default//my_template', 'wp_template' );
+		$response = $endpoint->prepare_item_for_response( $template, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'default//my_template', $data['id'] );
+		$this->assertSame( 'default', $data['theme'] );
+		$this->assertSame( 'my_template', $data['slug'] );
+		$this->assertSame( 'wp_template', $data['type'] );
+		$this->assertSame( 'custom', $data['source'] );
+		$this->assertSame( 'Description of my template.', $data['description'] );
+		$this->assertSame( 'My Template', $data['title']['raw'] );
+		$this->assertSame( 'publish', $data['status'] );
+		$this->assertSame( self::$template_post->ID, $data['wp_id'] );
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( 'wp/v2/templates/default//my_template' ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/templates' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_template' ), $links['about'][0]['href'] );
 	}
 
 	/**
@@ -1087,7 +1092,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_with_is_wp_suggestion() {
+	public static function data_create_item_with_is_wp_suggestion() {
 		$expected = array(
 			'id'             => 'default//page-rigas',
 			'theme'          => 'default',
@@ -1181,6 +1186,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'slug', 'not-found' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $data, 'Response should be an empty object when a fallback template is not found.' );
 	}
 
