@@ -50,15 +50,33 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'existing_test', $tests['direct'] );
 	}
 
-	public function test_key_source_test_recommends_a_dedicated_key_by_default(): void {
-		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
-			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
-		}
+	/**
+	 * @ticket 66187
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_offers_a_generated_key_when_none_is_defined(): void {
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertStringContainsString( 'Add this line', $result['description'] );
+		$this->assertMatchesRegularExpression( '/define\( &#039;WP_SECRETS_KEY&#039;, &#039;([A-Za-z0-9+\/]{43}=)&#039; \);/', $result['description'] );
+	}
+
+	/**
+	 * @ticket 66187
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_offers_a_replacement_for_the_placeholder(): void {
+		define( 'WP_SECRETS_KEY', 'put your unique phrase here' );
 
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( 'WP_SECRETS_KEY', $result['description'] );
+		$this->assertStringContainsString( 'Replace the WP_SECRETS_KEY line', $result['description'] );
 	}
 
 	/**

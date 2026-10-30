@@ -74,7 +74,7 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 }
 
 /**
- * Site Health test: is the site key a dedicated constant, or a weaker fallback?
+ * Site Health test: is the site key defined, and in the recommended form?
  *
  * @since 7.2.0
  *
@@ -109,14 +109,24 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( str_contains( $key_source, 'LOGGED_IN_KEY' ) ) {
+	if ( str_contains( $key_source, 'not defined' ) || str_contains( $key_source, 'not usable' ) ) {
+		$is_defined = str_contains( $key_source, 'not usable' );
+		$example    = sprintf( "define( 'WP_SECRETS_KEY', '%s' );", base64_encode( random_bytes( 32 ) ) );
+
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
-			__( 'Secrets API is using a fallback key' ),
+			__( 'Secrets API has no encryption key' ),
 			'recommended',
 			sprintf(
-				'<p>%s</p>',
-				esc_html__( 'No dedicated WP_SECRETS_KEY constant is defined. Secrets are encrypted using a key derived from existing salts, which works but is not the recommended configuration. Define WP_SECRETS_KEY with a value from `wp secret generate-key`.' )
+				'<p>%s</p><p>%s</p><p><code>%s</code></p><p>%s</p>',
+				$is_defined
+					? esc_html__( 'WP_SECRETS_KEY is defined in wp-config.php, but its value cannot be used: it is empty, still the placeholder from wp-config-sample.php, or the same as one of the authentication keys and salts. Plugins cannot store API keys and other credentials with the Secrets API until it is fixed.' )
+					: esc_html__( 'WP_SECRETS_KEY is not defined in wp-config.php. Plugins cannot store API keys and other credentials with the Secrets API until it is.' ),
+				$is_defined
+					? esc_html__( 'Replace the WP_SECRETS_KEY line in wp-config.php with this one:' )
+					: esc_html__( 'Add this line to wp-config.php, above the line reading "That\'s all, stop editing!":' ),
+				esc_html( $example ),
+				esc_html__( 'A new value is generated each time this page loads. Keep a copy of the one you use with your backups: secrets stored with it cannot be read without it.' )
 			)
 		);
 	}
