@@ -3576,7 +3576,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 66372
 	 */
-	public function test_data_processing_is_listed_in_the_index(): void {
+	public function test_data_processing_is_not_listed_in_the_index(): void {
 		rest_get_server()->register_route(
 			'test-ns',
 			'/test-ns/data-processing',
@@ -3600,15 +3600,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertSame(
-			array(
-				'fields' => false,
-				'embed'  => true,
-				'links'  => true,
-			),
-			$data['endpoints'][0]['data_processing'],
-			'An endpoint with a feature turned off should list the settings.'
-		);
+		$this->assertArrayNotHasKey( 'data_processing', $data['endpoints'][0], 'An endpoint with a feature turned off should not list the settings.' );
 		$this->assertArrayNotHasKey( 'data_processing', $data['endpoints'][1], 'An endpoint with every feature on should not list the settings.' );
 	}
 
