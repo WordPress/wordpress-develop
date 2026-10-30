@@ -259,7 +259,7 @@ function wp_widget_control( $sidebar_args ) {
 			</span>
 			<span class="toggle-indicator" aria-hidden="true"></span>
 		</button>
-		<a class="widget-control-edit hide-if-js" href="<?php echo esc_url( add_query_arg( $query_arg ) ); ?>">
+		<a class="widget-control-edit" href="<?php echo esc_url( add_query_arg( $query_arg ) ); ?>">
 			<span class="edit"><?php _ex( 'Edit', 'widget' ); ?></span>
 			<span class="add"><?php _ex( 'Add', 'widget' ); ?></span>
 			<span class="screen-reader-text"><?php echo $widget_title; ?></span>
