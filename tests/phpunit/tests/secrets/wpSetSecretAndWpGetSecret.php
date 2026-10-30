@@ -231,4 +231,110 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			$this->assertStringNotContainsString( 'a-plaintext-value-that-must-not-leak', (string) $arg );
 		}
 	}
+
+	/**
+	 * The options API trims option names, so a name with a trailing newline
+	 * would share a row with the name without it while encrypting for itself.
+	 *
+	 * @ticket 66414
+	 */
+	public function test_a_trailing_newline_name_cannot_overwrite_the_secret_without_it(): void {
+		wp_set_secret( 'myplugin/api-key', 'value-plain' );
+
+		$result = wp_set_secret( "myplugin/api-key\n", 'value-newline' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value-plain', $secret->reveal() );
+	}
+
+	/**
+	 * @ticket 66414
+	 *
+	 * @requires PHP 8.2
+	 */
+	public function test_an_exception_while_setting_does_not_expose_the_value_in_the_trace(): void {
+		if ( ini_get( 'zend.exception_ignore_args' ) ) {
+			$this->markTestSkipped( 'Exception traces do not include arguments with zend.exception_ignore_args enabled.' );
+		}
+
+		add_action(
+			'wp_secret_changed',
+			static function () {
+				throw new RuntimeException( 'Listener failed.' );
+			}
+		);
+
+		$exception = null;
+
+		try {
+			wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );
+		} catch ( RuntimeException $e ) {
+			$exception = $e;
+		}
+
+		$this->assertInstanceOf( RuntimeException::class, $exception );
+
+		$string_args = array();
+		foreach ( $exception->getTrace() as $frame ) {
+			foreach ( $frame['args'] ?? array() as $arg ) {
+				if ( is_string( $arg ) ) {
+					$string_args[] = $arg;
+				}
+			}
+		}
+
+		$this->assertContains( 'myplugin/api-key', $string_args, 'The trace should include the other arguments.' );
+		$this->assertNotContains( 'a-plaintext-value-that-must-not-leak', $string_args );
+	}
+
+	/**
+	 * @ticket 66414
+	 *
+	 * @requires PHP 8.2
+	 *
+	 * @dataProvider data_parameters_that_receive_a_secret_value
+	 *
+	 * @param callable-string|array{0: class-string, 1: string} $target    The function or method.
+	 * @param string                                             $parameter The parameter name.
+	 */
+	public function test_parameters_that_receive_a_secret_value_are_sensitive( $target, string $parameter ): void {
+		$reflection = is_array( $target ) ? new ReflectionMethod( $target[0], $target[1] ) : new ReflectionFunction( $target );
+
+		foreach ( $reflection->getParameters() as $reflection_parameter ) {
+			if ( $parameter === $reflection_parameter->getName() ) {
+				$this->assertNotEmpty( $reflection_parameter->getAttributes( SensitiveParameter::class ) );
+				return;
+			}
+		}
+
+		$this->fail( "Parameter \${$parameter} not found." );
+	}
+
+	/**
+	 * @return array<string, array{0: callable-string|array{0: class-string, 1: string}, 1: string}>
+	 */
+	public static function data_parameters_that_receive_a_secret_value(): array {
+		return array(
+			'wp_set_secret()'                              => array( 'wp_set_secret', 'value' ),
+			'wp_set_network_secret()'                      => array( 'wp_set_network_secret', 'value' ),
+			'_wp_secrets_set()'                            => array( '_wp_secrets_set', 'value' ),
+			'WP_Secrets_Provider::set()'                   => array( array( WP_Secrets_Provider::class, 'set' ), 'value' ),
+			'WP_Secrets_Libsodium_Provider::set()'         => array( array( WP_Secrets_Libsodium_Provider::class, 'set' ), 'value' ),
+			'WP_Secrets_Broken_Provider::set()'            => array( array( WP_Secrets_Broken_Provider::class, 'set' ), 'value' ),
+			'WP_Secrets_Cipher::encrypt_value()'           => array( array( WP_Secrets_Cipher::class, 'encrypt_value' ), 'plaintext' ),
+			'WP_Secrets_Cipher::fingerprint()'             => array( array( WP_Secrets_Cipher::class, 'fingerprint' ), 'plaintext' ),
+			'WP_Secrets_Cipher::encrypt_value() key'       => array( array( WP_Secrets_Cipher::class, 'encrypt_value' ), 'master_key' ),
+			'WP_Secrets_Cipher::decrypt_value() key'       => array( array( WP_Secrets_Cipher::class, 'decrypt_value' ), 'master_key' ),
+			'WP_Secrets_Cipher::fingerprint() key'         => array( array( WP_Secrets_Cipher::class, 'fingerprint' ), 'master_key' ),
+			'WP_Secrets_Keyring::wrap()'                   => array( array( WP_Secrets_Keyring::class, 'wrap' ), 'key_material' ),
+			'WP_Secrets_Config_Key_Provider::wrap()'       => array( array( WP_Secrets_Config_Key_Provider::class, 'wrap' ), 'key_material' ),
+			'WP_Secrets_Broken_Keyring::wrap()'            => array( array( WP_Secrets_Broken_Keyring::class, 'wrap' ), 'key_material' ),
+			'WP_Secrets_Libsodium_Provider::demote_slot()' => array( array( WP_Secrets_Libsodium_Provider::class, 'demote_slot' ), 'master_key' ),
+		);
+	}
 }
