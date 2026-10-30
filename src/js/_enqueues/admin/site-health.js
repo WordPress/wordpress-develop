@@ -258,27 +258,16 @@ jQuery( function( $ ) {
 		}
 
 		if ( isStatusTab ) {
-			// Refresh the lightweight counts first, so a large detailed payload can't block them.
+			// Save counts and verified results together in the shared cache.
 			$.post(
 				ajaxurl,
 				{
 					'action': 'health-check-site-status-result',
 					'_wpnonce': SiteHealth.nonce.site_status_result,
-					'counts': SiteHealth.site_status.issues
+					'counts': SiteHealth.site_status.issues,
+					'results': JSON.stringify( SiteHealth.site_status.results )
 				}
 			);
-
-			// Send the per-test results separately, as a best-effort detailed cache update.
-			if ( Object.keys( SiteHealth.site_status.results ).length > 0 ) {
-				$.post(
-					ajaxurl,
-					{
-						'action': 'health-check-site-status-result',
-						'_wpnonce': SiteHealth.nonce.site_status_result,
-						'results': JSON.stringify( SiteHealth.site_status.results )
-					}
-				);
-			}
 
 			if ( 100 === val ) {
 				$( '.site-status-all-clear' ).removeClass( 'hide' );
