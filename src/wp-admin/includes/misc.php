@@ -1656,11 +1656,7 @@ function wp_check_php_version() {
 	$response = get_site_transient( 'php_check_' . $key );
 
 	if ( false === $response ) {
-		$url = 'http://api.wordpress.org/core/serve-happy/1.0/';
-
-		if ( wp_http_supports( array( 'ssl' ) ) ) {
-			$url = set_url_scheme( $url, 'https' );
-		}
+		$url = 'https://api.wordpress.org/core/serve-happy/1.0/';
 
 		$url = add_query_arg( 'php_version', $version, $url );
 
