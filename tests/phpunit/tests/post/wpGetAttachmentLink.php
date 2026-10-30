@@ -57,7 +57,7 @@ class Tests_Post_WpGetAttachmentLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_apply_attributes_filter() {
+	public static function data_should_apply_attributes_filter() {
 		return array(
 			'no new attributes'                         => array(
 				'attributes' => array(),

@@ -539,7 +539,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_get_feed_build_date() {
+	public static function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
