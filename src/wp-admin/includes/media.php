@@ -3649,19 +3649,15 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 
 	/*
 	 * Files without ID3, such as FLAC, Ogg and M4A, keep their tags as Vorbis comments,
-	 * QuickTime atoms, APE, RIFF INFO or ASF. Read the first set under ID3's names,
-	 * without replacing what was read from the stream, such as its encoder.
+	 * QuickTime atoms, APE, RIFF INFO or ASF. Read the first set, with the year and track
+	 * number under the names core reads for an MP3, without replacing what was read from
+	 * the stream, such as its encoder.
 	 */
 	if ( ! $has_id3 && ! empty( $data['tags'] ) && is_array( $data['tags'] ) ) {
 		$id3_keys = array(
-			'albumartist'   => 'band',
-			'album_artist'  => 'band',
 			'date'          => 'year',
 			'creation_date' => 'year',
 			'tracknumber'   => 'track_number',
-			'discnumber'    => 'part_of_a_set',
-			'disc_number'   => 'part_of_a_set',
-			'lyrics'        => 'unsynchronised_lyric',
 		);
 
 		foreach ( $data['tags'] as $tags ) {

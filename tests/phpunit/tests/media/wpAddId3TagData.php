@@ -56,7 +56,7 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that tags from files without ID3, such as FLAC, Ogg and M4A, are kept under ID3's names.
+	 * Tests that tags from files without ID3, such as FLAC, Ogg and M4A, are kept, with the year and track number under the names core reads.
 	 *
 	 * @ticket 66417
 	 *
@@ -96,14 +96,14 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 					),
 				),
 				'expected' => array(
-					'title'                => 'Aurora Rising',
-					'artist'               => 'The Northern Lights Ensemble',
-					'album'                => 'Horizons and Beyond',
-					'band'                 => 'Various Artists',
-					'year'                 => '2024',
-					'track_number'         => '3',
-					'part_of_a_set'        => '1/2',
-					'unsynchronised_lyric' => 'First line',
+					'title'        => 'Aurora Rising',
+					'artist'       => 'The Northern Lights Ensemble',
+					'album'        => 'Horizons and Beyond',
+					'albumartist'  => 'Various Artists',
+					'year'         => '2024',
+					'track_number' => '3',
+					'discnumber'   => '1/2',
+					'lyrics'       => 'First line',
 				),
 			),
 			'QuickTime (M4A)'             => array(
@@ -119,11 +119,11 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 					),
 				),
 				'expected' => array(
-					'title'         => 'Aurora Rising',
-					'band'          => 'Various Artists',
-					'year'          => '2024',
-					'track_number'  => '3/9',
-					'part_of_a_set' => '1/2',
+					'title'        => 'Aurora Rising',
+					'album_artist' => 'Various Artists',
+					'year'         => '2024',
+					'track_number' => '3/9',
+					'disc_number'  => '1/2',
 				),
 			),
 			'ID3 wins over other tags'    => array(
