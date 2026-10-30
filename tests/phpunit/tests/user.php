@@ -2263,6 +2263,28 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Checks that calling edit_user() without a username when adding returns the username error.
+	 *
+	 * @ticket 36303
+	 *
+	 * @covers ::edit_user
+	 */
+	public function test_edit_user_missing_user_login() {
+		$_POST          = array();
+		$_GET           = array();
+		$_REQUEST       = array();
+		$_POST['role']  = 'subscriber';
+		$_POST['email'] = 'user1@example.com';
+		$_POST['pass1'] = 'password';
+		$_POST['pass2'] = 'password';
+
+		$response = edit_user();
+
+		$this->assertWPError( $response );
+		$this->assertContains( 'user_login', $response->get_error_codes() );
+	}
+
+	/**
 	 * @ticket 16470
 	 */
 	public function test_send_confirmation_on_profile_email() {
