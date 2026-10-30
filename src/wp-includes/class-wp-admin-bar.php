@@ -117,7 +117,9 @@ class WP_Admin_Bar {
 	 *     @type string $id     ID of the item.
 	 *     @type string $title  Title of the node.
 	 *     @type string $icon   Optional. Namespaced icon name in the form "collection/icon-name",
-	 *                          e.g. 'core-admin/pin'. Rendered before the title.
+	 *                          e.g. 'core-admin/pin'. Rendered before the title, and hides a
+	 *                          Dashicon that the node draws in an empty `<span class="ab-icon">`
+	 *                          or on `.ab-item::before`. Ignored if the icon is not registered.
 	 *     @type string $parent Optional. ID of the parent node.
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
@@ -243,6 +245,32 @@ class WP_Admin_Bar {
 			'icon'     => $icon,
 			'in_title' => $default_icons[ $id ][1],
 		);
+	}
+
+	/**
+	 * Dashicons back-compat: checks whether a node title has an empty `<span class="ab-icon">`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $title Node title.
+	 * @return bool True if the title has an empty icon element, else false.
+	 */
+	private static function has_empty_icon_element( $title ) {
+		$processor = new WP_HTML_Tag_Processor( $title );
+		$query     = array(
+			'tag_name'   => 'SPAN',
+			'class_name' => 'ab-icon',
+		);
+
+		while ( $processor->next_tag( $query ) ) {
+			$processor->next_token();
+
+			if ( 'SPAN' === $processor->get_tag() && $processor->is_tag_closer() ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -647,15 +675,12 @@ class WP_Admin_Bar {
 		// Dashicons back-compat: a core node that was given no icon gets its default icon.
 		$default_icon = self::get_default_icon( $node );
 
-		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title; without one, the node gets no default icon.
-		if ( $default_icon && $default_icon['in_title'] ) {
-			$title = preg_replace( '/<span\b[^>]*\bclass=(["\'])(?:[^"\']*\s)?ab-icon(?:\s[^"\']*)?\1[^>]*>\s*<\/span>/', '', (string) $title, 1, $count );
-			if ( ! $count ) {
-				$default_icon = false;
-			}
+		// Dashicons back-compat: without an empty `<span class="ab-icon">` in the title, the node gets no default icon.
+		if ( $default_icon && $default_icon['in_title'] && ! self::has_empty_icon_element( (string) $title ) ) {
+			$default_icon = false;
 		}
 
-		if ( ! $icon_name && $default_icon ) {
+		if ( ! wp_is_valid_icon_name( $icon_name ) && $default_icon ) {
 			$icon_name = $default_icon['icon'];
 		}
 
