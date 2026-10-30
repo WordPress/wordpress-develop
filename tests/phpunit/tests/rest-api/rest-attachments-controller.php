@@ -3752,6 +3752,124 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that an edited image inherits the title, caption, description and alt text of the original attachment.
+	 *
+	 * @ticket 50675
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_copies_fields_from_original_attachment() {
+		$attachment = $this->create_attachment_with_original_fields();
+
+		$new_attachment_id = $this->crop_attachment_via_edit_endpoint( $attachment );
+		$new_attachment    = get_post( $new_attachment_id );
+
+		$this->assertNotSame( $attachment, $new_attachment_id, 'A new attachment should have been created.' );
+		$this->assertSame( 'Original Title', $new_attachment->post_title, 'Title was not copied from the original attachment.' );
+		$this->assertSame( 'Original Caption', $new_attachment->post_excerpt, 'Caption was not copied from the original attachment.' );
+		$this->assertSame( 'Original Description', $new_attachment->post_content, 'Description was not copied from the original attachment.' );
+		$this->assertSame( 'Original Alt Text', get_post_meta( $new_attachment_id, '_wp_attachment_image_alt', true ), 'Alt text was not copied from the original attachment.' );
+	}
+
+	/**
+	 * Tests that no alt text meta is created for an edited image when the original attachment has none.
+	 *
+	 * @ticket 50675
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_does_not_copy_empty_alt_text_from_original_attachment() {
+		$attachment = $this->create_attachment_with_original_fields( false );
+
+		$new_attachment_id = $this->crop_attachment_via_edit_endpoint( $attachment );
+
+		$this->assertFalse( metadata_exists( 'post', $new_attachment_id, '_wp_attachment_image_alt' ), 'Alt text meta should not exist when the original has none.' );
+	}
+
+	/**
+	 * Tests that fields passed in the request take precedence over the original attachment, while omitted fields are still inherited.
+	 *
+	 * @ticket 50675
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_request_fields_override_original_attachment_fields() {
+		$attachment = $this->create_attachment_with_original_fields();
+
+		$new_attachment_id = $this->crop_attachment_via_edit_endpoint(
+			$attachment,
+			array(
+				'title'    => 'New Title',
+				'alt_text' => 'New Alt Text',
+			)
+		);
+		$new_attachment    = get_post( $new_attachment_id );
+
+		$this->assertSame( 'New Title', $new_attachment->post_title, 'Title from the request was not used.' );
+		$this->assertSame( 'New Alt Text', get_post_meta( $new_attachment_id, '_wp_attachment_image_alt', true ), 'Alt text from the request was not used.' );
+		$this->assertSame( 'Original Caption', $new_attachment->post_excerpt, 'Omitted caption was not copied from the original attachment.' );
+		$this->assertSame( 'Original Description', $new_attachment->post_content, 'Omitted description was not copied from the original attachment.' );
+	}
+
+	/**
+	 * Creates an uploaded image attachment with distinctive title, caption, description and, optionally, alt text.
+	 *
+	 * @param bool $with_alt_text Whether to set alt text on the attachment.
+	 * @return int Attachment ID.
+	 */
+	private function create_attachment_with_original_fields( $with_alt_text = true ) {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		wp_update_post(
+			array(
+				'ID'           => $attachment,
+				'post_title'   => 'Original Title',
+				'post_excerpt' => 'Original Caption',
+				'post_content' => 'Original Description',
+			)
+		);
+
+		if ( $with_alt_text ) {
+			update_post_meta( $attachment, '_wp_attachment_image_alt', 'Original Alt Text' );
+		}
+
+		return $attachment;
+	}
+
+	/**
+	 * Crops an attachment through the edit endpoint and returns the ID of the newly created attachment.
+	 *
+	 * @param int   $attachment Attachment ID to edit.
+	 * @param array $extra_params Additional request parameters.
+	 * @return int New attachment ID.
+	 */
+	private function crop_attachment_via_edit_endpoint( $attachment, array $extra_params = array() ) {
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array_merge(
+				array(
+					'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+					'modifiers' => array(
+						array(
+							'type' => 'crop',
+							'args' => array(
+								'left'   => 10,
+								'top'    => 10,
+								'width'  => 80,
+								'height' => 80,
+							),
+						),
+					),
+				),
+				$extra_params
+			)
+		);
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		return $response->get_data()['id'];
+	}
+
+	/**
 	 * Tests that the image is flipped correctly vertically and horizontally.
 	 *
 	 * @ticket 64035
