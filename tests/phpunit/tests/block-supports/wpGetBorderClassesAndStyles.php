@@ -68,6 +68,20 @@ class Tests_Block_Supports_WpGetBorderClassesAndStyles extends WP_UnitTestCase {
 					'class' => 'has-border-color has-red-border-color',
 				),
 			),
+			'non-string preset'       => array(
+				'block_attributes' => array(
+					'borderColor' => 1,
+					'style'       => array(
+						'border' => array(
+							'color' => '#ff0000',
+						),
+					),
+				),
+				'expected'         => array(
+					'class' => 'has-border-color',
+					'style' => 'border-color:#ff0000;',
+				),
+			),
 			'numeric'                 => array(
 				'block_attributes' => array(
 					'style' => array(
