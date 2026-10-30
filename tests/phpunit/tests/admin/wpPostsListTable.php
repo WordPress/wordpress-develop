@@ -720,4 +720,49 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * Tests that the "Mine" count only counts the current user's posts in statuses shown in the All list.
+	 *
+	 * @ticket 58593
+	 *
+	 * @covers WP_Posts_List_Table::__construct
+	 */
+	public function test_user_posts_count_counts_statuses_shown_in_all_list() {
+		$user_id  = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$other_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+
+		foreach ( array( 'publish', 'publish', 'draft', 'pending', 'private', 'future', 'trash', 'auto-draft' ) as $status ) {
+			self::factory()->post->create(
+				array(
+					'post_author' => $user_id,
+					'post_status' => $status,
+					'post_date'   => 'future' === $status ? gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) : gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+		}
+		self::factory()->post->create_many( 3, array( 'post_author' => $other_id ) );
+
+		wp_set_current_user( $user_id );
+
+		$queries = array();
+		$logger  = static function ( $query ) use ( &$queries ) {
+			if ( str_contains( $query, 'COUNT( 1 )' ) && str_contains( $query, 'post_author' ) ) {
+				$queries[] = $query;
+			}
+			return $query;
+		};
+		add_filter( 'query', $logger );
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+		remove_filter( 'query', $logger );
+
+		$count = new ReflectionProperty( $table, 'user_posts_count' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$count->setAccessible( true );
+		}
+
+		$this->assertSame( 6, $count->getValue( $table ), 'Only posts in statuses shown in the All list should be counted.' );
+		$this->assertCount( 1, $queries, 'The count should run a single query.' );
+		$this->assertStringNotContainsString( 'NOT IN', $queries[0], 'The statuses to count should be listed so the post_author index part can be used.' );
+	}
 }
