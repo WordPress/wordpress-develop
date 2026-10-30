@@ -3229,6 +3229,93 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 }
 
 /**
+ * Removes image candidates with a disallowed URL protocol from a `srcset` value.
+ *
+ * A `srcset` attribute holds a comma-separated list of image candidate strings,
+ * each a URL optionally followed by whitespace and width or density descriptors.
+ * The value is split into candidates following the HTML specification's srcset
+ * parsing algorithm, so a comma only separates candidates when it ends a URL or
+ * its descriptors. A comma inside a URL, as produced by image CDN resizers, belongs
+ * to the URL, and one inside parentheses in the descriptors belongs to the descriptors.
+ *
+ * Each URL is checked with {@see wp_kses_bad_protocol()}. A candidate whose URL that
+ * check would alter is removed whole, descriptors included. As in {@see esc_url()},
+ * a URL starting with `/` cannot carry a scheme and is kept as is. Descriptors are
+ * not validated.
+ *
+ * The remaining candidates are rejoined with `, `, so whitespace around them and
+ * empty candidates do not survive into the result.
+ *
+ * Example:
+ *
+ *     // A candidate with a disallowed protocol is removed in full.
+ *     'a.jpg 1x, c.jpg 3x' === wp_kses_sanitize_srcset( 'a.jpg 1x, javascript:alert(1) 2x, c.jpg 3x', $protocols );
+ *
+ *     // A comma inside the URL does not end the candidate.
+ *     'https://cdn.example/w=400,q=80/a.jpg 400w' === wp_kses_sanitize_srcset( 'https://cdn.example/w=400,q=80/a.jpg 400w', $protocols );
+ *
+ *     // Separators are normalized.
+ *     'a.jpg 1x, b.jpg 2x' === wp_kses_sanitize_srcset( " a.jpg 1x ,,\n b.jpg 2x ", $protocols );
+ *
+ * The value must be decoded attribute text, as returned by
+ * {@see WP_HTML_Tag_Processor::get_attribute()}, not raw HTML containing character
+ * references. The returned value is decoded text too; callers writing it back into
+ * HTML must escape it.
+ *
+ * @since 7.2.0
+ *
+ * @link https://html.spec.whatwg.org/multipage/images.html#parsing-a-srcset-attribute
+ *
+ * @param string   $srcset            Decoded `srcset` attribute value.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @return string The value without candidates whose URL uses a disallowed protocol.
+ */
+function wp_kses_sanitize_srcset( string $srcset, array $allowed_protocols ): string {
+	$whitespace = " \t\f\r\n";
+	$length     = strlen( $srcset );
+	$at         = 0;
+	$kept       = array();
+
+	while ( $at < $length ) {
+		$at += strspn( $srcset, "{$whitespace},", $at );
+		if ( $at >= $length ) {
+			break;
+		}
+
+		// The URL is the run of non-whitespace characters, less any commas ending it.
+		$candidate_at = $at;
+		$url_length   = strcspn( $srcset, $whitespace, $at );
+		$url          = rtrim( substr( $srcset, $at, $url_length ), ',' );
+		$at          += $url_length;
+
+		/*
+		 * A URL ended by a comma has no descriptors. Otherwise they run to the next
+		 * comma outside parentheses, or to the end when a parenthesis is left open.
+		 */
+		if ( strlen( $url ) === $url_length ) {
+			while ( $at < $length ) {
+				$at += strcspn( $srcset, ',(', $at );
+				if ( $at >= $length || ',' === $srcset[ $at ] ) {
+					break;
+				}
+
+				$closing_at = strpos( $srcset, ')', $at );
+				$at         = false === $closing_at ? $length : $closing_at + 1;
+			}
+			$candidate = substr( $srcset, $candidate_at, $at - $candidate_at );
+		} else {
+			$candidate = $url;
+		}
+
+		if ( '/' === $url[0] || 0 === strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url ) ) {
+			$kept[] = rtrim( $candidate, $whitespace );
+		}
+	}
+
+	return implode( ', ', $kept );
+}
+
+/**
  * Converts and fixes HTML entities.
  *
  * This function normalizes HTML entities. It will convert `AT&T` to the correct
