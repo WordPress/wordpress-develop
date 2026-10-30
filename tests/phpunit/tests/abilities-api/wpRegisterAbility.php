@@ -68,7 +68,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				'description' => 'The result of adding the two numbers.',
 				'required'    => true,
 			),
-			'execute_callback'    => static function ( array $input ): int {
+			'execute_callback'    => static function ( array $input ): float {
 				return $input['a'] + $input['b'];
 			},
 			'permission_callback' => static function (): bool {
@@ -215,7 +215,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame(
-			5,
+			5.0,
 			$result->execute(
 				array(
 					'a' => 2,

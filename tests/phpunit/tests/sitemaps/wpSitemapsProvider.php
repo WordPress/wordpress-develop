@@ -17,7 +17,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	/**
 	 * Creates a provider that only implements the abstract methods.
 	 *
-	 * @param array $pages Number of sitemap pages, keyed by object subtype name. The '' key is used without subtypes.
+	 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name. The '' key is used without subtypes.
 	 * @return WP_Sitemaps_Provider Provider instance.
 	 */
 	private function get_provider( array $pages ) {
@@ -26,10 +26,13 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			/**
 			 * Number of sitemap pages, keyed by object subtype name.
 			 *
-			 * @var array
+			 * @var array<string, int>
 			 */
 			private $pages;
 
+			/**
+			 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
+			 */
 			public function __construct( array $pages ) {
 				$this->name        = 'tests';
 				$this->object_type = 'test';
@@ -49,7 +52,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	/**
 	 * Creates a provider with object subtypes.
 	 *
-	 * @param array $pages Number of sitemap pages, keyed by object subtype name.
+	 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
 	 * @return WP_Sitemaps_Provider Provider instance.
 	 */
 	private function get_provider_with_subtypes( array $pages ) {
@@ -58,16 +61,22 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			/**
 			 * Number of sitemap pages, keyed by object subtype name.
 			 *
-			 * @var array
+			 * @var array<string, int>
 			 */
 			private $pages;
 
+			/**
+			 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
+			 */
 			public function __construct( array $pages ) {
 				$this->name        = 'tests';
 				$this->object_type = 'test';
 				$this->pages       = $pages;
 			}
 
+			/**
+			 * @return array<string, stdClass>
+			 */
 			public function get_object_subtypes() {
 				$subtypes = array();
 
