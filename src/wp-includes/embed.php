@@ -585,6 +585,8 @@ function get_oembed_response_data( $post, $width ) {
 	 *     @type int $min Minimum width. Default 200.
 	 *     @type int $max Maximum width. Default 600.
 	 * }
+	 *
+	 * @phpstan-param array{ min: positive-int, max: positive-int } $min_max_width
 	 */
 	$min_max_width = apply_filters(
 		'oembed_min_max_width',
@@ -594,7 +596,6 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
 	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
