@@ -1614,19 +1614,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			 * Per-file output format for images, evaluated with the real filename
 			 * and MIME type so plugins filtering image_editor_output_format can
 			 * make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
-			 * way WP_Image_Editor::set_quality() resolves the output format.
+			 * way WP_Image_Editor::get_output_format() resolves the output format.
 			 */
 			if ( in_array( 'image_output_format', $fields, true ) ) {
 				$filename = get_attached_file( $post->ID );
 
-				/** This filter is documented in wp-includes/media.php */
-				$output_formats = apply_filters(
-					'image_editor_output_format',
-					array( $mime_type => $mime_type ),
+				$output_formats              = wp_get_image_editor_output_format(
 					$filename ? $filename : '',
 					$mime_type
 				);
-
 				$output_mime                 = $output_formats[ $mime_type ] ?? $mime_type;
 				$data['image_output_format'] = ( $output_mime !== $mime_type ) ? $output_mime : null;
 			}
@@ -1643,10 +1639,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( in_array( 'image_quality', $fields, true ) ) {
 				$filename = get_attached_file( $post->ID );
 
-				/** This filter is documented in wp-includes/media.php */
-				$output_formats = apply_filters(
-					'image_editor_output_format',
-					array( $mime_type => $mime_type ),
+				$output_formats = wp_get_image_editor_output_format(
 					$filename ? $filename : '',
 					$mime_type
 				);
