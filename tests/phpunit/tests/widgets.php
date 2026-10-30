@@ -533,7 +533,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_classname() {
+	public static function data_wp_widget_classname() {
 		return array(
 			array(
 				'widget_search',
@@ -574,7 +574,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_get_field_name() {
+	public static function data_wp_widget_get_field_name() {
 		return array(
 			array(
 				'widget-foo[2][title]',
@@ -624,7 +624,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_get_field_id() {
+	public static function data_wp_widget_get_field_id() {
 		return array(
 			array(
 				'widget-foo-2-title',

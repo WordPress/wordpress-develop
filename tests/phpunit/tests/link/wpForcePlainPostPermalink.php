@@ -28,6 +28,11 @@ class Tests_Link_WpForcePlainPostPermalink extends WP_UnitTestCase {
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public function tear_down() {
+		_unregister_post_status( 'wptests_public' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that a missing post forces a plain permalink.
 	 *
