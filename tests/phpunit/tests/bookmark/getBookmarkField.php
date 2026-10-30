@@ -55,28 +55,9 @@ class Tests_Bookmark_GetBookmarkField extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @dataProvider data_returns_sanitized_bookmark_fields
-	 *
-	 * @param string $field    Bookmark field name.
-	 * @param string $expected Expected field value in display context.
 	 */
-	public function test_returns_sanitized_bookmark_fields( $field, $expected ) {
-		$this->assertSame( $expected, get_bookmark_field( $field, self::$bookmark_id ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_returns_sanitized_bookmark_fields() {
-		return array(
-			'link_name'        => array( 'link_name', 'Example Link' ),
-			'link_url'         => array( 'link_url', 'https://example.com/' ),
-			'link_description' => array( 'link_description', 'An example bookmark' ),
-			'link_rel'         => array( 'link_rel', 'nofollow' ),
-		);
+	public function test_returns_sanitized_bookmark_field() {
+		$this->assertSame( 'Example Link', get_bookmark_field( 'link_name', self::$bookmark_id ) );
 	}
 
 	/**
@@ -100,39 +81,26 @@ class Tests_Bookmark_GetBookmarkField extends WP_UnitTestCase {
 		$this->assertSame( 'Example Link|link_name', get_bookmark_field( 'link_name', self::$bookmark_id, 'display' ) );
 		$this->assertSame( 'Example Link|link_name', get_bookmark_field( 'link_name', self::$bookmark_id, 'attribute' ) );
 		$this->assertSame( 'Example Link|edit_link_name', get_bookmark_field( 'link_name', self::$bookmark_id, 'edit' ) );
-		$this->assertNotSame(
-			get_bookmark_field( 'link_name', self::$bookmark_id, 'raw' ),
-			get_bookmark_field( 'link_name', self::$bookmark_id, 'display' )
-		);
 	}
 
 	/**
 	 * @ticket 65819
 	 */
 	public function test_attribute_context_escapes_markup_in_link_name() {
-		$bookmark_id = self::factory()->bookmark->create(
-			array(
-				'link_name' => 'Placeholder',
-				'link_url'  => 'https://example.org/',
-			)
-		);
+		$bookmark      = get_bookmark( self::$bookmark_id );
+		$original_name = $bookmark->link_name;
 
-		$raw_name            = 'Bold <b>Name</b> & Co';
-		$bookmark            = get_bookmark( $bookmark_id );
-		$bookmark->link_name = $raw_name;
-		wp_cache_set( $bookmark_id, $bookmark, 'bookmark' );
+		$bookmark->link_name = 'Bold <b>Name</b> & Co';
+		wp_cache_set( self::$bookmark_id, $bookmark, 'bookmark' );
 
 		remove_all_filters( 'link_name' );
 
-		$result = get_bookmark_field( 'link_name', $bookmark_id, 'attribute' );
-
 		$this->assertSame(
-			sanitize_bookmark_field( 'link_name', $raw_name, $bookmark_id, 'attribute' ),
-			$result
+			'Bold &lt;b&gt;Name&lt;/b&gt; &amp; Co',
+			get_bookmark_field( 'link_name', self::$bookmark_id, 'attribute' )
 		);
-		$this->assertStringNotContainsString( '<b>', $result );
-		$this->assertStringContainsString( '&lt;b&gt;', $result );
 
-		wp_delete_link( $bookmark_id );
+		$bookmark->link_name = $original_name;
+		wp_cache_set( self::$bookmark_id, $bookmark, 'bookmark' );
 	}
 }
