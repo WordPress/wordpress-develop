@@ -62,11 +62,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
-		global $wpdb;
-		foreach ( self::$posts as $post_id ) {
-			$wpdb->update( $wpdb->posts, array( 'guid' => home_url( '/?p=' . $post_id ) ), array( 'ID' => $post_id ) );
-		}
-
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
@@ -248,8 +243,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$post = get_post( url_to_postid( $guid[0]['content'] ) );
 
 			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
@@ -336,8 +330,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$post = get_post( url_to_postid( $guid[0]['content'] ) );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );

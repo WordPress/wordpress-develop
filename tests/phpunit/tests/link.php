@@ -85,10 +85,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 30910
 	 */
 	public function test_get_permalink_should_not_reveal_post_name_for_post_with_post_status_future() {
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
-
-		flush_rewrite_rules();
-
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -105,8 +101,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 30910
 	 */
 	public function test_get_permalink_should_not_reveal_post_name_for_cpt_with_post_status_future() {
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
-
 		register_post_type( 'wptests_pt', array( 'public' => true ) );
 
 		flush_rewrite_rules();
