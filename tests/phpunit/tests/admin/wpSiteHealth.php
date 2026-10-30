@@ -1177,6 +1177,62 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When over the limit, the least useful results are dropped first.
+	 *
+	 * Critical results are kept before recommended ones, and recommended before good.
+	 * Within each status, newer results are kept before older ones.
+	 *
+	 * @ticket 65232
+	 * @covers ::update_site_status_detail
+	 */
+	public function test_update_site_status_detail_limits_stored_results(): void {
+		$cached = array();
+		for ( $i = 0; $i < 500; $i++ ) {
+			$cached[ "cached_$i" ] = array(
+				'status'    => 0 === $i ? 'critical' : 'good',
+				'timestamp' => time() - 1000 + $i,
+			);
+		}
+		set_transient(
+			WP_Site_Health::STATUS_RESULT_TRANSIENT,
+			wp_json_encode(
+				array(
+					'results'   => $cached,
+					'timestamp' => time(),
+				)
+			)
+		);
+
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array(
+					'cached_2'  => array( 'status' => 'recommended' ),
+					'submitted' => array( 'status' => 'recommended' ),
+				)
+			)
+		);
+		$results = WP_Site_Health::get_site_status_detail()['results'];
+		$this->assertCount( 500, $results );
+		$this->assertArrayHasKey( 'cached_0', $results, 'An old critical result must be kept.' );
+		$this->assertArrayNotHasKey( 'cached_1', $results, 'The oldest good result must be dropped.' );
+		$this->assertSame( 'recommended', $results['cached_2']['status'] );
+		$this->assertArrayHasKey( 'submitted', $results );
+
+		$submitted = array();
+		for ( $i = 0; $i < 500; $i++ ) {
+			$submitted[ "submitted_$i" ] = array( 'status' => 'good' );
+		}
+		$submitted['submitted_critical'] = array( 'status' => 'critical' );
+		$this->assertTrue( WP_Site_Health::update_site_status_detail( $submitted ) );
+
+		$expected = array_merge(
+			array( 'submitted_critical', 'cached_0', 'cached_2', 'submitted' ),
+			array_slice( array_keys( $submitted ), 0, 496 )
+		);
+		$this->assertSame( $expected, array_keys( WP_Site_Health::get_site_status_detail()['results'] ) );
+	}
+
+	/**
 	 * An unchanged cache is a success, but a failed write must still report an error.
 	 *
 	 * @ticket 65232

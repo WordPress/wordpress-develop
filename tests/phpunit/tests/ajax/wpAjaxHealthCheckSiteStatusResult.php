@@ -11,7 +11,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
  *
  * @package WordPress
  * @subpackage UnitTests
- * @since 7.1.0
+ * @since 7.3.0
  *
  * @group ajax
  * @group site-health

@@ -53,6 +53,14 @@ class WP_Site_Health {
 
 	private const VALID_STATUS_VALUES = array( 'good', 'recommended', 'critical' );
 
+	/*
+	 * Maximum number of detailed results kept in the autoloaded transient. Core
+	 * registers about 30 tests, so real sites stay far below this limit. It only
+	 * guards against runaway growth. Each entry takes about 60 bytes, so the
+	 * results stay around 30 KB at most.
+	 */
+	private const MAX_STORED_RESULTS = 500;
+
 	private const STATUS_COUNTS_SCHEMA = array(
 		'type'       => 'object',
 		'properties' => array(
@@ -107,7 +115,7 @@ class WP_Site_Health {
 	 * tests. Compact, locale-independent results retain each test's latest verified
 	 * status. This transient remains autoloaded for the admin menu and Dashboard.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 */
 	const STATUS_RESULT_TRANSIENT = 'health-check-site-status-result';
 
@@ -3441,7 +3449,7 @@ class WP_Site_Health {
 	 * Runs the scheduled event to check and update the latest site health status for the website.
 	 *
 	 * @since 5.4.0
-	 * @since 7.1.0 The full test results are also cached in a separate detailed
+	 * @since 7.3.0 Compact verified test results are saved with the counts in the same
 	 *              transient via WP_Site_Health::update_site_status_detail().
 	 */
 	public function wp_cron_scheduled_check() {
@@ -3571,7 +3579,7 @@ class WP_Site_Health {
 	/**
 	 * Returns the cached aggregate Site Health status counts.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @return Test_Status_Counts Aggregate counts. Each value is `0` when no result has been cached.
 	 */
@@ -3589,7 +3597,7 @@ class WP_Site_Health {
 	 *
 	 * Preserves unexpired verified results and their collection timestamps.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed[] $counts Aggregate counts.
 	 * @return true|WP_Error True when the counts were saved, or WP_Error on failure.
@@ -3615,7 +3623,7 @@ class WP_Site_Health {
 	 * Results older than a month are excluded even when no writer has refreshed
 	 * the autoloaded transient.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @return array The cached results as a map keyed by test name, aggregate counts derived
 	 *               from those same results, and the time of the most recent update. `results`
@@ -3639,10 +3647,12 @@ class WP_Site_Health {
 	 * Results are normalized and sanitized, then stored keyed by test name with a
 	 * per-result timestamp. Entries that have not been refreshed within a month are
 	 * dropped, for example when the plugin that registered a test has been deactivated.
+	 * At most 500 results are kept. When there are more, critical results are kept
+	 * first, then recommended, then good, and the newest results within each status.
 	 * Optional latest-run counts are validated and saved in the same write. When
 	 * omitted, the existing counts are preserved.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed[]> $results Map of raw Site Health test result arrays,
 	 *                                        keyed by test name.
@@ -3684,6 +3694,25 @@ class WP_Site_Health {
 			$cached['results'][ $test ] = $result;
 		}
 
+		/*
+		 * Keep the autoloaded transient small. When over the limit, drop the least useful
+		 * results first: good before recommended before critical, and older before newer.
+		 * The original order breaks ties, so the outcome does not depend on the sort algorithm.
+		 */
+		if ( count( $cached['results'] ) > self::MAX_STORED_RESULTS ) {
+			$unsorted = $cached['results'];
+			$priority = array_flip( array( 'critical', 'recommended', 'good' ) );
+			$position = array_flip( array_keys( $unsorted ) );
+			uksort(
+				$cached['results'],
+				static function ( $a, $b ) use ( $unsorted, $priority, $position ) {
+					return array( $priority[ $unsorted[ $a ]['status'] ], $unsorted[ $b ]['timestamp'], $position[ $a ] )
+						<=> array( $priority[ $unsorted[ $b ]['status'] ], $unsorted[ $a ]['timestamp'], $position[ $b ] );
+				}
+			);
+			$cached['results'] = array_slice( $cached['results'], 0, self::MAX_STORED_RESULTS, true );
+		}
+
 		return self::save_site_status_cache(
 			array_merge(
 				self::normalize_status_counts( $counts ),
@@ -3698,7 +3727,7 @@ class WP_Site_Health {
 	/**
 	 * Saves the counts and compact results together in the autoloaded transient.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param array $status Combined counts and detailed results.
 	 * @return true|WP_Error True on success, WP_Error on failure.
@@ -3718,7 +3747,7 @@ class WP_Site_Health {
 	/**
 	 * Reads and decodes the shared Site Health cache.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @return mixed[] The decoded cache, or an empty array when unavailable.
 	 */
@@ -3734,7 +3763,7 @@ class WP_Site_Health {
 	/**
 	 * Validates detailed results and excludes expired entries from a cache snapshot.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed[] $cached The decoded cache.
 	 * @return array The unexpired results and the last detail-update timestamp.
@@ -3765,7 +3794,7 @@ class WP_Site_Health {
 	/**
 	 * Normalizes a set of aggregate status counts to integers.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed[] $counts Raw counts that may be missing keys or hold non-integer values.
 	 * @return array The good, recommended, and critical counts.
@@ -3782,7 +3811,7 @@ class WP_Site_Health {
 	/**
 	 * Counts a set of Site Health results by status.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 *
 	 * @param array<array-key, array{ status: string, ... }> $results Result arrays, each with a status.
 	 * @return array Aggregate counts, one bucket per status. A status other than `recommended` or `critical` counts as `good`.
