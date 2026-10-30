@@ -371,9 +371,9 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_terms_names_invalid_term_name()}.
 	 *
-	 * @return array<string, array{mixed}>
+	 * @return array<truthy-string, array{ mixed }>
 	 */
 	public function data_terms_names_invalid_term_name(): array {
 		return array(
@@ -407,9 +407,9 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_terms_names_numeric_term_name()}.
 	 *
-	 * @return array<string, array{ int|float }>
+	 * @return array<truthy-string, array{ int|float }>
 	 */
 	public function data_terms_names_numeric_term_name(): array {
 		return array(
@@ -446,9 +446,9 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_terms_names_ambiguous_numeric_term_name()}.
 	 *
-	 * @return array<string, array{ string|int }>
+	 * @return array<truthy-string, array{ string|int }>
 	 */
 	public function data_terms_names_ambiguous_numeric_term_name(): array {
 		return array(
