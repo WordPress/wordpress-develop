@@ -55,9 +55,9 @@ class WP_Site_Health {
 
 	/*
 	 * Maximum number of detailed results kept in the autoloaded transient. Core
-	 * registers about 30 tests, so real sites stay far below this limit. It only
-	 * guards against runaway growth. Each entry takes about 60 bytes, so the
-	 * results stay around 30 KB at most.
+	 * registers about 30 tests. This limits growth in the number of entries, but
+	 * does not impose a byte-size limit: the payload also depends on the length
+	 * of test identifiers.
 	 */
 	private const MAX_STORED_RESULTS = 500;
 
