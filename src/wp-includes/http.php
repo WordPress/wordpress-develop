@@ -464,7 +464,7 @@ function get_allowed_http_origins() {
 		}
 	}
 
-	$allowed_origins = array_unique( $allowed_origins );
+	$allowed_origins = array_values( array_unique( $allowed_origins ) );
 
 	/**
 	 * Changes the origin types allowed for HTTP requests.
