@@ -242,7 +242,6 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	public function test_unregistered_taxonomy_sitemap_404s() {
 		$taxonomy = 'unregistered_test_taxonomy';
 		$sitemaps = wp_sitemaps_get_server();
-		new WP_Sitemaps_Taxonomies();
 
 		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
 		// Wrap in get_echo to prevent unexpected test suite output.
