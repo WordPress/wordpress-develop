@@ -32,14 +32,14 @@ class Tests_Feed_GetBloginfoRss extends WP_UnitTestCase {
 		add_filter(
 			'pre_option_blogdescription',
 			static function () {
-				return 'Feed <b>Description</b>';
+				return 'Feed <b>Description</b> & Co';
 			}
 		);
 
 		$result = get_bloginfo_rss( 'description' );
 
-		$this->assertSame( 'Feed Description_append', $result );
+		$this->assertSame( 'Feed Description &#038; Co_append', $result );
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( 'Feed Description', 'description' ), $filter->get_args()[0] );
+		$this->assertSame( array( 'Feed Description &#038; Co', 'description' ), $filter->get_args()[0] );
 	}
 }
