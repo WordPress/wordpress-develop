@@ -175,7 +175,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param int    $status   Redirect status.
 	 * @return false
 	 */
-	public function filter_wp_redirect( $location, $status ) {
+	public function filter_wp_redirect( string $location, int $status ) {
 		$this->redirect_location = $location;
 		$this->redirect_status   = $status;
 		$this->recording_queries = false;
@@ -196,7 +196,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $query Database query.
 	 * @return string Unmodified database query.
 	 */
-	public function record_query( $query ) {
+	public function record_query( string $query ) {
 		if ( $this->recording_queries ) {
 			$this->queries[] = $query;
 		}
@@ -209,7 +209,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $url URL to request.
 	 */
-	protected function go_to_and_record_queries( $url ): void {
+	protected function go_to_and_record_queries( string $url ): void {
 		add_action( 'parse_request', array( $this, 'start_recording_queries' ), PHP_INT_MAX );
 		add_filter( 'query', array( $this, 'record_query' ) );
 
@@ -297,16 +297,16 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $path Random content request path.
 	 */
-	public function test_random_url_redirects_to_a_published_post( $path ): void {
+	public function test_random_url_redirects_to_a_published_post( string $path ): void {
 		$this->go_to( home_url( $path ) );
 
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect to a published post.' );
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_random_url_redirects_to_a_published_post()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_random_urls(): array {
 		return array(
@@ -743,7 +743,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string   $url      URL to request.
 	 * @param string[] $expected Expected post types.
 	 */
-	public function test_wp_get_random_content_post_types( $url, $expected ): void {
+	public function test_wp_get_random_content_post_types( string $url, array $expected ): void {
 		register_post_type(
 			'wptests_book',
 			array(
@@ -772,9 +772,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_wp_get_random_content_post_types()}.
 	 *
-	 * @return array<string, array{0: string, 1: string[]}>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: list<non-falsy-string> }>
 	 */
 	public function data_wp_get_random_content_post_types(): array {
 		return array(
@@ -835,7 +835,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param array<string, string> $args Post arguments.
 	 */
-	public function test_random_redirect_excludes_ineligible_posts( $args ): void {
+	public function test_random_redirect_excludes_ineligible_posts( array $args ): void {
 		$category = self::factory()->category->create();
 		$this->create_post( array_merge( array( 'post_category' => array( $category ) ), $args ) );
 
@@ -847,9 +847,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_random_redirect_excludes_ineligible_posts()}.
 	 *
-	 * @return array<string, array{0: array<string, string>}>
+	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, string> }>
 	 */
 	public function data_ineligible_posts(): array {
 		return array(
@@ -988,7 +988,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $path Feed path.
 	 */
-	public function test_no_redirect_for_feeds( $path ): void {
+	public function test_no_redirect_for_feeds( string $path ): void {
 		$this->go_to( home_url( $path ) );
 
 		$this->assertNotRedirected( 'Feeds should not redirect.' );
@@ -996,9 +996,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_no_redirect_for_feeds()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_feed_urls(): array {
 		return array(
@@ -1064,7 +1064,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $method HTTP request method.
 	 */
-	public function test_no_redirect_for_non_get_requests( $method ): void {
+	public function test_no_redirect_for_non_get_requests( string $method ): void {
 		$_SERVER['REQUEST_METHOD'] = $method;
 
 		$this->go_to( home_url( '/random/' ) );
@@ -1073,9 +1073,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_no_redirect_for_non_get_requests()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_non_redirecting_http_methods(): array {
 		return array(
@@ -1104,7 +1104,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $method HTTP request method.
 	 */
-	public function test_redirect_for_get_and_head_requests( $method ): void {
+	public function test_redirect_for_get_and_head_requests( string $method ): void {
 		$_SERVER['REQUEST_METHOD'] = $method;
 
 		$this->go_to( home_url( '/random/' ) );
@@ -1113,9 +1113,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_redirect_for_get_and_head_requests()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_redirecting_http_methods(): array {
 		return array(
@@ -1139,7 +1139,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $structure Permalink structure.
 	 */
-	public function test_page_with_slug_beginning_with_random_base_does_not_conflict( $structure ): void {
+	public function test_page_with_slug_beginning_with_random_base_does_not_conflict( string $structure ): void {
 		global $wp;
 
 		$this->set_permalink_structure( $structure );
@@ -1173,7 +1173,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $structure Permalink structure.
 	 */
-	public function test_random_url_redirects_when_a_page_slug_begins_with_random_base( $structure ): void {
+	public function test_random_url_redirects_when_a_page_slug_begins_with_random_base( string $structure ): void {
 		global $wp_rewrite;
 
 		$this->set_permalink_structure( $structure );
@@ -1201,7 +1201,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $structure Permalink structure.
 	 */
-	public function test_page_named_random_takes_precedence_over_random_content_redirects( $structure ): void {
+	public function test_page_named_random_takes_precedence_over_random_content_redirects( string $structure ): void {
 		global $wp_rewrite;
 
 		$this->set_permalink_structure( $structure );
@@ -1224,9 +1224,10 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_page_with_slug_beginning_with_random_base_does_not_conflict()}, {@see self::test_random_url_redirects_when_a_page_slug_begins_with_random_base()},
+	 * and {@see self::test_page_named_random_takes_precedence_over_random_content_redirects()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_permalink_structures(): array {
 		return array(
@@ -1293,7 +1294,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param callable $change Callback to change the page so it no longer conflicts.
 	 */
-	public function test_random_content_redirects_resume_when_the_page_no_longer_conflicts( $change ): void {
+	public function test_random_content_redirects_resume_when_the_page_no_longer_conflicts( callable $change ): void {
 		$page = $this->create_post(
 			array(
 				'post_type' => 'page',
@@ -1311,9 +1312,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_random_content_redirects_resume_when_the_page_no_longer_conflicts()}.
 	 *
-	 * @return array<string, callable[]>
+	 * @return array<non-falsy-string, array{ 0: Closure(int): void }>
 	 */
 	public function data_page_named_random_changes(): array {
 		return array(
@@ -1571,7 +1572,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $path     Path to request.
 	 * @param bool   $expected Expected result.
 	 */
-	public function test_is_random( $path, $expected ): void {
+	public function test_is_random( string $path, bool $expected ): void {
 		$this->go_to( home_url( $path ) );
 
 		$this->assertSame( $expected, is_random(), 'The is_random() conditional tag returned an unexpected value.' );
@@ -1579,9 +1580,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_is_random()}.
 	 *
-	 * @return array<string, array{0: string, 1: bool}>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
 	 */
 	public function data_is_random(): array {
 		return array(
@@ -1795,7 +1796,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $query_var Query variable set by a theme.
 	 * @param mixed  $value     Query variable value.
 	 */
-	public function test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit( $path, $query_var, $value ): void {
+	public function test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
 		add_action(
 			'pre_get_posts',
 			static function ( WP_Query $query ) use ( $query_var, $value ): void {
@@ -1814,11 +1815,11 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit()}.
 	 *
 	 * The limit is applied differently to the home page and archives, see WP_Query::get_posts().
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: bool|int}>
+	 * @return array<non-falsy-string, array{ path: non-falsy-string, query_var: non-falsy-string, value: bool|int }>
 	 */
 	public function data_query_vars_overriding_the_limit(): array {
 		$overrides = array(
@@ -1834,7 +1835,11 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'archive' => '/random/category/arts/',
 		) as $context => $path ) {
 			foreach ( $overrides as $name => $override ) {
-				$data[ "{$context}: {$name}" ] = array( $path, $override[0], $override[1] );
+				$data[ "{$context}: {$name}" ] = array(
+					'path'      => $path,
+					'query_var' => $override[0],
+					'value'     => $override[1],
+				);
 			}
 		}
 
@@ -2027,7 +2032,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param mixed $value    Value returned by the filter.
 	 * @param bool  $expected Expected result.
 	 */
-	public function test_wp_is_random_content_redirect_enabled_returns_a_boolean( $value, $expected ): void {
+	public function test_wp_is_random_content_redirect_enabled_returns_a_boolean( $value, bool $expected ): void {
 		add_filter(
 			'wp_enable_random_content_redirect',
 			static function () use ( $value ) {
@@ -2039,9 +2044,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_wp_is_random_content_redirect_enabled_returns_a_boolean()}.
 	 *
-	 * @return array<string, array{0: mixed, 1: bool}>
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: bool }>
 	 */
 	public function data_enabled_filter_values(): array {
 		return array(
@@ -2221,7 +2226,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string $path Request path.
 	 */
-	public function test_no_redirect_for_paths_without_random_rules( $path ): void {
+	public function test_no_redirect_for_paths_without_random_rules( string $path ): void {
 		global $wp;
 
 		$this->go_to( home_url( $path ) );
@@ -2231,9 +2236,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_no_redirect_for_paths_without_random_rules()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_unsupported_random_paths(): array {
 		return array(
@@ -2314,9 +2319,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_main_query_is_run_once_for_random_requests().
+	 * Data provider for {@see self::test_main_query_is_run_once_for_random_requests()}.
 	 *
-	 * @return array<string, array{0: string}>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_random_requests(): array {
 		return array(
@@ -2413,9 +2418,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_post_named_random_takes_precedence_over_random_content_redirects()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
 	public function data_post_name_at_the_root_structures(): array {
 		return array(

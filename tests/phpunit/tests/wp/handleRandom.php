@@ -20,14 +20,14 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		$factory->post->create_many( 5 );
 	}
 
 	/**
 	 * Captures redirects before each test.
 	 */
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 
 		$this->redirect_location = null;
@@ -42,7 +42,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 * @param string $location Redirect location.
 	 * @return false
 	 */
-	public function filter_wp_redirect( $location ) {
+	public function filter_wp_redirect( string $location ) {
 		$this->redirect_location = $location;
 
 		return false;
@@ -76,7 +76,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @param array<string, string> $query_vars Query variables for the request.
 	 */
-	public function test_requests_without_the_random_query_var_are_not_handled( array $query_vars ) {
+	public function test_requests_without_the_random_query_var_are_not_handled( array $query_vars ): void {
 		$handled = $this->handle_random( $query_vars );
 
 		$this->assertFalse( $handled, 'Requests without the random query variable should not be handled.' );
@@ -85,9 +85,9 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_requests_without_the_random_query_var_are_not_handled()}.
 	 *
-	 * @return array<string, array{0: array<string, string>}>
+	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, non-falsy-string> }>
 	 */
 	public function data_requests_without_the_random_query_var(): array {
 		return array(
@@ -101,7 +101,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @ticket 64498
 	 */
-	public function test_random_content_requests_are_not_handled_when_disabled() {
+	public function test_random_content_requests_are_not_handled_when_disabled(): void {
 		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
 
 		$handled = $this->handle_random( array( 'random' => '' ) );
@@ -119,7 +119,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @ticket 64498
 	 */
-	public function test_random_content_queries_are_not_cached() {
+	public function test_random_content_queries_are_not_cached(): void {
 		$queries = new MockAction();
 		add_filter( 'query', array( $queries, 'filter' ) );
 
@@ -145,7 +145,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 * @param array<string, string> $query_vars     Query variables for the request.
 	 * @param string                $request_method HTTP request method.
 	 */
-	public function test_main_query_runs_unchanged_for_requests_that_are_not_random_content_requests( array $query_vars, string $request_method ) {
+	public function test_main_query_runs_unchanged_for_requests_that_are_not_random_content_requests( array $query_vars, string $request_method ): void {
 		$_SERVER['REQUEST_METHOD'] = $request_method;
 
 		$handled = $this->handle_random( $query_vars );
@@ -160,9 +160,9 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_main_query_runs_unchanged_for_requests_that_are_not_random_content_requests()}.
 	 *
-	 * @return array<string, array{0: array<string, string>, 1: string}>
+	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, string>, 1: non-falsy-string }>
 	 */
 	public function data_requests_that_are_not_random_content_requests(): array {
 		return array(
@@ -186,7 +186,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @param string $permalink Permalink of the selected post.
 	 */
-	public function test_request_continues_with_the_selected_post_when_it_is_not_redirected( string $permalink ) {
+	public function test_request_continues_with_the_selected_post_when_it_is_not_redirected( string $permalink ): void {
 		add_filter(
 			'post_link',
 			static function () use ( $permalink ): string {
@@ -203,9 +203,9 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_request_continues_with_the_selected_post_when_it_is_not_redirected()}.
 	 *
-	 * @return array<string, string[]>
+	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
 	public function data_permalinks_that_cannot_be_redirected_to(): array {
 		return array(
