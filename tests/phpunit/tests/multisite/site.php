@@ -1620,6 +1620,60 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 29247
+	 */
+	public function test_wp_delete_site_clears_site_option_caches() {
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		update_option( 'test_option', 'value' );
+		wp_load_alloptions( true );
+		is_blog_installed();
+
+		// The site's caches are now populated.
+		$this->assertIsArray( wp_cache_get( 'alloptions', 'options' ) );
+		$this->assertNotEmpty( wp_cache_get( 'is_blog_installed' ) );
+		restore_current_blog();
+
+		wp_delete_site( $site_id );
+
+		/*
+		 * The site has no tables anymore, so suppress the roles and user switch the same way
+		 * `wp_is_site_initialized()` does.
+		 */
+		remove_action( 'switch_blog', 'wp_switch_roles_and_user', 1 );
+		switch_to_blog( $site_id );
+
+		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ) );
+		$this->assertFalse( wp_cache_get( 'notoptions', 'options' ) );
+		$this->assertFalse( wp_cache_get( 'is_blog_installed' ) );
+
+		restore_current_blog();
+		add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
+	}
+
+	/**
+	 * @ticket 29247
+	 */
+	public function test_clean_blog_cache_does_not_clear_option_caches() {
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		update_option( 'test_option', 'value' );
+		wp_load_alloptions( true );
+
+		$this->assertIsArray( wp_cache_get( 'alloptions', 'options' ) );
+		restore_current_blog();
+
+		clean_blog_cache( $site_id );
+
+		// `clean_blog_cache()` is network level only, per the discussion on the ticket.
+		switch_to_blog( $site_id );
+		$this->assertIsArray( wp_cache_get( 'alloptions', 'options' ) );
+		restore_current_blog();
+	}
+
+	/**
 	 * @ticket 40364
 	 */
 	public function test_wp_update_site_cleans_old_cache_on_domain_change() {
