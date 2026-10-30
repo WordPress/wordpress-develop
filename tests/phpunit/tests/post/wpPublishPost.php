@@ -22,6 +22,14 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 		self::$auto_draft_id = $factory->post->create( array( 'post_status' => 'auto-draft' ) );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'tax_51292' );
+		parent::tear_down();
+	}
+
 	public function test_wp_publish_post() {
 		$draft_id = self::factory()->post->create(
 			array(

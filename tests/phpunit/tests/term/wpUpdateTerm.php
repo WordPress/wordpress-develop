@@ -4,6 +4,14 @@
  * @group taxonomy
  */
 class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_update_term_taxonomy_does_not_exist() {
 		$found = wp_update_term( 1, 'bar' );
 
@@ -385,7 +393,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
 		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-		$this->assertNotEquals( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
+		$this->assertNotSame( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
 	}
 
 	public function test_wp_update_term_alias_of_no_term_group() {
