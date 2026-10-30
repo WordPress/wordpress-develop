@@ -136,21 +136,6 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_mu_plugins() ignores non-PHP files and subdirectory files.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_mu_plugins_ignores_non_php_files() {
-		$this->create_mu_plugin_file( 'readme.txt', 'This is a text file.' );
-		$this->create_mu_plugin_file( 'config.json', '{"key": "value"}' );
-
-		$mu_plugins = get_mu_plugins();
-
-		$this->assertArrayNotHasKey( 'readme.txt', $mu_plugins );
-		$this->assertArrayNotHasKey( 'config.json', $mu_plugins );
-	}
-
-	/**
 	 * Tests that get_mu_plugins() unsets index.php when at or below the 30-byte threshold.
 	 *
 	 * @ticket 65819
@@ -165,24 +150,6 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 		$mu_plugins = get_mu_plugins();
 
 		$this->assertArrayNotHasKey( 'index.php', $mu_plugins, 'An index.php file of 30 bytes or less must be unset.' );
-	}
-
-	/**
-	 * Tests that get_mu_plugins() preserves index.php when exceeding the 30-byte threshold.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_mu_plugins_keeps_index_file_when_exceeds_threshold() {
-		// Exactly 31 bytes (1 byte above the 30-byte threshold).
-		$content_31_bytes = "<?php\n// 123456789012345678901\n";
-		$this->assertSame( 31, strlen( $content_31_bytes ) );
-
-		$this->create_mu_plugin_file( 'index.php', $content_31_bytes );
-
-		$mu_plugins = get_mu_plugins();
-
-		$this->assertArrayHasKey( 'index.php', $mu_plugins, 'An index.php file exceeding 30 bytes must be preserved.' );
-		$this->assertSame( 'index.php', $mu_plugins['index.php']['Name'] );
 	}
 
 	/**

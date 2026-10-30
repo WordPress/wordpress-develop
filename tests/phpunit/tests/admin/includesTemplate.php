@@ -14,6 +14,12 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax_1' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 51137
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats

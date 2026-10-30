@@ -25,12 +25,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tears down shared fixtures after class.
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wp_tests_private' );
+
+		parent::wpTearDownAfterClass();
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
 		self::set_up_custom_post_types();
 
 		update_option( 'wp_attachment_pages_enabled', 1 );
+	}
+
+	/**
+	 * Tears down the test fixture.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'wp_tests_private' );
+
+		parent::tear_down();
 	}
 
 	/**

@@ -964,6 +964,33 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The display name and user login are escaped in the account menu.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_escapes_display_name_and_user_login() {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+
+		$current_user               = wp_get_current_user();
+		$current_user->display_name = '<svg onload=alert(1)>';
+		$current_user->user_login   = '<b>login</b>';
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringNotContainsString( '<svg', $node_my_account->title, 'The display name should be escaped in the my-account node.' );
+		$this->assertStringContainsString( '&lt;svg onload=alert(1)&gt;', $node_my_account->title );
+		$this->assertStringNotContainsString( '<svg', $node_user_info->title, 'The display name should be escaped in the user-info node.' );
+		$this->assertStringNotContainsString( '<b>login</b>', $node_user_info->title, 'The user login should be escaped in the user-info node.' );
+		$this->assertStringContainsString( '&lt;b&gt;login&lt;/b&gt;', $node_user_info->title );
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
