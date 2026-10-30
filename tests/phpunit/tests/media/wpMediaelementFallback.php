@@ -25,12 +25,14 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_escapes_url_in_markup() {
-		$url = 'https://example.com/audio.mp3?"><script>alert(1)</script>';
+		$url     = 'https://example.com/audio.mp3?foo=1&bar=2"><script>alert(1)</script>';
+		$escaped = esc_url( $url );
 
 		$this->assertSame(
-			'<a href="' . esc_url( $url ) . '">' . esc_url( $url ) . '</a>',
+			'<a href="' . $escaped . '">' . $escaped . '</a>',
 			wp_mediaelement_fallback( $url )
 		);
+		$this->assertStringContainsString( '&amp;', $escaped );
 	}
 
 	/**
@@ -54,7 +56,7 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_filter_receives_generated_output_and_url() {
-		$url            = 'https://example.com/audio.mp3';
+		$url            = 'https://example.com/audio.mp3?foo=1&bar=2';
 		$received_args  = array();
 		$default_output = sprintf( '<a href="%1$s">%1$s</a>', esc_url( $url ) );
 
@@ -71,5 +73,7 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 		wp_mediaelement_fallback( $url );
 
 		$this->assertSame( array( $default_output, $url ), $received_args );
+		$this->assertStringContainsString( '&amp;', $received_args[0] );
+		$this->assertSame( $url, $received_args[1] );
 	}
 }
