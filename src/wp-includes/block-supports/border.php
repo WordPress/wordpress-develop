@@ -140,8 +140,9 @@ function wp_get_border_classes_and_styles( $block_attributes ) {
 		$border_styles['width'] = is_numeric( $border['width'] ) ? "{$border['width']}px" : $border['width'];
 	}
 
-	$preset_border_color    = array_key_exists( 'borderColor', $block_attributes ) ? "var:preset|color|{$block_attributes['borderColor']}" : null;
-	$border_styles['color'] = $preset_border_color ? $preset_border_color : ( $border['color'] ?? null );
+	// Preset slugs are strings in theme.json and the editor.
+	$preset_slug            = $block_attributes['borderColor'] ?? null;
+	$border_styles['color'] = is_string( $preset_slug ) && '' !== $preset_slug ? "var:preset|color|{$preset_slug}" : ( $border['color'] ?? null );
 
 	foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
 		if ( ! isset( $border[ $side ] ) || ! is_array( $border[ $side ] ) ) {
