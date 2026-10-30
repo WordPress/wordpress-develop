@@ -2518,8 +2518,8 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
  * @ignore
  * @since 2.9.0
  *
- * @param string[] $attr Array of thumbnail attributes including src, class, alt, title, keyed by attribute name.
- * @return string[] Modified array of attributes including the new 'wp-post-image' class.
+ * @param array<string, string> $attr Array of thumbnail attributes including src, class, alt, title, keyed by attribute name.
+ * @return array<string, string> Modified array of attributes including the new 'wp-post-image' class.
  */
 function _wp_post_thumbnail_class_filter( $attr ) {
 	$attr['class'] .= ' wp-post-image';
@@ -3480,7 +3480,7 @@ function wp_get_audio_extensions() {
  *
  * @param WP_Post $attachment The current attachment, provided for context.
  * @param string  $context    Optional. The context. Accepts 'edit', 'display'. Default 'display'.
- * @return string[] Key/value pairs of field keys to labels.
+ * @return array<string, string> Key/value pairs of field keys to labels.
  */
 function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
 	$fields = array(
@@ -3502,9 +3502,9 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param array   $fields     Key/value pairs of field keys to labels.
-	 * @param WP_Post $attachment Attachment object.
-	 * @param string  $context    The context. Accepts 'edit', 'display'. Default 'display'.
+	 * @param array<string, string> $fields     Key/value pairs of field keys to labels.
+	 * @param WP_Post               $attachment Attachment object.
+	 * @param string                $context    The context. Accepts 'edit', 'display'. Default 'display'.
 	 */
 	return apply_filters( 'wp_get_attachment_id3_keys', $fields, $attachment, $context );
 }
@@ -4327,6 +4327,8 @@ function wp_expand_dimensions( $example_width, $example_height, $max_width, $max
  * @since 2.5.0
  *
  * @return int Allowed upload size.
+ *
+ * @phpstan-return non-negative-int
  */
 function wp_max_upload_size() {
 	$u_bytes = wp_convert_hr_to_bytes( ini_get( 'upload_max_filesize' ) );
@@ -4341,7 +4343,7 @@ function wp_max_upload_size() {
 	 * @param int $u_bytes Maximum upload filesize in bytes.
 	 * @param int $p_bytes Maximum size of POST data in bytes.
 	 */
-	return apply_filters( 'upload_size_limit', min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes );
+	return max( 0, (int) apply_filters( 'upload_size_limit', min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes ) );
 }
 
 /**

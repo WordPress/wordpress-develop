@@ -777,16 +777,16 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  * @param array|false $overrides {
  *     An array of override parameters for this file, or boolean false if none are provided.
  *
- *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
- *                                              See {@see wp_handle_upload_error()}.
- *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
- *                                              See {@see wp_unique_filename()}.
- *     @type string[] $upload_error_strings     The strings that describe the error indicated in
- *                                              `$_FILES[{form field}]['error']`.
- *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
- *     @type bool     $test_size                Whether to test that the file size is greater than zero bytes.
- *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
- *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
+ *     @type callable              $upload_error_handler     Function to call when there is an error during the upload process.
+ *                                                           See {@see wp_handle_upload_error()}.
+ *     @type callable              $unique_filename_callback Function to call when determining a unique file name for the file.
+ *                                                           See {@see wp_unique_filename()}.
+ *     @type string[]              $upload_error_strings     The strings that describe the error indicated in
+ *                                                           `$_FILES[{form field}]['error']`.
+ *     @type bool                  $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
+ *     @type bool                  $test_size                Whether to test that the file size is greater than zero bytes.
+ *     @type bool                  $test_type                Whether to test that the mime type of the file is as expected.
+ *     @type array<string, string> $mimes                    Array of allowed mime types keyed by their file extension regex.
  * }
  * @param string      $time      Time formatted in 'yyyy/mm'.
  * @param string      $action    Expected value for `$_POST['action']`.
