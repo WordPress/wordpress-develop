@@ -374,6 +374,10 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param string|array $data Escape single string or array of strings.
 	 * @return string|null Returns with string if passed, alters by-reference
 	 *                     when array is passed.
+	 *
+	 * @phpstan-template T of string|array
+	 * @phpstan-param T $data
+	 * @phpstan-param-out T $data
 	 */
 	public function escape( &$data ) {
 		if ( ! is_array( $data ) ) {
@@ -387,6 +391,8 @@ class wp_xmlrpc_server extends IXR_Server {
 				$v = wp_slash( $v );
 			}
 		}
+
+		// @phpstan-ignore paramOut.type (The loop only slashes string values in place, so the shape of T is preserved.)
 		return null;
 	}
 
@@ -1658,7 +1664,11 @@ class wp_xmlrpc_server extends IXR_Server {
 						return new IXR_Error( 401, __( 'Sorry, you are not allowed to assign a term to one of the given taxonomies.' ) );
 					}
 
-					$term_ids           = $post_data['terms'][ $taxonomy ];
+					$term_ids = $post_data['terms'][ $taxonomy ];
+					if ( ! is_array( $term_ids ) ) {
+						return new IXR_Error( 403, __( 'Invalid term ID.' ) );
+					}
+
 					$terms[ $taxonomy ] = array();
 					foreach ( $term_ids as $term_id ) {
 						$term = get_term_by( 'id', $term_id, $taxonomy );
@@ -1705,11 +1715,23 @@ class wp_xmlrpc_server extends IXR_Server {
 						// Filter out non-ambiguous term names.
 						$ambiguous_tax_term_counts = array_filter( $tax_term_names_count, array( $this, '_is_greater_than_one' ) );
 
-						$ambiguous_terms = array_keys( $ambiguous_tax_term_counts );
+						// Cast back to strings, since array keys turn numeric names into integers.
+						$ambiguous_terms = array_map( 'strval', array_keys( $ambiguous_tax_term_counts ) );
 					}
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
+					if ( ! is_array( $term_names ) ) {
+						return new IXR_Error( 401, __( 'Invalid term name.' ) );
+					}
+
 					foreach ( $term_names as $term_name ) {
+						// Numeric names may arrive as <int> or <double> values.
+						if ( is_int( $term_name ) || is_float( $term_name ) ) {
+							$term_name = (string) $term_name;
+						} elseif ( ! is_string( $term_name ) ) {
+							return new IXR_Error( 401, __( 'Invalid term name.' ) );
+						}
+
 						if ( in_array( $term_name, $ambiguous_terms, true ) ) {
 							return new IXR_Error( 401, __( 'Ambiguous term name used in a hierarchical taxonomy. Please use term ID instead.' ) );
 						}
@@ -2198,6 +2220,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		// Hold the data of the term.
 		$term_data = array();
 
+		if ( isset( $content_struct['name'] ) && ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
+			return new IXR_Error( 403, __( 'Invalid term name.' ) );
+		}
+
 		$term_data['name'] = trim( $content_struct['name'] );
 		if ( empty( $term_data['name'] ) ) {
 			return new IXR_Error( 403, __( 'The term name cannot be empty.' ) );
@@ -2316,6 +2342,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( isset( $content_struct['name'] ) ) {
+			if ( ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
+				return new IXR_Error( 403, __( 'Invalid term name.' ) );
+			}
+
 			$term_data['name'] = trim( $content_struct['name'] );
 
 			if ( empty( $term_data['name'] ) ) {
@@ -3539,6 +3569,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		// Make sure the user is allowed to add a category.
 		if ( ! current_user_can( 'manage_categories' ) ) {
 			return new IXR_Error( 401, __( 'Sorry, you are not allowed to add a category.' ) );
+		}
+
+		if ( isset( $category['name'] ) && ! ( is_string( $category['name'] ) || is_int( $category['name'] ) || is_float( $category['name'] ) ) ) {
+			return new IXR_Error( 403, __( 'Invalid term name.' ) );
 		}
 
 		/*

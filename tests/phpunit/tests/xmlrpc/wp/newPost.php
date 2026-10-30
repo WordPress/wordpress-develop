@@ -346,6 +346,159 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid term name in `terms_names` returns an error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_invalid_term_name
+	 *
+	 * @param mixed $term_name The term name to send.
+	 */
+	public function test_terms_names_invalid_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'post_tag' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 401, $result->code );
+		$this->assertSame( 'Invalid term name.', $result->message );
+	}
+
+	/**
+	 * Data provider for {@see self::test_terms_names_invalid_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ mixed }>
+	 */
+	public function data_terms_names_invalid_term_name(): array {
+		return array(
+			'array'   => array( array( 'foo', 'bar' ) ),
+			'boolean' => array( true ),
+		);
+	}
+
+	/**
+	 * Tests that a `terms` or `terms_names` value that is not an array returns an error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_not_array
+	 *
+	 * @param 'terms'|'terms_names' $field            The post field to send.
+	 * @param mixed                 $value            The value to send for the taxonomy.
+	 * @param int                   $expected_code    The expected fault code.
+	 * @param non-empty-string      $expected_message The expected fault message.
+	 */
+	public function test_terms_not_array( string $field, $value, int $expected_code, string $expected_message ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title' => 'Test',
+			$field       => array(
+				'post_tag' => $value,
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( $expected_code, $result->code );
+		$this->assertSame( $expected_message, $result->message );
+	}
+
+	/**
+	 * Data provider for {@see self::test_terms_not_array()}.
+	 *
+	 * @return array<truthy-string, array{ 'terms'|'terms_names', mixed, int, non-empty-string }>
+	 */
+	public function data_terms_not_array(): array {
+		return array(
+			'terms string'       => array( 'terms', '1', 403, 'Invalid term ID.' ),
+			'terms integer'      => array( 'terms', 1, 403, 'Invalid term ID.' ),
+			'terms_names string' => array( 'terms_names', 'foo', 401, 'Invalid term name.' ),
+		);
+	}
+
+	/**
+	 * Tests that a numeric term name in `terms_names` is assigned using its string form.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_numeric_term_name
+	 *
+	 * @param int|float $term_name The term name to send.
+	 */
+	public function test_terms_names_numeric_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'post_tag' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( array( (string) $term_name ), wp_get_post_tags( (int) $result, array( 'fields' => 'names' ) ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_terms_names_numeric_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ int|float }>
+	 */
+	public function data_terms_names_numeric_term_name(): array {
+		return array(
+			'integer' => array( 2024 ),
+			'float'   => array( 1.5 ),
+		);
+	}
+
+	/**
+	 * Tests that an ambiguous numeric term name in a hierarchical taxonomy returns an error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_terms_names_ambiguous_numeric_term_name
+	 *
+	 * @param string|int $term_name The term name to send.
+	 */
+	public function test_terms_names_ambiguous_numeric_term_name( $term_name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$parent_cat = wp_create_category( '2024' );
+		wp_create_category( '2024', $parent_cat );
+
+		$post   = array(
+			'post_title'  => 'Test',
+			'terms_names' => array(
+				'category' => array( $term_name ),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 401, $result->code );
+	}
+
+	/**
+	 * Data provider for {@see self::test_terms_names_ambiguous_numeric_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ string|int }>
+	 */
+	public function data_terms_names_ambiguous_numeric_term_name(): array {
+		return array(
+			'string'  => array( '2024' ),
+			'integer' => array( 2024 ),
+		);
+	}
+
+	/**
 	 * @ticket 28601
 	 */
 	public function test_invalid_post_date_does_not_fatal() {

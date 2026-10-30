@@ -86,6 +86,68 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( 'empty_term_name', $found->get_error_code() );
 	}
 
+	/**
+	 * Tests that a term name that is not a string or number returns a WP_Error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_wp_insert_term_invalid_term_name_type
+	 *
+	 * @param mixed            $name                The term name to insert.
+	 * @param non-empty-string $expected_error_code The expected error code.
+	 */
+	public function test_wp_insert_term_invalid_term_name_type( $name, string $expected_error_code ): void {
+		$found = wp_insert_term( $name, 'post_tag' ); // @phpstan-ignore argument.type (Intentionally passing invalid types.)
+
+		$this->assertWPError( $found );
+		$this->assertSame( $expected_error_code, $found->get_error_code() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_insert_term_invalid_term_name_type()}.
+	 *
+	 * @return array<truthy-string, array{ mixed, non-empty-string }>
+	 */
+	public function data_wp_insert_term_invalid_term_name_type(): array {
+		return array(
+			'array'  => array( array( 'foo', 'bar' ), 'invalid_term_name' ),
+			'object' => array( new stdClass(), 'invalid_term_name' ),
+			'true'   => array( true, 'invalid_term_name' ),
+			'false'  => array( false, 'empty_term_name' ),
+			'null'   => array( null, 'empty_term_name' ),
+		);
+	}
+
+	/**
+	 * Tests that a numeric term name is inserted and stored as its string form.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_wp_insert_term_numeric_term_name
+	 *
+	 * @param int|float $name The term name to insert.
+	 */
+	public function test_wp_insert_term_numeric_term_name( $name ): void {
+		$found = wp_insert_term( $name, 'post_tag' );
+
+		$this->assertNotWPError( $found );
+		$term = get_term( $found['term_id'], 'post_tag' );
+		$this->assertInstanceOf( WP_Term::class, $term );
+		$this->assertSame( (string) $name, $term->name );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_insert_term_numeric_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ int|float }>
+	 */
+	public function data_wp_insert_term_numeric_term_name(): array {
+		return array(
+			'integer' => array( 2024 ),
+			'float'   => array( 1.5 ),
+		);
+	}
+
 	public function test_wp_insert_term_parent_does_not_exist() {
 		$found = wp_insert_term(
 			'foo',
