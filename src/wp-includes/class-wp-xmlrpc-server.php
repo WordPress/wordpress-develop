@@ -1715,7 +1715,7 @@ class wp_xmlrpc_server extends IXR_Server {
 						if ( is_int( $term_name ) || is_float( $term_name ) ) {
 							$term_name = (string) $term_name;
 						} elseif ( ! is_string( $term_name ) ) {
-							return new IXR_Error( 403, __( 'Invalid term name.' ) );
+							return new IXR_Error( 401, __( 'Invalid term name.' ) );
 						}
 
 						if ( in_array( $term_name, $ambiguous_terms, true ) ) {

@@ -366,7 +366,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 
 		$this->assertIXRError( $result );
-		$this->assertSame( 403, $result->code );
+		$this->assertSame( 401, $result->code );
 		$this->assertSame( 'Invalid term name.', $result->message );
 	}
 
