@@ -443,6 +443,118 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an object result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-object-output',
+			array(
+				'label'               => 'Nested Empty Object In Object Output',
+				'description'         => 'Returns an object result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return (object) array( 'settings' => array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a JsonSerializable result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-json-serializable-output',
+			array(
+				'label'               => 'Nested Empty Object In JsonSerializable Output',
+				'description'         => 'Returns a JsonSerializable result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return new class() implements JsonSerializable {
+						public function jsonSerialize(): array {
+							return array( 'settings' => array() );
+						}
+					};
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns an empty list.
+		$this->register_test_ability(
+			'test/empty-list-output',
+			array(
+				'label'               => 'Empty List Output',
+				'description'         => 'Returns an empty list.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a list of strings.
+		$this->register_test_ability(
+			'test/string-list-output',
+			array(
+				'label'               => 'String List Output',
+				'description'         => 'Returns a list of strings.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'string' ),
+				),
+				'execute_callback'    => static function () {
+					return array( 'a', 'b' );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a string.
+		$this->register_test_ability(
+			'test/string-output',
+			array(
+				'label'               => 'String Output',
+				'description'         => 'Returns a string.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'string',
+				),
+				'execute_callback'    => static function () {
+					return 'value';
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -637,15 +749,19 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 */
 	public static function data_output_is_prepared_for_json_clients(): array {
 		return array(
-			'root empty object stays unchanged'  => array( 'test/empty-object-output', '[]' ),
-			'nested empty object'                => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
-			'numeric collection stays unchanged' => array( 'test/empty-object-list-output', '[[]]' ),
+			'root empty object'       => array( 'test/empty-object-output', '{}' ),
+			'nested empty object'     => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
+			'numeric collection'      => array( 'test/empty-object-list-output', '[{}]' ),
+			'object result'           => array( 'test/nested-empty-object-in-object-output', '{"settings":{}}' ),
+			'JsonSerializable result' => array( 'test/nested-empty-object-in-json-serializable-output', '{"settings":{}}' ),
+			'root empty list'         => array( 'test/empty-list-output', '[]' ),
+			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
+			'string'                  => array( 'test/string-output', '"value"' ),
 		);
 	}
 
 	/**
-	 * Tests that ability results are prepared for JSON clients without breaking
-	 * the global `_fields` and `_embed` parameters.
+	 * Tests that ability results are prepared for JSON clients.
 	 *
 	 * @ticket 66267
 	 * @dataProvider data_output_is_prepared_for_json_clients
@@ -657,15 +773,132 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected, wp_json_encode( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
+	}
 
-		$request->set_param( '_fields', 'settings' );
+	/**
+	 * Tests that the global `_fields` and `_embed` parameters and response links leave
+	 * ability results unchanged.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_global_parameters_and_response_links_leave_output_unchanged(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/nested-empty-object-output/run' );
+
+		// The result has no `other` field, so filtering would leave none of the result.
+		$request->set_query_params(
+			array(
+				'_fields' => 'other',
+				'_embed'  => '1',
+			)
+		);
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->add_link( 'alternate', rest_url( '/wp-abilities/v1/abilities' ), array( 'embeddable' => true ) );
+				return $response;
+			}
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
 
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+		$data     = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
 
-		$this->assertSame( $expected, wp_json_encode( $this->server->response_to_data( $response, true ) ) );
+		$this->assertSame( '{"settings":{}}', wp_json_encode( $data ), 'The result should be left unchanged.' );
+	}
+
+	/**
+	 * Tests that the global `_embed` parameter leaves the `_links` returned by an ability
+	 * unchanged, without requesting the linked resources.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_links_in_the_result_are_not_embedded(): void {
+		$result = array(
+			'id'     => 1,
+			'_links' => array(
+				'author' => array(
+					array(
+						'href'       => rest_url( '/wp-abilities/v1/abilities' ),
+						'embeddable' => true,
+					),
+				),
+			),
+		);
+		$this->register_test_ability(
+			'test/links-output',
+			array(
+				'label'               => 'Links Output',
+				'description'         => 'Returns an object with its own embeddable link.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () use ( $result ) {
+					return $result;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/links-output/run' );
+		$request->set_query_params( array( '_embed' => '1' ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+
+		$dispatch = new MockAction();
+		add_filter( 'rest_pre_dispatch', array( $dispatch, 'filter' ) );
+		$data = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
+
+		$this->assertSame( $result, $data, 'The links returned by the ability should be left unchanged.' );
+		$this->assertSame( 0, $dispatch->get_call_count(), 'No linked resource should be requested.' );
+	}
+
+	/**
+	 * Tests that preloading a read-only ability run keeps the result prepared for
+	 * JSON clients, also with the global `_fields` and `_embed` parameters.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_preloaded_output_is_prepared_for_json_clients(): void {
+		$this->register_test_ability(
+			'test/readonly-output',
+			array(
+				'label'               => 'Read-only Output',
+				'description'         => 'Returns an empty object from a read-only ability.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$path    = '/wp-abilities/v1/abilities/test/readonly-output/run?_fields=other&_embed=1';
+		$preload = rest_preload_api_request( array(), $path );
+
+		$this->assertArrayHasKey( $path, $preload, 'The ability run should be preloaded.' );
+		$this->assertSame( '{}', wp_json_encode( $preload[ $path ]['body'] ), 'The preloaded result should be encoded as an empty object.' );
 	}
 
 	/**
