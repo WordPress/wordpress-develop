@@ -1066,7 +1066,7 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string
  *                directory if its real path was registered, otherwise the normalized
  *                path that was passed in.
  */
-function wp_get_plugin_path_from_realpath( $file ) {
+function wp_get_plugin_path_from_realpath( $file ): string {
 	global $wp_plugin_paths;
 
 	// $wp_plugin_paths contains normalized paths.
