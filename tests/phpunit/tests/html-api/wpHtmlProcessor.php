@@ -980,7 +980,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_html_processor_with_extended_next_token() {
+	public static function data_html_processor_with_extended_next_token() {
 		return array(
 			'single_instance_per_tag'   => array(
 				'html'                  => '

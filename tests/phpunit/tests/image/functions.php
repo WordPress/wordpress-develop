@@ -35,7 +35,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
-	private function get_image_editor_engine_classes() {
+	private static function get_image_editor_engine_classes() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -53,8 +53,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_image_editor_engine_classes() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
+	public static function data_image_editor_engine_classes() {
+		return self::text_array_to_dataprovider( self::get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -95,7 +95,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_positive() {
+	public static function data_file_is_valid_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -120,7 +120,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'avif-transparent.avif',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -143,7 +143,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_negative() {
+	public static function data_file_is_valid_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -151,7 +151,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.sgi',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -173,7 +173,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_positive() {
+	public static function data_file_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -204,7 +204,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'avif-transparent.avif';
 		}
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -226,7 +226,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_negative() {
+	public static function data_file_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -243,7 +243,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.heic',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -317,8 +317,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_wp_save_image_file() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -438,7 +438,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+	public static function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
 		return array(
 			'true'  => array(
 				'callback' => '__return_true',
@@ -571,8 +571,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_inferred_mime_types_when_saving_an_image() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_inferred_mime_types_when_saving_an_image() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -1099,7 +1099,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_exif_frac2dec() {
+	public static function data_wp_exif_frac2dec() {
 		return array(
 			'invalid input: null'              => array(
 				'fraction' => null,

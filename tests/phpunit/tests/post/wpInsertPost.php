@@ -157,10 +157,10 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$GLOBALS['wp_taxonomies']['post_tag']->object_type = array( 'post' );
 	}
 
-	public function data_vb_insert_get_delete() {
+	public static function data_vb_insert_get_delete() {
 		$post_types = array( 'post', 'cpt' );
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -384,7 +384,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
 	}
 
-	public function data_vb_insert_future_change_status() {
+	public static function data_vb_insert_future_change_status() {
 		$statuses = array(
 			'draft',
 			'static',
@@ -394,7 +394,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'pending',
 		);
 
-		return $this->text_array_to_dataprovider( $statuses );
+		return self::text_array_to_dataprovider( $statuses );
 	}
 
 	/**
@@ -1378,14 +1378,14 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_types() {
+	public static function data_various_post_types() {
 		$post_types = array(
 			'mapped_meta_caps',
 			'unmapped_meta_caps',
 			'post',
 		);
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -1393,7 +1393,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_statuses() {
+	public static function data_various_post_statuses() {
 		$post_statuses = array(
 			'draft',
 			'pending',
@@ -1401,7 +1401,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'publish',
 		);
 
-		return $this->text_array_to_dataprovider( $post_statuses );
+		return self::text_array_to_dataprovider( $post_statuses );
 	}
 
 	/**

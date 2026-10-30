@@ -61,10 +61,9 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 			'value_field' => 'term_id',
 		);
 
-		$default_walker = new Walker_CategoryDropdown();
-		$expected       = $default_walker->walk( $elements, 0, $args );
+		$expected = "\t" . '<option class="level-0" value="' . self::$parent->term_id . '">Parent Category</option>' . "\n" .
+			"\t" . '<option class="level-1" value="' . self::$child->term_id . '">&nbsp;&nbsp;&nbsp;Child Category</option>' . "\n";
 
-		$this->assertStringContainsString( 'value="' . self::$child->term_id . '"', $expected );
 		$this->assertSame( $expected, walk_category_dropdown_tree( $elements, 0, $args ) );
 	}
 
@@ -83,10 +82,9 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 			'walker'      => new stdClass(),
 		);
 
-		$default_walker = new Walker_CategoryDropdown();
-		$expected       = $default_walker->walk( $elements, 0, $args );
+		$expected = "\t" . '<option class="level-0" value="' . self::$parent->term_id . '">Parent Category</option>' . "\n" .
+			"\t" . '<option class="level-1" value="' . self::$child->term_id . '">&nbsp;&nbsp;&nbsp;Child Category</option>' . "\n";
 
-		$this->assertStringContainsString( 'value="' . self::$child->term_id . '"', $expected );
 		$this->assertSame( $expected, walk_category_dropdown_tree( $elements, 0, $args ) );
 	}
 
