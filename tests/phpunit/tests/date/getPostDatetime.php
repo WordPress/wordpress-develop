@@ -106,24 +106,15 @@ class Tests_Date_GetPostDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_post_datetime() defaults to the published local time.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::get_post_datetime
-	 */
-	public function test_get_post_datetime_defaults_to_published_local_time() {
-		$this->assertSame( '2024-03-15T10:30:00+02:00', get_post_datetime( self::$post_id )->format( DATE_RFC3339 ) );
-	}
-
-	/**
-	 * Tests that get_post_datetime() accepts a post object and defaults to the global post.
+	 * Tests that get_post_datetime() accepts a post ID, object, and the global post.
 	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::get_post_datetime
 	 */
 	public function test_get_post_datetime_accepts_post_object_and_global_post() {
+		$this->assertSame( '2024-03-15T10:30:00+02:00', get_post_datetime( self::$post_id )->format( DATE_RFC3339 ) );
+
 		$post = get_post( self::$post_id );
 
 		$this->assertSame( '2024-03-15T10:30:00+02:00', get_post_datetime( $post )->format( DATE_RFC3339 ), 'A post object should be accepted.' );

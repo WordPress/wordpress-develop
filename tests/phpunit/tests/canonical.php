@@ -25,12 +25,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tears down shared fixtures after class.
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wp_tests_private' );
+
+		parent::wpTearDownAfterClass();
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
 		self::set_up_custom_post_types();
 
 		update_option( 'wp_attachment_pages_enabled', 1 );
+	}
+
+	/**
+	 * Tears down the test fixture.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'wp_tests_private' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -68,7 +86,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data_canonical() {
+	public static function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -345,7 +363,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *    bool  Whether the 404 link is expected to redirect
 	 * }
 	 */
-	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+	public static function data_redirect_guess_404_permalink_with_custom_statuses() {
 		return array(
 			'public status'                      => array(
 				'status_args' => array( 'public' => true ),
@@ -395,7 +413,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_redirect_guess_404_permalink_post_types() {
+	public static function data_redirect_guess_404_permalink_post_types() {
 		return array(
 			'single string formatted post type'    => array(
 				'original_url' => '/?name=sample-pag&post_type=page',
@@ -673,7 +691,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_canonical_attachment_page_redirect_with_option_disabled() {
+	public static function data_canonical_attachment_page_redirect_with_option_disabled() {
 		return array(
 			'logged out user, no parent'      => array(
 				'%%attachment_url%%',

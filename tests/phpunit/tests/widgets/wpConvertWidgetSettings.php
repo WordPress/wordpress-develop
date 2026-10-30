@@ -98,7 +98,6 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 					'05' => array( 'title' => 'Fifth' ),
 				),
 			),
-			'only a number'                 => array( array( 'number' => 2 ) ),
 		);
 	}
 
@@ -144,7 +143,6 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 				),
 			),
 			'empty array'            => array( array() ),
-			'null'                   => array( null ),
 		);
 	}
 

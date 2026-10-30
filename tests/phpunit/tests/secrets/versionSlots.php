@@ -57,6 +57,86 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertNeverContainsPlaintext( 'value-a', get_option( '_wp_secret_myplugin/api-key' ) );
 	}
 
+	/**
+	 * Saving the current value again, as a settings form does, must not discard
+	 * the previous value a rotation still depends on.
+	 *
+	 * @ticket 66353
+	 */
+	public function test_rewriting_the_current_value_keeps_the_previous_slot(): void {
+		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+	}
+
+	/**
+	 * @ticket 66353
+	 */
+	public function test_rewriting_the_current_value_leaves_the_stored_record_untouched(): void {
+		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		$before = get_option( '_wp_secret_myplugin/api-key' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'second-value' ) );
+
+		$this->assertSame( $before, get_option( '_wp_secret_myplugin/api-key' ) );
+	}
+
+	/**
+	 * @ticket 66353
+	 */
+	public function test_rewriting_the_current_value_does_not_fire_the_change_hook(): void {
+		wp_set_secret( 'myplugin/api-key', 'value' );
+
+		$fired = false;
+		add_action(
+			'wp_secret_changed',
+			function () use ( &$fired ) {
+				$fired = true;
+			}
+		);
+
+		wp_set_secret( 'myplugin/api-key', 'value' );
+
+		$this->assertFalse( $fired );
+	}
+
+	/**
+	 * Re-saving an imported value through a settings form has not rotated it.
+	 *
+	 * @ticket 66353
+	 */
+	public function test_rewriting_the_current_value_keeps_its_needs_rotation_flag(): void {
+		update_option( 'my_plugin_api_key', 'imported-value' );
+		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+
+		wp_set_secret( 'myplugin/api-key', 'imported-value' );
+
+		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'] );
+	}
+
+	/**
+	 * Importing an option that holds the value already stored still means that
+	 * value sat in plaintext, so it is flagged, without discarding the previous
+	 * version.
+	 *
+	 * @ticket 66353
+	 */
+	public function test_importing_the_current_value_flags_it_and_keeps_the_previous_slot(): void {
+		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		update_option( 'my_plugin_api_key', 'second-value' );
+
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ) );
+
+		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'] );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+	}
+
 	public function test_previous_preserves_its_original_fingerprint(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
