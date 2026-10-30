@@ -40,6 +40,7 @@
  *     port: non-negative-int,
  *     public_key?: non-empty-string,
  *     private_key?: non-empty-string,
+ *     fingerprint?: non-empty-string,
  *     hostkey?: array{ hostkey: non-empty-string },
  * }
  * @phpstan-import-type FileListing from WP_Filesystem_Base
@@ -75,6 +76,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * Constructor.
 	 *
 	 * @since 2.7.0
+	 * @since 7.3.0 Added the `fingerprint` option.
 	 *
 	 * @param array $opt {
 	 *     Array of connection options.
@@ -85,6 +87,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *     @type string $password    Optional. SSH password. May be empty when using keys.
 	 *     @type string $public_key  Optional. Path to public key file for publickey authentication.
 	 *     @type string $private_key Optional. Path to private key file for publickey authentication.
+	 *     @type string $fingerprint Optional. Expected MD5 or SHA1 hex fingerprint of the server's host key,
+	 *                               with or without colons. Default empty (no verification). Invalid or
+	 *                               mismatched fingerprints cause the connection to be refused.
 	 * }
 	 * @phpstan-param array{
 	 *     hostname: non-empty-string,
@@ -93,6 +98,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *     password?: string,
 	 *     public_key?: non-empty-string,
 	 *     private_key?: non-empty-string,
+	 *     fingerprint?: string,
 	 * }|null $opt
 	 */
 	public function __construct( $opt = null ) {
@@ -124,6 +130,17 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$this->errors->add( 'empty_hostname', __( 'SSH2 hostname is required' ) );
 		} else {
 			$this->options['hostname'] = $opt['hostname'];
+		}
+
+		// A configured '0' must fail validation rather than disable verification.
+		if ( array_key_exists( 'fingerprint', $opt ) && '' !== $opt['fingerprint'] ) {
+			$fingerprint = is_string( $opt['fingerprint'] ) ? strtoupper( str_replace( ':', '', $opt['fingerprint'] ) ) : '';
+
+			if ( ! preg_match( '/\A(?:[A-F0-9]{32}|[A-F0-9]{40})\z/', $fingerprint ) ) {
+				$this->errors->add( 'invalid_fingerprint', __( 'The SSH2 host key fingerprint must contain 32 MD5 or 40 SHA1 hexadecimal characters.' ) );
+			} else {
+				$this->options['fingerprint'] = $fingerprint;
+			}
 		}
 
 		// Check if the options provided are OK.
@@ -185,6 +202,26 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			);
 
 			return false;
+		}
+
+		if ( isset( $this->options['fingerprint'] ) ) {
+			$algorithm   = ( 32 === strlen( $this->options['fingerprint'] ) ) ? SSH2_FINGERPRINT_MD5 : SSH2_FINGERPRINT_SHA1;
+			$fingerprint = ssh2_fingerprint( $this->link, $algorithm | SSH2_FINGERPRINT_HEX );
+
+			// Verify the host key before authenticating so credentials are never sent to an impostor.
+			if ( ! is_string( $fingerprint ) || ! hash_equals( $this->options['fingerprint'], strtoupper( $fingerprint ) ) ) {
+				$this->link = false;
+				$this->errors->add(
+					'connect',
+					sprintf(
+						/* translators: %s: hostname:port */
+						__( 'The host key of SSH2 Server %s does not match the expected fingerprint.' ),
+						$this->options['hostname'] . ':' . $this->options['port']
+					)
+				);
+
+				return false;
+			}
 		}
 
 		if ( ! $this->keys ) {
