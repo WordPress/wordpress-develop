@@ -243,8 +243,8 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * Whether a pair of candidate salt values are usable as key material.
 	 *
 	 * Both must be non-empty strings, and neither may be the literal
-	 * wp-config-sample.php placeholder – which every unconfigured install shares,
-	 * making it a publicly known value rather than a secret.
+	 * wp-config-sample.php placeholder or its translation – which every
+	 * unconfigured install shares, making it a publicly known value rather than a secret.
 	 *
 	 * Takes explicit arguments rather than reading LOGGED_IN_KEY/LOGGED_IN_SALT
 	 * directly so the decision logic is testable without touching real constants,
@@ -261,9 +261,19 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @phpstan-assert-if-true non-empty-string $logged_in_salt
 	 */
 	private function are_usable_salt_values( $logged_in_key, $logged_in_salt ): bool {
+		$placeholders = array(
+			self::KNOWN_PLACEHOLDER,
+			/*
+			 * translators: This string should only be translated if wp-config-sample.php is localized.
+			 * You can check the localized release package or
+			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+			 */
+			__( 'put your unique phrase here' ),
+		);
+
 		return array_all(
 			array( $logged_in_key, $logged_in_salt ),
-			fn( $value ) => is_string( $value ) && '' !== $value && self::KNOWN_PLACEHOLDER !== $value
+			fn( $value ) => is_string( $value ) && '' !== $value && ! in_array( $value, $placeholders, true )
 		);
 	}
 
