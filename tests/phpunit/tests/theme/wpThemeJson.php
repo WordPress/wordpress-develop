@@ -5936,6 +5936,90 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that styles for the `label` element are output.
+	 *
+	 * @ticket 65899
+	 */
+	public function test_get_stylesheet_renders_label_element_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'label' => array(
+							'color' => array(
+								'text' => 'red',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			'label{color: red;}',
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * Tests that styles for the `label` element of a block are output.
+	 *
+	 * @ticket 65899
+	 */
+	public function test_get_stylesheet_renders_block_label_element_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/search' => array(
+							'elements' => array(
+								'label' => array(
+									'color' => array(
+										'text' => 'red',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			':root :where(.wp-block-search label){color: red;}',
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * Tests that `label` element styles are kept when user styles are sanitized.
+	 *
+	 * @ticket 65899
+	 */
+	public function test_remove_insecure_properties_preserves_label_element_styles() {
+		$styles = array(
+			'elements' => array(
+				'label' => array(
+					'color' => array(
+						'text' => 'red',
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => $styles,
+			)
+		);
+
+		$this->assertSame( $styles, $actual['styles'] );
+	}
+
+	/**
 	 * Testing that dynamic properties in theme.json return the value they reference,
 	 * e.g. array( 'ref' => 'styles.color.background' ) => "#ffffff".
 	 *
