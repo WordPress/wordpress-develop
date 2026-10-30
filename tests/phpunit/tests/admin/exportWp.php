@@ -523,4 +523,30 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 		$this->assertFalse( $found_post, 'Posts of excluded post types should not be included in export' );
 	}
+
+	/**
+	 * Ensure that authors of non-exportable posts are not listed when the export selects no posts.
+	 *
+	 * @ticket 57234
+	 */
+	public function test_export_does_not_list_authors_when_no_posts_are_selected() {
+		$user_id = self::factory()->user->create( array( 'user_login' => 'wpexport_embedder' ) );
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'oembed_cache',
+				'post_author' => $user_id,
+			)
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content'    => 'post',
+				'start_date' => '1999-01-01',
+				'end_date'   => '1999-01-01',
+			)
+		);
+
+		$wp_channel = $xml->channel->children( 'wp', true );
+		$this->assertCount( 0, $wp_channel->author, 'No authors should be listed when no posts are exported.' );
+	}
 }
