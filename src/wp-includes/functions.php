@@ -9643,7 +9643,7 @@ All at ###SITENAME###
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
-	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', wp_unslash( $new_item['name'] ), $email['message'] );
 	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
