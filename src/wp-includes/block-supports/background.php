@@ -45,6 +45,10 @@ function wp_register_background_support( $block_type ) {
  * @return array Array with `class` and `style` keys, each present only when non-empty.
  */
 function wp_get_background_classes_and_styles( $block_attributes ) {
+	if ( ! is_array( $block_attributes ) ) {
+		return array();
+	}
+
 	$background = $block_attributes['style']['background'] ?? null;
 
 	if ( ! is_array( $background ) ) {
