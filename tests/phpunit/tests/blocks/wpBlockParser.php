@@ -47,58 +47,78 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_documents_ending_in_an_open_block
+	 * @dataProvider data_documents_with_implicit_closings
 	 *
-	 * @param string $document Document whose last block has no closer.
-	 * @param array  $expected Expected block names and inner HTML, in order.
+	 * @param string[] $tokens List of block and HTML tokens comprising a document, where the first
+	 *                         is a partial document ending in open blocks, while the rest are the
+	 *                         explicit closers corresponding to those open blocks.
 	 */
-	public function test_implicitly_closed_final_block_does_not_repeat_content( $document, $expected ) {
-		$p      = new WP_Block_Parser();
-		$blocks = array_map(
-			static function ( $block ) {
-				return array( $block['blockName'], $block['innerHTML'] );
-			},
-			$p->parse( $document )
-		);
+	public function test_implicitly_closed_blocks_is_equivalent_to_explicitly_closed( $tokens ) {
+		$parser        = new WP_Block_Parser();
+		$full_document = $parser->parse( implode( '', $tokens ) );
+		$document      = array_shift( $tokens );
 
-		$this->assertSame( $expected, $blocks );
+		foreach ( $tokens as $token ) {
+			$document .= $token;
+
+			$this->assertSame(
+				$full_document,
+				$parser->parse( $document ),
+				'Should have implicitly closed open blocks as if the closers had been there.'
+			);
+		}
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, list<non-empty-string>>
 	 */
-	public static function data_documents_ending_in_an_open_block() {
+	public static function data_documents_with_implicit_closings() {
 		return array(
 			'After a closed block'                  => array(
-				'<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
 				array(
-					array( 'core/paragraph', 'A' ),
-					array( 'core/latest-posts', '' ),
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
 				),
 			),
 			'After leading HTML and a closed block' => array(
-				'Hi<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
 				array(
-					array( null, 'Hi' ),
-					array( 'core/paragraph', 'A' ),
-					array( 'core/latest-posts', '' ),
+					'Hi<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
 				),
 			),
 			'After a closed block and HTML'         => array(
-				'<!-- wp:paragraph -->A<!-- /wp:paragraph -->Bye<!-- wp:latest-posts -->',
 				array(
-					array( 'core/paragraph', 'A' ),
-					array( null, 'Bye' ),
-					array( 'core/latest-posts', '' ),
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph -->Bye<!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'Deeply-nested open blocks'             => array(
+				array(
+					'0<!-- wp:a -->1<!-- wp:b -->2<!-- wp:c -->3<!-- wp:d -->4',
+					'<!-- /wp:d -->',
+					'<!-- /wp:c -->',
+					'<!-- /wp:b -->',
+					'<!-- /wp:a -->',
 				),
 			),
 			'After a closed void block'             => array(
-				'<!-- wp:separator /--><!-- wp:group -->A',
 				array(
-					array( 'core/separator', '' ),
-					array( 'core/group', 'A' ),
+					'<!-- wp:separator /--><!-- wp:group -->A',
+					'<!-- /wp:group -->',
+				),
+			),
+			'With the wrong closer'                 => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:closer -->',
+				),
+			),
+			'With an invalid closer'                => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:opener /-->',
 				),
 			),
 		);
