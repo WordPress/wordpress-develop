@@ -123,9 +123,9 @@ class Features {
   /**
    * Binds the width, height, bit depth and number of channels from stored internal features.
    *
-   * @param int     $target_item_id Id of the item whose features will be bound.
-   * @param int     $tile_depth     Maximum recursion to search within tile-parent relations.
-   * @return Status                 FOUND on success or NOT_FOUND on failure.
+   * @param int $target_item_id Id of the item whose features will be bound.
+   * @param int $tile_depth     Maximum recursion to search within tile-parent relations.
+   * @return int                FOUND on success or NOT_FOUND on failure.
    */
   private function get_item_features( $target_item_id, $tile_depth ) {
     foreach ( $this->props as $prop ) {
@@ -187,7 +187,7 @@ class Features {
   /**
    * Finds the width, height, bit depth and number of channels of the primary item.
    *
-   * @return Status FOUND on success or NOT_FOUND on failure.
+   * @return int FOUND on success or NOT_FOUND on failure.
    */
   public function get_primary_item_features() {
     // Nothing to do without the primary item ID.
@@ -226,7 +226,7 @@ class Box {
    * @param resource $handle              The resource the header will be parsed from.
    * @param int      $num_parsed_boxes    The total number of parsed boxes. Prevents timeouts.
    * @param int      $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return Status                       FOUND on success or an error on failure.
+   * @return int                          FOUND on success or an error on failure.
    */
   public function parse( $handle, &$num_parsed_boxes, $num_remaining_bytes = MAX_SIZE ) {
     // See ISO/IEC 14496-12:2012(E) 4.2
@@ -336,8 +336,8 @@ class Parser {
    * "ispe" is used for width and height, "pixi" and "av1C" are used for bit depth
    * and number of channels, and "auxC" is used for alpha.
    *
-   * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return Status                      FOUND on success or an error on failure.
+   * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
+   * @return int                     FOUND on success or an error on failure.
    */
   private function parse_ipco( $num_remaining_bytes ) {
     $box_index = 1; // 1-based index. Used for iterating over properties.
@@ -491,8 +491,8 @@ class Parser {
    *
    * The "ipco" box contains the properties which are linked to items by the "ipma" box.
    *
-   * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return Status                      FOUND on success or an error on failure.
+   * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
+   * @return int                     FOUND on success or an error on failure.
    */
   private function parse_iprp( $num_remaining_bytes ) {
     do {
@@ -596,8 +596,8 @@ class Parser {
    * can be used to infer bit depth and number of channels for the primary item
    * when the latter does not have these properties.
    *
-   * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return Status                      FOUND on success or an error on failure.
+   * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
+   * @return int                     FOUND on success or an error on failure.
    */
   private function parse_iref( $num_remaining_bytes ) {
     while ( $num_remaining_bytes > 0 ) {
@@ -670,8 +670,8 @@ class Parser {
    * It looks for the primary item ID in the "pitm" box and recurses into other boxes
    * to find its features.
    *
-   * @param int     $num_remaining_bytes The number of bytes that should be available from the resource.
-   * @return Status                      FOUND on success or an error on failure.
+   * @param int $num_remaining_bytes The number of bytes that should be available from the resource.
+   * @return int                     FOUND on success or an error on failure.
    */
   private function parse_meta( $num_remaining_bytes ) {
     do {
