@@ -5470,7 +5470,11 @@ function wp_ajax_health_check_site_status_result() {
 	$save_results = array();
 
 	// Refresh the lightweight, autoloaded aggregate counts used by the admin menu and Dashboard.
-	// TODO: We don't need to keep this anymore. We can just obtain the counts at runtime from the stored results.
+	/*
+	 * Keep the latest run's counts in the small, autoloaded cache for the admin menu
+	 * and Dashboard. The separate, non-autoloaded detail cache retains verified
+	 * results across runs, so deriving these counts from it would change their meaning.
+	 */
 	if ( isset( $_POST['counts'] ) && is_array( $_POST['counts'] ) ) {
 		$counts         = wp_unslash( $_POST['counts'] );
 		$save_results[] = WP_Site_Health::set_site_status_counts( $counts );

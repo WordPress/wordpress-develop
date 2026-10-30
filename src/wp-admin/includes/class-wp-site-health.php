@@ -104,7 +104,8 @@ class WP_Site_Health {
 	 * Transient name for the cached aggregate Site Health status counts.
 	 *
 	 * This value is small and read on the admin menu and Dashboard, so it remains
-	 * autoloaded.
+	 * autoloaded. It reflects the latest run, including unavailable tests, while
+	 * the separate detail cache retains the latest verified result for each test.
 	 *
 	 * @since 7.1.0
 	 */
@@ -3636,7 +3637,6 @@ class WP_Site_Health {
 	 * consistent view of counts and detailed results should read both from here.
 	 *
 	 * @since 7.1.0
-	 * @todo This method is now not used.
 	 *
 	 * @return array The cached results as a map keyed by test name, aggregate counts derived
 	 *               from those same results, and the time of the most recent update. `results`
