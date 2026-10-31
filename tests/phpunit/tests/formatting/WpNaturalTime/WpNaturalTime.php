@@ -1,0 +1,283 @@
+<?php
+/**
+ * Class Tests_Formatting_WpNaturalTime
+ *
+ * @group formating
+ * @group date/time
+ *
+ * @covers ::wp_natural_time
+ *
+ * This class contains unit tests for the wp_natural_time function, which formats time differences in a human-readable form.
+ */
+class Tests_Formatting_WpNaturalTime extends WP_UnitTestCase {
+	private $ts;
+
+	/**
+	 * Sets up the initial timestamps for various time-related operations.
+	 *
+	 * This method initializes an array of timestamps for different time intervals
+	 * relative to a specific date and time.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+		$this->ts = array(
+			'now'         => gmmktime( 10, 0, 0, 7, 1, 2015 ),
+			'now-1s'      => gmmktime( 9, 59, 59, 7, 1, 2015 ),
+			'now1s'       => gmmktime( 10, 0, 1, 7, 1, 2015 ),
+			'now-30s'     => gmmktime( 9, 59, 30, 7, 1, 2015 ),
+			'now30s'      => gmmktime( 10, 0, 30, 7, 1, 2015 ),
+			'now-1m'      => gmmktime( 9, 59, 0, 7, 1, 2015 ),
+			'now-1m30s'   => gmmktime( 9, 58, 30, 7, 1, 2015 ),
+			'now1m'       => gmmktime( 10, 1, 0, 7, 1, 2015 ),
+			'now1m30s'    => gmmktime( 10, 1, 30, 7, 1, 2015 ),
+			'now-1h'      => gmmktime( 9, 0, 0, 7, 1, 2015 ),
+			'now1h'       => gmmktime( 11, 0, 0, 7, 1, 2015 ),
+			'now-1d'      => gmmktime( 10, 0, 0, 6, 30, 2015 ),
+			'now1d'       => gmmktime( 10, 0, 0, 7, 2, 2015 ),
+			'now-1w'      => gmmktime( 10, 0, 0, 6, 24, 2015 ),
+			'now1w'       => gmmktime( 10, 0, 0, 7, 8, 2015 ),
+			'now-1M'      => gmmktime( 10, 0, 0, 6, 1, 2015 ),
+			'now1M'       => gmmktime( 10, 0, 0, 8, 1, 2015 ),
+			'now-1y'      => gmmktime( 10, 0, 0, 7, 1, 2014 ),
+			'now1y'       => gmmktime( 10, 0, 0, 7, 1, 2016 ),
+			'now1y1m'     => gmmktime( 10, 0, 1, 7, 1, 2016 ),
+			'now1y1d'     => gmmktime( 10, 0, 0, 7, 2, 2016 ),
+			'now1y1M'     => gmmktime( 10, 0, 0, 8, 1, 2016 ),
+			'now1y1M1d'   => gmmktime( 10, 0, 0, 8, 2, 2016 ),
+			'now1y1M1w'   => gmmktime( 10, 0, 0, 8, 6, 2016 ),
+			'now1y1M1w1d' => gmmktime( 10, 0, 0, 8, 7, 2016 ),
+		);
+	}
+
+	/**
+	 * Tests the wp_natural_time function for specific second intervals.
+	 *
+	 * This method asserts that the natural language description of time difference
+	 * in seconds between given timestamps is correctly generated.
+	 *
+	 * @return void
+	 */
+	public function test_seconds_ago() {
+		$this->assertEquals( '1 second ago', wp_natural_time( $this->ts['now-1s'], $this->ts['now'] ) );
+		$this->assertEquals( '30 seconds ago', wp_natural_time( $this->ts['now-30s'], $this->ts['now'] ) );
+	}
+
+	/**
+	 * Tests the natural time descriptions for future second intervals.
+	 *
+	 * This method verifies that the wp_natural_time function correctly describes
+	 * the time difference in seconds for timestamps in the near future relative to the current time.
+	 *
+	 * @return void
+	 */
+	public function test_seconds_from_now() {
+		$this->assertEquals( '1 second from now', wp_natural_time( $this->ts['now1s'], $this->ts['now'] ) );
+		$this->assertEquals( '30 seconds from now', wp_natural_time( $this->ts['now30s'], $this->ts['now'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for minute intervals.
+	 *
+	 * This method asserts the natural language time descriptions for various minute-based intervals
+	 * to ensure the accuracy of the wp_natural_time function.
+	 *
+	 * @return void
+	 */
+	public function test_minutes_ago() {
+		$this->assertEquals( '1 minute ago', wp_natural_time( $this->ts['now-1m'], $this->ts['now'] ) );
+		$this->assertEquals( '2 minutes ago', wp_natural_time( $this->ts['now-1m'], $this->ts['now1m'] ) );
+		$this->assertEquals( '2 minutes ago', wp_natural_time( $this->ts['now-1m30s'], $this->ts['now1m'] ) );
+		$this->assertEquals( '3 minutes ago', wp_natural_time( $this->ts['now-1m30s'], $this->ts['now1m30s'] ) );
+	}
+
+	/**
+	 * Tests the time offsets in minutes from the current time.
+	 *
+	 * This method verifies the correct output of the wp_natural_time function
+	 * for various offsets in minutes from the given current time.
+	 *
+	 * @return void
+	 */
+	public function test_minutes_from_now() {
+		$this->assertEquals( '1 minute from now', wp_natural_time( $this->ts['now1m'], $this->ts['now'] ) );
+		$this->assertEquals( '2 minutes from now', wp_natural_time( $this->ts['now1m'], $this->ts['now-1m'] ) );
+		$this->assertEquals( '2 minutes from now', wp_natural_time( $this->ts['now1m30s'], $this->ts['now-1m'] ) );
+		$this->assertEquals( '3 minutes from now', wp_natural_time( $this->ts['now1m30s'], $this->ts['now-1m30s'] ) );
+	}
+
+	/**
+	 * Tests the functionality of the wp_natural_time function for hours ago.
+	 *
+	 * This method verifies that wp_natural_time correctly calculates and formats
+	 * the difference in hours between given timestamps.
+	 *
+	 * @return void
+	 */
+	public function test_hours_ago() {
+		$this->assertEquals( '1 hour ago', wp_natural_time( $this->ts['now-1h'], $this->ts['now'] ) );
+		$this->assertEquals( '2 hours ago', wp_natural_time( $this->ts['now-1h'], $this->ts['now1h'] ) );
+	}
+
+	/**
+	 * Tests the 'hours from now' phrases generated by the wp_natural_time function.
+	 *
+	 * This method asserts that the correct natural language phrases are returned
+	 * when comparing specific timestamps.
+	 *
+	 * @return void
+	 */
+	public function test_hours_from_now() {
+		$this->assertEquals( '1 hour from now', wp_natural_time( $this->ts['now1h'], $this->ts['now'] ) );
+		$this->assertEquals( '2 hours from now', wp_natural_time( $this->ts['now1h'], $this->ts['now-1h'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for various time differences.
+	 *
+	 * @return void
+	 */
+	public function test_days_ago() {
+		$this->assertEquals( '1 day ago', wp_natural_time( $this->ts['now-1d'], $this->ts['now'] ) );
+		$this->assertEquals( '2 days ago', wp_natural_time( $this->ts['now-1d'], $this->ts['now1d'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for future time differences.
+	 *
+	 * @return void
+	 */
+	public function test_days_from_now() {
+		$this->assertEquals( '1 day from now', wp_natural_time( $this->ts['now1d'], $this->ts['now'] ) );
+		$this->assertEquals( '2 days from now', wp_natural_time( $this->ts['now1d'], $this->ts['now-1d'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for time differences measured in weeks.
+	 *
+	 * @return void
+	 */
+	public function test_weeks_ago() {
+		$this->assertEquals( '1 week ago', wp_natural_time( $this->ts['now-1w'], $this->ts['now'] ) );
+		$this->assertEquals( '2 weeks ago', wp_natural_time( $this->ts['now-1w'], $this->ts['now1w'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for various future time differences, specifically in weeks.
+	 *
+	 * @return void
+	 */
+	public function test_weeks_from_now() {
+		$this->assertEquals( '1 week from now', wp_natural_time( $this->ts['now1w'], $this->ts['now'] ) );
+		$this->assertEquals( '2 weeks from now', wp_natural_time( $this->ts['now1w'], $this->ts['now-1w'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function to ensure it correctly calculates time differences measured in months.
+	 *
+	 * @return void
+	 */
+	public function test_months_ago() {
+		$this->assertEquals( '1 month ago', wp_natural_time( $this->ts['now-1M'], $this->ts['now'] ) );
+		$this->assertEquals( '2 months ago', wp_natural_time( $this->ts['now-1M'], $this->ts['now1M'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for various month differences.
+	 *
+	 * @return void
+	 */
+	public function test_months_from_now() {
+		$this->assertEquals( '1 month from now', wp_natural_time( $this->ts['now1M'], $this->ts['now'] ) );
+		$this->assertEquals( '2 months from now', wp_natural_time( $this->ts['now1M'], $this->ts['now-1M'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for year-based time differences.
+	 *
+	 * @return void
+	 */
+	public function test_years_ago() {
+		$this->assertEquals( '1 year ago', wp_natural_time( $this->ts['now-1y'], $this->ts['now'] ) );
+		$this->assertEquals( '2 years ago', wp_natural_time( $this->ts['now-1y'], $this->ts['now1y'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for year-based time differences.
+	 *
+	 * @return void
+	 */
+	public function test_years_from_now() {
+		$this->assertEquals( '1 year from now', wp_natural_time( $this->ts['now1y'], $this->ts['now'] ) );
+		$this->assertEquals( '2 years from now', wp_natural_time( $this->ts['now1y'], $this->ts['now-1y'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for the current time.
+	 *
+	 * @return void
+	 */
+	public function test_now() {
+		$this->assertEquals( 'now', wp_natural_time( $this->ts['now'], $this->ts['now'] ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for various future time compositions.
+	 *
+	 * @return void
+	 */
+	public function test_composed_from_now() {
+		$this->assertEquals( '1 minute, 30 seconds from now', wp_natural_time( $this->ts['now1m30s'], $this->ts['now'], 2 ) );
+		$this->assertEquals( '1 minute, 30 seconds from now', wp_natural_time( $this->ts['now1m30s'], $this->ts['now'], 3 ) );
+
+		$this->assertEquals( '1 year from now', wp_natural_time( $this->ts['now1y1m'], $this->ts['now'], 2 ) );
+		$this->assertEquals( '1 year from now', wp_natural_time( $this->ts['now1y1d'], $this->ts['now'], 2 ) );
+
+		$this->assertEquals( '1 year, 1 month from now', wp_natural_time( $this->ts['now1y1M'], $this->ts['now'], 3 ) );
+		$this->assertEquals( '1 year, 1 month from now', wp_natural_time( $this->ts['now1y1M'], $this->ts['now'], 3 ) );
+
+		$this->assertEquals( '1 year, 1 month from now', wp_natural_time( $this->ts['now1y1M1d'], $this->ts['now'], 2 ) );
+
+		$this->assertEquals( '1 year, 1 month, 1 week from now', wp_natural_time( $this->ts['now1y1M1w'], $this->ts['now'], 3 ) );
+
+		$this->assertEquals( '1 year, 1 month, 1 week, 1 day from now', wp_natural_time( $this->ts['now1y1M1w1d'], $this->ts['now'], 4 ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function for various complex time differences.
+	 *
+	 * @return void
+	 */
+	public function test_composed_ago() {
+		$this->assertEquals( '1 minute, 30 seconds ago', wp_natural_time( $this->ts['now-1m30s'], $this->ts['now'], 2 ) );
+		$this->assertEquals( '1 minute, 30 seconds ago', wp_natural_time( $this->ts['now'], $this->ts['now1m30s'], 2 ) );
+		$this->assertEquals( '1 minute, 30 seconds ago', wp_natural_time( $this->ts['now'], $this->ts['now1m30s'], 3 ) );
+
+		$this->assertEquals( '1 year ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1m'], 2 ) );
+		$this->assertEquals( '1 year ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1d'], 2 ) );
+
+		$this->assertEquals( '1 year, 1 month ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1M'], 3 ) );
+		$this->assertEquals( '1 year, 1 month ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1M'], 3 ) );
+
+		$this->assertEquals( '1 year, 1 month ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1M1d'], 2 ) );
+
+		$this->assertEquals( '1 year, 1 month, 1 week ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1M1w'], 3 ) );
+
+		$this->assertEquals( '1 year, 1 month, 1 week, 1 day ago', wp_natural_time( $this->ts['now'], $this->ts['now1y1M1w1d'], 4 ) );
+	}
+
+	/**
+	 * Tests the wp_natural_time function to ensure correct handling of time differences with MySQL date strings.
+	 *
+	 * @return void
+	 */
+	public function test_composed_mysqldate() {
+		$one_hr_ago = gmdate( 'Y-m-d H:i:s', $this->ts['now-1h'] );
+		$now        = gmdate( 'Y-m-d H:i:s', $this->ts['now'] );
+
+		$this->assertEquals( '1 hour ago', wp_natural_time( $one_hr_ago, $this->ts['now'] ) );
+		$this->assertEquals( '1 hour ago', wp_natural_time( $one_hr_ago, $now ) );
+		$this->assertEquals( '1 hour ago', wp_natural_time( $this->ts['now-1h'], $now ) );
+	}
+}
