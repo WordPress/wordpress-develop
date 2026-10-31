@@ -2052,6 +2052,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$size_check = self::check_upload_size( $file_data );
 		if ( is_wp_error( $size_check ) ) {
+			@unlink( $tmpfname );
+
 			return $size_check;
 		}
 
