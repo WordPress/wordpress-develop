@@ -709,6 +709,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 7.2.0 Added support for the `reaction` comment type.
+	 * @since 7.2.0 A note reply to a deleted note is rejected.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
@@ -877,6 +878,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			$reaction_key = $emoji_key;
+		}
+
+		/*
+		 * Another session can delete a note while a reply to it is being
+		 * written. Stored under the deleted note, the reply would be lost:
+		 * the editor no longer shows its thread. See also update_item().
+		 */
+		if ( ! empty( $request['type'] ) && 'note' === $request['type'] && ! empty( $request['parent'] ) ) {
+			$parent_note = get_comment( $request['parent'] );
+			if ( ! $parent_note || in_array( $parent_note->comment_approved, array( 'trash', 'spam' ), true ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'This note was deleted, so your reply could not be added.' ),
+					array( 'status' => 400 )
+				);
+			}
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -1209,6 +1226,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Updates a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 A deleted note can only be restored, not otherwise changed.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
@@ -1226,6 +1244,24 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'rest_comment_invalid_type',
 				__( 'Sorry, you are not allowed to change the comment type.' ),
 				array( 'status' => 404 )
+			);
+		}
+
+		/*
+		 * Another session can delete a note while it is still open in the
+		 * editor. Changing its status would bring it back without the replies
+		 * trashed along with it, as reopening it with a reply does, and an
+		 * edited note would stay hidden. Only allow restoring it.
+		 */
+		if (
+			'note' === $comment->comment_type &&
+			in_array( $comment->comment_approved, array( 'trash', 'spam' ), true ) &&
+			! in_array( $request['status'], array( 'untrash', 'unspam' ), true )
+		) {
+			return new WP_Error(
+				'rest_comment_invalid_status',
+				__( 'This note was deleted, so it could not be updated.' ),
+				array( 'status' => 400 )
 			);
 		}
 
