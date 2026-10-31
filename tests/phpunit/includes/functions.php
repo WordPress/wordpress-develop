@@ -142,6 +142,11 @@ function _delete_all_data() {
 
 	$wpdb->query( "DELETE FROM {$wpdb->users} WHERE ID != 1" );
 	$wpdb->query( "DELETE FROM {$wpdb->usermeta} WHERE user_id != 1" );
+
+	// Drop the deleted users from the network user count too, or the count leaks into the next test classes.
+	if ( is_multisite() ) {
+		wp_update_network_user_counts();
+	}
 }
 
 /**

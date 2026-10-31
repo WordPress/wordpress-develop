@@ -33,6 +33,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * The options table rows before the first test class ran, keyed by option name.
+	 *
+	 * @var object[]|null
+	 */
+	private static $original_options = null;
+
+	/**
+	 * The network's super admins before the first test class ran, or null if not multisite or unset.
+	 *
+	 * @var string[]|null
+	 */
+	private static $original_site_admins = null;
+
+	/**
 	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
 	 *
 	 * @var string|null
@@ -95,6 +109,28 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
+		/*
+		 * Options and super admins to restore after each class, see restore_options().
+		 * An installed site always has options: no rows means the query failed, and
+		 * restoring to an empty snapshot would delete them all.
+		 */
+		if ( null === self::$original_options ) {
+			$rows = self::get_option_rows();
+
+			if ( $rows ) {
+				self::$original_options     = $rows;
+				self::$original_site_admins = is_multisite() ? get_site_option( 'site_admins', null ) : null;
+			}
+		}
+
+		/*
+		 * Start from the data a fresh install has. A process-isolated test runs this
+		 * again in its own process, on top of the class fixtures the parent process
+		 * already committed, and would collide with them, e.g. a second `User 1`.
+		 */
+		_delete_all_data();
+		self::flush_cache();
+
 		$class = get_called_class();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
@@ -114,12 +150,66 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		/*
+		 * The cache still holds values the tests' rollbacks undid, and the cleanup reads
+		 * options, e.g. update_site_option() would not restore `site_admins` if a rolled
+		 * back test left the original value in the cache.
+		 */
+		self::flush_cache();
+
 		_delete_all_data();
+		self::restore_options();
 		self::flush_cache();
 
 		self::commit_transaction();
 
 		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Fetches the options table rows, keyed by option name.
+	 *
+	 * @return object[] The rows.
+	 */
+	private static function get_option_rows() {
+		global $wpdb;
+
+		return $wpdb->get_results( "SELECT option_name, option_value, autoload FROM {$wpdb->options}", OBJECT_K );
+	}
+
+	/**
+	 * Restores the options table rows, and the network's super admins, to the ones
+	 * before the first test class ran.
+	 *
+	 * A test class commits the options it changes while setting up or tearing down,
+	 * e.g. a deleted `blogdescription` or super admins replaced with a fixture user,
+	 * and they would leak into the next classes.
+	 */
+	private static function restore_options() {
+		global $wpdb;
+
+		// No snapshot if no class ran the parent set_up_before_class(), e.g. Text_Diff_Check_Test.
+		if ( null === self::$original_options ) {
+			return;
+		}
+
+		$current = self::get_option_rows();
+
+		foreach ( array_keys( array_diff_key( $current, self::$original_options ) ) as $name ) {
+			$wpdb->delete( $wpdb->options, array( 'option_name' => $name ) );
+		}
+
+		foreach ( self::$original_options as $name => $row ) {
+			if ( isset( $current[ $name ] ) && (array) $current[ $name ] === (array) $row ) {
+				continue;
+			}
+
+			$wpdb->replace( $wpdb->options, (array) $row );
+		}
+
+		if ( null !== self::$original_site_admins ) {
+			update_site_option( 'site_admins', self::$original_site_admins );
+		}
 	}
 
 	/**
@@ -211,6 +301,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$wpdb->query( 'ROLLBACK' );
+
+		/*
+		 * A persistent object cache still holds the values the rollback just undid.
+		 * Flush it now: a process-isolated test bootstraps WordPress against it
+		 * before its own set_up() runs, and would act on the stale values,
+		 * e.g. a rolled back `theme_switched` option rebuilding the sidebars.
+		 */
+		if ( wp_using_ext_object_cache() ) {
+			self::flush_cache();
+		}
 
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
