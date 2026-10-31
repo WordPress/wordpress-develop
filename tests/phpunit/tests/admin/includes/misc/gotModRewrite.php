@@ -13,12 +13,12 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	/**
 	 * Original value of the `$is_apache` global.
 	 */
-	private bool $original_is_apache;
+	private ?bool $original_is_apache;
 
 	/**
 	 * Backs up the `$is_apache` global.
 	 *
-	 * @global bool $is_apache
+	 * @global bool|null $is_apache
 	 */
 	public function set_up() {
 		global $is_apache;
