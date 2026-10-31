@@ -319,14 +319,15 @@ if ( ! empty( $delete_tests_uploads_dir ) ) {
 	$uploads_test_run_dir = ABSPATH . UPLOADS;
 
 	if ( is_dir( $uploads_test_run_dir ) ) {
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		WP_Filesystem();
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
-		global $wp_filesystem;
-		$wp_filesystem->delete( $uploads_test_run_dir, true );
+		// Use the direct transport, as WP_Filesystem() may pick FTP and fail without credentials.
+		$uploads_test_run_fs = new WP_Filesystem_Direct( null );
+		$uploads_test_run_fs->delete( $uploads_test_run_dir, true );
 	}
 
-	unset( $uploads_test_run_dir );
+	unset( $uploads_test_run_dir, $uploads_test_run_fs );
 }
 unset( $delete_tests_uploads_dir );
 
