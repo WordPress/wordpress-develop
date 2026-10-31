@@ -240,28 +240,14 @@ if ( ! defined( 'UPLOADS' ) ) {
 	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
 
 	/*
-	 * Delete the test uploads dir exactly once per run, via a lock file ( we need it cos each
-	 * @runInSeparateProcess test re-executes this in its own process). The filename is hidden
-	 * ( dot-prefixed ) and suffixed with a hash of the current date so the lock is scoped to
-	 * a single day's run rather than using a fixed, guessable filename.
+	 * Delete the test uploads dir exactly once per run, via an env var (we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process).
 	 */
-	$uploads_hash             = substr( md5( gmdate( 'Y-m-d' ) ), 0, 12 );
-	$uploads_test_run_lock    = ABSPATH . 'wp-content/uploads/.test-suite-uploads-' . $uploads_hash . '.lock';
-	$delete_tests_uploads_dir = ! file_exists( $uploads_test_run_lock );
+	$delete_tests_uploads_dir = ( false === getenv( 'WP_TESTS_UPLOADS_RUN_ID' ) );
 
 	if ( $delete_tests_uploads_dir ) {
-		touch( $uploads_test_run_lock );
-
-		register_shutdown_function(
-			function () use ( $uploads_test_run_lock ) {
-				if ( file_exists( $uploads_test_run_lock ) ) {
-					unlink( $uploads_test_run_lock );
-				}
-			}
-		);
+		putenv( 'WP_TESTS_UPLOADS_RUN_ID=' . getmypid() . '-' . uniqid() );
 	}
-
-	unset( $uploads_test_run_lock, $uploads_hash );
 }
 
 $PHP_SELF            = '/index.php';
