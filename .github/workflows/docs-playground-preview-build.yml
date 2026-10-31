@@ -1,0 +1,36 @@
+name: Docs Playground Preview Build
+
+on:
+  pull_request:
+    branches:
+      - trunk
+      - '[4-9].[0-9]'
+    types: [ 'opened', 'synchronize', 'reopened', 'ready_for_review' ]
+
+# Cancels previous docs preview builds for the same pull request.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  build-docs-playground-preview:
+    name: Build docs Playground snapshot
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.repository == 'dmsnell/wordpress-develop' }}
+    uses: WordPress/action-wp-playground-pr-preview/.github/workflows/preview-build.yml@43fc435558bc6cee69f5b214d6b8ca4f9f80c31d # v3
+    permissions:
+      contents: read
+    with:
+      artifacts: docs-playground-snapshot=build/docs-playground-snapshot.zip
+      node-version: '20'
+      php-version: '8.4'
+      build-command: |
+        npm ci --ignore-scripts --no-audit --no-fund --prefix .github/docs-playground-preview
+        node .github/scripts/docs-playground-preview/build.mjs \
+          --wp "$GITHUB_WORKSPACE" \
+          --out "$GITHUB_WORKSPACE/build" \
+          --pr-number "${{ github.event.pull_request.number }}" \
+          --head-sha "${{ github.event.pull_request.head.sha }}"

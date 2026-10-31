@@ -1,0 +1,10 @@
+{
+  "name": "wordpress-develop-docs-playground-preview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pinned tooling for WordPress Core API docs Playground previews.",
+  "license": "GPL-2.0-or-later",
+  "dependencies": {
+    "@wp-playground/cli": "3.1.38"
+  }
+}
