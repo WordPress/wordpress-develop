@@ -26,6 +26,11 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		$this->original_is_apache = $is_apache;
 	}
 
+	/**
+	 * Restores the `$is_apache` global.
+	 *
+	 * @global bool|null $is_apache
+	 */
 	public function tear_down() {
 		$GLOBALS['is_apache'] = $this->original_is_apache;
 		parent::tear_down();
