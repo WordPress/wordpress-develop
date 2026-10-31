@@ -25,15 +25,17 @@ class Tests_REST_API_RestOutputLinkHeader extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @requires function xdebug_get_headers
 	 */
 	public function test_returns_early_when_rest_url_is_empty() {
 		add_filter( 'rest_url', '__return_empty_string' );
 
-		ob_start();
-		rest_output_link_header();
-		$output = ob_get_clean();
+		$headers_before = xdebug_get_headers();
 
-		$this->assertSame( '', $output );
+		rest_output_link_header();
+
+		$this->assertSame( $headers_before, xdebug_get_headers() );
 	}
 
 	/**
