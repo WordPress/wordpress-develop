@@ -78,7 +78,7 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		unregister_block_type( 'test/block' );
 	}
 
-	public function data_update_block_with_value_from_source() {
+	public static function data_update_block_with_value_from_source() {
 		return array(
 			'paragraph block' => array(
 				'content',
@@ -180,7 +180,7 @@ HTML
 		);
 	}
 
-	public function data_different_get_value_callbacks() {
+	public static function data_different_get_value_callbacks() {
 		return array(
 			'pass arguments to source' => array(
 				function ( $source_args, $block_instance, $attribute_name ) {
@@ -533,7 +533,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_rich_text_binding_preserves_nested_inner_blocks() {
+	public static function data_rich_text_binding_preserves_nested_inner_blocks() {
 		$child_list = self::build_list_block(
 			array(
 				self::build_list_item_block( 'Nested child' ),
