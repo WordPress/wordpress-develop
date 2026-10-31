@@ -17,7 +17,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		$this->assertSame( "<$normalized>inside</$normalized>", balanceTags( "<$tag>inside", true ) );
 	}
 
-	public function data_supported_traditional_tag_names() {
+	public static function data_supported_traditional_tag_names() {
 		return array(
 			array( 'a' ),
 			array( 'div' ),
@@ -37,7 +37,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
 	}
 
-	public function data_supported_custom_element_tag_names() {
+	public static function data_supported_custom_element_tag_names() {
 		return array(
 			array( 'custom-element' ),
 			array( 'my-custom-element' ),
@@ -57,7 +57,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		$this->assertSame( $output, balanceTags( $input, true ) );
 	}
 
-	public function data_invalid_tag_names() {
+	public static function data_invalid_tag_names() {
 		return array(
 			array( '<0-day>inside', '&lt;0-day>inside' ), // Can't start with a number - handled by the "<3" fix.
 			array( '<UPPERCASE-TAG>inside', '<UPPERCASE-TAG>inside' ), // Custom elements cannot be uppercase.
@@ -75,9 +75,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * These are valid custom elements but we don't support them yet.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @link https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 */
-	public function data_unsupported_valid_tag_names() {
+	public static function data_unsupported_valid_tag_names() {
 		return array(
 			// We don't allow ending in a dash.
 			array( '<what->inside' ),
@@ -143,9 +143,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * These are invalid custom elements but we support them right now in order to keep the parser simpler.
 	 *
-	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
+	 * @link https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
-	public function data_supported_invalid_tag_names() {
+	public static function data_supported_invalid_tag_names() {
 		return array(
 			// Reserved names for custom elements.
 			array( 'annotation-xml' ),
@@ -181,7 +181,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	// This is a complete(?) listing of valid single/self-closing tags.
-	public function data_single_tags() {
+	public static function data_single_tags() {
 		return array(
 			array( 'area' ),
 			array( 'base' ),
@@ -205,29 +205,29 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests closing unknown single tags.
+	 *
 	 * @ticket 1597
+	 * @dataProvider data_unknown_single_tags_with_closing_tag
 	 */
-	public function test_closes_unknown_single_tags_with_closing_tag() {
+	public function test_closes_unknown_single_tags_with_closing_tag( $input, $expected ) {
+		$this->assertSame( $expected, balanceTags( $input, true ) );
+	}
 
-		$inputs   = array(
-			'<strong/>',
-			'<em />',
-			'<p class="main1"/>',
-			'<p class="main2" />',
-			'<STRONG/>',
-		);
-		$expected = array(
-			'<strong></strong>',
-			'<em></em>',
-			'<p class="main1"></p>',
-			'<p class="main2"></p>',
+	/**
+	 * Data provider for test_closes_unknown_single_tags_with_closing_tag.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public static function data_unknown_single_tags_with_closing_tag() {
+		return array(
+			'default'              => array( '<strong/>', '<strong></strong>' ),
+			'with-space'           => array( '<em />', '<em></em>' ),
+			'with-class'           => array( '<p class="main1"/>', '<p class="main1"></p>' ),
+			'with-class-and-space' => array( '<p class="main2" />', '<p class="main2"></p>' ),
 			// Valid tags are transformed to lowercase.
-			'<strong></strong>',
+			'uppercase'            => array( '<STRONG/>', '<strong></strong>' ),
 		);
-
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
-		}
 	}
 
 	public function test_closes_unclosed_single_tags_having_attributes() {
@@ -278,7 +278,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_nestable_tags() {
+	public static function data_nestable_tags() {
 		return array(
 			array( 'article' ),
 			array( 'aside' ),
@@ -390,7 +390,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @return array Data.
 	 */
-	public function data_custom_elements() {
+	public static function data_custom_elements() {
 		return array(
 			// Valid custom element tags.
 			array(
@@ -448,5 +448,37 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 */
 	public function test_custom_elements( $source, $expected ) {
 		$this->assertSame( $expected, balanceTags( $source, true ) );
+	}
+
+	/**
+	 * Comment fixtures that force_balance_tags() should preserve while still balancing tags.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_preserves_html_comments
+	 *
+	 * @param string $input    Input markup.
+	 * @param string $expected Expected balanced markup.
+	 */
+	public function test_preserves_html_comments( $input, $expected ) {
+		$this->assertSame( $expected, balanceTags( $input, true ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_preserves_html_comments() {
+		return array(
+			'preserves html comments'         => array(
+				'<!-- comment --><p>Hi',
+				'<!-- comment --><p>Hi</p>',
+			),
+			'preserves spaced comment opener' => array(
+				'< !-- comment --><p>Hi',
+				'< !-- comment --><p>Hi</p>',
+			),
+		);
 	}
 }
