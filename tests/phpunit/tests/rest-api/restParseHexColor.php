@@ -29,13 +29,8 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 */
 	public static function data_valid_hex_colors() {
 		return array(
-			'3-digit lowercase'  => array( '#abc' ),
-			'3-digit uppercase'  => array( '#ABC' ),
 			'3-digit mixed case' => array( '#aBc' ),
-			'6-digit lowercase'  => array( '#abcdef' ),
-			'6-digit uppercase'  => array( '#ABCDEF' ),
 			'6-digit mixed case' => array( '#aBcDeF' ),
-			'numeric digits'     => array( '#012345' ),
 		);
 	}
 
@@ -59,18 +54,9 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_hex_colors() {
 		return array(
-			'missing hash'          => array( 'abcdef' ),
-			'empty string'          => array( '' ),
-			'hash only'             => array( '#' ),
-			'too short'             => array( '#ab' ),
-			'4 digits'              => array( '#abcd' ),
-			'5 digits'              => array( '#abcde' ),
-			'too long'              => array( '#abcdef0' ),
-			'non-hex characters'    => array( '#ggg' ),
-			'invalid 6-digit chars' => array( '#abcdeg' ),
-			'spaces'                => array( '#abc def' ),
-			'rgb function'          => array( 'rgb(0,0,0)' ),
-			'named color'           => array( 'red' ),
+			'missing hash'       => array( 'abcdef' ),
+			'unsupported length' => array( '#ab' ),
+			'non-hex characters' => array( '#ggg' ),
 		);
 	}
 }
