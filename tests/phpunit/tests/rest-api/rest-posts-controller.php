@@ -115,10 +115,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function tear_down() {
+
 		if ( true === $this->attachments_created ) {
 			$this->remove_added_uploads();
 			$this->attachments_created = false;
 		}
+
+		unregister_post_type( 'youseeme' );
+		unregister_post_type( 'private-post' );
+		unregister_post_type( 'not_in_rest' );
+		unregister_post_type( 'class_not_found' );
+		unregister_post_type( 'invalid_class' );
+		unregister_post_type( 'test' );
+
+		unregister_taxonomy( 'status' );
+
+		_unregister_post_status( 'testpubstatus' );
+		_unregister_post_status( 'testprivtatus' );
 
 		parent::tear_down();
 	}
