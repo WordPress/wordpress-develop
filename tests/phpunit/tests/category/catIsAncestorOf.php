@@ -10,14 +10,6 @@
  */
 class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 
-
-	public function tear_down() {
-
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Grandparent category ID.
 	 *
