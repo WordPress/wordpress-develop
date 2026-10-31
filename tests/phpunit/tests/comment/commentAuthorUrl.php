@@ -106,7 +106,8 @@ class Tests_Comment_CommentAuthorUrl extends WP_UnitTestCase {
 	public function test_comment_author_url_echoes_value() {
 		add_filter(
 			'comment_url',
-			static function () {
+			function ( $url ) {
+				$this->assertSame( 'https://example.com/author', $url );
 				return 'https://display.example.com';
 			}
 		);
