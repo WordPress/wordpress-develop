@@ -27,6 +27,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		unset( $GLOBALS['show_admin_bar'] );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'content' );
+		unregister_post_type( 'foo-non-public' );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
