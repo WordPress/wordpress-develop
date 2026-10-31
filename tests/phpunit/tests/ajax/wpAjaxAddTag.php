@@ -93,6 +93,58 @@ class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57419
+	 * @dataProvider data_add_tag_with_non_ascii_taxonomy
+	 *
+	 * @param string $taxonomy     Taxonomy name.
+	 * @param bool   $hierarchical Whether the taxonomy is hierarchical.
+	 */
+	public function test_add_tag_with_non_ascii_taxonomy( $taxonomy, $hierarchical ) {
+		$this->_setRole( 'administrator' );
+		register_taxonomy( $taxonomy, 'post', array( 'hierarchical' => $hierarchical ) );
+
+		$_POST = array(
+			'taxonomy'         => $taxonomy,
+			'post_type'        => 'post',
+			'screen'           => 'edit-' . $taxonomy,
+			'action'           => 'add-tag',
+			'tag-name'         => 'New term',
+			'_wpnonce_add-tag' => wp_create_nonce( 'add-tag' ),
+		);
+
+		try {
+			try {
+				$this->_handleAjax( 'add-tag' );
+			} catch ( WPAjaxDieContinueException $e ) {
+				unset( $e );
+			}
+
+			$response = $this->get_xml_response_taxonomy();
+			$term     = get_term_by( 'name', 'New term', $taxonomy );
+
+			$this->assertInstanceOf( 'WP_Term', $term );
+			$this->assertSame( 'Item added.', (string) $response->supplemental->notice );
+			$this->assertStringContainsString( 'id="tag-' . $term->term_id . '"', (string) $response->supplemental->parents );
+			$this->assertStringContainsString( 'action=delete&amp;taxonomy=' . rawurlencode( $taxonomy ) . '&amp;tag_ID=' . $term->term_id, (string) $response->supplemental->parents );
+			$this->assertSame( $taxonomy, convert_to_screen( $_POST['screen'] )->taxonomy );
+		} finally {
+			unregister_taxonomy( $taxonomy );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_add_tag_with_non_ascii_taxonomy() {
+		return array(
+			'non-hierarchical Latin taxonomy' => array( 'tamaño', false ),
+			'hierarchical Latin taxonomy'     => array( 'tamaño', true ),
+			'Chinese taxonomy'                => array( '产品', false ),
+			'sanitized reserved screen'       => array( 'écomments', false ),
+		);
+	}
+
+	/**
 	 * @ticket 42937
 	 */
 	public function test_adding_category_without_capability_should_error() {
