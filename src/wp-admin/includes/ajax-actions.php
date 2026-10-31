@@ -2231,7 +2231,13 @@ function wp_ajax_find_posts() {
 
 	$args = array(
 		'post_type'      => array_keys( $post_types ),
-		'post_status'    => 'any',
+		/*
+		 * Only return posts the current user may attach media to, i.e. edit. An explicit
+		 * status list is required: with 'any', WP_Query skips the 'perm' author check, so
+		 * other users' private and draft titles would leak to any user with 'upload_files'.
+		 */
+		'post_status'    => array( 'publish', 'future', 'draft', 'pending', 'private' ),
+		'perm'           => 'editable',
 		'posts_per_page' => 50,
 	);
 
