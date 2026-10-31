@@ -28,13 +28,23 @@ class Tests_REST_API_RestAreValuesEqual extends WP_UnitTestCase {
 	 */
 	public static function data_equal_values() {
 		return array(
-			'same strings'              => array( 'hello', 'hello' ),
-			'same integers'             => array( 7, 7 ),
-			'integer and float'         => array( 1, 1.0 ),
-			'float and integer'         => array( 1.0, 1 ),
-			'same booleans'             => array( true, true ),
-			'both null'                 => array( null, null ),
-			'same lists'                => array( array( 1, 2 ), array( 1, 2 ) ),
+			'same strings'                     => array( 'hello', 'hello' ),
+			'same integers'                    => array( 7, 7 ),
+			'integer and float'                => array( 1, 1.0 ),
+			'float and integer'                => array( 1.0, 1 ),
+			'same booleans'                    => array( true, true ),
+			'both null'                        => array( null, null ),
+			'same lists'                       => array( array( 1, 2 ), array( 1, 2 ) ),
+			'objects with null property'       => array(
+				array(
+					'a' => null,
+					'b' => 1,
+				),
+				array(
+					'a' => null,
+					'b' => 1,
+				),
+			),
 			'same objects different key order' => array(
 				array(
 					'a' => 1,
@@ -45,12 +55,24 @@ class Tests_REST_API_RestAreValuesEqual extends WP_UnitTestCase {
 					'a' => 1,
 				),
 			),
-			'nested arrays'             => array(
+			'nested coercion and key order'    => array(
 				array(
-					'items' => array( 1, array( 'x' => 2 ) ),
+					'items' => array(
+						1,
+						array(
+							'x' => 2,
+							'y' => 3.0,
+						),
+					),
 				),
 				array(
-					'items' => array( 1, array( 'x' => 2 ) ),
+					'items' => array(
+						1.0,
+						array(
+							'y' => 3,
+							'x' => 2.0,
+						),
+					),
 				),
 			),
 		);
@@ -75,15 +97,17 @@ class Tests_REST_API_RestAreValuesEqual extends WP_UnitTestCase {
 	 */
 	public static function data_unequal_values() {
 		return array(
-			'different strings'   => array( 'hello', 'world' ),
-			'string and integer'  => array( '1', 1 ),
+			'different strings'    => array( 'hello', 'world' ),
+			'string and integer'   => array( '1', 1 ),
+			'integer and float'    => array( 1, 2.0 ),
+			'float and integer'    => array( 2.0, 1 ),
 			'different list order' => array( array( 1, 2 ), array( 2, 1 ) ),
-			'different counts'    => array( array( 1 ), array( 1, 2 ) ),
-			'missing object key'  => array(
+			'different counts'     => array( array( 1 ), array( 1, 2 ) ),
+			'missing object key'   => array(
 				array( 'a' => 1 ),
 				array( 'b' => 1 ),
 			),
-			'nested mismatch'     => array(
+			'nested mismatch'      => array(
 				array( 'items' => array( 1, 2 ) ),
 				array( 'items' => array( 1, 3 ) ),
 			),
