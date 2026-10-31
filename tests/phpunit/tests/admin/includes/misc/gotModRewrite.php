@@ -21,7 +21,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	 * @param bool      $apache_loaded Whether mod_rewrite is reported as loaded by Apache.
 	 * @param bool|null $filter_value  Optional value to return via the 'got_rewrite' filter.
 	 */
-	public function test_got_mod_rewrite( $expected, $apache_loaded, $filter_value = null ) {
+	public function test_got_mod_rewrite( bool $expected, bool $apache_loaded, ?bool $filter_value ) {
 		// Mock the Apache module check by filtering 'got_rewrite' if needed,
 		// but since got_mod_rewrite calls apache_mod_loaded which we can't easily mock
 		// without a framework, we rely on the filter for full control.
