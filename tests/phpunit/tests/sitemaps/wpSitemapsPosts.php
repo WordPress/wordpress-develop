@@ -9,6 +9,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		unregister_post_type( 'public_cpt' );
 		unregister_post_type( 'private_cpt' );
 		unregister_post_type( 'not_viewable_cpt' );
+		unregister_post_type( 'valid_cpt' );
 
 		parent::tear_down();
 	}
