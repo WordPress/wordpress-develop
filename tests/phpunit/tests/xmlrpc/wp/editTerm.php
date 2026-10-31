@@ -26,6 +26,11 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'username', 'password', 'category', 1 ) );
 		$this->assertIXRError( $result );
@@ -48,6 +53,38 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+	}
+
+	/**
+	 * Ensures a non-array content struct is rejected rather than causing a fatal error.
+	 *
+	 * When the content struct (the fifth argument) is passed as a string instead of a
+	 * struct, the method must return an error instead of attempting to access a string
+	 * offset, which triggers "Cannot access offset of type string on string" on PHP 8+.
+	 *
+	 * @ticket 65682
+	 */
+	public function test_invalid_content_struct_should_return_error() {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'editor', 'editor', self::$parent_term, 'not-a-struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
+	}
+
+	/**
+	 * Ensures a missing content struct is rejected with an insufficient arguments error.
+	 *
+	 * @ticket 65682
+	 */
+	public function test_missing_content_struct_should_return_error() {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_editTerm( array( 1, 'editor', 'editor', self::$parent_term ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+		$this->assertSame( __( 'Insufficient arguments passed to this XML-RPC method.' ), $result->message );
 	}
 
 	public function test_incapable_user() {
@@ -158,7 +195,7 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsBool( $result );
 
 		$term = get_term( self::$child_term, 'category' );
-		$this->assertEquals( '0', $term->parent );
+		$this->assertSame( 0, $term->parent );
 	}
 
 	public function test_parent_invalid() {

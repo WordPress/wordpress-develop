@@ -15,6 +15,14 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->menu_id = wp_create_nav_menu( 'foo' );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'fooo-bar-baz' );
+		unregister_post_type( 'books' );
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 11095
 	 * @ticket 33974
@@ -242,7 +250,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$menu_items = wp_get_nav_menu_items( $this->menu_id );
 		$this->assertSame( $term->name, $menu_items[0]->title );
-		$this->assertEquals( $t, $menu_items[0]->object_id );
+		$this->assertSame( (string) $t, $menu_items[0]->object_id );
 	}
 
 	/**
@@ -748,23 +756,23 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ) );
 
 		// In walker.
 		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ) );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ) );
 	}
 
 	/**
-	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
+	 * Run tests required to confirm Walker_Nav_Menu receives an $args object.
 	 */
 	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );
@@ -1065,7 +1073,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
 	 */
-	public function data_iri_current_menu_item() {
+	public static function data_iri_current_menu_item() {
 		return array(
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
@@ -1164,7 +1172,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides data for test_trim_url_for_custom_item().
 	 */
-	public function data_trim_url_for_custom_item() {
+	public static function data_trim_url_for_custom_item() {
 		return array(
 			array( 'https://wordpress.org ', 'https://wordpress.org' ),
 			array( ' https://wordpress.org', 'https://wordpress.org' ),
@@ -1188,6 +1196,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 'Test Cat - "Pre-Slashed" Cat Name &amp; &gt;', $category->name );
+
 		$category_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -1196,16 +1206,41 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-object'    => 'category',
 				'menu-item-object-id' => $category->term_id,
 				'menu-item-status'    => 'publish',
-				/*
-				 * Interestingly enough, if we use `$cat->name` for the menu item title,
-				 * we won't be able to replicate the bug because it's in htmlentities form.
-				 */
-				'menu-item-title'     => $category_name,
+				'menu-item-title'     => $category->name,
 			)
 		);
 
 		$category_item = get_post( $category_item_id );
 		$this->assertEmpty( $category_item->post_title );
+	}
+
+	/**
+	 * Tests `wp_update_nav_menu_item()` with a non-existing taxonomy.
+	 *
+	 * When inserting a term from a non-existing taxonomy as a nav item,
+	 * the `post_title` property should be empty, and the function
+	 * should not throw a fatal error for `wp_specialchars_decode()`.
+	 *
+	 * @ticket 61799
+	 */
+	public function test_wp_update_nav_menu_item_with_invalid_taxonomy() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'invalid',
+				'menu-item-object-id' => $term->term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_item = get_post( $menu_item_id );
+		$this->assertEmpty( $menu_item->post_title );
 	}
 
 	/**
