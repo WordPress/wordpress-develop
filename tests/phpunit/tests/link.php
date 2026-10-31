@@ -4,6 +4,13 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		unregister_post_type( 'not_a_post_type' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
@@ -150,8 +157,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 1914
 	 */
 	public function test_attachment_attached_to_non_existent_post_type_has_a_pretty_permalink() {
-		global $wp_post_types;
-
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_post_type( 'not_a_post_type', array( 'public' => true ) );
@@ -175,12 +180,7 @@ class Tests_Link extends WP_UnitTestCase {
 
 		$this->assertSame( get_permalink( $post_id ) . user_trailingslashit( $attachment->post_name ), get_permalink( $attachment_id ) );
 
-		foreach ( $wp_post_types as $id => $pt ) {
-			if ( 'not_a_post_type' === $pt->name ) {
-				unset( $wp_post_types[ $id ] );
-				break;
-			}
-		}
+		unregister_post_type( 'not_a_post_type' );
 
 		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
 		// Visit permalink.
