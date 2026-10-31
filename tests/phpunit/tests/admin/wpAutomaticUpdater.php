@@ -743,8 +743,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 */
 	public function test_is_vcs_checkout_should_return_false_when_no_directories_are_allowed() {
 		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
-			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-			->setMethods( array( 'is_allowed_dir' ) )
+			->onlyMethods( array( 'is_allowed_dir' ) )
 			->getMock();
 
 		/*
