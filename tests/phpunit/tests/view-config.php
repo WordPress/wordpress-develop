@@ -71,6 +71,8 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	public function tear_down() {
 		remove_all_filters( 'get_entity_view_config_posttype_unregistered_cpt' );
 		remove_all_filters( 'get_entity_view_config_custom_kind_custom_name' );
+		unregister_post_type( 'summaries_cpt' );
+		unregister_post_type( 'view_config_cpt' );
 		parent::tear_down();
 	}
 
