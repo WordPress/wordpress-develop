@@ -52,14 +52,17 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		 */
 		$this->assertSame( $is_apache, got_mod_rewrite(), 'Expected the unfiltered result to be true on Apache (via the default value) and false otherwise.' );
 
+		$filtered_value = null;
 		add_filter(
 			'got_rewrite',
-			static function () use ( $filter_value ) {
+			static function ( $got_rewrite ) use ( $filter_value, &$filtered_value ) {
+				$filtered_value = $got_rewrite;
 				return $filter_value;
 			}
 		);
 
 		$this->assertSame( $filter_value, got_mod_rewrite(), 'Expected the filter to override the detected value.' );
+		$this->assertSame( $is_apache, $filtered_value, 'Expected the filter to receive the detected value.' );
 	}
 
 	/**
