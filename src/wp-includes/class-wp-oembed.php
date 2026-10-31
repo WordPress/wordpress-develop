@@ -526,45 +526,41 @@ class WP_oEmbed {
 				)
 			);
 
-			// Strip <body>.
-			$html_head_end = stripos( $html, '</head>' );
-			if ( $html_head_end ) {
-				$html = substr( $html, 0, $html_head_end );
-			}
+			$processor = new WP_HTML_Tag_Processor( $html );
+			while ( $processor->next_token() ) {
+				$token_name = $processor->get_token_name();
 
-			// Do a quick check.
-			$tagfound = false;
-			foreach ( $linktypes as $linktype => $format ) {
-				if ( stripos( $html, $linktype ) ) {
-					$tagfound = true;
+				if (
+					( 'HEAD' === $token_name && $processor->is_tag_closer() ) ||
+					( 'BODY' === $token_name && ! $processor->is_tag_closer() )
+				) {
 					break;
 				}
-			}
 
-			if ( $tagfound && preg_match_all( '#<link([^<>]+)/?>#iU', $html, $links ) ) {
-				foreach ( $links[1] as $link ) {
-					$atts = shortcode_parse_atts( $link );
-
-					if ( ! empty( $atts['type'] ) && ! empty( $linktypes[ $atts['type'] ] ) && ! empty( $atts['href'] ) ) {
-						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
-
-						// Stop here if it's JSON (that's all we need).
-						if ( 'json' === $linktypes[ $atts['type'] ] ) {
-							break;
-						}
-					}
+				if ( 'LINK' !== $token_name || 'alternate' !== $processor->get_attribute( 'rel' ) ) {
+					continue;
 				}
+
+				$type = $processor->get_attribute( 'type' );
+				if ( ! is_string( $type ) || ! isset( $linktypes[ $type ] ) ) {
+					continue;
+				}
+
+				$href = $processor->get_attribute( 'href' );
+				if ( ! is_string( $href ) || '' === trim( $href ) ) {
+					continue;
+				}
+
+				if ( 'json' === $linktypes[ $type ] ) {
+					return $href;
+				}
+
+				$providers[ $linktypes[ $type ] ] = $href;
 			}
 		}
 
-		// JSON is preferred to XML.
-		if ( ! empty( $providers['json'] ) ) {
-			return $providers['json'];
-		} elseif ( ! empty( $providers['xml'] ) ) {
-			return $providers['xml'];
-		} else {
-			return false;
-		}
+		// JSON would have already been returned, leaving only XML.
+		return $providers['xml'] ?? false;
 	}
 
 	/**
