@@ -32,7 +32,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that got_mod_rewrite() detects mod_rewrite based on the server, and that the filter overrides it.
+	 * Tests that got_mod_rewrite() depends on whether the server is Apache, and that the filter overrides it.
 	 *
 	 * @ticket 65134
 	 *
@@ -47,8 +47,10 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 		/*
 		 * On Apache, apache_mod_loaded() falls back to the default of true when the module list
 		 * cannot be determined (as in the CLI), and it always returns false for other servers.
+		 * So this covers the server check and the default value, not actual module detection,
+		 * which would require apache_get_modules() to be available.
 		 */
-		$this->assertSame( $is_apache, got_mod_rewrite(), 'Expected the unfiltered result to reflect the server detection.' );
+		$this->assertSame( $is_apache, got_mod_rewrite(), 'Expected the unfiltered result to be true on Apache (via the default value) and false otherwise.' );
 
 		add_filter(
 			'got_rewrite',
