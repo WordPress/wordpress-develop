@@ -13,6 +13,17 @@ class Tests_Term extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_hierarchical' );
+		unregister_post_type( 'cpt' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 29911
 	 */
 	public function test_wp_delete_term_should_invalidate_cache_for_child_terms() {
