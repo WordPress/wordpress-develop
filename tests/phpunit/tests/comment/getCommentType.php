@@ -70,19 +70,37 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 *
 	 * @covers ::comment_type
 	 * @covers ::get_comment_type
+	 *
+	 * @dataProvider data_default_labels
+	 *
+	 * @param string $comment_type Comment type fixture.
+	 * @param string $expected     Expected echoed label.
 	 */
-	public function test_comment_type_echoes_default_labels() {
+	public function test_comment_type_echoes_default_labels( $comment_type, $expected ) {
 		$comment = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_ID' => self::$post_id,
-				'comment_type'    => 'pingback',
+				'comment_type'    => $comment_type,
 			)
 		);
 
 		$GLOBALS['comment'] = $comment;
 
-		$this->expectOutputString( 'Pingback' );
+		$this->expectOutputString( $expected );
 		comment_type();
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_default_labels() {
+		return array(
+			'comment'   => array( 'comment', 'Comment' ),
+			'pingback'  => array( 'pingback', 'Pingback' ),
+			'trackback' => array( 'trackback', 'Trackback' ),
+		);
 	}
 
 	/**
@@ -90,18 +108,36 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 *
 	 * @covers ::comment_type
 	 * @covers ::get_comment_type
+	 *
+	 * @dataProvider data_custom_labels
+	 *
+	 * @param string $comment_type Comment type fixture.
+	 * @param string $expected     Expected echoed label.
 	 */
-	public function test_comment_type_echoes_custom_labels() {
+	public function test_comment_type_echoes_custom_labels( $comment_type, $expected ) {
 		$comment = self::factory()->comment->create_and_get(
 			array(
 				'comment_post_ID' => self::$post_id,
-				'comment_type'    => 'trackback',
+				'comment_type'    => $comment_type,
 			)
 		);
 
 		$GLOBALS['comment'] = $comment;
 
-		$this->expectOutputString( 'Custom Trackback' );
+		$this->expectOutputString( $expected );
 		comment_type( 'Custom Comment', 'Custom Trackback', 'Custom Pingback' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_custom_labels() {
+		return array(
+			'comment'   => array( 'comment', 'Custom Comment' ),
+			'pingback'  => array( 'pingback', 'Custom Pingback' ),
+			'trackback' => array( 'trackback', 'Custom Trackback' ),
+		);
 	}
 }
