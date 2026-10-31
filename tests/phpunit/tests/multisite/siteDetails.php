@@ -104,7 +104,7 @@ class Tests_Multisite_SiteDetails extends WP_UnitTestCase {
 		$this->assertSame( $new_last_changed, $last_changed );
 	}
 
-	public function data_allowed_options() {
+	public static function data_allowed_options() {
 		return array(
 			array( 'blogname', 'Custom Site' ),
 			array( 'home', 'http://custom-site-url.org' ),
