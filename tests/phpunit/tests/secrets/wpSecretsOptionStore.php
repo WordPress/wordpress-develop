@@ -166,4 +166,201 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertContains( 'myplugin/real', $names );
 		$this->assertNotContains( 'decoy/name', $names );
 	}
+
+	/**
+	 * Data provider for tests that run in both scopes.
+	 *
+	 * @return array<string, array{0: bool}>
+	 */
+	public static function data_scopes(): array {
+		return array(
+			'site scope'    => array( false ),
+			'network scope' => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_one_failed_read_does_not_hide_a_stored_secret( bool $network ): void {
+		$this->write_secret( 'test/key', 'one', $network );
+
+		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
+		$value  = $this->read_secret( 'test/key', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertSame( 'one', $value );
+		$this->assertSame( 'one', $this->read_secret( 'test/key', $network ) );
+
+		// The Options API must not keep the record cached as missing.
+		if ( $network ) {
+			$this->assertIsArray( get_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key' ) );
+		} else {
+			$this->assertIsArray( get_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key' ) );
+		}
+	}
+
+	/**
+	 * A failed read must not make a rotation discard the value it depends on.
+	 *
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_one_failed_read_during_a_write_keeps_the_previous_version( bool $network ): void {
+		$this->write_secret( 'test/key', 'one', $network );
+		$this->write_secret( 'test/key', 'two', $network );
+
+		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
+		$result = $this->write_secret( 'test/key', 'three', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ) );
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+	}
+
+	/**
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_an_unreadable_secret_is_reported_and_not_overwritten( bool $network ): void {
+		$this->write_secret( 'test/key', 'one', $network );
+		$this->write_secret( 'test/key', 'two', $network );
+
+		$filter = $this->fail_record_selects( 'test/key', $network, 10 );
+		$read   = $this->read_secret( 'test/key', $network );
+		$write  = $this->write_secret( 'test/key', 'three', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $read );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code() );
+		$this->assertWPError( $write );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code() );
+
+		// Once the database recovers, the failed reads must not leave the secret looking missing.
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network ) );
+		$this->assertSame( 'one', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+	}
+
+	/**
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_get_does_not_report_a_secret_as_absent_when_its_read_fails( bool $network ): void {
+		$store = new WP_Secrets_Option_Store();
+
+		$filter = $this->fail_record_selects( 'test/absent', $network, 10 );
+		$result = $this->without_db_errors( array( $store, 'get' ), 'test/absent', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertNull( $store->get( 'test/absent', $network ) );
+	}
+
+	/**
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_delete_does_not_report_success_when_it_cannot_read_the_record( bool $network ): void {
+		$store  = new WP_Secrets_Option_Store();
+		$record = $this->sample_record();
+
+		$store->set( 'test/key', $record, $network );
+
+		$filter = $this->fail_record_selects( 'test/key', $network, 10 );
+		$result = $this->without_db_errors( array( $store, 'delete' ), 'test/key', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertSame( $record, $store->get( 'test/key', $network ) );
+	}
+
+	/**
+	 * Writes a secret through the public API.
+	 *
+	 * @param string $name    The secret's namespaced name.
+	 * @param string $value   The value to store.
+	 * @param bool   $network Whether this is a network-scope secret.
+	 * @return true|WP_Error
+	 */
+	private function write_secret( string $name, string $value, bool $network ) {
+		return $this->without_db_errors( $network ? 'wp_set_network_secret' : 'wp_set_secret', $name, $value );
+	}
+
+	/**
+	 * Reads a secret through the public API.
+	 *
+	 * @param string $name    The secret's namespaced name.
+	 * @param bool   $network Whether this is a network-scope secret.
+	 * @param string $version The version slot to read.
+	 * @return string|null|WP_Error The revealed value, null, or the error.
+	 */
+	private function read_secret( string $name, bool $network, string $version = WP_Secret_Version::CURRENT ) {
+		$secret = $this->without_db_errors( $network ? 'wp_get_network_secret' : 'wp_get_secret', $name, $version );
+
+		return $secret instanceof WP_Secret ? $secret->reveal() : $secret;
+	}
+
+	/**
+	 * Makes the next database reads of a record fail, as a killed query would, after
+	 * removing the record from the object cache so that it is read again.
+	 *
+	 * @param string $name    The secret's namespaced name.
+	 * @param bool   $network Whether this is a network-scope secret.
+	 * @param int    $count   Number of reads to fail.
+	 * @return callable The 'query' filter that was added.
+	 */
+	private function fail_record_selects( string $name, bool $network, int $count ): callable {
+		$option_name = ( $network ? WP_Secrets_Option_Store::NETWORK_PREFIX : WP_Secrets_Option_Store::SITE_PREFIX ) . $name;
+
+		if ( $network && is_multisite() ) {
+			wp_cache_delete( get_current_network_id() . ':' . $option_name, 'site-options' );
+		} else {
+			wp_cache_delete( $option_name, 'options' );
+		}
+
+		$filter = static function ( $query ) use ( &$count, $option_name ) {
+			if ( $count > 0 && str_starts_with( ltrim( $query ), 'SELECT' ) && str_contains( $query, "'$option_name'" ) ) {
+				--$count;
+
+				return 'SELECT * FROM wptests_table_that_does_not_exist';
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+
+		return $filter;
+	}
+
+	/**
+	 * Calls a function with database errors suppressed.
+	 *
+	 * @param callable $callback Function to call.
+	 * @param mixed    ...$args  Arguments to pass.
+	 * @return mixed The function's return value.
+	 */
+	private function without_db_errors( callable $callback, ...$args ) {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors( true );
+		$result   = $callback( ...$args );
+		$wpdb->suppress_errors( $suppress );
+
+		return $result;
+	}
 }

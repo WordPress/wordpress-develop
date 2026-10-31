@@ -42,6 +42,10 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	/**
 	 * Reads a secret's stored record.
 	 *
+	 * get_option() and get_site_option() return the default both when the option does
+	 * not exist and when their query failed, so a default is checked against the database
+	 * before the secret is reported as absent.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $name    The secret's namespaced name.
@@ -53,7 +57,11 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		$value       = $network ? get_site_option( $option_name, null ) : get_option( $option_name, null );
 
 		if ( null === $value ) {
-			return null;
+			$value = $this->read_stored_value( $option_name, $network );
+		}
+
+		if ( null === $value || is_wp_error( $value ) ) {
+			return $value;
 		}
 
 		if ( ! is_array( $value ) ) {
@@ -126,9 +134,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 
 		// delete_*_option() also returns false when the option never existed.
 		// Deleting something already absent is not a failure.
-		$still_exists = null !== ( $network ? get_site_option( $option_name, null ) : get_option( $option_name, null ) );
-
-		if ( ! $still_exists ) {
+		if ( null === $this->get( $name, $network ) ) {
 			return true;
 		}
 
@@ -191,6 +197,72 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		return $names;
 	}
 
+	/**
+	 * Reads an option's value from the database, bypassing the options cache.
+	 *
+	 * A failed query in get_option() or get_site_option() also caches the option as
+	 * missing. When the row exists, this clears that cache entry, so the failed read
+	 * does not outlive this call.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $option_name The option name.
+	 * @param bool   $network     Whether this is a network-scope secret.
+	 * @return mixed The stored value, null if there is no row, or WP_Error if the read failed.
+	 */
+	private function read_stored_value( string $option_name, bool $network ) {
+		global $wpdb;
+
+		if ( $network && is_multisite() ) {
+			$network_id     = get_current_network_id();
+			$cache_group    = 'site-options';
+			$cache_key      = "$network_id:$option_name";
+			$notoptions_key = "$network_id:notoptions";
+			$result         = $wpdb->query(
+				$wpdb->prepare(
+					"SELECT meta_value FROM {$wpdb->sitemeta} WHERE meta_key = %s AND site_id = %d LIMIT 1",
+					$option_name,
+					$network_id
+				)
+			);
+		} else {
+			$cache_group    = 'options';
+			$cache_key      = $option_name;
+			$notoptions_key = 'notoptions';
+			$result         = $wpdb->query(
+				$wpdb->prepare(
+					"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
+					$option_name
+				)
+			);
+		}
+
+		if ( false === $result ) {
+			return new WP_Error(
+				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
+				__( 'The secret record could not be read.' )
+			);
+		}
+
+		if ( ! $wpdb->num_rows ) {
+			return null;
+		}
+
+		$value = maybe_unserialize( $wpdb->get_var() );
+
+		wp_cache_delete( $cache_key, $cache_group );
+
+		$notoptions = wp_cache_get( $notoptions_key, $cache_group );
+
+		if ( is_array( $notoptions ) && isset( $notoptions[ $option_name ] ) ) {
+			unset( $notoptions[ $option_name ] );
+			wp_cache_set( $notoptions_key, $notoptions, $cache_group );
+		}
+
+		return $value;
+	}
 
 	/**
 	 * Builds the option name a secret is stored under.
