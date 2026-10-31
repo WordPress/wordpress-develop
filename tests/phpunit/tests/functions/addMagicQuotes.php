@@ -21,14 +21,14 @@ class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_add_magic_quotes.
+	 * Data provider for test_add_magic_quotes().
 	 *
 	 * @return array[] Test parameters {
 	 *     @type array $test_array Test value.
 	 *     @type array $expected   Expected return value.
 	 * }
 	 */
-	public function data_add_magic_quotes() {
+	public static function data_add_magic_quotes() {
 		return array(
 			array(
 				array(

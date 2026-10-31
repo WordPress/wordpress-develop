@@ -7,7 +7,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */
-	public function data_assertSameSets() {
+	public static function data_assertSameSets() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -68,7 +68,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */
-	public function data_assertSameSetsWithIndex() {
+	public static function data_assertSameSetsWithIndex() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -225,9 +225,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		register_post_status( 'foo' );
 		_unregister_post_status( 'foo' );
 
-		$stati = get_post_stati();
+		$statuses = get_post_stati();
 
-		$this->assertArrayNotHasKey( 'foo', $stati );
+		$this->assertArrayNotHasKey( 'foo', $statuses );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		$this->assertSameSets( $expected['args'], array_intersect_key( $args, $expected['args'] ) );
 	}
 
-	public function data_die_process_input() {
+	public static function data_die_process_input() {
 		return array(
 			array(
 				array(
