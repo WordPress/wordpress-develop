@@ -9,7 +9,7 @@ class WP_Sitemaps_Large_Test_Provider extends WP_Sitemaps_Provider {
 	/**
 	 * Number of entries in the sitemap the provider produces.
 	 *
-	 * @var integer
+	 * @var int
 	 */
 	public $num_entries = 1;
 

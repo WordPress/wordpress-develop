@@ -397,9 +397,10 @@ function wp_edit_theme_plugin_file( $args ) {
 	$file    = $args['file'];
 	$content = $args['newcontent'];
 
-	$plugin    = null;
-	$theme     = null;
-	$real_file = null;
+	$plugin     = null;
+	$stylesheet = null;
+	$theme      = null;
+	$real_file  = null;
 
 	if ( ! empty( $args['plugin'] ) ) {
 		$plugin = $args['plugin'];
@@ -424,11 +425,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$real_file = WP_PLUGIN_DIR . '/' . $file;
 
-		$is_active = in_array(
-			$plugin,
-			(array) get_option( 'active_plugins', array() ),
-			true
-		);
+		$is_active = is_plugin_active( $plugin );
 
 	} elseif ( ! empty( $args['theme'] ) ) {
 		$stylesheet = $args['theme'];
@@ -541,9 +538,6 @@ function wp_edit_theme_plugin_file( $args ) {
 			'Cache-Control' => 'no-cache',
 		);
 
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -563,7 +557,7 @@ function wp_edit_theme_plugin_file( $args ) {
 		// Attempt loopback request to editor to see if user just whitescreened themselves.
 		if ( $plugin ) {
 			$url = add_query_arg( compact( 'plugin', 'file' ), admin_url( 'plugin-editor.php' ) );
-		} elseif ( isset( $stylesheet ) ) {
+		} elseif ( $stylesheet ) {
 			$url = add_query_arg(
 				array(
 					'theme' => $stylesheet,
@@ -583,7 +577,11 @@ function wp_edit_theme_plugin_file( $args ) {
 			session_write_close();
 		}
 
-		$url                    = add_query_arg( $scrape_params, $url );
+		$url = add_query_arg( $scrape_params, $url );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
+
 		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 		$body                   = wp_remote_retrieve_body( $r );
 		$scrape_result_position = strpos( $body, $needle_start );
@@ -801,6 +799,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type string $url  URL of the newly-uploaded file.
  *     @type string $type Mime type of the newly-uploaded file.
  * }
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// The default error handler.
@@ -1094,6 +1095,9 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  *                               See _wp_handle_upload() for accepted values.
  * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function wp_handle_upload( &$file, $overrides = false, $time = null ) {
 	/*
@@ -1121,6 +1125,9 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  *                               See _wp_handle_upload() for accepted values.
  * @param string|null $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See _wp_handle_upload() for return value.
+ *
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
+ *                |array{ error: non-empty-string }
  */
 function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 	/*
@@ -1301,7 +1308,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			 * @since 5.2.0
 			 *
 			 * @param false|string $signature_url The URL where signatures can be found for a file, or false if none are known.
-			 * @param string $url                 The URL being verified.
+			 * @param string       $url           The URL being verified.
 			 */
 			$signature_url = apply_filters( 'wp_signature_url', $signature_url, $url );
 

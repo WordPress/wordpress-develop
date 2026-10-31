@@ -32,7 +32,7 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_convert_hr_to_bytes() {
+	public static function data_wp_convert_hr_to_bytes(): array {
 		$array = array(
 			// Integer input.
 			array( -1, -1 ), // = no memory limit.
