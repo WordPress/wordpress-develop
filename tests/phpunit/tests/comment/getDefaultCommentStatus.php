@@ -8,6 +8,12 @@
  */
 class Tests_Comment_GetDefaultCommentStatus extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'with_comments_cpt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 65819
 	 */
