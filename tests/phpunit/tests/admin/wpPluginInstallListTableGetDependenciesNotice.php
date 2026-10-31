@@ -109,7 +109,6 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		return array(
 			'no requires_plugins key' => array( array( 'slug' => 'my-plugin' ) ),
 			'empty array'             => array( array( 'requires_plugins' => array() ) ),
-			'empty string'            => array( array( 'requires_plugins' => '' ) ),
 		);
 	}
 

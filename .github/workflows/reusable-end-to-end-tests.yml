@@ -32,6 +32,11 @@ on:
         required: false
         type: 'boolean'
         default: true
+      test-group:
+        description: 'The Playwright project to run. Runs the default projects when empty.'
+        required: false
+        type: 'string'
+        default: ''
 
 env:
   LOCAL_DIR: build
@@ -62,7 +67,7 @@ jobs:
   # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    name: ${{ inputs.test-group && format( '{0}, ', inputs.test-group ) || '' }}SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -147,8 +152,14 @@ jobs:
           npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: |
+          if [ -n "${TEST_GROUP}" ]; then
+            npm run test:e2e -- --project="${TEST_GROUP}"
+          else
+            npm run test:e2e
+          fi
         env:
+          TEST_GROUP: ${{ inputs.test-group }}
           # Chromium is installed above and is the only browser the suite runs. Without this,
           # `wp-scripts test-playwright` also downloads Firefox and WebKit on every run.
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.install-playwright && '1' || '' }}
@@ -157,7 +168,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
+          name: failures-artifacts${{ inputs.test-group && format( '-{0}', inputs.test-group ) || '' }}${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
           include-hidden-files: true

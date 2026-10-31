@@ -140,8 +140,12 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ inputs.php-version }}
-          tools: wp-cli
           coverage: none
+
+      - name: Set up WP-CLI
+        if: ${{ inputs.subject == 'base' }}
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/setup-wp-cli
 
       - name: Log debug information
         run: |

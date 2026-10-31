@@ -414,7 +414,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @return array
 	 */
-	public function data_wp_interactivity_data_wp_context_with_different_arrays() {
+	public static function data_wp_interactivity_data_wp_context_with_different_arrays() {
 		return array(
 			'empty array'                                  => array(
 				'context'  => array(),
@@ -461,7 +461,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @return array
 	 */
-	public function data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
+	public static function data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
 		return array(
 			'empty array'                                  => array(
 				'context'  => array(),
@@ -513,7 +513,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @return array
 	 */
-	public function data_wp_interactivity_data_wp_context_with_json_flags() {
+	public static function data_wp_interactivity_data_wp_context_with_json_flags() {
 		return array(
 			'value contains <> brackets'        => array(
 				'context'  => array( 'tag' => '<foo>' ),

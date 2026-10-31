@@ -146,7 +146,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: bool }>
 	 */
-	public function data_editor_destinations(): array {
+	public static function data_editor_destinations(): array {
 		return array(
 			'Dashboard'                    => array( '/wp-admin/', false ),
 			'Dashboard, no trailing slash' => array( '/wp-admin', false ),
@@ -213,7 +213,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
 	 */
-	public function data_editor_destinations_by_post_type(): array {
+	public static function data_editor_destinations_by_post_type(): array {
 		return array(
 			'new post'               => array( '/wp-admin/post-new.php', true ),
 			'new page'               => array( '/wp-admin/post-new.php?post_type=page', false ),
@@ -261,7 +261,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public function data_login_screens(): array {
+	public static function data_login_screens(): array {
 		return array(
 			'login form'           => array( array() ),
 			'lost password'        => array( array( 'action' => 'lostpassword' ) ),
@@ -312,7 +312,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public function data_login_requests_not_leading_to_admin(): array {
+	public static function data_login_requests_not_leading_to_admin(): array {
 		return array(
 			'front end redirect'                 => array( array( 'redirect_to' => '/hello-world/' ) ),
 			'lookalike admin path'               => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
@@ -503,7 +503,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
 	 */
-	public function data_admin_screens_leading_to_editor(): array {
+	public static function data_admin_screens_leading_to_editor(): array {
 		return array(
 			'Dashboard'  => array( 'dashboard', 'post' ),
 			'Posts list' => array( 'edit', 'post' ),
@@ -531,7 +531,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public function data_other_admin_screens(): array {
+	public static function data_other_admin_screens(): array {
 		return array(
 			'Plugins'                 => array( 'plugins' ),
 			'Network Admin Dashboard' => array( 'dashboard-network' ),
@@ -979,7 +979,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_filter_turning_off(): array {
+	public static function data_filter_turning_off(): array {
 		return array(
 			'empty array'  => array( array() ),
 			'not an array' => array( null ),
