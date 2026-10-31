@@ -100,9 +100,7 @@ final class WP_PHPUnit_Timing_Metrics {
 			throw new RuntimeException( 'The JUnit timing report contains no testcases.' );
 		}
 
-		if ( null === $suite_time ) {
-			$suite_time = array_sum( $test_times );
-		}
+		$suite_time ??= array_sum( $test_times );
 
 		sort( $test_times, SORT_NUMERIC );
 

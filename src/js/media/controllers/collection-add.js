@@ -51,6 +51,8 @@ CollectionAdd = Library.extend(/** @lends wp.media.controller.CollectionAdd.prot
 	}, Library.prototype.defaults ),
 
 	/**
+	 * Initializes the CollectionAdd controller.
+	 *
 	 * @since 3.9.0
 	 */
 	initialize: function() {
@@ -72,6 +74,8 @@ CollectionAdd = Library.extend(/** @lends wp.media.controller.CollectionAdd.prot
 	},
 
 	/**
+	 * Activates the CollectionAdd controller.
+	 *
 	 * @since 3.9.0
 	 */
 	activate: function() {

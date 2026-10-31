@@ -31,6 +31,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$wp_rewrite->init();
 
 		update_option( 'home', $this->home_url );
+		unset( $_SERVER['HTTPS'] );
 		unset( $this->blog_id_35531 );
 		parent::tear_down();
 	}
@@ -293,7 +294,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_url_to_postid_host_matching() {
+	public static function data_url_to_postid_host_matching() {
 		return array(
 			'the site host'              => array( 'example.com', true ),
 			'the site host with www'     => array( 'www.example.com', true ),
@@ -370,7 +371,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		);
 
 		$this->go_to( $not_a_home_url . 'page' );
-		$this->assertNotEquals(
+		$this->assertNotSame(
 			array(
 				'page'     => '',
 				'pagename' => 'page',

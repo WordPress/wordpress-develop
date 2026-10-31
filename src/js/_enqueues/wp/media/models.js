@@ -136,7 +136,11 @@ _.extend( media, /** @lends wp.media */{
 	/**
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
-	 * @param {Object} dimensions
+	 * @param {Object} dimensions           The dimensions to scale.
+	 * @param {number} dimensions.width     The width to scale.
+	 * @param {number} dimensions.height    The height to scale.
+	 * @param {number} dimensions.maxWidth  The maxWidth to scale.
+	 * @param {number} dimensions.maxHeight The maxHeight to scale.
 	 * @return {Object} The scaled dimensions.
 	 */
 	fit: function( dimensions ) {
@@ -182,9 +186,9 @@ _.extend( media, /** @lends wp.media */{
 	 * Truncates a string by injecting an ellipsis into the middle.
 	 * Useful for filenames.
 	 *
-	 * @param {string} string
-	 * @param {number} [length=30]
-	 * @param {string} [replacement=&hellip;]
+	 * @param {string} string                 The string to truncate.
+	 * @param {number} [length=30]            The maximum length of the truncated string.
+	 * @param {string} [replacement=&hellip;] The string to use as the ellipsis replacement.
 	 * @return {string} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
@@ -228,7 +232,7 @@ Attachments.all = new Attachments();
  *
  * Shorthand for creating a new Attachments Query.
  *
- * @param {Object} [props]
+ * @param {Object} [props] The properties to filter the attachments by.
  * @return {wp.media.model.Attachments} A collection of attachments matching the query.
  */
 media.query = function( props ) {

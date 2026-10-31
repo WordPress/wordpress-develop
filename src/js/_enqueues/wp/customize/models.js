@@ -5,6 +5,8 @@
 /* global _wpCustomizeHeader */
 
 /**
+ * The WordPress Customizer models API.
+ *
  * @param {JQueryStatic} $  The jQuery object.
  * @param {Object}       wp The WordPress global object.
  */

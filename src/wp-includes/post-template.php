@@ -37,8 +37,8 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return string|void Current post title when `$display` is false, null when the title
- *                     is empty. Nothing otherwise.
+ * @return string|null|void Current post title when `$display` is false, null when the
+ *                          title is empty. Nothing otherwise.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function the_title( $before = '', $after = '', $display = true ) {
@@ -77,12 +77,12 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return string|void The title attribute when 'echo' is false, null when the title is
- *                     empty. Nothing otherwise.
+ * @return string|null|void The title attribute when 'echo' is false, null when the title
+ *                          is empty. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function the_title_attribute( $args = '' ) {
@@ -914,9 +914,9 @@ function post_password_required( $post = null ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param bool    $required Whether the user needs to supply a password. True if password has not been
-	 *                          provided or is incorrect, false if password has been supplied or is not required.
-	 * @param WP_Post $post     Post object.
+	 * @param bool         $required Whether the user needs to supply a password. True if password has not been
+	 *                               provided or is incorrect, false if password has been supplied or is not required.
+	 * @param WP_Post|null $post     Post object, or null if no post is found.
 	 */
 	return apply_filters( 'post_password_required', $required, $post );
 }
@@ -1110,8 +1110,11 @@ function _wp_link_page( $i ) {
  * @since 1.5.0
  *
  * @param string $key Meta data key name.
- * @return array|string|false Array of values, or single value if only one element exists.
- *                            False if the key does not exist.
+ * @return string[]|string|false Array of values, or single value if only one element exists.
+ *                               False if the key does not exist.
+ *                               Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return list<string>|string|false
  */
 function post_custom( $key = '' ) {
 	$custom = get_post_custom();
@@ -1309,7 +1312,7 @@ function wp_dropdown_pages( $args = '' ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_list_pages( $args = '' ) {
@@ -1437,7 +1440,7 @@ function wp_list_pages( $args = '' ) {
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_page_menu( $args = array() ) {
@@ -1636,7 +1639,9 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param int|WP_Post $post       Optional. Post ID or post object.
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
- * @param bool        $permalink Optional. Whether to include permalink. Default false.
+ * @param bool        $permalink  Optional. Whether to include permalink. Default false.
+ *
+ * @phpstan-param false $deprecated
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1857,9 +1862,9 @@ function get_the_password_form( $post = 0 ) {
 	 * @since 5.8.0 Added the `$post` parameter.
 	 * @since 6.8.0 Added the `$invalid_password` parameter.
 	 *
-	 * @param string  $output           The password form HTML output.
-	 * @param WP_Post $post             Post object.
-	 * @param string  $invalid_password The invalid password message.
+	 * @param string       $output           The password form HTML output.
+	 * @param WP_Post|null $post             Post object, or null if no post is found.
+	 * @param string       $invalid_password The invalid password message.
 	 */
 	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
 }

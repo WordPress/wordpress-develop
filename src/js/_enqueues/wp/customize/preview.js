@@ -110,6 +110,8 @@
 	 */
 	api.Preview = api.Messenger.extend(/** @lends wp.customize.Preview.prototype */{
 		/**
+		 * Initializes the previewer.
+		 *
 		 * @param {Object} params  Parameters to configure the messenger.
 		 * @param {Object} options Extend any instance parameter or method with this object.
 		 */
