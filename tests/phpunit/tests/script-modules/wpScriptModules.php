@@ -2924,4 +2924,244 @@ HTML;
 		$this->assertSame( 'my-plugin', $seen_domain, 'load_script_module_textdomain() should be called with the overridden domain.' );
 		$this->assertStringContainsString( 'Hola', $output, 'Output should contain the translated string loaded under the overridden domain.' );
 	}
+
+	/**
+	 * Provides translations for the given script modules through the `pre_load_script_translations` filter.
+	 *
+	 * @param string[] $ids Script module IDs.
+	 */
+	private function add_script_module_translations( array $ids ): void {
+		add_filter(
+			'pre_load_script_translations',
+			static function ( $translations, $file, $handle ) use ( $ids ) {
+				if ( ! in_array( $handle, $ids, true ) ) {
+					return $translations;
+				}
+				return wp_json_encode(
+					array(
+						'locale_data' => array(
+							'messages' => array(
+								''                   => array(
+									'domain' => 'messages',
+									'lang'   => 'es',
+								),
+								"Hello from $handle" => array( "Hola desde $handle" ),
+							),
+						),
+					)
+				);
+			},
+			10,
+			3
+		);
+	}
+
+	/**
+	 * Gets the IDs of the script modules whose translations are printed in the given markup.
+	 *
+	 * @param string $markup Markup printed by print_script_module_translations().
+	 * @return string[] Script module IDs, in the order their translations are printed.
+	 */
+	private function get_script_module_translation_ids( string $markup ): array {
+		$prefix    = 'wp-script-module-translation-data-';
+		$ids       = array();
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		while ( $processor->next_tag( 'SCRIPT' ) ) {
+			$id = $processor->get_attribute( 'id' );
+			if ( is_string( $id ) && str_starts_with( $id, $prefix ) ) {
+				$ids[] = substr( $id, strlen( $prefix ) );
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs translations for a script module that only a classic
+	 * script depends on, and for the static and dynamic dependencies of that script module.
+	 *
+	 * @dataProvider data_classic_script_module_dependencies
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::get_classic_script_module_dependencies
+	 *
+	 * @param array $module_dependencies The 'module_dependencies' of the classic script.
+	 */
+	public function test_print_script_module_translations_includes_classic_script_module_dependencies( array $module_dependencies ) {
+		$this->script_modules->register( 'static-dependency', '/wp-includes/js/static-dependency.js' );
+		$this->script_modules->register( 'dynamic-dependency', '/wp-includes/js/dynamic-dependency.js' );
+		$this->script_modules->register(
+			'imported-module',
+			'/wp-includes/js/imported-module.js',
+			array(
+				'static-dependency',
+				array(
+					'id'     => 'dynamic-dependency',
+					'import' => 'dynamic',
+				),
+			)
+		);
+		wp_enqueue_script(
+			'classic',
+			'/classic.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => $module_dependencies,
+			)
+		);
+		$this->add_script_module_translations( array( 'imported-module', 'static-dependency', 'dynamic-dependency' ) );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertEqualSets(
+			array( 'imported-module', 'static-dependency', 'dynamic-dependency' ),
+			$this->get_script_module_translation_ids( $output ),
+			'Translations should be printed once for the imported script module and for each of its dependencies.'
+		);
+		$this->assertStringContainsString( 'Hola desde imported-module', $output, 'Output should contain the translations of the imported script module.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: array<string|array<string, string>> }>
+	 */
+	public static function data_classic_script_module_dependencies(): array {
+		return array(
+			'module ID'      => array( array( 'imported-module' ) ),
+			'static import'  => array(
+				array(
+					array(
+						'id'     => 'imported-module',
+						'import' => 'static',
+					),
+				),
+			),
+			'dynamic import' => array(
+				array(
+					array(
+						'id'     => 'imported-module',
+						'import' => 'dynamic',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs translations for the script module dependencies of a
+	 * classic script that is only a dependency of the enqueued classic script.
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::get_classic_script_module_dependencies
+	 */
+	public function test_print_script_module_translations_includes_module_dependencies_of_classic_script_dependencies() {
+		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
+		wp_register_script(
+			'classic-dependency',
+			'/classic-dependency.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'imported-module' ),
+			)
+		);
+		wp_enqueue_script( 'classic', '/classic.js', array( 'classic-dependency' ), false, array( 'in_footer' => true ) );
+		$this->add_script_module_translations( array( 'imported-module' ) );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertSame( array( 'imported-module' ), $this->get_script_module_translation_ids( $output ) );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs nothing for the script module dependencies of a classic
+	 * script that is not enqueued.
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::get_classic_script_module_dependencies
+	 */
+	public function test_print_script_module_translations_outputs_nothing_for_module_dependencies_of_classic_script_not_enqueued() {
+		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
+		wp_register_script(
+			'classic',
+			'/classic.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'imported-module' ),
+			)
+		);
+		$this->add_script_module_translations( array( 'imported-module' ) );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() outputs the translations of a script module once when it is both
+	 * enqueued and a script module dependency of a classic script.
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_print_script_module_translations_outputs_once_for_enqueued_classic_script_module_dependency() {
+		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
+		$this->script_modules->enqueue( 'imported-module' );
+		wp_enqueue_script(
+			'classic',
+			'/classic.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'imported-module' ),
+			)
+		);
+		$this->add_script_module_translations( array( 'imported-module' ) );
+
+		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertSame( array( 'imported-module' ), $this->get_script_module_translation_ids( $output ) );
+	}
+
+	/**
+	 * Tests that a missing script module dependency of a classic script triggers a single _doing_it_wrong() notice,
+	 * even though both the import map and the translations look the script module dependencies up.
+	 *
+	 * @covers WP_Script_Modules::get_classic_script_module_dependencies
+	 * @covers WP_Script_Modules::print_import_map
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 */
+	public function test_missing_classic_script_module_dependency_triggers_doing_it_wrong_once() {
+		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
+
+		$notices = 0;
+		add_action(
+			'doing_it_wrong_run',
+			static function ( $function_name ) use ( &$notices ) {
+				if ( 'WP_Scripts::add_data' === $function_name ) {
+					++$notices;
+				}
+			}
+		);
+		wp_enqueue_script(
+			'classic',
+			'/classic.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => array( 'does-not-exist' ),
+			)
+		);
+
+		get_echo( array( $this->script_modules, 'print_import_map' ) );
+		get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+
+		$this->assertSame( 1, $notices, 'The missing script module dependency should trigger a single notice.' );
+	}
 }
