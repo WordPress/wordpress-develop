@@ -4735,6 +4735,16 @@ final class WP_Customize_Manager {
 				if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
 					$return_url = admin_url( 'themes.php' );
 				}
+			} elseif ( 'update.php' === $return_url_basename && $return_url_query ) {
+				parse_str( $return_url_query, $query_vars );
+
+				/*
+				 * If the return URL points to an upload-theme action in update.php,
+				 * fall back to the Themes screen since reloading it directly via GET fails.
+				 */
+				if ( isset( $query_vars['action'] ) && 'upload-theme' === $query_vars['action'] ) {
+					$return_url = admin_url( 'themes.php' );
+				}
 			}
 		} elseif ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 			$return_url = $referer;
