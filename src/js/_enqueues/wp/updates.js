@@ -356,13 +356,17 @@
 	/**
 	 * Refreshes update counts everywhere on the screen.
 	 *
+	 * Top-level menu items repeat their count in the submenu header,
+	 * which is shown when the admin menu is folded.
+	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Also refreshes the counts in folded menu submenu headers.
 	 */
 	wp.updates.refreshCount = function() {
 		var $adminBarUpdates              = $( '#wp-admin-bar-updates' ),
 			$dashboardNavMenuUpdateCount  = $( 'a[href="update-core.php"] .update-plugins' ),
-			$pluginsNavMenuUpdateCount    = $( 'a[href="plugins.php"] .update-plugins' ),
-			$appearanceNavMenuUpdateCount = $( 'a[href="themes.php"] .update-plugins' ),
+			$pluginsNavMenuUpdateCount    = $( 'a[href="plugins.php"] .update-plugins, #menu-plugins .wp-submenu-head .update-plugins' ),
+			$appearanceNavMenuUpdateCount = $( 'a[href="themes.php"] .update-plugins, #menu-appearance .wp-submenu-head .update-plugins' ),
 			itemCount;
 
 		$adminBarUpdates.find( '.ab-label' ).text( settings.totals.counts.total );
