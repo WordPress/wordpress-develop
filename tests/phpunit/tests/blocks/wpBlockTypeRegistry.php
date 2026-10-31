@@ -63,7 +63,7 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_invalid_block_names(): array {
+	public static function data_invalid_block_names(): array {
 		return array(
 			'non-string name'      => array( 1 ),
 			'no namespace'         => array( 'paragraph' ),

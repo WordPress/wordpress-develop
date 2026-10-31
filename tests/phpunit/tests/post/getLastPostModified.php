@@ -5,6 +5,12 @@
  */
 class Tests_Post_GetLastPostModified extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'book' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 47777
 	 */

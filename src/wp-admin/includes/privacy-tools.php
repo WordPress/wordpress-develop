@@ -74,7 +74,7 @@ function _wp_personal_data_handle_actions() {
 	if ( isset( $_POST['privacy_action_email_retry'] ) ) {
 		check_admin_referer( 'bulk-privacy_requests' );
 
-		$request_id = absint( current( array_keys( (array) wp_unslash( $_POST['privacy_action_email_retry'] ) ) ) );
+		$request_id = absint( array_key_first( (array) wp_unslash( $_POST['privacy_action_email_retry'] ) ) );
 		$result     = _wp_privacy_resend_request( $request_id );
 
 		if ( is_wp_error( $result ) ) {
@@ -204,7 +204,13 @@ function _wp_personal_data_cleanup_requests() {
 			'fields'         => 'ids',
 			'date_query'     => array(
 				array(
-					'column' => 'post_modified_gmt',
+					/*
+					 * The local-time column must be used here, not post_modified_gmt:
+					 * WP_Date_Query resolves relative date strings like "N seconds ago"
+					 * in the site's timezone, so comparing against the GMT column would
+					 * shift the expiry window by the site's UTC offset.
+					 */
+					'column' => 'post_modified',
 					'before' => $expires . ' seconds ago',
 				),
 			),

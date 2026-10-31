@@ -316,7 +316,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		}
 
 		if ( $scale_down ) {
-			// Resize the image. This will also convet it if needed.
+			// Resize the image. This will also convert it if needed.
 			$resized = $editor->resize( $threshold, $threshold );
 		} elseif ( $convert ) {
 			// The image will be converted (if possible) when saved.
@@ -635,7 +635,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 					break;
 			}
 			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $ext;
-			$uploaded = wp_upload_bits( $basename, '', $metadata['image']['data'] );
+			$uploaded = wp_upload_bits( $basename, null, $metadata['image']['data'] );
 			if ( false === $uploaded['error'] ) {
 				$image_attachment = array(
 					'post_mime_type' => $metadata['image']['mime'],
@@ -922,7 +922,7 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#025'][0] ) ) { // Keywords array.
-				$meta['keywords'] = array_values( $iptc['2#025'] );
+				$meta['keywords'] = $iptc['2#025'];
 			}
 		}
 	}
@@ -1083,10 +1083,15 @@ function wp_read_image_metadata( $file ) {
  * @since 7.0.0
  *
  * @param string $file File path to the image.
- * @return string Embedded alternative text.
+ * @return string Embedded alternative text, empty when there is no alt text or DOM extension is not installed.
  */
 function wp_get_image_alttext( $file ) {
-	$alt_text     = '';
+	$alt_text = '';
+
+	if ( ! class_exists( 'DOMDocument', false ) ) {
+		return $alt_text;
+	}
+
 	$img_contents = file_get_contents( $file );
 
 	if ( false === $img_contents ) {

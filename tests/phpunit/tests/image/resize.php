@@ -147,7 +147,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		// image_resize() should refuse to make an image larger.
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 100, 100 );
 
-		$this->assertInstanceOf( 'WP_Error', $image );
+		$this->assertWPError( $image );
 		$this->assertSame( 'error_getting_dimensions', $image->get_error_code() );
 	}
 
@@ -249,7 +249,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_non_existent_image() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-non-existent-image.jpg', 25, 25 );
 
-		$this->assertInstanceOf( 'WP_Error', $image );
+		$this->assertWPError( $image );
 		$this->assertSame( 'error_loading_image', $image->get_error_code() );
 	}
 

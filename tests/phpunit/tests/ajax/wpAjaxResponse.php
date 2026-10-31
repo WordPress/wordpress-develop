@@ -39,7 +39,7 @@ class Tests_Ajax_wpAjaxResponse extends WP_UnitTestCase {
 	 * Remove the wp_die() override, restore error reporting
 	 */
 	public function tear_down() {
-		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
+		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1 );
 		error_reporting( $this->_error_level );
 		parent::tear_down();
 	}
@@ -47,7 +47,7 @@ class Tests_Ajax_wpAjaxResponse extends WP_UnitTestCase {
 	/**
 	 * Return our callback handler
 	 *
-	 * @return callback
+	 * @return callable
 	 */
 	public function getDieHandler() {
 		return array( $this, 'dieHandler' );

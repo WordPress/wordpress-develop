@@ -93,8 +93,7 @@ window.addComment = ( function( window ) {
 			return;
 		}
 
-		cancelElement.addEventListener( 'touchstart', cancelEvent );
-		cancelElement.addEventListener( 'click',      cancelEvent );
+		cancelElement.addEventListener( 'click', cancelEvent );
 
 		// Submit the comment form when the user types [Ctrl] or [Cmd] + [Enter].
 		var submitFormHandler = function( e ) {
@@ -117,8 +116,7 @@ window.addComment = ( function( window ) {
 		for ( var i = 0, l = links.length; i < l; i++ ) {
 			element = links[i];
 
-			element.addEventListener( 'touchstart', clickEvent );
-			element.addEventListener( 'click',      clickEvent );
+			element.addEventListener( 'click', clickEvent );
 		}
 	}
 
@@ -129,7 +127,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @param {HTMLElement} context The parent DOM element to search for links.
 	 *
-	 * @return {HTMLCollection|NodeList|Array}
+	 * @return {HTMLCollection|NodeList} The collection of links.
 	 */
 	function replyLinks( context ) {
 		var selectorClass = config.commentReplyClass;
@@ -272,10 +270,10 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} Element DOM element with the attribute.
-	 * @param {string}      Attribute the attribute to get.
+	 * @param {HTMLElement} element   DOM element with the attribute.
+	 * @param {string}      attribute The attribute to get.
 	 *
-	 * @return {string}
+	 * @return {string} The value of the attribute.
 	 */
 	function getDataAttribute( element, attribute ) {
 		if ( supportsDataset ) {
@@ -293,7 +291,9 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} The requested element.
+	 * @param {string} elementId The requested element.
+	 *
+	 * @return {HTMLElement} The element with the given ID.
 	 */
 	function getElementById( elementId ) {
 		return document.getElementById( elementId );
@@ -311,6 +311,8 @@ window.addComment = ( function( window ) {
 	 * @param {string} respondId  HTML ID of 'respond' element.
 	 * @param {string} postId     Database ID of the post.
 	 * @param {string} replyTo    Form heading content.
+	 *
+	 * @return {void|boolean} Returns false for backward compatibility with third party commenting systems hooking into this function.
 	 */
 	function moveForm( addBelowId, commentId, respondId, postId, replyTo ) {
 		// Get elements based on their IDs.

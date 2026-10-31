@@ -1037,6 +1037,7 @@ function admin_color_scheme_picker( $user_id ) {
 				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="menu_icon_styles" value="<?php echo esc_attr( _wp_get_color_scheme_menu_icon_styles( $color ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<div class="color-palette">
 				<?php
@@ -1090,6 +1091,74 @@ function wp_color_scheme_settings() {
 }
 
 /**
+ * Colors inline SVG admin menu icons with the icon colors of the current admin color scheme.
+ *
+ * These are the colors a scheme registers through the `$icons` argument of
+ * wp_admin_css_color(). svg-painter.js applies the same colors to menu icons
+ * given as base64-encoded SVG; this does it for inline SVG icons, with CSS.
+ *
+ * The rules are printed before the stylesheet of the scheme, so a scheme
+ * that colors the icon element itself overrides them.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_color_scheme_settings()
+ */
+function wp_color_scheme_menu_icon_styles() {
+	$styles = _wp_get_color_scheme_menu_icon_styles( get_user_option( 'admin_color' ) );
+
+	if ( '' !== $styles ) {
+		wp_add_inline_style( 'admin-menu', $styles );
+	}
+}
+
+/**
+ * Returns the CSS that colors inline SVG admin menu icons with the icon colors of an admin color scheme.
+ *
+ * A scheme without icon colors gets CSS that makes the icons follow the
+ * text color of the menu links instead.
+ *
+ * The color scheme picker also passes it to user-profile.js, which applies
+ * it when another scheme is selected.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $_wp_admin_css_colors
+ *
+ * @param string $color_scheme The name of the color scheme.
+ * @return string The CSS, or an empty string if the scheme needs none.
+ */
+function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
+	global $_wp_admin_css_colors;
+
+	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
+		return '';
+	}
+
+	// The core schemes have no stylesheet of their own, or one from the core colors directory.
+	$url = $_wp_admin_css_colors[ $color_scheme ]->url;
+	if ( ! is_string( $url ) || '' === $url || str_starts_with( $url, admin_url( 'css/colors/' ) ) ) {
+		return '';
+	}
+
+	$base_selector    = '#adminmenu div.wp-menu-image';
+	$focus_selector   = '#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image';
+	$current_selector = '#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image';
+
+	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( (array) $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+
+	// Without icon colors, the icons follow the text color that the scheme gives to the menu links.
+	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
+		return "$base_selector,$focus_selector,$current_selector{color:inherit}";
+	}
+
+	return "$base_selector{color:{$icon_colors['base']}}" .
+		"$focus_selector{color:{$icon_colors['focus']}}" .
+		"$current_selector{color:{$icon_colors['current']}}";
+}
+
+/**
  * Displays the viewport meta in the admin.
  *
  * @since 5.5.0
@@ -1136,8 +1205,7 @@ function _customizer_mobile_viewport_meta( $viewport_meta ) {
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
-	$checked        = array();
-	$is_rtc_enabled = (bool) get_option( 'wp_collaboration_enabled' );
+	$checked = array();
 
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {
@@ -1153,23 +1221,15 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 				$user = get_userdata( $user_id );
 
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
-					if ( $is_rtc_enabled ) {
-						$send = array(
-							/* translators: Collaboration status message for a singular post in the post list. Can be any type of post. */
-							'text'          => _x( 'Currently being edited', 'post list' ),
-							'collaborative' => true,
-						);
-					} else {
-						$send = array(
-							'name' => $user->display_name,
-							/* translators: %s: User's display name. */
-							'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
-						);
+					$send = array(
+						'name' => $user->display_name,
+						/* translators: %s: User's display name. */
+						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
+					);
 
-						if ( get_option( 'show_avatars' ) ) {
-							$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
-							$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
-						}
+					if ( get_option( 'show_avatars' ) ) {
+						$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
+						$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
 					}
 
 					$checked[ $key ] = $send;
@@ -1579,12 +1639,14 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false {
  *     Array of PHP version data. False on failure.
  *
- *     @type string $recommended_version The PHP version recommended by WordPress.
- *     @type string $minimum_version     The minimum required PHP version.
- *     @type bool   $is_supported        Whether the PHP version is actively supported.
- *     @type bool   $is_secure           Whether the PHP version receives security updates.
- *     @type bool   $is_acceptable       Whether the PHP version is still acceptable or warnings
- *                                       should be shown and an update recommended.
+ *     @type string $recommended_version          The PHP version recommended by WordPress.
+ *     @type string $minimum_version              The minimum required PHP version.
+ *     @type bool   $is_supported                 Whether the PHP version is actively supported.
+ *     @type bool   $is_secure                    Whether the PHP version receives security updates.
+ *     @type bool   $is_acceptable                Whether the PHP version is still acceptable or warnings
+ *                                                should be shown and an update recommended.
+ *     @type bool   $is_lower_than_future_minimum Whether the PHP version is lower than the minimum PHP
+ *                                                version WordPress will require in a future release.
  * }
  */
 function wp_check_php_version() {

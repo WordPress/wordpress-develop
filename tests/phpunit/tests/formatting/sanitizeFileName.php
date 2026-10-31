@@ -91,7 +91,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_file_name( $input ) );
 	}
 
-	public function data_wp_filenames() {
+	public static function data_wp_filenames() {
 		return array(
 			array( urldecode( '%B1myfile.png' ), 'myfile.png' ),
 			array( urldecode( '%B1myfile' ), 'myfile' ),
@@ -120,7 +120,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period() {
+	public static function data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period() {
 		return array(
 			'consecutive periods at the start'         => array(
 				'filename' => '...filename.png',

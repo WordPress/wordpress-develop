@@ -44,7 +44,7 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	 *
 	 * @return array
 	 */
-	public function data_should_not_disable() {
+	public static function data_should_not_disable() {
 		return array(
 			'post'             => array( 'post' ),
 			'page'             => array( 'page' ),
@@ -81,7 +81,7 @@ class Tests_Editor_DisableContentEditorForNavigationPostType extends WP_UnitTest
 	 *
 	 * @return array
 	 */
-	public function data_should_not_change_post_type_support() {
+	public static function data_should_not_change_post_type_support() {
 		return array(
 			'post'                => array( 'post' ),
 			'page'                => array( 'page' ),

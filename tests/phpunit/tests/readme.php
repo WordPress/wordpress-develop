@@ -3,12 +3,32 @@
  * Validate recommended versions for dependencies referenced in `readme.html`,
  * based on external site support pages.
  *
- * @group external-http
+ * @group readme
  */
 class Tests_Readme extends WP_UnitTestCase {
 
 	/**
+	 * Tests that readme.html contains valid recommended versions for PHP, MySQL, and MariaDB.
+	 *
+	 * @ticket 63914
+	 *
 	 * @coversNothing
+	 */
+	public function test_readme_contains_recommended_versions() {
+		$readme = file_get_contents( ABSPATH . 'readme.html' );
+		$this->assertIsString( $readme, 'readme.html should exist and be readable.' );
+
+		$this->assertSame( 1, preg_match( '#Recommendations.*PHP</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended PHP version.' );
+
+		$this->assertSame( 1, preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended MySQL version.' );
+
+		$this->assertSame( 1, preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]+)#s', $readme ), 'readme.html should declare a recommended MariaDB version.' );
+	}
+
+	/**
+	 * @coversNothing
+	 *
+	 * @group external-http
 	 */
 	public function test_readme_php_version() {
 		// This test is designed to only run on trunk.
@@ -27,6 +47,8 @@ class Tests_Readme extends WP_UnitTestCase {
 
 	/**
 	 * @coversNothing
+	 *
+	 * @group external-http
 	 */
 	public function test_readme_mysql_version() {
 		// This test is designed to only run on trunk.
@@ -63,6 +85,8 @@ class Tests_Readme extends WP_UnitTestCase {
 
 	/**
 	 * @coversNothing
+	 *
+	 * @group external-http
 	 */
 	public function test_readme_mariadb_version() {
 		// This test is designed to only run on trunk.

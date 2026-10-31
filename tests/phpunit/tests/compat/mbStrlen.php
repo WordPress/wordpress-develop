@@ -13,8 +13,9 @@ class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 	 * Test that the native mb_strlen() is available.
 	 */
 	public function test_mb_strlen_availability() {
-		$this->assertTrue(
-			in_array( 'mb_strlen', get_defined_functions()['internal'], true ),
+		$this->assertContains(
+			'mb_strlen',
+			get_defined_functions()['internal'],
 			'Test runner should have `mbstring` extension active but doesn’t.'
 		);
 	}
@@ -54,7 +55,7 @@ class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_utf8_strings() {
+	public static function data_utf8_strings() {
 		return array(
 			array( 'баба' ),
 			array( 'баб' ),

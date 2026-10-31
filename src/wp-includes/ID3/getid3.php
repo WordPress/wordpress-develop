@@ -387,7 +387,7 @@ class getID3
 	 */
 	protected $startup_warning = '';
 
-	const VERSION           = '1.9.25-202603080933';
+	const VERSION           = '1.9.26-202609042051';
 	const FREAD_BUFFER_SIZE = 32768;
 
 	const ATTACHMENTS_NONE   = false;
@@ -1328,6 +1328,26 @@ class getID3
 							'fail_ape'  => 'ERROR',
 						),
 
+				// JXL  - still image - JPEG XL (bare codestream)
+				'jpegxl'  => array(
+							'pattern'   => '^\\xFF\\x0A',
+							'group'     => 'graphic',
+							'module'    => 'jpegxl',
+							'mime_type' => 'image/jxl',
+							'fail_id3'  => 'ERROR',
+							'fail_ape'  => 'ERROR',
+						),
+
+				// JXL  - still image - JPEG XL (ISO BMFF container)
+				'jpegxlbmff'  => array(
+							'pattern'   => '^\\x00\\x00\\x00\\x0CJXL\\x20\\x0D\\x0A\\x87\\x0A',
+							'group'     => 'graphic',
+							'module'    => 'jpegxl',
+							'mime_type' => 'image/jxl',
+							'fail_id3'  => 'ERROR',
+							'fail_ape'  => 'ERROR',
+						),
+
 				// PCD  - still image - Kodak Photo CD
 				'pcd'  => array(
 							'pattern'   => '^.{2048}PCD_IPI\\x00',
@@ -1820,7 +1840,7 @@ class getID3
 
 					if (file_exists(GETID3_HELPERAPPSDIR.'vorbiscomment.exe')) {
 
-						$commandline = '"'.GETID3_HELPERAPPSDIR.'vorbiscomment.exe" -w -c "'.$empty.'" "'.$file.'" "'.$temp.'"';
+						$commandline = '"'.GETID3_HELPERAPPSDIR.'vorbiscomment.exe" -w -c '.escapeshellarg($empty).' '.escapeshellarg($file).' '.escapeshellarg($temp);
 						$VorbisCommentError = shell_exec($commandline);
 
 					} else {

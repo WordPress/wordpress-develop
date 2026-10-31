@@ -148,6 +148,8 @@ class WP_AI_Client_Ability_Function_Resolver {
 			);
 		}
 
+		$result = wp_prepare_json_value_for_client( $result, $ability->get_output_schema() );
+
 		return new FunctionResponse(
 			$function_id,
 			$function_name,
@@ -190,7 +192,7 @@ class WP_AI_Client_Ability_Function_Resolver {
 		foreach ( $message->getParts() as $part ) {
 			if ( $part->getType()->isFunctionCall() ) {
 				$function_call = $part->getFunctionCall();
-				if ( $function_call instanceof FunctionCall ) {
+				if ( $function_call instanceof FunctionCall && $this->is_ability_call( $function_call ) ) {
 					$function_response = $this->execute_ability( $function_call );
 					$response_parts[]  = new MessagePart( $function_response );
 				}

@@ -136,6 +136,11 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		wp_set_object_terms( self::$post_with_cpt_id, 'tax_term', self::$tax_id );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( self::$tax_id );
+		unregister_post_type( self::$post_type );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -159,6 +164,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'labels'      => array( 'name' => 'CPT for feed_links_extra()' ),
 			)
 		);
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( self::$tax_id );
+		unregister_post_type( self::$post_type );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -537,13 +549,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
+	public static function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
 		return array(
 			'empty string' => array( 'callback' => '__return_empty_string' ),
 			'empty array'  => array( 'callback' => '__return_empty_array' ),
 			'zero int'     => array( 'callback' => '__return_zero' ),
-			'zero float'   => array( 'callback' => array( $this, 'cb_return_zero_float' ) ),
-			'zero string'  => array( 'callback' => array( $this, 'cb_return_zero_string' ) ),
+			'zero float'   => array( 'callback' => array( __CLASS__, 'cb_return_zero_float' ) ),
+			'zero string'  => array( 'callback' => array( __CLASS__, 'cb_return_zero_string' ) ),
 			'null'         => array( 'callback' => '__return_null' ),
 			'false'        => array( 'callback' => '__return_false' ),
 		);
@@ -554,7 +566,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return float 0.0.
 	 */
-	public function cb_return_zero_float() {
+	public static function cb_return_zero_float() {
 		return 0.0;
 	}
 
@@ -563,7 +575,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return string '0'.
 	 */
-	public function cb_return_zero_string() {
+	public static function cb_return_zero_string() {
 		return '0';
 	}
 

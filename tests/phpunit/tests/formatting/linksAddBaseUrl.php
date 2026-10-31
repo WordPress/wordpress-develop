@@ -34,7 +34,7 @@ class Tests_Formatting_LinksAddBaseUrl extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_links_add_base_url() {
+	public static function data_links_add_base_url() {
 		return array(
 			'https'           => array(
 				'content'  => '<a href="url" />',

@@ -295,7 +295,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_wp_privacy_process_personal_data_export_page() {
+	public static function data_wp_privacy_process_personal_data_export_page() {
 		return array(
 			// Response is not an array.
 			array(
@@ -340,7 +340,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_send_as_email_options() {
+	public static function data_send_as_email_options() {
 		return array(
 			array(
 				true,
@@ -358,7 +358,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_id( $send_as_email ) {
 		$response           = array(
@@ -388,7 +388,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_action_name( $send_as_email ) {
 		$response = array(
@@ -420,8 +420,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
-	 *
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_raw_data_post_meta( $send_as_email ) {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
@@ -461,7 +460,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_add_post_meta_with_groups_data_only_available_when_export_file_generated( $send_as_email ) {
 		// Adds post meta when processing data, given the first exporter on the first page and send as email.
@@ -635,7 +634,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_export_page_status_transitions() {
+	public static function data_export_page_status_transitions() {
 		return array(
 			// Mark the request as completed for the last exporter on the last page, with email.
 			array(

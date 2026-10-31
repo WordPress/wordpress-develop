@@ -13,8 +13,8 @@ window.autosave = function() {
  *
  * @since 3.9.0
  *
- * @param {jQuery} $ jQuery object.
- * @param {window} The window object.
+ * @param {JQueryStatic} $      The jQuery object.
+ * @param {Object}       window The window object.
  *
  */
 ( function( $, window ) {
@@ -243,6 +243,7 @@ window.autosave = function() {
 			 * Sets the storage for this blog. Confirms that the data was saved
 			 * successfully.
 			 *
+			 * @param {Object} stored_obj The storage object to set.
 			 * @since 3.9.0
 			 *
 			 * @return {boolean} True if the data was saved successfully, false if it wasn't saved.
@@ -448,6 +449,12 @@ window.autosave = function() {
 			 * @return {boolean} True if the strings are the same.
 			 */
 			function compare( str1, str2 ) {
+				/**
+				 * Removes all whitespace characters from a string.
+				 *
+				 * @param {string} string The string to remove whitespace from.
+				 * @return {string} The string without whitespace characters.
+				 */
 				function removeSpaces( string ) {
 					return string.toString().replace(/[\x20\t\r\n\f]+/g, '');
 				}

@@ -20,16 +20,23 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 
-		// Ensure core abilities are registered for these tests.
-		// Temporarily remove the unhook functions so we can register core abilities.
-		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		global $wp_current_filter;
 
-		// Add the core registration hooks and fire the actions.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
+		// Ensure core abilities and categories are registered for these tests.
+		// Pop in finally so a setup exception cannot leave the simulated action on the stack.
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		try {
+			wp_register_core_ability_categories();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
+
+		$wp_current_filter[] = 'wp_abilities_api_init';
+		try {
+			wp_register_core_abilities();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 	}
 
 	/**
@@ -38,10 +45,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @since 6.9.0
 	 */
 	public static function tear_down_after_class(): void {
-		// Re-add the unhook functions for subsequent tests.
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
 		// Remove the core abilities and their categories.
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
@@ -54,6 +57,19 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the uncategorized fallback category is registered by core.
+	 *
+	 * @ticket 65569
+	 */
+	public function test_uncategorized_category_is_registered(): void {
+		$category = wp_get_ability_category( 'uncategorized' );
+
+		$this->assertInstanceOf( WP_Ability_Category::class, $category );
+		$this->assertSame( 'Uncategorized', $category->get_label() );
+		$this->assertSame( 'Abilities that have not been assigned to a specific category.', $category->get_description() );
+	}
+
+	/**
 	 * Tests that the `core/get-site-info` ability is registered with the expected schema.
 	 * @ticket 64146
 	 */
@@ -61,6 +77,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-site-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();
@@ -70,15 +87,18 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'default', $input_schema );
 		$this->assertSame( array(), $input_schema['default'] );
 
-		// Input schema should have optional fields array.
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
 		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
-		$this->assertContains( 'name', $input_schema['properties']['fields']['items']['enum'] );
 
-		// Output schema should have all fields documented.
-		$this->assertArrayHasKey( 'name', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'url', $output_schema['properties'] );
-		$this->assertArrayHasKey( 'version', $output_schema['properties'] );
+		$expected_fields = array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
 	}
 
 	/**
@@ -116,6 +136,32 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests `core/get-site-info` language field returns the site locale, not the current user's locale.
+	 * @ticket 64977
+	 */
+	public function test_core_get_site_info_language_uses_site_locale(): void {
+		$admin_id = self::factory()->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'de_DE',
+			)
+		);
+		wp_set_current_user( $admin_id );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+		$result  = $ability->execute(
+			array(
+				'fields' => array( 'language' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'language', $result );
+		// Should return the site locale (en-US), not the user locale (de-DE).
+		$this->assertSame( 'en-US', $result['language'] );
+	}
+
+	/**
 	 * Tests that executing the current user info ability requires authentication.
 	 * @ticket 64146
 	 */
@@ -136,8 +182,13 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public function test_core_get_current_user_info_returns_user_data(): void {
 		$user_id = self::factory()->user->create(
 			array(
-				'role'   => 'subscriber',
-				'locale' => 'fr_FR',
+				'role'        => 'subscriber',
+				'locale'      => 'fr_FR',
+				'first_name'  => 'Jane',
+				'last_name'   => 'Doe',
+				'nickname'    => 'janed',
+				'description' => 'Site contributor.',
+				'user_url'    => 'https://example.com',
 			)
 		);
 
@@ -152,6 +203,97 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( 'fr_FR', $result['locale'] );
 		$this->assertSame( 'subscriber', $result['roles'][0] );
 		$this->assertSame( get_userdata( $user_id )->display_name, $result['display_name'] );
+
+		// New profile fields should be present by default.
+		$this->assertSame( 'Jane', $result['first_name'] );
+		$this->assertSame( 'Doe', $result['last_name'] );
+		$this->assertSame( 'janed', $result['nickname'] );
+		$this->assertSame( 'Site contributor.', $result['description'] );
+		$this->assertSame( 'https://example.com', $result['user_url'] );
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability is registered with the expected schema.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+
+		$input_schema  = $ability->get_input_schema();
+		$output_schema = $ability->get_output_schema();
+
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+
+		$expected_fields = array( 'id', 'display_name', 'user_nicename', 'user_login', 'roles', 'locale', 'first_name', 'last_name', 'nickname', 'description', 'user_url' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability filters its output by the `fields` input parameter.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_filters_fields(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'first_name' => 'Jane',
+				'last_name'  => 'Doe',
+			)
+		);
+		wp_set_current_user( $user_id );
+
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'display_name', 'first_name', 'last_name' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 3, $result );
+		$this->assertArrayHasKey( 'display_name', $result );
+		$this->assertArrayHasKey( 'first_name', $result );
+		$this->assertArrayHasKey( 'last_name', $result );
+		$this->assertArrayNotHasKey( 'id', $result );
+		$this->assertArrayNotHasKey( 'roles', $result );
+		$this->assertSame( 'Jane', $result['first_name'] );
+		$this->assertSame( 'Doe', $result['last_name'] );
+	}
+
+	/**
+	 * Tests that the `core/get-user-info` ability rejects unknown field names via schema validation.
+	 * @ticket 65234
+	 */
+	public function test_core_get_user_info_rejects_invalid_fields(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $user_id );
+
+		$ability = wp_get_ability( 'core/get-user-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'display_name', 'not_a_real_field' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 	}
 
 	/**
@@ -159,9 +301,10 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @ticket 64146
 	 */
 	public function test_core_get_environment_info_executes(): void {
-		// Requires manage_options.
+		// Requires access to Site Health diagnostics.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
 		$ability      = wp_get_ability( 'core/get-environment-info' );
 		$environment  = wp_get_environment_type();
@@ -176,6 +319,220 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that managing site options does not grant access to environment information.
+	 *
+	 * @ticket 66369
+	 */
+	public function test_core_get_environment_info_requires_site_health_access(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_cap( 'manage_options' );
+
+		$this->assertTrue( current_user_can( 'manage_options' ) );
+		$this->assertFalse( current_user_can( 'view_site_health_checks' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that Site Health access can be delegated without granting site management access.
+	 *
+	 * @ticket 66369
+	 */
+	public function test_core_get_environment_info_allows_delegated_site_health_access(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$this->assertFalse( current_user_can( 'manage_options' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertIsArray( $result );
+	}
+
+	/**
+	 * Tests that multisite site administrators cannot access environment information.
+	 *
+	 * @ticket 66369
+	 * @group ms-required
+	 */
+	public function test_core_get_environment_info_denies_multisite_site_administrator(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$this->assertFalse( is_super_admin() );
+		$this->assertTrue( current_user_can( 'manage_options' ) );
+		$this->assertFalse( current_user_can( 'view_site_health_checks' ) );
+
+		$result = wp_get_ability( 'core/get-environment-info' )->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability is registered with the expected schema.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+
+		$input_schema  = $ability->get_input_schema();
+		$output_schema = $ability->get_output_schema();
+
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+
+		$expected_fields = array( 'environment', 'php_version', 'db_server_info', 'wp_version' );
+
+		$this->assertSame( $expected_fields, $input_schema['properties']['fields']['items']['enum'] );
+		$this->assertSame( $expected_fields, array_keys( $output_schema['properties'] ) );
+
+		foreach ( $expected_fields as $field ) {
+			$this->assertArrayHasKey( 'title', $output_schema['properties'][ $field ] );
+			$this->assertArrayHasKey( 'description', $output_schema['properties'][ $field ] );
+		}
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability filters its output by the `fields` input parameter.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_filters_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'wp_version' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 2, $result );
+		$this->assertArrayHasKey( 'environment', $result );
+		$this->assertArrayHasKey( 'wp_version', $result );
+		$this->assertArrayNotHasKey( 'php_version', $result );
+		$this->assertArrayNotHasKey( 'db_server_info', $result );
+	}
+
+	/**
+	 * Tests that the `core/get-environment-info` ability rejects unknown field names via schema validation.
+	 *
+	 * @ticket 65355
+	 */
+	public function test_core_get_environment_info_rejects_invalid_fields(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$ability = wp_get_ability( 'core/get-environment-info' );
+
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'environment', 'not_a_real_field' ),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests field selection through direct execution, without REST input coercion.
+	 *
+	 * @ticket 66370
+	 *
+	 * @dataProvider data_core_ability_field_lists
+	 *
+	 * @param string         $ability_name    Ability name.
+	 * @param array|stdClass $input           Ability input.
+	 * @param array|null     $expected_fields Expected fields, or null for invalid input.
+	 */
+	public function test_core_ability_field_lists( string $ability_name, $input, ?array $expected_fields ): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$ability = wp_get_ability( $ability_name );
+		$result  = $ability->execute( $input );
+
+		if ( null === $expected_fields ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+			return;
+		}
+
+		$expected = $ability->execute();
+		$this->assertIsArray( $expected );
+		if ( ! empty( $expected_fields ) ) {
+			$expected = array_intersect_key( $expected, array_flip( $expected_fields ) );
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $result );
+	}
+
+	/**
+	 * Provides array and string field selections for the core information abilities.
+	 *
+	 * @return array
+	 */
+	public static function data_core_ability_field_lists(): array {
+		$abilities = array(
+			'core/get-site-info'        => array( 'name', 'url' ),
+			'core/get-user-info'        => array( 'id', 'display_name' ),
+			'core/get-environment-info' => array( 'environment', 'php_version' ),
+		);
+		$datasets  = array();
+
+		foreach ( $abilities as $ability_name => $fields ) {
+			$cases = array(
+				'array'           => array( $fields, $fields ),
+				'csv'             => array( implode( ',', $fields ), $fields ),
+				'reversed array'  => array( array_reverse( $fields ), $fields ),
+				'reversed csv'    => array( implode( ',', array_reverse( $fields ) ), $fields ),
+				'whitespace'      => array( implode( " \t\n", $fields ), $fields ),
+				'duplicates'      => array( ', ' . implode( ',, ', $fields ) . ',' . $fields[0] . ',', $fields ),
+				'empty array'     => array( array(), array() ),
+				'empty string'    => array( '', array() ),
+				'only separators' => array( " , \t\n,, ", array() ),
+				'invalid csv'     => array( $fields[0] . ',not_a_real_field', null ),
+				'invalid array'   => array( array( $fields[0], 'not_a_real_field' ), null ),
+			);
+
+			foreach ( $cases as $case => $values ) {
+				$input = array( 'fields' => $values[0] );
+
+				$datasets[ $ability_name . ': ' . $case ] = array( $ability_name, $input, $values[1] );
+			}
+
+			$datasets[ $ability_name . ': object input' ] = array(
+				$ability_name,
+				(object) array( 'fields' => $fields ),
+				$fields,
+			);
+		}
+
+		return $datasets;
+	}
+
+	/**
 	 * Tests that all core ability schemas only use valid JSON Schema keywords.
 	 *
 	 * This prevents regressions where invalid keywords like 'examples' are used
@@ -184,9 +541,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @ticket 64384
 	 */
 	public function test_core_abilities_schemas_use_only_valid_keywords(): void {
-		$allowed_keywords = rest_get_allowed_schema_keywords();
-		// Add 'required' which is valid at the property level for draft-04.
-		$allowed_keywords[] = 'required';
+		$allowed_keywords = wp_get_json_schema_allowed_keywords( 'draft-04' );
 
 		$abilities = wp_get_abilities();
 

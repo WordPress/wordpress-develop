@@ -38,7 +38,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 *
 	 * @return Generator
 	 */
-	public function data_attribute_parsing() {
+	public static function data_attribute_parsing() {
 		yield 'empty attributes' => array(
 			'',
 			array(),
@@ -966,7 +966,7 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 	 *
 	 * @return Generator
 	 */
-	public function data_protocol_filtering() {
+	public static function data_protocol_filtering() {
 		yield 'href allowed protocol http' => array(
 			'href="http://example.com"',
 			array(

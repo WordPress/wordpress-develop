@@ -71,7 +71,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_minimum_height_block_support() {
+	public static function data_minimum_height_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/dimensions-block-supports',
@@ -150,7 +150,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_width_block_support() {
+	public static function data_width_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/width-style-is-applied',
@@ -221,7 +221,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_height_block_support() {
+	public static function data_height_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/height-style-is-applied',
@@ -237,6 +237,77 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 				'dimensions' => array(
 					'height'                          => true,
 					'__experimentalSkipSerialization' => array( 'height' ),
+				),
+				'expected'   => array(),
+			),
+		);
+	}
+
+	/**
+	 * Tests that minimum width block support works as expected.
+	 *
+	 * @ticket 65037
+	 *
+	 * @covers ::wp_apply_dimensions_support
+	 *
+	 * @dataProvider data_minimum_width_block_support
+	 *
+	 * @param string $block_name The test block name to register.
+	 * @param mixed  $dimensions The dimensions block support settings.
+	 * @param mixed  $expected   The expected results.
+	 */
+	public function test_minimum_width_block_support( $block_name, $dimensions, $expected ) {
+		$this->test_block_name = $block_name;
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 2,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'dimensions' => $dimensions,
+				),
+			)
+		);
+		$registry    = WP_Block_Type_Registry::get_instance();
+		$block_type  = $registry->get_registered( $this->test_block_name );
+		$block_attrs = array(
+			'style' => array(
+				'dimensions' => array(
+					'minWidth' => '200px',
+				),
+			),
+		);
+
+		$actual = wp_apply_dimensions_support( $block_type, $block_attrs );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_minimum_width_block_support() {
+		return array(
+			'style is applied' => array(
+				'block_name' => 'test/min-width-style-is-applied',
+				'dimensions' => array(
+					'minWidth' => true,
+				),
+				'expected'   => array(
+					'style' => 'min-width:200px;',
+				),
+			),
+			'style output is skipped when individual feature serialization is skipped' => array(
+				'block_name' => 'test/min-width-with-individual-skipped-serialization-block-supports',
+				'dimensions' => array(
+					'minWidth'                        => true,
+					'__experimentalSkipSerialization' => array( 'minWidth' ),
 				),
 				'expected'   => array(),
 			),

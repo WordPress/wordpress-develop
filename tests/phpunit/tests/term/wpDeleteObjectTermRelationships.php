@@ -5,6 +5,15 @@
  * @covers ::wp_delete_object_term_relationships
  */
 class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_taxonomy( 'wptests_tax3' );
+
+		parent::tear_down();
+	}
+
 	public function test_single_taxonomy() {
 		register_taxonomy( 'wptests_tax1', 'post' );
 		register_taxonomy( 'wptests_tax2', 'post' );

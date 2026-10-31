@@ -23,6 +23,14 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		self::delete_user( self::$contributor_id );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'api-private' );
+		unregister_taxonomy( 'test' );
+		unregister_taxonomy_for_object_type( 'category', 'attachment' );
+
+		parent::tear_down();
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 

@@ -81,8 +81,16 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		wp_delete_post( self::$template_post->ID );
 	}
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( self::TEST_THEME );
 	}
 
@@ -94,6 +102,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function tear_down() {
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();
@@ -274,7 +286,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_remove_theme_attribute_in_block_template_content() {
+	public static function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(
 				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',

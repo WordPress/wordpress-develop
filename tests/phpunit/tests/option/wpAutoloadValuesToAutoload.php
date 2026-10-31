@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_autoload_values_to_autoload function.
  *
- * @group Option
+ * @group option
  *
  * @covers ::wp_autoload_values_to_autoload
  */

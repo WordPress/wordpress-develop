@@ -7,11 +7,29 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
 	 * Performs setup tasks for every test.
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'default' );
+	}
+
+	/**
+	 * Cleans up after every test.
+	 */
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+		parent::tear_down();
 	}
 
 	/**

@@ -111,7 +111,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_filter_header_image() {
+	public static function data_filter_header_image() {
 		return array(
 			'an image url'         => array(
 				'header_image' => 'http://example.org/image.png',

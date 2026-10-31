@@ -57,7 +57,7 @@ class Tests_Functions_ListFiles extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_list_files_should_optionally_include_hidden_files() {
+	public static function data_list_files_should_optionally_include_hidden_files() {
 		return array(
 			'$include_hidden = false and no exclusions' => array(
 				'filename'       => '.hidden_file',

@@ -77,7 +77,7 @@ class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDe
 	 *
 	 * @return array[]
 	 */
-	public function data_circular_dependencies() {
+	public static function data_circular_dependencies() {
 		return array(
 			'a plugin that depends on itself' => array(
 				'plugin_to_check' => 'dependency/dependency.php',

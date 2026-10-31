@@ -734,7 +734,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $q->found_posts );
 	}
 
-	public function data_set_found_posts_not_posts_as_an_array() {
+	public static function data_set_found_posts_not_posts_as_an_array() {
 		// Count return 0 for null, but 1 for other data you may not expect.
 		return array(
 			array( null, 0 ),

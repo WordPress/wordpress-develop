@@ -53,6 +53,15 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	}
 
 	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'category_with_pending' );
+		_unregister_post_status( 'counted' );
+		parent::tear_down();
+	}
+
+	/**
 	 * Test that the term count is updated when a post is published.
 	 *
 	 * @ticket 42522

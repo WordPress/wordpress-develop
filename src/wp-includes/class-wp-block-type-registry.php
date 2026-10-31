@@ -44,6 +44,8 @@ final class WP_Block_Type_Registry {
 	 *                                   of `WP_Block_Type`. See WP_Block_Type::__construct() for information
 	 *                                   on accepted arguments. Default empty array.
 	 * @return WP_Block_Type|false The registered block type on success, or false on failure.
+	 *
+	 * @phpstan-param (lowercase-string&non-falsy-string)|WP_Block_Type $name
 	 */
 	public function register( $name, $args = array() ) {
 		$block_type = null;
@@ -55,7 +57,8 @@ final class WP_Block_Type_Registry {
 		if ( ! is_string( $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Block type names must be strings.' ),
+				/* translators: %s: The received block type name type. */
+				sprintf( __( 'Block type names must be strings, received %s.' ), gettype( $name ) ),
 				'5.0.0'
 			);
 			return false;
@@ -64,7 +67,8 @@ final class WP_Block_Type_Registry {
 		if ( preg_match( '/[A-Z]+/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Block type names must not contain uppercase characters.' ),
+				/* translators: %s: Block name. */
+				sprintf( __( 'Block type names must not contain uppercase characters. "%s" was given.' ), esc_html( $name ) ),
 				'5.0.0'
 			);
 			return false;
@@ -74,7 +78,8 @@ final class WP_Block_Type_Registry {
 		if ( ! preg_match( $name_matcher, $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type' ),
+				/* translators: %s: Block name. */
+				sprintf( __( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type. "%s" was given.' ), esc_html( $name ) ),
 				'5.0.0'
 			);
 			return false;
@@ -192,9 +197,7 @@ final class WP_Block_Type_Registry {
 	 * @return WP_Block_Type_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}

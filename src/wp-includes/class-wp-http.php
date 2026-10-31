@@ -9,7 +9,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
@@ -153,17 +153,18 @@ class WP_Http {
 	 * @return array|WP_Error {
 	 *     Array of response data, or a WP_Error instance upon error.
 	 *
-	 *     @type \WpOrg\Requests\Utility\CaseInsensitiveDictionary $headers       Response headers keyed by name.
-	 *     @type string                                            $body          Response body.
-	 *     @type array                                             $response      {
+	 *     @type \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array $headers       Response headers keyed by name.
+	 *                                                                                  An empty array for a non-blocking request.
+	 *     @type string                                                 $body          Response body.
+	 *     @type array                                                  $response      {
 	 *         Array of HTTP response data.
 	 *
 	 *         @type int|false    $code    HTTP response status code.
 	 *         @type string|false $message HTTP response message.
 	 *     }
-	 *     @type WP_Http_Cookie[]                                  $cookies       Array of cookies set by the server.
-	 *     @type string|null                                       $filename      Optional. Filename of the response.
-	 *     @type WP_HTTP_Requests_Response|null                    $http_response Response object.
+	 *     @type WP_Http_Cookie[]                                       $cookies       Array of cookies set by the server.
+	 *     @type string|null                                            $filename      Optional. Filename of the response.
+	 *     @type WP_HTTP_Requests_Response|null                         $http_response Response object.
 	 * }
 	 */
 	public function request( $url, $args = array() ) {
@@ -473,7 +474,9 @@ class WP_Http {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param array $cookies Array of cookies to send with the request.
+	 * @param array<int|string, WP_Http_Cookie|scalar> $cookies Array of cookies to send with the request,
+	 *                                                          as WP_Http_Cookie objects or name/value pairs.
+	 *                                                          Cookies without a scalar value are ignored.
 	 * @return WpOrg\Requests\Cookie\Jar Cookie holder object.
 	 */
 	public static function normalize_cookies( $cookies ) {
@@ -481,16 +484,28 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
-				$attributes                 = array_filter(
+				$cookie_name  = (string) $value->name;
+				$cookie_value = $value->value;
+				$attributes   = array_filter(
 					$value->get_attributes(),
 					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
-				$cookie_jar[ $value->name ] = new WpOrg\Requests\Cookie( (string) $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
-			} elseif ( is_scalar( $value ) ) {
-				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( (string) $name, (string) $value );
+				$flags        = array( 'host-only' => $value->host_only );
+			} else {
+				$cookie_name  = (string) $name;
+				$cookie_value = $value;
+				$attributes   = array();
+				$flags        = array();
 			}
+
+			// A cookie without a value is not sent by WP_Http_Cookie::getHeaderValue() either, and a non-scalar value cannot be represented.
+			if ( ! is_scalar( $cookie_value ) ) {
+				continue;
+			}
+
+			$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $cookie_value, $attributes, $flags );
 		}
 
 		return $cookie_jar;
@@ -711,13 +726,13 @@ class WP_Http {
 	 *     Processed string headers. If duplicate headers are encountered,
 	 *     then a numbered array is returned as the value of that header-key.
 	 *
-	 *     @type array            $response {
+	 *     @type array                         $response {
 	 *         @type int    $code    The response status code. Default 0.
 	 *         @type string $message The response message. Default empty.
 	 *     }
-	 *     @type array            $newheaders The processed header data as a multidimensional array.
-	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,
-	 *                                        an array containing `WP_Http_Cookie` objects is returned.
+	 *     @type array<string, string|string[]> $headers  The processed header data, keyed by lowercased header name.
+	 *     @type WP_Http_Cookie[]               $cookies  If the original headers contain the 'Set-Cookie' key,
+	 *                                                    an array containing `WP_Http_Cookie` objects is returned.
 	 * }
 	 */
 	public static function processHeaders( $headers, $url = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
@@ -1023,7 +1038,10 @@ class WP_Http {
 
 			// Strip all /path/../ out of the path.
 			while ( strpos( $path, '../' ) > 1 ) {
-				$path = preg_replace( '![^/]+/\.\./!', '', $path );
+				$path = preg_replace( '![^/]+/\.\./!', '', $path, -1, $segment_replacement_count );
+				if ( 0 === $segment_replacement_count ) {
+					break;
+				}
 			}
 
 			// Strip any final leading ../ from the path.

@@ -26,6 +26,13 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 	private static $admin_id;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
 	 * Creates admin user before tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory
@@ -42,8 +49,20 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		wp_set_current_user( self::$admin_id );
 		switch_theme( self::TEST_THEME );
+	}
+
+	/**
+	 * Performs teardown tasks for every test.
+	 */
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**

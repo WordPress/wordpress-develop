@@ -73,6 +73,11 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt_public' );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 40613
 	 * @covers ::query
@@ -181,7 +186,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_query_cache() {
+	public static function data_query_cache() {
 		$data = array(
 			'id'                    => array(
 				'args' => array( 'fields' => array( 'id' ) ),

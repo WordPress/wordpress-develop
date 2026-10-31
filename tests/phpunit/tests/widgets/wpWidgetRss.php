@@ -34,7 +34,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		);
 
 		if ( is_null( $url ) ) {
-			unset( $instance['ur'] );
+			unset( $instance['url'] );
 		}
 
 		$this->expectOutputString( '' );
@@ -42,7 +42,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 	}
 
-	public function data_url_unhappy_path() {
+	public static function data_url_unhappy_path() {
 		return array(
 			'when unset'         => array(
 				'url' => null,
@@ -79,10 +79,6 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 			'url'   => $url,
 		);
 
-		if ( is_null( $url ) ) {
-			unset( $instance['ur'] );
-		}
-
 		ob_start();
 		$widget->widget( $args, $instance );
 		$actual = ob_get_clean();
@@ -90,7 +86,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, $actual );
 	}
 
-	public function data_url_happy_path() {
+	public static function data_url_happy_path() {
 		return array(
 			'when url is given' => array(
 				'url' => 'https://wordpress.org/news/feed/',

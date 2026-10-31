@@ -27,9 +27,18 @@
  *              background.backgroundRepeat and dimensions.aspectRatio.
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
+ * @since 7.2.0 Added support for typography.textShadow.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
+	/**
+	 * The values `background-clip` accepts.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	const VALID_BACKGROUND_CLIP_VALUES = array( 'border-box', 'padding-box', 'content-box', 'text' );
+
 	/**
 	 * Style definitions that contain the instructions to parse/output valid Gutenberg styles from a block's attributes.
 	 *
@@ -48,6 +57,8 @@ final class WP_Style_Engine {
 	 *  - value_func    => (string) the name of a function to generate a CSS definition array for a particular style object. The output of this function should be `array( "$property" => "$value", ... )`.
 	 *
 	 * @since 6.1.0
+	 * @since 7.1.0 Added `background.gradient` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
@@ -82,6 +93,22 @@ final class WP_Style_Engine {
 					'default' => 'background-attachment',
 				),
 				'path'          => array( 'background', 'backgroundAttachment' ),
+			),
+			'gradient'             => array(
+				'property_keys' => array(
+					'default' => 'background-image',
+				),
+				'css_vars'      => array(
+					'gradient' => '--wp--preset--gradient--$slug',
+				),
+				'path'          => array( 'background', 'gradient' ),
+				'classnames'    => array(
+					'has-background' => true,
+				),
+			),
+			'backgroundClip'       => array(
+				'value_func' => array( self::class, 'get_background_clip_css_declarations' ),
+				'path'       => array( 'background', 'backgroundClip' ),
 			),
 		),
 		'color'      => array(
@@ -229,6 +256,21 @@ final class WP_Style_Engine {
 					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
+			'minWidth'    => array(
+				'property_keys' => array(
+					'default' => 'min-width',
+				),
+				'path'          => array( 'dimensions', 'minWidth' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'objectFit'   => array(
+				'property_keys' => array(
+					'default' => 'object-fit',
+				),
+				'path'          => array( 'dimensions', 'objectFit' ),
+			),
 			'width'       => array(
 				'property_keys' => array(
 					'default' => 'width',
@@ -322,6 +364,18 @@ final class WP_Style_Engine {
 				),
 				'path'          => array( 'typography', 'textIndent' ),
 			),
+			'textShadow'     => array(
+				'property_keys' => array(
+					'default' => 'text-shadow',
+				),
+				'css_vars'      => array(
+					'text-shadow' => '--wp--preset--text-shadow--$slug',
+				),
+				'path'          => array( 'typography', 'textShadow' ),
+				'classnames'    => array(
+					'has-$slug-text-shadow' => 'text-shadow',
+				),
+			),
 			'textTransform'  => array(
 				'property_keys' => array(
 					'default' => 'text-transform',
@@ -370,9 +424,9 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string   $style_value  A single CSS preset value.
-	 * @param string[] $css_vars     An associate array of CSS var patterns
-	 *                               used to generate the var string.
+	 * @param string   $style_value A single CSS preset value.
+	 * @param string[] $css_vars    An associate array of CSS var patterns
+	 *                              used to generate the var string.
 	 * @return string The CSS var, or an empty string if no match for slug found.
 	 */
 	protected static function get_css_var_value( $style_value, $css_vars ) {
@@ -406,15 +460,18 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 * @since 6.6.0 Added the `$rules_group` parameter.
+	 * @since 7.1.0 Extended `$css_declarations` parameter to accept `WP_Style_Engine_CSS_Declarations` object.
 	 *
-	 * @param string   $store_name       A valid store key.
-	 * @param string   $css_selector     When a selector is passed, the function will return
-	 *                                   a full CSS rule `$selector { ...rules }`
-	 *                                   otherwise a concatenated string of properties and values.
-	 * @param string[] $css_declarations An associative array of CSS definitions,
-	 *                                   e.g. `array( "$property" => "$value", "$property" => "$value" )`.
-	 * @param string $rules_group        Optional. A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
-	 *                                   such as `@media (min-width: 80rem)` or `@layer module`.
+	 * @param string                                    $store_name       A valid store key.
+	 * @param string                                    $css_selector     When a selector is passed, the function will return
+	 *                                                                    a full CSS rule `$selector { ...rules }`
+	 *                                                                    otherwise a concatenated string of properties and values.
+	 * @param string[]|WP_Style_Engine_CSS_Declarations $css_declarations An associative array of CSS definitions,
+	 *                                                                    e.g. `array( "$property" => "$value", "$property" => "$value" )`,
+	 *                                                                    or a WP_Style_Engine_CSS_Declarations object.
+	 * @param string                                    $rules_group      Optional. A parent CSS selector in the case of nested CSS,
+	 *                                                                    or a CSS nested @rule, such as `@media (min-width: 80rem)`
+	 *                                                                    or `@layer module`.
 	 */
 	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ) {
 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
@@ -489,6 +546,13 @@ final class WP_Style_Engine {
 
 				$css_declarations = static::get_css_declarations( $style_value, $style_definition, $options );
 				if ( ! empty( $css_declarations ) ) {
+					/*
+					 * Combine background gradient and background image into a single
+					 * comma-separated background-image value, matching the JS style engine.
+					 */
+					if ( isset( $css_declarations['background-image'] ) && isset( $parsed_styles['declarations']['background-image'] ) ) {
+						$css_declarations['background-image'] = $css_declarations['background-image'] . ', ' . $parsed_styles['declarations']['background-image'];
+					}
 					$parsed_styles['declarations'] = array_merge( $parsed_styles['declarations'], $css_declarations );
 				}
 			}
@@ -712,6 +776,46 @@ final class WP_Style_Engine {
 			if ( null !== $value ) {
 				$css_declarations[ $style_definition['property_keys']['default'] ] = $value;
 			}
+		}
+
+		return $css_declarations;
+	}
+
+	/**
+	 * Style value parser that returns the CSS declarations for background clipping.
+	 *
+	 * For the `text` value the background is clipped to the block's text, which
+	 * requires the vendor prefixed properties and a transparent fill color.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $style_value      A single raw style value from $block_styles array.
+	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return array<string, string> An associative array of CSS definitions, mapping properties to values.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
+	 */
+	protected static function get_background_clip_css_declarations( $style_value, $style_definition ) {
+		if ( ! in_array( $style_value, static::VALID_BACKGROUND_CLIP_VALUES, true ) ) {
+			return array();
+		}
+
+		$css_declarations = array(
+			'background-clip' => $style_value,
+		);
+
+		if ( 'text' === $style_value ) {
+			$css_declarations['-webkit-background-clip'] = 'text';
+			$css_declarations['-webkit-text-fill-color'] = 'transparent';
+		} else {
+			/*
+			 * Only the fill color is restored. `-webkit-background-clip` is an
+			 * alias of `background-clip` in Chromium, so resetting it here would
+			 * discard the value set above. The fill color is inherited, so it
+			 * needs its initial value rather than `unset`, which would take a
+			 * transparent fill from an ancestor clipping to text.
+			 */
+			$css_declarations['-webkit-text-fill-color'] = 'currentColor';
 		}
 
 		return $css_declarations;

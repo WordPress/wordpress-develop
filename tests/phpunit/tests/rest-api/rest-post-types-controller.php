@@ -9,6 +9,13 @@
  */
 class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
+	public function tear_down() {
+		unregister_post_type( 'cpt' );
+		unregister_post_type( 'cpt_template' );
+
+		parent::tear_down();
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/types', $routes );

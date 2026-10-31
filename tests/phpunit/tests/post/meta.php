@@ -16,6 +16,13 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $post_id_2;
 
+	public function set_up() {
+		parent::set_up();
+
+		// These tests inspect the complete registry, independently of bootstrap registrations.
+		$this->unregister_all_meta_keys();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author = $factory->user->create_and_get( array( 'role' => 'editor' ) );
 
@@ -171,6 +178,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$mobj->post_id    = self::$post_id;
 		$mobj->meta_key   = 'get_post_meta_by_key';
 		$mobj->meta_value = 'get_post_meta_by_key_value';
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $mobj, get_post_meta_by_id( $mid ) );
 		delete_metadata_by_mid( 'post', $mid );
 
@@ -178,6 +186,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertIsInt( $mid );
 		$mobj->meta_id    = $mid;
 		$mobj->meta_value = array( 'foo', 'bar' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $mobj, get_post_meta_by_id( $mid ) );
 		delete_metadata_by_mid( 'post', $mid );
 	}
@@ -267,7 +276,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertSame( $args, $this->last_register_meta_call['args'] );
 	}
 
-	public function data_register_post_meta() {
+	public static function data_register_post_meta() {
 		return array(
 			array( 'post', 'registered_key1', array( 'single' => true ) ),
 			array( 'page', 'registered_key2', array() ),
@@ -301,7 +310,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertEmpty( $actual );
 	}
 
-	public function data_unregister_post_meta() {
+	public static function data_unregister_post_meta() {
 		return array(
 			array( 'post', 'registered_key1' ),
 			array( 'page', 'registered_key2' ),

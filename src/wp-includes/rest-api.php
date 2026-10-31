@@ -249,7 +249,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 4 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -429,12 +429,21 @@ function create_initial_rest_routes() {
 	$icons_controller = new WP_REST_Icons_Controller();
 	$icons_controller->register_routes();
 
-	// Collaboration.
-	if ( wp_is_collaboration_enabled() ) {
-		$sync_storage = new WP_Sync_Post_Meta_Storage();
-		$sync_server  = new WP_HTTP_Polling_Sync_Server( $sync_storage );
-		$sync_server->register_routes();
-	}
+	// Icon Collections.
+	$icon_collections_controller = new WP_REST_Icon_Collections_Controller();
+	$icon_collections_controller->register_routes();
+
+	// View Config.
+	$view_config_controller = new WP_REST_View_Config_Controller();
+	$view_config_controller->register_routes();
+
+	// Entity Actions.
+	$entity_actions_controller = new WP_REST_Entity_Actions_Controller();
+	$entity_actions_controller->register_routes();
+
+	// Entity Fields.
+	$entity_fields_controller = new WP_REST_Entity_Fields_Controller();
+	$entity_fields_controller->register_routes();
 }
 
 /**
@@ -446,6 +455,15 @@ function create_initial_rest_routes() {
  */
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		return;
+	}
+
+	// Short-circuit before define()/die() if a REST dispatch is already in flight.
+	// serve_request() enforces this too; guarding here avoids the trailing die().
+	if ( isset( $GLOBALS['wp_rest_server'] )
+		&& $GLOBALS['wp_rest_server'] instanceof WP_REST_Server
+		&& $GLOBALS['wp_rest_server']->is_dispatching()
+	) {
 		return;
 	}
 
@@ -684,6 +702,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -788,11 +808,15 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
+ * @since 7.2.0 Added the `$result`, `$request`, and `$server` parameters and the `rest_allowed_cors_methods` filter.
  *
- * @param mixed $value Response data.
+ * @param mixed                 $value   Response data.
+ * @param WP_HTTP_Response|null $result  Optional. Result to send to the client. Default null.
+ * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
+ * @param WP_REST_Server|null   $server  Optional. The server instance. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value ) {
+function rest_send_cors_headers( $value, $result = null, $request = null, $server = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -800,10 +824,93 @@ function rest_send_cors_headers( $value ) {
 		if ( 'null' !== $origin ) {
 			$origin = sanitize_url( $origin );
 		}
-		header( 'Access-Control-Allow-Origin: ' . $origin );
-		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
-		header( 'Access-Control-Allow-Credentials: true' );
-		header( 'Vary: Origin', false );
+
+		/*
+		 * Send through the server when serving a REST request. A direct call without one
+		 * sends the headers itself, so that it does not set up the REST server.
+		 */
+		if ( ! $server instanceof WP_REST_Server ) {
+			$server = null;
+		}
+		$send_header = static function ( string $key, string $header_value ) use ( $server ): void {
+			if ( $server ) {
+				$server->send_header( $key, $header_value );
+			} elseif ( ! headers_sent() ) {
+				header( "{$key}: {$header_value}" );
+			}
+		};
+
+		$send_header( 'Access-Control-Allow-Origin', $origin );
+
+		/*
+		 * The response's own headers have already been sent, and header() replaces them,
+		 * so seed the list from any value the response set rather than discarding it.
+		 */
+		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
+		$response_headers = array_change_key_case( $response_headers );
+
+		/**
+		 * Parses a list of methods, keeping only syntactically valid method tokens (RFC 9110, section 9.1).
+		 *
+		 * @phpstan-var Closure(mixed): list<non-empty-string> $parse_methods
+		 */
+		$parse_methods = static function ( $methods ): array {
+			if ( is_array( $methods ) ) {
+				// Join the entries so that each one is split like a string value, as in array( 'GET, POST' ).
+				$methods = implode( ',', array_filter( $methods, 'is_string' ) );
+			} elseif ( ! is_string( $methods ) ) {
+				return array();
+			}
+			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/D', array_unique( wp_parse_list( $methods ) ) );
+			return is_array( $methods ) ? array_values( $methods ) : array();
+		};
+
+		// Fall back to the default list when the response names no valid methods.
+		$allow_methods = $parse_methods( $response_headers['access-control-allow-methods'] ?? null );
+		if ( empty( $allow_methods ) ) {
+			$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+		}
+
+		/**
+		 * Filters the list of HTTP methods advertised to REST API CORS requests.
+		 *
+		 * The allowed methods are passed to the browser to specify which methods
+		 * may be used in a cross-origin request to the REST API. The list is a
+		 * fixed default and is not derived from the registered routes, so a site
+		 * serving routes that accept other methods can advertise them here.
+		 *
+		 * If the response already set its own `Access-Control-Allow-Methods` header
+		 * naming valid methods, `$allow_methods` is those methods instead of the default list.
+		 * Entries that are not valid method tokens are dropped, and an empty list
+		 * omits the header. A value that is neither an array nor a string is ignored.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[]             $allow_methods The list of HTTP methods to allow.
+		 * @param WP_REST_Request|null $request       The request in context, if available.
+		 */
+		$filtered_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
+
+		// Keep the unfiltered list for a callback that does not return one, rather than omitting the header.
+		if ( is_array( $filtered_methods ) || is_string( $filtered_methods ) ) {
+			$allow_methods = $parse_methods( $filtered_methods );
+		}
+
+		if ( ! empty( $allow_methods ) ) {
+			$send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
+		} elseif ( $server ) {
+			// Remove a value the response already sent.
+			$server->remove_header( 'Access-Control-Allow-Methods' );
+		} elseif ( ! headers_sent() ) {
+			header_remove( 'Access-Control-Allow-Methods' );
+		}
+
+		$send_header( 'Access-Control-Allow-Credentials', 'true' );
+
+		// WP_REST_Server::send_header() replaces a header, and Vary must be appended to.
+		if ( ! headers_sent() ) {
+			header( 'Vary: Origin', false );
+		}
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
 		header( 'Vary: Origin', false );
 	}
@@ -930,6 +1037,8 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
+ * @since 7.2.0 The response is left unchanged when the route turns off the `fields` response
+ *              processing or when the response data is not an array.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -941,7 +1050,17 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
+	$processing = $response->get_data_processing();
+	if ( ! $processing['fields'] ) {
+		return $response;
+	}
+
 	$data = $response->get_data();
+
+	// Only arrays have fields to filter.
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
 
 	$fields = wp_parse_list( $request['_fields'] );
 
@@ -963,8 +1082,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = $ref[ $next ] ?? array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -973,7 +1092,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	if ( wp_is_numeric_array( $data ) ) {
 		$new_data = array();
 		foreach ( $data as $item ) {
-			$new_data[] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
+			$new_data[] = is_array( $item ) ? _rest_array_intersect_key_recursive( $item, $fields_as_keyed ) : $item;
 		}
 	} else {
 		$new_data = _rest_array_intersect_key_recursive( $data, $fields_as_keyed );
@@ -1521,6 +1640,12 @@ function rest_is_ip_address( $ip ) {
  *
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
+ *
+ * @phpstan-return (
+ *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
+ *         ? false
+ *         : ( $value is true|int|lowercase-string ? true : bool )
+ * )
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.
@@ -1571,13 +1696,43 @@ function rest_is_boolean( $maybe_bool ) {
 /**
  * Determines if a given value is integer-like.
  *
+ * This reports whether the value represents an integer; it does not guarantee that the
+ * value can be represented as a native PHP integer. Values whose magnitude exceeds
+ * `PHP_INT_MAX` are still reported as integer-like, even though the `(int)` cast that
+ * {@see rest_sanitize_value_from_schema()} applies for the 'integer' type cannot round-trip
+ * them: an out-of-range numeric *string* saturates to `PHP_INT_MAX` or `PHP_INT_MIN`, while
+ * an out-of-range *float* is an undefined conversion in PHP that yields an arbitrary wrapped
+ * value. Likewise, a numeric value with a fractional part that is too large for the fraction
+ * to be represented as a float (greater than 2 ** 53) is reported as integer-like.
+ *
  * @since 5.5.0
  *
  * @param mixed $maybe_integer The value being evaluated.
  * @return bool True if an integer, otherwise false.
  */
-function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
+function rest_is_integer( $maybe_integer ): bool {
+	if ( is_int( $maybe_integer ) ) {
+		return true;
+	}
+
+	// A canonical integer string of any magnitude — verified without float conversion.
+	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', $maybe_integer ) ) {
+		return true;
+	}
+
+	// Decimal and scientific-notation strings (and floats) keep their historical behavior.
+	if ( ! is_numeric( $maybe_integer ) ) {
+		return false;
+	}
+	$float_value = (float) $maybe_integer;
+
+	/*
+	 * The strict equality here is not the unreliable "are two computed floats equal" comparison
+	 * (e.g. 0.1 + 0.2 === 0.3, which is false). It compares a float to its own floor() to ask
+	 * "does this float have a fractional part?". A float is whole exactly when it equals its floor,
+	 * so the comparison is exact and safe regardless of floating-point representation error.
+	 */
+	return floor( $float_value ) === $float_value;
 }
 
 /**
@@ -1845,7 +2000,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -2068,13 +2223,10 @@ function rest_are_values_equal( $value1, $value2 ) {
 			return false;
 		}
 
-		foreach ( $value1 as $index => $value ) {
-			if ( ! array_key_exists( $index, $value2 ) || ! rest_are_values_equal( $value, $value2[ $index ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all(
+			$value1,
+			fn( $value, $index ) => array_key_exists( $index, $value2 ) && rest_are_values_equal( $value, $value2[ $index ] )
+		);
 	}
 
 	if ( is_int( $value1 ) && is_float( $value2 )
@@ -2995,7 +3147,7 @@ function rest_preload_api_request( $memo, $path ) {
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = (array) $server->response_to_data( $response, $embed );
+		$data     = $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(
@@ -3410,6 +3562,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.
@@ -3421,7 +3594,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {
