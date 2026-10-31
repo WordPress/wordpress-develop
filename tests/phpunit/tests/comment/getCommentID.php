@@ -52,6 +52,8 @@ class Tests_Comment_GetCommentID extends WP_UnitTestCase {
 	 * @covers ::get_comment_ID
 	 */
 	public function test_returns_zero_when_no_comment() {
+		unset( $GLOBALS['comment'] );
+
 		$this->assertSame( '0', get_comment_ID() );
 	}
 
