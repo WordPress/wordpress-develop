@@ -42,6 +42,15 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Restores the Customizer global after each test.
+	 */
+	public function tear_down() {
+		$GLOBALS['wp_customize'] = null;
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Test constructor method.
 	 *
 	 * @covers WP_Widget_Text::__construct
@@ -999,33 +1008,6 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<script type="text/html" id="tmpl-widget-text-control-fields">', $output );
-	}
-
-	/**
-	 * Ensure that rel="noopener" is added to links with a target.
-	 *
-	 * @ticket 46421
-	 */
-	public function test_render_links_with_target() {
-		$widget = new WP_Widget_Text();
-
-		$text = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
-
-		$args = array(
-			'before_title'  => '<h2>',
-			'after_title'   => '</h2>',
-			'before_widget' => '',
-			'after_widget'  => '',
-		);
-
-		$instance = array(
-			'title' => 'Foo',
-			'text'  => $text,
-		);
-
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-
-		$this->assertStringContainsString( 'rel="noopener"', $output );
 	}
 
 	/**

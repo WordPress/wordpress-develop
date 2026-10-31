@@ -111,7 +111,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_filter_header_image() {
+	public static function data_filter_header_image() {
 		return array(
 			'an image url'         => array(
 				'header_image' => 'http://example.org/image.png',
@@ -504,7 +504,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	private function set_customize_previewing( $value ) {
 		$class    = new ReflectionClass( 'WP_Customize_Manager' );
 		$property = $class->getProperty( 'previewing' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $this->customize_manager, $value );
 	}
 }
