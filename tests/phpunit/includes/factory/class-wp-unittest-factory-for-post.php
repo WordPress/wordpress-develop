@@ -3,12 +3,10 @@
 /**
  * Unit test factory for posts.
  *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
+ * Note: The below @method notation is defined solely for the benefit of IDEs,
+ * as a way to indicate the expected return value from the given factory method.
  *
- * @method int create( $args = array(), $generation_definitions = null )
  * @method WP_Post create_and_get( $args = array(), $generation_definitions = null )
- * @method int[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 
@@ -26,35 +24,59 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates a post object.
 	 *
-	 * @param array $args Array with elements for the post.
+	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @return int The post ID on success. The value 0 on failure.
+	 * @param array<string, mixed> $args Array with elements for the post.
+	 * @return positive-int The post ID.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be created.
 	 */
 	public function create_object( $args ) {
-		return wp_insert_post( $args );
+		$post_id = wp_insert_post( $args, true );
+
+		$this->assert_valid_object_id( $post_id, 'Unable to create the post' );
+
+		return $post_id;
 	}
 
 	/**
 	 * Updates an existing post object.
 	 *
-	 * @param int   $post_id ID of the post to update.
-	 * @param array $fields  Post data.
+	 * @since UT (3.7.0)
+	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @return int The post ID on success. The value 0 on failure.
+	 * @param int                  $post_id ID of the post to update.
+	 * @param array<string, mixed> $fields  Post data.
+	 * @return positive-int The post ID.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be updated.
 	 */
 	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
-		return wp_update_post( $fields );
+
+		$updated_id = wp_update_post( $fields, true );
+
+		$this->assert_valid_object_id( $updated_id, 'Unable to update the post' );
+
+		return $updated_id;
 	}
 
 	/**
 	 * Retrieves a post by a given ID.
 	 *
-	 * @param int $post_id ID of the post to retrieve.
+	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
-	 * @return WP_Post|null WP_Post object on success, null on failure.
+	 * @param int $post_id ID of the post to retrieve.
+	 * @return WP_Post The post object.
+	 * @throws WP_UnitTest_Factory_Exception When the post could not be retrieved.
 	 */
 	public function get_object_by_id( $post_id ) {
-		return get_post( $post_id );
+		$post = get_post( $post_id );
+
+		$this->assert_valid_object( $post, $post_id, WP_Post::class );
+
+		return $post;
 	}
 }

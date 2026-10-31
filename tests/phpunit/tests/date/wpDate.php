@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_date
  */
 class Tests_Date_wpDate extends WP_UnitTestCase {
@@ -105,7 +106,7 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_format_date() {
+	public static function data_should_format_date() {
 		return array(
 			'Swatch Internet Time'                        => array(
 				'expected' => '041',

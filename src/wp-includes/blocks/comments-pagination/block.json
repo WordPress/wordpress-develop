@@ -1,10 +1,15 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/comments-pagination",
 	"title": "Comments Pagination",
 	"category": "theme",
 	"parent": [ "core/comments" ],
+	"allowedBlocks": [
+		"core/comments-pagination-previous",
+		"core/comments-pagination-numbers",
+		"core/comments-pagination-next"
+	],
 	"description": "Displays a paginated navigation to next/previous set of comments, when applicable.",
 	"textdomain": "default",
 	"attributes": {
@@ -13,13 +18,22 @@
 			"default": "none"
 		}
 	},
+	"example": {
+		"attributes": {
+			"paginationArrow": "none"
+		}
+	},
 	"providesContext": {
 		"comments/paginationArrow": "paginationArrow"
 	},
 	"supports": {
+		"anchor": true,
 		"align": true,
 		"reusable": false,
 		"html": false,
+		"background": {
+			"gradient": true
+		},
 		"color": {
 			"gradients": true,
 			"link": true,
@@ -29,12 +43,17 @@
 				"link": true
 			}
 		},
-		"__experimentalLayout": {
+		"layout": {
 			"allowSwitching": false,
 			"allowInheriting": false,
 			"default": {
 				"type": "flex"
 			}
+		},
+		"spacing": {
+			"padding": true,
+			"margin": true,
+			"blockGap": true
 		},
 		"typography": {
 			"fontSize": true,
@@ -48,6 +67,15 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"editorStyle": "wp-block-comments-pagination-editor",

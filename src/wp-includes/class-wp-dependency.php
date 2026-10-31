@@ -29,8 +29,10 @@ class _WP_Dependency {
 	/**
 	 * The handle source.
 	 *
+	 * If source is set to false, the item is an alias of other items it depends on.
+	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @var string|false
 	 */
 	public $src;
 
@@ -48,7 +50,7 @@ class _WP_Dependency {
 	 * Used for cache-busting.
 	 *
 	 * @since 2.6.0
-	 * @var bool|string
+	 * @var string|false|null
 	 */
 	public $ver = false;
 
@@ -56,7 +58,7 @@ class _WP_Dependency {
 	 * Additional arguments for the handle.
 	 *
 	 * @since 2.6.0
-	 * @var array
+	 * @var mixed
 	 */
 	public $args = null;  // Custom property, such as $in_footer or $media.
 
@@ -64,7 +66,7 @@ class _WP_Dependency {
 	 * Extra data to supply to the handle.
 	 *
 	 * @since 2.6.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	public $extra = array();
 
@@ -80,7 +82,7 @@ class _WP_Dependency {
 	 * Translation path set for this dependency.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $translations_path;
 

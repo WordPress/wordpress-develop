@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/comments-pagination-previous",
 	"title": "Comments Previous Page",
 	"category": "theme",
@@ -14,8 +14,15 @@
 	},
 	"usesContext": [ "postId", "comments/paginationArrow" ],
 	"supports": {
+		"anchor": true,
 		"reusable": false,
 		"html": false,
+		"background": {
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"gradient": true
+			}
+		},
 		"color": {
 			"gradients": true,
 			"text": false,
@@ -35,6 +42,22 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"spacing": {
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"padding": false
+			}
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true
 		}
-	}
+	},
+	"style": "wp-block-comments-pagination-previous"
 }

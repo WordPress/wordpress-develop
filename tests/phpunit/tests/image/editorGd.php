@@ -445,7 +445,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		);
 	}
 
-	public function data_crop() {
+	public static function data_crop() {
 		return array(
 			'src height and width must be greater than 0' => array(
 				'src_x' => 0,
@@ -493,11 +493,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$actual = $gd_image_editor->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs );
 
-		$this->assertInstanceOf( 'WP_Error', $actual );
+		$this->assertWPError( $actual );
 		$this->assertSame( 'image_crop_error', $actual->get_error_code() );
 	}
 
-	public function data_crop_invalid_dimensions() {
+	public static function data_crop_invalid_dimensions() {
 		return array(
 			'src height must be greater than 0' => array(
 				'src_x' => 0,
@@ -554,7 +554,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor->load();
 
 		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
 
@@ -573,7 +575,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor->load();
 
 		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
 

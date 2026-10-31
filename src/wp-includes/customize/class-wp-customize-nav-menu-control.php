@@ -49,15 +49,20 @@ class WP_Customize_Nav_Menu_Control extends WP_Customize_Control {
 			?>
 		</p>
 		<div class="customize-control-nav_menu-buttons">
-			<button type="button" class="button add-new-menu-item" aria-label="<?php esc_attr_e( 'Add or remove menu items' ); ?>" aria-expanded="false" aria-controls="available-menu-items">
-				<?php echo $add_items; ?>
-			</button>
 			<button type="button" class="button-link reorder-toggle" aria-label="<?php esc_attr_e( 'Reorder menu items' ); ?>" aria-describedby="reorder-items-desc-{{ data.menu_id }}">
 				<span class="reorder"><?php _e( 'Reorder' ); ?></span>
 				<span class="reorder-done"><?php _e( 'Done' ); ?></span>
 			</button>
+			<button type="button" class="button add-new-menu-item" aria-label="<?php esc_attr_e( 'Add or remove menu items' ); ?>" aria-expanded="false" aria-controls="available-menu-items">
+				<?php echo $add_items; ?>
+			</button>
 		</div>
-		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}"><?php _e( 'When in reorder mode, additional controls to reorder menu items will be available in the items list above.' ); ?></p>
+		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'When in reorder mode, additional controls to reorder menu items will be available in the items list above.' );
+			?>
+		</p>
 		<?php
 	}
 

@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/calendar",
 	"title": "Calendar",
 	"category": "widgets",
@@ -16,7 +16,18 @@
 		}
 	},
 	"supports": {
+		"anchor": true,
 		"align": true,
+		"html": false,
+		"color": {
+			"link": true,
+			"__experimentalSkipSerialization": [ "text", "background" ],
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			},
+			"__experimentalSelector": "table, th"
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -28,6 +39,9 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-calendar"

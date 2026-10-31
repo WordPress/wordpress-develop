@@ -5,8 +5,15 @@
  * Categories: featured
  * Keywords: Call to action
  * Block Types: core/buttons
+ * Description: Left-aligned text with a CTA button and a separator.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Three
+ * @since Twenty Twenty-Three 1.0
  */
+
 ?>
+
 <!-- wp:columns {"align":"wide"} -->
 <div class="wp-block-columns alignwide">
 	<!-- wp:column -->
@@ -32,8 +39,8 @@
 
 	<!-- wp:column -->
 	<div class="wp-block-column">
-		<!-- wp:separator -->
-		<hr class="wp-block-separator has-alpha-channel-opacity"/>
+		<!-- wp:separator {"className":"is-style-wide"} -->
+		<hr class="wp-block-separator has-alpha-channel-opacity is-style-wide"/>
 		<!-- /wp:separator -->
 	</div>
 	<!-- /wp:column -->

@@ -78,16 +78,32 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wptests_pt1' );
+		unregister_post_type( 'wptests_pt2' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		self::register_custom_post_objects();
+	}
+
+	public function tear_down() {
+		unregister_post_type( 'foo_pt' );
+		unregister_post_type( 'wptests_pt1' );
+		unregister_post_type( 'wptests_pt2' );
+		_unregister_post_status( 'foo' );
+		_unregister_post_status( 'foo_ps' );
+		_unregister_post_status( 'privatefoo' );
+
+		parent::tear_down();
 	}
 
 	/**
 	 * Register custom post types and statuses used in multiple tests.
 	 *
 	 * CPTs and CPSs are reset between each test run so need to be registered
-	 * in both the wpSetUpBeforeClass() and setUp() methods.
+	 * in both the wpSetUpBeforeClass() and set_up() methods.
 	 */
 	public static function register_custom_post_objects() {
 		register_post_type(
@@ -240,7 +256,11 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( get_post_stati( array( 'public' => true ) ) as $status ) {
+		$stati = get_post_stati( array( 'public' => true ) );
+
+		$this->assertNotEmpty( $stati );
+
+		foreach ( $stati as $status ) {
 			$this->assertStringContainsString( "post_status = '$status'", $q->request );
 		}
 	}

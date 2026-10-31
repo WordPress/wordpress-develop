@@ -14,7 +14,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 * @ticket 42438
 	 */
 	public function test_preload_resources( $expected, $preload_resources ) {
-		$callback = function () use ( $preload_resources ) {
+		$callback = static function () use ( $preload_resources ) {
 			return $preload_resources;
 		};
 
@@ -30,7 +30,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_preload_resources() {
+	public static function data_preload_resources() {
 		return array(
 			'basic_preload'          => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",
@@ -247,7 +247,16 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
+			'fetchpriority'          => array(
+				'expected'  => "<link rel='preload' href='https://example.com/image.jpg' as='image' fetchpriority='high' />\n",
+				'resources' => array(
+					array(
+						'href'          => 'https://example.com/image.jpg',
+						'as'            => 'image',
+						'fetchpriority' => 'high',
+					),
+				),
+			),
 		);
 	}
-
 }

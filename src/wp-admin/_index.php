@@ -86,7 +86,11 @@ if ( current_user_can( 'edit_posts' ) ) {
 	$help .= '<p>' . __( '<strong>At a Glance</strong> &mdash; Displays a summary of the content on your site and identifies which theme and version of WordPress you are using.' ) . '</p>';
 }
 
-$help .= '<p>' . __( '<strong>Activity</strong> &mdash; Shows the upcoming scheduled posts, recently published posts, and the most recent comments on your posts and allows you to moderate them.' ) . '</p>';
+$help .= '<p>' . __( '<strong>Activity</strong> &mdash; Shows upcoming scheduled posts, recently published posts, and posts published on this day in previous years.' ) . '</p>';
+
+if ( _wp_dashboard_has_received_comments() ) {
+	$help .= '<p>' . __( '<strong>Recent Comments</strong> &mdash; Shows the most recent comments on your posts and allows you to moderate them.' ) . '</p>';
+}
 
 if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
 	$help .= '<p>' . __( "<strong>Quick Draft</strong> &mdash; Allows you to create a new post and save it as a draft. Also displays links to the 3 most recent draft posts you've started." ) . '</p>';
@@ -116,7 +120,7 @@ $is_dev_version  = preg_match( '/alpha|beta|RC/', $wp_version );
 if ( ! $is_dev_version ) {
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $wp_version )
 	);
 
@@ -129,8 +133,8 @@ if ( ! $is_dev_version ) {
 
 $screen->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>' .
 	'<p>' . $wp_version_text . '</p>'
 );
 
@@ -154,20 +158,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		// Only show the dashboard notice if it's been less than a minute since the message was postponed.
 		if ( $time_passed < MINUTE_IN_SECONDS ) :
-			?>
-		<div class="notice notice-success is-dismissible">
-			<p>
-				<?php
-				printf(
-					/* translators: %s: Human-readable time interval. */
-					__( 'The admin email verification page will reappear after %s.' ),
-					human_time_diff( time() + $remind_interval )
-				);
-				?>
-			</p>
-		</div>
-		<?php endif; ?>
-	<?php endif; ?>
+			$message = sprintf(
+				/* translators: %s: Human-readable time interval. */
+				__( 'The admin email verification page will reappear after %s.' ),
+				human_time_diff( time() + $remind_interval )
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'        => 'success',
+					'dismissible' => true,
+				)
+			);
+		endif;
+	endif;
+	?>
 
 <?php
 if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) :
@@ -186,7 +191,7 @@ if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) )
 		<a class="welcome-panel-close" href="<?php echo esc_url( admin_url( '?welcome=0' ) ); ?>" aria-label="<?php esc_attr_e( 'Dismiss the welcome panel' ); ?>"><?php _e( 'Dismiss' ); ?></a>
 		<?php
 		/**
-		 * Add content to the welcome panel on the admin dashboard.
+		 * Fires when adding content to the welcome panel on the admin dashboard.
 		 *
 		 * To remove the default welcome panel, use remove_action():
 		 *

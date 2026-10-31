@@ -5,10 +5,16 @@
 class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	protected $terms = array();
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Testing when passed $tags array is empty
 	 *
-	 * @dataProvider empty_tags_data_provider
+	 * @dataProvider data_empty_tags
 	 *
 	 * @param $expected Expected output from `wp_generate_tag_cloud()`.
 	 * @param $args     Options for `wp_generate_tag_cloud()`.
@@ -21,7 +27,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	/**
 	 * Testing when no tags are found
 	 *
-	 * @dataProvider empty_tags_data_provider
+	 * @dataProvider data_empty_tags
 	 *
 	 * @param $expected Expected output from `wp_generate_tag_cloud()`.
 	 * @param $args     Options for `wp_generate_tag_cloud()`.
@@ -41,7 +47,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function empty_tags_data_provider() {
+	public static function data_empty_tags() {
 		return array(
 			// When 'format' => 'array', we should be getting an empty array back.
 			array(
@@ -156,6 +162,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertNotEmpty( $tags );
+
 		foreach ( $tags as $tag ) {
 			$this->assertStringContainsString( '>' . $tag->name . '<', $found );
 		}
@@ -186,6 +194,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 
 		$this->assertMatchesRegularExpression( "|^<ul class='wp-tag-cloud' role='list'>|", $found );
 		$this->assertMatchesRegularExpression( "|</ul>\n|", $found );
+
+		$this->assertNotEmpty( $tags );
 
 		foreach ( $tags as $tag ) {
 			$this->assertStringContainsString( '>' . $tag->name . '<', $found );
@@ -296,7 +306,6 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 * Helper method retrieve the created terms.
 	 *
 	 * @param array $get_terms_args Options passed to get_terms()
-	 *
 	 * @return array
 	 */
 	protected function retrieve_terms( $get_terms_args, $taxonomy = 'post_tag' ) {

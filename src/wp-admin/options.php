@@ -23,27 +23,28 @@ $title       = __( 'Settings' );
 $this_file   = 'options.php';
 $parent_file = 'options-general.php';
 
-wp_reset_vars( array( 'action', 'option_page' ) );
+$action      = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+$option_page = ! empty( $_REQUEST['option_page'] ) ? sanitize_text_field( $_REQUEST['option_page'] ) : '';
 
 $capability = 'manage_options';
 
 // This is for back compat and will eventually be removed.
 if ( empty( $option_page ) ) {
 	$option_page = 'options';
-} else {
-
-	/**
-	 * Filters the capability required when using the Settings API.
-	 *
-	 * By default, the options groups for all registered settings require the manage_options capability.
-	 * This filter is required to change the capability required for a certain options page.
-	 *
-	 * @since 3.2.0
-	 *
-	 * @param string $capability The capability used for the page, which is manage_options by default.
-	 */
-	$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 }
+
+/**
+ * Filters the capability required when using the Settings API.
+ *
+ * By default, the options groups for all registered settings require the manage_options capability.
+ * This filter is required to change the capability required for a certain options page.
+ *
+ * @since 3.2.0
+ * @since 7.0.0 Applied when `wp-admin/options.php` is accessed directly.
+ *
+ * @param string $capability The capability used for the page, which is manage_options by default.
+ */
+$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 
 if ( ! current_user_can( $capability ) ) {
 	wp_die(
@@ -56,7 +57,7 @@ if ( ! current_user_can( $capability ) ) {
 // Handle admin email change requests.
 if ( ! empty( $_GET['adminhash'] ) ) {
 	$new_admin_details = get_option( 'adminhash' );
-	$redirect          = 'options-general.php?updated=false';
+	$redirect          = add_query_arg( array( 'updated' => 'false' ), 'options-general.php' );
 
 	if ( is_array( $new_admin_details )
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
@@ -65,7 +66,13 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
-		$redirect = 'options-general.php?updated=true';
+		$redirect = add_query_arg(
+			array(
+				'updated'             => 'true',
+				'admin_email_updated' => 'true',
+			),
+			'options-general.php',
+		);
 	}
 
 	wp_redirect( admin_url( $redirect ) );
@@ -90,6 +97,7 @@ $allowed_options            = array(
 	'general'    => array(
 		'blogname',
 		'blogdescription',
+		'site_icon',
 		'gmt_offset',
 		'date_format',
 		'time_format',
@@ -123,6 +131,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
@@ -156,9 +165,21 @@ $allowed_options['misc']    = array();
 $allowed_options['options'] = array();
 $allowed_options['privacy'] = array();
 
-$mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
+/**
+ * Filters whether the post-by-email functionality is enabled.
+ *
+ * @since 3.0.0
+ *
+ * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
+ */
+if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
+	$allowed_options['writing'][] = 'mailserver_url';
+	$allowed_options['writing'][] = 'mailserver_port';
+	$allowed_options['writing'][] = 'mailserver_login';
+	$allowed_options['writing'][] = 'mailserver_pass';
+}
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+if ( ! is_utf8_charset() ) {
 	$allowed_options['reading'][] = 'blog_charset';
 }
 
@@ -178,8 +199,9 @@ if ( ! is_multisite() ) {
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
 
-	$allowed_options['writing']   = array_merge( $allowed_options['writing'], $mail_options );
-	$allowed_options['writing'][] = 'ping_sites';
+	if ( '1' === get_option( 'blog_public' ) ) {
+		$allowed_options['writing'][] = 'ping_sites';
+	}
 
 	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
 
@@ -193,17 +215,6 @@ if ( ! is_multisite() ) {
 	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
-	}
-} else {
-	/**
-	 * Filters whether the post-by-email functionality is enabled.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
-	 */
-	if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-		$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
 	}
 }
 
@@ -245,7 +256,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		wp_die(
 			sprintf(
 				/* translators: %s: The options page name. */
-				__( '<strong>Error:</strong> Options page %s not found in the allowed options list.' ),
+				__( '<strong>Error:</strong> The %s options page is not in the allowed options list.' ),
 				'<code>' . esc_html( $option_page ) . '</code>'
 			)
 		);
@@ -279,6 +290,23 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$_POST['gmt_offset']      = $_POST['timezone_string'];
 			$_POST['gmt_offset']      = preg_replace( '/UTC\+?/', '', $_POST['gmt_offset'] );
 			$_POST['timezone_string'] = '';
+		} elseif ( isset( $_POST['timezone_string'] ) && ! in_array( $_POST['timezone_string'], timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
+			// Reset to the current value.
+			$current_timezone_string = get_option( 'timezone_string' );
+
+			if ( ! empty( $current_timezone_string ) ) {
+				$_POST['timezone_string'] = $current_timezone_string;
+			} else {
+				$_POST['gmt_offset']      = get_option( 'gmt_offset' );
+				$_POST['timezone_string'] = '';
+			}
+
+			add_settings_error(
+				'general',
+				'settings_updated',
+				__( 'The timezone you have entered is not valid. Please select a valid timezone.' ),
+				'error'
+			);
 		}
 
 		// Handle translation installation.
@@ -303,9 +331,10 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 					'options.php',
 					'2.7.0',
 					sprintf(
-						/* translators: %s: The option/setting. */
-						__( 'The %s setting is unregistered. Unregistered settings are deprecated. See https://developer.wordpress.org/plugins/settings/settings-api/' ),
-						'<code>' . esc_html( $option ) . '</code>'
+						/* translators: 1: The option/setting, 2: Documentation URL. */
+						__( 'The %1$s setting is unregistered. Unregistered settings are deprecated. See <a href="%2$s">documentation on the Settings API</a>.' ),
+						'<code>' . esc_html( $option ) . '</code>',
+						__( 'https://developer.wordpress.org/plugins/settings/settings-api/' )
 					)
 				);
 			}
@@ -353,21 +382,31 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 	exit;
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
+require_once ABSPATH . 'wp-admin/admin-header.php';
+?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'All Settings' ); ?></h1>
 
-	<div class="notice notice-warning">
-		<p><strong><?php _e( 'Warning:' ); ?></strong> <?php _e( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ); ?></p>
-	</div>
-
+	<?php
+	wp_admin_notice(
+		'<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ),
+		array(
+			'type' => 'warning',
+		)
+	);
+	?>
 	<form name="form" action="options.php" method="post" id="all-options">
 		<?php wp_nonce_field( 'options-options' ); ?>
 		<input type="hidden" name="action" value="update" />
 		<input type="hidden" name="option_page" value="options" />
 		<table class="form-table" role="presentation">
 <?php
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
 
 foreach ( (array) $options as $option ) :
@@ -377,21 +416,38 @@ foreach ( (array) $options as $option ) :
 		continue;
 	}
 
+	if ( 'home' === $option->option_name && defined( 'WP_HOME' ) ) {
+		$disabled = true;
+	}
+
+	if ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) ) {
+		$disabled = true;
+	}
+
 	if ( is_serialized( $option->option_value ) ) {
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
 			$value               = maybe_unserialize( $option->option_value );
 			$options_to_update[] = $option->option_name;
-			$class               = 'all-options';
 		} else {
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
-			$class    = 'all-options disabled';
 		}
+	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
+		&& str_ends_with( $option->option_name, '_api_key' )
+	) {
+		// Mask connector API keys and prevent updates from this screen.
+		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$disabled = true;
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
-		$class               = 'all-options';
+	}
+
+	$class = 'all-options';
+
+	if ( $disabled ) {
+		$class .= ' disabled';
 	}
 
 	$name = esc_attr( $option->option_name );
@@ -399,7 +455,7 @@ foreach ( (array) $options as $option ) :
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
 <td>
-	<?php if ( strpos( $value, "\n" ) !== false ) : ?>
+	<?php if ( str_contains( $value, "\n" ) ) : ?>
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
