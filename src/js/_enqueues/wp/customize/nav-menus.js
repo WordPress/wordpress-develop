@@ -2,7 +2,15 @@
  * @output wp-admin/js/customize-nav-menus.js
  */
 
-/* global _wpCustomizeNavMenusSettings, wpNavMenu, console */
+/* global menus, _wpCustomizeNavMenusSettings, wpNavMenu, console */
+
+/**
+ * The WordPress Customizer nav menus API.
+ *
+ * @param {Object}       api The Customizer API.
+ * @param {Object}       wp  The WordPress global object.
+ * @param {JQueryStatic} $   The jQuery object.
+ */
 ( function( api, wp, $ ) {
 	'use strict';
 
@@ -44,7 +52,7 @@
 	 *
 	 * @alias wp.customize.Menus.generatePlaceholderAutoIncrementId
 	 *
-	 * @return {number}
+	 * @return {number} A negative integer ID.
 	 */
 	api.Menus.generatePlaceholderAutoIncrementId = function() {
 		return -Math.ceil( api.Menus.data.phpIntMax * Math.random() );
@@ -95,10 +103,10 @@
 	 * @since 4.7.0
 	 * @alias wp.customize.Menus.insertAutoDraftPost
 	 *
-	 * @param {Object} params - Parameters for the draft post to create.
-	 * @param {string} params.post_type - Post type to add.
-	 * @param {string} params.post_title - Post title to use.
-	 * @return {jQuery.promise} Promise resolved with the added post.
+	 * @param {Object} params            Parameters for the draft post to create.
+	 * @param {string} params.post_type  Post type to add.
+	 * @param {string} params.post_title Post title to use.
+	 * @return {JQuery.Promise<*>} Promise resolved with the added post.
 	 */
 	api.Menus.insertAutoDraftPost = function insertAutoDraftPost( params ) {
 		var request, deferred = $.Deferred();
@@ -223,6 +231,9 @@
 
 			this.$el.on( 'input', '#custom-menu-item-name.invalid, #custom-menu-item-url.invalid', function() {
 				$( this ).removeClass( 'invalid' );
+				var errorMessageId = $( this ).attr( 'aria-describedby' );
+				$( '#' + errorMessageId ).hide();
+				$( this ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
 			});
 
 			// Load available items if it looks like we'll need them.
@@ -387,8 +398,8 @@
 		 * @since 4.7.0 Changed function signature to take list of item types instead of single type/object.
 		 * @access private
 		 *
-		 * @param {Array.<Object>} itemTypes List of objects containing type and key.
-		 * @param {string} deprecated Formerly the object parameter.
+		 * @param {Object[]} itemTypes  List of objects containing type and key.
+		 * @param {string}   deprecated Formerly the object parameter.
 		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
@@ -526,7 +537,13 @@
 				return;
 			}
 
-			this.currentMenuControl.addItemToMenu( menu_item.attributes );
+			// Leave the title as empty to reuse the original title as a placeholder if set.
+			var nav_menu_item = Object.assign( {}, menu_item.attributes );
+			if ( nav_menu_item.title === nav_menu_item.original_title ) {
+				nav_menu_item.title = '';
+			}
+
+			this.currentMenuControl.addItemToMenu( nav_menu_item );
 
 			$( menuitemTpl ).find( '.menu-item-handle' ).addClass( 'item-added' );
 		},
@@ -546,8 +563,11 @@
 			var menuItem,
 				itemName = $( '#custom-menu-item-name' ),
 				itemUrl = $( '#custom-menu-item-url' ),
+				urlErrorMessage = $( '#custom-url-error' ),
+				nameErrorMessage = $( '#custom-name-error' ),
 				url = itemUrl.val().trim(),
-				urlRegex;
+				urlRegex,
+				errorText;
 
 			if ( ! this.currentMenuControl ) {
 				return;
@@ -566,14 +586,36 @@
 			 * so this pattern does not need to be complete.
 			 */
 			urlRegex = /^((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#)/;
-
-			if ( '' === itemName.val() ) {
-				itemName.addClass( 'invalid' );
-				return;
-			} else if ( ! urlRegex.test( url ) ) {
-				itemUrl.addClass( 'invalid' );
+			if ( ! urlRegex.test( url ) || '' === itemName.val() ) {
+				if ( ! urlRegex.test( url ) ) {
+					itemUrl.addClass( 'invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-url-error' );
+					urlErrorMessage.show();
+					errorText = urlErrorMessage.text();
+					// Announce error message via screen reader
+					wp.a11y.speak( errorText, 'assertive' );
+				}
+				if ( '' === itemName.val() ) {
+					itemName.addClass( 'invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-name-error' );
+					nameErrorMessage.show();
+					errorText = ( '' === errorText ) ? nameErrorMessage.text() : errorText + nameErrorMessage.text();
+					// Announce error message via screen reader
+					wp.a11y.speak( errorText, 'assertive' );
+				}
 				return;
 			}
+
+			urlErrorMessage.hide();
+			nameErrorMessage.hide();
+			itemName.removeClass( 'invalid' )
+				.removeAttr( 'aria-invalid', 'true' )
+				.removeAttr( 'aria-describedby', 'custom-name-error' );
+			itemUrl.removeClass( 'invalid' )
+				.removeAttr( 'aria-invalid', 'true' )
+				.removeAttr( 'aria-describedby', 'custom-name-error' );
 
 			menuItem = {
 				'title': itemName.val(),
@@ -596,7 +638,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {jQuery.Event} event Event.
+		 * @param {JQuery.Event} event Event.
 		 * @return {void}
 		 */
 		_submitNew: function( event ) {
@@ -622,7 +664,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {jQuery} container
+		 * @param {JQuery} container The container of the form for creating the new item.
 		 * @return {void}
 		 */
 		submitNew: function( container ) {
@@ -633,6 +675,7 @@
 				itemType = dataContainer.data( 'type' ),
 				itemObject = dataContainer.data( 'object' ),
 				itemTypeLabel = dataContainer.data( 'type_label' ),
+				inputError = container.find('.create-item-error'),
 				promise;
 
 			if ( ! this.currentMenuControl ) {
@@ -643,13 +686,18 @@
 			if ( 'post_type' !== itemType ) {
 				return;
 			}
-
 			if ( '' === itemName.val().trim() ) {
-				itemName.addClass( 'invalid' );
-				itemName.focus();
+				container.addClass( 'form-invalid' );
+				itemName.attr('aria-invalid', 'true');
+				itemName.attr('aria-describedby', inputError.attr('id'));
+				inputError.slideDown( 'fast' );
+				wp.a11y.speak( inputError.text() );
 				return;
 			} else {
-				itemName.removeClass( 'invalid' );
+				container.removeClass( 'form-invalid' );
+				itemName.attr('aria-invalid', 'false');
+				itemName.removeAttr('aria-describedby');
+				inputError.hide();
 				container.find( '.accordion-section-title' ).addClass( 'loading' );
 			}
 
@@ -864,11 +912,15 @@
 		}, 2000 ),
 
 		/**
+		 * Adds the active field class for the section container.
+		 *
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		checked: function() {},
 
 		/**
+		 * Removes the active field class for the section container.
+		 *
 		 * @deprecated Since 4.7.0 now that the nav_menu sections are responsible for toggling the classes on their own containers.
 		 */
 		unchecked: function() {},
@@ -879,7 +931,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @return {Array} Fields (columns) that are hidden.
+		 * @return {string} Comma separated list of the fields (columns) that are hidden.
 		 */
 		hidden: function() {
 			return $( '.hide-column-tog' ).not( ':checked' ).map( function() {
@@ -905,8 +957,8 @@
 		 *
 		 * @since 4.3.0
 		 *
-		 * @param {string} id
-		 * @param {Object} options
+		 * @param {string} id      The ID for the section.
+		 * @param {Object} options Options.
 		 */
 		initialize: function( id, options ) {
 			var section = this;
@@ -974,7 +1026,7 @@
 			/**
 			 * Update the active field class for the content container for a given checkbox toggle.
 			 *
-			 * @this {jQuery}
+			 * @this {HTMLInputElement}
 			 * @return {void}
 			 */
 			handleFieldActiveToggle = function() {
@@ -1086,7 +1138,7 @@
 		},
 
 		/**
-		 *
+		 * Refreshes the list of theme locations.
 		 */
 		refreshAssignedLocations: function() {
 			var section = this,
@@ -1101,13 +1153,15 @@
 		},
 
 		/**
-		 * @param {Array} themeLocationSlugs Theme location slugs.
+		 * Updates the section title to reflect the theme locations assigned to this menu.
+		 *
+		 * @param {string[]} themeLocationSlugs Theme location slugs.
 		 */
 		updateAssignedLocationsInSectionTitle: function( themeLocationSlugs ) {
 			var section = this,
 				$title;
 
-			$title = section.container.find( '.accordion-section-title:first' );
+			$title = section.container.find( '.accordion-section-title button:first' );
 			$title.find( '.menu-in-location' ).remove();
 			_.each( themeLocationSlugs, function( themeLocationSlug ) {
 				var $label, locationName;
@@ -1131,6 +1185,8 @@
 				// Add attributes needed by wpNavMenu.
 				$( '#menu-to-edit' ).removeAttr( 'id' );
 				wpNavMenu.menuList.attr( 'id', 'menu-to-edit' ).addClass( 'menu' );
+
+				api.Menus.MenuItemControl.prototype.initAccessibility();
 
 				_.each( api.section( section.id ).controls(), function( control ) {
 					if ( 'nav_menu_item' === control.params.type ) {
@@ -1292,7 +1348,7 @@
 			 * Handle setting addition.
 			 *
 			 * @since 4.9.0
-			 * @param {wp.customize.Setting} setting - Added setting.
+			 * @param {wp.customize.Setting} setting Added setting.
 			 * @return {void}
 			 */
 			function addChangeEventListener( setting ) {
@@ -1306,7 +1362,7 @@
 			 * Handle setting removal.
 			 *
 			 * @since 4.9.0
-			 * @param {wp.customize.Setting} setting - Removed setting.
+			 * @param {wp.customize.Setting} setting Removed setting.
 			 * @return {void}
 			 */
 			function removeChangeEventListener( setting ) {
@@ -1321,7 +1377,7 @@
 			api.bind( 'removed', removeChangeEventListener );
 			updateNoticeVisibility();
 
-			api.Section.prototype.attachEvents.apply( section, arguments );
+			api.Section.prototype.attachEvents.call( section );
 		},
 
 		/**
@@ -1441,7 +1497,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {string|null} locationId - The ID of the location to select. `null` clears all selections.
+		 * @param {string|null} locationId The ID of the location to select. `null` clears all selections.
 		 * @return {void}
 		 */
 		selectDefaultLocation: function( locationId ) {
@@ -1575,6 +1631,80 @@
 		},
 
 		/**
+		 * Set up the initial state of the screen reader accessibility information for menu items.
+		 *
+		 * @since 6.6.0
+		 */
+		initAccessibility: function() {
+			var control = this,
+				menu = $( '#menu-to-edit' );
+
+			// Refresh the accessibility when the user comes close to the item in any way.
+			menu.on( 'mouseenter.refreshAccessibility focus.refreshAccessibility touchstart.refreshAccessibility', '.menu-item', function(){
+				control.refreshAdvancedAccessibilityOfItem( $( this ).find( 'button.item-edit' ) );
+			} );
+
+			// We have to update on click as well because we might hover first, change the item, and then click.
+			menu.on( 'click', 'button.item-edit', function() {
+				control.refreshAdvancedAccessibilityOfItem( $( this ) );
+			} );
+		},
+
+		/**
+		 * refreshAdvancedAccessibilityOfItem( [itemToRefresh] )
+		 *
+		 * Refreshes advanced accessibility buttons for one menu item.
+		 * Shows or hides buttons based on the location of the menu item.
+		 *
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed.
+		 *
+		 * @since 6.6.0
+		 */
+		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
+			// Only refresh accessibility when necessary.
+			if ( true !== $( itemToRefresh ).data( 'needs_accessibility_refresh' ) ) {
+				return;
+			}
+
+			var primaryItems, itemPosition, title,
+				parentItem, parentItemId, parentItemName, subItems, totalSubItems,
+				$this = $( itemToRefresh ),
+				menuItem = $this.closest( 'li.menu-item' ).first(),
+				depth = menuItem.menuItemDepth(),
+				isPrimaryMenuItem = ( 0 === depth ),
+				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
+				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-type' ).text(),
+				totalMenuItems = $( '#menu-to-edit li' ).length;
+
+			if ( isPrimaryMenuItem ) {
+				primaryItems = $( '.menu-item-depth-0' ),
+				itemPosition = primaryItems.index( menuItem ) + 1,
+				totalMenuItems = primaryItems.length,
+				// String together help text for primary menu items.
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
+			} else {
+				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
+				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
+				parentItemName = parentItem.find( '.menu-item-title' ).text(),
+				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				totalSubItems = subItems.length,
+				itemPosition = $( subItems.parents( '.menu-item' ).get().reverse() ).index( menuItem ) + 1;
+
+				// String together help text for sub menu items.
+				if ( depth < 2 ) {
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName );
+				} else {
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalSubItems ).replace( '%5$s', parentItemName ).replace( '%6$d', depth );
+				}
+			}
+
+			$this.find( '.screen-reader-text' ).text( title );
+
+			// Mark this item's accessibility as refreshed.
+			$this.data( 'needs_accessibility_refresh', false );
+		},
+
+		/**
 		 * Override the embed() method to do nothing,
 		 * so that the control isn't embedded on load,
 		 * unless the containing section is already expanded.
@@ -1607,6 +1737,9 @@
 			}
 			control.renderContent();
 			control.deferred.embedded.resolve(); // This triggers control.ready().
+
+			// Mark all menu items as unprocessed.
+			$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 		},
 
 		/**
@@ -1664,6 +1797,8 @@
 			$reorderNav = control.container.find( '.menu-item-reorder-nav' );
 			$reorderNav.find( '.menus-move-up, .menus-move-down, .menus-move-left, .menus-move-right' ).on( 'click', function() {
 				var moveBtn = $( this );
+				control.params.depth = control.getDepth();
+
 				moveBtn.focus();
 
 				var isMoveUp = moveBtn.is( '.menus-move-up' ),
@@ -1679,9 +1814,13 @@
 					control.moveLeft();
 				} else if ( isMoveRight ) {
 					control.moveRight();
+					control.params.depth += 1;
 				}
 
 				moveBtn.focus(); // Re-focus after the container was moved.
+
+				// Mark all menu items as unprocessed.
+				$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 			} );
 		},
 
@@ -1911,8 +2050,9 @@
 		},
 
 		/**
+		 * Gets the depth of the menu item.
 		 *
-		 * @return {number}
+		 * @return {number} The depth of the menu item.
 		 */
 		getDepth: function() {
 			var control = this, setting = control.setting(), depth = 0;
@@ -1978,7 +2118,9 @@
 		 **********************************************************************/
 
 		/**
-		 * @return {wp.customize.controlConstructor.nav_menu|null}
+		 * Gets the menu control that this menu item belongs to.
+		 *
+		 * @return {wp.customize.Menus.MenuControl|null} The menu control, or null if not found.
 		 */
 		getMenuControl: function() {
 			var control = this, settingValue = control.setting();
@@ -2002,17 +2144,17 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Boolean} expanded
-		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @param {boolean} expanded The new state to apply.
+		 * @param {Object}  [params] Object containing options for expand/collapse.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @param {Object} [params] Object containing options for expansion.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -2021,8 +2163,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		expandForm: function( params ) {
 			this.expand( params );
@@ -2031,8 +2173,8 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @param {Object} [params] Object containing options for collapse.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -2041,8 +2183,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		collapseForm: function( params ) {
 			this.collapse( params );
@@ -2054,9 +2196,9 @@
 		 * @deprecated this is poor naming, and it is better to directly set control.expanded( showOrHide )
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {boolean}  [showOrHide] - If not supplied, will be inverse of current visibility
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		toggleForm: function( showOrHide, params ) {
 			if ( typeof showOrHide === 'undefined' ) {
@@ -2073,9 +2215,9 @@
 		 * Expand or collapse the menu item control.
 		 *
 		 * @since 4.6.0
-		 * @param {boolean}  [showOrHide] - If not supplied, will be inverse of current visibility
-		 * @param {Object}   [params] - Optional params.
-		 * @param {Function} [params.completeCallback] - Function to call when the form toggle has finished animating.
+		 * @param {boolean}  [showOrHide]              If not supplied, will be inverse of current visibility.
+		 * @param {Object}   [params]                  Optional params.
+		 * @param {Function} [params.completeCallback] Function to call when the form toggle has finished animating.
 		 */
 		onChangeExpanded: function( showOrHide, params ) {
 			var self = this, $menuitem, $inside, complete;
@@ -2142,8 +2284,8 @@
 		 *
 		 * @since 4.5.0 Added params.completeCallback.
 		 *
-		 * @param {Object}   [params] - Params object.
-		 * @param {Function} [params.completeCallback] - Optional callback function when focus has completed.
+		 * @param {Object}   [params]                  Params object.
+		 * @param {Function} [params.completeCallback] Optional callback function when focus has completed.
 		 */
 		focus: function( params ) {
 			params = params || {};
@@ -2213,7 +2355,7 @@
 		 *
 		 * @private
 		 *
-		 * @param {number} offset 1|-1
+		 * @param {number} offset The number of positions to move the item, either 1 or -1.
 		 */
 		_changePosition: function( offset ) {
 			var control = this,
@@ -2273,7 +2415,7 @@
 		 *
 		 * @private
 		 *
-		 * @param {number} offset 1|-1
+		 * @param {number} offset The number of levels to change the depth by, either 1 or -1.
 		 */
 		_changeDepth: function( offset ) {
 			if ( 1 !== offset && -1 !== offset ) {
@@ -2469,7 +2611,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {Object.<string,boolean>} selections - A map of location selections.
+		 * @param {Object.<string, boolean>} selections A map of location selections.
 		 * @return {void}
 		 */
 		setSelections: function( selections ) {
@@ -2656,7 +2798,7 @@
 		 * Notice that the UI aspects here are handled by wpNavMenu.initSortables()
 		 * which is called in MenuSection.onChangeExpanded()
 		 *
-		 * @param {Object} menuList - The element that has sortable().
+		 * @param {Object} menuList The element that has sortable().
 		 */
 		_setupSortable: function( menuList ) {
 			var control = this;
@@ -2713,6 +2855,9 @@
 
 						menuItemControl.setting.set( setting );
 					});
+
+					// Mark all menu items as unprocessed.
+					$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 				});
 
 			});
@@ -2855,7 +3000,7 @@
 		/**
 		 * Enable/disable the reordering UI
 		 *
-		 * @param {boolean} showOrHide to enable/disable reordering
+		 * @param {boolean} showOrHide Whether to enable or disable reordering.
 		 */
 		toggleReordering: function( showOrHide ) {
 			var addNewItemBtn = this.container.find( '.add-new-menu-item' ),
@@ -2891,7 +3036,9 @@
 		},
 
 		/**
-		 * @return {wp.customize.controlConstructor.nav_menu_item[]}
+		 * Get all of the nav_menu_item controls for this menu.
+		 *
+		 * @return {wp.customize.Menus.MenuItemControl[]} The nav_menu_item controls for this menu.
 		 */
 		getMenuItemControls: function() {
 			var menuControl = this,
@@ -2988,15 +3135,15 @@
 		 * has child items, this function will only be called once all of the
 		 * settings have been updated.
 		 */
-		debouncedReflowMenuItems: _.debounce( function() {
-			this.reflowMenuItems.apply( this, arguments );
+		debouncedReflowMenuItems: _.debounce( function( ...args ) {
+			this.reflowMenuItems.apply( this, args );
 		}, 0 ),
 
 		/**
 		 * Add a new item to this menu.
 		 *
-		 * @param {Object} item - Value for the nav_menu_item setting to be created.
-		 * @return {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
+		 * @param {Object} item Value for the nav_menu_item setting to be created.
+		 * @return {wp.customize.Menus.MenuItemControl} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {
 			var menuControl = this, customizeId, settingArgs, setting, menuItemControl, placeholderId, position = 0, priority = 10,
@@ -3020,7 +3167,6 @@
 				item,
 				{
 					nav_menu_term_id: menuControl.params.menu_id,
-					original_title: item.title,
 					position: position
 				}
 			);
@@ -3062,7 +3208,9 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {wp.customize.controlConstructor.nav_menu_item[]} optionalMenuItemControls
+		 * @param {wp.customize.Menus.MenuItemControl[]} [optionalMenuItemControls] The menu item controls to
+		 *                                                                          consider. Defaults to all of
+		 *                                                                          this menu's item controls.
 		 */
 		updateInvitationVisibility: function ( optionalMenuItemControls ) {
 			var menuItemControls = optionalMenuItemControls || this.getMenuItemControls();
@@ -3136,9 +3284,9 @@
 	 *
 	 * @alias wp.customize.Menus.applySavedData
 	 *
-	 * @param {Object} data
-	 * @param {Array} data.nav_menu_updates
-	 * @param {Array} data.nav_menu_item_updates
+	 * @param {Object}   data                       Data returned in the customize_save response.
+	 * @param {Object[]} data.nav_menu_updates      Result of saving each nav menu, with term_id, previous_term_id, error, status, and saved_value properties.
+	 * @param {Object[]} data.nav_menu_item_updates Result of saving each nav menu item, with post_id, previous_post_id, error, and status properties.
 	 */
 	api.Menus.applySavedData = function( data ) {
 
@@ -3368,7 +3516,7 @@
 	 *
 	 * @alias wp.customize.Menus.focusMenuItemControl
 	 *
-	 * @param {string} menuItemId
+	 * @param {string} menuItemId The ID of the menu item whose control to focus.
 	 */
 	api.Menus.focusMenuItemControl = function( menuItemId ) {
 		var control = api.Menus.getMenuItemControl( menuItemId );
@@ -3382,8 +3530,8 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuControl
 	 *
-	 * @param menuId
-	 * @return {wp.customize.controlConstructor.menus[]}
+	 * @param {string|number} menuId The ID of the menu.
+	 * @return {wp.customize.Menus.MenuControl|undefined} The menu control, or undefined if not found.
 	 */
 	api.Menus.getMenuControl = function( menuId ) {
 		return api.control( 'nav_menu[' + menuId + ']' );
@@ -3394,17 +3542,20 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuItemControl
 	 *
-	 * @param {string} menuItemId
-	 * @return {Object|null}
+	 * @param {string} menuItemId The ID of the menu item.
+	 * @return {wp.customize.Menus.MenuItemControl|undefined} The menu item control, or undefined if not found.
 	 */
 	api.Menus.getMenuItemControl = function( menuItemId ) {
 		return api.control( menuItemIdToSettingId( menuItemId ) );
 	};
 
 	/**
+	 * Gets the setting ID for a given menu item ID.
+	 *
 	 * @alias wp.customize.Menus~menuItemIdToSettingId
 	 *
-	 * @param {string} menuItemId
+	 * @param {string} menuItemId The ID of the menu item.
+	 * @return {string} The setting ID for the menu item.
 	 */
 	function menuItemIdToSettingId( menuItemId ) {
 		return 'nav_menu_item[' + menuItemId + ']';
@@ -3412,12 +3563,12 @@
 
 	/**
 	 * Apply sanitize_text_field()-like logic to the supplied name, returning a
-	 * "unnammed" fallback string if the name is then empty.
+	 * "unnamed" fallback string if the name is then empty.
 	 *
 	 * @alias wp.customize.Menus~displayNavMenuName
 	 *
-	 * @param {string} name
-	 * @return {string}
+	 * @param {string} [name] The menu name.
+	 * @return {string} The sanitized display name, or a fallback "unnamed" string if empty.
 	 */
 	function displayNavMenuName( name ) {
 		name = name || '';

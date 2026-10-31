@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage Administration
  *
- * @link https://codex.wordpress.org/AJAX_in_Plugins
+ * @link https://developer.wordpress.org/plugins/javascript/ajax
  */
 
 /**
@@ -47,7 +47,6 @@ do_action( 'admin_init' );
 $core_actions_get = array(
 	'fetch-list',
 	'ajax-tag-search',
-	'wp-compression-test',
 	'imgedit-preview',
 	'oembed-cache',
 	'autocomplete-user',
@@ -79,6 +78,7 @@ $core_actions_post = array(
 	'add-user',
 	'closed-postboxes',
 	'hidden-columns',
+	'meta-box-reordering',
 	'update-welcome-panel',
 	'menu-get-metabox',
 	'wp-link-ajax',

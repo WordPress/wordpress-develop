@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -334,7 +334,7 @@ function iis7_save_url_rewrite_rules() {
  *
  * @since 1.5.0
  *
- * @param string $file
+ * @param string $file Path to the recently edited file.
  */
 function update_recently_edited( $file ) {
 	$oldfiles = (array) get_option( 'recently_edited' );
@@ -492,6 +492,9 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $file   Path to the file being edited.
+ * @global string $plugin Path to the plugin file relative to the plugins directory.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
@@ -556,12 +559,12 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 }
 
 /**
- * Flushes rewrite rules if siteurl, home or page_on_front changed.
+ * Flushes rewrite rules if `siteurl`, `home` or `page_on_front` changed.
  *
  * @since 2.1.0
  *
- * @param string $old_value
- * @param string $value
+ * @param string $old_value The old value of the option. Unused.
+ * @param string $value     The new value of the option. Unused.
  */
 function update_home_siteurl( $old_value, $value ) {
 	if ( wp_installing() ) {
@@ -575,13 +578,12 @@ function update_home_siteurl( $old_value, $value ) {
 	}
 }
 
-
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on `$_GET` and `$_POST`.
  *
  * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
+ * in the `$vars` array to the value of `$_POST[$var]` or `$_GET[$var]` or an
+ * empty string if neither is defined.
  *
  * @since 2.0.0
  *
@@ -606,7 +608,7 @@ function wp_reset_vars( $vars ) {
  *
  * @since 2.1.0
  *
- * @param string|WP_Error $message
+ * @param string|WP_Error $message The message to display, or a WP_Error object.
  */
 function show_message( $message ) {
 	if ( is_wp_error( $message ) ) {
@@ -623,10 +625,12 @@ function show_message( $message ) {
 }
 
 /**
+ * Parses the PHP content and finds function calls to be used for documentation linking.
+ *
  * @since 2.8.0
  *
- * @param string $content
- * @return array
+ * @param string $content The PHP content to parse.
+ * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
 	if ( ! is_string( $content ) || empty( $content ) ) {
@@ -755,7 +759,7 @@ function set_screen_options() {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
+				 * The filter can also be used to modify non-standard `[items]_per_page`
 				 * settings. See the parent function for a full list of standard options.
 				 *
 				 * Returning false from the filter will skip saving the current option.
@@ -817,7 +821,7 @@ function set_screen_options() {
  * @since 2.8.0
  *
  * @param string $filename The file path to the configuration file.
- * @return bool
+ * @return bool Whether the rule exists.
  */
 function iis7_rewrite_rule_exists( $filename ) {
 	if ( ! file_exists( $filename ) ) {
@@ -850,7 +854,7 @@ function iis7_rewrite_rule_exists( $filename ) {
  * @since 2.8.0
  *
  * @param string $filename Name of the configuration file.
- * @return bool
+ * @return bool Whether the rule was deleted.
  */
 function iis7_delete_rewrite_rule( $filename ) {
 	// If configuration file does not exist then rules also do not exist, so there is nothing to delete.
@@ -890,7 +894,7 @@ function iis7_delete_rewrite_rule( $filename ) {
  *
  * @param string $filename     The file path to the configuration file.
  * @param string $rewrite_rule The XML fragment with URL Rewrite rule.
- * @return bool
+ * @return bool Whether the rule was added.
  */
 function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	if ( ! class_exists( 'DOMDocument', false ) ) {
@@ -976,8 +980,8 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  *
  * @since 2.8.0
  *
- * @param DOMDocument $doc
- * @param string      $filename
+ * @param DOMDocument $doc      The DOMDocument object to save.
+ * @param string      $filename The file path to save the XML document to.
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
@@ -989,7 +993,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Displays the default administration color scheme picker (Used in user-edit.php).
  *
  * @since 3.0.0
  *
@@ -1002,14 +1006,14 @@ function admin_color_scheme_picker( $user_id ) {
 
 	ksort( $_wp_admin_css_colors );
 
-	if ( isset( $_wp_admin_css_colors['fresh'] ) ) {
-		// Set Default ('fresh') and Light should go first.
+	if ( isset( $_wp_admin_css_colors['modern'] ) ) {
+		// Set Modern (new default), Classic ('fresh'), and Light first.
 		$_wp_admin_css_colors = array_filter(
 			array_merge(
 				array(
+					'modern' => '',
 					'fresh'  => '',
 					'light'  => '',
-					'modern' => '',
 				),
 				$_wp_admin_css_colors
 			)
@@ -1019,25 +1023,21 @@ function admin_color_scheme_picker( $user_id ) {
 	$current_color = get_user_option( 'admin_color', $user_id );
 
 	if ( empty( $current_color ) || ! isset( $_wp_admin_css_colors[ $current_color ] ) ) {
-		$current_color = 'fresh';
+		$current_color = 'modern';
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span>
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
-			?>
-		</span></legend>
+		<legend class="screen-reader-text"><span><?php _e( 'Administration Color Scheme' ); ?></span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
 
 			?>
 			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
+				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="menu_icon_styles" value="<?php echo esc_attr( _wp_get_color_scheme_menu_icon_styles( $color ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<div class="color-palette">
 				<?php
@@ -1058,6 +1058,9 @@ function admin_color_scheme_picker( $user_id ) {
 }
 
 /**
+ * Outputs the JavaScript for the admin color scheme settings.
+ *
+ * @since 3.8.0
  *
  * @global array $_wp_admin_css_colors
  */
@@ -1068,13 +1071,13 @@ function wp_color_scheme_settings() {
 
 	// It's possible to have a color scheme set that is no longer registered.
 	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		$color_scheme = 'fresh';
+		$color_scheme = 'modern';
 	}
 
 	if ( ! empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
 		$icon_colors = $_wp_admin_css_colors[ $color_scheme ]->icon_colors;
-	} elseif ( ! empty( $_wp_admin_css_colors['fresh']->icon_colors ) ) {
-		$icon_colors = $_wp_admin_css_colors['fresh']->icon_colors;
+	} elseif ( ! empty( $_wp_admin_css_colors['modern']->icon_colors ) ) {
+		$icon_colors = $_wp_admin_css_colors['modern']->icon_colors;
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
 		$icon_colors = array(
@@ -1084,7 +1087,75 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
+}
+
+/**
+ * Colors inline SVG admin menu icons with the icon colors of the current admin color scheme.
+ *
+ * These are the colors a scheme registers through the `$icons` argument of
+ * wp_admin_css_color(). svg-painter.js applies the same colors to menu icons
+ * given as base64-encoded SVG; this does it for inline SVG icons, with CSS.
+ *
+ * The rules are printed before the stylesheet of the scheme, so a scheme
+ * that colors the icon element itself overrides them.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_color_scheme_settings()
+ */
+function wp_color_scheme_menu_icon_styles() {
+	$styles = _wp_get_color_scheme_menu_icon_styles( get_user_option( 'admin_color' ) );
+
+	if ( '' !== $styles ) {
+		wp_add_inline_style( 'admin-menu', $styles );
+	}
+}
+
+/**
+ * Returns the CSS that colors inline SVG admin menu icons with the icon colors of an admin color scheme.
+ *
+ * A scheme without icon colors gets CSS that makes the icons follow the
+ * text color of the menu links instead.
+ *
+ * The color scheme picker also passes it to user-profile.js, which applies
+ * it when another scheme is selected.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $_wp_admin_css_colors
+ *
+ * @param string $color_scheme The name of the color scheme.
+ * @return string The CSS, or an empty string if the scheme needs none.
+ */
+function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
+	global $_wp_admin_css_colors;
+
+	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
+		return '';
+	}
+
+	// The core schemes have no stylesheet of their own, or one from the core colors directory.
+	$url = $_wp_admin_css_colors[ $color_scheme ]->url;
+	if ( ! is_string( $url ) || '' === $url || str_starts_with( $url, admin_url( 'css/colors/' ) ) ) {
+		return '';
+	}
+
+	$base_selector    = '#adminmenu div.wp-menu-image';
+	$focus_selector   = '#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image';
+	$current_selector = '#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image';
+
+	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( (array) $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+
+	// Without icon colors, the icons follow the text color that the scheme gives to the menu links.
+	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
+		return "$base_selector,$focus_selector,$current_selector{color:inherit}";
+	}
+
+	return "$base_selector{color:{$icon_colors['base']}}" .
+		"$focus_selector{color:{$icon_colors['focus']}}" .
+		"$current_selector{color:{$icon_colors['current']}}";
 }
 
 /**
@@ -1305,7 +1376,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
+ * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
  *
@@ -1399,11 +1470,11 @@ function wp_admin_canonical_url() {
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 
 	/**
-	 * Filters the admin canonical url value.
+	 * Filters the admin canonical URL value.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $filtered_url The admin canonical url value.
+	 * @param string $filtered_url The admin canonical URL value.
 	 */
 	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
@@ -1414,29 +1485,6 @@ function wp_admin_canonical_url() {
 		}
 	</script>
 	<?php
-}
-
-/**
- * Sends a referrer policy header so referrers are not sent externally from administration screens.
- *
- * @since 4.9.0
- */
-function wp_admin_headers() {
-	$policy = 'strict-origin-when-cross-origin';
-
-	/**
-	 * Filters the admin referrer policy header value.
-	 *
-	 * @since 4.9.0
-	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
-	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-	 *
-	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
-	 */
-	$policy = apply_filters( 'admin_referrer_policy', $policy );
-
-	header( sprintf( 'Referrer-Policy: %s', $policy ) );
 }
 
 /**
@@ -1478,15 +1526,15 @@ function update_option_new_admin_email( $old_value, $value ) {
 		'hash'     => $hash,
 		'newemail' => $value,
 	);
-	update_option( 'adminhash', $new_admin_email );
+	update_option( 'adminhash', $new_admin_email, false );
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-		'Howdy ###USERNAME###,
+		'Howdy,
 
-Someone with administrator capabilities recently requested to have the
+A site administrator (###USERNAME###) recently requested to have the
 administration email address changed on this site:
 ###SITEURL###
 
@@ -1507,11 +1555,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 *  - ###USERNAME###  The current user's username.
-	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
-	 *  - ###EMAIL###     The proposed new site admin email address.
-	 *  - ###SITENAME###  The name of the site.
-	 *  - ###SITEURL###   The URL to the site.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new site admin email address.
+	 *  - `###SITENAME###`  The name of the site.
+	 *  - `###SITEURL###`   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.
@@ -1590,12 +1639,14 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false {
  *     Array of PHP version data. False on failure.
  *
- *     @type string $recommended_version The PHP version recommended by WordPress.
- *     @type string $minimum_version     The minimum required PHP version.
- *     @type bool   $is_supported        Whether the PHP version is actively supported.
- *     @type bool   $is_secure           Whether the PHP version receives security updates.
- *     @type bool   $is_acceptable       Whether the PHP version is still acceptable or warnings
- *                                       should be shown and an update recommended.
+ *     @type string $recommended_version          The PHP version recommended by WordPress.
+ *     @type string $minimum_version              The minimum required PHP version.
+ *     @type bool   $is_supported                 Whether the PHP version is actively supported.
+ *     @type bool   $is_secure                    Whether the PHP version receives security updates.
+ *     @type bool   $is_acceptable                Whether the PHP version is still acceptable or warnings
+ *                                                should be shown and an update recommended.
+ *     @type bool   $is_lower_than_future_minimum Whether the PHP version is lower than the minimum PHP
+ *                                                version WordPress will require in a future release.
  * }
  */
 function wp_check_php_version() {
@@ -1647,8 +1698,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.2. Check if the current version is lower.
-	if ( version_compare( $version, '7.2', '<' ) ) {
+	// The minimum supported PHP version will be updated to at least 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.

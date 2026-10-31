@@ -44,7 +44,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test when a multiple data items are passed.
 	 *
 	 * @ticket 44044
-	 * @ticket 46895 Updated to remove </h2> from test to avoid Count introducing failure.
+	 * @ticket 46895
 	 */
 	public function test_group_html_generation_multiple_data_items() {
 		$data = array(
@@ -75,6 +75,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 
 		$actual = wp_privacy_generate_personal_data_export_group_html( $data, 'test-data-group', 2 );
 
+		// Updated to remove </h2> from test to avoid Count introducing failure (ticket #46895).
 		$this->assertStringContainsString( '<h2 id="test-data-group-test-data-group">Test Data Group', $actual );
 		$this->assertStringContainsString( '<td>Field 1 Value', $actual );
 		$this->assertStringContainsString( '<td>Another Field 1 Value', $actual );
@@ -173,7 +174,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 				array(
 					'scripts' => array(
 						'name'  => 'Script tags are not allowed.',
-						'value' => '<script>Testing that script tags are stripped.</script>',
+						'value' => 'Before<script>Testing that script tags are stripped.</script>After',
 					),
 					'images'  => array(
 						'name'  => 'Images are not allowed',
@@ -186,7 +187,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 		$actual = wp_privacy_generate_personal_data_export_group_html( $data, 'test-data-group', 2 );
 
 		$this->assertStringNotContainsString( $data['items'][0]['scripts']['value'], $actual );
-		$this->assertStringContainsString( '<td>Testing that script tags are stripped.</td>', $actual );
+		$this->assertStringContainsString( '<td>BeforeAfter</td>', $actual );
 
 		$this->assertStringNotContainsString( $data['items'][0]['images']['value'], $actual );
 		$this->assertStringContainsString( '<th>Images are not allowed</th><td></td>', $actual );

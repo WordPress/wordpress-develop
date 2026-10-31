@@ -17,24 +17,28 @@ class Custom_Image_Header {
 	/**
 	 * Callback for administration header.
 	 *
-	 * @var callable
 	 * @since 2.1.0
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var ''|(callable(): mixed)|null
 	 */
 	public $admin_header_callback;
 
 	/**
 	 * Callback for header div.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var ''|(callable(): mixed)|null
 	 */
 	public $admin_image_div_callback;
 
 	/**
 	 * Holds default headers.
 	 *
-	 * @var array
 	 * @since 3.0.0
+	 * @var array
 	 */
 	public $default_headers = array();
 
@@ -51,9 +55,13 @@ class Custom_Image_Header {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param callable $admin_header_callback    Administration header callback.
-	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
-	 *                                           Default empty string.
+	 * @param callable|string|null $admin_header_callback    Administration header callback.
+	 *                                                       Empty string or null for none.
+	 * @param callable|string|null $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                                       Empty string or null for none. Default empty string.
+	 *
+	 * @phpstan-param ''|(callable(): mixed)|null $admin_header_callback
+	 * @phpstan-param ''|(callable(): mixed)|null $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback, $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -268,7 +276,7 @@ class Custom_Image_Header {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @global array $_wp_default_headers
+	 * @global array $_wp_default_headers Default headers registered for themes.
 	 */
 	public function process_default_headers() {
 		global $_wp_default_headers;
@@ -376,7 +384,7 @@ class Custom_Image_Header {
 			}
 		}
 		?>
-<script type="text/javascript">
+<script>
 (function($){
 	var default_color = '<?php echo esc_js( $default_color ); ?>',
 		header_text_fields;
@@ -431,7 +439,7 @@ class Custom_Image_Header {
 	public function js_2() {
 
 		?>
-<script type="text/javascript">
+<script>
 	function onEndCrop( coords ) {
 		jQuery( '#x1' ).val(coords.x);
 		jQuery( '#y1' ).val(coords.y);
@@ -550,7 +558,7 @@ class Custom_Image_Header {
 
 		<?php if ( get_custom_header() || display_header_text() ) : ?>
 <tr>
-<th scope="row"><?php _e( 'Preview' ); ?></th>
+<th scope="row"><?php echo esc_html_x( 'Preview', 'noun' ); ?></th>
 <td>
 			<?php
 			if ( $this->admin_image_div_callback ) {
@@ -572,7 +580,7 @@ class Custom_Image_Header {
 					$header_image_style .= 'height:' . $custom_header->height . 'px;';
 				}
 				?>
-	<div id="headimg" style="<?php echo $header_image_style; ?>">
+	<div id="headimg" style="<?php echo esc_attr( $header_image_style ); ?>">
 				<?php
 				if ( display_header_text() ) {
 					$style = ' style="color:#' . get_header_textcolor() . ';"';
@@ -664,7 +672,7 @@ class Custom_Image_Header {
 		<input type="file" id="upload" name="import" />
 		<input type="hidden" name="action" value="save" />
 			<?php wp_nonce_field( 'custom-header-upload', '_wpnonce-custom-header-upload' ); ?>
-			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
+			<?php submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ?>
 	</p>
 			<?php
 			$modal_update_href = add_query_arg(
@@ -830,8 +838,8 @@ endif;
 
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
+				'<p>' . __( 'The active theme does not support uploading a custom header image. Please ensure your theme supports custom headers and try again.' ) . '</p>',
 				403
 			);
 		}
@@ -841,7 +849,7 @@ endif;
 			$file          = get_attached_file( $attachment_id, true );
 			$url           = wp_get_attachment_image_src( $attachment_id, 'full' );
 			$url           = $url[0];
-		} elseif ( isset( $_POST ) ) {
+		} else {
 			$data          = $this->step_2_manage_upload();
 			$attachment_id = $data['attachment_id'];
 			$file          = $data['file'];
@@ -951,7 +959,7 @@ endif;
 	<p class="submit">
 		<?php submit_button( __( 'Crop and Publish' ), 'primary', 'submit', false ); ?>
 		<?php
-		if ( isset( $oitar ) && 1 === $oitar
+		if ( 1 === $oitar
 			&& ( current_theme_supports( 'custom-header', 'flex-height' )
 				|| current_theme_supports( 'custom-header', 'flex-width' ) )
 		) {
@@ -1018,8 +1026,8 @@ endif;
 
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
+				'<p>' . __( 'The active theme does not support uploading a custom header image. Please ensure your theme supports custom headers and try again.' ) . '</p>',
 				403
 			);
 		}
@@ -1029,7 +1037,7 @@ endif;
 			&& ! current_theme_supports( 'custom-header', 'flex-width' )
 		) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
 				'<p>' . __( 'The active theme does not support a flexible sized header image.' ) . '</p>',
 				403
 			);
@@ -1077,7 +1085,7 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
 
 		if ( ! empty( $_POST['create-new-attachment'] ) ) {
 			unset( $attachment['ID'] );
@@ -1138,8 +1146,8 @@ endif;
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param array $form_fields
-	 * @return array $form_fields
+	 * @param array $form_fields An array of attachment form fields.
+	 * @return array Unmodified form fields.
 	 */
 	public function attachment_fields_to_edit( $form_fields ) {
 		return $form_fields;
@@ -1150,8 +1158,8 @@ endif;
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param array $tabs
-	 * @return array $tabs
+	 * @param array $tabs An array of media upload tabs.
+	 * @return array Unmodified upload tabs.
 	 */
 	public function filter_upload_tabs( $tabs ) {
 		return $tabs;
@@ -1184,8 +1192,8 @@ endif;
 				'attachment_id' => $choice['attachment_id'],
 				'url'           => $choice['url'],
 				'thumbnail_url' => $choice['url'],
-				'height'        => $choice['height'],
-				'width'         => $choice['width'],
+				'height'        => absint( $choice['height'] ),
+				'width'         => absint( $choice['width'] ),
 			);
 
 			update_post_meta( $choice['attachment_id'], '_wp_attachment_is_custom_header', get_stylesheet() );
@@ -1216,7 +1224,13 @@ endif;
 			}
 		}
 
-		set_theme_mod( 'header_image', sanitize_url( $header_image_data['url'] ) );
+		$header_image_data['url'] = sanitize_url( $header_image_data['url'] );
+
+		if ( isset( $header_image_data['thumbnail_url'] ) ) {
+			$header_image_data['thumbnail_url'] = sanitize_url( $header_image_data['thumbnail_url'] );
+		}
+
+		set_theme_mod( 'header_image', $header_image_data['url'] );
 		set_theme_mod( 'header_image_data', $header_image_data );
 	}
 
@@ -1314,12 +1328,14 @@ endif;
 	 * Creates an attachment 'object'.
 	 *
 	 * @since 3.9.0
+	 * @deprecated 6.5.0
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
 	 * @return array An array with attachment object data.
 	 */
 	final public function create_attachment_object( $cropped, $parent_attachment_id ) {
+		_deprecated_function( __METHOD__, '6.5.0', 'wp_copy_parent_attachment_properties()' );
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
@@ -1349,7 +1365,7 @@ endif;
 	 * @return int Attachment ID.
 	 */
 	final public function insert_attachment( $attachment, $cropped ) {
-		$parent_id = isset( $attachment['post_parent'] ) ? $attachment['post_parent'] : null;
+		$parent_id = $attachment['post_parent'] ?? null;
 		unset( $attachment['post_parent'] );
 
 		$attachment_id = wp_insert_attachment( $attachment, $cropped );
@@ -1381,6 +1397,8 @@ endif;
 	 * new object. Returns JSON-encoded object details.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_crop() {
 		check_ajax_referer( 'image_editor-' . $_POST['id'], 'nonce' );
@@ -1421,7 +1439,7 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
 
 		$previous = $this->get_previous_crop( $attachment );
 
@@ -1450,6 +1468,8 @@ endif;
 	 * Media Manager, even if s/he doesn't save that change.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_add() {
 		check_ajax_referer( 'header-add', 'nonce' );
@@ -1478,6 +1498,8 @@ endif;
 	 * choice in the Customizer's Header tool.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @return never
 	 */
 	public function ajax_header_remove() {
 		check_ajax_referer( 'header-remove', 'nonce' );
@@ -1545,8 +1567,8 @@ endif;
 
 		$already_has_default = false;
 
-		foreach ( $this->default_headers as $k => $h ) {
-			if ( $h['url'] === $default ) {
+		foreach ( $this->default_headers as $k => $header ) {
+			if ( $header['url'] === $default ) {
 				$already_has_default = true;
 				break;
 			}
@@ -1581,9 +1603,8 @@ endif;
 		$alt_text_key  = '_wp_attachment_image_alt';
 
 		foreach ( $header_images as &$header_image ) {
-			$header_meta               = get_post_meta( $header_image['attachment_id'] );
-			$header_image['timestamp'] = isset( $header_meta[ $timestamp_key ] ) ? $header_meta[ $timestamp_key ] : '';
-			$header_image['alt_text']  = isset( $header_meta[ $alt_text_key ] ) ? $header_meta[ $alt_text_key ] : '';
+			$header_image['timestamp'] = get_post_meta( $header_image['attachment_id'], $timestamp_key, true );
+			$header_image['alt_text']  = get_post_meta( $header_image['attachment_id'], $alt_text_key, true );
 		}
 
 		return $header_images;

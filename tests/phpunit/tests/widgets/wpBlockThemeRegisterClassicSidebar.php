@@ -32,6 +32,11 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 	public function test_a_sidebar_should_be_registered() {
 		global $wp_registered_sidebars;
 
+		// Register a sidebar for testing if none exist.
+		if ( empty( $wp_registered_sidebars ) ) {
+			register_sidebar( array( 'id' => 'test-sidebar' ) );
+		}
+
 		$sidebar_id = array_key_first( $wp_registered_sidebars );
 		$this->assertNotEmpty( $sidebar_id );
 	}
@@ -41,6 +46,11 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 	 */
 	public function test_should_reregister_previous_theme_sidebar() {
 		global $wp_registered_sidebars;
+
+		// Register a sidebar for testing if none exist.
+		if ( empty( $wp_registered_sidebars ) ) {
+			register_sidebar( array( 'id' => 'test-sidebar' ) );
+		}
 
 		$sidebar_id = array_key_first( $wp_registered_sidebars );
 

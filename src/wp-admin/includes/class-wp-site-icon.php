@@ -41,24 +41,27 @@ class WP_Site_Icon {
 		/*
 		 * Square, medium sized tiles for IE11+.
 		 *
-		 * See https://msdn.microsoft.com/library/dn455106(v=vs.85).aspx
+		 * @link https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/samples/dn455106(v=vs.85)
 		 */
 		270,
 
 		/*
 		 * App icon for Android/Chrome.
 		 *
-		 * @link https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android
-		 * @link https://developer.chrome.com/multidevice/android/installtohomescreen
+		 * @link https://developer.chrome.com/blog/support-for-theme-color-in-chrome-39-for-android
+		 * @link https://web.dev/articles/icons-and-browser-colors
 		 */
 		192,
 
 		/*
 		 * App icons up to iPhone 6 Plus.
 		 *
-		 * See https://developer.apple.com/library/prerelease/ios/documentation/UserExperience/Conceptual/MobileHIG/IconMatrix.html
+		 * @link https://developer.apple.com/design/human-interface-guidelines/app-icons
 		 */
 		180,
+
+		// High-density (2x) site icon for the admin bar and post embeds.
+		64,
 
 		// Our regular Favicon.
 		32,
@@ -78,12 +81,15 @@ class WP_Site_Icon {
 	 * Creates an attachment 'object'.
 	 *
 	 * @since 4.3.0
+	 * @deprecated 6.5.0
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
 	 * @return array An array with attachment object data.
 	 */
 	public function create_attachment_object( $cropped, $parent_attachment_id ) {
+		_deprecated_function( __METHOD__, '6.5.0', 'wp_copy_parent_attachment_properties()' );
+
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
@@ -165,7 +171,7 @@ class WP_Site_Icon {
 		foreach ( $this->site_icon_sizes as $size ) {
 			if ( $size < $this->min_size ) {
 				$only_crop_sizes[ 'site_icon-' . $size ] = array(
-					'width ' => $size,
+					'width'  => $size,
 					'height' => $size,
 					'crop'   => true,
 				);

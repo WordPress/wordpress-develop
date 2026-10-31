@@ -128,7 +128,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 					case ')':
 						$found = false;
 						while ( ! empty( $stack ) ) {
-							$o2 = $stack[ count( $stack ) - 1 ];
+							$o2 = array_last( $stack );
 							if ( '(' !== $o2 ) {
 								$output[] = array( 'op', array_pop( $stack ) );
 								continue;
@@ -163,7 +163,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 						}
 
 						while ( ! empty( $stack ) ) {
-							$o2 = $stack[ count( $stack ) - 1 ];
+							$o2 = array_last( $stack );
 
 							// Ternary is right-associative in C.
 							if ( '?:' === $operator || '?' === $operator ) {
@@ -320,13 +320,13 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 					case '!=':
 						$v2      = array_pop( $stack );
 						$v1      = array_pop( $stack );
-						$stack[] = $v1 != $v2;
+						$stack[] = $v1 !== $v2;
 						break;
 
 					case '==':
 						$v2      = array_pop( $stack );
 						$v1      = array_pop( $stack );
-						$stack[] = $v1 == $v2;
+						$stack[] = $v1 === $v2;
 						break;
 
 					case '?:':

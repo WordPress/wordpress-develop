@@ -9,14 +9,14 @@ class WP_Sitemaps_Large_Test_Provider extends WP_Sitemaps_Provider {
 	/**
 	 * Number of entries in the sitemap the provider produces.
 	 *
-	 * @var integer
+	 * @var int
 	 */
 	public $num_entries = 1;
 
 	/**
 	 * WP_Sitemaps_Large_Test_Provider constructor.
 	 *
-	 * @param int $num_entries Optional. Number of entries in in the sitemap.
+	 * @param int $num_entries Optional. Number of entries in the sitemap.
 	 */
 	public function __construct( $num_entries = 50001 ) {
 		$this->name        = 'tests';

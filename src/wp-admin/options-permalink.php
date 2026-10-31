@@ -61,13 +61,16 @@ $help_sidebar_content = '<p><strong>' . __( 'For more information:' ) . '</stron
 	'<p>' . __( '<a href="https://wordpress.org/documentation/article/customize-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>';
 
 if ( $is_nginx ) {
-	$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
+	$help_sidebar_content .= '<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/server/web-server/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
 }
 
 $help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $help_sidebar_content );
 unset( $help_sidebar_content );
+
+/** @global WP_Rewrite $wp_rewrite WordPress rewrite component. */
+global $wp_rewrite;
 
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();
@@ -94,6 +97,8 @@ if ( is_multisite() && ! is_subdomain_install() && is_main_site()
 
 $category_base = get_option( 'category_base' );
 $tag_base      = get_option( 'tag_base' );
+$random_base   = get_option( 'wp_random_base' );
+$random_base   = is_string( $random_base ) ? $random_base : '';
 
 $structure_updated        = false;
 $htaccess_update_required = false;
@@ -143,6 +148,16 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 		}
 
 		$wp_rewrite->set_tag_base( $tag_base );
+	}
+
+	if ( wp_is_random_content_redirect_enabled() && isset( $_POST['wp_random_base'] ) && is_string( $_POST['wp_random_base'] ) ) {
+		$random_base = $_POST['wp_random_base'];
+
+		if ( ! empty( $random_base ) ) {
+			$random_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $random_base ) );
+		}
+
+		$wp_rewrite->set_random_base( $random_base );
 	}
 }
 
@@ -236,6 +251,7 @@ if ( is_multisite() && ! is_subdomain_install() && is_main_site()
 	$permalink_structure = preg_replace( '|^/?blog|', '', $permalink_structure );
 	$category_base       = preg_replace( '|^/?blog|', '', $category_base );
 	$tag_base            = preg_replace( '|^/?blog|', '', $tag_base );
+	$random_base         = preg_replace( '|^/?blog|', '', $random_base ) ?? '';
 }
 
 $url_base = home_url( $blog_prefix . $index_php_prefix );
@@ -314,7 +330,7 @@ $tag_removed = __( '%s removed from permalink structure' );
 /* translators: %s: Permalink structure tag. */
 $tag_already_used = __( '%s (already used in permalink structure)' );
 ?>
-<h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
+<h2 id="wp-settings-section-common-settings" class="title"><?php _e( 'Common Settings' ); ?></h2>
 <p>
 <?php
 printf(
@@ -326,16 +342,12 @@ printf(
 </p>
 <table class="form-table permalink-structure" role="presentation">
 <tbody>
+<?php $permalink_structure_title = __( 'Permalink structure' ); ?>
 <tr>
-	<th scope="row"><?php _e( 'Permalink structure' ); ?></th>
+	<th scope="row"><?php echo $permalink_structure_title; ?></th>
 	<td>
 		<fieldset class="structure-selection">
-			<legend class="screen-reader-text">
-				<?php
-				/* translators: Hidden accessibility text. */
-				_e( 'Permalink structure' );
-				?>
-			</legend>
+			<legend class="screen-reader-text"><?php echo $permalink_structure_title; ?></legend>
 			<?php foreach ( $default_structures as $input ) : ?>
 			<div class="row">
 				<input id="permalink-input-<?php echo esc_attr( $input['id'] ); ?>"
@@ -409,8 +421,8 @@ printf(
 </tbody>
 </table>
 
-<h2 class="title"><?php _e( 'Optional' ); ?></h2>
-<p>
+<h2 id="wp-settings-section-optional" class="title"><?php _e( 'Optional' ); ?></h2>
+<p class="permalink-structure-optional-description">
 <?php
 printf(
 	/* translators: %s: Placeholder that must come at the start of the URL. */
@@ -428,10 +440,18 @@ printf(
 			</label>
 		</th>
 		<td>
-			<?php echo $blog_prefix; ?>
+		<?php if ( '' === $blog_prefix ) : ?>
 			<input name="category_base" id="category_base" type="text"
 				value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code"
 			/>
+		<?php else : ?>
+			<span class="code permalink-structure-has-blog-prefix">
+				<code class="no-break"><?php echo $blog_prefix; ?></code>
+				<input name="category_base" id="category_base" type="text"
+					value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code"
+				/>
+			</span>
+		<?php endif; ?>
 		</td>
 	</tr>
 	<tr>
@@ -439,12 +459,43 @@ printf(
 			<label for="tag_base"><?php _e( 'Tag base' ); ?></label>
 		</th>
 		<td>
-			<?php echo $blog_prefix; ?>
+		<?php if ( '' === $blog_prefix ) : ?>
 			<input name="tag_base" id="tag_base" type="text"
 				value="<?php echo esc_attr( $tag_base ); ?>" class="regular-text code"
 			/>
+		<?php else : ?>
+			<span class="code permalink-structure-has-blog-prefix">
+				<code class="no-break"><?php echo $blog_prefix; ?></code>
+				<input name="tag_base" id="tag_base" type="text"
+					value="<?php echo esc_attr( $tag_base ); ?>" class="regular-text code"
+				/>
+			</span>
+		<?php endif; ?>
 		</td>
 	</tr>
+	<?php if ( wp_is_random_content_redirect_enabled() ) : ?>
+	<tr>
+		<th>
+			<label for="wp_random_base">
+				<?php _e( 'Random base' ); ?>
+			</label>
+		</th>
+		<td>
+		<?php if ( '' === $blog_prefix ) : ?>
+			<input name="wp_random_base" id="wp_random_base" type="text"
+				value="<?php echo esc_attr( $random_base ); ?>" class="regular-text code"
+			/>
+		<?php else : ?>
+			<span class="code permalink-structure-has-blog-prefix">
+				<code class="no-break"><?php echo $blog_prefix; ?></code>
+				<input name="wp_random_base" id="wp_random_base" type="text"
+					value="<?php echo esc_attr( $random_base ); ?>" class="regular-text code"
+				/>
+			</span>
+		<?php endif; ?>
+		</td>
+	</tr>
+	<?php endif; ?>
 	<?php do_settings_fields( 'permalink', 'optional' ); ?>
 </table>
 
@@ -465,7 +516,7 @@ printf(
 					/* translators: 1: web.config, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A, 5: Element code. */
 					__( '<strong>Error:</strong> Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. This is the URL rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
 					'<code>web.config</code>',
-					__( 'https://wordpress.org/documentation/article/changing-file-permissions/' ),
+					__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 					'<kbd>Ctrl + A</kbd>',
 					'<kbd>⌘ + A</kbd>',
 					'<code>/&lt;configuration&gt;/&lt;system.webServer&gt;/&lt;rewrite&gt;/&lt;rules&gt;</code>'
@@ -497,7 +548,7 @@ printf(
 				printf(
 					/* translators: 1: Documentation URL, 2: web.config, 3: Ctrl + A, 4: ⌘ + A */
 					__( '<strong>Error:</strong> The root directory of your site is not <a href="%1$s">writable</a>, so creating a file automatically was not possible. This is the URL rewrite rule you should have in your %2$s file. Create a new file called %2$s in the root directory of your site. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this code into the %2$s file.' ),
-					__( 'https://wordpress.org/documentation/article/changing-file-permissions/' ),
+					__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 					'<code>web.config</code>',
 					'<kbd>Ctrl + A</kbd>',
 					'<kbd>⌘ + A</kbd>'
@@ -533,7 +584,7 @@ printf(
 				/* translators: 1: .htaccess, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A */
 				__( '<strong>Error:</strong> Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. These are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 				'<code>.htaccess</code>',
-				__( 'https://wordpress.org/documentation/article/changing-file-permissions/' ),
+				__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 				'<kbd>Ctrl + A</kbd>',
 				'<kbd>⌘ + A</kbd>'
 			);

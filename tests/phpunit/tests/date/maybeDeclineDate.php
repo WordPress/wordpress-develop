@@ -71,7 +71,7 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 		return $translation;
 	}
 
-	public function data_wp_maybe_decline_date() {
+	public static function data_wp_maybe_decline_date() {
 		return array(
 			array( 'ru_RU', 'j F', '21 Июнь', '21 июня' ),
 			array( 'ru_RU', 'j F Y', '1 Январь 2016', '1 января 2016' ),

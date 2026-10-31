@@ -18,7 +18,7 @@ window.wp = window.wp || {};
 	 *
 	 * @param {string} id A string that corresponds to a DOM element with an id prefixed with "tmpl-".
 	 *                    For example, "attachment" maps to "tmpl-attachment".
-	 * @return {function} A function that lazily-compiles the template requested.
+	 * @return {Function} A function that lazily-compiles the template requested.
 	 */
 	wp.template = _.memoize(function ( id ) {
 		var compiled,
@@ -36,10 +36,11 @@ window.wp = window.wp || {};
 			};
 
 		return function ( data ) {
-			if ( ! document.getElementById( 'tmpl-' + id ) ) {
+			var el = document.querySelector( 'script#tmpl-' + id );
+			if ( ! el ) {
 				throw new Error( 'Template not found: ' + '#tmpl-' + id );
 			}
-			compiled = compiled || _.template( $( '#tmpl-' + id ).html(),  options );
+			compiled = compiled || _.template( $( el ).html(), options );
 			return compiled( data );
 		};
 	});
@@ -59,9 +60,9 @@ window.wp = window.wp || {};
 		 *
 		 * Sends a POST request to WordPress.
 		 *
-		 * @param {(string|Object)} action The slug of the action to fire in WordPress or options passed
-		 *                                 to jQuery.ajax.
-		 * @param {Object=}         data   Optional. The data to populate $_POST with.
+		 * @param {string|Object} action The slug of the action to fire in WordPress or options passed
+		 *                               to jQuery.ajax.
+		 * @param {Object}        [data] Optional. The data to populate $_POST with.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */
@@ -76,9 +77,9 @@ window.wp = window.wp || {};
 		 *
 		 * Sends a POST request to WordPress.
 		 *
-		 * @param {(string|Object)} action  The slug of the action to fire in WordPress or options passed
-		 *                                  to jQuery.ajax.
-		 * @param {Object=}         options Optional. The options passed to jQuery.ajax.
+		 * @param {(string|Object)} action    The slug of the action to fire in WordPress or options passed
+		 *                                    to jQuery.ajax.
+		 * @param {Object}          [options] Optional. The options passed to jQuery.ajax.
 		 * @return {$.promise} A jQuery promise that represents the request,
 		 *                     decorated with an abort() method.
 		 */

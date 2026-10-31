@@ -27,6 +27,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		// Author.
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
+			/*
+			 * Keep assertEquals() because WP_Post::$post_author is a string from the
+			 * database while the REST response returns author as an integer.
+			 */
 			$this->assertEquals( $post->post_author, $data['author'] );
 		} else {
 			$this->assertEmpty( $data['author'] );
@@ -107,8 +111,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		// Check filtered values.
 		if ( post_type_supports( $post->post_type, 'title' ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertSame( get_the_title( $post->ID ), $data['title']['rendered'] );
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+			remove_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 			if ( 'edit' === $context ) {
 				$this->assertSame( $post->post_title, $data['title']['raw'] );
 			} else {

@@ -73,6 +73,11 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt_public' );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 40613
 	 * @covers ::query
@@ -181,7 +186,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_query_cache() {
+	public static function data_query_cache() {
 		$data = array(
 			'id'                    => array(
 				'args' => array( 'fields' => array( 'id' ) ),
@@ -388,7 +393,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertSameSets( $expected, $found, 'Find author in returned values' );
 
-		wp_delete_user( $user_id );
+		self::delete_user( $user_id );
 
 		$q2 = new WP_User_Query(
 			array(
@@ -771,7 +776,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$request_without_placeholder = $wpdb->remove_placeholder_escape( $query1->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );

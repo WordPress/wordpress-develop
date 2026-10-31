@@ -7,6 +7,15 @@
  * @covers ::wp_list_categories
  */
 class Tests_Category_WpListCategories extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		unregister_post_type( 'wptests_pt2' );
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	public function test_class() {
 		$c = self::factory()->category->create();
 

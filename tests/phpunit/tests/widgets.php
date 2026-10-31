@@ -46,6 +46,56 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a widget registered as an instance is keyed by a string.
+	 *
+	 * WP_Widget_Factory::$widgets is public, and its keys were strings in every release before the
+	 * object ID was introduced. PHP casts an array key from string to int whenever the string is the
+	 * canonical decimal representation of an integer, so a bare spl_object_id() value would change
+	 * the type of the keys that consumers of that property read back.
+	 *
+	 * @see register_widget()
+	 * @ticket 65919
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	public function test_register_widget_instance_is_keyed_by_string() {
+		global $wp_widget_factory;
+
+		register_widget( new WP_Widget_Search() );
+
+		$this->assertCount( 1, $wp_widget_factory->widgets );
+		$this->assertIsString( array_key_first( $wp_widget_factory->widgets ) );
+	}
+
+	/**
+	 * Tests that the key returned for a widget registered as an instance is a string.
+	 *
+	 * WP_Widget_Factory::get_widget_key() is documented as returning a string, and core passes what
+	 * it returns to the_widget(), which in turn passes it to the 'the_widget' action, both of which
+	 * document the value as a string.
+	 *
+	 * @see WP_Widget_Factory::get_widget_key()
+	 * @ticket 65919
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	public function test_get_widget_key_for_instance_returns_string() {
+		global $wp_widget_factory;
+
+		$widget                              = new WP_Widget_Search();
+		$widget->id_base                     = 'better_search';
+		$widget->name                        = 'Better Search';
+		$widget->option_name                 = 'widget_' . $widget->id_base;
+		$widget->widget_options['classname'] = 'widget_' . $widget->id_base;
+		$widget->control_options['id_base']  = $widget->id_base;
+
+		register_widget( $widget );
+
+		$this->assertIsString( $wp_widget_factory->get_widget_key( 'better_search' ) );
+		$this->assertSame( $widget, $wp_widget_factory->get_widget_object( 'better_search' ) );
+	}
+
+	/**
 	 * Test that registering a widget class and registering a widget instance work together.
 	 *
 	 * @see register_widget()
@@ -359,6 +409,41 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group sidebar
+	 * @ticket 22116
+	 */
+	public function test_dynamic_sidebar_id_takes_priority_over_sanitized_name() {
+		// Register a sidebar with the name 'Widget Area 121' (sanitizes to 'widget-area-121').
+		register_sidebar(
+			array(
+				'id'   => 'widget-area-127',
+				'name' => 'Widget Area 121',
+			)
+		);
+
+		/*
+		 * Register a second sidebar whose ID is 'widget-area-121' —
+		 * the same as the sanitized name of the first sidebar.
+		 */
+		register_sidebar(
+			array(
+				'id'   => 'widget-area-121',
+				'name' => 'Widget Area 121',
+			)
+		);
+
+		add_action( 'dynamic_sidebar_before', array( $this, 'retrieve_sidebar_id' ), 10, 2 );
+
+		/*
+		 * Passing 'widget-area-121' as an exact ID should resolve to that sidebar directly,
+		 * not to 'widget-area-127' whose sanitized name also equals 'widget-area-121'.
+		 */
+		dynamic_sidebar( 'widget-area-121' );
+
+		$this->assertSame( 'widget-area-121', $this->sidebar_index );
+	}
+
+	/**
 	 * @see WP_Widget_Search::form()
 	 */
 	public function test_wp_widget_search_form() {
@@ -448,7 +533,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_classname() {
+	public static function data_wp_widget_classname() {
 		return array(
 			array(
 				'widget_search',
@@ -489,7 +574,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_get_field_name() {
+	public static function data_wp_widget_get_field_name() {
 		return array(
 			array(
 				'widget-foo[2][title]',
@@ -539,7 +624,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_widget_get_field_id() {
+	public static function data_wp_widget_get_field_id() {
 		return array(
 			array(
 				'widget-foo-2-title',
@@ -1139,6 +1224,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		set_theme_mod( 'sidebars_widgets', $old_sidebars_widgets );
 
+		$sidebars_widgets = $old_sidebars_widgets;
+
 		$result = retrieve_widgets( 'customize' );
 
 		$_wp_sidebars_widgets = array();
@@ -1165,7 +1252,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertSameSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
 
 		// Sidebar_widgets option was not updated.
-		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+		$this->assertNotSame( $sidebars_widgets, wp_get_sidebars_widgets() );
 	}
 
 	public function test_retrieve_widgets_with_single_widget() {
@@ -1358,5 +1445,99 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'wp_inactive_widgets' => array(),
 		);
 		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Ensures null sidebar values are converted to empty arrays in retrieve_widgets().
+	 *
+	 * @covers ::retrieve_widgets
+	 * @ticket 57469
+	 */
+	public function test_retrieve_widgets_converts_null_sidebar_to_empty_array() {
+		global $sidebars_widgets;
+		wp_widgets_init();
+		$this->register_sidebars( array( 'primary', 'secondary', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'primary'             => null,
+			'secondary'           => array( 'text-1' ),
+			'extra_sidebar'       => array( 'unregistered_widget-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		$result = retrieve_widgets( true );
+		$this->assertArrayHasKey( 'primary', $result );
+		$this->assertSame( array(), $result['primary'], 'Primary sidebar should be an empty array after normalization.' );
+		$this->assertArrayNotHasKey( 'extra_sidebar', $result, 'Unregistered sidebar should be removed.' );
+	}
+
+	/**
+	 * Ensures wp_map_sidebars_widgets() normalizes null sidebar widget arrays.
+	 *
+	 * @covers ::wp_map_sidebars_widgets
+	 * @ticket 57469
+	 */
+	public function test_wp_map_sidebars_widgets_converts_null_sidebar_to_empty_array() {
+		$this->register_sidebars( array( 'primary', 'wp_inactive_widgets' ) );
+		// Theme data containing a null so the normalization loop runs.
+		set_theme_mod(
+			'sidebars_widgets',
+			array(
+				'time' => time(),
+				'data' => array(
+					'primary' => null,
+				),
+			)
+		);
+
+		$prev_theme_sidebars = array(
+			'primary'             => null,
+			'wp_inactive_widgets' => array(),
+		);
+
+		$new_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+		$this->assertArrayHasKey( 'primary', $new_sidebars );
+		$this->assertSame( array(), $new_sidebars['primary'], 'Primary sidebar should be an empty array after normalization.' );
+	}
+
+	/**
+	 * Tests that is_active_widget() does not generate a PHP warning when
+	 * a widget ID exists in sidebars_widgets but is not in $wp_registered_widgets,
+	 * and the function is called with id_base and widget_id parameters.
+	 *
+	 * This can happen when a widget is saved to a sidebar but the widget class
+	 * has not yet been registered (e.g., during early plugin/theme loading).
+	 *
+	 * @ticket 57518
+	 * @covers ::is_active_widget
+	 */
+	public function test_is_active_widget_with_unregistered_widget_and_id_base_match() {
+		global $wp_registered_widgets;
+
+		// Set up a sidebar with a widget that is NOT registered in $wp_registered_widgets.
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'array_version'       => 3,
+			)
+		);
+
+		// Ensure the widget is NOT in $wp_registered_widgets.
+		unset( $wp_registered_widgets['search-2'] );
+
+		/*
+		 * Call is_active_widget() with id_base and widget_id parameters.
+		 * This should NOT generate a PHP warning about accessing array offset on null.
+		 *
+		 * The bug occurs because when matching by id_base, the code checks
+		 * _get_widget_id_base( $widget ) === $id_base without verifying
+		 * $wp_registered_widgets[ $widget ] exists, then tries to access
+		 * $wp_registered_widgets[ $widget ]['id'] on the next line.
+		 */
+		$result = is_active_widget( false, 'search-2', 'search', true );
+
+		$this->assertFalse( $result, 'The widget is not registered, so the function should return false.' );
 	}
 }

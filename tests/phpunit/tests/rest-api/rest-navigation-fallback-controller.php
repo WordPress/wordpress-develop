@@ -191,44 +191,133 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Covered by the core test.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( rest_get_route_for_post( $post_id ) ), $links['self'][0]['href'] );
+		$this->assertTrue( $links['self'][0]['attributes']['embeddable'] );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
+	}
+
+	/**
+	 * Navigation fallback does not register a context request parameter via get_context_param().
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Covered by the core test.
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
+	 * Navigation fallback has no collection route; singular GET is covered by test_get_item().
+	 *
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		// Covered by the core test.
+		// Controller has no collection operation.
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_user );
+
+		$request  = new WP_REST_Request( 'POST', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 }

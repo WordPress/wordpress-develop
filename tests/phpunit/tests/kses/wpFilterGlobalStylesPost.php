@@ -46,7 +46,7 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_not_remove_safe_global_style_rules() {
+	public static function data_should_not_remove_safe_global_style_rules() {
 		$result = array();
 		foreach ( WP_Theme_JSON::VALID_TOP_LEVEL_KEYS as $safe_rule ) {
 			$result[ $safe_rule ] = array( $safe_rule );
@@ -71,7 +71,6 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 * It filters JSON theme data and returns it as an array.
 	 *
 	 * @param array $theme_data Theme data to filter.
-	 *
 	 * @return array Filtered theme data.
 	 */
 	private function filter_global_styles( $theme_data ) {

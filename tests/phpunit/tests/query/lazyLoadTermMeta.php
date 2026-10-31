@@ -40,6 +40,11 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 57150
 	 * @covers ::wp_queue_posts_for_term_meta_lazyload

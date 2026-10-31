@@ -159,7 +159,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 		foreach ( $dependents as $dependent ) {
@@ -200,11 +200,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependency plugin slugs.
 	 */
 	public static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
+		return self::$dependencies[ $plugin_file ] ?? array();
 	}
 
 	/**
@@ -235,7 +231,7 @@ class WP_Plugin_Dependencies {
 			return false;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
@@ -354,12 +350,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
-		if ( isset( $dependency_api_data[ $slug ] ) ) {
-			return $dependency_api_data[ $slug ];
-		}
-
-		return false;
+		return $dependency_api_data[ $slug ] ?? false;
 	}
 
 	/**
@@ -369,10 +360,30 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
+			$error_message = __( 'Some required plugins are missing or inactive.' );
+
+			if ( is_multisite() ) {
+				if ( current_user_can( 'manage_network_plugins' ) ) {
+					$error_message .= ' ' . sprintf(
+						/* translators: %s: Link to the network plugins page. */
+						__( '<a href="%s">Manage plugins</a>.' ),
+						esc_url( network_admin_url( 'plugins.php' ) )
+					);
+				} else {
+					$error_message .= ' ' . __( 'Please contact your network administrator.' );
+				}
+			} elseif ( 'plugins' !== get_current_screen()->base ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( admin_url( 'plugins.php' ) )
+				);
+			}
+
 			wp_admin_notice(
-				__( 'There are additional plugin dependencies that must be installed.' ),
+				$error_message,
 				array(
-					'type' => 'info',
+					'type' => 'warning',
 				)
 			);
 		}
@@ -406,7 +417,7 @@ class WP_Plugin_Dependencies {
 			wp_admin_notice(
 				sprintf(
 					'<p>%1$s</p><ul>%2$s</ul><p>%3$s</p>',
-					__( 'These plugins cannot be activated because their requirements are invalid. ' ),
+					__( 'These plugins cannot be activated because their requirements are invalid.' ),
 					$circular_dependency_lines,
 					__( 'Please contact the plugin authors for more information.' )
 				),
@@ -422,6 +433,8 @@ class WP_Plugin_Dependencies {
 	 * Checks plugin dependencies after a plugin is installed via AJAX.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @return never
 	 */
 	public static function check_plugin_dependencies_during_ajax() {
 		check_ajax_referer( 'updates' );
@@ -468,13 +481,14 @@ class WP_Plugin_Dependencies {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
+		self::initialize();
 		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
 			wp_send_json_success( $status );
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$inactive_dependencies = array();
 		foreach ( $dependencies as $dependency ) {
@@ -523,7 +537,7 @@ class WP_Plugin_Dependencies {
 			return self::$plugins;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		self::$plugins = get_plugins();
 
 		return self::$plugins;
@@ -533,8 +547,6 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();
@@ -633,13 +645,13 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 *
-	 * @return array|void An array of dependency API data, or void on early exit.
+	 * @return array|null An array of dependency API data, or null on early exit.
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
 
 		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
-			return;
+			return null;
 		}
 
 		if ( is_array( self::$dependency_api_data ) ) {
@@ -694,7 +706,7 @@ class WP_Plugin_Dependencies {
 
 			self::$dependency_api_data[ $slug ] = (array) $information;
 			// plugins_api() returns 'name' not 'Name'.
-			self::$dependency_api_data[ $information->slug ]['Name'] = self::$dependency_api_data[ $information->slug ]['name'];
+			self::$dependency_api_data[ $slug ]['Name'] = self::$dependency_api_data[ $slug ]['name'];
 			set_site_transient( 'wp_plugin_dependencies_plugin_data', self::$dependency_api_data, 0 );
 		}
 

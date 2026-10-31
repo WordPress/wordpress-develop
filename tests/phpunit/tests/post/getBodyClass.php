@@ -7,9 +7,27 @@
 class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	protected $post_id;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->post_id = self::factory()->post->create();
+		$this->original_stylesheet = get_stylesheet();
+		$this->post_id             = self::factory()->post->create();
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -105,6 +123,7 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( 'single-post', $class );
 		$this->assertContains( "postid-{$post_id}", $class );
 		$this->assertContains( 'single-format-standard', $class );
+		$this->assertContains( 'wp-singular', $class );
 	}
 
 	public function test_page_template_body_classes_no_template() {
@@ -256,5 +275,33 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( 'page-template-default', $class );
 		$this->assertContains( 'page', $class );
 		$this->assertContains( "page-id-{$page_id}", $class );
+	}
+
+	/**
+	 * Test theme-related body classes.
+	 *
+	 * @ticket 19736
+	 */
+	public function test_theme_body_classes() {
+		$original_theme = wp_get_theme();
+
+		switch_theme( 'block-theme' );
+		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
+
+		$classes = get_body_class();
+		$this->assertContains( 'wp-theme-block-theme', $classes, 'Parent theme body class not found' );
+
+		switch_theme( 'block-theme-child' );
+		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
+
+		$classes = get_body_class();
+		$this->assertContains( 'wp-theme-block-theme', $classes, 'Parent theme body class not found in child theme context' );
+		$this->assertContains( 'wp-child-theme-block-theme-child', $classes, 'Child theme body class not found' );
+
+		switch_theme( $original_theme->get_stylesheet() );
+		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
 	}
 }

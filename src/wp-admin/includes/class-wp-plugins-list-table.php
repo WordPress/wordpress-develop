@@ -25,9 +25,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected $show_autoupdates = true;
 
 	/**
+	 * The auto-update message shown for plugins with an update available.
+	 *
+	 * Determined once per list table, as it is the same for every plugin.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var string|null Null until first needed.
+	 */
+	private $auto_update_message = null;
+
+	/**
 	 * Constructor.
 	 *
-	 * @since 3.1.0
+	 * @since 3.2.0
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
@@ -42,15 +53,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'plugins',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 
-		$allowed_statuses = array( 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled' );
-
 		$status = 'all';
-		if ( isset( $_REQUEST['plugin_status'] ) && in_array( $_REQUEST['plugin_status'], $allowed_statuses, true ) ) {
-			$status = $_REQUEST['plugin_status'];
+		if ( isset( $_REQUEST['plugin_status'] ) ) {
+			$status = sanitize_key( $_REQUEST['plugin_status'] );
 		}
 
 		if ( isset( $_REQUEST['s'] ) ) {
@@ -65,32 +74,47 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets the CSS classes for the list table element.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string[] Array of CSS classes for the table tag.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
 
 	/**
-	 * @return bool
+	 * Checks whether the current user can activate plugins for this screen.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the current user can activate plugins.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'activate_plugins' );
 	}
 
 	/**
-	 * @global string $status
-	 * @global array  $plugins
-	 * @global array  $totals
-	 * @global int    $page
-	 * @global string $orderby
-	 * @global string $order
-	 * @global string $s
+	 * Prepares the list of items for displaying.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string                                             $status  Current plugin status filter slug.
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
+	 * @global array<string, int>                                 $totals  Count of plugins for each status group.
+	 * @global int                                                $page    Current page number.
+	 * @global string                                             $orderby Column name to sort by.
+	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
+	 * @global string                                             $s       URL-encoded search term.
 	 */
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
 
-		wp_reset_vars( array( 'orderby', 'order' ) );
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
 
 		/**
 		 * Filters the full array of plugins to list in the Plugins list table.
@@ -185,7 +209,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		foreach ( $recently_activated as $key => $time ) {
-			if ( $time + WEEK_IN_SECONDS < time() ) {
+			if ( ! is_int( $time ) || $time + WEEK_IN_SECONDS < time() ) {
 				unset( $recently_activated[ $key ] );
 			}
 		}
@@ -193,7 +217,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( $screen->in_admin( 'network' ) ) {
 			update_site_option( 'recently_activated', $recently_activated );
 		} else {
-			update_option( 'recently_activated', $recently_activated );
+			update_option( 'recently_activated', $recently_activated, false );
 		}
 
 		$plugin_info = get_site_transient( 'update_plugins' );
@@ -365,10 +389,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Callback to filter plugins by a search term.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $s URL encoded search term.
 	 *
-	 * @param array $plugin
-	 * @return bool
+	 * @param array<string, mixed> $plugin Plugin data array to check against the search term.
+	 * @return bool True if the plugin matches the search term, false otherwise.
 	 */
 	public function _search_callback( $plugin ) {
 		global $s;
@@ -383,11 +411,16 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $orderby
-	 * @global string $order
-	 * @param array $plugin_a
-	 * @param array $plugin_b
-	 * @return int
+	 * Callback to sort plugins by a given column.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $orderby The column name to sort by.
+	 * @global string $order   The sort direction ('ASC' or 'DESC').
+	 *
+	 * @param array<string, mixed> $plugin_a First plugin data array to compare.
+	 * @param array<string, mixed> $plugin_b Second plugin data array to compare.
+	 * @return int Negative if $plugin_a sorts before $plugin_b, positive if after, 0 if equal.
 	 */
 	public function _order_callback( $plugin_a, $plugin_b ) {
 		global $orderby, $order;
@@ -407,7 +440,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global array $plugins
+	 * Message to be displayed when there are no items.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
 	 */
 	public function no_items() {
 		global $plugins;
@@ -452,17 +489,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 		?>
 		<p class="search-box">
-			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>" />
+			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
 	}
 
 	/**
-	 * @global string $status
+	 * Gets the list of columns for this list table.
 	 *
-	 * @return string[] Array of column titles keyed by their column name.
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		global $status;
@@ -481,16 +522,25 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets the list of sortable columns for this list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array();
 	}
 
 	/**
-	 * @global array $totals
-	 * @global string $status
-	 * @return array
+	 * Gets an associative array of status filter links for the views area.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global array<string, int> $totals Count of plugins for each status group.
+	 * @global string             $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of views.
 	 */
 	protected function get_views() {
 		global $totals, $status;
@@ -583,6 +633,25 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
+				default:
+					/**
+					 * Filters the status text of default switch case in the plugins list table.
+					 *
+					 * @since 7.0.0
+					 *
+					 * @param string $text  Plugins list status text. Default empty string.
+					 * @param int    $count Count of the number of plugins.
+					 * @param string $type  The status slug being filtered.
+					 */
+					$text = apply_filters( 'plugins_list_status_text', '', $count, $type );
+					if ( empty( $text ) || ! is_string( $text ) ) {
+						$text = $type;
+					}
+					$text = esc_html( $text ) . ' ' . sprintf(
+						'<span class="count">(%s)</span>',
+						number_format_i18n( $count )
+					);
+					break;
 			}
 
 			if ( 'search' !== $type ) {
@@ -598,8 +667,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @return array
+	 * Gets the available bulk actions for the plugins list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		global $status;
@@ -637,8 +711,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @param string $which
+	 * Displays the bulk actions dropdown.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
+	 *                      This is designated as optional for backward compatibility.
 	 */
 	public function bulk_actions( $which = '' ) {
 		global $status;
@@ -651,8 +731,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @param string $which
+	 * Displays extra table navigation for the plugins list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
+	 *
+	 * @param string $which The location: 'top' or 'bottom'.
 	 */
 	protected function extra_tablenav( $which ) {
 		global $status;
@@ -682,7 +767,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return string
+	 * Gets the current action selected from the bulk actions dropdown.
+	 *
+	 * Also handles the 'clear-recent-list' action from the Recently Active plugins screen.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return string|false The action name. False if no action was selected.
 	 */
 	public function current_action() {
 		if ( isset( $_POST['clear-recent-list'] ) ) {
@@ -693,7 +784,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $status Current plugin status filter slug.
 	 */
 	public function display_rows() {
 		global $status;
@@ -708,12 +803,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $status
-	 * @global int $page
-	 * @global string $s
-	 * @global array $totals
+	 * Generates the markup for a single plugin row.
 	 *
-	 * @param array $item
+	 * @since 3.1.0
+	 *
+	 * @global string             $status Current plugin status filter slug.
+	 * @global int                $page   Current page number.
+	 * @global string             $s      URL-encoded search term.
+	 * @global array<string, int> $totals Count of plugins for each status group.
+	 *
+	 * @param array $item The current item. An array containing the plugin file path and plugin data.
+	 * @phpstan-param array{string, array<string, mixed>} $item
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
@@ -721,7 +821,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		list( $plugin_file, $plugin_data ) = $item;
 
-		$plugin_slug    = isset( $plugin_data['slug'] ) ? $plugin_data['slug'] : sanitize_title( $plugin_data['Name'] );
+		$plugin_slug    = $plugin_data['slug'] ?? sanitize_title( $plugin_data['Name'] );
 		$plugin_id_attr = $plugin_slug;
 
 		// Ensure the ID attribute is unique.
@@ -748,8 +848,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$restrict_network_active = false;
 		$restrict_network_only   = false;
 
-		$requires_php = isset( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : null;
+		$requires_php = $plugin_data['RequiresPHP'] ?? null;
+		$requires_wp  = $plugin_data['RequiresWP'] ?? null;
 
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
@@ -802,7 +902,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				if ( $is_active ) {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $has_active_dependents ) {
-							$actions['deactivate'] = __( 'Deactivate' ) .
+							$actions['deactivate'] = __( 'Network Deactivate' ) .
 								'<span class="screen-reader-text">' .
 								__( 'You cannot deactivate this plugin as other plugins require it.' ) .
 								'</span>';
@@ -1146,12 +1246,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			switch ( $column_name ) {
 				case 'cb':
-					echo "<th scope='row' class='check-column'>$checkbox</th>";
+					echo "<td class='check-column'>$checkbox</td>";
 					break;
 				case 'name':
-					echo "<td class='plugin-title column-primary'><strong>$plugin_name</strong>";
+					echo "<th scope='row' class='plugin-title column-primary' aria-label='" . esc_attr( $plugin_name ) . "'><strong>$plugin_name</strong>";
 					echo $this->row_actions( $actions, true );
-					echo '</td>';
+					echo '</th>';
 					break;
 				case 'description':
 					$classes = 'column-description desc';
@@ -1345,10 +1445,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 
 					if ( ! empty( $plugin_data['update'] ) ) {
+						if ( null === $this->auto_update_message ) {
+							$this->auto_update_message = wp_get_auto_update_message( 'plugin' );
+						}
+
 						$html[] = sprintf(
 							'<div class="auto-update-time%s">%s</div>',
 							$time_class,
-							wp_get_auto_update_message()
+							$this->auto_update_message
 						);
 					}
 
@@ -1567,19 +1671,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		$dependency_note = __( 'Note: This plugin cannot be activated until the plugins that are required by it are activated.' );
-
-		$comma    = wp_get_list_item_separator();
-		$requires = sprintf(
+		$is_active = is_multisite() ? is_plugin_active_for_network( $dependent ) : is_plugin_active( $dependent );
+		$comma     = wp_get_list_item_separator();
+		$requires  = sprintf(
 			/* translators: %s: List of dependency names. */
 			__( '<strong>Requires:</strong> %s' ),
 			implode( $comma, $links )
 		);
 
+		$notice        = '';
+		$error_message = '';
+		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
+			if ( $is_active ) {
+				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+			} else {
+				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+			}
+			$notice = wp_get_admin_notice(
+				$error_message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'inline', 'notice-alt' ),
+				)
+			);
+		}
+
 		printf(
-			'<div class="requires"><p>%1$s</p><p>%2$s</p></div>',
+			'<div class="requires"><p>%1$s</p>%2$s</div>',
 			$requires,
-			$dependency_note
+			$notice
 		);
 	}
 

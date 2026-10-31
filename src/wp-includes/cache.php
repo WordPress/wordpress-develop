@@ -62,7 +62,7 @@ function wp_cache_add( $key, $data, $group = '', $expire = 0 ) {
 function wp_cache_add_multiple( array $data, $group = '', $expire = 0 ) {
 	global $wp_object_cache;
 
-	return $wp_object_cache->add_multiple( $data, $group, $expire );
+	return $wp_object_cache->add_multiple( $data, $group, (int) $expire );
 }
 
 /**
@@ -129,7 +129,7 @@ function wp_cache_set( $key, $data, $group = '', $expire = 0 ) {
 function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
 	global $wp_object_cache;
 
-	return $wp_object_cache->set_multiple( $data, $group, $expire );
+	return $wp_object_cache->set_multiple( $data, $group, (int) $expire );
 }
 
 /**
@@ -144,7 +144,7 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
  * @param string     $group Optional. Where the cache contents are grouped. Default empty.
  * @param bool       $force Optional. Whether to force an update of the local cache
  *                          from the persistent cache. Default false.
- * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
+ * @param bool|null  $found Optional. Whether the key was found in the cache (passed by reference).
  *                          Disambiguates a return of false, a storable value. Default null.
  * @return mixed|false The cache contents on success, false on failure to retrieve contents.
  */

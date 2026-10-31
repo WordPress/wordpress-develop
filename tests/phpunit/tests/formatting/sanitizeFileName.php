@@ -35,13 +35,17 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 * Test that spaces are correctly replaced with dashes.
 	 *
 	 * @ticket 16330
+	 * @ticket 62995
 	 */
 	public function test_replaces_spaces() {
 		$urls = array(
-			'unencoded space.png'  => 'unencoded-space.png',
-			'encoded-space.jpg'    => 'encoded-space.jpg',
-			'plus+space.jpg'       => 'plusspace.jpg',
-			'multi %20 +space.png' => 'multi-20-space.png',
+			'unencoded space.png'                         => 'unencoded-space.png',
+			'encoded-space.jpg'                           => 'encoded-space.jpg',
+			'plus+space.jpg'                              => 'plusspace.jpg',
+			'multi %20 +space.png'                        => 'multi-20-space.png',
+			"Screenshot 2025-02-19 at 2.17.33\u{202F}PM.png" => 'Screenshot-2025-02-19-at-2.17.33-PM.png',
+			"Filename with non-breaking\u{00A0}space.txt" => 'Filename-with-non-breaking-space.txt',
+			"Filename with thin\u{2009}space.txt"         => 'Filename-with-thin-space.txt',
 		);
 
 		foreach ( $urls as $test => $expected ) {
@@ -87,7 +91,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_file_name( $input ) );
 	}
 
-	public function data_wp_filenames() {
+	public static function data_wp_filenames() {
 		return array(
 			array( urldecode( '%B1myfile.png' ), 'myfile.png' ),
 			array( urldecode( '%B1myfile' ), 'myfile' ),
@@ -116,7 +120,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period() {
+	public static function data_sanitize_file_name_should_replace_consecutive_periods_with_a_single_period() {
 		return array(
 			'consecutive periods at the start'         => array(
 				'filename' => '...filename.png',

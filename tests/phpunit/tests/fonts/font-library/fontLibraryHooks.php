@@ -10,6 +10,15 @@
  */
 class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 
+	/**
+	 * Tear down the test fixture.
+	 */
+	public function tear_down() {
+		// Remove all fonts uploaded during the tests.
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
 	public function test_deleting_font_family_deletes_child_font_faces() {
 		$font_family_id       = self::factory()->post->create(
 			array(
@@ -46,8 +55,8 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 
 		wp_delete_post( $font_face_id, true );
 
-		$this->assertFalse( file_exists( $font_path ), 'The font file should have been deleted when the post was deleted.' );
-		$this->assertTrue( file_exists( $other_font_path ), 'The other font file should exist.' );
+		$this->assertFileDoesNotExist( $font_path, 'The font file should have been deleted when the post was deleted.' );
+		$this->assertFileExists( $other_font_path, 'The other font file should exist.' );
 	}
 
 	protected function create_font_face_with_file( $filename ) {
@@ -73,13 +82,13 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 		$font_file_path = DIR_TESTDATA . '/fonts/' . $font_filename;
 
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		add_filter( 'upload_dir', 'wp_get_font_dir' );
+		add_filter( 'upload_dir', '_wp_filter_font_directory' );
 		$font_file = wp_upload_bits(
 			$font_filename,
 			null,
 			file_get_contents( $font_file_path )
 		);
-		remove_filter( 'upload_dir', 'wp_get_font_dir' );
+		remove_filter( 'upload_dir', '_wp_filter_font_directory' );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $font_file;

@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 .comment-content a {
 	word-wrap: break-word;
 }
@@ -29,10 +31,10 @@
 		}
 	}
 
-	/* Add extra margin when the comments section is located immediately after the
-	 * post itself (this happens on pages).
-	 */
 	.entry + & {
+		/* Add extra margin when the comments section is located immediately after the
+		 * post itself (this happens on pages).
+		 */
 		margin-top: calc(3 * #{$size__spacing-unit});
 	}
 
@@ -85,6 +87,10 @@
 		left: calc(#{$size__spacing-unit} + 100%);
 		top: calc(-3.5 * #{$size__spacing-unit});
 		width: calc(100vw / 12 );
+	}
+
+	.comment-reply-title small {
+		margin-left: 0.5em;
 	}
 }
 
@@ -145,7 +151,7 @@
 
 			a:not(.comment-edit-link) {
 				font-weight: bold;
-				font-size: $font__size-base / (1 * $font__size-ratio);
+				font-size: math.div($font__size-base, 1 * $font__size-ratio);
 				line-height: 1.5;
 				padding-right: #{0.5 * $size__spacing-unit};
 				display: block;
@@ -201,8 +207,10 @@
 
 		.avatar {
 			float: left;
+			height: calc(2.25 * #{$size__spacing-unit});
 			margin-right: $size__spacing-unit;
 			position: relative;
+			width: calc(2.25 * #{$size__spacing-unit});
 
 			@include media(tablet) {
 				float: inherit;
@@ -231,7 +239,7 @@
 			display: block;
 			height: 18px;
 			position: absolute;
-			background: lighten( $color__link, 8% );
+			background: #008fd3;
 			right: calc(100% - #{$size__spacing-unit * 2.5});
 			top: -3px;
 			width: 18px;
@@ -395,7 +403,7 @@
 	.comment-form-author,
 	.comment-form-email {
 		@include media(tablet) {
-			width: calc(50% - #{$size__spacing-unit / 2});
+			width: calc(50% - math.div($size__spacing-unit, 2));
 			float: left;
 		}
 	}

@@ -10,10 +10,15 @@
  * servers with known pretty permalink capability.
  *
  * Note: Though Nginx is detected, WordPress does not currently
- * generate rewrite rules for it. See https://wordpress.org/documentation/article/nginx/
+ * generate rewrite rules for it. See https://developer.wordpress.org/advanced-administration/server/web-server/nginx/
  *
  * @package WordPress
  */
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 global $pagenow,
 	$is_lynx, $is_gecko, $is_winIE, $is_macIE, $is_opera, $is_NS4, $is_safari, $is_chrome, $is_iphone, $is_IE, $is_edge,
@@ -127,11 +132,11 @@ $is_apache = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Apache' ) || str_cont
 $is_nginx = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'nginx' ) );
 
 /**
- * Whether the server software is Caddy or something else.
+ * Whether the server software is Caddy / FrankenPHP or something else.
  *
  * @global bool $is_caddy
  */
-$is_caddy = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Caddy' ) );
+$is_caddy = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Caddy' ) || str_contains( $_SERVER['SERVER_SOFTWARE'], 'FrankenPHP' ) );
 
 /**
  * Whether the server software is IIS or something else.
@@ -153,7 +158,7 @@ $is_iis7 = $is_IIS && (int) substr( $_SERVER['SERVER_SOFTWARE'], strpos( $_SERVE
  * @since 3.4.0
  * @since 6.4.0 Added checking for the Sec-CH-UA-Mobile request header.
  *
- * @return bool
+ * @return bool Whether the request is from a mobile device.
  */
 function wp_is_mobile() {
 	if ( isset( $_SERVER['HTTP_SEC_CH_UA_MOBILE'] ) ) {

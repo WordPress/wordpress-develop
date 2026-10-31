@@ -54,6 +54,10 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 			return array( 'headers' => true );
 		}
 
+		if ( 'not_an_url' === $url || 'does_not_matter' === $url ) {
+			return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+		}
+
 		return $response;
 	}
 }

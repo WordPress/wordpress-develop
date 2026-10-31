@@ -25,18 +25,18 @@ class Tests_Media_GetPreviousImageLink extends WP_Test_Adjacent_Image_Link_TestC
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_get_previous_image_link() {
+	public static function data_get_previous_image_link() {
 		return array(
 			// Happy paths.
 			'when has previous link'           => array(
 				'current_attachment_index'  => 3,
 				'expected_attachment_index' => 2,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
+				'expected'                  => '<a href=\'http://' . WP_TESTS_DOMAIN . '/?attachment_id=%%ID%%\'><img width="1" height="1" src="' . WP_CONTENT_URL . '/uploads/image2.jpg" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" /></a>',
 			),
 			'with text when has previous link' => array(
 				'current_attachment_index'  => 3,
 				'expected_attachment_index' => 2,
-				'expected'                  => '<a href=\'http://example.org/?attachment_id=%%ID%%\'>Some text</a>',
+				'expected'                  => '<a href=\'http://' . WP_TESTS_DOMAIN . '/?attachment_id=%%ID%%\'>Some text</a>',
 				'args'                      => array( 'text' => 'Some text' ),
 			),
 

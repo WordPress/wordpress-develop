@@ -32,7 +32,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_sanitize_font_family() {
+	public static function data_should_sanitize_font_family() {
 		return array(
 			'data_families_with_spaces_and_numbers' => array(
 				'font_family' => 'Arial, Rock 3D , Open Sans,serif',

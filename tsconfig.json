@@ -1,0 +1,49 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"noEmit": true,
+		"module": "preserve",
+		"target": "ES2020",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"erasableSyntaxOnly": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"allowUnreachableCode": false,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": false,
+
+		"lib": [ "es2020", "dom" ],
+		"typeRoots": [ "./typings", "./node_modules/@types" ],
+		"types": [
+			"node",
+			"backbone",
+			"wp-globals",
+			"media-uploads",
+			"browser-globals",
+			"wp-emoji",
+			"codemirror/addon/lint/lint",
+			"codemirror/addon/hint/show-hint"
+		]
+	},
+	"include": [],
+	"files": [
+		"src/js/_enqueues/admin/media-frame-upload.js",
+		"src/js/_enqueues/admin/media-new-upload.js",
+		"src/js/_enqueues/admin/media-upload-pipeline.js",
+		"src/js/_enqueues/lib/accordion.js",
+		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
+		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
+		"src/js/_enqueues/lib/emoji-loader.js",
+		"src/js/_enqueues/wp/code-editor.js",
+		"src/js/_enqueues/wp/emoji.js",
+		"src/js/_enqueues/wp/wp-tooltip.js",
+		"tools/gutenberg/copy.js",
+		"tools/gutenberg/download.js",
+		"tools/gutenberg/utils.js"
+	]
+}

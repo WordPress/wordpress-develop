@@ -48,7 +48,7 @@ if ( isset( $_POST['action'] ) && 'deleteblog' === $_POST['action'] && isset( $_
 	check_admin_referer( 'delete-blog' );
 
 	$hash = wp_generate_password( 20, false );
-	update_option( 'delete_blog_hash', $hash );
+	update_option( 'delete_blog_hash', $hash, false );
 
 	$url_delete = esc_url( admin_url( 'ms-delete-site.php?h=' . $hash ) );
 
@@ -74,6 +74,13 @@ All at ###SITENAME###
 	);
 	/**
 	 * Filters the text for the email sent to the site admin when a request to delete a site in a Multisite network is submitted.
+	 *
+	 * The following strings have a special meaning and will get replaced dynamically:
+	 *
+	 *  - `###USERNAME###`   The current user's username.
+	 *  - `###URL_DELETE###` The link to click on to confirm the site deletion.
+	 *  - `###SITENAME###`   The name of the site.
+	 *  - `###SITEURL###`    The URL to the site.
 	 *
 	 * @since 3.0.0
 	 *

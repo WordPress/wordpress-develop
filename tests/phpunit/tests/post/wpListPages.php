@@ -160,6 +160,42 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 61749
+	 */
+	public function test_wp_list_pages_depth_equals_zero() {
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
+<ul class=\'children\'>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
+</ul>
+</li>
+</ul></li>';
+
+		// Execute wp_list_pages() with a string to force calling wp_parse_args().
+		ob_start();
+		wp_list_pages( 'depth=0' );
+		$output = ob_get_clean();
+
+		// If depth equals 0, all levels should be displayed.
+		$this->assertSameIgnoreEOL( $expected, $output );
+	}
+
 	public function test_wp_list_pages_show_date() {
 		$args = array(
 			'echo'      => false,
@@ -502,6 +538,65 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			1,
 			substr_count( $output, 'current_page_item' ),
 			'The output should contain exactly one "current_page_item" class.'
+		);
+	}
+
+	/**
+	 * @ticket 28801
+	 * @dataProvider data_wp_list_pages_omitted_ancestor
+	 *
+	 * @param int $depth Maximum depth to display.
+	 */
+	public function test_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first( $depth ) {
+		$ancestor = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$parent   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $ancestor,
+				'post_title'  => 'Included parent',
+				'menu_order'  => 10,
+			)
+		);
+		$child    = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent,
+				'post_title'  => 'Included child',
+				'menu_order'  => 0,
+			)
+		);
+
+		$expected = '<li class="page_item page-item-' . $parent . ' page_item_has_children"><a href="' . get_permalink( $parent ) . '">Included parent</a>';
+		if ( 1 !== $depth ) {
+			$expected .= '<ul class=\'children\'><li class="page_item page-item-' . $child . '"><a href="' . get_permalink( $child ) . '">Included child</a></li></ul>';
+		}
+		$expected .= '</li>';
+
+		$this->assertSame(
+			$expected,
+			wp_list_pages(
+				array(
+					'include'      => array( $parent, $child ),
+					'sort_column'  => 'menu_order',
+					'depth'        => $depth,
+					'echo'         => false,
+					'title_li'     => '',
+					'item_spacing' => 'discard',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first().
+	 *
+	 * @return array
+	 */
+	public static function data_wp_list_pages_omitted_ancestor() {
+		return array(
+			'unlimited depth' => array( 0 ),
+			'depth one'       => array( 1 ),
+			'depth two'       => array( 2 ),
 		);
 	}
 }

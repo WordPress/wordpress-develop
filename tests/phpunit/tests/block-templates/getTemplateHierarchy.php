@@ -41,11 +41,25 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 	}
 
 	/**
+	 * @ticket 60846
+	 */
+	public function test_get_template_hierarchy_with_hooks() {
+		add_filter(
+			'date_template_hierarchy',
+			function ( $templates ) {
+				return array_merge( array( 'date-custom' ), $templates );
+			}
+		);
+		$expected = array( 'date-custom', 'date', 'archive', 'index' );
+		$this->assertSame( $expected, get_template_hierarchy( 'date' ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
 	 */
-	public function data_get_template_hierarchy() {
+	public static function data_get_template_hierarchy() {
 		return array(
 			'front-page'                               => array(
 				'args'     => array( 'front-page' ),
