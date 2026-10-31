@@ -144,6 +144,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'luigi',
 			)
 		);
+		$c6 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -153,7 +160,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found, 'Empty string should return all public comments.' );
+		$this->assertNotContains( $c6, $found, 'Empty string should not return block comments.' );
 	}
 
 	/**
@@ -196,6 +204,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'luigi',
 			)
 		);
+		$c6 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -205,7 +220,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c1 ), $found );
+		$this->assertSameSets( array( $c1 ), $found, 'Comment type should return only regular comments.' );
 	}
 
 	/**
@@ -239,6 +254,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'trackback',
 			)
 		);
+		$c5 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -248,7 +270,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found, 'Pingback type should return only pingbacks.' );
 	}
 
 	/**
@@ -282,6 +304,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'pingback',
 			)
 		);
+		$c5 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -291,7 +320,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found, 'Trackback type should return only trackbacks.' );
 	}
 
 	/**
@@ -334,6 +363,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'luigi',
 			)
 		);
+		$c6 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -343,7 +379,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found, 'Pings type should return only trackbacks and pingbacks.' );
 	}
 
 	/**
@@ -395,6 +431,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'mario',
 			)
 		);
+		$c7 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -404,7 +447,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c1, $c4, $c6 ), $found );
+		$this->assertSameSets( array( $c1, $c4, $c6 ), $found, 'Comments + custom type should return regular comments and custom type.' );
 	}
 
 	/**
@@ -454,6 +497,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'mario',
 			)
 		);
+		$c7 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'block_comment',
+			)
+		);
 
 		$q     = new WP_Comment_Query();
 		$found = $q->query(
@@ -463,7 +513,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c6 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c6 ), $found, 'Not in luigi should return all but luigi.' );
+		$this->assertNotContains( $c7, $found, 'Not in luigi should not return block comments.' );
 	}
 
 	/**
