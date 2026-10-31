@@ -43,6 +43,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		unregister_taxonomy( 'non_queryable_tax' );
 		unregister_taxonomy( 'public_taxonomy' );
 		unregister_taxonomy( 'non_queryable_taxonomy' );
+		unregister_taxonomy( 'valid_custom_taxonomy' );
 
 		parent::tear_down();
 	}
