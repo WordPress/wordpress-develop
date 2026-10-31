@@ -11,74 +11,83 @@
 class Tests_got_mod_rewrite extends WP_UnitTestCase {
 
 	/**
-	 * Tests that got_mod_rewrite() correctly detects mod_rewrite based on server and filters.
+	 * Original value of the `$is_apache` global.
+	 *
+	 * @var bool
+	 */
+	private $original_is_apache;
+
+	/**
+	 * Backs up the `$is_apache` global.
+	 *
+	 * @global bool $is_apache
+	 */
+	public function set_up() {
+		global $is_apache;
+		parent::set_up();
+		$this->original_is_apache = $is_apache;
+	}
+
+	public function tear_down() {
+		$GLOBALS['is_apache'] = $this->original_is_apache;
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that got_mod_rewrite() detects mod_rewrite based on the server, and that the filter overrides it.
 	 *
 	 * @ticket 65134
 	 *
 	 * @dataProvider data_got_mod_rewrite
 	 *
-	 * @param bool      $expected      The expected result from got_mod_rewrite().
-	 * @param bool      $apache_loaded Whether mod_rewrite is reported as loaded by Apache.
-	 * @param bool|null $filter_value  Optional value to return via the 'got_rewrite' filter.
+	 * @param bool $is_apache    Whether the server is Apache.
+	 * @param bool $filter_value Value to return via the 'got_rewrite' filter.
 	 */
-	public function test_got_mod_rewrite( bool $expected, bool $apache_loaded, ?bool $filter_value ) {
-		// Mock the Apache module check by filtering 'got_rewrite' if needed,
-		// but since got_mod_rewrite calls apache_mod_loaded which we can't easily mock
-		// without a framework, we rely on the filter for full control.
+	public function test_got_mod_rewrite( bool $is_apache, bool $filter_value ) {
+		$GLOBALS['is_apache'] = $is_apache;
 
-		if ( null !== $filter_value ) {
-			add_filter(
-				'got_rewrite',
-				static function () use ( $filter_value ) {
-					return $filter_value;
-				}
-			);
-		}
+		/*
+		 * On Apache, apache_mod_loaded() falls back to the default of true when the module list
+		 * cannot be determined (as in the CLI), and it always returns false for other servers.
+		 */
+		$this->assertSame( $is_apache, got_mod_rewrite(), 'Expected the unfiltered result to reflect the server detection.' );
 
-		// If we are NOT filtering, we need to be aware of the environment.
-		// However, the function's internal logic is:
-		// return apply_filters( 'got_rewrite', apache_mod_loaded( 'mod_rewrite', true ) );
-		// Since we want to test the function's behavior across different scenarios,
-		// we use the filter to simulate the different outcomes of the internal check.
+		add_filter(
+			'got_rewrite',
+			static function () use ( $filter_value ) {
+				return $filter_value;
+			}
+		);
 
-		$this->assertSame( $expected, got_mod_rewrite() );
+		$this->assertSame( $filter_value, got_mod_rewrite(), 'Expected the filter to override the detected value.' );
 	}
 
 	/**
 	 * Data provider for {@see self::test_got_mod_rewrite()}.
 	 *
 	 * @return array<string, array{
-	 *     expected:      bool,
-	 *     apache_loaded: bool,
-	 *     filter_value:  bool|null,
+	 *     is_apache:    bool,
+	 *     filter_value: bool,
 	 * }>
 	 */
 	public function data_got_mod_rewrite(): array {
 		return array(
-			'Default behavior (should match filter or internal check)' => array(
-				'expected'      => true,
-				'apache_loaded' => true,
-				'filter_value'  => true,
+			'Apache, filter returns true'      => array(
+				'is_apache'    => true,
+				'filter_value' => true,
 			),
-			'Filter returns false' => array(
-				'expected'      => false,
-				'apache_loaded' => true,
-				'filter_value'  => false,
+			'Apache, filter returns false'     => array(
+				'is_apache'    => true,
+				'filter_value' => false,
 			),
-			'Filter returns true even if Apache check might be false' => array(
-				'expected'      => true,
-				'apache_loaded' => false,
-				'filter_value'  => true,
+			'Non-Apache, filter returns true'  => array(
+				'is_apache'    => false,
+				'filter_value' => true,
+			),
+			'Non-Apache, filter returns false' => array(
+				'is_apache'    => false,
+				'filter_value' => false,
 			),
 		);
-	}
-
-	/**
-	 * Tests that the unfiltered result matches Apache module detection.
-	 *
-	 * @ticket 65134
-	 */
-	public function test_got_mod_rewrite_without_filter() {
-		$this->assertSame( apache_mod_loaded( 'mod_rewrite', true ), got_mod_rewrite() );
 	}
 }
