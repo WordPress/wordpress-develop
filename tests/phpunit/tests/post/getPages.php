@@ -43,6 +43,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		_unregister_post_status( 'foo' );
 		unregister_post_type( 'wptests_pt' );
 
 		parent::tear_down();
@@ -478,7 +479,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSameSets( $parsed_args, $filter_args[0][1], 'Unexpected $parsed_args for get_pages_query_args filter' );
 	}
 
-	public function data_get_pages_args() {
+	public static function data_get_pages_args() {
 		return array(
 			'default'            => array(
 				'args'                => array(),

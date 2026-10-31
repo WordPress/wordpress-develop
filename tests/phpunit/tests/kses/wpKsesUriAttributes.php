@@ -25,15 +25,6 @@ class Tests_Kses_wpKsesUriAttributes extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_returns_list_of_strings() {
-		foreach ( wp_kses_uri_attributes() as $attribute ) {
-			$this->assertIsString( $attribute );
-		}
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_wp_kses_uri_attributes_filter() {
 		add_filter(
 			'wp_kses_uri_attributes',

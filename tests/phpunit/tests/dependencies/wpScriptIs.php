@@ -71,7 +71,7 @@ class Tests_Dependencies_WpScriptIs extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_script_handles() {
+	public static function data_script_handles() {
 		return array(
 			array( 'heartbeat' ),
 			array( 'jquery' ),
@@ -111,7 +111,7 @@ class Tests_Dependencies_WpScriptIs extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_deps_are_enqueued() {
+	public static function data_deps_are_enqueued() {
 		return array(
 			'jquery: 1 level of deps'                 => array(
 				'handle' => 'jquery',
@@ -194,7 +194,7 @@ class Tests_Dependencies_WpScriptIs extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_deps_should_not_enqueue() {
+	public static function data_non_deps_should_not_enqueue() {
 		return array(
 			'imagesloaded: no dependencies' => array(
 				'handle'   => 'imagesloaded',

@@ -22,7 +22,7 @@ class Tests_Theme_RegisterThemeFeature extends WP_UnitTestCase {
 		$this->assertSame( $error_code, $registered->get_error_code() );
 	}
 
-	public function data_register_theme_support_validation() {
+	public static function data_register_theme_support_validation() {
 		return array(
 			array(
 				'invalid_type',
