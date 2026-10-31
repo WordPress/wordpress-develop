@@ -44,7 +44,7 @@ class Tests_Date_wpTimezone extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_convert_gmt_offset() {
+	public static function data_should_convert_gmt_offset() {
 		return array(
 			array( -12, '-12:00' ),
 			array( -11.5, '-11:30' ),
