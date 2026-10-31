@@ -247,4 +247,4 @@ jobs:
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.split_slow && ! inputs.phpunit-test-groups }}
-        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c phpunit.xml.dist --group external-http
+        run: npm run "test:${PHPUNIT_SCRIPT}" -- --verbose -c "${PHPUNIT_CONFIG}" --group external-http
