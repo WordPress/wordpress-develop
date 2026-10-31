@@ -46,7 +46,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	 * @param bool $is_apache    Whether the server is Apache.
 	 * @param bool $filter_value Value to return via the 'got_rewrite' filter.
 	 */
-	public function test_got_mod_rewrite( bool $is_apache, bool $filter_value ) {
+	public function test_got_mod_rewrite( bool $is_apache, bool $filter_value ): void {
 		$GLOBALS['is_apache'] = $is_apache;
 
 		/*
