@@ -72,4 +72,13 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that the unfiltered result matches Apache module detection.
+	 *
+	 * @ticket 65134
+	 */
+	public function test_got_mod_rewrite_without_filter() {
+		$this->assertSame( apache_mod_loaded( 'mod_rewrite', true ), got_mod_rewrite() );
+	}
 }
