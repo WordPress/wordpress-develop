@@ -10,6 +10,13 @@
  */
 class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
+	 * Original theme features before test runs.
+	 *
+	 * @var array
+	 */
+	protected $original_theme_features;
+
+	/**
 	 * Sets up each test method.
 	 *
 	 * @global WP_Scripts        $wp_scripts
@@ -20,7 +27,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $post;
 
 		parent::set_up();
-		$this->original_stylesheet = get_stylesheet();
+		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
+		$this->original_stylesheet     = get_stylesheet();
 
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 
@@ -75,7 +83,11 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			switch_theme( $this->original_stylesheet );
 		}
 
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
+		}
 	}
 
 	protected ?WP_Scripts $original_wp_scripts;
