@@ -7,6 +7,8 @@
  * @group ms-required
  * @group ms-site
  * @group multisite
+ *
+ * @covers ::get_id_from_blogname
  */
 class Tests_Multisite_GetIdFromBlogname extends WP_UnitTestCase {
 

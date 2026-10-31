@@ -26,6 +26,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'yes_title' );
+		unregister_post_type( 'no_title' );
+
+		parent::tear_down();
+	}
+
 	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
@@ -58,7 +65,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
@@ -71,7 +78,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( true, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
@@ -253,7 +260,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		// Check that the first post's values don't stomp the second post.
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertEquals( self::$author_ids[1], $post->post_author );
+		$this->assertSame( (string) self::$author_ids[1], $post->post_author );
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
 	}
@@ -532,6 +539,52 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
+	 * Tests that get_default_post_to_edit() calls wp_die() if wp_insert_post() returns a WP_Error.
+	 *
+	 * @ticket 37441
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_wp_insert_post_error() {
+		add_filter( 'wp_insert_post_empty_content', '__return_true' );
+
+		$this->expectException( 'WPDieException' );
+		get_default_post_to_edit( 'post', true );
+	}
+
+	/**
+	 * Tests that default post title is present when a CPT has title support, and is empty otherwise.
+	 *
+	 * @ticket 45516
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_and_without_title_support() {
+		register_post_type(
+			'yes_title',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+		register_post_type(
+			'no_title',
+			array(
+				'supports' => array( 'editor' ),
+			)
+		);
+
+		/*
+		 * The ID is obtained because get_default_post_to_edit() will force the post_title
+		 * to be overridden on the returned WP_Post object.
+		 */
+		$default_yes_title_post_id = get_default_post_to_edit( 'yes_title', true )->ID;
+		$default_no_title_post_id  = get_default_post_to_edit( 'no_title', true )->ID;
+
+		$this->assertSame( __( 'Auto Draft' ), get_post( $default_yes_title_post_id )->post_title, 'Expected post_title to be the default title.' );
+		$this->assertSame( '', get_post( $default_no_title_post_id )->post_title, 'Expected post_title to be an empty string.' );
 	}
 
 	/**
@@ -921,6 +974,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -929,6 +983,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 

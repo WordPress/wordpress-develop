@@ -548,7 +548,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function data_build_mysql_datetime() {
+	public static function data_build_mysql_datetime() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
@@ -583,7 +583,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function data_build_mysql_datetime_with_custom_timezone() {
+	public static function data_build_mysql_datetime_with_custom_timezone() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
@@ -1184,7 +1184,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$sql = $q->get_sql();
 
-		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$parts = preg_split( '#\)\s+AND\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
 		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of AND operators.' );
 
@@ -1231,7 +1231,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'OR', $sql, 'SQL query does not contain conditions joined by operator OR.' );
 
-		$parts = mb_split( '\)\s+OR\s+\(', $sql );
+		$parts = preg_split( '#\)\s+OR\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator OR.' );
 		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of OR operators.' );
 
@@ -1277,7 +1277,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$sql = $q->get_sql();
 
-		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$parts = preg_split( '#\)\s+AND\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
 		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of AND operators.' );
 

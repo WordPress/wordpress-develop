@@ -60,9 +60,7 @@ class WP_Test_Stream {
 			throw new Exception( 'Cannot use an empty bucket name' );
 		}
 
-		if ( ! isset( WP_Test_Stream::$data[ $this->bucket ] ) ) {
-			WP_Test_Stream::$data[ $this->bucket ] = array();
-		}
+		WP_Test_Stream::$data[ $this->bucket ] ??= array();
 
 		$this->data_ref =& WP_Test_Stream::$data[ $this->bucket ][ $this->file ];
 
@@ -101,9 +99,7 @@ class WP_Test_Stream {
 	 * @see streamWrapper::stream_write
 	 */
 	public function stream_write( $data ) {
-		if ( ! isset( $this->data_ref ) ) {
-			$this->data_ref = '';
-		}
+		$this->data_ref ??= '';
 
 		$left  = substr( $this->data_ref, 0, $this->position );
 		$right = substr( $this->data_ref, $this->position + strlen( $data ) );
@@ -186,9 +182,7 @@ class WP_Test_Stream {
 	public function stream_metadata( $path, $option, $value ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
-			if ( ! isset( $this->data_ref ) ) {
-				$this->data_ref = '';
-			}
+			$this->data_ref ??= '';
 			return true;
 		}
 		return false;

@@ -7,7 +7,7 @@
 class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 
 	/**
-	 * Tests the the normalize_whitespace() function.
+	 * Tests the normalize_whitespace() function.
 	 *
 	 * @dataProvider data_normalize_whitespace
 	 */
@@ -25,7 +25,7 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_normalize_whitespace() {
+	public static function data_normalize_whitespace() {
 		return array(
 			array(
 				'		',

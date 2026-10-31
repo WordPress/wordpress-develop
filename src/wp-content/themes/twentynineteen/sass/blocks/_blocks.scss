@@ -349,7 +349,7 @@
 		padding: $size__spacing-unit;
 	}
 
-	//! Verse
+	//! Poetry (Verse)
 	.wp-block-verse {
 		@include font-family( $font__body );
 		font-size: $font__size_base;
@@ -434,6 +434,10 @@
 					margin-top: 0;
 				}
 			}
+		}
+
+		&.has-text-color cite {
+			color: inherit;
 		}
 
 		&.is-style-solid-color {
@@ -724,12 +728,12 @@
 		}
 
 		&.is-style-dots {
-			max-width: 100%;
-			@include postContentMaxWidth();
 			background-color: inherit;
 			border: inherit;
 			height: inherit;
 			text-align: center;
+			max-width: 100%;
+			@include postContentMaxWidth();
 
 			// Only apply the default dot color if there's no separator color specified.
 			&:not(.has-text-color):not(.has-background) {
@@ -743,12 +747,11 @@
 			}
 		}
 
-		/* Remove duplicate rule-line when a separator
-		 * is followed by an H1, or H2 */
 		& + h1,
 		& + h2 {
 
 			&:before {
+				/* Remove duplicate rule-line when a separator is followed by an H1 or H2 */
 				display: none;
 			}
 		}
@@ -803,6 +806,16 @@
 				outline: thin dotted;
 				outline-offset: -4px;
 			}
+		}
+
+		&.aligncenter .wp-block-file__button {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		&.alignright .wp-block-file__button {
+			margin-left: auto;
+			margin-right: 0;
 		}
 	}
 

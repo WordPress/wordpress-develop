@@ -5,6 +5,11 @@
  */
 class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'wp_getTerms_custom_taxonomy' );
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'username', 'password', 'category' ) );
 		$this->assertIXRError( $result );
@@ -46,6 +51,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $term ) {
 			$this->assertIsInt( $term['count'] );
@@ -142,7 +148,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
 		$this->assertSame( $name, $results[0]['name'] );
-		$this->assertEquals( $name_id, $results[0]['term_id'] );
+		$this->assertSame( (string) $name_id, $results[0]['term_id'] );
 
 		// Search by partial name.
 		$filter   = array( 'search' => substr( $name, 0, 10 ) );
@@ -150,6 +156,6 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results2 );
 		$this->assertCount( 1, $results2 );
 		$this->assertSame( $name, $results2[0]['name'] );
-		$this->assertEquals( $name_id, $results2[0]['term_id'] );
+		$this->assertSame( (string) $name_id, $results2[0]['term_id'] );
 	}
 }

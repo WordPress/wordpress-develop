@@ -26,7 +26,7 @@ class Tests_Media_GetAdjacentImageLink extends WP_Test_Adjacent_Image_Link_TestC
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_get_adjacent_image_link() {
+	public static function data_get_adjacent_image_link() {
 		return array(
 			// Happy paths.
 			'when has previous link'           => array(

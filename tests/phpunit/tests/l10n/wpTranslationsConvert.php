@@ -126,7 +126,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	/**
 	 * @return array{0: array{0: 'mo'|'php', 1: string|false, 2?: string}}
 	 */
-	public function data_invalid_files(): array {
+	public static function data_invalid_files(): array {
 		return array(
 			array( 'php', '' ),
 			array( 'php', '<?php // This is a php file without a payload' ),
@@ -208,7 +208,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	/**
 	 * @return array<array{0: string}>
 	 */
-	public function data_simple_example_files(): array {
+	public static function data_simple_example_files(): array {
 		return array(
 			array( 'example-simple.mo' ),
 			array( 'example-simple.php' ),
@@ -511,7 +511,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$source_headers      = $source->headers();
 		$destination_headers = $destination_read->headers();
 
-		$this->assertEquals( $source_headers, $destination_headers );
+		$this->assertSame( $source_headers, $destination_headers );
 
 		foreach ( $source->entries() as $original => $translation ) {
 			// Verify the translation is in the destination file
@@ -523,7 +523,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	/**
 	 * @return array<array{0:string, 1: 'mo'|'php'}>
 	 */
-	public function data_export_matrix(): array {
+	public static function data_export_matrix(): array {
 		$formats = array( 'mo', 'php' );
 
 		$matrix = array();

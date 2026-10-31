@@ -38,6 +38,26 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 */
 	public static $terms;
 
+
+	/**
+	 * Admin user ID.
+	 *
+	 * @var int
+	 */
+	public static $admin_user_id = 0;
+
+	/**
+	 * User IDs keyed by role.
+	 *
+	 * @var int[]
+	 */
+	public static $user_ids = array();
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory The factory.
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Make some post objects.
 		self::$posts = $factory->post->create_many( 5 );
@@ -45,6 +65,13 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 
 		// Some terms too.
 		self::$terms = $factory->term->create_many( 5 );
+
+		// Create an admin user.
+		self::$admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+
+		foreach ( array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
+			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
+		}
 	}
 
 	/**
@@ -53,10 +80,16 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_user_id );
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
 		$wp_customize       = $this->wp_customize;
+	}
+
+	public function tear_down() {
+		unregister_post_type( 'privilege' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -91,7 +124,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 			$this->expectExceptionMessage( '-1' );
 		}
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => $role ) ) );
+		wp_set_current_user( self::$user_ids[ $role ] );
 
 		$_POST = array(
 			'action'                => 'load-available-menu-items-customizer',
@@ -124,7 +157,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_cap_check() {
+	public static function data_ajax_load_available_items_cap_check() {
 		return array(
 			array(
 				'subscriber',
@@ -196,7 +229,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_error_messages() {
+	public static function data_ajax_load_available_items_error_messages() {
 		return array(
 			// Testing empty obj_type and type.
 			array(
@@ -307,7 +340,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_success_status() {
+	public static function data_ajax_load_available_items_success_status() {
 		return array(
 			array(
 				array(
@@ -443,7 +476,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_structure() {
+	public static function data_ajax_load_available_items_structure() {
 		return array(
 			array(
 				array(
@@ -485,7 +518,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 			$this->expectExceptionMessage( '-1' );
 		}
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => $role ) ) );
+		wp_set_current_user( self::$user_ids[ $role ] );
 
 		$_POST = array(
 			'action'                => 'search-available-menu-items-customizer',
@@ -520,7 +553,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_search_available_items_caps_check() {
+	public static function data_ajax_search_available_items_caps_check() {
 		return array(
 			array(
 				'subscriber',
@@ -615,7 +648,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_search_available_items_results() {
+	public static function data_ajax_search_available_items_results() {
 		return array(
 			array(
 				array(),
@@ -705,7 +738,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 		$this->assertSame( 'bad_nonce', $response['data'] );
 
 		// Bad nonce.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		wp_set_current_user( self::$user_ids['subscriber'] );
 		$_POST                = wp_slash(
 			array(
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
@@ -718,7 +751,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 		$this->assertSame( 'customize_not_allowed', $response['data'] );
 
 		// Missing params.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_ids['administrator'] );
 		$_POST                = wp_slash(
 			array(
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),

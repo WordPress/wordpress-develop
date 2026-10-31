@@ -200,7 +200,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 		$time2       = wp_cache_get( 'last_changed', 'terms' );
-		$this->assertNotEquals( $time1, $time2 );
+		$this->assertNotSame( $time1, $time2 );
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
@@ -1499,7 +1499,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEquals( 5, $found );
+		$this->assertSame( '5', $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_count() {
@@ -1520,7 +1520,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		_unregister_taxonomy( 'hierarchical_fields' );
 
 		// When using 'fields=count', 'hierarchical' is forced to false.
-		$this->assertEquals( 2, $found );
+		$this->assertSame( '2', $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_count_hierarchical_false() {
@@ -1540,8 +1540,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		_unregister_taxonomy( 'hierarchical_fields' );
-
-		$this->assertEquals( 2, $found );
+		$this->assertSame( '2', $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_false_fields_idparent() {
@@ -2876,9 +2875,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $found );
 
-		foreach ( $found as $term ) {
-			$this->assertInstanceOf( 'WP_Term', $term );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -2914,9 +2911,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $found );
 
-		foreach ( $found as $term ) {
-			$this->assertInstanceOf( 'WP_Term', $term );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -3096,7 +3091,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		remove_filter( 'get_terms', array( __CLASS__, 'maybe_filter_count' ) );
 
-		$this->assertNotEquals( 'foo', $found );
+		$this->assertNotSame( 'foo', $found );
 	}
 
 	public static function maybe_filter_count() {
@@ -3180,7 +3175,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_same_term_args() {
+	public static function data_same_term_args() {
 		return array(
 			'all fields vs ids'                        => array(
 				array(

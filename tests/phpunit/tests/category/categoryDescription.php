@@ -7,6 +7,12 @@
  * @covers ::category_description
  */
 class Tests_Category_CategoryDescription extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
 	public function test_success_query_by_id() {
 		$description = 'Foo';
 		$c           = self::factory()->category->create(

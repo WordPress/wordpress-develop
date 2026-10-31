@@ -45,7 +45,7 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$wp_filter['wp_footer']   = new WP_Hook();
 
 		// Removes all registered styles.
-		$this->original_wp_styles = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
+		$this->original_wp_styles = $GLOBALS['wp_styles'] ?? null;
 		$GLOBALS['wp_styles']     = new WP_Styles();
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -74,6 +74,25 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		ob_start();
 		do_action( 'wp_footer' );
 		return ob_get_clean();
+	}
+
+	/**
+	 * Processes directives while temporarily replacing the global
+	 * WP_Interactivity_API instance so that global functions like
+	 * `wp_interactivity_state` operate on the test instance.
+	 *
+	 * @param string $html The HTML to process.
+	 * @return string The processed HTML.
+	 */
+	protected function process_directives( string $html ): string {
+		global $wp_interactivity;
+		$prev             = $wp_interactivity;
+		$wp_interactivity = $this->interactivity;
+
+		$result = $this->interactivity->process_directives( $html );
+
+		$wp_interactivity = $prev;
+		return $result;
 	}
 
 	/**
@@ -125,5 +144,59 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$p      = new WP_HTML_Tag_Processor( $footer );
 		$this->assertTrue( $p->next_tag( $query ) );
 		$this->assertFalse( $p->next_tag( $query ) );
+	}
+
+	/**
+	 * Tests that the `data-wp-router-region` directive initializes the
+	 * `core/router` state URL from the server.
+	 *
+	 * @ticket 64649
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_router_region_initializes_state_url() {
+		$_SERVER['REQUEST_URI'] = '/test-page/?query=1';
+
+		$html = '<div data-wp-router-region="region A">Interactive region</div>';
+		$this->process_directives( $html );
+
+		$state = $this->interactivity->state( 'core/router' );
+		$this->assertSame( home_url( '/test-page/?query=1' ), $state['url'] );
+	}
+
+	/**
+	 * Tests that the `core/router` state URL uses HTTPS when SSL is active.
+	 *
+	 * @ticket 64649
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_router_region_initializes_state_url_with_https() {
+		$_SERVER['REQUEST_URI'] = '/';
+		$_SERVER['HTTPS']       = 'on';
+
+		$html = '<div data-wp-router-region="region A">Interactive region</div>';
+		$this->process_directives( $html );
+
+		$state = $this->interactivity->state( 'core/router' );
+		$this->assertStringStartsWith( 'https://', $state['url'] );
+	}
+
+	/**
+	 * Tests that the `core/router` state URL is not set when no
+	 * `data-wp-router-region` directive is present.
+	 *
+	 * @ticket 64649
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_router_region_does_not_set_state_url_without_directive() {
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$html = '<div>Nothing here</div>';
+		$this->process_directives( $html );
+
+		$state = $this->interactivity->state( 'core/router' );
+		$this->assertEmpty( $state );
 	}
 }

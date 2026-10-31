@@ -24,6 +24,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentythree',
 		'twentytwentyfour',
 		'twentytwentyfive',
+		'ipsum',
 	);
 
 	/**
@@ -33,14 +34,22 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Theme features registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
-		$this->orig_theme_dir = $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_dir      = $wp_theme_directories;
+		$wp_theme_directories      = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -56,7 +65,12 @@ class Tests_Theme extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			// Restore after the parent removes HTML5 theme support.
+			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+		}
 	}
 
 	public function test_wp_get_themes_default() {
@@ -66,6 +80,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$single_theme = wp_get_theme( $this->theme_slug );
 		$this->assertSame( $single_theme->get( 'Name' ), $themes[ $this->theme_slug ]->get( 'Name' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $themes[ $this->theme_slug ], $single_theme );
 	}
 
@@ -89,10 +104,14 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_theme() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
-			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
-			$this->assertFalse( is_array( $theme ) );
+			// WP_Theme implements ArrayAccess, but that does not make it an array:
+			// is_array() returns false for ArrayObject.
+			$this->assertIsNotArray( $theme );
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertSame( $theme, $themes[ $name ] );
 		}
@@ -100,12 +119,16 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	public function test_wp_get_theme() {
 		$themes = wp_get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( $themes as $theme ) {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertFalse( $theme->errors() );
 			$_theme = wp_get_theme( $theme->get_stylesheet() );
 			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded).
 			$this->assertSame( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $theme, $_theme );
 		}
 	}
@@ -115,6 +138,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_themes_contents() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
 			// Don't run these checks for custom themes.
@@ -203,11 +229,12 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Make sure we update the default theme list to include the latest default theme.
 	 *
 	 * @ticket 29925
+	 * @ticket 66352
 	 */
 	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
-		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
-			$this->fail( 'No Twenty* series default themes are installed.' );
+		if ( ! $latest_default_theme->exists() ) {
+			$this->fail( 'No default themes are installed.' );
 		}
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
@@ -223,7 +250,9 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Use a reflection to make WP_THEME::$default_themes accessible.
 		$reflection = new ReflectionClass( 'WP_Theme' );
 		$property   = $reflection->getProperty( 'default_themes' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		/*
 		 * `default` and `classic` are included in `WP_Theme::$default_themes` but not included
@@ -303,7 +332,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 48566
 	 *
-	 * @dataProvider data_year_in_readme
+	 * @dataProvider data_provider_default_themes
 	 */
 	public function test_year_in_readme( $theme ) {
 		// This test is designed to only run on trunk.
@@ -325,13 +354,71 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_year_in_readme() {
-		return array_map(
-			static function ( $theme ) {
-				return array( $theme );
-			},
-			$this->default_themes
-		);
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ theme: string }>
+	 */
+	public function data_provider_default_themes(): array {
+		$data = array();
+		foreach ( $this->default_themes as $default_theme ) {
+			$data[ $default_theme ] = array( 'theme' => $default_theme );
+		}
+		return $data;
+	}
+
+	/**
+	 * Tests that the version number in style.css, readme.txt, and package.json all match.
+	 *
+	 * @ticket 63012
+	 *
+	 * @dataProvider data_provider_default_themes
+	 */
+	public function test_version_consistency_in_package_json( string $theme ) {
+		$wp_theme = wp_get_theme( $theme );
+
+		$path_to_style_css = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/style.css';
+		$this->assertFileExists( $path_to_style_css );
+		$this->assertSame( 1, preg_match( '/^Version: (\d+\.\d+(?:\.\d+)?)$/m', file_get_contents( $path_to_style_css ), $matches ), 'Expected Version in style.css' );
+		$style_version = $matches[1];
+
+		// Version in style.css does not use patch versions, so supply one of 0.
+		$version_with_patch = $matches[1];
+		if ( 1 === substr_count( $version_with_patch, '.' ) ) {
+			$version_with_patch .= '.0';
+		}
+
+		$package_files         = array( 'package.json', 'package-lock.json' );
+		$present_package_files = array();
+		foreach ( $package_files as $package_file ) {
+			$path_to_package_json = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/' . $package_file;
+			if ( file_exists( $path_to_package_json ) ) {
+				$present_package_files[] = $package_file;
+
+				$data = json_decode( file_get_contents( $path_to_package_json ), true );
+				$this->assertIsArray( $data, "Expected $package_file to be an array." );
+				$this->assertArrayHasKey( 'name', $data, "Expected name key in $package_file." );
+				$this->assertSame( $theme, $data['name'], "Expected name field to be the theme slug in $package_file." );
+				$this->assertArrayHasKey( 'version', $data, "Expected version key in $package_file." );
+				$this->assertSame( $version_with_patch, $data['version'], "Expected version from style.css to match version in $package_file." );
+
+				if ( 'package-lock.json' === $package_file && isset( $data['packages'][''] ) ) {
+					$this->assertArrayHasKey( 'version', $data['packages'][''], "Expected version key in packages[''] in package-lock.json." );
+					$this->assertSame( $version_with_patch, $data['packages']['']['version'], "Expected version from style.css to match packages[''].version in package-lock.json." );
+				}
+			}
+		}
+		if ( count( $present_package_files ) > 0 ) {
+			$this->assertCount( 2, $present_package_files, 'Expected package-lock.json to be present when package.json is present, and vice versa.' );
+		}
+
+		// TODO: The themes twentyfifteen, twentysixteen, and twentyseventeen lack a Stable Tag in the readme.txt.
+		$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
+		$this->assertFileExists( $path_to_readme_txt );
+		if ( 1 === preg_match( '/^Stable [Tt]ag: (\d+\.\d+(?:\.\d+)?)$/m', file_get_contents( $path_to_readme_txt ), $matches ) ) {
+			$readme_version = $matches[1];
+			$this->assertSame( $style_version, $readme_version, 'Expected version in style.css and stable tag in readme.txt to match.' );
+		}
 	}
 
 	/**
@@ -361,6 +448,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	public function test_switch_theme() {
 		$themes = get_themes();
 
+		$this->assertNotEmpty( $themes );
+
 		// Switch to each theme in sequence.
 		// Do it twice to make sure we switch to the first theme, even if it's our starting theme.
 		// Do it a third time to ensure switch_theme() works with one argument.
@@ -386,7 +475,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
 				$root_fs = $theme->get_theme_root();
-				$this->assertTrue( is_dir( $root_fs ) );
+				$this->assertDirectoryExists( $root_fs );
 
 				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
@@ -494,7 +583,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		do_action( 'customize_register', $wp_customize );
 
 		// The post_date for auto-drafts is bumped to match the changeset post_date whenever it is modified
-		// to keep them from from being garbage collected by wp_delete_auto_drafts().
+		// to keep them from being garbage collected by wp_delete_auto_drafts().
 		$wp_customize->save_changeset_post(
 			array(
 				'data' => $data,
@@ -740,89 +829,6 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'additionalProperties', $actual );
 		$this->assertFalse( $actual['additionalProperties'] );
 	}
-
-	/**
-	 * @ticket 49406
-	 *
-	 * @dataProvider data_register_theme_support_validation
-	 *
-	 * @param string $error_code The error code expected.
-	 * @param array  $args       The args to register.
-	 */
-	public function test_register_theme_support_validation( $error_code, $args ) {
-		$registered = register_theme_feature( 'test-feature', $args );
-
-		$this->assertWPError( $registered );
-		$this->assertSame( $error_code, $registered->get_error_code() );
-	}
-
-	public function data_register_theme_support_validation() {
-		return array(
-			array(
-				'invalid_type',
-				array(
-					'type' => 'float',
-				),
-			),
-			array(
-				'invalid_type',
-				array(
-					'type' => array( 'string' ),
-				),
-			),
-			array(
-				'variadic_must_be_array',
-				array(
-					'variadic' => true,
-				),
-			),
-			array(
-				'missing_schema',
-				array(
-					'type'         => 'object',
-					'show_in_rest' => true,
-				),
-			),
-			array(
-				'missing_schema',
-				array(
-					'type'         => 'array',
-					'show_in_rest' => true,
-				),
-			),
-			array(
-				'missing_schema_items',
-				array(
-					'type'         => 'array',
-					'show_in_rest' => array(
-						'schema' => array(
-							'type' => 'array',
-						),
-					),
-				),
-			),
-			array(
-				'missing_schema_properties',
-				array(
-					'type'         => 'object',
-					'show_in_rest' => array(
-						'schema' => array(
-							'type' => 'object',
-						),
-					),
-				),
-			),
-			array(
-				'invalid_rest_prepare_callback',
-				array(
-					'show_in_rest' => array(
-						'prepare_callback' => 'this is not a valid function',
-					),
-				),
-			),
-		);
-	}
-
 
 	/**
 	 * Tests that block themes support a feature by default.
@@ -1457,5 +1463,55 @@ class Tests_Theme extends WP_UnitTestCase {
 		switch_theme( $old_theme->get_stylesheet() );
 
 		$this->assertSame( $template_path, $new_template_path, 'Switching blogs switches the template path' );
+	}
+
+	/**
+	 * Verify the validate_theme_requirements theme responds as expected for twentyten.
+	 *
+	 * @ticket 54381
+	 */
+	public function test_validate_theme_requirements_filter_default() {
+		// Default expectation since twentyten has the least strict requirements.
+		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
+	}
+
+	/**
+	 * Verify that a filtered failure of validate_theme_requirements returns WP_Error
+	 *
+	 * @ticket 54381
+	 */
+	public function test_validate_theme_requirements_filter_error() {
+		// Adds an extra requirement that always fails.
+		add_filter(
+			'validate_theme_requirements',
+			function () {
+				return new WP_Error( 'theme_test_failed_requirement' );
+			}
+		);
+
+		$this->assertWPError( validate_theme_requirements( 'twentyten' ) );
+	}
+
+	/**
+	 * Verify that the theme is passed through to the validate_theme_requirements filter by selectively erroring.
+	 *
+	 * @ticket 54381
+	 */
+	public function test_validate_theme_requirements_filter_selective_failure() {
+		// Adds an extra requirement only for a particular theme.
+		add_filter(
+			'validate_theme_requirements',
+			function ( $met_requirements, $stylesheet ) {
+				if ( 'twentytwenty' === $stylesheet ) {
+					return new WP_Error( 'theme_test_failed_requirement' );
+				}
+				return $met_requirements;
+			},
+			10,
+			2
+		);
+
+		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentytwenty' ) );
 	}
 }

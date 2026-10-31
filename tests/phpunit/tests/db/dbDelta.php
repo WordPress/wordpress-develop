@@ -141,7 +141,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that it does nothing for an existing table.
+	 * Test that no update is reported for an existing table.
 	 */
 	public function test_existing_table() {
 
@@ -156,7 +156,33 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1($this->max_index_length)),
 				KEY compound_key (id,column_1($this->max_index_length))
 			)
+			",
+			false
+		);
+
+		$this->assertSame( array(), $updates );
+	}
+
+	/**
+	 * Test that no update is reported for an existing table name in backticks.
+	 *
+	 * @ticket 63976
+	 */
+	public function test_existing_table_name_in_backticks() {
+
+		global $wpdb;
+
+		$updates = dbDelta(
 			"
+			CREATE TABLE `{$wpdb->prefix}dbdelta_test` (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varchar(255) NOT NULL,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length))
+			)
+			",
+			false
 		);
 
 		$this->assertSame( array(), $updates );
@@ -202,6 +228,209 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			),
 			$updates
 		);
+	}
+
+	/**
+	 * Tests that an integer column declared without a display width converges.
+	 *
+	 * @ticket 46145
+	 */
+	public function test_integer_column_without_display_width_does_not_cause_an_alter_query() {
+
+		global $wpdb;
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+
+		$schema =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				signed_bigint BIGINT NOT NULL,
+				signed_int INT NOT NULL,
+				unsigned_int INT UNSIGNED NOT NULL,
+				signed_mediumint MEDIUMINT NOT NULL,
+				unsigned_mediumint MEDIUMINT UNSIGNED NOT NULL,
+				signed_smallint SMALLINT NOT NULL,
+				unsigned_smallint SMALLINT UNSIGNED NOT NULL,
+				signed_tinyint TINYINT NOT NULL,
+				unsigned_tinyint TINYINT UNSIGNED NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $schema );
+
+		$updates = dbDelta( $schema, false );
+
+		$this->assertEmpty( $updates );
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+	}
+
+	/**
+	 * Tests that the same schema converges on a second pass, not just the first.
+	 *
+	 * @ticket 46145
+	 */
+	public function test_integer_column_without_display_width_converges_after_an_alter_query() {
+
+		global $wpdb;
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+
+		$create =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter SMALLINT UNSIGNED NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
+
+		$schema =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter INT UNSIGNED NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		dbDelta( $schema );
+
+		$updates = dbDelta( $schema, false );
+
+		$this->assertEmpty( $updates );
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+	}
+
+	/**
+	 * Tests that `INTEGER` matches the `int` the server reports it as.
+	 *
+	 * @ticket 46145
+	 */
+	public function test_integer_alias_does_not_cause_an_alter_query() {
+
+		global $wpdb;
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+
+		$schema =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter INTEGER NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $schema );
+
+		$updates = dbDelta( $schema, false );
+
+		$this->assertEmpty( $updates );
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+	}
+
+	/**
+	 * Tests that a real type change is still detected when the query omits the display width.
+	 *
+	 * @ticket 46145
+	 */
+	public function test_integer_column_without_display_width_still_detects_a_type_change() {
+
+		global $wpdb;
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+
+		$create =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter BIGINT NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter INT NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			",
+			false
+		);
+
+		$this->assertSame(
+			array(
+				"{$wpdb->prefix}dbdelta_int_test.counter",
+			),
+			array_keys( $updates )
+		);
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+	}
+
+	/**
+	 * Tests that a non-default display width in the table is still corrected.
+	 *
+	 * @ticket 46145
+	 */
+	public function test_integer_column_with_non_default_display_width_still_causes_an_alter_query() {
+
+		global $wpdb;
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
+
+		if ( version_compare( self::$db_version, '8.0.17', '>=' )
+			&& ! str_contains( self::$db_server_info, 'MariaDB' )
+		) {
+			$this->markTestSkipped( 'MySQL 8.0.17 or later does not report display width for integer data types.' );
+		}
+
+		$create =
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter INT(5) NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				counter INT NOT NULL,
+				PRIMARY KEY  (id)
+			) {$this->db_engine};
+			",
+			false
+		);
+
+		$this->assertSame(
+			array(
+				"{$wpdb->prefix}dbdelta_int_test.counter",
+			),
+			array_keys( $updates )
+		);
+
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
 	}
 
 	/**
@@ -353,13 +582,9 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$table_row = $wpdb->get_row( "select $column from {$table} where $column = '$value'" );
+		$table_row = $wpdb->get_row( "select $column from {$table} where $column = '$value'", ARRAY_A );
 
-		$expected = (object) array(
-			$column => $value,
-		);
-
-		$this->assertEquals( $expected, $table_row );
+		$this->assertSame( array( $column => $value ), $table_row );
 	}
 
 	/**
@@ -1089,5 +1314,30 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			),
 			$updates
 		);
+	}
+
+	/**
+	 * @ticket 59481
+	 */
+	public function test_column_types_are_not_case_sensitive() {
+		global $wpdb;
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE {$wpdb->prefix}dbdelta_test (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varCHAr(255) NOT NULL,
+				column_2 TEXT,
+				column_3 blOB,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length)),
+				FULLTEXT KEY fulltext_key (column_1)
+			) {$this->db_engine}
+			",
+			false
+		);
+
+		$this->assertEmpty( $updates );
 	}
 }

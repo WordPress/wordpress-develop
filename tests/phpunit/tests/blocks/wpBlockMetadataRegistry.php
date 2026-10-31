@@ -34,7 +34,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 		WP_Block_Metadata_Registry::register_collection( $path, $this->temp_manifest_file );
 
 		$retrieved_metadata = WP_Block_Metadata_Registry::get_metadata( $path . '/test-block' );
-		$this->assertEquals( $manifest_data['test-block'], $retrieved_metadata );
+		$this->assertSame( $manifest_data['test-block'], $retrieved_metadata );
 	}
 
 	public function test_get_nonexistent_metadata() {

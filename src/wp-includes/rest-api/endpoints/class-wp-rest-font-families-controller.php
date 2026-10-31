@@ -87,6 +87,14 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the settings are valid, otherwise a WP_Error object.
 	 */
 	public function validate_font_family_settings( $value, $request ) {
+		// Enforce JSON Schema validity for field before applying custom validation logic.
+		$args     = $this->get_endpoint_args_for_item_schema( $request->get_method() );
+		$validity = rest_validate_value_from_schema( $value, $args['font_family_settings'], 'font_family_settings' );
+
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
 		$settings = json_decode( $value, true );
 
 		// Check settings string is valid JSON.
@@ -419,6 +427,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 6.5.0
 	 *
+	 * @param string $method Optional. HTTP method of the request. Default WP_REST_Server::CREATABLE.
 	 * @return array Font family create/edit arguments.
 	 */
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
@@ -487,6 +496,8 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Prepares child font face links for the request.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param int $font_family_id Font family post ID.
 	 * @return array Links for the child font face posts.

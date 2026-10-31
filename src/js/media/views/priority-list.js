@@ -22,9 +22,11 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 		}
 	},
 	/**
-	 * @param {string} id
-	 * @param {wp.media.View|Object} view
-	 * @param {Object} options
+	 * Adds a view to the list, sorted by its priority.
+	 *
+	 * @param {string}               id      The ID of the view to set.
+	 * @param {wp.media.View|Object} view    The view to set.
+	 * @param {Object}               options The options for setting the view.
 	 * @return {wp.media.view.PriorityList} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
@@ -65,15 +67,19 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 		return this;
 	},
 	/**
-	 * @param {string} id
-	 * @return {wp.media.View}
+	 * Retrieves a view by its ID.
+	 *
+	 * @param {string} id The ID of the view to retrieve.
+	 * @return {wp.media.View} Returns the view if found, otherwise undefined.
 	 */
 	get: function( id ) {
 		return this._views[ id ];
 	},
 	/**
-	 * @param {string} id
-	 * @return {wp.media.view.PriorityList}
+	 * Removes a view by its ID.
+	 *
+	 * @param {string} id The ID of the view to remove.
+	 * @return {wp.media.view.PriorityList} Returns itself to allow chaining.
 	 */
 	unset: function( id ) {
 		var view = this.get( id );
@@ -86,8 +92,10 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 		return this;
 	},
 	/**
-	 * @param {Object} options
-	 * @return {wp.media.View}
+	 * Creates a view from an object of options.
+	 *
+	 * @param {Object} options The options for creating the view.
+	 * @return {wp.media.View} Returns the created view.
 	 */
 	toView: function( options ) {
 		return new wp.media.View( options );

@@ -128,7 +128,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 	}
 
-	public function data_get_network_by_path() {
+	public static function data_get_network_by_path() {
 		return array(
 			array( 'wordpress.org/', 'wordpress.org', '/', 'A standard domain and path request should work.' ),
 			array( 'wordpress.net/', 'wordpress.net', '/notapath/', 'A missing path on a top level domain should find the correct network.' ),
@@ -164,7 +164,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 	}
 
-	public function data_get_network_by_path_with_zero_path_segments() {
+	public static function data_get_network_by_path_with_zero_path_segments() {
 		return array(
 			array( 'wordpress.org/', 'wordpress.org', '/', 'A standard domain and path request should work.' ),
 			array( 'wordpress.net/', 'wordpress.net', '/notapath/', 'A network matching a top level domain should be found regardless of path.' ),
@@ -178,7 +178,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Even if a matching network is available, it should not match if the the filtered
+	 * Even if a matching network is available, it should not match if the filtered
 	 * value for network path segments is fewer than the number of paths passed.
 	 */
 	public function test_get_network_by_path_with_forced_single_path_segment_returns_single_path_network() {
@@ -207,13 +207,13 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$site = get_site_by_path( $domain, $path, $segments );
 
 		if ( $expected_key ) {
-			$this->assertEquals( self::$site_ids[ $expected_key ], $site->blog_id );
+			$this->assertSame( (string) self::$site_ids[ $expected_key ], $site->blog_id );
 		} else {
 			$this->assertFalse( $site );
 		}
 	}
 
-	public function data_get_site_by_path() {
+	public static function data_get_site_by_path() {
 		return array(
 			array( 'wordpress.org/', 'wordpress.org', '/notapath/' ),
 			array( 'wordpress.org/', 'www.wordpress.org', '/notapath/' ),
@@ -275,7 +275,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	public function data_multisite_bootstrap() {
+	public static function data_multisite_bootstrap() {
 		return array(
 			array( 'wordpress.org/', 'wordpress.org/', 'wordpress.org', '/' ),
 			array( 'wordpress.org/', 'wordpress.org/', 'wordpress.org', '/2014/04/23/hello-world/' ),

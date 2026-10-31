@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 // Back compat hooks.
@@ -312,7 +312,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 </div>
 
 <?php if ( ! wp_is_mobile() ) : ?>
-<script type="text/javascript">
+<script>
 try{document.forms.edittag.name.focus();}catch(e){}
 </script>
 	<?php

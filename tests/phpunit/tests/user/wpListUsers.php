@@ -97,7 +97,7 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_create_a_user_list() {
+	public static function data_should_create_a_user_list() {
 		return array(
 			'defaults when no args are supplied' => array(
 				'args'     => '',
@@ -189,7 +189,7 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_not_create_a_user_list() {
+	public static function data_should_not_create_a_user_list() {
 		return array(
 			'an empty user query result' => array(
 				'args'     => array(

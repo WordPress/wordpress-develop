@@ -119,7 +119,10 @@ class IXR_Message
             $this->message = substr($this->message, $chunk_size);
 
             if (!xml_parse($this->_parser, $part, $final)) {
-                xml_parser_free($this->_parser);
+                if (PHP_VERSION_ID < 80000) { // xml_parser_free() has no effect as of PHP 8.0.
+                    xml_parser_free($this->_parser);
+                }
+
                 unset($this->_parser);
                 return false;
             }
@@ -129,7 +132,10 @@ class IXR_Message
             }
         } while (true);
 
-        xml_parser_free($this->_parser);
+        if (PHP_VERSION_ID < 80000) { // xml_parser_free() has no effect as of PHP 8.0.
+            xml_parser_free($this->_parser);
+        }
+
         unset($this->_parser);
 
         // Grab the error messages, if any
@@ -177,7 +183,7 @@ class IXR_Message
                 $valueFlag = true;
                 break;
             case 'double':
-                $value = (double)trim($this->_currentTagContents);
+                $value = (float)trim($this->_currentTagContents);
                 $valueFlag = true;
                 break;
             case 'string':
@@ -196,7 +202,7 @@ class IXR_Message
                 }
                 break;
             case 'boolean':
-                $value = (boolean)trim($this->_currentTagContents);
+                $value = (bool)trim($this->_currentTagContents);
                 $valueFlag = true;
                 break;
             case 'base64':

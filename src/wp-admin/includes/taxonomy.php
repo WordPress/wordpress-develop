@@ -48,19 +48,19 @@ function get_category_to_edit( $id ) {
  *
  * @since 2.0.0
  *
- * @param int|string $cat_name        Category name.
- * @param int        $category_parent Optional. ID of parent category.
- * @return int|WP_Error
+ * @param string $category_name   Category name.
+ * @param int    $category_parent Optional. ID of parent category.
+ * @return int The ID of category term on success, or zero on failure.
  */
-function wp_create_category( $cat_name, $category_parent = 0 ) {
-	$id = category_exists( $cat_name, $category_parent );
+function wp_create_category( $category_name, $category_parent = 0 ) {
+	$id = category_exists( $category_name, $category_parent );
 	if ( $id ) {
-		return $id;
+		return (int) $id;
 	}
 
 	return wp_insert_category(
 		array(
-			'cat_name'        => $cat_name,
+			'cat_name'        => $category_name,
 			'category_parent' => $category_parent,
 		)
 	);
@@ -75,7 +75,7 @@ function wp_create_category( $cat_name, $category_parent = 0 ) {
  * @param int      $post_id    Optional. The post ID. Default empty.
  * @return int[] Array of IDs of categories assigned to the given post.
  */
-function wp_create_categories( $categories, $post_id = '' ) {
+function wp_create_categories( $categories, $post_id = 0 ) {
 	$cat_ids = array();
 	foreach ( $categories as $category ) {
 		$id = category_exists( $category );
@@ -117,6 +117,10 @@ function wp_create_categories( $categories, $post_id = '' ) {
  * @param bool  $wp_error Optional. Default false.
  * @return int|WP_Error The ID number of the new or updated Category on success. Zero or a WP_Error on failure,
  *                      depending on param `$wp_error`.
+ *
+ * @phpstan-return (
+ *     $wp_error is false ? int : int|WP_Error
+ * )
  */
 function wp_insert_category( $catarr, $wp_error = false ) {
 	$cat_defaults = array(
@@ -218,6 +222,12 @@ function wp_update_category( $catarr ) {
  * @return mixed Returns null if the term does not exist.
  *               Returns an array of the term ID and the term taxonomy ID if the pairing exists.
  *               Returns 0 if term ID 0 is passed to the function.
+ *
+ * @phpstan-return (
+ *     $tag_name is 0
+ *         ? 0
+ *         : ( $tag_name is '' ? null : array{ term_id: string, term_taxonomy_id: string }|null )
+ * )
  */
 function tag_exists( $tag_name ) {
 	return term_exists( $tag_name, 'post_tag' );

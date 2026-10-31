@@ -73,7 +73,7 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_theme_mod( 'test_name', $default_value ) );
 	}
 
-	public function data_theme_mod_default_value_with_percent_symbols() {
+	public static function data_theme_mod_default_value_with_percent_symbols() {
 		return array(
 			array(
 				'100%',

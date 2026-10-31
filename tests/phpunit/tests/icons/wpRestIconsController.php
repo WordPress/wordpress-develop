@@ -1,0 +1,819 @@
+<?php
+/**
+ * Unit tests covering WP_REST_Icons_Controller functionality.
+ *
+ * @package WordPress
+ * @subpackage REST_API
+ * @since 7.0.0
+ *
+ * @group restapi
+ * @group icons
+ *
+ * @coversDefaultClass WP_REST_Icons_Controller
+ */
+class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase {
+	protected static $admin_id;
+	protected static $editor_id;
+	protected static $contributor_id;
+	protected static $subscriber_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$editor_id      = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$contributor_id = $factory->user->create( array( 'role' => 'contributor' ) );
+		self::$subscriber_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+	}
+
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$admin_id );
+		self::delete_user( self::$editor_id );
+		self::delete_user( self::$contributor_id );
+		self::delete_user( self::$subscriber_id );
+	}
+
+	public function set_up() {
+		parent::set_up();
+
+		/*
+		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the collections and
+		 * icons that `init` only registers once. Replay the registration so order-dependent
+		 * tests pass. `_wp_register_default_icon_collections()` registers every default
+		 * collection at once, so drop whatever survived rather than topping up.
+		 */
+		$collections_registry = WP_Icon_Collections_Registry::get_instance();
+		foreach ( array( 'core', 'core-admin' ) as $collection_slug ) {
+			if ( $collections_registry->is_registered( $collection_slug ) ) {
+				$collections_registry->unregister( $collection_slug );
+			}
+		}
+		_wp_register_default_icon_collections();
+		_wp_register_default_icons();
+	}
+
+	public function tear_down() {
+		foreach ( array( 'rest-visibility-public', 'rest-visibility-private' ) as $slug ) {
+			if ( WP_Icon_Collections_Registry::get_instance()->is_registered( $slug ) ) {
+				wp_unregister_icon_collection( $slug );
+			}
+		}
+		parent::tear_down();
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::register_routes
+	 */
+	public function test_register_routes() {
+		$routes = rest_get_server()->get_routes();
+		$this->assertArrayHasKey( '/wp/v2/icons', $routes );
+		$this->assertArrayHasKey( '/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)', $routes );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::get_items
+	 */
+	public function test_get_items_collection_scope() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/bell',
+			array(
+				'label'   => 'Bell',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-test-collection' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+
+		$names = array_column( $data, 'name' );
+		$this->assertContains( 'rest-test-collection/bell', $names );
+		foreach ( $data as $icon ) {
+			$this->assertSame( 'rest-test-collection', $icon['collection'] );
+		}
+
+		wp_unregister_icon_collection( 'rest-test-collection' );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::get_items
+	 */
+	public function test_get_items_unknown_collection_returns_404() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/unknown-collection' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_collection_not_found', $response, 404 );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
+	 */
+	public function test_response_includes_collection_field() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/bell',
+			array(
+				'label'   => 'Bell',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-test-collection/bell' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'collection', $data );
+		$this->assertSame( 'rest-test-collection', $data['collection'] );
+		$this->assertSame( 'rest-test-collection/bell', $data['name'] );
+
+		wp_unregister_icon_collection( 'rest-test-collection' );
+	}
+
+	/**
+	 * @ticket 40538
+	 * @ticket 64651
+	 */
+	public function test_context_param() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons/core' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons/core/arrow-left' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
+	/**
+	 * Asserts that no icons can be created.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
+	 */
+	public function test_create_item() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/icons' );
+		$request->set_param( 'name', 'foo' );
+		$request->set_param( 'label', 'Foo' );
+		$request->set_param( 'content', '<svg></svg>' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 404, $response->get_status() );
+	}
+
+	/**
+	 * Asserts that no icons can be updated.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
+	 */
+	public function test_update_item() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/icons/core/foo' );
+		$request->set_param( 'label', 'Foo' );
+		$request->set_param( 'content', '<svg></svg>' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 404, $response->get_status() );
+	}
+
+	/**
+	 * Asserts that no icons can be deleted.
+	 * No controller method is executed; 404 is returned by route matching.
+	 *
+	 * @ticket 64651
+	 */
+	public function test_delete_item() {
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/icons/core/wordpress' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 404, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
+	 *
+	 * @doesNotPerformAssertions
+	 */
+	public function test_get_item() {
+		// see methods test_get_item_*
+	}
+
+	/**
+	 * @doesNotPerformAssertions
+	 */
+	public function test_get_items() {
+		// see methods test_get_items_*
+	}
+
+	/**
+	 * @ticket 64651
+	 *
+	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$icon = $data[0];
+		$this->assertArrayHasKey( 'name', $icon );
+		$this->assertArrayHasKey( 'content', $icon );
+		$this->assertIsString( $icon['name'] );
+		$this->assertIsString( $icon['content'] );
+		$this->assertStringStartsWith( '<svg ', $icon['content'], 'Icon content should be valid SVG markup' );
+	}
+
+	/**
+	 * @ticket 40538
+	 * @ticket 64651
+	 * @ticket 66158
+	 *
+	 * @covers ::get_item_schema
+	 */
+	public function test_get_item_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 5, $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'label', $properties );
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'collection', $properties );
+		$this->assertArrayHasKey( 'keywords', $properties );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons returns a list of icons for users with edit_posts capability.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_returns_icons_list() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data, 'Icon registry should contain at least one icon' );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons requires proper permissions.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_get_items_requires_edit_posts_capability() {
+		wp_set_current_user( self::$subscriber_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * Test that administrators can access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_admin_has_access() {
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Test that contributors can access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_contributor_has_access() {
+		wp_set_current_user( self::$contributor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons/core/arrow-left returns specific icon data.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
+	 */
+	public function test_get_item_returns_specific_icon() {
+		wp_set_current_user( self::$editor_id );
+
+		/*
+		 * Intentionally avoid mocks or class reflection to register fake
+		 * icons. Yes, this blurs the line between unit and integration
+		 * testing, but as of now WP_Icons_Registry is closed for registration
+		 * and really MUST contain our core icons.
+		 */
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/core/arrow-left' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'name', $data );
+		$this->assertArrayHasKey( 'label', $data );
+		$this->assertArrayHasKey( 'content', $data );
+		$this->assertSame( 'core/arrow-left', $data['name'] );
+		$this->assertSame( 'Arrow Left', $data['label'] );
+		$this->assertNotEmpty( $data['content'] );
+
+		$processor = new WP_HTML_Tag_Processor( $data['content'] );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'SVG', $processor->get_tag(), 'Icon content should match the actual SVG asset' );
+		$this->assertSame( 'http://www.w3.org/2000/svg', $processor->get_attribute( 'xmlns' ), 'Icon content should match the actual SVG asset' );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons/core/invalid returns 404 for non-existent icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item
+	 */
+	public function test_get_item_returns_404_for_invalid_icon() {
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/core/invalid-icon-name' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_not_found', $response, 404 );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons/?search=arrow returns filtered results.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_search_filters_results() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$request->set_param( 'search', 'arrow' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+
+		// All returned icons should contain "arrow" in their name
+		foreach ( $data as $icon ) {
+			$this->assertStringContainsStringIgnoringCase( 'arrow', $icon['name'] );
+		}
+
+		// Assert that 'core/arrow-left' is specifically included in the results
+		$icon_names = array_column( $data, 'name' );
+		$this->assertContains( 'core/arrow-left', $icon_names, 'Search results should include core/arrow-left icon' );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons/?search= searches icon labels too.
+	 *
+	 * @ticket 64847
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_search_includes_label() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+
+		// The '@' character is only found in the *label* for core/at-symbol
+		$request->set_param( 'search', '@' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'core/at-symbol' ), array_column( $data, 'name' ) );
+	}
+
+	/**
+	 * Test that GET /wp/v2/icons/?search=%s searches icon keywords too.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_search_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		wp_register_icon(
+			'rest-test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+
+			/*
+			 * The search term appears in no icon's name or label, so a match can
+			 * only come from the keywords.
+			 */
+			$request->set_param( 'search', 'peace' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame(
+				array( 'rest-test-collection/dove' ),
+				array_column( $data, 'name' ),
+				'Search results should contain only the icon matched by its keyword'
+			);
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
+	}
+
+	/**
+	 * Test that the response exposes an icon's keywords, so that clients which
+	 * filter icons locally can match against them.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_response_includes_keywords() {
+		wp_register_icon_collection( 'rest-test-collection', array( 'label' => 'REST Test' ) );
+		wp_register_icon(
+			'rest-test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace', 'bird' ),
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+			$request->set_param( 'search', 'rest-test-collection/dove' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $data );
+			$this->assertArrayHasKey( 'keywords', $data[0] );
+			$this->assertSame( array( 'peace', 'bird' ), $data[0]['keywords'] );
+		} finally {
+			wp_unregister_icon_collection( 'rest-test-collection' );
+		}
+	}
+
+	/**
+	 * Test that icons registered without keywords still expose an empty array,
+	 * so consumers do not have to handle a missing field.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_items_response_keywords_defaults_to_empty_array() {
+		wp_set_current_user( self::$editor_id );
+
+		wp_register_icon(
+			'core/no-keywords',
+			array(
+				'label'   => 'No Keywords',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+			$request->set_param( 'search', 'core/no-keywords' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertCount( 1, $data );
+			$this->assertSame( array(), $data[0]['keywords'] );
+		} finally {
+			wp_unregister_icon( 'core/no-keywords' );
+		}
+	}
+
+	/**
+	 * Test that search is case-insensitive.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_search_case_insensitive() {
+		wp_set_current_user( self::$editor_id );
+
+		// Test with uppercase search term
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$request->set_param( 'search', 'ARROW' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// All returned icons should contain "arrow" in their name (case insensitive)
+		foreach ( $data as $icon ) {
+			$this->assertStringContainsStringIgnoringCase( 'arrow', $icon['name'] );
+		}
+	}
+
+	/**
+	 * Test that search with no matches returns empty array.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_search_no_matches() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$request->set_param( 'search', 'nonexistenticon12345' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+		$this->assertEmpty( $data );
+	}
+
+	/**
+	 * Test that _fields parameter filters response fields.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::prepare_item_for_response
+	 */
+	public function test_get_items_fields_parameter() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$request->set_param( '_fields', 'name' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Each icon should only have the 'name' field
+		foreach ( $data as $icon ) {
+			$this->assertArrayHasKey( 'name', $icon );
+			$this->assertArrayNotHasKey( 'content', $icon );
+		}
+	}
+
+	/**
+	 * Test permissions for getting a specific icon.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item_permissions_check
+	 */
+	public function test_get_item_requires_permissions() {
+		// Get a valid icon name first with proper permissions
+		wp_set_current_user( self::$editor_id );
+		$list_request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$list_response = rest_get_server()->dispatch( $list_request );
+
+		// Icons endpoint must be available
+		$this->assertSame( 200, $list_response->get_status(), 'Icons endpoint should be available and return 200' );
+
+		$all_icons = $list_response->get_data();
+
+		// Registry should contain at least our test icon
+		$this->assertIsArray( $all_icons, 'Icons endpoint should return an array' );
+		$this->assertNotEmpty( $all_icons, 'Icon registry should contain at least one icon' );
+		$this->assertArrayHasKey( 'name', $all_icons[0], 'Icons should have a name field' );
+
+		$test_icon_name = $all_icons[0]['name'];
+
+		// Now test with subscriber (no permissions)
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/' . $test_icon_name );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * Test that unauthenticated users cannot access icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_items_permissions_check
+	 */
+	public function test_get_items_requires_authentication() {
+		wp_set_current_user( 0 ); // No user
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
+	}
+
+	/**
+	 * Test that unauthenticated users cannot access specific icons.
+	 *
+	 * @ticket 64651
+	 *
+	 * @covers ::get_item_permissions_check
+	 */
+	public function test_get_item_requires_authentication() {
+		wp_set_current_user( 0 ); // No user
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/core/some-icon' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
+	}
+
+	/**
+	 * Test that icons in non-public collections are omitted from lists and search results.
+	 *
+	 * @ticket 66087
+	 *
+	 * @dataProvider data_icon_visibility_searches
+	 *
+	 * @covers ::get_items
+	 *
+	 * @param string $search Icon search term.
+	 */
+	public function test_get_items_omits_icons_in_non_public_collections( $search ) {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icons' );
+		$request->set_param( 'search', $search );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'rest-visibility-public/visibility-icon', $names );
+		$this->assertNotContains( 'rest-visibility-private/visibility-icon', $names );
+	}
+
+	/**
+	 * Data provider for icon searches matching both public and non-public collections.
+	 *
+	 * @return array[]
+	 */
+	public static function data_icon_visibility_searches() {
+		return array(
+			'all icons'    => array( '' ),
+			'search icons' => array( 'visibility' ),
+		);
+	}
+
+	/**
+	 * Test that an icon in a non-public collection is reported as not found by name,
+	 * while remaining available to server-side code.
+	 *
+	 * @ticket 66087
+	 *
+	 * @covers ::get_item
+	 * @covers ::get_icon
+	 */
+	public function test_get_item_returns_404_for_icon_in_non_public_collection() {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons/rest-visibility-private/visibility-icon' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_not_found', $response, 404 );
+
+		// The icon is hidden from the REST API, not unregistered.
+		$this->assertStringContainsString( '<svg', wp_get_icon( 'rest-visibility-private/visibility-icon' ) );
+	}
+
+	/**
+	 * Test that non-public collections cannot be requested by route or query parameter.
+	 *
+	 * @ticket 66087
+	 *
+	 * @dataProvider data_non_public_collection_requests
+	 *
+	 * @covers ::get_items
+	 *
+	 * @param string $route REST API route.
+	 * @param array  $query REST API query parameters.
+	 */
+	public function test_get_items_returns_404_for_non_public_collection( $route, $query ) {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( $query );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_collection_not_found', $response, 404 );
+	}
+
+	/**
+	 * Data provider for requests scoped to a non-public collection.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_public_collection_requests() {
+		return array(
+			'collection route' => array( '/wp/v2/icons/rest-visibility-private', array() ),
+			'collection query' => array( '/wp/v2/icons', array( 'collection' => 'rest-visibility-private' ) ),
+		);
+	}
+
+	/**
+	 * Registers a public and a non-public collection, each holding one icon.
+	 */
+	private function register_visibility_collections() {
+		$collections = array(
+			'rest-visibility-public'  => true,
+			'rest-visibility-private' => false,
+		);
+
+		foreach ( $collections as $slug => $is_public ) {
+			wp_register_icon_collection(
+				$slug,
+				array(
+					'label'  => 'REST Visibility',
+					'public' => $is_public,
+				)
+			);
+			wp_register_icon(
+				$slug . '/visibility-icon',
+				array(
+					'label'   => 'Visibility Icon',
+					'content' => '<svg><path d="M0 0"/></svg>',
+				)
+			);
+		}
+	}
+}

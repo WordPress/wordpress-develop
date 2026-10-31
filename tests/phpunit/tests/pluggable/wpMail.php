@@ -83,8 +83,11 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		// We need some better assertions here but these catch the failure for now.
 		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body );
-		$this->assertStringContainsString( 'boundary="----=_Part_4892_25692638.1192452070893"', iconv_mime_decode_headers( ( $mailer->get_sent()->header ) )['Content-Type'][0] );
-		$this->assertStringContainsString( 'charset=', $mailer->get_sent()->header );
+		$headers = iconv_mime_decode_headers( $mailer->get_sent()->header );
+		$this->assertArrayHasKey( 'Content-Type', $headers, 'Expected Content-Type header to be sent.' );
+		$content_type_headers = (array) $headers['Content-Type'];
+		$this->assertCount( 1, $content_type_headers, "Expected only one Content-Type header to be sent. Saw:\n" . implode( "\n", $content_type_headers ) );
+		$this->assertSame( 'multipart/mixed; boundary="----=_Part_4892_25692638.1192452070893"; charset=', $content_type_headers[0], 'Expected Content-Type to match.' );
 	}
 
 	/**
@@ -446,6 +449,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			'message'                  => 'Test Message',
 			'headers'                  => array(),
 			'attachments'              => array(),
+			'embeds'                   => array(),
 			'phpmailer_exception_code' => 2,
 		);
 
@@ -553,5 +557,205 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertNotSame( 'user1', $phpmailer->AltBody );
+	}
+
+	/**
+	 * Tests that wp_mail() can send embedded images.
+	 *
+	 * @ticket 28059
+	 *
+	 * @dataProvider data_wp_mail_can_send_embedded_images
+	 *
+	 * @param string[] $embeds The embeds to send.
+	 */
+	public function test_wp_mail_can_send_embedded_images( $embeds ) {
+		$message = '';
+		foreach ( $embeds as $key => $path ) {
+			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
+		}
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$attachments = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_mail_can_send_embedded_images().
+	 *
+	 * @return array
+	 */
+	public static function data_wp_mail_can_send_embedded_images() {
+		return array(
+			'Mixed Array Embeds'       => array(
+				'embeds' => array(
+					'canola' => DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Associative Array Embeds' => array(
+				'embeds' => array(
+					'canola'       => DIR_TESTDATA . '/images/canola.jpg',
+					'test-image-2' => DIR_TESTDATA . '/images/test-image-2.gif',
+					'avif-lossy'   => DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Indexed Array Embeds'     => array(
+				'embeds' => array(
+					DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_mail() can send embedded images as a multiple line string.
+	 *
+	 * @ticket 28059
+	 */
+	public function test_wp_mail_string_embeds() {
+		$embeds  = DIR_TESTDATA . '/images/canola.jpg' . "\n";
+		$embeds .= DIR_TESTDATA . '/images/test-image-2.gif';
+
+		$message = '<p><img src="cid:0" alt="" /></p><p><img src="cid:1" alt="" /></p>';
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$embeds_array = explode( "\n", $embeds );
+		$mailer       = tests_retrieve_phpmailer_instance();
+		$attachments  = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds_array, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds_array as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
+	}
+
+	/**
+	 * Test that the encoding of the email does not bleed between long and short emails.
+	 *
+	 * @ticket 33972
+	 */
+	public function test_wp_mail_encoding_does_not_bleed() {
+		$content = str_repeat( 'A', 1000 );
+		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( 'quoted-printable', $mailer->Encoding );
+
+		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( '7bit', $mailer->Encoding );
+	}
+
+	/**
+	 * Test that wp_mail() can send a multipart/alternative email with plain text and html versions.
+	 *
+	 * @ticket 15448
+	 */
+	public function test_wp_mail_plain_and_html() {
+		$headers = 'Content-Type: multipart/alternative; boundary="TestBoundary"';
+		$to      = 'user@example.com';
+		$subject = 'Test email with plain text and html versions';
+		$message = <<<EOT
+--TestBoundary
+Content-Type: text/plain; charset=us-ascii
+
+Here is some plain text.
+--TestBoundary
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>
+--TestBoundary--
+EOT;
+
+		wp_mail( $to, $subject, $message, $headers );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( 1, preg_match( '/boundary="(.*)"/', $mailer->get_sent()->header, $matches ), 'Expected to match boundary directive in header.' );
+		$boundary = $matches[1];
+		$body     = '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\n";
+		$body    .= "\n";
+		$body    .= 'Here is some plain text.' . "\n";
+		$body    .= '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\n";
+		$body    .= 'Content-Transfer-Encoding: 8bit' . "\n";
+		$body    .= "\n";
+		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\n";
+		$body    .= '--' . $boundary . '--' . "\n";
+
+		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body, 'The body is not as expected.' );
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
+		);
+	}
+
+	/**
+	 * Check workarounds using phpmailer_init still work around.
+	 *
+	 * @ticket 15448
+	 */
+	public function test_wp_mail_plain_and_html_workaround() {
+		$to      = 'user@example.com';
+		$subject = 'Test email with plain text derived from html version';
+		$message = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body><p>Hello World! γειά σου Κόσμε</p></body></html>';
+
+		$set_alt_body = static function ( WP_PHPMailer $mailer ) {
+			$mailer->AltBody = strip_tags( $mailer->Body );
+		};
+		add_action( 'phpmailer_init', $set_alt_body );
+		wp_mail( $to, $subject, $message );
+		remove_action( 'phpmailer_init', $set_alt_body );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/plain; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/plain Content-Type header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/html; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/html Content-Type header is not present.'
+		);
 	}
 }

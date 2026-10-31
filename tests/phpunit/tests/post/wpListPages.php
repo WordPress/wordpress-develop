@@ -540,4 +540,63 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			'The output should contain exactly one "current_page_item" class.'
 		);
 	}
+
+	/**
+	 * @ticket 28801
+	 * @dataProvider data_wp_list_pages_omitted_ancestor
+	 *
+	 * @param int $depth Maximum depth to display.
+	 */
+	public function test_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first( $depth ) {
+		$ancestor = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$parent   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $ancestor,
+				'post_title'  => 'Included parent',
+				'menu_order'  => 10,
+			)
+		);
+		$child    = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent,
+				'post_title'  => 'Included child',
+				'menu_order'  => 0,
+			)
+		);
+
+		$expected = '<li class="page_item page-item-' . $parent . ' page_item_has_children"><a href="' . get_permalink( $parent ) . '">Included parent</a>';
+		if ( 1 !== $depth ) {
+			$expected .= '<ul class=\'children\'><li class="page_item page-item-' . $child . '"><a href="' . get_permalink( $child ) . '">Included child</a></li></ul>';
+		}
+		$expected .= '</li>';
+
+		$this->assertSame(
+			$expected,
+			wp_list_pages(
+				array(
+					'include'      => array( $parent, $child ),
+					'sort_column'  => 'menu_order',
+					'depth'        => $depth,
+					'echo'         => false,
+					'title_li'     => '',
+					'item_spacing' => 'discard',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first().
+	 *
+	 * @return array
+	 */
+	public static function data_wp_list_pages_omitted_ancestor() {
+		return array(
+			'unlimited depth' => array( 0 ),
+			'depth one'       => array( 1 ),
+			'depth two'       => array( 2 ),
+		);
+	}
 }

@@ -49,7 +49,7 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_trigger_error_with_invalid_dir() {
+	public static function data_should_trigger_error_with_invalid_dir() {
 		return array(
 			'an empty string'                => array( '' ),
 			'a string with spaces'           => array( '   ' ),
@@ -93,7 +93,7 @@ class Tests_Filesystem_WpOpcacheInvalidateDirectory extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_not_trigger_error_wp_opcache_valid_directory() {
+	public static function data_should_not_trigger_error_wp_opcache_valid_directory() {
 		return array(
 			'an existing directory'    => array( DIR_TESTDATA ),
 			'a non-existent directory' => array( 'non_existent_directory' ),

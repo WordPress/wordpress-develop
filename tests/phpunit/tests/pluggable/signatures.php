@@ -57,7 +57,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 */
 	public function test_all_pluggable_functions_exist() {
 
-		$defined  = wp_list_pluck( $this->get_defined_pluggable_functions(), 0 );
+		$defined  = wp_list_pluck( self::get_defined_pluggable_functions(), 0 );
 		$expected = $this->get_pluggable_function_signatures();
 
 		foreach ( $expected as $function => $sig ) {
@@ -72,7 +72,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 *
 	 * @return array Data provider array of pluggable function names.
 	 */
-	public function get_defined_pluggable_functions() {
+	public static function get_defined_pluggable_functions() {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -137,6 +137,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 				'message',
 				'headers'     => '',
 				'attachments' => array(),
+				'embeds'      => array(),
 			),
 			'wp_authenticate'                 => array( 'username', 'password' ),
 			'wp_logout'                       => array(),

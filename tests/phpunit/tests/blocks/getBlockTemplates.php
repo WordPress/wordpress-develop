@@ -10,6 +10,13 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	const TEST_THEME = 'block-theme';
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * @var WP_Post
 	 */
 	private static $index_template;
@@ -91,7 +98,16 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( self::TEST_THEME );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -170,7 +186,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_returns_unique_entities() {
+	public static function data_get_block_templates_returns_unique_entities() {
 		return array(
 			'wp_template template type'      => array(
 				'template_type'        => 'wp_template',
@@ -210,7 +226,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_should_respect_posttypes_property() {
+	public static function data_get_block_templates_should_respect_posttypes_property() {
 		return array(
 			'post' => array(
 				'post_type' => 'post',
@@ -268,7 +284,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs() {
+	public static function data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs() {
 		return array(
 			'post' => array(
 				'template_slug' => 'single',

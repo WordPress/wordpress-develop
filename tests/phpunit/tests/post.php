@@ -6,13 +6,41 @@
  * @group post
  */
 class Tests_Post extends WP_UnitTestCase {
-	protected static $editor_id;
 	protected static $grammarian_id;
+
+	protected static $user_ids = array(
+		'administrator' => null,
+		'editor'        => null,
+		'author'        => null,
+		'contributor'   => null,
+	);
 
 	private $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+
+		self::$user_ids = array(
+			'administrator' => $factory->user->create(
+				array(
+					'role' => 'administrator',
+				)
+			),
+			'editor'        => $factory->user->create(
+				array(
+					'role' => 'editor',
+				)
+			),
+			'author'        => $factory->user->create(
+				array(
+					'role' => 'author',
+				)
+			),
+			'contributor'   => $factory->user->create(
+				array(
+					'role' => 'contributor',
+				)
+			),
+		);
 
 		add_role(
 			'grammarian',
@@ -30,6 +58,18 @@ class Tests_Post extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		remove_role( 'grammarian' );
+	}
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'restless' );
+		unregister_post_type( 'new_post_type' );
+		unregister_taxonomy( 'new_tag' );
+		_unregister_post_status( 'test' );
+
+		parent::tear_down();
 	}
 
 	public function test_parse_post_content_single_page() {
@@ -142,6 +182,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24803
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts() {
 		$post_type = rand_str( 20 );
@@ -154,13 +195,57 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 1, $count->publish );
+		$this->assertSame( '1', $count->publish );
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $count );
 	}
 
+	/**
+	 * Ensure `wp_count_posts()` in 'readable' context excludes private posts
+	 * authored by other users when the current user lacks the capability to
+	 * read private posts.
+	 *
+	 * @ticket 61097
+	 *
+	 * @covers ::wp_count_posts
+	 */
+	public function test_wp_count_posts_readable_excludes_unreadable_private_posts() {
+		$post_type = rand_str( 20 );
+		register_post_type( $post_type );
+
+		$admin_user_id = self::$user_ids['administrator'];
+
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'publish',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'private',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		wp_set_current_user( self::$user_ids['author'] );
+
+		$count = wp_count_posts( $post_type, 'readable' );
+		$this->assertSame( '5', $count->publish );
+		_unregister_post_type( $post_type );
+	}
+
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_filtered() {
 		$post_type = rand_str( 20 );
 		register_post_type( $post_type );
@@ -173,19 +258,22 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count1 = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 3, $count1->publish );
+		$this->assertSame( '3', $count1->publish );
 
 		add_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
 		$count2 = wp_count_posts( $post_type, 'readable' );
 		remove_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
-		$this->assertEquals( 2, $count2->publish );
+		$this->assertSame( '2', $count2->publish );
 	}
 
 	public function filter_wp_count_posts( $counts ) {
-		$counts->publish = 2;
+		$counts->publish = '2';
 		return $counts;
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_insert_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -198,14 +286,17 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_draft_counts->draft );
-		$this->assertEquals( 2, $after_draft_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
+		$this->assertSame( '1', $after_draft_counts->draft );
+		$this->assertSame( '2', $after_draft_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_trash_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -216,16 +307,17 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'trash', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_trash_counts->trash );
-		$this->assertEquals( 2, $after_trash_counts->publish );
-		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
+		$this->assertSame( '1', $after_trash_counts->trash );
+		$this->assertSame( '2', $after_trash_counts->publish );
+		$this->assertNotSame( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
 	/**
 	 * @ticket 49685
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_status_changes_visible() {
 		self::factory()->post->create_many( 3 );
@@ -252,7 +344,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = self::factory()->post->create( array( 'post_type' => $post_type ) );
 		wp_set_object_terms( $post, 'foo', $tax );
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		$wp_tag_cloud = wp_tag_cloud(
 			array(
@@ -268,6 +360,9 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );
+
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
 
 		foreach ( $matches[1] as $url ) {
 			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
@@ -302,7 +397,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		edit_post( $data );
 
@@ -420,30 +515,6 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
-	public function test_wp_delete_post_reassign_hierarchical_post_type() {
-		$grandparent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$parent_page_id      = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $grandparent_page_id,
-			)
-		);
-		$page_id             = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent_page_id,
-			)
-		);
-
-		$this->assertSame( $parent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $parent_page_id, true );
-		$this->assertSame( $grandparent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $grandparent_page_id, true );
-		$this->assertSame( 0, get_post( $page_id )->post_parent );
-	}
-
 	/**
 	 * Test ensuring that the post_slug can be filtered with a custom value short circuiting the built in
 	 * function that tries to create a unique name based on the post name.
@@ -464,7 +535,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 		$this->assertSame( 'override-slug-' . $post->post_type, $post->post_name );
 
-		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
+		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ) );
 	}
 
 	public function filter_pre_wp_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type, $post_parent ) {
@@ -610,8 +681,6 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
-	 *
-	 * @param mixed $stick Value to pass to stick_post().
 	 */
 	public function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
@@ -755,5 +824,240 @@ class Tests_Post extends WP_UnitTestCase {
 		add_filter( 'use_block_editor_for_post', '__return_true' );
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
+	}
+
+	/**
+	 * Tests that invalid dates do not cause PHP errors when wp_insert_post()
+	 * is called, and that the posts are not actually "inserted" (created).
+	 *
+	 * @ticket 26798
+	 *
+	 * @covers ::wp_insert_post
+	 *
+	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
+	 *
+	 * @param string $date     The input post_date value.
+	 * @param bool   $expected Whether the post is expected to be inserted.
+	 */
+	public function test_wp_insert_post_handle_malformed_post_date( $date, $expected ) {
+		$post = array(
+			'post_author'  => self::$user_ids['editor'],
+			'post_status'  => 'publish',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_date'    => $date,
+		);
+
+		// Inserting the post should fail gracefully.
+		$id     = wp_insert_post( $post );
+		$actual = ! empty( $id );
+
+		// Compare if post was (or was not) inserted.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * Data provider for test_wp_insert_post_handle_malformed_post_date().
+	 *
+	 * @return array<string, array{ date: string, expected: bool }>
+	 */
+	public static function data_wp_insert_post_handle_malformed_post_date(): array {
+		return array(
+			'date only'                                 => array(
+				'date'     => '2012-01-01',
+				'expected' => true,
+			),
+			'24-hour time format'                       => array(
+				'date'     => '2012-01-01 13:00:00',
+				'expected' => true,
+			),
+			'ISO8601 date with timezone'                => array(
+				'date'     => '2016-01-16T00:00:00Z',
+				'expected' => true,
+			),
+			'ISO8601 date with timezone offset'         => array(
+				'date'     => '2016-01-16T00:00:00+0100',
+				'expected' => true,
+			),
+			'RFC3339 format'                            => array(
+				'date'     => '1970-01-01T01:00:00+01:00',
+				'expected' => true,
+			),
+			'RSS format'                                => array(
+				'date'     => '1970-01-01T01:00:00+0100',
+				'expected' => true,
+			),
+			'leap year'                                 => array(
+				'date'     => '2012-02-29',
+				'expected' => true,
+			),
+			'single digit hour'                         => array(
+				'date'     => '2012-01-01 0',
+				'expected' => true,
+			),
+			'hour out of range'                         => array(
+				'date'     => '2012-01-01 25:00:00',
+				'expected' => true,
+			),
+			'minute out of range'                       => array(
+				'date'     => '2012-01-01 00:60:00',
+				'expected' => true,
+			),
+			'day without leading zero'                  => array(
+				'date'     => '2012-08-1',
+				'expected' => true,
+			),
+			'month without leading zero with time'      => array(
+				'date'     => '2012-1-08 00:00:00',
+				'expected' => true,
+			),
+			'day without leading zero with time'        => array(
+				'date'     => '2012-01-8 00:00:00',
+				'expected' => true,
+			),
+			'invalid character in day'                  => array(
+				'date'     => '2012-08-0z',
+				'expected' => false,
+			),
+			'three digit year'                          => array(
+				'date'     => '201-01-08 00:00:00',
+				'expected' => false,
+			),
+			'three digit year with minute out of range' => array(
+				'date'     => '201-01-08 00:60:00',
+				'expected' => false,
+			),
+			'invalid character in year'                 => array(
+				'date'     => '201a-01-08 00:00:00',
+				'expected' => false,
+			),
+			'month out of range'                        => array(
+				'date'     => '2012-31-08 00:00:00',
+				'expected' => false,
+			),
+			'day out of range'                          => array(
+				'date'     => '2012-01-48 00:00:00',
+				'expected' => false,
+			),
+			'not a leap year'                           => array(
+				'date'     => '2011-02-29',
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * Tests the regex inside of wp_resolve_post_date(), with
+	 * the emphasis on the date format (not the time).
+	 *
+	 * @ticket 26798
+	 *
+	 * @covers ::wp_resolve_post_date
+	 *
+	 * @dataProvider data_wp_resolve_post_date_regex
+	 *
+	 * @param string       $date     The input post_date value.
+	 * @param string|false $expected The expected resolved post date, or false if invalid.
+	 */
+	public function test_wp_resolve_post_date_regex( $date, $expected ) {
+		// Attempt to resolve post date.
+		$actual = wp_resolve_post_date( $date );
+
+		// Compare if resolved post date is (or is not) valid.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * Data provider for test_wp_resolve_post_date_regex().
+	 *
+	 * @return array<string, array{ date: string, expected: string|false }>
+	 */
+	public static function data_wp_resolve_post_date_regex(): array {
+		return array(
+			'date only'                         => array(
+				'date'     => '2012-01-01',
+				'expected' => '2012-01-01',
+			),
+			'date with midnight time'           => array(
+				'date'     => '2012-01-01 00:00:00',
+				'expected' => '2012-01-01 00:00:00',
+			),
+			'ISO8601 date with timezone'        => array(
+				'date'     => '2016-01-16T00:00:00Z',
+				'expected' => '2016-01-16T00:00:00Z',
+			),
+			'ISO8601 date with timezone offset' => array(
+				'date'     => '2016-01-16T00:00:00+0100',
+				'expected' => '2016-01-16T00:00:00+0100',
+			),
+			'RFC3339 format'                    => array(
+				'date'     => '1970-01-01T01:00:00+01:00',
+				'expected' => '1970-01-01T01:00:00+01:00',
+			),
+			'RSS format'                        => array(
+				'date'     => '1970-01-01T01:00:00+0100',
+				'expected' => '1970-01-01T01:00:00+0100',
+			),
+			'24-hour time format'               => array(
+				'date'     => '2012-01-01 13:00:00',
+				'expected' => '2012-01-01 13:00:00',
+			),
+			'ISO8601 date with partial time'    => array(
+				'date'     => '2016-01-16T00:0',
+				'expected' => '2016-01-16T00:0',
+			),
+			'single digit hour'                 => array(
+				'date'     => '2012-01-01 0',
+				'expected' => '2012-01-01 0',
+			),
+			'time without seconds'              => array(
+				'date'     => '2012-01-01 00:00',
+				'expected' => '2012-01-01 00:00',
+			),
+			'hour out of range'                 => array(
+				'date'     => '2012-01-01 25:00:00',
+				'expected' => '2012-01-01 25:00:00',
+			),
+			'minute out of range'               => array(
+				'date'     => '2012-01-01 00:60:00',
+				'expected' => '2012-01-01 00:60:00',
+			),
+			'second out of range'               => array(
+				'date'     => '2012-01-01 00:00:60',
+				'expected' => '2012-01-01 00:00:60',
+			),
+			'month without leading zero'        => array(
+				'date'     => '2012-1-08',
+				'expected' => '2012-1-08',
+			),
+			'day without leading zero'          => array(
+				'date'     => '2012-01-8',
+				'expected' => '2012-01-8',
+			),
+			'three digit year'                  => array(
+				'date'     => '201-01-08',
+				'expected' => false,
+			),
+			'invalid character in year'         => array(
+				'date'     => '201a-01-08',
+				'expected' => false,
+			),
+			'month out of range'                => array(
+				'date'     => '2012-31-08',
+				'expected' => false,
+			),
+			'day out of range'                  => array(
+				'date'     => '2012-01-48 00:00:00',
+				'expected' => false,
+			),
+			'leap year'                         => array(
+				'date'     => '2012-02-29',
+				'expected' => '2012-02-29',
+			),
+			'not a leap year'                   => array(
+				'date'     => '2011-02-29',
+				'expected' => false,
+			),
+		);
 	}
 }

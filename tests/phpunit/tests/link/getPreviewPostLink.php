@@ -5,6 +5,12 @@
  */
 class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'non_viewable_cpt' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_preview_post_link() {
 		$post = self::factory()->post->create();
 

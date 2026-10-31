@@ -1,0 +1,6 @@
+# actionlint does not support the `$/` self-repository `uses:` syntax yet.
+# See https://github.com/rhysd/actionlint/issues/711.
+paths:
+  .github/workflows/**/*.yml:
+    ignore:
+      - 'specifying action "\$/[^"]+" in invalid format because ref is missing'

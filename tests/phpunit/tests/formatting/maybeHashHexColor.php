@@ -26,7 +26,7 @@ class Tests_Formatting_MaybeHashHexColor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_sanitize_hex_color_no_hash() {
+	public static function data_sanitize_hex_color_no_hash() {
 		return array(
 			'$maybe_alpha = false, 3 digit'               => array(
 				'color'    => '#123',

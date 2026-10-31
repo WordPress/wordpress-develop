@@ -28,7 +28,7 @@ class Tests_Fonts_WpFontUtils_GetFontFaceSlug extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_font_face_slug_normalizes_values() {
+	public static function data_get_font_face_slug_normalizes_values() {
 		return array(
 			'Sets defaults'                           => array(
 				'settings'      => array(

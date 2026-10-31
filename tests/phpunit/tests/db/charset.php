@@ -69,7 +69,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_strip_invalid_text() {
+	public static function data_strip_invalid_text() {
 		$fields = array(
 			'latin1'                                => array(
 				// latin1. latin1 never changes.
@@ -449,8 +449,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$big5      = mb_convert_encoding( $utf8, 'BIG-5', 'UTF-8' );
 			$conv_utf8 = mb_convert_encoding( $big5, 'UTF-8', 'BIG-5' );
 			// Make sure PHP's multibyte conversions are working correctly.
-			$this->assertNotEquals( $utf8, $big5 );
-			$this->assertSame( $utf8, $conv_utf8 );
+			self::assertNotSame( $utf8, $big5 );
+			self::assertSame( $utf8, $conv_utf8 );
 
 			$fields['big5'] = array(
 				'charset'  => 'big5',
@@ -560,7 +560,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_process_field_charsets() {
+	public static function data_process_field_charsets() {
 		if ( $GLOBALS['wpdb']->charset ) {
 			$charset = $GLOBALS['wpdb']->charset;
 		} else {
@@ -699,7 +699,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $table_and_column_defs = array(
+	protected static $table_and_column_defs = array(
 		array(
 			'definition'      => '( a INT, b FLOAT )',
 			'table_expected'  => false,
@@ -769,11 +769,11 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_get_table_charset() {
+	public static function data_get_table_charset() {
 		$table_name = 'test_get_table_charset';
 
 		$vars = array();
-		foreach ( $this->table_and_column_defs as $i => $value ) {
+		foreach ( self::$table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";
 			$create          = "CREATE TABLE $this_table_name {$value['definition']}";
@@ -805,11 +805,11 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_get_column_charset() {
+	public static function data_get_column_charset() {
 		$table_name = 'test_get_column_charset';
 
 		$vars = array();
-		foreach ( $this->table_and_column_defs as $i => $value ) {
+		foreach ( self::$table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";
 			$create          = "CREATE TABLE $this_table_name {$value['definition']}";
@@ -828,6 +828,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	public function test_get_column_charset( $drop, $create, $table, $expected_charset ) {
 		self::$_wpdb->query( $drop );
 		self::$_wpdb->query( $create );
+
+		$this->assertNotEmpty( $expected_charset );
 
 		foreach ( $expected_charset as $column => $charset ) {
 			if ( self::$utf8_is_utf8mb3 && 'utf8' === $charset ) {
@@ -854,6 +856,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->query( $create );
 
+		$this->assertNotEmpty( $columns );
+
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
 			$this->assertFalse( self::$_wpdb->get_col_charset( $table, $column ) );
@@ -877,6 +881,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->query( $create );
 
+		$this->assertNotEmpty( $columns );
+
 		$columns = array_keys( $columns );
 		foreach ( $columns as $column => $charset ) {
 			$this->assertFalse( self::$_wpdb->get_col_charset( $table, $column ) );
@@ -890,7 +896,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_strip_invalid_text_from_query() {
+	public static function data_strip_invalid_text_from_query() {
 		$table_name = 'strip_invalid_text_from_query_table';
 		$data       = array(
 			'utf8 + binary'  => array(
@@ -941,7 +947,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 32104
 	 */
-	public function data_dont_strip_text_from_schema_queries() {
+	public static function data_dont_strip_text_from_schema_queries() {
 		// An obviously invalid and fake table name.
 		$table_name = "\xff\xff\xff\xff";
 
@@ -991,7 +997,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_table_collation_check() {
+	public static function data_table_collation_check() {
 		$table_name = 'table_collation_check';
 		$data       = array(
 			'utf8_bin'                   => array(
@@ -1069,6 +1075,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				$query
 			)
 		);
+
+		$this->assertNotEmpty( $always_true );
 
 		foreach ( $always_true as $true_query ) {
 			$return = self::$_wpdb->check_safe_collation( $true_query );

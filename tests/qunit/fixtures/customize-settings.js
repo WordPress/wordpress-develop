@@ -146,14 +146,14 @@ window._wpCustomizeSettings = {
 	},
 	'previewableDevices': {
 		'desktop': {
-			'label': 'Enter desktop preview mode',
+			'label': 'Desktop',
 			'default': true
 		},
 		'tablet': {
-			'label': 'Enter tablet preview mode'
+			'label': 'Tablet'
 		},
 		'mobile': {
-			'label': 'Enter mobile preview mode'
+			'label': 'Mobile'
 		}
 	},
 	initialClientTimestamp: 1506510531595,
