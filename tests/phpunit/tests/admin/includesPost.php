@@ -1380,4 +1380,73 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * An autosave that no longer differs from the post is deleted.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_create_post_autosave
+	 */
+	public function test_wp_create_post_autosave_deletes_autosave_matching_the_post() {
+		wp_set_current_user( self::$editor_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => self::$editor_id,
+				'post_title'   => 'Title',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+			)
+		);
+
+		$autosave_id = wp_create_post_autosave( $this->get_autosave_data( $post_id, 'Changed content' ) );
+		$this->assertGreaterThan( 0, $autosave_id, 'An autosave that differs from the post should be created.' );
+
+		$result = wp_create_post_autosave( $this->get_autosave_data( $post_id, 'Content' ) );
+
+		$this->assertSame( 0, $result, 'An autosave matching the post should not be saved.' );
+		$this->assertFalse( wp_get_post_autosave( $post_id, self::$editor_id ), 'The existing autosave should be deleted.' );
+	}
+
+	/**
+	 * An existing autosave is updated when the new autosave differs from the post.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_create_post_autosave
+	 */
+	public function test_wp_create_post_autosave_updates_autosave_that_differs_from_the_post() {
+		wp_set_current_user( self::$editor_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => self::$editor_id,
+				'post_title'   => 'Title',
+				'post_content' => 'Content',
+				'post_excerpt' => '',
+			)
+		);
+
+		$autosave_id = wp_create_post_autosave( $this->get_autosave_data( $post_id, 'First change' ) );
+		$result      = wp_create_post_autosave( $this->get_autosave_data( $post_id, 'Second change' ) );
+
+		$this->assertSame( $autosave_id, $result, 'The existing autosave should be updated.' );
+		$this->assertSame( 'Second change', wp_get_post_autosave( $post_id, self::$editor_id )->post_content );
+	}
+
+	/**
+	 * Returns post data for wp_create_post_autosave().
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $content Post content.
+	 * @return array Post data.
+	 */
+	private function get_autosave_data( $post_id, $content ) {
+		return array(
+			'post_ID'      => $post_id,
+			'post_type'    => 'post',
+			'post_title'   => 'Title',
+			'post_content' => $content,
+			'post_excerpt' => '',
+		);
+	}
 }
