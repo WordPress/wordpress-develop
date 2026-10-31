@@ -211,6 +211,18 @@ jQuery( function($) {
 			res = wpAjax.parseAjaxResponse( r, 'ajax-response' );
 
 			if ( res.errors && res.responses[0].errors[0].code === 'empty_term_name' ) {
+				// Show the message inline next to the field, not only in the notice area.
+				var errorMessage = res.responses[0].errors[0].message;
+				var nameInput = form.find( '#tag-name' );
+
+				if ( ! form.find( '#tag-name-error' ).length ) {
+					nameInput
+						.closest( '.form-field' )
+						.append( $( '<p id="tag-name-error" class="form-error" role="alert"></p>' ).text( errorMessage ) );
+				}
+
+				nameInput.attr( 'aria-invalid', 'true' ).attr( 'aria-describedby', 'name-description tag-name-error' );
+
 				validateForm( form );
 			}
 
