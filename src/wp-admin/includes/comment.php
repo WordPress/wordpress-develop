@@ -224,6 +224,7 @@ function get_comment_to_edit( $id ) {
  * @since 2.3.0
  * @since 6.9.0 Exclude the 'note' comment type from the count.
  * @since 7.2.0 Exclude the 'reaction' comment type from the count.
+ * @since 7.3.0 Introduced the {@see 'get_pending_comments_num_query'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -241,9 +242,30 @@ function get_pending_comments_num( $post_id ) {
 		$post_id_array = $post_id;
 	}
 	$post_id_array = array_map( 'intval', $post_id_array );
-	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type NOT IN ( 'note', 'reaction' ) GROUP BY comment_post_ID", ARRAY_A );
+	if ( empty( $post_id_array ) ) {
+		return $single ? 0 : array();
+	}
+
+	$query = $wpdb->prepare(
+		"SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN (" . implode( ',', array_fill( 0, count( $post_id_array ), '%d' ) ) . ") AND comment_approved = '0' AND comment_type NOT IN ( 'note', 'reaction' ) GROUP BY comment_post_ID",
+		$post_id_array
+	);
+
+	/**
+	 * Filters the SQL query used to count pending comments for one or more posts.
+	 *
+	 * The query must return rows containing `comment_post_ID` and `num_comments` columns.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $query         SQL query used to count pending comments, grouped by post ID.
+	 * @param int[]  $post_id_array Array of post IDs the pending comments are counted for.
+	 */
+	$query = apply_filters( 'get_pending_comments_num_query', $query, $post_id_array );
+
+	// The default query is prepared above; the filtered query is the callback's responsibility.
+	$pending = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
