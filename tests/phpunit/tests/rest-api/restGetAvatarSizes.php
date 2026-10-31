@@ -33,10 +33,14 @@ class Tests_REST_API_RestGetAvatarSizes extends WP_UnitTestCase {
 				$urls[ $size ],
 				"Avatar URL for size {$size} should include the Gravatar path for the email."
 			);
-			$this->assertStringContainsString(
-				's=' . $size,
-				$urls[ $size ],
-				"Avatar URL for size {$size} should request that pixel size."
+
+			$query = array();
+			wp_parse_str( wp_parse_url( $urls[ $size ], PHP_URL_QUERY ), $query );
+
+			$this->assertSame(
+				(string) $size,
+				$query['s'] ?? null,
+				"Avatar URL for size {$size} should request that exact pixel size."
 			);
 		}
 	}
