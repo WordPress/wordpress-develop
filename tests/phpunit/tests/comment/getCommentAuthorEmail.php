@@ -106,7 +106,9 @@ class Tests_Comment_GetCommentAuthorEmail extends WP_UnitTestCase {
 	public function test_comment_author_email_echoes_value() {
 		add_filter(
 			'author_email',
-			static function () {
+			function ( $email ) {
+				$this->assertSame( 'author@example.com', $email );
+
 				return 'display@example.com';
 			}
 		);
