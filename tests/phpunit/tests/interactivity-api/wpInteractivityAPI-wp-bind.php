@@ -672,10 +672,11 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that an object serializing to a value JSON cannot represent is rejected.
 	 *
 	 * The encoding does not fail here the way it does for a bare INF. When
-	 * `json_encode()` rejects the value, `wp_json_encode()` retries with a plain
-	 * object rebuilt from the public properties, which discards `jsonSerialize()`
-	 * entirely and encodes to `{}`. The object therefore resolves to something
-	 * non-scalar and is reported as such, rather than with the non-finite message.
+	 * `json_encode()` rejects the value, `wp_json_encode()` retries with the value
+	 * returned by `jsonSerialize()`. The INF cannot be encoded, so the object is
+	 * rebuilt from its public properties instead, which encodes to `{}`. The
+	 * object therefore resolves to something non-scalar and is reported as such,
+	 * rather than with the non-finite message.
 	 *
 	 * The store is rebuilt the same way, so the client is sent `{}` for this
 	 * reference. The two still agree that there is no usable value here.
@@ -707,6 +708,245 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 			'"nonFinite":{}',
 			$encoded,
 			'Expected the client to be sent the same empty object the server resolved.'
+		);
+	}
+
+	/**
+	 * Tests that an object binds the value it serializes to, and that the client is
+	 * sent that same value when a string elsewhere in the state is not valid UTF-8.
+	 *
+	 * @ticket 66358
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_object_value_matches_the_client_store_when_other_state_is_not_valid_utf8() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'label' => $this->get_json_serializable( 'serialized-label' ),
+				'other' => "caf\xE9",
+			)
+		);
+
+		$html    = '<div data-wp-bind--data-label="myPlugin::state.label">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'serialized-label', $p->get_attribute( 'data-label' ) );
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to be encodable as JSON.' );
+		$this->assertStringContainsString(
+			'"label":"serialized-label"',
+			$encoded,
+			'Expected the client to be sent the same value the server bound.'
+		);
+	}
+
+	/**
+	 * Tests that an object serializing to a string which is not valid UTF-8 binds
+	 * that string converted to UTF-8, which is also what the client is sent.
+	 *
+	 * @ticket 66358
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_object_serializing_to_invalid_utf8_binds_the_converted_string() {
+		$this->interactivity->state( 'myPlugin', array( 'label' => $this->get_json_serializable( "caf\xE9" ) ) );
+
+		$html    = '<div data-wp-bind--data-label="myPlugin::state.label">Text</div>';
+		list($p) = $this->process_directives( $html );
+
+		$converted = _wp_json_convert_string( "caf\xE9" );
+		$this->assertSame( $converted, $p->get_attribute( 'data-label' ) );
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to be encodable as JSON.' );
+		$this->assertStringContainsString(
+			'"label":' . wp_json_encode( $converted ),
+			$encoded,
+			'Expected the client to be sent the same string the server bound.'
+		);
+	}
+
+	/**
+	 * Tests that an object serializing to a string which is not valid UTF-8 binds the
+	 * converted string, and that the client is sent the same string, when another
+	 * object in the same store cannot be serialized.
+	 *
+	 * Each object is rebuilt from its public properties on its own when its serialized
+	 * form cannot be encoded, so the other object does not change what this one
+	 * resolves to on the server or in the store.
+	 *
+	 * @ticket 66358
+	 *
+	 * @dataProvider data_objects_that_cannot_be_serialized
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @param string $kind How the other object fails to serialize.
+	 */
+	public function test_wp_bind_object_matches_the_client_store_when_another_object_cannot_be_serialized( $kind ) {
+		$other = new class( $kind ) implements JsonSerializable {
+			private $kind;
+
+			public function __construct( $kind ) {
+				$this->kind = $kind;
+			}
+
+			#[\ReturnTypeWillChange]
+			public function jsonSerialize() {
+				switch ( $this->kind ) {
+					case 'INF':
+						return INF;
+					case 'NAN':
+						return NAN;
+					default:
+						throw new RuntimeException( 'This object cannot be serialized.' );
+				}
+			}
+		};
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'label' => $this->get_json_serializable( "caf\xE9" ),
+				'other' => $other,
+			)
+		);
+
+		$html    = '<div data-wp-bind--data-label="myPlugin::state.label">Text</div>';
+		list($p) = $this->process_directives( $html );
+
+		$converted = _wp_json_convert_string( "caf\xE9" );
+		$this->assertSame( $converted, $p->get_attribute( 'data-label' ) );
+
+		$data    = $this->interactivity->filter_script_module_interactivity_data( array() );
+		$encoded = wp_json_encode( $data['state'] );
+		$this->assertIsString( $encoded, 'Expected the client state to be encodable as JSON.' );
+		$this->assertStringContainsString(
+			'"label":' . wp_json_encode( $converted ),
+			$encoded,
+			'Expected the client to be sent the same string the server bound.'
+		);
+		$this->assertStringContainsString( '"other":{}', $encoded, 'Expected the other object to be rebuilt from its public properties.' );
+	}
+
+	/**
+	 * Tests what the binding and the client are given for an object whose serialized
+	 * value is close to the depth limit.
+	 *
+	 * The binding resolves the object on its own, as `json_decode( wp_json_encode( $object ) )`,
+	 * while the store is printed with the object three levels down, so its serialized value
+	 * fits the depth limit of the binding before it fits that of the store. While it fits the
+	 * store, the client is given the same value as the binding. Once it does not, the client is
+	 * given the object rebuilt from its public properties. The binding rejects the value as
+	 * non-scalar in every case, so no attribute value can differ between server and client.
+	 *
+	 * @ticket 66358
+	 *
+	 * @dataProvider data_depth_limit
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param int  $levels       Levels of arrays and objects in the serialized value.
+	 * @param bool $invalid_utf8 Whether a string elsewhere in the state is not valid UTF-8.
+	 */
+	public function test_wp_bind_and_client_store_at_the_depth_limit( $levels, $invalid_utf8 ) {
+		$value = 'leaf';
+		for ( $level = 1; $level <= $levels; $level++ ) {
+			if ( 100 === $level ) {
+				$value = $this->get_json_serializable( array( $value ) );
+			} elseif ( 0 === $level % 2 ) {
+				$value = (object) array( 'next' => $value );
+			} else {
+				$value = array( $value );
+			}
+		}
+
+		$object = new class( $value ) implements JsonSerializable {
+			public $label = 'public value';
+			private $value;
+
+			public function __construct( $value ) {
+				$this->value = $value;
+			}
+
+			#[\ReturnTypeWillChange]
+			public function jsonSerialize() {
+				return $this->value;
+			}
+		};
+
+		$state = array( 'deep' => $object );
+		if ( $invalid_utf8 ) {
+			$state['other'] = "caf\xE9";
+		}
+		$this->interactivity->state( 'myPlugin', $state );
+
+		$html    = '<div data-wp-bind--data-deep="myPlugin::state.deep">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'data-deep' ), 'Expected no attribute to have been set.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor' => 'Attempted to bind a non-scalar value to the "data-deep" attribute. Ensure the state/context property or the derived state closure resolves to a string, number, or boolean. (This message was added in version 7.1.0.)',
+			),
+			$this->caught_doing_it_wrong,
+			'Expected the binding to reject the value as non-scalar.'
+		);
+
+		// The value the binding resolves the object to.
+		$server_value = json_decode( wp_json_encode( $object ) );
+
+		// The store is printed with these flags and the default depth limit of 512.
+		$printed = wp_json_encode(
+			$this->interactivity->filter_script_module_interactivity_data( array() ),
+			JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+		);
+		$this->assertIsString( $printed, 'Expected the client data to be encodable as JSON.' );
+
+		// The client parses the store with JSON.parse(), which has no depth limit this low.
+		$client_value = json_decode( $printed, false, 1024 )->state->myPlugin->deep;
+
+		// The values are compared with assertEquals(), as they hold objects decoded separately.
+		$serialized_value = json_decode( json_encode( $value, 0, 1024 ), false, 1024 );
+		$this->assertEquals( $serialized_value, $server_value, 'Expected the binding to resolve the serialized value.' );
+
+		if ( 3 + $levels <= 512 ) {
+			$this->assertEquals( $server_value, $client_value, 'Expected the client to be given the value the binding resolved.' );
+		} else {
+			$this->assertEquals( (object) array( 'label' => 'public value' ), $client_value, 'Expected the client to be given the object rebuilt from its public properties.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_depth_limit() {
+		return array(
+			'509 levels, fits the store'                => array( 509, false ),
+			'509 levels, fits the store, invalid UTF-8' => array( 509, true ),
+			'510 levels, one level over'                => array( 510, false ),
+			'510 levels, one level over, invalid UTF-8' => array( 510, true ),
+			'511 levels, fits the binding only'         => array( 511, false ),
+			'511 levels, fits the binding only, invalid UTF-8' => array( 511, true ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_objects_that_cannot_be_serialized() {
+		return array(
+			'INF'       => array( 'INF' ),
+			'NAN'       => array( 'NAN' ),
+			'exception' => array( 'exception' ),
 		);
 	}
 

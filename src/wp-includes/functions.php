@@ -4478,6 +4478,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  * @since 5.3.0 No longer handles support for PHP < 5.6.
  * @since 6.5.0 The `$data` parameter has been renamed to `$value` and
  *              the `$options` parameter to `$flags` for parity with PHP.
+ * @since 7.3.0 When retrying, an object implementing `JsonSerializable` is encoded
+ *              as the value it serializes to, unless that value, or the data as a
+ *              whole, cannot be encoded.
  *
  * @param mixed $value Variable (usually an array or object) to encode as JSON.
  * @param int   $flags Optional. Options to be passed to json_encode(). Default 0.
@@ -4495,6 +4498,26 @@ function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 		return $json;
 	}
 
+	/*
+	 * Retry with the strings converted to UTF-8, and each JsonSerializable object replaced
+	 * with the value it serializes to, as json_encode() does. An object whose serialized
+	 * value cannot be encoded, for example because it holds INF or NAN, is rebuilt from
+	 * its public properties instead.
+	 */
+	try {
+		$json = json_encode( _wp_json_sanity_check( $value, $depth, true ), $flags, $depth );
+	} catch ( Exception $e ) {
+		$json = false;
+	}
+
+	if ( false !== $json ) {
+		return $json;
+	}
+
+	/*
+	 * Otherwise, for example when the data is deeper than $depth, retry with every object
+	 * rebuilt from its public properties.
+	 */
 	try {
 		$value = _wp_json_sanity_check( $value, $depth );
 	} catch ( Exception $e ) {
@@ -4509,19 +4532,63 @@ function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
  *
  * @ignore
  * @since 4.1.0
+ * @since 7.3.0 Added the `$use_json_serialize` parameter.
  * @access private
  *
  * @see wp_json_encode()
  *
- * @throws Exception If depth limit is reached.
+ * @throws Exception                If depth limit is reached.
+ * @throws UnexpectedValueException If `$use_json_serialize` is true, and a value which is not
+ *                                  inside an object implementing `JsonSerializable` cannot be
+ *                                  encoded, such as INF or NAN.
  *
- * @param mixed $value Variable (usually an array or object) to encode as JSON.
- * @param int   $depth Maximum depth to walk through $value. Must be greater than 0.
+ * @param mixed $value              Variable (usually an array or object) to encode as JSON.
+ * @param int   $depth              Maximum depth to walk through $value. Must be greater than 0.
+ * @param bool  $use_json_serialize Optional. Whether to replace each object implementing
+ *                                  `JsonSerializable` with the value it serializes to, as
+ *                                  json_encode() does. An object is rebuilt from its public
+ *                                  properties instead when its serialized value holds INF,
+ *                                  NAN or a resource, when its `jsonSerialize()` throws, or
+ *                                  when objects serialize to each other in a cycle. Default
+ *                                  false, which rebuilds every object from its public properties.
  * @return mixed The sanitized data that shall be encoded to JSON.
  */
-function _wp_json_sanity_check( $value, $depth ) {
+function _wp_json_sanity_check( $value, $depth, $use_json_serialize = false ) {
 	if ( $depth < 0 ) {
 		throw new Exception( 'Reached depth limit' );
+	}
+
+	if ( $use_json_serialize && $value instanceof JsonSerializable ) {
+		$object   = $value;
+		$followed = array();
+
+		try {
+			/*
+			 * Like json_encode(), follow an object which serializes to another JsonSerializable
+			 * object, and encode an object which serializes to itself from its public properties.
+			 */
+			do {
+				$object_id = spl_object_id( $value );
+				if ( isset( $followed[ $object_id ] ) ) {
+					throw new UnexpectedValueException( 'Recursion detected' );
+				}
+
+				// Keep a reference to each object, so that its ID is not reused while following them.
+				$followed[ $object_id ] = $value;
+
+				try {
+					$serialized = $value->jsonSerialize();
+				} catch ( Throwable $e ) {
+					throw new UnexpectedValueException( 'The object cannot be serialized', 0, $e );
+				}
+
+				$value = $serialized === $value ? (object) get_object_vars( $value ) : $serialized;
+			} while ( $value instanceof JsonSerializable );
+
+			return _wp_json_sanity_check( $value, $depth, true );
+		} catch ( UnexpectedValueException $e ) {
+			return _wp_json_sanity_check( $object, $depth );
+		}
 	}
 
 	if ( is_array( $value ) ) {
@@ -4536,9 +4603,12 @@ function _wp_json_sanity_check( $value, $depth ) {
 
 			// Check the element type, so that we're only recursing if we really have to.
 			if ( is_array( $el ) || is_object( $el ) ) {
-				$output[ $clean_id ] = _wp_json_sanity_check( $el, $depth - 1 );
+				$output[ $clean_id ] = _wp_json_sanity_check( $el, $depth - 1, $use_json_serialize );
 			} elseif ( is_string( $el ) ) {
 				$output[ $clean_id ] = _wp_json_convert_string( $el );
+			} elseif ( $use_json_serialize ) {
+				// Check that the value can be encoded. It does not add a level of depth.
+				$output[ $clean_id ] = _wp_json_sanity_check( $el, $depth, true );
 			} else {
 				$output[ $clean_id ] = $el;
 			}
@@ -4553,15 +4623,20 @@ function _wp_json_sanity_check( $value, $depth ) {
 			}
 
 			if ( is_array( $el ) || is_object( $el ) ) {
-				$output->$clean_id = _wp_json_sanity_check( $el, $depth - 1 );
+				$output->$clean_id = _wp_json_sanity_check( $el, $depth - 1, $use_json_serialize );
 			} elseif ( is_string( $el ) ) {
 				$output->$clean_id = _wp_json_convert_string( $el );
+			} elseif ( $use_json_serialize ) {
+				// Check that the value can be encoded. It does not add a level of depth.
+				$output->$clean_id = _wp_json_sanity_check( $el, $depth, true );
 			} else {
 				$output->$clean_id = $el;
 			}
 		}
 	} elseif ( is_string( $value ) ) {
 		return _wp_json_convert_string( $value );
+	} elseif ( $use_json_serialize && ( ( is_float( $value ) && ! is_finite( $value ) ) || str_starts_with( gettype( $value ), 'resource' ) ) ) {
+		throw new UnexpectedValueException( 'The value cannot be encoded' );
 	} else {
 		return $value;
 	}
