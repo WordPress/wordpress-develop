@@ -25,8 +25,8 @@
  * @access private
  * @ignore
  *
- * @see https://html.spec.whatwg.org/#stack-of-open-elements
  * @see WP_HTML_Processor
+ * @link https://html.spec.whatwg.org/#stack-of-open-elements
  */
 class WP_HTML_Open_Elements {
 	/**
@@ -128,16 +128,16 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
-	 * Reports if a node of a given name is in the stack of open elements.
+	 * Reports if an HTML element of a given name is on the stack of open elements.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param string $node_name Name of node for which to check.
+	 * @param string $node_name Name of HTML element for which to check.
 	 * @return bool Whether a node of the given name is in the stack of open elements.
 	 */
 	public function contains( string $node_name ): bool {
 		foreach ( $this->walk_up() as $item ) {
-			if ( $node_name === $item->node_name ) {
+			if ( 'html' === $item->namespace && $node_name === $item->node_name ) {
 				return true;
 			}
 		}
@@ -235,7 +235,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
 	 *
 	 * @param string   $tag_name         Name of tag check.
 	 * @param string[] $termination_list List of elements that terminate the search.
@@ -281,6 +281,7 @@ class WP_HTML_Open_Elements {
 	 * >   - th
 	 * >   - marquee
 	 * >   - object
+	 * >   - select
 	 * >   - template
 	 * >   - MathML mi
 	 * >   - MathML mo
@@ -295,7 +296,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0
 	 * @since 6.7.0 Full support.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
@@ -312,6 +313,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
@@ -343,7 +345,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.5.0 Implemented: no longer throws on every invocation.
 	 * @since 6.7.0 Supports all required HTML elements.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-list-item-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-list-item-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
@@ -362,6 +364,7 @@ class WP_HTML_Open_Elements {
 				'MARQUEE',
 				'OBJECT',
 				'OL',
+				'SELECT',
 				'TEMPLATE',
 				'UL',
 
@@ -392,7 +395,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0
 	 * @since 6.7.0 Supports all required HTML elements.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-button-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-button-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
@@ -410,6 +413,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
@@ -440,7 +444,7 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-table-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-table-scope
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
@@ -459,9 +463,8 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in select scope.
 	 *
-	 * This test differs from the others like it, in that its rules are inverted.
-	 * Instead of arriving at a match when one of any tag in a termination group
-	 * is reached, this one terminates if any other tag is reached.
+	 * The "select scope" concept was removed from the HTML standard along with the
+	 * customizable `<select>` changes, so nothing is ever in select scope.
 	 *
 	 * > The stack of open elements is said to have a particular element in select scope when it has
 	 * > that element in the specific scope consisting of all element types except the following:
@@ -471,24 +474,14 @@ class WP_HTML_Open_Elements {
 	 * @since 6.4.0 Stub implementation (throws).
 	 * @since 6.7.0 Full implementation.
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
+	 * @deprecated 7.1.0 This method is no longer part of the HTML standard.
+	 * @ignore
 	 *
 	 * @param string $tag_name Name of tag to check.
-	 * @return bool Whether the given element is in SELECT scope.
+	 * @return bool Always false; select scope no longer exists.
 	 */
 	public function has_element_in_select_scope( string $tag_name ): bool {
-		foreach ( $this->walk_up() as $node ) {
-			if ( $node->node_name === $tag_name ) {
-				return true;
-			}
-
-			if (
-				'OPTION' !== $node->node_name &&
-				'OPTGROUP' !== $node->node_name
-			) {
-				return false;
-			}
-		}
+		_deprecated_function( __METHOD__, '7.1.0' );
 
 		return false;
 	}
@@ -498,7 +491,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#has-an-element-in-button-scope
+	 * @link https://html.spec.whatwg.org/#has-an-element-in-button-scope
 	 *
 	 * @return bool Whether a P is in BUTTON scope.
 	 */
@@ -511,7 +504,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
+	 * @link https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @return bool Whether a node was popped off of the stack.
 	 */
@@ -563,7 +556,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
+	 * @link https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @param WP_HTML_Token $stack_item Item to add onto stack.
 	 */
@@ -697,6 +690,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
@@ -753,6 +747,7 @@ class WP_HTML_Open_Elements {
 			case 'TH':
 			case 'MARQUEE':
 			case 'OBJECT':
+			case 'SELECT':
 			case 'TEMPLATE':
 			case 'math MI':
 			case 'math MO':
@@ -779,7 +774,7 @@ class WP_HTML_Open_Elements {
 	 * > that the UA must, while the current node is not a table, template, or html element, pop
 	 * > elements from the stack of open elements.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-context
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-context
 	 *
 	 * @since 6.7.0
 	 */
@@ -803,7 +798,7 @@ class WP_HTML_Open_Elements {
 	 * > means that the UA must, while the current node is not a tbody, tfoot, thead, template, or
 	 * > html element, pop elements from the stack of open elements.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-body-context
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-body-context
 	 *
 	 * @since 6.7.0
 	 */
@@ -829,7 +824,7 @@ class WP_HTML_Open_Elements {
 	 * > means that the UA must, while the current node is not a tr, template, or html element, pop
 	 * > elements from the stack of open elements.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-row-context
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#clear-the-stack-back-to-a-table-row-context
 	 *
 	 * @since 6.7.0
 	 */

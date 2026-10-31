@@ -441,6 +441,12 @@ function update_sitemeta_cache( $site_ids ) {
  *                           for information on accepted arguments. Default empty array.
  * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
  *                             or the number of sites when 'count' is passed as a query var.
+ *
+ * @phpstan-return (
+ *     $args is array{ count: true, ... } ? int : (
+ *         $args is array{ fields: 'ids', ... } ? int[] : array<int, WP_Site>
+ *     )
+ * )
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -1060,6 +1066,8 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $site_id
  */
 function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'blog', $site_id, $meta_key, $meta_value );
@@ -1086,6 +1094,18 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );
@@ -1126,7 +1146,33 @@ function update_site_meta( $site_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the site meta key was deleted from the database.
  */
 function delete_site_meta_by_key( $meta_key ) {
-	return delete_metadata( 'blog', null, $meta_key, '', true );
+	return delete_metadata( 'blog', 0, $meta_key, '', true );
+}
+
+/**
+ * Registers a meta key for sites.
+ *
+ * @since 7.2.0
+ *
+ * @param string $meta_key The meta key to register.
+ * @param array  $args     Data used to describe the meta key when registered. See
+ *                         {@see register_meta()} for a list of supported arguments.
+ * @return bool True if the meta key was successfully registered, false if not.
+ */
+function register_site_meta( $meta_key, array $args ) {
+	return register_meta( 'blog', $meta_key, $args );
+}
+
+/**
+ * Unregisters a meta key for sites.
+ *
+ * @since 7.2.0
+ *
+ * @param string $meta_key The meta key to unregister.
+ * @return bool True on success, false if the meta key was not previously registered.
+ */
+function unregister_site_meta( $meta_key ) {
+	return unregister_meta_key( 'blog', $meta_key );
 }
 
 /**
