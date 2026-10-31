@@ -21,7 +21,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '7.0.0'
+        default: '7.2.0'
       TARGET_SHA:
         description: 'SHA hash of the target commit used for "before" measurements.'
         required: true
@@ -235,6 +235,7 @@ jobs:
           npm run env:cli -- theme enable twentytwentythree --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable ipsum --network --path="/var/www/${LOCAL_DIR}"
 
       - name: Install WordPress Importer plugin
         run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
