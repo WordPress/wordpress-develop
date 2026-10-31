@@ -63,6 +63,7 @@ class Tests_REST_API_RestCookieCheckErrors extends WP_UnitTestCase {
 		$_REQUEST['_wpnonce']           = wp_create_nonce( 'wp_rest' );
 
 		$this->assertTrue( rest_cookie_check_errors( null ) );
+		$this->assertSame( $user_id, get_current_user_id() );
 	}
 
 	/**
