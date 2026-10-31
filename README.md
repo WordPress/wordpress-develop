@@ -9,7 +9,7 @@ Welcome to the WordPress development repository! Please check out the [contribut
 
 ### Local development
 
-WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
+WordPress is a PHP, MySQL, and JavaScript-based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
 
 You will need a basic understanding of how to use the command line on your computer. This will allow you to set up the local development environment, to start it and stop it when necessary, and to run the tests.
 
@@ -64,8 +64,7 @@ npm run build:dev
 npm run env:start
 npm run env:install
 ```
-
-Your WordPress site will be accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
+Your WordPress site will be accessible at http://localhost:8889. You can view or change the configuration settings in the `.env` file located in the root directory of the project.
 
 #### To watch for changes
 
@@ -111,10 +110,7 @@ To run the JavaScript (QUnit) tests:
 npm run grunt qunit:compiled
 ```
 
-`qunit:compiled` builds first, then runs the suite. The QUnit runner loads
-scripts from the built `build/` directory, so a plain `npm run grunt qunit`
-requires a completed `npm run build` first without a build, every test fails
-with a `jQuery is not defined` error.
+`qunit:compiled` builds first, then runs the suite. The QUnit runner loads scripts from the built `build/` directory, so a plain `npm run grunt qunit` requires a completed `npm run build` first; without a build, every test fails with a `jQuery is not defined` error.
 
 #### To lint the workflow files
 
