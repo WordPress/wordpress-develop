@@ -44,7 +44,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 
 		WP_Image_Editor_Mock::$load_return = true;
 	}
@@ -172,7 +172,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * will be converted to WEBP (if the image editor in PHP supports it).
 	 *
 	 * @param array $formats
-	 *
 	 * @return array
 	 */
 	public function image_editor_output_formats( $formats ) {
@@ -305,7 +304,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_webp_info().
 	 */
-	public function data_wp_get_webp_info() {
+	public static function data_wp_get_webp_info() {
 		return array(
 			// Standard JPEG.
 			array(
@@ -382,7 +381,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_avif_info().
 	 */
-	public function data_wp_get_avif_info() {
+	public static function data_wp_get_avif_info() {
 		return array(
 			// Standard JPEG.
 			array(

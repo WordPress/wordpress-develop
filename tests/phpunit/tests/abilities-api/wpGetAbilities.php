@@ -39,6 +39,13 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 				'description' => 'Text operations.',
 			)
 		);
+		wp_register_ability_category(
+			'media',
+			array(
+				'label'       => 'Media',
+				'description' => 'Media operations.',
+			)
+		);
 	}
 
 	/**
@@ -53,6 +60,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		wp_unregister_ability_category( 'math' );
 		wp_unregister_ability_category( 'text' );
+		wp_unregister_ability_category( 'media' );
 
 		parent::tear_down();
 	}
@@ -135,15 +143,19 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that passing an array of categories uses OR logic.
+	 * Tests that a non-string category is ignored rather than treated as a multi-value filter.
+	 *
+	 * The declarative filters accept a single slug. Anything other than a string is ignored,
+	 * matching how the `namespace` and `meta` args guard their own types.
 	 *
 	 * @ticket 64990
 	 */
-	public function test_filter_by_category_array_uses_or_logic(): void {
+	public function test_filter_by_non_string_category_is_ignored(): void {
 		$this->simulate_wp_abilities_init();
 
 		$this->register_test_ability( 'test/math-add', array( 'category' => 'math' ) );
 		$this->register_test_ability( 'test/text-upper', array( 'category' => 'text' ) );
+		$this->register_test_ability( 'test/media-crop', array( 'category' => 'media' ) );
 
 		$result = wp_get_abilities( array( 'category' => array( 'math', 'text' ) ) );
 		$names  = array_map(
@@ -155,6 +167,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 
 		$this->assertContains( 'test/math-add', $names );
 		$this->assertContains( 'test/text-upper', $names );
+		$this->assertContains( 'test/media-crop', $names );
 	}
 
 	/**
@@ -783,5 +796,137 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->assertContains( 'test/ability-alpha', $names );
 		$this->assertNotContains( 'test/ability-beta', $names );
 		$this->assertNotContains( 'other/ability-gamma', $names );
+	}
+
+	// -------------------------------------------------------------------------
+	// Current user capabilities filter
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Registers abilities with and without required capabilities.
+	 */
+	private function register_abilities_with_required_capabilities(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/admin-only',
+			array(
+				'permission_callback'   => null,
+				'required_capabilities' => array( 'manage_options' ),
+			)
+		);
+		$this->register_test_ability(
+			'test/editor-and-up',
+			array(
+				'permission_callback'   => null,
+				'required_capabilities' => array( 'edit_others_posts' ),
+			)
+		);
+		$this->register_test_ability(
+			'test/input-dependent',
+			array(
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+	}
+
+	/**
+	 * Data provider for filtering by the current user's required capabilities.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string[]}>
+	 */
+	public static function data_filter_by_has_required_capabilities(): array {
+		return array(
+			'editor misses a capability' => array(
+				'editor',
+				array( 'has_required_capabilities' => true ),
+				array( 'test/editor-and-up', 'test/input-dependent' ),
+			),
+			'administrator has all'      => array(
+				'administrator',
+				array( 'has_required_capabilities' => true ),
+				array( 'test/admin-only', 'test/editor-and-up', 'test/input-dependent' ),
+			),
+			'filter is off by default'   => array(
+				'',
+				array(),
+				array( 'test/admin-only', 'test/editor-and-up', 'test/input-dependent' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter leaves out abilities whose declared
+	 * capabilities the current user lacks. Abilities without required capabilities stay.
+	 *
+	 * @ticket 66325
+	 *
+	 * @dataProvider data_filter_by_has_required_capabilities
+	 *
+	 * @param string               $role     The role of the current user. Empty for a logged-out user.
+	 * @param array<string, mixed> $args     The arguments passed to wp_get_abilities().
+	 * @param string[]             $expected The expected ability names.
+	 */
+	public function test_filter_by_has_required_capabilities( string $role, array $args, array $expected ): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( '' === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) ) );
+
+		$result = wp_get_abilities( array_merge( array( 'namespace' => 'test' ), $args ) );
+
+		$this->assertSameSets( $expected, array_keys( $result ) );
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter doesn't call permission callbacks.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_does_not_call_permission_callbacks(): void {
+		$this->simulate_wp_abilities_init();
+
+		$callback_calls = 0;
+		$this->register_test_ability(
+			'test/tracked',
+			array(
+				'required_capabilities' => array( 'read' ),
+				'permission_callback'   => static function () use ( &$callback_calls ): bool {
+					++$callback_calls;
+					return true;
+				},
+			)
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
+
+		$this->assertArrayHasKey( 'test/tracked', $result );
+		$this->assertSame( 0, $callback_calls );
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter runs before item_include_callback.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_runs_before_item_include_callback(): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$seen   = array();
+		$result = wp_get_abilities(
+			array(
+				'namespace'                 => 'test',
+				'has_required_capabilities' => true,
+				'item_include_callback'     => static function ( WP_Ability $ability ) use ( &$seen ): bool {
+					$seen[] = $ability->get_name();
+					return true;
+				},
+			)
+		);
+
+		$this->assertSame( array( 'test/input-dependent' ), $seen );
+		$this->assertSame( array( 'test/input-dependent' ), array_keys( $result ) );
 	}
 }

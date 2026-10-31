@@ -50,7 +50,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeButton ).toBeVisible();
 
 		// Revoke password.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeButton.click();
 
 		await expect(
@@ -73,7 +73,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeAllButton ).toBeVisible();
 
 		// Confirms revoking action.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeAllButton.click();
 
 		await expect(
