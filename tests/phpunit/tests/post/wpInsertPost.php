@@ -72,6 +72,23 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+
+		unregister_post_type( 'mapped_meta_caps' );
+		unregister_post_type( 'unmapped_meta_caps' );
+		unregister_post_type( 'no_admin_caps' );
+		unregister_post_type( 'cpt' );
+		unregister_post_type( 'wptests_pt' );
+
+		unregister_taxonomy( 'ctax' );
+		unregister_taxonomy( 'test_tax' );
+
+		_unregister_post_status( 'floating' );
+		_unregister_post_status( 'not-floating' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
 	 */
