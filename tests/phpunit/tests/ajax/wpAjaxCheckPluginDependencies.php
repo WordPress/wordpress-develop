@@ -273,14 +273,34 @@ class Tests_Ajax_wpAjaxCheckPluginDependencies extends WP_Ajax_UnitTestCase {
 	 * Tests that no activation URL is returned for a plugin that is already active.
 	 *
 	 * @ticket 65819
-	 *
-	 * @group ms-excluded
+	 * @ticket 66346
 	 */
 	public function test_should_not_return_activate_url_for_active_plugin() {
 		wp_set_current_user( self::$admin_id );
 
 		$this->set_installed_plugins( array( 'dependent/dependent.php' => '' ) );
 		update_option( 'active_plugins', array( 'dependent/dependent.php' ) );
+
+		$_POST['slug'] = 'dependent';
+
+		$response = $this->make_request();
+
+		$this->assertTrue( $response['success'], 'The request should succeed.' );
+		$this->assertArrayNotHasKey( 'activateUrl', $response['data'], 'No activation URL should be returned.' );
+	}
+
+	/**
+	 * Tests that no activation URL is returned for a plugin that is network-activated.
+	 *
+	 * @ticket 66346
+	 *
+	 * @group ms-required
+	 */
+	public function test_should_not_return_activate_url_for_network_active_plugin() {
+		wp_set_current_user( self::$admin_id );
+
+		$this->set_installed_plugins( array( 'dependent/dependent.php' => '' ) );
+		update_site_option( 'active_sitewide_plugins', array( 'dependent/dependent.php' => time() ) );
 
 		$_POST['slug'] = 'dependent';
 
