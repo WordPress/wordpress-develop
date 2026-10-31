@@ -71,8 +71,8 @@ on:
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
-  # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  # or the commit hash for any other events, plus the selected branch and theme.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}-${{ inputs.branch }}-${{ inputs.theme }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -330,9 +330,13 @@ jobs:
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "Theme ${THEME} does not exist on the selected branch."
+            if [[ "${SELECTED_THEME}" != 'all' ]]; then
+              exit 1
+            fi
           fi
         env:
           THEME: ${{ matrix.theme }}
+          SELECTED_THEME: ${{ github.event_name == 'workflow_dispatch' && inputs.theme || 'all' }}
 
       - name: Set up Node.js for themes needing minification
         if: ${{ steps.theme-exists.outputs.exists == 'true' && ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) }}
