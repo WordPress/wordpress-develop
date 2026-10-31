@@ -621,7 +621,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type mixed $stick Value to pass to stick_post().
 	 * }
 	 */
-	public function data_stick_post_does_not_duplicate_post_ids() {
+	public static function data_stick_post_does_not_duplicate_post_ids() {
 		return array(
 			array( 1 ),
 			array( '1' ),
@@ -665,7 +665,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_stick_post_with_unexpected_sticky_posts_option() {
+	public static function data_stick_post_with_unexpected_sticky_posts_option() {
 		return array(
 			'false'     => array( false ),
 			'a string'  => array( 'string' ),
@@ -733,7 +733,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type array $expected
 	 * }
 	 */
-	public function data_unstick_post_removes_duplicate_post_ids() {
+	public static function data_unstick_post_removes_duplicate_post_ids() {
 		return array(
 			array(
 				array( 1, 1 ),
@@ -855,7 +855,7 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * @ticket 26798
 	 */
-	public function data_wp_insert_post_handle_malformed_post_date() {
+	public static function data_wp_insert_post_handle_malformed_post_date() {
 		return array(
 			array(
 				'2012-01-01',
@@ -969,7 +969,7 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * @ticket 26798
 	 */
-	public function data_wp_resolve_post_date_regex() {
+	public static function data_wp_resolve_post_date_regex() {
 		return array(
 			array(
 				'2012-01-01',
