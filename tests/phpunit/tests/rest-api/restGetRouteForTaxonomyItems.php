@@ -12,6 +12,7 @@ class Tests_REST_API_RestGetRouteForTaxonomyItems extends WP_UnitTestCase {
 	public function tear_down() {
 		unregister_taxonomy( 'not-in-rest' );
 		unregister_taxonomy( 'with-rest-base' );
+		unregister_taxonomy( 'fallback-tax' );
 		parent::tear_down();
 	}
 
@@ -66,14 +67,43 @@ class Tests_REST_API_RestGetRouteForTaxonomyItems extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
+	public function test_falls_back_to_default_namespace_and_taxonomy_name() {
+		register_taxonomy(
+			'fallback-tax',
+			'post',
+			array(
+				'public'       => true,
+				'show_in_rest' => true,
+			)
+		);
+
+		// Clear values filled by register_taxonomy() so the helper fallbacks are exercised.
+		$taxonomy                 = get_taxonomy( 'fallback-tax' );
+		$taxonomy->rest_base      = '';
+		$taxonomy->rest_namespace = '';
+
+		$this->assertSame( '/wp/v2/fallback-tax', rest_get_route_for_taxonomy_items( 'fallback-tax' ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 */
 	public function test_filter_can_modify_route() {
+		$received = null;
+
 		add_filter(
 			'rest_route_for_taxonomy_items',
-			static function () {
+			static function ( $route, $taxonomy ) use ( &$received ) {
+				$received = array( $route, $taxonomy );
 				return '/custom/taxonomy-route';
-			}
+			},
+			10,
+			2
 		);
 
 		$this->assertSame( '/custom/taxonomy-route', rest_get_route_for_taxonomy_items( 'category' ) );
+		$this->assertSame( '/wp/v2/categories', $received[0] );
+		$this->assertInstanceOf( 'WP_Taxonomy', $received[1] );
+		$this->assertSame( 'category', $received[1]->name );
 	}
 }
