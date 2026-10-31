@@ -792,25 +792,70 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * Converts the exif date format to a unix timestamp.
+ * Parses a date string, such as an Exif date, into a DateTimeImmutable object.
+ *
+ * Accepts the Exif format (Y:m:d H:i:s) as well as any other format understood
+ * by DateTimeImmutable, such as Y-m-d H:i:s or Y/m/d H:i:s.
+ *
+ * @since 7.2.0
+ *
+ * @param string      $str      The date string to parse.
+ * @param string|null $timezone Optional. Timezone identifier or offset string used when
+ *                              the date string has no timezone of its own. Anything that is
+ *                              not a non-empty string falls back to the site timezone.
+ *                              Default null.
+ * @return DateTimeImmutable|false The parsed date, or false if the date or timezone is invalid.
+ */
+function wp_exif_datetime( $str, $timezone = null ) {
+	if ( ! is_string( $str ) || empty( trim( $str ) ) ) {
+
+		return false;
+	}
+	try {
+		$timezone = ( is_string( $timezone ) && '' !== $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
+		$datetime = new DateTimeImmutable( $str, $timezone );
+	} catch ( Exception $e ) {
+
+		return false;
+	}
+
+	/*
+	 * Out of range components are rolled over rather than rejected, so the '0000:00:00 00:00:00'
+	 * cameras write for an unset field parses as a year -1 date. Every correction the parser
+	 * had to make is reported as a warning.
+	 */
+	$parse_errors = DateTimeImmutable::getLastErrors();
+
+	if ( $parse_errors && ( $parse_errors['error_count'] || $parse_errors['warning_count'] ) ) {
+		return false;
+	}
+
+	return $datetime;
+}
+
+/**
+ * Converts the exif date format to a Unix timestamp.
  *
  * @since 2.5.0
+ * @since 7.2.0 Uses wp_exif_datetime() to generate the timestamp.
  *
  * @param string $str A date string expected to be in Exif format (Y:m:d H:i:s).
  * @return int|false The unix timestamp, or false on failure.
  */
 function wp_exif_date2ts( $str ) {
-	list( $date, $time ) = explode( ' ', trim( $str ) );
-	list( $y, $m, $d )   = explode( ':', $date );
+	$datetime = wp_exif_datetime( $str, 'UTC' );
 
-	return strtotime( "{$y}-{$m}-{$d} {$time}" );
+	if ( $datetime instanceof DateTimeImmutable ) {
+		return $datetime->getTimestamp();
+	}
+	return false;
 }
 
 /**
  * Gets extended image metadata, exif or iptc as available.
  *
- * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso
- * created_timestamp, focal_length, shutter_speed, and title.
+ * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso,
+ * created, created_timestamp, focal_length, shutter_speed, and title.
  *
  * The IPTC metadata that is retrieved is APP13, credit, byline, created date
  * and time, caption, copyright, alt, and title. Also includes FNumber, Model,
@@ -818,6 +863,7 @@ function wp_exif_date2ts( $str ) {
  *
  * @todo Try other exif libraries if available.
  * @since 2.5.0
+ * @since 7.2.0 The `$created` value was added to the returned array.
  *
  * @param string $file
  * @return array|false Image metadata array on success, false on failure.
@@ -914,7 +960,15 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#055'][0] ) && ! empty( $iptc['2#060'][0] ) ) { // Created date and time.
-				$meta['created_timestamp'] = strtotime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+				// Default to UTC, matching the previous strtotime() based timestamp.
+				$datetime = wp_exif_datetime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0], 'UTC' );
+
+				if ( $datetime instanceof DateTimeImmutable ) {
+					// Store as an RFC3339 formatted timestring as this includes both date, time, and timezone.
+					$meta['created'] = $datetime->format( DATE_RFC3339 );
+					// Retain the original created timestamp for backcompat.
+					$meta['created_timestamp'] = $datetime->getTimestamp();
+				}
 			}
 
 			if ( ! empty( $iptc['2#116'][0] ) ) { // Copyright.
@@ -1024,7 +1078,22 @@ function wp_read_image_metadata( $file ) {
 			$meta['camera'] = trim( $exif['Model'] );
 		}
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
-			$meta['created_timestamp'] = wp_exif_date2ts( $exif['DateTimeDigitized'] );
+			// Default to UTC, matching the previous wp_exif_date2ts() based timestamp.
+			$timezone = 'UTC';
+			if ( ! empty( $exif['OffsetTimeDigitized'] ) ) {
+				$timezone = $exif['OffsetTimeDigitized'];
+			} elseif ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
+				$timezone = $exif['UndefinedTag:0x9012'];
+			}
+
+			$datetime = wp_exif_datetime( $exif['DateTimeDigitized'], $timezone );
+
+			if ( $datetime instanceof DateTimeImmutable ) {
+				// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+				$meta['created'] = $datetime->format( DATE_RFC3339 );
+				// Retain the original created timestamp for backcompat.
+				$meta['created_timestamp'] = $datetime->getTimestamp();
+			}
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
 			$meta['focal_length'] = (string) $exif['FocalLength'];

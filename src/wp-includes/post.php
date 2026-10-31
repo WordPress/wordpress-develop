@@ -7328,6 +7328,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
  *                                      orientation: numeric-string|int,
  *                                      keywords: list<string>,
  *                                      alt: string,
+ *                                      created?: string,
  *                                  },
  *                     ...
  *                 }|false
