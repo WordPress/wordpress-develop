@@ -70,6 +70,11 @@ class Tests_REST_API_RestSanitizeBoolean extends WP_UnitTestCase {
 			'int one'      => array( 1, true ),
 			'other string' => array( 'yes', false ),
 			'other int'    => array( 2, false ),
+			'float zero'   => array( 0.0, false ),
+			'float one'    => array( 1.0, false ),
+			'null'         => array( null, false ),
+			'array'        => array( array(), false ),
+			'object'       => array( new stdClass(), false ),
 		);
 	}
 }
