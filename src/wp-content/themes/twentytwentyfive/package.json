@@ -13,17 +13,17 @@
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyfive/",
 	"engines": {
-		"node": ">=24.18.0",
-		"npm": ">=11.16.0"
+		"node": ">=24.20.0",
+		"npm": ">=11.18.0"
 	},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
-			"version": ">=24.18.0"
+			"version": ">=24.20.0"
 		},
 		"packageManager": {
 			"name": "npm",
-			"version": ">=11.16.0",
+			"version": ">=11.18.0",
 			"onFail": "error"
 		}
 	},
@@ -39,5 +39,8 @@
 	"scripts": {
 		"build": "postcss style.css --use cssnano -o style.min.css --no-map",
 		"watch": "postcss style.css --use cssnano -o style.min.css --no-map --watch"
+	},
+	"allowScripts": {
+		"fsevents": false
 	}
 }
