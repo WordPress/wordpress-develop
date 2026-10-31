@@ -3,6 +3,8 @@
 /**
  * Tests for rest_output_link_header().
  *
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
  * @group restapi
  * @group xdebug
  *
