@@ -25,55 +25,38 @@ class Tests_Media_WpMediaelementFallback extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_escapes_url_in_markup() {
-		$url     = 'https://example.com/audio.mp3?foo=1&bar=2"><script>alert(1)</script>';
-		$escaped = esc_url( $url );
+		$url = 'https://example.com/audio.mp3?foo=1&bar=2"><script>alert(1)</script>';
 
 		$this->assertSame(
-			'<a href="' . $escaped . '">' . $escaped . '</a>',
+			'<a href="https://example.com/audio.mp3?foo=1&#038;bar=2scriptalert(1)/script">https://example.com/audio.mp3?foo=1&#038;bar=2scriptalert(1)/script</a>',
 			wp_mediaelement_fallback( $url )
 		);
-		$this->assertStringContainsString( '&#038;', $escaped );
 	}
 
 	/**
 	 * @ticket 65819
 	 */
-	public function test_filter_can_modify_output() {
-		add_filter(
-			'wp_mediaelement_fallback',
-			static function () {
-				return 'filtered-fallback';
-			}
-		);
-
-		$this->assertSame(
-			'filtered-fallback',
-			wp_mediaelement_fallback( 'https://example.com/audio.mp3' )
-		);
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_filter_receives_generated_output_and_url() {
-		$url            = 'https://example.com/audio.mp3?foo=1&bar=2';
-		$received_args  = array();
-		$default_output = sprintf( '<a href="%1$s">%1$s</a>', esc_url( $url ) );
+	public function test_filter_receives_generated_output_and_url_and_can_replace_output() {
+		$url           = 'https://example.com/audio.mp3?foo=1&bar=2';
+		$received_args = array();
 
 		add_filter(
 			'wp_mediaelement_fallback',
 			static function ( $output, $media_url ) use ( &$received_args ) {
 				$received_args = array( $output, $media_url );
-				return $output;
+				return 'filtered-fallback';
 			},
 			10,
 			2
 		);
 
-		wp_mediaelement_fallback( $url );
-
-		$this->assertSame( array( $default_output, $url ), $received_args );
-		$this->assertStringContainsString( '&#038;', $received_args[0] );
-		$this->assertSame( $url, $received_args[1] );
+		$this->assertSame( 'filtered-fallback', wp_mediaelement_fallback( $url ) );
+		$this->assertSame(
+			array(
+				'<a href="https://example.com/audio.mp3?foo=1&#038;bar=2">https://example.com/audio.mp3?foo=1&#038;bar=2</a>',
+				$url,
+			),
+			$received_args
+		);
 	}
 }
