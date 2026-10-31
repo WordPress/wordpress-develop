@@ -41,10 +41,14 @@ class Tests_REST_API_RestCookieCheckErrors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_nonce_sources
+	 *
+	 * @param string $source Where the nonce is provided from.
 	 */
-	public function test_returns_error_for_invalid_nonce() {
+	public function test_returns_error_for_invalid_nonce( $source ) {
 		$GLOBALS['wp_rest_auth_cookie'] = true;
-		$_REQUEST['_wpnonce']           = 'invalid-nonce';
+		$this->set_nonce_source( $source, 'invalid-nonce' );
 
 		$result = rest_cookie_check_errors( null );
 
@@ -54,13 +58,17 @@ class Tests_REST_API_RestCookieCheckErrors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_nonce_sources
+	 *
+	 * @param string $source Where the nonce is provided from.
 	 */
-	public function test_returns_true_for_valid_nonce() {
+	public function test_returns_true_for_valid_nonce( $source ) {
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
 		$GLOBALS['wp_rest_auth_cookie'] = true;
-		$_REQUEST['_wpnonce']           = wp_create_nonce( 'wp_rest' );
+		$this->set_nonce_source( $source, wp_create_nonce( 'wp_rest' ) );
 
 		$this->assertTrue( rest_cookie_check_errors( null ) );
 		$this->assertSame( $user_id, get_current_user_id() );
@@ -77,5 +85,32 @@ class Tests_REST_API_RestCookieCheckErrors extends WP_UnitTestCase {
 
 		$this->assertNull( rest_cookie_check_errors( null ) );
 		$this->assertSame( $user_id, get_current_user_id() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_nonce_sources() {
+		return array(
+			'request param' => array( 'request' ),
+			'header'        => array( 'header' ),
+		);
+	}
+
+	/**
+	 * Sets the nonce on the requested source.
+	 *
+	 * @param string $source Nonce source: 'request' or 'header'.
+	 * @param string $nonce  Nonce value.
+	 */
+	private function set_nonce_source( $source, $nonce ) {
+		if ( 'header' === $source ) {
+			$_SERVER['HTTP_X_WP_NONCE'] = $nonce;
+			return;
+		}
+
+		$_REQUEST['_wpnonce'] = $nonce;
 	}
 }
