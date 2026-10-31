@@ -45,7 +45,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_got_mod_rewrite.
+	 * Data provider for {@see self::test_got_mod_rewrite()}.
 	 *
 	 * @return array<string, array{
 	 *     expected:      bool,
