@@ -114,6 +114,10 @@ TREE;
 				'<hr style="margin-top: 50px; margin-bottom: 50px;">',
 				'<hr style="margin-top:50px;margin-bottom: 50px">',
 			),
+			'Differences in style value whitespace, comments and escapes' => array(
+				'<hr style="color: rgb(1, 2, 3) /* gray */; font-family: \'a\'">',
+				'<hr style="color:rgb(1,2,3);font-family:&quot;\61&quot;">',
+			),
 			'Different block attribute order'          => array(
 				'<!-- wp:separator {"className":"is-style-default","backgroundColor":"accent-1"} -->',
 				'<!-- wp:separator {"backgroundColor":"accent-1","className":"is-style-default"} -->',
@@ -153,25 +157,33 @@ TREE;
 
 	public static function data_build_equivalent_html_semantic_tree_with_non_equivalent_html() {
 		return array(
-			'Different attributes'             => array(
+			'Different attributes'                 => array(
 				'<img src="wp.png" alt="The WordPress logo">',
 				'<img alt="The WordPress logo" src="wp.png" title="WordPress">',
 			),
-			'Different class names'            => array(
+			'Different class names'                => array(
 				'<hr class="wp-block-separator is-style-default">',
 				'<hr class="is-style-default wp-block-hairline">',
 			),
-			'Different styles'                 => array(
+			'Different styles'                     => array(
 				'<hr style="margin-top: 50px; margin-bottom: 50px;">',
 				'<hr style="margin-top: 50px; margin-bottom: 100px">',
 			),
-			'Different comments'               => array(
+			'Different comments'                   => array(
 				'<!-- abc -->',
 				'<!-- xyz -->',
 			),
-			'Semantically relevant whitespace' => array(
+			'Semantically relevant whitespace'     => array(
 				'<div style="color: rgb(50 139 31)">Test</div>',
 				'<div style="color:rgb(5013931)">Test</div>',
+			),
+			'Different URLs in styles'             => array(
+				'<div style="background-image: url(https://example.com/a.png)">Test</div>',
+				'<div style="background-image: url(https://example.com/b.png)">Test</div>',
+			),
+			'Style text that is not a declaration' => array(
+				'<div style="color: red; }">Test</div>',
+				'<div style="color: red">Test</div>',
 			),
 		);
 	}
