@@ -151,6 +151,11 @@ class Tests_Template extends WP_UnitTestCase {
 			$registry->unregister( 'third-party/test' );
 		}
 
+		if ( isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+			remove_all_filters( 'theme_file_path' );
+			wp_theme_has_theme_json();
+		}
+
 		unset( $GLOBALS['_wp_tests_development_mode'] );
 		parent::tear_down();
 	}
@@ -352,6 +357,29 @@ class Tests_Template extends WP_UnitTestCase {
 				'page.php',
 				'singular.php',
 			)
+		);
+	}
+
+	/**
+	 * Tests that a decoded page name containing directory traversal is left out of the hierarchy.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_page_template
+	 */
+	public function test_page_template_hierarchy_omits_decoded_pagename_with_directory_traversal() {
+		$this->go_to( get_permalink( self::$page ) );
+		set_query_var( 'pagename', '..%2Fpage-name' );
+
+		$this->assertSame(
+			array(
+				'templates/page.php',
+				'page-..%2Fpage-name.php',
+				'page-' . self::$page->ID . '.php',
+				'page.php',
+				'singular.php',
+			),
+			$this->get_template_hierarchy()
 		);
 	}
 
@@ -747,7 +775,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
 		$this->assertIsString( $processed_output );
-		$this->assertNotEquals( $original_output, $processed_output );
+		$this->assertNotSame( $original_output, $processed_output );
 
 		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );
@@ -1949,6 +1977,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 64099
 	 * @ticket 64354

@@ -19,15 +19,20 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Access to an undefined property WP_Term\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Access to an undefined property WP_Term\:\:\$link\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../../src/wp-admin/includes/ajax-actions.php
+		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$language_update\.$#'
 			identifier: property.notFound
 			count: 2
 			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
-		-
-			message: '#^Access to an undefined property WP_Upgrader\:\:\$new_plugin_data\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/includes/class-plugin-installer-skin.php
 		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$plugin_active\.$#'
 			identifier: property.notFound
@@ -38,11 +43,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: ../../../src/wp-admin/includes/class-plugin-upgrader.php
-		-
-			message: '#^Access to an undefined property WP_Upgrader\:\:\$new_theme_data\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/includes/class-theme-installer-skin.php
 		-
 			message: '#^Access to an undefined property WP_Upgrader_Skin\:\:\$api\.$#'
 			identifier: property.notFound
@@ -159,26 +159,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-walker-nav-menu-edit.php
 		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$author\.$#'
-			identifier: property.notFound
-			count: 3
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 4
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$parent_theme\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$version\.$#'
-			identifier: property.notFound
-			count: 5
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
 			message: '#^Access to an undefined property WP_Theme\:\:\$auto_update_forced\.$#'
 			identifier: property.notFound
 			count: 1
@@ -188,11 +168,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-ms-themes-list-table.php
-		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 8
-			path: ../../../src/wp-admin/includes/class-wp-site-health.php
 		-
 			message: '#^Access to an undefined property WP_Post\:\:\$_wp_attachment_image_alt\.$#'
 			identifier: property.notFound
@@ -228,11 +203,6 @@ parameters:
 			identifier: property.notFound
 			count: 2
 			path: ../../../src/wp-admin/nav-menus.php
-		-
-			message: '#^Access to an undefined property WP_Theme\:\:\$version\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-admin/update-core.php
 		-
 			message: '#^Access to an undefined property WP_Post\:\:\$description\.$#'
 			identifier: property.notFound
@@ -284,15 +254,10 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/category-template.php
 		-
-			message: '#^Access to an undefined property WP_Post\:\:\$current\.$#'
+			message: '#^Access to an undefined property WP_Error\|WP_Term\:\:\$object_id\.$#'
 			identifier: property.notFound
 			count: 1
-			path: ../../../src/wp-includes/class-walker-nav-menu.php
-		-
-			message: '#^Access to an undefined property WP_Post\:\:\$title\.$#'
-			identifier: property.notFound
-			count: 2
-			path: ../../../src/wp-includes/class-walker-nav-menu.php
+			path: ../../../src/wp-includes/class-wp-term-query.php
 		-
 			message: '#^Access to an undefined property WP_Query\:\:\$comments_by_type\.$#'
 			identifier: property.notFound

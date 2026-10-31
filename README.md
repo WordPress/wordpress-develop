@@ -21,11 +21,19 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
+**Note:** WordPress currently only officially supports Node.js `24.x` and npm `11.x`.
 
 You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
 
 **Note:** WordPress currently only officially supports Docker but several container environments are available and should generally be compatible, such as [Colima](https://github.com/abiosoft/colima), [OrbStack](https://orbstack.dev/), [Podman Desktop](https://podman-desktop.io/), and [Rancher Desktop](https://rancherdesktop.io/).
+
+#### Windows-specific instructions
+
+For development on Windows, [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) is recommended. This provides a Linux environment where the general development instructions can be used without modification.
+
+After installing Docker Desktop, enable Docker's WSL integration under **Settings > Resources > WSL integration**. This only needs to be configured once.
+
+If you use Docker Desktop directly from Windows without WSL, make sure it is using Linux containers. Right-click the Docker icon in the system tray and select **Switch to Linux containers...**. If that option is not available, or the menu shows **Switch to Windows containers...**, Docker is already using Linux containers. You can switch between container types later if another project requires Windows containers.
 
 ### Development Environment Commands
 

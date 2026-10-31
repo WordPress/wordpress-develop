@@ -7,6 +7,9 @@
  * @since 5.2.0
  */
 
+
+require_once __DIR__ . '/secrets-site-health.php';
+
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
@@ -77,9 +80,7 @@ class WP_Site_Health {
 	 * @return WP_Site_Health|null
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new WP_Site_Health();
-		}
+		self::$instance ??= new WP_Site_Health();
 
 		return self::$instance;
 	}
