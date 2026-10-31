@@ -97,12 +97,42 @@ if ( isset( $_GET['multiple-location-headers'] ) ) {
 }
 
 if ( isset( $_GET['cookie-test'] ) ) {
+	/*
+	 * Live api.wordpress.org keeps the historical Domain/Path attributes, including
+	 * parent-domain acceptance via Domain=.wordpress.org.
+	 *
+	 * The local HTTP fixture (typically 127.0.0.1) cannot set a meaningful parent
+	 * Domain attribute, so it only covers host-only / wrong-host / expired cookies.
+	 * Parent-domain acceptance is covered by
+	 * WP_HTTP_UnitTestCase::test_parent_domain_cookie_is_sent_on_redirect().
+	 */
+	$request_host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '';
+	$request_host = preg_replace( '/:\d+$/', '', $request_host );
+	$is_wp_org    = (bool) preg_match( '/(^|\.)wordpress\.org$/i', $request_host );
+
 	if ( 'test-cookie' != $_GET['cookie-test'] ) {
-		setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
-		setcookie( 'api_test_cookie_minimal', 'value'  );
-		setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
-		setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
-		setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
+		if ( $is_wp_org ) {
+			setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
+			setcookie( 'api_test_cookie_minimal', 'value' );
+			setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
+			setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
+			setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
+		} else {
+			$request_path = parse_url( $url, PHP_URL_PATH );
+			$cookie_path  = '/';
+			if ( is_string( $request_path ) && '' !== $request_path && '/' !== $request_path ) {
+				$cookie_path = rtrim( str_replace( '\\', '/', dirname( $request_path ) ), '/' ) . '/';
+				if ( '/' !== $cookie_path[0] ) {
+					$cookie_path = '/' . $cookie_path;
+				}
+			}
+
+			setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, $cookie_path );
+			setcookie( 'api_test_cookie_minimal', 'value' );
+			setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
+			setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/' );
+		}
+
 		header( "Location: $url?cookie-test=test-cookie" );
 		exit;
 	}
@@ -113,7 +143,7 @@ if ( isset( $_GET['cookie-test'] ) ) {
 		die( 'FAIL_NO_MINIMAL' );
 	if ( isset( $_COOKIE['api_test_cookie_wrong_host'] ) )
 		die( 'FAIL_WRONG_HOST' );
-	if ( empty( $_COOKIE['api_test_wildcard_domain'] ) )
+	if ( $is_wp_org && empty( $_COOKIE['api_test_wildcard_domain'] ) )
 		die( 'FAIL_NO_WILDCARD' );
 	if ( isset( $_COOKIE['api_test_cookie_expired'] ) )
 		die( 'FAIL_EXPIRED_COOKIE' );
