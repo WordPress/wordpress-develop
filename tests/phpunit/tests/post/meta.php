@@ -16,6 +16,13 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $post_id_2;
 
+	public function set_up() {
+		parent::set_up();
+
+		// These tests inspect the complete registry, independently of bootstrap registrations.
+		$this->unregister_all_meta_keys();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author = $factory->user->create_and_get( array( 'role' => 'editor' ) );
 

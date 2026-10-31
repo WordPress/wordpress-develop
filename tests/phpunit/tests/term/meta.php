@@ -15,6 +15,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+
+		// These tests inspect the complete registry, independently of bootstrap registrations.
+		$this->unregister_all_meta_keys();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
