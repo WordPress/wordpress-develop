@@ -295,7 +295,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_wp_privacy_process_personal_data_export_page() {
+	public static function data_wp_privacy_process_personal_data_export_page() {
 		return array(
 			// Response is not an array.
 			array(
@@ -340,7 +340,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_send_as_email_options() {
+	public static function data_send_as_email_options() {
 		return array(
 			array(
 				true,
@@ -634,7 +634,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_export_page_status_transitions() {
+	public static function data_export_page_status_transitions() {
 		return array(
 			// Mark the request as completed for the last exporter on the last page, with email.
 			array(
