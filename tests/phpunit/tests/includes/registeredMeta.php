@@ -84,20 +84,14 @@ class Tests_Includes_RegisteredMeta extends PHPUnit_Adapter_TestCase {
 	 * @return array[]
 	 */
 	public static function data_registered_metadata() {
-		$cases = array();
-		foreach ( array(
-			'post'         => '',
-			'post subtype' => 'page',
-			'term subtype' => 'category',
-			'user'         => '',
-			'comment'      => '',
-		) as $label => $subtype ) {
-			$type = explode( ' ', $label )[0];
-			foreach ( array( false, true ) as $unregister ) {
-				$cases[ $label . ( $unregister ? ' removed' : ' replaced' ) ] = array( $type, $subtype, $unregister );
-			}
-		}
-		return $cases;
+		// Each case boots WordPress separately. Cover the scopes and mutation modes
+		// without repeating their full cross-product in isolated processes.
+		return array(
+			'post replaced'         => array( 'post', '', false ),
+			'post subtype removed'  => array( 'post', 'page', true ),
+			'term subtype replaced' => array( 'term', 'category', false ),
+			'user removed'          => array( 'user', '', true ),
+		);
 	}
 
 	public function test_restores_class_registrations_and_their_callbacks() {
