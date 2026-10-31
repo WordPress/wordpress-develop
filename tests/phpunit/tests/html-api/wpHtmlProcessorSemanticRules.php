@@ -446,6 +446,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		// Followed by the comment token.
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( '#comment', $processor->get_token_name() );
-		$this->assertsame( array( 'HTML', 'BODY', 'TABLE', '#comment' ), $processor->get_breadcrumbs() );
+		$this->assertSame( array( 'HTML', 'BODY', 'TABLE', '#comment' ), $processor->get_breadcrumbs() );
 	}
 }
