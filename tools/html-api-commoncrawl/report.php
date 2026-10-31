@@ -91,6 +91,7 @@ function load_results( $dir ) {
 			$timings[ $row['key'] ]['bytes']     = (int) $row['bytes'];
 			$timings[ $row['key'] ]['tag_ns'][]  = (int) $row['tag_ns'];
 			$timings[ $row['key'] ]['html_ns'][] = (int) $row['html_ns'];
+			$timings[ $row['key'] ]['kses_ns'][] = (int) $row['kses_ns'];
 		}
 	}
 
@@ -106,6 +107,7 @@ function load_results( $dir ) {
 			'bytes'      => $timing['bytes'],
 			'tag_ns'     => median( $timing['tag_ns'] ),
 			'html_ns'    => median( $timing['html_ns'] ),
+			'kses_ns'    => median( $timing['kses_ns'] ),
 			'supported'  => '' === $row['last_error'],
 			'reason'     => $row['reason'],
 			'line'       => $row['line'],
@@ -230,7 +232,7 @@ function table( $header, $rows ) {
  *
  * @param array[] $pairs  Documents, each with `base` and `merge` results.
  * @param array   $groups Group names mapped to a predicate on document size.
- * @param string  $parser Either `tag_ns` or `html_ns`.
+ * @param string  $parser One of `tag_ns`, `html_ns`, or `kses_ns`.
  * @return string Markdown table.
  */
 function timing_table( $pairs, $groups, $parser ) {
@@ -286,7 +288,7 @@ function timing_table( $pairs, $groups, $parser ) {
  * a handful of very large documents sets the scale and hides the differences everywhere else.
  *
  * @param array[] $pairs  Documents, each with `base` and `merge` results.
- * @param string  $parser Either `tag_ns` or `html_ns`.
+ * @param string  $parser One of `tag_ns`, `html_ns`, or `kses_ns`.
  * @param string  $title  Chart title.
  * @return string Mermaid code block.
  */
@@ -325,7 +327,7 @@ function size_chart( $pairs, $parser, $title ) {
 			'xychart-beta',
 			"    title \"{$title}\"",
 			'    x-axis "Document size (bytes, at least)" [' . implode( ', ', $labels ) . ']',
-			'    y-axis "Median parse time (ms)"',
+			'    y-axis "Median time (ms)"',
 			'    line [' . implode( ', ', $base ) . ']',
 			'    line [' . implode( ', ', $merge ) . ']',
 			'```',
@@ -344,7 +346,7 @@ function size_chart( $pairs, $parser, $title ) {
  * Renders the documents whose parse time grew the most.
  *
  * @param array[] $pairs  Documents, each with `base` and `merge` results.
- * @param string  $parser Either `tag_ns` or `html_ns`.
+ * @param string  $parser One of `tag_ns`, `html_ns`, or `kses_ns`.
  * @return string Markdown table.
  */
 function slowdowns_table( $pairs, $parser ) {
@@ -438,7 +440,7 @@ $run_url   = getenv( 'HTML_API_BENCH_RUN_URL' );
 $report  = HTML_API_BENCH_REPORT_MARKER . "\n";
 $report .= "## HTML API CommonCrawl analysis\n\n";
 $report .= sprintf(
-	"Parsed %s documents from CommonCrawl `%s` with the target branch%s and with this PR merged into it%s. Each parse time is the median of %d rounds. Negative deltas mean the PR is faster.%s\n\n",
+	"Parsed %s documents from CommonCrawl `%s` with the target branch%s and with this PR merged into it%s. Each time is the median of %d rounds. Negative deltas mean the PR is faster.%s\n\n",
 	number_format( count( $pairs ) ),
 	$crawl[1],
 	$base_sha ? ' (`' . substr( $base_sha, 0, 10 ) . '`)' : '',
@@ -459,6 +461,12 @@ $report .= "### Tag Processor parse time\n\n";
 $report .= timing_table( $pairs, $groups, 'tag_ns' ) . "\n";
 $report .= size_chart( $pairs, 'tag_ns', 'Tag Processor: median parse time by document size' ) . "\n";
 $report .= "<details><summary>Largest Tag Processor slowdowns</summary>\n\n" . slowdowns_table( $pairs, 'tag_ns' ) . "\n</details>\n\n";
+
+$report .= "### wp_kses() time\n\n";
+$report .= "Time for `wp_kses( \$html, 'post' )`. Only the files it needs are loaded, without WordPress's default filters such as those on `pre_kses`, so times differ from a full site.\n\n";
+$report .= timing_table( $pairs, $groups, 'kses_ns' ) . "\n";
+$report .= size_chart( $pairs, 'kses_ns', 'wp_kses(): median time by document size' ) . "\n";
+$report .= "<details><summary>Largest wp_kses() slowdowns</summary>\n\n" . slowdowns_table( $pairs, 'kses_ns' ) . "\n</details>\n\n";
 
 $report .= "### HTML Processor support\n\n";
 $rows    = array();

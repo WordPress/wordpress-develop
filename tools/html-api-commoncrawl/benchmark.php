@@ -1,10 +1,11 @@
 <?php
 /**
- * cc-analyzer analysis script which measures how long it takes to parse each document.
+ * cc-analyzer analysis script which measures how long it takes to process each document.
  *
- * Each document is fully parsed twice: once with the Tag Processor and once with
- * the HTML Processor. Only the parsing is timed. The results are written to
- * `benchmark.csv` in the `CC_ANALYZER_OUTPUT_DIR` directory.
+ * Each document is timed three ways: fully parsed with the Tag Processor, fully
+ * parsed with the HTML Processor, and filtered with `wp_kses( $html, 'post' )`.
+ * Only those calls are timed. The results are written to `benchmark.csv` in the
+ * `CC_ANALYZER_OUTPUT_DIR` directory.
  *
  * Usage:
  *
@@ -22,9 +23,9 @@ if ( ! is_dir( $output_dir ) ) {
 }
 
 $csv = fopen( "{$output_dir}/benchmark.csv", 'wb' );
-fputcsv( $csv, array( 'key', 'url', 'bytes', 'tag_ns', 'html_ns' ), ',', '"', '' );
+fputcsv( $csv, array( 'key', 'url', 'bytes', 'tag_ns', 'html_ns', 'kses_ns' ), ',', '"', '' );
 
-// Warm up both parsers so that the first document is not charged for loading and JIT work.
+// Warm up each measurement so that the first document is not charged for loading and JIT work.
 $warm_up = '<!DOCTYPE html><html><head><title>Warm &amp; up</title></head><body><p class=a>One<p>Two<table><tr><td>Three</table></body></html>';
 for ( $i = 0; $i < 100; $i++ ) {
 	$processor = new WP_HTML_Tag_Processor( $warm_up );
@@ -36,6 +37,8 @@ for ( $i = 0; $i < 100; $i++ ) {
 	while ( $processor->next_token() ) {
 		continue;
 	}
+
+	wp_kses( $warm_up, 'post' );
 }
 
 return static function ( $document ) use ( $csv ) {
@@ -58,6 +61,15 @@ return static function ( $document ) use ( $csv ) {
 	}
 	$html_ns = hrtime( true ) - $started_at;
 
+	// Free the HTML Processor here so that its destruction is not timed with wp_kses().
+	unset( $processor );
+
+	$started_at = hrtime( true );
+	$kses       = wp_kses( $html, 'post' );
+	$kses_ns    = hrtime( true ) - $started_at;
+
+	unset( $kses );
+
 	fputcsv(
 		$csv,
 		array(
@@ -66,6 +78,7 @@ return static function ( $document ) use ( $csv ) {
 			strlen( $html ),
 			$tag_ns,
 			$html_ns,
+			$kses_ns,
 		),
 		',',
 		'"',

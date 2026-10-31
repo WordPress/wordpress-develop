@@ -14,6 +14,7 @@ on:
     paths:
       - 'src/wp-includes/html-api/**'
       - 'src/wp-includes/class-wp-token-map.php'
+      - 'src/wp-includes/kses.php'
       - 'tools/html-api-commoncrawl/**'
       - '.github/workflows/html-api-commoncrawl.yml'
       - '.github/workflows/html-api-commoncrawl-comment.yml'

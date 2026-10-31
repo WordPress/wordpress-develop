@@ -1,4 +1,5 @@
-# Compares HTML API parsing performance and support with and without a pull request, using documents from CommonCrawl.
+# Compares HTML API parsing performance and support, and wp_kses() performance, with and without a pull request, using
+# documents from CommonCrawl.
 #
 # This takes tens of minutes, so it only runs on request: either by adding the `html-api-commoncrawl` label to a pull
 # request, which is removed again as soon as it is added, or by running this workflow manually with a pull request
@@ -16,6 +17,7 @@ on:
     paths:
       - 'src/wp-includes/html-api/**'
       - 'src/wp-includes/class-wp-token-map.php'
+      - 'src/wp-includes/kses.php'
       - 'tools/html-api-commoncrawl/**'
       - '.github/workflows/html-api-commoncrawl.yml'
       - '.github/workflows/html-api-commoncrawl-comment.yml'
@@ -75,7 +77,8 @@ jobs:
   # - Checks out the pull request merged into its target branch, and the target branch beside it.
   # - Sets up PHP.
   # - Fetches a batch of documents from the latest CommonCrawl crawl.
-  # - Times parsing each document with both checkouts, alternating which goes first in each round.
+  # - Times the Tag Processor, the HTML Processor, and wp_kses() on each document with both checkouts, alternating which
+  #   goes first in each round.
   # - Records which documents each checkout supports, and why the others are unsupported.
   # - Writes the report.
   # - Uploads the report and the pull request number.
