@@ -67,7 +67,7 @@ class Tests_REST_API_RestGetRouteForTaxonomyItems extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_falls_back_to_default_namespace_and_taxonomy_name() {
+	public function test_uses_registration_defaults_for_rest_enabled_taxonomy() {
 		register_taxonomy(
 			'fallback-tax',
 			'post',
@@ -77,12 +77,47 @@ class Tests_REST_API_RestGetRouteForTaxonomyItems extends WP_UnitTestCase {
 			)
 		);
 
-		// Clear values filled by register_taxonomy() so the helper fallbacks are exercised.
+		$this->assertSame( '/wp/v2/fallback-tax', rest_get_route_for_taxonomy_items( 'fallback-tax' ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 */
+	public function test_falls_back_to_taxonomy_name_when_rest_base_empty() {
+		register_taxonomy(
+			'fallback-tax',
+			'post',
+			array(
+				'public'         => true,
+				'show_in_rest'   => true,
+				'rest_namespace' => 'my-plugin/v1',
+			)
+		);
+
+		$taxonomy            = get_taxonomy( 'fallback-tax' );
+		$taxonomy->rest_base = '';
+
+		$this->assertSame( '/my-plugin/v1/fallback-tax', rest_get_route_for_taxonomy_items( 'fallback-tax' ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 */
+	public function test_falls_back_to_default_namespace_when_rest_namespace_empty() {
+		register_taxonomy(
+			'fallback-tax',
+			'post',
+			array(
+				'public'       => true,
+				'show_in_rest' => true,
+				'rest_base'    => 'custom-terms',
+			)
+		);
+
 		$taxonomy                 = get_taxonomy( 'fallback-tax' );
-		$taxonomy->rest_base      = '';
 		$taxonomy->rest_namespace = '';
 
-		$this->assertSame( '/wp/v2/fallback-tax', rest_get_route_for_taxonomy_items( 'fallback-tax' ) );
+		$this->assertSame( '/wp/v2/custom-terms', rest_get_route_for_taxonomy_items( 'fallback-tax' ) );
 	}
 
 	/**
