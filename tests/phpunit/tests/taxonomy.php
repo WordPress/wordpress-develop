@@ -23,14 +23,20 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		unregister_taxonomy( 'wptests_tax' );
 		unregister_taxonomy( 'wptests_tax_1' );
 		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'wptests_conflict' );
 		unregister_taxonomy( 'taxonomy53212' );
 		unregister_taxonomy( 'random' );
 		unregister_taxonomy( 'foo' );
+		unregister_taxonomy( 'tax_new' );
 		unregister_taxonomy( 'test_tax' );
-		unregister_taxonomy( 'tax_default_term_1' );
-		unregister_taxonomy( 'tax_default_term_2' );
-		unregister_post_type( 'cpt_default_term' );
+		unregister_taxonomy( 'custom-tax' );
+		unregister_taxonomy( 'test_tax1' );
+		unregister_taxonomy( 'test_tax2' );
 		unregister_post_type( 'test_cpt' );
+		unregister_post_type( 'wptests_pt' );
+		unregister_post_type( 'wptests_conflict' );
+		unregister_post_type( 'post-custom-tax' );
+		unregister_post_type( 'test_post_type' );
 		parent::tear_down();
 	}
 
@@ -230,7 +236,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( is_taxonomy_hierarchical( $tax ) );
 
 		// Clean up.
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
+		unregister_taxonomy( $tax );
 	}
 
 	public function test_register_hierarchical_taxonomy() {
@@ -244,7 +250,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( is_taxonomy_hierarchical( $tax ) );
 
 		// Clean up.
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
+		unregister_taxonomy( $tax );
 	}
 
 	/**
@@ -359,7 +365,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( register_taxonomy_for_object_type( $tax, 'user' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, 'user' ) );
 
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
+		unregister_taxonomy( $tax );
 		_unregister_post_type( $post_type );
 	}
 
@@ -664,7 +670,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSameSets( array( $p1 ), get_ancestors( $p2, 'wptests_conflict', 'post_type' ) );
 		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict', 'taxonomy' ) );
 		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict' ) );
-		_unregister_post_type( 'wptests_pt' );
 	}
 
 	/**
