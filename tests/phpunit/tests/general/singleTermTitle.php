@@ -62,6 +62,11 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, self::$term_id, 'wptests_genre' );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_genre' );
+		unregister_post_type( 'wptests_book' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -73,6 +78,13 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 				'has_archive' => true,
 			)
 		);
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_genre' );
+		unregister_post_type( 'wptests_book' );
+
+		parent::tear_down();
 	}
 
 	/**
