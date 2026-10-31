@@ -396,6 +396,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @ticket 43056
 	 * @ticket 59795
+	 * @ticket 44964
 	 *
 	 * @dataProvider data_redirect_guess_404_permalink_post_types
 	 */
@@ -430,6 +431,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			'do not redirect to private post type' => array(
 				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
 				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
+			),
+			'do not leak private post type mixed in with a public one' => array(
+				'original_url' => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
+				'expected'     => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
 			),
 		);
 	}
@@ -608,6 +613,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( get_permalink( $p ) );
 
 		$redirect = redirect_canonical( add_query_arg( '%D0%BA%D0%BE%D0%BA%D0%BE%D0%BA%D0%BE', 1, site_url( '/' ) ), false );
+
+		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
+	}
+
+	/**
+	 * Ensure encoded query string keys do not trigger a redirect on the front page.
+	 *
+	 * @ticket 44899
+	 */
+	public function test_encoded_query_string_keys_on_front_page() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $p );
+
+		$this->go_to( get_permalink( $p ) );
+
+		$url      = site_url( '/?xtor=AD-4970-%5BSocial%5D-%5B%5D-%5BPPL%5D-%5BFacebook%5D-%5B228284160&105478095%5D-%5B0%5D' );
+		$redirect = redirect_canonical( $url, false );
 
 		delete_option( 'page_on_front' );
 
