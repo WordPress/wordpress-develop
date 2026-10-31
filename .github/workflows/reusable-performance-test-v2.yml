@@ -159,6 +159,9 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        # The install can hang until the 6 hour job limit. It takes under 1 minute
+        # in most runs and up to 10 minutes when downloads are slow.
+        timeout-minutes: 15
         run: npm exec --no -- playwright install --with-deps chromium
 
       - name: Start Docker environment
@@ -202,9 +205,22 @@ jobs:
 
       - name: Set the environment to the baseline version
         if: ${{ inputs.subject == 'base' }}
+        # WP-CLI requests the release from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, and `--force` lets a retry overwrite files.
+        env:
+          WP_CORE_DOWNLOAD_MAX_ATTEMPTS: 3
         run: |
           VERSION="${BASE_TAG%.0}"
-          wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"
+          for (( attempt = 1; attempt <= WP_CORE_DOWNLOAD_MAX_ATTEMPTS; attempt++ )); do
+            if wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"; then
+              exit 0
+            fi
+            echo "::warning::wp core download failed on attempt $attempt of $WP_CORE_DOWNLOAD_MAX_ATTEMPTS."
+            if (( attempt < WP_CORE_DOWNLOAD_MAX_ATTEMPTS )); then
+              sleep $(( attempt * 10 ))
+            fi
+          done
+          exit 1
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
@@ -237,11 +253,15 @@ jobs:
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
 
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
+        run: |
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors -O https://downloads.wordpress.org/plugin/wordpress-importer.zip
+          npm run env:cli -- plugin install wordpress-importer.zip --activate --path="/var/www/${LOCAL_DIR}"
+          rm wordpress-importer.zip
 
       - name: Import mock data
         run: |
-          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
 
@@ -271,13 +291,15 @@ jobs:
           cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
 
       - name: Run performance tests
+        id: performance-tests
         run: npm run test:performance
         env:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        # Without test results, a failed setup step would report a second failure here.
+        if: ${{ always() && steps.performance-tests.outcome != 'skipped' }}
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}
           path: artifacts

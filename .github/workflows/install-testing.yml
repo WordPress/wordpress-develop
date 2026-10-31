@@ -143,12 +143,22 @@ jobs:
       # WP-CLI extracts tarballs with PharData, which truncates paths longer than 100 characters.
       # Nightly builds are only available as a zip, which is not affected.
       - name: Download WordPress
+        # Each download is requested from WordPress.org once, so a network error fails the job.
+        # A retry overwrites any files that a failed attempt extracted.
         run: |
-          case "${WP_VERSION}" in
-            nightly|trunk) wp core download --version=nightly ;;
-            *) curl -fsSL "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" | tar xz --strip-components=1 ;;
-          esac
+          for (( attempt = 1; attempt <= WP_CORE_DOWNLOAD_MAX_ATTEMPTS; attempt++ )); do
+            case "${WP_VERSION}" in
+              nightly|trunk) wp core download --version=nightly --force && exit 0 ;;
+              *) curl -fsSL "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" | tar xz --strip-components=1 && exit 0 ;;
+            esac
+            echo "::warning::WordPress download failed on attempt $attempt of $WP_CORE_DOWNLOAD_MAX_ATTEMPTS."
+            if (( attempt < WP_CORE_DOWNLOAD_MAX_ATTEMPTS )); then
+              sleep $(( attempt * 10 ))
+            fi
+          done
+          exit 1
         env:
+          WP_CORE_DOWNLOAD_MAX_ATTEMPTS: 3
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
       - name: Create wp-config.php file
