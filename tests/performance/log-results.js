@@ -29,6 +29,8 @@ const testSuiteMap = {
 	'Homepage › Theme: twentytwentyfive, Locale: en_US': 'home-twentytwentyfive',
 	'Homepage › Theme: twentytwentyfive, Locale: de_DE':
 		'home-twentytwentyfive-l10n',
+	'Homepage › Theme: ipsum, Locale: en_US': 'home-ipsum',
+	'Homepage › Theme: ipsum, Locale: de_DE': 'home-ipsum-l10n',
 };
 
 /**
