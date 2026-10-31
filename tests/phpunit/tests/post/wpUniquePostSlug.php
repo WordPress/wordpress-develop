@@ -6,6 +6,13 @@
 class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	protected $post_ids = array();
 
+	public function tear_down() {
+		unregister_post_type( 'post-type-1' );
+		unregister_post_type( 'post-type-2' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 21013
 	 */
