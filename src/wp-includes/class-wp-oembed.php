@@ -806,27 +806,49 @@ class WP_oEmbed {
 			return $html;
 		}
 
-		$count     = 1;
-		$found     = array();
-		$token     = '__PRE__';
-		$search    = array( "\t", "\n", "\r", ' ' );
-		$replace   = array( '__TAB__', '__NL__', '__CR__', '__SPACE__' );
-		$tokenized = str_replace( $search, $replace, $html );
+		$processor = new class( '' ) extends WP_HTML_Tag_Processor {
+			private function get_span() {
+				$this->set_bookmark( 'here' );
+				return $this->bookmarks['here'];
+			}
 
-		preg_match_all( '#(<pre[^>]*>.+?</pre>)#i', $tokenized, $matches, PREG_SET_ORDER );
-		foreach ( $matches as $i => $match ) {
-			$tag_html  = str_replace( $replace, $search, $match[0] );
-			$tag_token = $token . $i;
+			public static function strip_newlines( $html ) {
+				$pre_depth = 0;
+				$buffer    = '';
+				$was_at    = 0;
+				$self      = new self( $html );
 
-			$found[ $tag_token ] = $tag_html;
-			$html                = str_replace( $tag_html, $tag_token, $html, $count );
-		}
+				while ( $self->next_token() ) {
+					if ( 'PRE' === $self->get_token_name() ) {
+						$pre_depth = max( 0, $pre_depth + ( $self->is_tag_closer() ? -1 : 1 ) );
+						continue;
+					}
 
-		$replaced = str_replace( $replace, $search, $html );
-		$stripped = str_replace( array( "\r\n", "\n" ), '', $replaced );
-		$pre      = array_values( $found );
-		$tokens   = array_keys( $found );
+					if ( $pre_depth > 0 ) {
+						continue;
+					}
 
-		return str_replace( $tokens, $pre, $stripped );
+					$span = $self->get_span();
+					if ( strcspn( $html, "\r\n", $span->start, $span->length ) === $span->length ) {
+						continue;
+					}
+
+					$chunk = substr( $html, $span->start, $span->length );
+					$chunk = strtr( $chunk, "\r\n", '  ' );
+
+					$buffer .= substr( $html, $was_at, $span->start );
+					$buffer .= $chunk;
+					$was_at  = $span->start + $span->length;
+				}
+
+				if ( $was_at < strlen( $html ) ) {
+					$buffer .= substr( $html, $was_at );
+				}
+
+				return $buffer;
+			}
+		};
+
+		return $processor::strip_newlines( $html );
 	}
 }
