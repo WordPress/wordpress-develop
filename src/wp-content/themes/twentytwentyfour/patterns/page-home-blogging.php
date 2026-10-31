@@ -2,11 +2,17 @@
 /**
  * Title: Blogging home
  * Slug: twentytwentyfour/page-home-blogging
- * Categories: page
+ * Categories: twentytwentyfour_page
  * Keywords: page, starter
  * Post Types: page, wp_template
  * Viewport width: 1400
+ * Description: A blogging home page with a hero section, a text section, a blog section, and a CTA section.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/text-centered-statement-small"}	/-->
@@ -22,7 +28,7 @@
 
 		<!-- wp:column {"width":"60%"} -->
 		<div class="wp-block-column" style="flex-basis:60%">
-			<!-- wp:query {"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false}} -->
+			<!-- wp:query {"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true}} -->
 			<div class="wp-block-query">
 				<!-- wp:post-template -->
 				<!-- wp:group {"tagName":"article","layout":{"type":"flex","orientation":"vertical","justifyContent":"stretch"}} -->

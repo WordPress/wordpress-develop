@@ -26,7 +26,7 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_get_url_in_content() {
+	public static function data_get_url_in_content() {
 		return array(
 			array( // Empty content.
 				'',

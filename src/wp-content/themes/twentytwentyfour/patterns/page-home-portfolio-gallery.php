@@ -2,12 +2,18 @@
 /**
  * Title: Portfolio home image gallery
  * Slug: twentytwentyfour/page-home-gallery
- * Categories: page
+ * Categories: twentytwentyfour_page
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
  * Viewport width: 1400
+ * Description: A portfolio home page that features a gallery.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:pattern {"slug":"twentytwentyfour/hidden-portfolio-hero"} /-->
