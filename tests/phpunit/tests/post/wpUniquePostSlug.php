@@ -380,4 +380,130 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$found = wp_unique_post_slug( 'embed', $p, 'publish', 'attachment', 0 );
 		$this->assertSame( 'embed-2', $found );
 	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_search_uses_a_bounded_number_of_queries() {
+		global $wpdb;
+
+		$duplicates = 100;
+
+		for ( $i = 0; $i < $duplicates; $i++ ) {
+			self::factory()->post->create( array( 'post_name' => 'bulk' ) );
+		}
+
+		$queries = $wpdb->num_queries;
+		$slug    = wp_unique_post_slug( 'bulk', 0, 'publish', 'post', 0 );
+
+		$this->assertSame( 'bulk-' . ( $duplicates + 1 ), $slug );
+		$this->assertLessThan( $duplicates, $wpdb->num_queries - $queries, 'The suffix search should not run one query per duplicate.' );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_fills_the_lowest_gap() {
+		$ids = array();
+		for ( $number = 1; $number <= 150; $number++ ) {
+			$ids[ $number ] = self::factory()->post->create( array( 'post_name' => 'gap' ) );
+		}
+
+		wp_delete_post( $ids[128], true );
+		$this->assertSame( 'gap-128', wp_unique_post_slug( 'gap', 0, 'publish', 'post', 0 ), 'A gap at the end of a batch should be filled.' );
+
+		wp_delete_post( $ids[65], true );
+		$this->assertSame( 'gap-65', wp_unique_post_slug( 'gap', 0, 'publish', 'post', 0 ), 'A gap at the start of a batch should be filled.' );
+
+		wp_delete_post( $ids[9], true );
+		$this->assertSame( 'gap-9', wp_unique_post_slug( 'gap', 0, 'publish', 'post', 0 ), 'The lowest of several gaps should be filled.' );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_ignores_slugs_that_only_look_like_duplicates() {
+		foreach ( array( 'your-subject', 'your-subject-2', 'your-subject-3', 'your-subject-3-2', 'not-your-subject-7', 'your-subject-suffix-2', 'your-subject-04', 'your-subject-4a', 'your-subject-5' ) as $name ) {
+			self::factory()->post->create( array( 'post_name' => $name ) );
+		}
+
+		$this->assertSame( 'your-subject-4', wp_unique_post_slug( 'your-subject', 0, 'publish', 'post', 0 ) );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_reuses_slug_freed_by_renaming_a_post() {
+		$foo = self::factory()->post->create( array( 'post_name' => 'foo' ) );
+		self::factory()->post->create( array( 'post_name' => 'bar' ) );
+
+		wp_update_post(
+			array(
+				'ID'        => $foo,
+				'post_name' => 'bar',
+			)
+		);
+
+		$this->assertSame( 'bar-2', get_post( $foo )->post_name );
+
+		$new = self::factory()->post->create( array( 'post_name' => 'bar' ) );
+
+		$this->assertSame( 'bar-3', get_post( $new )->post_name );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_treats_slugs_the_database_considers_equal_as_taken() {
+		global $wpdb;
+
+		for ( $i = 0; $i < 20; $i++ ) {
+			$id = self::factory()->post->create( array( 'post_name' => 'mixed' ) );
+		}
+
+		$wpdb->update( $wpdb->posts, array( 'post_name' => 'MIXED-20' ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+
+		$this->assertSame( 'mixed-21', wp_unique_post_slug( 'mixed', 0, 'publish', 'post', 0 ) );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_truncation_changes_when_suffix_gains_a_digit() {
+		$slug = str_repeat( 'b', 200 );
+		for ( $i = 0; $i < 12; $i++ ) {
+			self::factory()->post->create( array( 'post_name' => $slug ) );
+		}
+
+		$this->assertSame( wp_truncate_slug( $slug, 197 ) . '-13', wp_unique_post_slug( $slug, 0, 'publish', 'post', 0 ) );
+	}
+
+	/**
+	 * @ticket 39603
+	 */
+	public function test_suffix_respects_parent_for_hierarchical_post_types() {
+		$parent_a = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$parent_b = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		for ( $i = 0; $i < 2; $i++ ) {
+			self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_parent' => $parent_a,
+					'post_name'   => 'child',
+				)
+			);
+		}
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_b,
+				'post_name'   => 'child',
+			)
+		);
+
+		$this->assertSame( 'child-3', wp_unique_post_slug( 'child', 0, 'publish', 'page', $parent_a ) );
+		$this->assertSame( 'child-2', wp_unique_post_slug( 'child', 0, 'publish', 'page', $parent_b ) );
+	}
 }
