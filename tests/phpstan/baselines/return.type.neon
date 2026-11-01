@@ -69,16 +69,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/fonts.php
 		-
-			message: '#^Method WP_Translation_Controller\:\:get_entries\(\) should return array\<string, string\> but returns array\<string, array\<string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/l10n/class-wp-translation-controller.php
-		-
-			message: '#^Method WP_Translation_File\:\:entries\(\) should return array\<string, array\<string\>\> but returns array\<string, string\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/l10n/class-wp-translation-file.php
-		-
 			message: '#^Function update_meta_cache\(\) should return array\|false but returns bool\.$#'
 			identifier: return.type
 			count: 1

@@ -79,7 +79,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_metadata_names() {
+	public static function data_empty_metadata_names() {
 		return array(
 			'empty attributes'     => array( array() ),
 			'empty metadata array' => array( array( 'metadata' => array() ) ),
@@ -224,7 +224,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_override_values_and_types() {
+	public static function data_override_values_and_types() {
 		return array(
 			'empty string'  => array( '' ),
 			'zero integer'  => array( 0 ),
