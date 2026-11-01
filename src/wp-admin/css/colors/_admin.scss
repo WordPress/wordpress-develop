@@ -517,6 +517,7 @@ ul#adminmenu > li.current > a.current::after {
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode:hover > .ab-item,
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode > .ab-item:focus {
 	color: variables.$adminbar-recovery-exit-text;
+	outline-color: currentColor;
 }
 
 /* Admin Bar: my account */
