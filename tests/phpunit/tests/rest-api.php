@@ -2138,6 +2138,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 * @covers ::rest_get_route_for_term
 	 */
 	public function test_rest_get_route_for_term_filter() {
 		$term = self::factory()->category->create_and_get();
