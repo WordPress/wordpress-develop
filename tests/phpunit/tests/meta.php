@@ -542,7 +542,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_metadata( 'user', ...$args ) );
 	}
 
-	public function data_get_metadata_with_non_existent_object_id() {
+	public static function data_get_metadata_with_non_existent_object_id() {
 		return array(
 			'should return empty array for default `$meta_key` and `$single` values' => array(
 				'expected' => array(),

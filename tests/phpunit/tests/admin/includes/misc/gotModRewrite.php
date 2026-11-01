@@ -78,7 +78,7 @@ class Tests_got_mod_rewrite extends WP_UnitTestCase {
 	 *     filter_value: bool,
 	 * }>
 	 */
-	public function data_got_mod_rewrite(): array {
+	public static function data_got_mod_rewrite(): array {
 		return array(
 			'Apache, filter returns true'      => array(
 				'is_apache'    => true,

@@ -42,7 +42,7 @@ class Tests_walk_bookmarks extends WP_UnitTestCase {
 	 *     expected: string,
 	 * }>
 	 */
-	public function data_walk_bookmarks(): array {
+	public static function data_walk_bookmarks(): array {
 		return array(
 			'empty bookmarks array'                    => array(
 				'bookmarks_data' => array(),
