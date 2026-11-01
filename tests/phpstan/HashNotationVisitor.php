@@ -1016,11 +1016,17 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * counts: the word inside one is prose, as in a "Capability required for the
 	 * panel", or the "Required for multi-widgets" of a key that is not.
 	 *
+	 * Unlike `Optional.`, the marker is matched case-sensitively. Prose taken for
+	 * it, such as a description ending "i.e. required.", would make every call
+	 * leaving the key out an error, while a marker written in lowercase and missed
+	 * only leaves the key optional, as it was before the marker existed. Taking
+	 * prose for `Optional.` merely loosens the type, so that one may match broadly.
+	 *
 	 * @param string $description Description of the entry.
 	 * @return bool
 	 */
 	private function is_required( string $description ): bool {
-		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#i', $description ) === 1;
+		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#', $description ) === 1;
 	}
 
 	/**

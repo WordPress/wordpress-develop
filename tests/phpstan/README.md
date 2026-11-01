@@ -106,7 +106,7 @@ Keys of a `@param` hash are optional, at every level, and the shape is left open
  * }
 ```
 
-Those two sentences are the only markers. Either word elsewhere in a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set, or a "Capability required for the panel".
+Those two sentences are the only markers. Either word elsewhere in a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set, or a "Capability required for the panel". `Required.` must also be capitalized, while `Optional.` may be written in any case: prose mistaken for `Required.` would report an error at every call that leaves the key out, whereas prose mistaken for `Optional.` only loosens the type.
 
 Reading a key that a `@return` hash does not document is therefore reported rather than silently typed as `mixed` — unless the hash says otherwise itself, by listing a `...$N` entry beside its named keys, which is how core writes "and the rest" for the positional hashes of `wp_maybe_grant_site_health_caps()` and `WP_Meta_Query`.
 
