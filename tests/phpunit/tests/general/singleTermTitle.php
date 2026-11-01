@@ -1,13 +1,15 @@
 <?php
 
 /**
- * Tests for the `single_term_title()` function.
+ * Tests for the `single_term_title()`, `single_cat_title()`, and `single_tag_title()` functions.
  *
  * @group general
  * @group template
  * @group taxonomy
  *
  * @covers ::single_term_title
+ * @covers ::single_cat_title
+ * @covers ::single_tag_title
  */
 class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 
@@ -249,5 +251,37 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 
 		$this->assertNull( single_term_title( 'Archive: ' ), 'Displaying should return null.' );
 		$this->assertNull( single_term_title( 'Archive: ', false ), 'Returning should return null.' );
+	}
+
+	/**
+	 * Tests that single_cat_title() displays and returns category title.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::single_cat_title
+	 */
+	public function test_single_cat_title_displays_and_returns() {
+		$this->go_to_archive( 'category' );
+
+		$this->assertSame( 'Category: News &amp; Notes', single_cat_title( 'Category: ', false ) );
+
+		$this->expectOutputString( 'Category: News &amp; Notes' );
+		single_cat_title( 'Category: ' );
+	}
+
+	/**
+	 * Tests that single_tag_title() displays and returns tag title.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::single_tag_title
+	 */
+	public function test_single_tag_title_displays_and_returns() {
+		$this->go_to_archive( 'tag' );
+
+		$this->assertSame( 'Tag: Featured', single_tag_title( 'Tag: ', false ) );
+
+		$this->expectOutputString( 'Tag: Featured' );
+		single_tag_title( 'Tag: ' );
 	}
 }
