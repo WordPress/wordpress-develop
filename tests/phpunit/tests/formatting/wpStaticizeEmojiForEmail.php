@@ -14,13 +14,28 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_staticize_emoji_for_email
 	 */
-	public function test_wp_staticize_emoji_for_email( $email, $expected ) {
+	public function test_wp_staticize_emoji_for_email( $email, $expected, $filtered_content_type = null ) {
+		add_filter(
+			'emoji_url',
+			static function () {
+				return 'https://example.org/emoji/';
+			}
+		);
+
+		if ( null !== $filtered_content_type ) {
+			add_filter(
+				'wp_mail_content_type',
+				static function () use ( $filtered_content_type ) {
+					return $filtered_content_type;
+				}
+			);
+		}
 
 		$this->assertSame( $expected, wp_staticize_emoji_for_email( $email ) );
 	}
 
-	public function data_wp_staticize_emoji_for_email() {
-		$png_cdn = 'https://s.w.org/images/core/emoji/14.0.0/72x72/';
+	public static function data_wp_staticize_emoji_for_email() {
+		$png_cdn = 'https://example.org/emoji/';
 
 		return array(
 			'empty array'                          => array(
@@ -106,6 +121,22 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 						'header:value',
 					),
 				),
+			),
+			'filtered to html'                     => array(
+				'email'                 => array( 'message' => 'message 🙂' ),
+				'expected'              => array( 'message' => 'message <img src="' . $png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />' ),
+				'filtered_content_type' => 'text/html',
+			),
+			'filtered to plain text'               => array(
+				'email'                 => array(
+					'message' => 'message 🙂',
+					'headers' => 'content-type:text/html',
+				),
+				'expected'              => array(
+					'message' => 'message 🙂',
+					'headers' => 'content-type:text/html',
+				),
+				'filtered_content_type' => 'text/plain',
 			),
 		);
 	}
