@@ -12,7 +12,6 @@ class Tests_REST_API_RestCookieCheckErrors extends WP_UnitTestCase {
 	public function tear_down() {
 		$GLOBALS['wp_rest_server'] = null;
 		unset( $GLOBALS['wp_rest_auth_cookie'] );
-		unset( $_REQUEST['_wpnonce'] );
 		unset( $_SERVER['HTTP_X_WP_NONCE'] );
 		parent::tear_down();
 	}
