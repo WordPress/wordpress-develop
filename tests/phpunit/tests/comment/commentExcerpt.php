@@ -43,9 +43,7 @@ class Tests_Comment_CommentExcerpt extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_comment_excerpt_echoes_excerpt() {
-		$expected = get_comment_excerpt( self::$comment );
-
-		$this->expectOutputString( $expected );
+		$this->expectOutputString( 'Short comment excerpt text.' );
 		comment_excerpt( self::$comment->comment_ID );
 	}
 
@@ -53,9 +51,7 @@ class Tests_Comment_CommentExcerpt extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_comment_excerpt_accepts_comment_object() {
-		$expected = get_comment_excerpt( self::$comment );
-
-		$this->expectOutputString( $expected );
+		$this->expectOutputString( 'Short comment excerpt text.' );
 		comment_excerpt( self::$comment );
 	}
 
@@ -64,9 +60,8 @@ class Tests_Comment_CommentExcerpt extends WP_UnitTestCase {
 	 */
 	public function test_comment_excerpt_uses_global_comment_when_unspecified() {
 		$GLOBALS['comment'] = self::$comment;
-		$expected           = get_comment_excerpt( self::$comment );
 
-		$this->expectOutputString( $expected );
+		$this->expectOutputString( 'Short comment excerpt text.' );
 		comment_excerpt();
 	}
 
