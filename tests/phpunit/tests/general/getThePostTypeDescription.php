@@ -33,13 +33,6 @@ class Tests_General_GetThePostTypeDescription extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		unregister_post_type( self::POST_TYPE_WITH_DESC );
-		unregister_post_type( self::POST_TYPE_WITHOUT_DESC );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests that get_the_post_type_description() returns an empty string when no post type is queried.
 	 *
@@ -63,7 +56,7 @@ class Tests_General_GetThePostTypeDescription extends WP_UnitTestCase {
 
 		$wp_query->set( 'post_type', self::POST_TYPE_WITH_DESC );
 
-		$this->assertSame( wpautop( 'Test CPT description.' ), get_the_post_type_description() );
+		$this->assertSame( "<p>Test CPT description.</p>\n", get_the_post_type_description() );
 	}
 
 	/**
@@ -76,7 +69,7 @@ class Tests_General_GetThePostTypeDescription extends WP_UnitTestCase {
 
 		$wp_query->set( 'post_type', array( self::POST_TYPE_WITH_DESC, 'post' ) );
 
-		$this->assertSame( wpautop( 'Test CPT description.' ), get_the_post_type_description() );
+		$this->assertSame( "<p>Test CPT description.</p>\n", get_the_post_type_description() );
 	}
 
 	/**
@@ -116,7 +109,7 @@ class Tests_General_GetThePostTypeDescription extends WP_UnitTestCase {
 
 		$result = get_the_post_type_description();
 
-		$this->assertSame( 'Filtered: ' . wpautop( 'Test CPT description.' ), $result );
+		$this->assertSame( "Filtered: <p>Test CPT description.</p>\n", $result );
 		$this->assertInstanceOf( 'WP_Post_Type', $filter_received_obj );
 		$this->assertSame( self::POST_TYPE_WITH_DESC, $filter_received_obj->name );
 	}
