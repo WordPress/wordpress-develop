@@ -109,7 +109,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			$tags_per_page = apply_filters( 'edit_categories_per_page', $tags_per_page );
 		}
 
-		$search = ! empty( $_REQUEST['s'] ) ? trim( wp_unslash( $_REQUEST['s'] ) ) : '';
+		$search = ! empty( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ? trim( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 		$args = array(
 			'taxonomy'   => $taxonomy,
@@ -119,11 +119,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 			'hide_empty' => 0,
 		);
 
-		if ( ! empty( $_REQUEST['orderby'] ) ) {
+		if ( ! empty( $_REQUEST['orderby'] ) && is_string( $_REQUEST['orderby'] ) ) {
 			$args['orderby'] = trim( wp_unslash( $_REQUEST['orderby'] ) );
 		}
 
-		if ( ! empty( $_REQUEST['order'] ) ) {
+		if ( ! empty( $_REQUEST['order'] ) && is_string( $_REQUEST['order'] ) ) {
 			$args['order'] = trim( wp_unslash( $_REQUEST['order'] ) );
 		}
 

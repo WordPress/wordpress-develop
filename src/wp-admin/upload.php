@@ -429,7 +429,7 @@ if ( current_user_can( 'upload_files' ) ) {
 						<?php
 }
 
-if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
+if ( isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	echo '<span class="subtitle">';
 	printf(
 		/* translators: %s: Search query. */

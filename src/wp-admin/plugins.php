@@ -19,7 +19,7 @@ $pagenum       = $wp_list_table->get_pagenum();
 $action = $wp_list_table->current_action();
 
 $plugin = isset( $_REQUEST['plugin'] ) ? wp_unslash( $_REQUEST['plugin'] ) : '';
-$s      = isset( $_REQUEST['s'] ) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
+$s      = isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
 $query_args_to_remove = array(
