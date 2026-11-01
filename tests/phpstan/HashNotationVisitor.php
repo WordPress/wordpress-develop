@@ -730,14 +730,29 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
-		$element = strtolower( substr( $member, 0, -2 ) );
-		$type    = strtolower( $entry['type'] );
+		$element = substr( $member, 0, -2 );
+		$type    = $entry['type'];
 
 		if ( $element === $type ) {
 			return true;
 		}
 
-		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
+		/*
+		 * PHP type and class names are case-insensitive, but the keys of a shape and
+		 * the content of a string literal are not, so only an atomic name may match
+		 * in another case. Otherwise `array{id:int}` would pass for `array{ID:int}`,
+		 * and the derived type would lose the declared key.
+		 */
+		$name_pattern = '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#';
+		if (
+			preg_match( $name_pattern, $element ) === 1
+			&& preg_match( $name_pattern, $type ) === 1
+			&& strtolower( $element ) === strtolower( $type )
+		) {
+			return true;
+		}
+
+		if ( 'array' !== strtolower( $type ) || preg_match( '#^array(?:\[\])+$#i', $element ) !== 1 ) {
 			return false;
 		}
 
