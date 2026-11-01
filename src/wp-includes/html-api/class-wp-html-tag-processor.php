@@ -409,10 +409,10 @@
  *              Allows scanning through all tokens and processing modifiable text, where applicable.
  *
  * @phpstan-type Query array{
- *                   tag_name?: non-falsy-string,
- *                   match_offset?: int<1, max>,
- *                   class_name?: non-empty-string,
- *                   tag_closers?: 'visit'|'skip',
+ *                   tag_name?: non-falsy-string|null,
+ *                   match_offset?: int<1, max>|null,
+ *                   class_name?: non-empty-string|null,
+ *                   tag_closers?: 'visit'|'skip'|null,
  *               }|non-falsy-string|null
  */
 class WP_HTML_Tag_Processor {
