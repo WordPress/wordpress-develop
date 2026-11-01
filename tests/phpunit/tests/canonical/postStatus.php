@@ -174,6 +174,12 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		wp_trash_post( self::$posts['trash-page']->ID );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'a-public-cpt' );
+		unregister_post_type( 'a-private-cpt' );
+		_unregister_post_status( 'a-private-status' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		self::setup_custom_types();
