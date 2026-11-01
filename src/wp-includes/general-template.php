@@ -3948,13 +3948,22 @@ function wp_resource_hints() {
 	/*
 	 * Attributes which may be printed on a resource hint, mapped to whether the
 	 * attribute may be printed without a value when it is supplied as `true`.
+	 *
+	 * Other attributes of the link element are omitted because the HTML spec only
+	 * allows them with other link types: blocking, color, disabled, imagesizes,
+	 * imagesrcset, integrity, and sizes.
 	 */
 	$allowed_attributes = array(
-		'as'          => false,
-		'crossorigin' => true,
-		'href'        => false,
-		'rel'         => false,
-		'type'        => false,
+		'as'             => false,
+		'crossorigin'    => true,
+		'fetchpriority'  => false,
+		'href'           => false,
+		'hreflang'       => false,
+		'media'          => false,
+		'referrerpolicy' => false,
+		'rel'            => false,
+		'title'          => false,
+		'type'           => false,
 	);
 
 	foreach ( $hints as $relation_type => $urls ) {
@@ -3967,7 +3976,9 @@ function wp_resource_hints() {
 		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
 		 *              as its child elements.
 		 * @since 7.3.0 The obsolete `pr` attribute is no longer printed. The `crossorigin`
-		 *              attribute may be `true` to print it without a value.
+		 *              attribute may be `true` to print it without a value. Added the
+		 *              `fetchpriority`, `hreflang`, `media`, `referrerpolicy`, and `title`
+		 *              attributes.
 		 *
 		 * @param array  $urls {
 		 *     Array of resources and their attributes, or URLs to print for resource hints.
@@ -3976,13 +3987,19 @@ function wp_resource_hints() {
 		 *         Array of resource attributes, or a URL string. A valueless attribute
 		 *         may also be supplied as a list item, as in `array( 'crossorigin' )`.
 		 *
-		 *         @type string      $href        URL to include in resource hints. Required.
-		 *         @type string      $as          How the browser should treat the resource
-		 *                                        (`script`, `style`, `image`, `document`, etc).
-		 *         @type string|bool $crossorigin Indicates the CORS policy of the specified resource.
-		 *                                        When `true`, it is printed without a value, which
-		 *                                        is equivalent to `anonymous`.
-		 *         @type string      $type        Type of the resource (`text/html`, `text/css`, etc).
+		 *         @type string      $href           URL to include in resource hints. Required.
+		 *         @type string      $as             How the browser should treat the resource
+		 *                                           (`script`, `style`, `image`, `document`, etc).
+		 *         @type string|bool $crossorigin    Indicates the CORS policy of the specified resource.
+		 *                                           When `true`, it is printed without a value, which
+		 *                                           is equivalent to `anonymous`.
+		 *         @type string      $fetchpriority  Priority of the fetch relative to other resources
+		 *                                           (`high`, `low`, or `auto`).
+		 *         @type string      $hreflang       Language of the resource.
+		 *         @type string      $media          Media query the resource applies to.
+		 *         @type string      $referrerpolicy Referrer policy for the fetch.
+		 *         @type string      $title          Title of the resource hint.
+		 *         @type string      $type           Type of the resource (`text/html`, `text/css`, etc).
 		 *     }
 		 * }
 		 * @param string $relation_type The relation type the URLs are printed for. One of

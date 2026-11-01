@@ -286,6 +286,45 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that link attributes allowed on resource hints are printed, and that
+	 * those the HTML spec restricts to other link types are not.
+	 */
+	public function test_spec_attributes() {
+		add_filter(
+			'wp_resource_hints',
+			static function ( array $hints, string $relation_type ): array {
+				if ( 'prefetch' === $relation_type ) {
+					$hints[] = array(
+						'href'           => 'https://example.com/foo.html',
+						'as'             => 'document',
+						'fetchpriority'  => 'low',
+						'hreflang'       => 'en',
+						'media'          => '(min-width: 600px)',
+						'referrerpolicy' => 'no-referrer',
+						'title'          => 'Foo',
+						'type'           => 'text/html',
+						'blocking'       => 'render',
+						'color'          => '#000',
+						'imagesizes'     => '100vw',
+						'imagesrcset'    => 'https://example.com/foo.jpeg 1x',
+						'integrity'      => 'sha384-foo',
+						'sizes'          => 'any',
+						'disabled',
+					);
+				}
+				return $hints;
+			},
+			10,
+			2
+		);
+
+		$this->assertSame(
+			"<link href='https://example.com/foo.html' as='document' fetchpriority='low' hreflang='en' media='(min-width: 600px)' referrerpolicy='no-referrer' title='Foo' type='text/html' rel='prefetch' />\n",
+			get_echo( 'wp_resource_hints' )
+		);
+	}
+
+	/**
 	 * Tests that boolean values only print attributes that may be valueless.
 	 *
 	 * @dataProvider data_boolean_attributes
