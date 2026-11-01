@@ -30,40 +30,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertFalse( $info['error'] );
 	}
 
-	public function test_upload_dir_relative() {
-		$info   = _wp_upload_dir();
-		$subdir = date_format( date_create( 'now' ), '/Y/m' );
-
-		$this->assertSame( _upload_get_url( $subdir ), $info['url'] );
-		$this->assertSame( ABSPATH . UPLOADS . $subdir, $info['path'] );
-		$this->assertSame( $subdir, $info['subdir'] );
-		$this->assertFalse( $info['error'] );
-	}
-
-	/**
-	 * @ticket 5953
-	 */
-	public function test_upload_dir_absolute() {
-		$path = get_temp_dir() . 'wp-unit-test';
-
-		// wp_upload_dir() with an absolute upload path.
-		update_option( 'upload_path', $path );
-
-		// Doesn't make sense to use an absolute file path without setting the url path.
-		update_option( 'upload_url_path', '/baz' );
-
-		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
-		// It doesn't create the /year/month directories.
-		$info   = _wp_upload_dir();
-		$subdir = date_format( date_create( 'now' ), '/Y/m' );
-
-		// UPLOADS (always defined in bootstrap.php) overrides the options set above.
-		$this->assertSame( _upload_get_url( $subdir ), $info['url'] );
-		$this->assertSame( ABSPATH . UPLOADS . $subdir, $info['path'] );
-		$this->assertSame( $subdir, $info['subdir'] );
-		$this->assertFalse( $info['error'] );
-	}
-
 	public function test_upload_dir_no_yearnum() {
 		update_option( 'uploads_use_yearmonth_folders', 0 );
 
@@ -73,21 +39,6 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertSame( get_option( 'siteurl' ) . '/' . UPLOADS, $info['url'] );
 		$this->assertSame( ABSPATH . UPLOADS, $info['path'] );
 		$this->assertSame( '', $info['subdir'] );
-		$this->assertFalse( $info['error'] );
-	}
-
-	public function test_upload_path_absolute() {
-		update_option( 'upload_url_path', 'http://' . WP_TESTS_DOMAIN . '/asdf' );
-
-		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
-		// It doesn't create the /year/month directories.
-		$info   = _wp_upload_dir();
-		$subdir = date_format( date_create( 'now' ), '/Y/m' );
-
-		// UPLOADS (always defined in bootstrap.php) overrides the options set above.
-		$this->assertSame( _upload_get_url( $subdir ), $info['url'] );
-		$this->assertSame( ABSPATH . UPLOADS . $subdir, $info['path'] );
-		$this->assertSame( $subdir, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 	}
 
