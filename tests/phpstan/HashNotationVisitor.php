@@ -673,6 +673,16 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$member     = $members[ $target ];
 		$normalized = strtolower( $member );
+
+		/*
+		 * The entry only had to match the declared element type, which it may do in
+		 * another spelling, as `wp_post` matches `WP_Post`. The type derived from it
+		 * keeps the spelling of the declaration, which is the one to be checked.
+		 */
+		$array = $this->parse_type( $member );
+		if ( in_array( $target, $elements, true ) && $array instanceof ArrayTypeNode && is_array( $entries[0] ) ) {
+			$entries[0]['type'] = (string) $array->type;
+		}
 		$is_array   = 'array' === $normalized || in_array( $target, $elements, true );
 		$named      = ! $is_array && 'object' !== $normalized;
 		$shape      = $this->resolve_container( $entries, $for_param, $is_array, $named );
