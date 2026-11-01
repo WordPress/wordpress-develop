@@ -970,7 +970,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	 * - when the tag count is displayed (for example when users check the checkbox in the
 	 *   Tag Cloud widget), regardless of the tags font size
 	 */
-	if ( $args['show_count'] || 0 !== $font_spread ) {
+	if ( $args['show_count'] || $font_spread > 0 ) {
 		$aria_label = true;
 	}
 
