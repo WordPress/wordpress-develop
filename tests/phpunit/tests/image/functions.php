@@ -247,6 +247,117 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the result matches the getimagesize() derived answer.
+	 *
+	 * @ticket 28077
+	 *
+	 * @covers ::file_is_displayable_image
+	 */
+	public function test_file_is_displayable_image_uses_exif_imagetype() {
+		$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP, IMAGETYPE_AVIF );
+
+		$files = array(
+			'test-image.png' => true,
+			'test-image.tga' => false,
+		);
+
+		foreach ( $files as $file => $expected ) {
+			$path = DIR_TESTDATA . '/images/' . $file;
+			$info = wp_getimagesize( $path );
+
+			$getimagesize_result = ! empty( $info ) && in_array( $info[2], $displayable_image_types, true );
+
+			$this->assertSame( $expected, $getimagesize_result, "The getimagesize() derived answer for '$file' is unexpected." );
+			$this->assertSame(
+				$getimagesize_result,
+				file_is_displayable_image( $path ),
+				"file_is_displayable_image( '$file' ) should match the getimagesize() derived answer."
+			);
+		}
+	}
+
+	/**
+	 * Tests that detection is based on the file signature only.
+	 *
+	 * exif_imagetype() identifies an image from its signature and does not
+	 * verify that the rest of the header can be parsed. A file whose signature
+	 * is valid is therefore treated as displayable even when it cannot be
+	 * measured, which is the behaviour change this makes on purpose.
+	 *
+	 * @ticket 28077
+	 *
+	 * @covers ::file_is_displayable_image
+	 */
+	public function test_file_is_displayable_image_accepts_a_valid_signature() {
+		$file = wp_tempnam( 'signature-only.png' );
+
+		// A PNG signature followed by data that is not a valid IHDR chunk.
+		file_put_contents( $file, "\x89PNG\r\n\x1a\n" . str_repeat( "\0", 8 ) );
+
+		$this->assertSame(
+			IMAGETYPE_PNG,
+			exif_imagetype( $file ),
+			'The signature should be recognized as a PNG.'
+		);
+
+		$this->assertTrue(
+			file_is_displayable_image( $file ),
+			'Should be displayable because the signature is valid.'
+		);
+
+		unlink( $file );
+	}
+
+	/**
+	 * Tests that the result passed to the filter is always a strict boolean.
+	 *
+	 * @ticket 28077
+	 *
+	 * @covers ::file_is_displayable_image
+	 */
+	public function test_file_is_displayable_image_returns_bool() {
+		$this->assertIsBool( file_is_displayable_image( DIR_TESTDATA . '/images/test-image.png' ) );
+		$this->assertIsBool( file_is_displayable_image( DIR_TESTDATA . '/images/this-file-does-not-exist.png' ) );
+	}
+
+	/**
+	 * Tests that a path which does not exist is not displayable.
+	 *
+	 * @ticket 28077
+	 *
+	 * @covers ::file_is_displayable_image
+	 */
+	public function test_file_is_displayable_image_nonexistent_path() {
+		$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/this-file-does-not-exist.png' ) );
+	}
+
+	/**
+	 * Tests that the filter receives the result and that its return value is passed through.
+	 *
+	 * @ticket 28077
+	 *
+	 * @covers ::file_is_displayable_image
+	 */
+	public function test_file_is_displayable_image_filter() {
+		$received = null;
+
+		$filter = static function ( $result ) use ( &$received ) {
+			$received = $result;
+
+			return true;
+		};
+
+		add_filter( 'file_is_displayable_image', $filter );
+
+		$result = file_is_displayable_image( DIR_TESTDATA . '/images/test-image.tga' );
+
+		remove_filter( 'file_is_displayable_image', $filter );
+
+		$this->assertSame( false, $received, 'The filter should receive false for a non-displayable image.' );
+		$this->assertTrue( $result, 'The return value of the filter should be passed through.' );
+	}
+
+	/**
 	 * @ticket 50833
 	 * @requires extension gd
 	 */

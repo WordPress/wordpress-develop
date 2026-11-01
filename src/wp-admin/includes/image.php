@@ -1170,6 +1170,7 @@ function file_is_valid_image( $path ) {
  * Validates that file is suitable for displaying within a web page.
  *
  * @since 2.5.0
+ * @since 7.2.0 Uses exif_imagetype() when available.
  *
  * @param string $path File path to test.
  * @return bool True if suitable, false if not suitable.
@@ -1177,14 +1178,25 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO, IMAGETYPE_WEBP, IMAGETYPE_AVIF );
 
-	$info = wp_getimagesize( $path );
-	if ( empty( $info ) ) {
-		$result = false;
-	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
-		$result = false;
+	/*
+	 * Use exif_imagetype() to determine the image type when available. It reads
+	 * the same header bytes as getimagesize() but does not need to parse the
+	 * image dimensions, and it works with non-seekable streams.
+	 */
+	if ( is_callable( 'exif_imagetype' ) ) {
+		// Don't silence errors when in debug mode, unless running unit tests.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! defined( 'WP_RUN_CORE_TESTS' ) ) {
+			$image_type = exif_imagetype( $path );
+		} else {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Errors are checked via the return value.
+			$image_type = @exif_imagetype( $path );
+		}
 	} else {
-		$result = true;
+		$info       = wp_getimagesize( $path );
+		$image_type = ! empty( $info ) ? $info[2] : false;
 	}
+
+	$result = $image_type && in_array( $image_type, $displayable_image_types, true );
 
 	/**
 	 * Filters whether the current image is displayable in the browser.
