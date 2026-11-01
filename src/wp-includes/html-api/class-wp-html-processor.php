@@ -145,12 +145,12 @@
  * @phpstan-consistent-constructor
  *
  * @phpstan-type Query array{
- *                   tag_name?: non-falsy-string|null,
- *                   match_offset?: int<1, max>|null,
- *                   class_name?: non-empty-string|null,
- *                   tag_closers?: 'visit'|'skip'|null,
- *                   breadcrumbs?: array<non-falsy-string>,
- *               }|non-falsy-string|null
+ *     tag_name?: non-falsy-string|null,
+ *     match_offset?: int<1, max>|null,
+ *     class_name?: non-empty-string|null,
+ *     tag_closers?: 'visit'|'skip'|null,
+ *     breadcrumbs?: array<non-falsy-string>,
+ * }|non-falsy-string|null
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
