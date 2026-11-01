@@ -9,6 +9,7 @@
  */
 jQuery( function( $ ) {
 	var __ = wp.i18n.__,
+		sprintf = wp.i18n.sprintf,
 		copiedNoticeTimeout;
 
 	/**
@@ -253,13 +254,25 @@ jQuery( function( $ ) {
 		 */
 		function onErasureDoneSuccess() {
 			var summaryMessage = __( 'No personal data was found for this user.' ),
-				classes = 'notice-success';
+				classes = 'notice-success',
+				requestEmail = $action.attr( 'data-email' );
 
 			setActionState( $action, 'remove-personal-data-success' );
 
 			if ( false === hasRemoved ) {
 				if ( false === hasRetained ) {
-					summaryMessage = __( 'No personal data was found for this user.' );
+					classes = 'notice-info';
+
+					if ( requestEmail ) {
+						// Escape the address before it is inserted into the notice markup.
+						requestEmail = $( '<span>' ).text( requestEmail ).html();
+
+						summaryMessage = sprintf(
+							/* translators: %s: Email address. */
+							__( 'No personal data was found for the email &#8220;%s&#8221;.' ),
+							requestEmail
+						);
+					}
 				} else {
 					summaryMessage = __( 'Personal data was found for this user but was not erased.' );
 					classes = 'notice-warning';
