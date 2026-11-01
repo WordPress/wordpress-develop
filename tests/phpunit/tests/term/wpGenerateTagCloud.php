@@ -342,12 +342,19 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 2, $actual );
-		foreach ( $actual as $link ) {
-			if ( $expect_aria_label ) {
-				$this->assertStringContainsString( ' aria-label="', $link );
-			} else {
-				$this->assertStringNotContainsString( ' aria-label="', $link );
-			}
+
+		$expected_aria_labels = array(
+			$term_objects[0]->name . ' (1 item)',
+			$term_objects[1]->name . ' (2 items)',
+		);
+		foreach ( $actual as $i => $link ) {
+			$processor = new WP_HTML_Tag_Processor( $link );
+			$this->assertTrue( $processor->next_tag( 'A' ), 'Expected the tag cloud item to be a link.' );
+			$this->assertSame(
+				$expect_aria_label ? $expected_aria_labels[ $i ] : null,
+				$processor->get_attribute( 'aria-label' ),
+				'Expected the aria-label attribute to be ' . ( $expect_aria_label ? 'present' : 'absent' ) . '.'
+			);
 		}
 	}
 
