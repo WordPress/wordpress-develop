@@ -174,7 +174,7 @@ class Tests_wp_ajax_save_attachment_order extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_missing_parameters(): array {
+	public static function data_missing_parameters(): array {
 		return array(
 			'missing post_id'     => array(
 				array(
