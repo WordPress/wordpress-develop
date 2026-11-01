@@ -245,6 +245,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @var string[]
+	 * @phpstan-var list<non-falsy-string>
 	 */
 	private $breadcrumbs = array();
 
@@ -1213,6 +1214,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 *
 	 * @return string[] Array of tag names representing path to matched node.
+	 *
+	 * @phpstan-return list<non-falsy-string>
 	 */
 	public function get_breadcrumbs(): array {
 		return $this->breadcrumbs;

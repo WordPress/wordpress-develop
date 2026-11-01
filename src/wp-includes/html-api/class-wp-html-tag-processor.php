@@ -3093,6 +3093,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @return string|null Name of current tag name.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_qualified_tag_name(): ?string {
 		$tag_name = $this->get_tag();
