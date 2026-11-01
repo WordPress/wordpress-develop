@@ -93,3 +93,14 @@ if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 		{ stdio: 'inherit' }
 	);
 }
+
+// `composer update` reaches repo.packagist.org, so it is re-attempted for the same reasons as `up`.
+const composer = local_env_utils.compose_with_retry( [ 'run', '-T', '--rm', 'php', 'composer', 'update', '-W' ], 3 );
+
+if ( composer.status !== 0 ) {
+	console.error( '\nThere was an error while running PHP Composer update.' );
+	console.error( 'This is often caused by network issues or Packagist.org downtime.' );
+	console.error( 'Please check your internet connection and try again.' );
+
+	process.exit( composer.status ?? 1 );
+}
