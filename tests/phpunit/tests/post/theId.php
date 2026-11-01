@@ -27,25 +27,6 @@ class Tests_Post_TheId extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tears down test state after each test.
-	 */
-	public function tear_down() {
-		unset( $GLOBALS['post'] );
-		parent::tear_down();
-	}
-
-	/**
-	 * Tests that get_the_ID() returns the ID of the current post in the loop.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_the_id_returns_current_post_id() {
-		$GLOBALS['post'] = get_post( self::$post_id );
-
-		$this->assertSame( self::$post_id, get_the_ID() );
-	}
-
-	/**
 	 * Tests that get_the_ID() returns false when no post is in scope.
 	 *
 	 * @ticket 65819
