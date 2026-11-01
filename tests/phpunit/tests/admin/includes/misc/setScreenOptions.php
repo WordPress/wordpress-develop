@@ -85,7 +85,7 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 	 *     expected: mixed,
 	 * }>
 	 */
-	public function data_set_screen_options(): array {
+	public static function data_set_screen_options(): array {
 		return array(
 			'edit_per_page'             => array(
 				'option'   => 'edit_per_page',
