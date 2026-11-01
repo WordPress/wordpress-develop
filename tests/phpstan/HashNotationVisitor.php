@@ -746,7 +746,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Reports whether a hash documents the elements of a `T[]` member of a union type.
 	 *
-	 * Only a single `...$0` entry whose own type is that `T` qualifies. Named keys
+	 * Only a single `...$0` entry whose own type is that `T` qualifies, and only
+	 * when the entry has a hash of its own: without one, the derived type would
+	 * just restate the declared one, as `array<array-key, string>` does for a
+	 * `string[]`. Named keys
 	 * beside a `T[]` describe the array itself, as the `string[]` of a list of
 	 * labels keyed by name does, and an entry of any other type would contradict
 	 * the declared element type rather than narrow it. The one exception is a bare
@@ -770,6 +773,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
+		$children = $entry['children'] ?? null;
+		if ( ! is_array( $children ) || array() === $children ) {
+			return false;
+		}
+
 		$array = $this->parse_type( $member );
 		$type  = $this->parse_type( $entry['type'] );
 		if ( ! $array instanceof ArrayTypeNode || null === $type ) {
@@ -787,9 +795,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
-		$children = $entry['children'] ?? null;
-
-		return is_array( $children ) && $this->describes_elements( (string) $array->type, array_values( $children ) );
+		return $this->describes_elements( (string) $array->type, array_values( $children ) );
 	}
 
 	/**
