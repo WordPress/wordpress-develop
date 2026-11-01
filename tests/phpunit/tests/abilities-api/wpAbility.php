@@ -404,6 +404,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function data_meta_deprecated_requires_since(): array {
 		return array(
 			'no details'            => array( array() ),
+			'null since'            => array( array( 'since' => null ) ),
 			'replacement + message' => array(
 				array(
 					'replacement' => 'test/new-calculator',

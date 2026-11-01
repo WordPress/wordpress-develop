@@ -425,7 +425,7 @@ class WP_Ability {
 			}
 
 			foreach ( array( 'since', 'replacement', 'message' ) as $key ) {
-				if ( ! array_key_exists( $key, $args['meta']['deprecated'] ) ) {
+				if ( ! isset( $key, $args['meta']['deprecated'] ) ) {
 					if ( 'since' === $key ) {
 						throw new InvalidArgumentException(
 							__( 'The ability deprecation details must include a `since` version.' )
