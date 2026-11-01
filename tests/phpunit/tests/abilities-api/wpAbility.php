@@ -2494,6 +2494,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertWPError( $error );
 		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
 		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the coercion error.' );
 	}
 
