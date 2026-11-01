@@ -3945,6 +3945,18 @@ function wp_resource_hints() {
 		'prerender'    => array(),
 	);
 
+	/*
+	 * Attributes which may be printed on a resource hint, mapped to whether the
+	 * attribute may be printed without a value when it is supplied as `true`.
+	 */
+	$allowed_attributes = array(
+		'as'          => false,
+		'crossorigin' => true,
+		'href'        => false,
+		'rel'         => false,
+		'type'        => false,
+	);
+
 	foreach ( $hints as $relation_type => $urls ) {
 		$unique_urls = array();
 
@@ -3954,19 +3966,23 @@ function wp_resource_hints() {
 		 * @since 4.6.0
 		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
 		 *              as its child elements.
-		 * @since 7.3.0 The obsolete `pr` attribute is no longer printed.
+		 * @since 7.3.0 The obsolete `pr` attribute is no longer printed. The `crossorigin`
+		 *              attribute may be `true` to print it without a value.
 		 *
 		 * @param array  $urls {
 		 *     Array of resources and their attributes, or URLs to print for resource hints.
 		 *
 		 *     @type array|string ...$0 {
-		 *         Array of resource attributes, or a URL string.
+		 *         Array of resource attributes, or a URL string. A valueless attribute
+		 *         may also be supplied as a list item, as in `array( 'crossorigin' )`.
 		 *
-		 *         @type string $href        URL to include in resource hints. Required.
-		 *         @type string $as          How the browser should treat the resource
-		 *                                   (`script`, `style`, `image`, `document`, etc).
-		 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
-		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+		 *         @type string      $href        URL to include in resource hints. Required.
+		 *         @type string      $as          How the browser should treat the resource
+		 *                                        (`script`, `style`, `image`, `document`, etc).
+		 *         @type string|bool $crossorigin Indicates the CORS policy of the specified resource.
+		 *                                        When `true`, it is printed without a value, which
+		 *                                        is equivalent to `anonymous`.
+		 *         @type string      $type        Type of the resource (`text/html`, `text/css`, etc).
 		 *     }
 		 * }
 		 * @param string $relation_type The relation type the URLs are printed for. One of
@@ -4021,20 +4037,33 @@ function wp_resource_hints() {
 			$html = '';
 
 			foreach ( $atts as $attr => $value ) {
-				if ( ! is_scalar( $value )
-					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'rel', 'type' ), true ) && ! is_numeric( $attr ) )
-				) {
+				// A list item supplies a valueless attribute, as in `array( 'crossorigin', 'href' => … )`.
+				if ( is_int( $attr ) ) {
+					if ( ! is_string( $value ) ) {
+						continue;
+					}
+					$attr  = $value;
+					$value = true;
+				}
 
+				if ( ! isset( $allowed_attributes[ $attr ] ) ) {
 					continue;
 				}
 
-				$value = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
-
-				if ( ! is_string( $attr ) ) {
-					$html .= " $value";
-				} else {
-					$html .= " $attr='$value'";
+				if ( is_bool( $value ) ) {
+					if ( $value && $allowed_attributes[ $attr ] ) {
+						$html .= " $attr";
+					}
+					continue;
 				}
+
+				if ( ! is_scalar( $value ) ) {
+					continue;
+				}
+
+				$value = ( 'href' === $attr ) ? esc_url( (string) $value ) : esc_attr( (string) $value );
+
+				$html .= " $attr='$value'";
 			}
 
 			$html = trim( $html );

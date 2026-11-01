@@ -284,4 +284,89 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		return $hints;
 	}
+
+	/**
+	 * Tests that boolean values only print attributes that may be valueless.
+	 *
+	 * @dataProvider data_boolean_attributes
+	 *
+	 * @param array<int|string, mixed> $hint     Resource hint attributes.
+	 * @param string                   $expected Expected markup.
+	 */
+	public function test_boolean_attributes( array $hint, string $expected ) {
+		add_filter(
+			'wp_resource_hints',
+			static function ( array $hints, string $relation_type ) use ( $hint ): array {
+				if ( 'prefetch' === $relation_type ) {
+					$hints[] = $hint;
+				}
+				return $hints;
+			},
+			10,
+			2
+		);
+
+		$this->assertSame( $expected, get_echo( 'wp_resource_hints' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ hint: array<int|string, mixed>, expected: string }>
+	 */
+	public function data_boolean_attributes(): array {
+		$href = 'https://example.com/foo.css';
+
+		return array(
+			'crossorigin as true'      => array(
+				'hint'     => array(
+					'crossorigin' => true,
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'crossorigin as list item' => array(
+				'hint'     => array(
+					'crossorigin',
+					'href' => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'crossorigin as false'     => array(
+				'hint'     => array(
+					'crossorigin' => false,
+					'href'        => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-boolean as true'      => array(
+				'hint'     => array(
+					'as'   => true,
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-boolean as list item' => array(
+				'hint'     => array(
+					'as',
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'unknown list item'        => array(
+				'hint'     => array(
+					'foo',
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-string list item'     => array(
+				'hint'     => array(
+					1.5,
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+		);
+	}
 }
