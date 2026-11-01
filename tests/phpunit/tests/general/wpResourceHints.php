@@ -233,6 +233,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38121
+	 * @ticket 66435
 	 */
 	public function test_custom_attributes() {
 		$expected = "<link rel='preconnect' href='https://make.wordpress.org' />\n" .
@@ -288,6 +289,8 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	/**
 	 * Tests that link attributes allowed on resource hints are printed, and that
 	 * those the HTML spec restricts to other link types are not.
+	 *
+	 * @ticket 66435
 	 */
 	public function test_spec_attributes() {
 		add_filter(
@@ -326,6 +329,8 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 	/**
 	 * Tests that boolean values only print attributes that may be valueless.
+	 *
+	 * @ticket 66435
 	 *
 	 * @dataProvider data_boolean_attributes
 	 *
