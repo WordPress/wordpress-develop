@@ -51,12 +51,6 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 		// Intercept redirect to prevent exit.
 		add_filter( 'wp_redirect', array( $this, 'intercept_redirect' ) );
 
-		// Bypass check_admin_referer() failure by making it pass.
-		add_filter( 'check_admin_referer', '__return_null' );
-
-		// Bypass die() in check_admin_referer() by using a die handler that doesn't die.
-		add_filter( 'wp_die_handler', array( $this, 'wp_die_handler' ) );
-
 		try {
 			set_screen_options();
 		} catch ( Exception $e ) {
@@ -69,14 +63,6 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 
 		$meta = get_user_meta( $user_id, $option, true );
 		$this->assertEquals( $expected, $meta );
-	}
-
-	public function wp_die_handler( $message = '', $title = '', $args = array() ) {
-		return array( $this, 'die_handler' );
-	}
-
-	public function die_handler( $message ) {
-		throw new Exception( $message );
 	}
 
 	public function intercept_redirect( $location ) {
@@ -149,12 +135,6 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 
 		// Intercept redirect to prevent exit.
 		add_filter( 'wp_redirect', array( $this, 'intercept_redirect' ) );
-
-		// Bypass check_admin_referer() failure.
-		add_filter( 'check_admin_referer', '__return_null' );
-
-		// Bypass die() in check_admin_referer() by using a die handler that doesn't die.
-		add_filter( 'wp_die_handler', array( $this, 'wp_die_handler' ) );
 
 		// Filter ending with _page.
 		add_filter( 'set-screen-option', array( $this, 'filter_set_screen_option' ), 10, 3 );
