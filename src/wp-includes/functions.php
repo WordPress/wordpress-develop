@@ -2103,7 +2103,7 @@ function wp_mkdir_p( $target ) {
 		$dir_perms = 0777;
 	}
 
-	if ( @mkdir( $target, $dir_perms, true ) || is_dir( $target ) ) {
+	if ( @mkdir( $target, $dir_perms, true ) ) {
 
 		/*
 		 * If a umask is set that modifies $dir_perms, we'll have to re-set
@@ -2119,7 +2119,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
