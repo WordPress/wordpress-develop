@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getPostTypes
  */
 class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 	public function test_invalid_username_password() {
