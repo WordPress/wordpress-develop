@@ -2087,6 +2087,22 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65819
+	 */
+	public function test_rest_get_route_for_post_filter() {
+		$post = self::factory()->post->create_and_get();
+
+		add_filter(
+			'rest_route_for_post',
+			static function () {
+				return '/custom/route';
+			}
+		);
+
+		$this->assertSame( '/custom/route', rest_get_route_for_post( $post ) );
+	}
+
+	/**
 	 * @ticket 49116
 	 */
 	public function test_rest_get_route_for_term_non_term() {
