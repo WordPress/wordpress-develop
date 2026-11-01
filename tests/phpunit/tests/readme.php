@@ -98,9 +98,20 @@ class Tests_Readme extends WP_UnitTestCase {
 	 * @return string The response body.
 	 */
 	public function get_response_body( $url ) {
+		$response = $this->wp_remote_get( $url );
+		return $this->parse_response_body( $response, $url );
+	}
+
+	/**
+	 * Processes the HTTP response, skipping on availability failures or returning the body.
+	 *
+	 * @param array|WP_Error $response The response from wp_remote_get().
+	 * @param string         $url      The URL retrieved.
+	 * @return string The response body.
+	 */
+	public function parse_response_body( $response, $url ) {
 		$parsed_url = parse_url( $url );
 		$host       = isset( $parsed_url['host'] ) ? $parsed_url['host'] : $url;
-		$response   = $this->wp_remote_get( $url );
 
 		if ( is_wp_error( $response ) ) {
 			$error_message           = $response->get_error_message();
@@ -119,6 +130,9 @@ class Tests_Readme extends WP_UnitTestCase {
 					'name or service not known',
 					'temporary failure in name resolution',
 					'Operation timed out',
+					'fsocket timed out',
+					'Could not connect to server',
+					'Connection reset by peer',
 				);
 
 				foreach ( $availability_patterns as $pattern ) {
@@ -164,52 +178,88 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63914
+	 * Returns the version-appropriate SkippedTestError class name.
+	 *
+	 * @return string
 	 */
-	public function test_get_response_body_skips_on_host_resolution_failure() {
-		add_filter(
-			'pre_http_request',
-			static function () {
-				return new WP_Error( 'http_request_failed', 'cURL error 6: Could not resolve host: endoflife.date' );
-			}
-		);
+	private function get_skipped_test_error_class() {
+		return class_exists( 'PHPUnit\Framework\SkippedTestError' )
+			? 'PHPUnit\Framework\SkippedTestError'
+			: 'PHPUnit_Framework_SkippedTestError';
+	}
+
+	/**
+	 * @ticket 63914
+	 *
+	 * @dataProvider data_availability_error_messages
+	 *
+	 * @param string $message Error message.
+	 */
+	public function test_get_response_body_skips_on_availability_failures( $message ) {
+		$error         = new WP_Error( 'http_request_failed', $message );
+		$skipped_class = $this->get_skipped_test_error_class();
+		$skipped       = false;
 
 		try {
-			$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
-			$this->fail( 'Expected test to be skipped.' );
-		} catch ( PHPUnit\Framework\SkippedTestError $e ) {
-			$this->assertStringContainsString( 'Could not contact endoflife.date to check versions: cURL error 6: Could not resolve host: endoflife.date', $e->getMessage() );
+			$this->parse_response_body( $error, 'https://endoflife.date/api/mysql.json' );
+		} catch ( PHPUnit_Framework_AssertionFailedError $e ) {
+			if ( is_a( $e, $skipped_class ) ) {
+				$skipped = true;
+				$this->assertStringContainsString( 'Could not contact endoflife.date to check versions: ' . $message, $e->getMessage() );
+			}
 		}
+
+		$this->assertTrue( $skipped, 'Expected test to be skipped.' );
+	}
+
+	/**
+	 * Data provider for availability failure messages.
+	 *
+	 * @return array[]
+	 */
+	public static function data_availability_error_messages() {
+		return array(
+			'host resolution'             => array( 'cURL error 6: Could not resolve host: endoflife.date' ),
+			'fsocket timed out'           => array( 'fsocket timed out' ),
+			'could not connect to server' => array( 'cURL error 7: Could not connect to server' ),
+			'connection reset by peer'    => array( 'cURL error 35: Connection reset by peer' ),
+		);
 	}
 
 	/**
 	 * @ticket 63914
 	 */
 	public function test_get_response_body_fails_on_invalid_url() {
-		add_filter(
-			'pre_http_request',
-			static function () {
-				return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
-			}
-		);
+		$error         = new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+		$skipped_class = $this->get_skipped_test_error_class();
+		$failed        = false;
 
-		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
-		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+		try {
+			$this->parse_response_body( $error, 'https://endoflife.date/api/mysql.json' );
+		} catch ( PHPUnit_Framework_AssertionFailedError $e ) {
+			$failed = true;
+			$this->assertNotInstanceOf( $skipped_class, $e, 'The request should fail rather than skip.' );
+		}
+
+		$this->assertTrue( $failed, 'Expected an assertion failure.' );
 	}
 
 	/**
 	 * @ticket 63914
 	 */
 	public function test_get_response_body_fails_on_request_not_executed() {
-		add_filter(
-			'pre_http_request',
-			static function () {
-				return new WP_Error( 'http_request_not_executed', 'User has blocked requests through HTTP.' );
-			}
-		);
+		$error         = new WP_Error( 'http_request_not_executed', 'User has blocked requests through HTTP.' );
+		$skipped_class = $this->get_skipped_test_error_class();
+		$failed        = false;
 
-		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
-		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+		try {
+			$this->parse_response_body( $error, 'https://endoflife.date/api/mysql.json' );
+		} catch ( PHPUnit_Framework_AssertionFailedError $e ) {
+			$failed = true;
+			$this->assertNotInstanceOf( $skipped_class, $e, 'The request should fail rather than skip.' );
+		}
+
+		$this->assertTrue( $failed, 'Expected an assertion failure.' );
 	}
 
 	/**
@@ -220,22 +270,24 @@ class Tests_Readme extends WP_UnitTestCase {
 	 * @param int $status_code The HTTP status code.
 	 */
 	public function test_get_response_body_skips_on_server_availability_status_codes( $status_code ) {
-		add_filter(
-			'pre_http_request',
-			static function () use ( $status_code ) {
-				return array(
-					'response' => array( 'code' => $status_code ),
-					'body'     => 'Service Unavailable',
-				);
-			}
+		$response = array(
+			'response' => array( 'code' => $status_code ),
+			'body'     => 'Service Unavailable',
 		);
 
+		$skipped_class = $this->get_skipped_test_error_class();
+		$skipped       = false;
+
 		try {
-			$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
-			$this->fail( 'Expected test to be skipped.' );
-		} catch ( PHPUnit\Framework\SkippedTestError $e ) {
-			$this->assertStringContainsString( "Response code: $status_code", $e->getMessage() );
+			$this->parse_response_body( $response, 'https://endoflife.date/api/mysql.json' );
+		} catch ( PHPUnit_Framework_AssertionFailedError $e ) {
+			if ( is_a( $e, $skipped_class ) ) {
+				$skipped = true;
+				$this->assertStringContainsString( "Response code: $status_code", $e->getMessage() );
+			}
 		}
+
+		$this->assertTrue( $skipped, 'Expected test to be skipped.' );
 	}
 
 	/**
@@ -257,17 +309,21 @@ class Tests_Readme extends WP_UnitTestCase {
 	 * @ticket 63914
 	 */
 	public function test_get_response_body_fails_on_404_status_code() {
-		add_filter(
-			'pre_http_request',
-			static function () {
-				return array(
-					'response' => array( 'code' => 404 ),
-					'body'     => 'Not Found',
-				);
-			}
+		$response = array(
+			'response' => array( 'code' => 404 ),
+			'body'     => 'Not Found',
 		);
 
-		$this->expectException( PHPUnit\Framework\AssertionFailedError::class );
-		$this->get_response_body( 'https://endoflife.date/api/mysql.json' );
+		$skipped_class = $this->get_skipped_test_error_class();
+		$failed        = false;
+
+		try {
+			$this->parse_response_body( $response, 'https://endoflife.date/api/mysql.json' );
+		} catch ( PHPUnit_Framework_AssertionFailedError $e ) {
+			$failed = true;
+			$this->assertNotInstanceOf( $skipped_class, $e, 'The request should fail rather than skip.' );
+		}
+
+		$this->assertTrue( $failed, 'Expected an assertion failure.' );
 	}
 }
