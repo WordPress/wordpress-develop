@@ -23,6 +23,7 @@ use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\ObjectShapeItemNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\ParserException;
@@ -678,10 +679,16 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * The entry only had to match the declared element type, which it may do in
 		 * another spelling, as `wp_post` matches `WP_Post`. The type derived from it
 		 * keeps the spelling of the declaration, which is the one to be checked.
+		 *
+		 * A union is written back without the parentheses `(string|array)[]` needs
+		 * around it, since `substitute()` looks for the bare `array` to shape among
+		 * the members of the entry's type.
 		 */
 		$array = $this->parse_type( $member );
 		if ( in_array( $target, $elements, true ) && $array instanceof ArrayTypeNode && is_array( $entries[0] ) ) {
-			$entries[0]['type'] = (string) $array->type;
+			$entries[0]['type'] = $array->type instanceof UnionTypeNode
+				? implode( '|', array_map( 'strval', $array->type->types ) )
+				: (string) $array->type;
 		}
 		$is_array   = 'array' === $normalized || in_array( $target, $elements, true );
 		$named      = ! $is_array && 'object' !== $normalized;
