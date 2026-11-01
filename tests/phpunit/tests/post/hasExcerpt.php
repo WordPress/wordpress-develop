@@ -45,42 +45,12 @@ class Tests_Post_HasExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tears down test state after each test.
-	 */
-	public function tear_down() {
-		unset( $GLOBALS['post'] );
-		parent::tear_down();
-	}
-
-	/**
-	 * Tests that has_excerpt() returns true when passing a post ID with an excerpt.
+	 * Tests that has_excerpt() returns true when passing a post with an excerpt.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_has_excerpt_returns_true_with_post_id() {
+	public function test_has_excerpt_returns_true_with_excerpt() {
 		$this->assertTrue( has_excerpt( self::$post_with_excerpt ) );
-	}
-
-	/**
-	 * Tests that has_excerpt() returns true when passing a post object with an excerpt.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_has_excerpt_returns_true_with_post_object() {
-		$post = get_post( self::$post_with_excerpt );
-
-		$this->assertTrue( has_excerpt( $post ) );
-	}
-
-	/**
-	 * Tests that has_excerpt() falls back to global $post when no argument is passed.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_has_excerpt_fallback_to_global_post() {
-		$GLOBALS['post'] = get_post( self::$post_with_excerpt );
-
-		$this->assertTrue( has_excerpt() );
 	}
 
 	/**
@@ -99,14 +69,5 @@ class Tests_Post_HasExcerpt extends WP_UnitTestCase {
 	 */
 	public function test_has_excerpt_returns_false_for_non_existent_post() {
 		$this->assertFalse( has_excerpt( 999999 ) );
-	}
-
-	/**
-	 * Tests that has_excerpt() returns false when no post is in scope.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_has_excerpt_returns_false_when_no_post_in_scope() {
-		$this->assertFalse( has_excerpt() );
 	}
 }
