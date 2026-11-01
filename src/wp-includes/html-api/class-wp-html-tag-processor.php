@@ -3046,12 +3046,22 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_tag(): ?string {
 		if ( null === $this->tag_name_starts_at ) {
 			return null;
 		}
 
+		/**
+		 * The name is never empty and never "0": a tag name starts with an ASCII
+		 * letter, a processing instruction target with a letter or "_", and the
+		 * target of a comment which looks like a processing instruction with a
+		 * letter, ":", or "_".
+		 *
+		 * @var non-falsy-string $tag_name
+		 */
 		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
@@ -3581,6 +3591,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 *
 	 * @return string|null Name of the matched token.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_token_name(): ?string {
 		switch ( $this->parser_state ) {

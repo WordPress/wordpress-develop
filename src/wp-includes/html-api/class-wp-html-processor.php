@@ -5166,6 +5166,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.4.0
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_tag(): ?string {
 		if ( null !== $this->last_error ) {
@@ -5231,6 +5233,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 *
 	 * @return string|null Name of the matched token.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_token_name(): ?string {
 		return $this->is_virtual()
@@ -6288,6 +6292,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string|null $bookmark_name Optional. Name to give bookmark for created virtual node.
 	 *                                   Defaults to auto-creating a bookmark name.
 	 * @return WP_HTML_Token Newly-created virtual token.
+	 *
+	 * @phpstan-param non-falsy-string $token_name
 	 */
 	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];
