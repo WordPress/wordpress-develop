@@ -171,14 +171,23 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private ?TypeParser $type_parser = null;
 
 	/**
-	 * Answers `parses_as_type()` has already given, keyed by the type.
+	 * Types `parse_type()` has already parsed, keyed by the type as written.
 	 *
 	 * Core writes a small vocabulary of types across a great many hashes, so the
-	 * same handful of strings is asked about over and over.
+	 * same handful of strings is asked about over and over. A string that is not a
+	 * type is kept as null. The nodes are shared, so nothing may change them.
 	 *
-	 * @var array<string, bool>
+	 * @var array<string, TypeNode|null>
 	 */
 	private array $parsed = array();
+
+	/**
+	 * Types `normalize_type()` has already normalized, keyed by the template types
+	 * in scope and the type as printed.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $normalized = array();
 
 	/**
 	 * Template types the docblock being translated declares, keyed by name.
@@ -635,8 +644,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			 * same: a single `...$0` entry documenting the repeated value as a `T`, as
 			 * the blocks `parse_blocks()` returns are.
 			 */
-			if ( $this->describes_elements( $member, $entries ) ) {
-				$elements[] = $position;
+			$element = $this->described_element( $member, $entries );
+			if ( null !== $element ) {
+				$elements[ $position ] = $element;
 				continue;
 			}
 
@@ -665,7 +675,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		if ( 1 === count( $bare ) ) {
 			$target = $bare[0];
 		} elseif ( array() === $bare && 1 === count( $elements ) ) {
-			$target = $elements[0];
+			$target = array_key_first( $elements );
 		} elseif ( array() === $bare && array() === $elements && 1 === count( $shapeable ) ) {
 			$target = $shapeable[0];
 		} else {
@@ -684,13 +694,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * around it, since `substitute()` looks for the bare `array` to shape among
 		 * the members of the entry's type.
 		 */
-		$array = $this->parse_type( $member );
-		if ( in_array( $target, $elements, true ) && $array instanceof ArrayTypeNode && is_array( $entries[0] ) ) {
-			$entries[0]['type'] = $array->type instanceof UnionTypeNode
-				? implode( '|', array_map( 'strval', $array->type->types ) )
-				: (string) $array->type;
+		$element = $elements[ $target ] ?? null;
+		if ( null !== $element && is_array( $entries[0] ) ) {
+			$entries[0]['type'] = $element instanceof UnionTypeNode
+				? implode( '|', array_map( 'strval', $element->types ) )
+				: (string) $element;
 		}
-		$is_array   = 'array' === $normalized || in_array( $target, $elements, true );
+		$is_array   = 'array' === $normalized || null !== $element;
 		$named      = ! $is_array && 'object' !== $normalized;
 		$shape      = $this->resolve_container( $entries, $for_param, $is_array, $named );
 		if ( null === $shape ) {
@@ -744,58 +754,57 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Reports whether a hash documents the elements of a `T[]` member of a union type.
+	 * Finds the element type a hash documents for a `T[]` member of a union type.
 	 *
 	 * Only a single `...$0` entry whose own type is that `T` qualifies, and only
 	 * when the entry has a hash of its own: without one, the derived type would
 	 * just restate the declared one, as `array<array-key, string>` does for a
-	 * `string[]`. Named keys
-	 * beside a `T[]` describe the array itself, as the `string[]` of a list of
-	 * labels keyed by name does, and an entry of any other type would contradict
-	 * the declared element type rather than narrow it. The one exception is a bare
-	 * `array` entry for an `array[]` element, which is how the `array[][]` of
-	 * `wp_print_font_faces()` is written. Its own hash must then describe the
-	 * elements of that `array[]` in turn, so the inner arrays are still only
-	 * narrowed: named keys there, or no hash at all, would type an array of
-	 * arrays as a single shape, or drop a level of it.
+	 * `string[]`. Named keys beside a `T[]` describe the array itself, as the
+	 * `string[]` of a list of labels keyed by name does, and an entry of any other
+	 * type would contradict the declared element type rather than narrow it. The
+	 * one exception is a bare `array` entry for an `array[]` element, which is how
+	 * the `array[][]` of `wp_print_font_faces()` is written. Its own hash must then
+	 * describe the elements of that `array[]` in turn, so the inner arrays are
+	 * still only narrowed: named keys there, or no hash at all, would type an
+	 * array of arrays as a single shape, or drop a level of it.
 	 *
 	 * @param string      $member  One member of a union type.
 	 * @param list<mixed> $entries Entries of the hash describing it.
-	 * @return bool
+	 * @return TypeNode|null The declared element type, or null if the hash does not describe the elements.
 	 */
-	private function describes_elements( string $member, array $entries ): bool {
+	private function described_element( string $member, array $entries ): ?TypeNode {
 		if ( 1 !== count( $entries ) ) {
-			return false;
+			return null;
 		}
 
 		$entry = $entries[0];
 		if ( ! is_array( $entry ) || true !== ( $entry['variadic'] ?? null ) || ! is_string( $entry['type'] ?? null ) ) {
-			return false;
+			return null;
 		}
 
 		$children = $entry['children'] ?? null;
 		if ( ! is_array( $children ) || array() === $children ) {
-			return false;
+			return null;
 		}
 
 		$array = $this->parse_type( $member );
 		$type  = $this->parse_type( $entry['type'] );
 		if ( ! $array instanceof ArrayTypeNode || null === $type ) {
-			return false;
+			return null;
 		}
 
 		$element = $this->normalize_type( $array->type );
 		$type    = $this->normalize_type( $type );
 
 		if ( $element === $type ) {
-			return true;
+			return $array->type;
 		}
 
 		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
-			return false;
+			return null;
 		}
 
-		return $this->describes_elements( (string) $array->type, array_values( $children ) );
+		return null === $this->described_element( (string) $array->type, array_values( $children ) ) ? null : $array->type;
 	}
 
 	/**
@@ -814,6 +823,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return string
 	 */
 	private function normalize_type( TypeNode $type ): string {
+		$key = implode( ',', array_keys( $this->templates ) ) . ';' . $type;
+		if ( isset( $this->normalized[ $key ] ) ) {
+			return $this->normalized[ $key ];
+		}
+
 		$visitor = new class( $this->templates ) extends AbstractNodeVisitor {
 
 			/**
@@ -848,7 +862,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$traverser = new NodeTraverser( array( new CloningVisitor(), $visitor ) );
 		$nodes     = $traverser->traverse( array( $type ) );
 
-		return (string) $nodes[0];
+		$this->normalized[ $key ] = (string) $nodes[0];
+
+		return $this->normalized[ $key ];
 	}
 
 	/**
@@ -1032,13 +1048,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function parses_as_type( string $type ): bool {
-		if ( isset( $this->parsed[ $type ] ) ) {
-			return $this->parsed[ $type ];
-		}
-
-		$this->parsed[ $type ] = null !== $this->parse_type( $type );
-
-		return $this->parsed[ $type ];
+		return null !== $this->parse_type( $type );
 	}
 
 	/**
@@ -1048,6 +1058,20 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
 	 */
 	private function parse_type( string $type ): ?TypeNode {
+		if ( ! array_key_exists( $type, $this->parsed ) ) {
+			$this->parsed[ $type ] = $this->parse_uncached( $type );
+		}
+
+		return $this->parsed[ $type ];
+	}
+
+	/**
+	 * Parses a type for `parse_type()`, which caches the result.
+	 *
+	 * @param string $type Type as written in the docblock.
+	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 */
+	private function parse_uncached( string $type ): ?TypeNode {
 		if ( null === $this->lexer || null === $this->type_parser ) {
 			$config            = new ParserConfig( array() );
 			$this->lexer       = new Lexer( $config );
