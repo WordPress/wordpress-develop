@@ -44,4 +44,14 @@ class Tests_Widgets_WpParseWidgetId extends WP_UnitTestCase {
 			wp_parse_widget_id( 'archives' )
 		);
 	}
+
+	/**
+	 * @ticket 66434
+	 */
+	public function test_does_not_parse_number_before_trailing_newline() {
+		$this->assertSame(
+			array( 'id_base' => "text-2\n" ),
+			wp_parse_widget_id( "text-2\n" )
+		);
+	}
 }
