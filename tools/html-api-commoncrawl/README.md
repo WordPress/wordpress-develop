@@ -1,6 +1,6 @@
 # HTML API CommonCrawl analysis
 
-Compares how the HTML API parses real-world documents with and without a pull request. It fetches a batch of HTML documents from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
+Compares how the HTML API parses real-world documents with and without a pull request. It fetches a random sample of HTML documents from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
 
 - how long the Tag Processor and the HTML Processor take to parse each document, and how long `wp_kses( $html, 'post' )` takes on it, for all documents and for small, medium, and large ones;
 - which documents the HTML Processor does not support, and why it stopped on them.
@@ -13,7 +13,7 @@ The report is left as a comment on the pull request. Each new analysis replaces 
 
 ## Files
 
-- `cc-analyzer.phar`: [cc-analyzer](#rebuilding-cc-analyzerphar), which fetches documents from CommonCrawl into a local batch, and replays a batch through an analysis script.
+- `cc-analyzer.phar`: [cc-analyzer](#rebuilding-cc-analyzerphar), which fetches documents from CommonCrawl into a local batch, and replays a batch through an analysis script. It samples random blocks of the crawl's URL index, keeps successful `text/html` captures from up to ten different hosts in each block, and downloads only those records, four at a time.
 - `bootstrap.php`: loads the HTML API, and what `wp_kses()` needs, from the `src/` directory in `HTML_API_BENCH_WP_SRC`, without loading WordPress. It presents a UTF-8 site at example.com. When a change adds a file to the HTML API, add it to the list of files here.
 - `benchmark.php`: an analysis script which times the Tag Processor, the HTML Processor, and `wp_kses( $html, 'post' )` on each document and writes `benchmark.csv`.
 - `analysis.php`: an analysis script which records whether the HTML Processor supports each document and writes `analysis.csv`.
@@ -26,7 +26,7 @@ This needs PHP 8.5, as used by the workflow, with the `curl`, `pdo_sqlite`, and 
 ```sh
 # Fetch 1,000 documents, or as many as can be fetched in 5 minutes.
 php -d memory_limit=1G tools/html-api-commoncrawl/cc-analyzer.phar --workspace /tmp/cc batch fetch corpus \
-	--limit 1000 --duration 5m --progress text
+	--sample index --resource-types html --limit 1000 --concurrency 4 --http-retries 6 --duration 5m --progress text
 
 # Time each document three times with each checkout, and record support once.
 for checkout in base merge; do
@@ -53,14 +53,14 @@ The workflow reads these environment variables. When it is run manually, each on
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `HTML_API_BENCH_DOCUMENTS` | `10000` | How many documents to fetch. |
-| `HTML_API_BENCH_FETCH_DURATION` | `30m` | Longest time to spend fetching. Fetching stops at whichever limit is reached first. |
+| `HTML_API_BENCH_FETCH_DURATION` | `30m` | Longest time to spend fetching. Fetching stops at whichever limit is reached first. At most half of it is spent sampling the index. |
 | `HTML_API_BENCH_ROUNDS` | `3` | How many times to time each document with each checkout. Each document's time is its median. |
 | `HTML_API_BENCH_SMALL_MAX_BYTES` | `32768` | Documents smaller than this are small. |
 | `HTML_API_BENCH_LARGE_MIN_BYTES` | `262144` | Documents at least this large are large. Everything between is medium. |
 
 ## Rebuilding `cc-analyzer.phar`
 
-`cc-analyzer.phar` was built from cc-analyzer commit `cdf4b35` with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
+`cc-analyzer.phar` was built from cc-analyzer commit `b13eb07` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
 
 - `src/Http/CurlStreamClient.php`: `DEFAULT_USER_AGENT` set to `'cc-analyzer/0.1 PHP-cURL'` and `DEFAULT_CONTACT_HEADER` set to `''`.
 - `src/Cli/Application.php`: the `--user-agent` and `--contact-email` defaults set to the same values, and the help text to match.
