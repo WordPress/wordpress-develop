@@ -15,6 +15,18 @@
  */
 class Tests_Upload_UploadDirOptions extends WP_UnitTestCase {
 
+	/**
+	 * These path-option tests do not create upload files to track.
+	 *
+	 * Skipping the scan also prevents wp_upload_dir() from creating the real
+	 * wp-content/uploads/YYYY/MM directory, since UPLOADS is not defined here.
+	 *
+	 * @return array Empty upload snapshot.
+	 */
+	public function scan_user_uploads() {
+		return array();
+	}
+
 	public static function set_up_before_class() {
 		putenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT=1' );
 
