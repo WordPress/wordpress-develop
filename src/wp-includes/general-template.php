@@ -3954,6 +3954,7 @@ function wp_resource_hints() {
 		 * @since 4.6.0
 		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
 		 *              as its child elements.
+		 * @since 7.3.0 The obsolete `pr` attribute is no longer printed.
 		 *
 		 * @param array  $urls {
 		 *     Array of resources and their attributes, or URLs to print for resource hints.
@@ -3965,7 +3966,6 @@ function wp_resource_hints() {
 		 *         @type string $as          How the browser should treat the resource
 		 *                                   (`script`, `style`, `image`, `document`, etc).
 		 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
-		 *         @type float  $pr          Expected probability that the resource hint will be used.
 		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
 		 *     }
 		 * }
@@ -4022,7 +4022,7 @@ function wp_resource_hints() {
 
 			foreach ( $atts as $attr => $value ) {
 				if ( ! is_scalar( $value )
-					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'pr', 'rel', 'type' ), true ) && ! is_numeric( $attr ) )
+					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'rel', 'type' ), true ) && ! is_numeric( $attr ) )
 				) {
 
 					continue;

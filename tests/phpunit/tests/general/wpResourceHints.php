@@ -236,7 +236,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	 */
 	public function test_custom_attributes() {
 		$expected = "<link rel='preconnect' href='https://make.wordpress.org' />\n" .
-					"<link crossorigin as='image' pr='0.5' href='https://example.com/foo.jpeg' rel='prefetch' />\n" .
+					"<link crossorigin as='image' href='https://example.com/foo.jpeg' rel='prefetch' />\n" .
 					"<link crossorigin='use-credentials' as='style' href='https://example.com/foo.css' rel='prefetch' />\n" .
 					"<link href='http://wordpress.org' rel='prerender' />\n";
 
@@ -265,7 +265,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 			$hints[] = array(
 				'crossorigin',
 				'as'   => 'image',
-				'pr'   => 0.5,
+				'pr'   => 0.5, // Obsolete attribute which should be ignored.
 				'href' => 'https://example.com/foo.jpeg',
 			);
 			$hints[] = array(
