@@ -999,7 +999,7 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
-		// Triggers a deprecation notice if the ability is marked as as deprecated and hasn't been triggered earlier.
+		// Triggers a deprecation notice if the ability is marked as deprecated and hasn't been triggered earlier.
 		$this->_handle_ability_deprecation();
 
 		/**
