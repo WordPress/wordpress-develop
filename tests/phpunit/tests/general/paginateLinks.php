@@ -563,4 +563,43 @@ EXPECTED;
 			'multi query vars' => array( 'foo=bar&pen=pencil' ),
 		);
 	}
+
+	/**
+	 * Tests paginate_links when global $wp_query max_num_pages is 0.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_paginate_links_with_zero_max_num_pages(): void {
+		global $wp_query;
+
+		$original_query          = $wp_query;
+		$wp_query                = new WP_Query();
+		$wp_query->max_num_pages = 0;
+
+		try {
+			$links = paginate_links();
+			$this->assertNull( $links );
+		} finally {
+			$wp_query = $original_query;
+		}
+	}
+
+	/**
+	 * Tests paginate_links when global $wp_query is null.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_paginate_links_with_null_wp_query(): void {
+		global $wp_query;
+
+		$original_query = $wp_query;
+		$wp_query       = null;
+
+		try {
+			$links = paginate_links();
+			$this->assertNull( $links );
+		} finally {
+			$wp_query = $original_query;
+		}
+	}
 }
