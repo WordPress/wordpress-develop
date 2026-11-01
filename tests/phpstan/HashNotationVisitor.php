@@ -193,7 +193,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Template types the docblock being translated declares, keyed by name.
 	 *
 	 * Unlike a class name, a template type's name is case-sensitive, so comparing
-	 * types has to know which names are templates.
+	 * types has to know which names are templates. Only the templates of the
+	 * docblock itself are known: a method's hash naming a template of its class in
+	 * another case is still taken for that template.
 	 *
 	 * @var array<string, true>
 	 */
@@ -810,14 +812,16 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Prints a type in a form that compares equal to every other spelling of it.
 	 *
-	 * Parsing does away with differences of spacing and of redundant parentheses,
-	 * as between `(int|string)` and `int|string`. Names are then lowercased and
-	 * stripped of a leading backslash, because PHP type and class names are
-	 * case-insensitive. The keys of a shape and the content of a string literal are
-	 * not, so they are left as they are: otherwise `array{id: int}` would pass for
-	 * `array{ID: int}`, and a type derived from it would lose the declared key. A
-	 * template type keeps its case too, since PHPStan resolves `t` as a class, not
-	 * as the template `T`.
+	 * This only decides whether a hash's element type is the declared one; the type
+	 * derived from it is always spelled as declared. Parsing does away with
+	 * differences of spacing and of redundant parentheses, as between
+	 * `(int|string)` and `int|string`. Names are then lowercased and stripped of a
+	 * leading backslash, because PHP type and class names are case-insensitive, so
+	 * `wp_post` is the same type as `\WP_Post`. The keys of a shape, the content of a
+	 * string literal, and the name of a template type are case-sensitive, so they
+	 * are left as they are: `array{id: int}` is not `array{ID: int}`, and `t` is a
+	 * class rather than the template `T`, so a hash naming either contradicts the
+	 * declaration instead of describing its elements.
 	 *
 	 * @param TypeNode $type Parsed type, which is left unchanged.
 	 * @return string
