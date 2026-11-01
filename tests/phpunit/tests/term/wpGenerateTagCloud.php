@@ -303,10 +303,83 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the aria-label is only output when font sizes differ or counts are shown.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers ::wp_generate_tag_cloud
+	 *
+	 * @dataProvider data_aria_label_font_sizes
+	 *
+	 * @param int|float $smallest          Smallest font size.
+	 * @param int|float $largest           Largest font size.
+	 * @param int       $show_count        Whether to show tag counts.
+	 * @param bool      $expect_aria_label Whether an aria-label is expected.
+	 */
+	public function test_aria_label_font_sizes( $smallest, $largest, int $show_count, bool $expect_aria_label ) {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$term_ids = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
+		$posts    = self::factory()->post->create_many( 2 );
+
+		wp_set_post_terms( $posts[0], $term_ids, 'wptests_tax' );
+		wp_set_post_terms( $posts[1], array( $term_ids[1] ), 'wptests_tax' );
+
+		$term_objects = $this->retrieve_terms(
+			array(
+				'include' => $term_ids,
+			),
+			'wptests_tax'
+		);
+
+		$actual = wp_generate_tag_cloud(
+			$term_objects,
+			array(
+				'format'     => 'array',
+				'smallest'   => $smallest,
+				'largest'    => $largest,
+				'show_count' => $show_count,
+			)
+		);
+
+		$this->assertCount( 2, $actual );
+
+		$expected_aria_labels = array(
+			$term_objects[0]->name . ' (1 item)',
+			$term_objects[1]->name . ' (2 items)',
+		);
+		foreach ( $actual as $i => $link ) {
+			$processor = new WP_HTML_Tag_Processor( $link );
+			$this->assertTrue( $processor->next_tag( 'A' ), 'Expected the tag cloud item to be a link.' );
+			$this->assertSame(
+				$expect_aria_label ? $expected_aria_labels[ $i ] : null,
+				$processor->get_attribute( 'aria-label' ),
+				'Expected the aria-label attribute to be ' . ( $expect_aria_label ? 'present' : 'absent' ) . '.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_aria_label_font_sizes()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|float, 1: int|float, 2: int, 3: bool }>
+	 */
+	public static function data_aria_label_font_sizes(): array {
+		return array(
+			'equal int sizes'              => array( 12, 12, 0, false ),
+			'equal float sizes'            => array( 1.2, 1.2, 0, false ),
+			'equal integral float sizes'   => array( 12.0, 12.0, 0, false ),
+			'different int sizes'          => array( 8, 22, 0, true ),
+			'different float sizes'        => array( 0.8, 1.5, 0, true ),
+			'equal float sizes with count' => array( 1.2, 1.2, 1, true ),
+			'smallest larger than largest' => array( 22.5, 8.5, 0, true ),
+		);
+	}
+
+	/**
 	 * Helper method retrieve the created terms.
 	 *
 	 * @param array $get_terms_args Options passed to get_terms()
-	 * @return array
+	 * @return WP_Term[]
 	 */
 	protected function retrieve_terms( $get_terms_args, $taxonomy = 'post_tag' ) {
 		$terms = get_terms( array( $taxonomy ), $get_terms_args );
