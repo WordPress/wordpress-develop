@@ -21,6 +21,10 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		self::$user_ids['subscriber'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$user_ids['admin'] );
