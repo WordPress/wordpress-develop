@@ -222,6 +222,65 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ) );
 		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+
+		// Later requests read from the database, so the write must have updated the stored row.
+		wp_cache_flush();
+
+		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ) );
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+	}
+
+	/**
+	 * A row that exists but holds no value is a malformed record, not an absent one.
+	 *
+	 * @ticket 66424
+	 *
+	 * @dataProvider data_scopes
+	 */
+	public function test_a_failed_read_of_an_empty_row_reports_a_malformed_record( bool $network ): void {
+		$store = new WP_Secrets_Option_Store();
+
+		if ( $network ) {
+			update_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key', '' );
+		} else {
+			update_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key', '', false );
+		}
+
+		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
+		$result = $this->without_db_errors( array( $store, 'get' ), 'test/key', $network );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+	}
+
+	/**
+	 * Unlike wp_options.option_value, wp_sitemeta.meta_value is nullable.
+	 *
+	 * @ticket 66424
+	 *
+	 * @group ms-required
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_a_network_row_with_a_null_value_reports_a_malformed_record(): void {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->sitemeta,
+			array(
+				'site_id'    => get_current_network_id(),
+				'meta_key'   => WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key',
+				'meta_value' => null,
+			)
+		);
+
+		$store  = new WP_Secrets_Option_Store();
+		$result = $store->get( 'test/key', true );
+
+		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
 	}
 
 	/**

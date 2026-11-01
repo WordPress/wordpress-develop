@@ -250,7 +250,10 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 			return null;
 		}
 
-		$value = maybe_unserialize( $wpdb->get_var() );
+		$stored = $wpdb->get_var();
+
+		// get_var() returns null for a row with no value. That row exists, so it must not read as absent.
+		$value = maybe_unserialize( $stored ?? '' );
 
 		wp_cache_delete( $cache_key, $cache_group );
 
