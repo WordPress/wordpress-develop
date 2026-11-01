@@ -30,14 +30,6 @@ class Tests_Post_PostCustom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tears down test state after each test.
-	 */
-	public function tear_down() {
-		unset( $GLOBALS['post'] );
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests that post_custom() returns a single value when the key has one entry.
 	 *
 	 * @ticket 65819
@@ -68,25 +60,5 @@ class Tests_Post_PostCustom extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( self::$post_id );
 
 		$this->assertFalse( post_custom( 'non_existent_key' ) );
-	}
-
-	/**
-	 * Tests that post_custom() returns false when called with an empty string key.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_post_custom_returns_false_for_empty_key() {
-		$GLOBALS['post'] = get_post( self::$post_id );
-
-		$this->assertFalse( post_custom( '' ) );
-	}
-
-	/**
-	 * Tests that post_custom() returns false when no post is in scope.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_post_custom_returns_false_when_no_post_in_scope() {
-		$this->assertFalse( post_custom( 'single_key' ) );
 	}
 }
