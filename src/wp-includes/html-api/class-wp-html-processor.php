@@ -145,12 +145,12 @@
  * @phpstan-consistent-constructor
  *
  * @phpstan-type Query array{
- *     tag_name?: non-falsy-string|null,
+ *     tag_name?: non-empty-string|null,
  *     match_offset?: int<1, max>|null,
  *     class_name?: non-empty-string|null,
  *     tag_closers?: 'visit'|'skip'|null,
- *     breadcrumbs?: array<non-falsy-string>,
- * }|non-falsy-string|null
+ *     breadcrumbs?: array<non-empty-string>,
+ * }|non-empty-string|null
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
@@ -941,7 +941,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * @return bool Whether the currently-matched tag is found at the given nested structure.
 	 *
-	 * @phpstan-param array<non-falsy-string> $breadcrumbs
+	 * @phpstan-param array<non-empty-string> $breadcrumbs
 	 */
 	public function matches_breadcrumbs( $breadcrumbs ): bool {
 		// Everything matches when there are zero constraints.
