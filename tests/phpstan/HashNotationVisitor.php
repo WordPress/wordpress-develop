@@ -13,6 +13,16 @@ namespace WordPress\PHPStan;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use PHPStan\PhpDocParser\Ast\AbstractNodeVisitor;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprStringNode;
+use PHPStan\PhpDocParser\Ast\Node as DocNode;
+use PHPStan\PhpDocParser\Ast\NodeTraverser;
+use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
+use PHPStan\PhpDocParser\Ast\Type\ArrayShapeItemNode;
+use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\ObjectShapeItemNode;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\ParserException;
@@ -170,6 +180,16 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private array $parsed = array();
 
 	/**
+	 * Template types the docblock being translated declares, keyed by name.
+	 *
+	 * Unlike a class name, a template type's name is case-sensitive, so comparing
+	 * types has to know which names are templates.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $templates = array();
+
+	/**
 	 * Translates the hashes in a node's docblock into `@phpstan-*` shapes.
 	 *
 	 * Every node carrying a docblock is considered, not only a declaration. A hook's
@@ -268,6 +288,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$additions = array();
 		$tags      = $this->split_tags( $text );
 		$covered   = $this->phpstan_counterparts( $tags );
+
+		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+		$this->templates = array_fill_keys( $matches[1], true );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
@@ -721,7 +744,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function describes_elements( string $member, array $entries ): bool {
-		if ( ! str_ends_with( $member, '[]' ) || 1 !== count( $entries ) ) {
+		if ( 1 !== count( $entries ) ) {
 			return false;
 		}
 
@@ -730,35 +753,79 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
-		$element = substr( $member, 0, -2 );
-		$type    = $entry['type'];
+		$array = $this->parse_type( $member );
+		$type  = $this->parse_type( $entry['type'] );
+		if ( ! $array instanceof ArrayTypeNode || null === $type ) {
+			return false;
+		}
+
+		$element = $this->normalize_type( $array->type );
+		$type    = $this->normalize_type( $type );
 
 		if ( $element === $type ) {
 			return true;
 		}
 
-		/*
-		 * PHP type and class names are case-insensitive, but the keys of a shape and
-		 * the content of a string literal are not, so only an atomic name may match
-		 * in another case. Otherwise `array{id:int}` would pass for `array{ID:int}`,
-		 * and the derived type would lose the declared key.
-		 */
-		$name_pattern = '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#';
-		if (
-			preg_match( $name_pattern, $element ) === 1
-			&& preg_match( $name_pattern, $type ) === 1
-			&& strtolower( $element ) === strtolower( $type )
-		) {
-			return true;
-		}
-
-		if ( 'array' !== strtolower( $type ) || preg_match( '#^array(?:\[\])+$#i', $element ) !== 1 ) {
+		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
 			return false;
 		}
 
 		$children = $entry['children'] ?? null;
 
-		return is_array( $children ) && $this->describes_elements( $element, array_values( $children ) );
+		return is_array( $children ) && $this->describes_elements( (string) $array->type, array_values( $children ) );
+	}
+
+	/**
+	 * Prints a type in a form that compares equal to every other spelling of it.
+	 *
+	 * Parsing does away with differences of spacing and of redundant parentheses,
+	 * as between `(int|string)` and `int|string`. Names are then lowercased and
+	 * stripped of a leading backslash, because PHP type and class names are
+	 * case-insensitive. The keys of a shape and the content of a string literal are
+	 * not, so they are left as they are: otherwise `array{id: int}` would pass for
+	 * `array{ID: int}`, and a type derived from it would lose the declared key. A
+	 * template type keeps its case too, since PHPStan resolves `t` as a class, not
+	 * as the template `T`.
+	 *
+	 * @param TypeNode $type Parsed type, which is left unchanged.
+	 * @return string
+	 */
+	private function normalize_type( TypeNode $type ): string {
+		$visitor = new class( $this->templates ) extends AbstractNodeVisitor {
+
+			/**
+			 * Template types in scope, keyed by name.
+			 *
+			 * @var array<string, true>
+			 */
+			private array $templates;
+
+			/**
+			 * @param array<string, true> $templates Template types in scope, keyed by name.
+			 */
+			public function __construct( array $templates ) {
+				$this->templates = $templates;
+			}
+
+			public function enterNode( DocNode $node ): DocNode {
+				if ( ( $node instanceof ArrayShapeItemNode || $node instanceof ObjectShapeItemNode ) && $node->keyName instanceof IdentifierTypeNode ) {
+					// A key written bare is a string, not a name, so it keeps its case.
+					$node->keyName = new ConstExprStringNode( $node->keyName->name, ConstExprStringNode::SINGLE_QUOTED );
+				} elseif ( $node instanceof ConstExprStringNode ) {
+					$node->quoteType = ConstExprStringNode::SINGLE_QUOTED;
+				} elseif ( $node instanceof IdentifierTypeNode && ! isset( $this->templates[ $node->name ] ) ) {
+					$node->name = strtolower( ltrim( $node->name, '\\' ) );
+				}
+
+				return $node;
+			}
+		};
+
+		// The cloning visitor runs first, so the changes land on a copy.
+		$traverser = new NodeTraverser( array( new CloningVisitor(), $visitor ) );
+		$nodes     = $traverser->traverse( array( $type ) );
+
+		return (string) $nodes[0];
 	}
 
 	/**
@@ -946,6 +1013,18 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return $this->parsed[ $type ];
 		}
 
+		$this->parsed[ $type ] = null !== $this->parse_type( $type );
+
+		return $this->parsed[ $type ];
+	}
+
+	/**
+	 * Parses a type with PHPStan's own PHPDoc type parser.
+	 *
+	 * @param string $type Type as written in the docblock.
+	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 */
+	private function parse_type( string $type ): ?TypeNode {
 		if ( null === $this->lexer || null === $this->type_parser ) {
 			$config            = new ParserConfig( array() );
 			$this->lexer       = new Lexer( $config );
@@ -954,15 +1033,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		try {
 			$tokens = new TokenIterator( $this->lexer->tokenize( $type ) );
-			$this->type_parser->parse( $tokens );
-
-			// Prose whose first word happens to parse leaves the rest of itself behind.
-			$this->parsed[ $type ] = $tokens->isCurrentTokenType( Lexer::TOKEN_END );
+			$node   = $this->type_parser->parse( $tokens );
 		} catch ( ParserException $exception ) {
-			$this->parsed[ $type ] = false;
+			return null;
 		}
 
-		return $this->parsed[ $type ];
+		// Prose whose first word happens to parse leaves the rest of itself behind.
+		return $tokens->isCurrentTokenType( Lexer::TOKEN_END ) ? $node : null;
 	}
 
 	/**
