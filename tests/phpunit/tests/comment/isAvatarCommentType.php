@@ -34,12 +34,15 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_is_avatar_comment_type() {
+	public static function data_is_avatar_comment_type() {
 		return array(
 			array( null, false ),
 			array( '', false ),
 			array( 'non-existing-comment-type', false ),
 			array( 'comment', true ),
+			// Internal comment types are authored by a user, so they get an avatar.
+			array( 'note', true ),
+			array( 'reaction', true ),
 		);
 	}
 

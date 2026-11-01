@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that checks the PHP coding standards.
+#
+# This workflow is used by `trunk` and branches >= 5.1.
 ##
 name: PHP coding standards
 

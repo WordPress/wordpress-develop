@@ -2,12 +2,11 @@
 
 const dotenv = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
-const { spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 
-dotenvExpand.expand( dotenv.config() );
+local_env_utils.ensure_env_file();
 
-const composeFiles = local_env_utils.get_compose_files();
+dotenvExpand.expand( dotenv.config() );
 
 if ( process.argv.includes( '--coverage-html' ) ) {
 	process.env.LOCAL_PHP_XDEBUG = 'true';
@@ -25,39 +24,39 @@ if ( dockerCommand.includes( 'cli' ) && dockerCommand.includes( 'db' ) && ! dock
 	dockerCommand.push( '--defaults' );
 }
 
-const composeArgs = [
-	'compose',
-	...composeFiles
-		.map( ( composeFile ) => [ '-f', composeFile ] )
-		.flat(),
-	...dockerCommand,
-];
-
 // Failures during image pulls are re-attempted to rule out registry rate limits and network issues.
-const maxAttempts = 'pull' === dockerCommand[0] ? 3 : 1;
+// `composer install` and `composer update` reach repo.packagist.org for the same reason, and both
+// are safe to repeat. Every other Composer command runs once, so a failure such as a PHPStan error
+// is reported as the real result it is.
+const composerArgs = dockerCommand.slice( dockerCommand.indexOf( 'composer' ) + 1 );
+let composerCommand;
 
-// Execute any Docker compose command passed to this script.
-let returns;
-for ( let attempt = 1; attempt <= maxAttempts; attempt++ ) {
-	returns = spawnSync( 'docker', composeArgs, { stdio: 'inherit' } );
-
-	if ( 0 === returns.status ) {
+for ( let i = 0; i < composerArgs.length; i++ ) {
+	// Global options precede the command. `--working-dir` is the only one that takes a separate
+	// value, so it is the only value that could otherwise be mistaken for the command itself.
+	if ( '-d' === composerArgs[i] || '--working-dir' === composerArgs[i] ) {
+		i++;
+	} else if ( ! composerArgs[i].startsWith( '-' ) ) {
+		composerCommand = composerArgs[i];
 		break;
 	}
-
-	if ( attempt === maxAttempts ) {
-		if ( maxAttempts > 1 ) {
-			console.log( `\ndocker compose ${ dockerCommand[0] } failed after ${ attempt } attempts.` );
-		}
-
-		break;
-	}
-
-	const delay = attempt * 10;
-	console.log( `\ndocker compose ${ dockerCommand[0] } failed (attempt ${ attempt } of ${ maxAttempts }). Retrying in ${ delay } seconds...\n` );
-
-	// Sleep synchronously so the retry loop stays in order without going async.
-	Atomics.wait( new Int32Array( new SharedArrayBuffer( 4 ) ), 0, 0, delay * 1000 );
 }
 
-process.exit( returns.status );
+const retryable = 'pull' === dockerCommand[0] ||
+	( 'run' === dockerCommand[0] && dockerCommand.includes( 'composer' ) &&
+		[ 'install', 'update' ].includes( composerCommand ) );
+
+// Execute any Docker compose command passed to this script.
+const returns = local_env_utils.compose_with_retry( dockerCommand, retryable ? 3 : 1 );
+
+if ( returns.error ) {
+	console.error( `Could not run Docker Compose. ${ returns.error.message }` );
+} else if ( returns.signal && returns.signal !== 'SIGINT' ) {
+	console.error( `Docker Compose was terminated by ${ returns.signal }.` );
+}
+
+// `status` is null when Docker could not be spawned at all, or was killed by a signal. Ctrl-C
+// signals the whole process group, so this script usually dies alongside Compose without reaching
+// here. This covers a signal sent to Compose alone: SIGINT means the command was cancelled, as
+// when ending `env:logs`, and every other signal means it was killed before it finished.
+process.exit( returns.signal === 'SIGINT' ? 0 : ( returns.status ?? 1 ) );
