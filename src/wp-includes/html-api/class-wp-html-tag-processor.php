@@ -407,6 +407,13 @@
  * @since 6.5.0 Pauses processor when input ends in an incomplete syntax token.
  *              Introduces "special" elements which act like void elements, e.g. TITLE, STYLE.
  *              Allows scanning through all tokens and processing modifiable text, where applicable.
+ *
+ * @phpstan-type Query array{
+ *                   tag_name?: non-falsy-string,
+ *                   match_offset?: int<1, max>,
+ *                   class_name?: non-empty-string,
+ *                   tag_closers?: 'visit'|'skip',
+ *               }|non-falsy-string|null
  */
 class WP_HTML_Tag_Processor {
 	/**
@@ -443,7 +450,8 @@ class WP_HTML_Tag_Processor {
 	 * The last query passed to next_tag().
 	 *
 	 * @since 6.2.0
-	 * @var array|null
+	 * @var array|string|null
+	 * @phpstan-var Query
 	 */
 	private $last_query;
 
@@ -452,6 +460,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var string|null
+	 * @phpstan-var non-falsy-string|null
 	 */
 	private $sought_tag_name;
 
@@ -460,6 +469,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var string|null
+	 * @phpstan-var non-empty-string|null
 	 */
 	private $sought_class_name;
 
@@ -468,6 +478,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var int|null
+	 * @phpstan-var int<1, max>|null
 	 */
 	private $sought_match_offset;
 
@@ -895,6 +906,7 @@ class WP_HTML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 *
+	 * @phpstan-param Query $query
 	 * @phpstan-impure
 	 */
 	public function next_tag( $query = null ): bool {
@@ -4988,6 +5000,7 @@ class WP_HTML_Tag_Processor {
 	 *     @type string|null $class_name   Tag must contain this class name to match.
 	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
+	 * @phpstan-param Query $query
 	 */
 	private function parse_query( $query ) {
 		if ( null !== $query && $query === $this->last_query ) {
