@@ -82,7 +82,7 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_return_author_when_given_object_without_comment_id() {
+	public static function data_should_return_author_when_given_object_without_comment_id() {
 		return array(
 			'with no author'             => array(
 				'comment_props' => new stdClass(),

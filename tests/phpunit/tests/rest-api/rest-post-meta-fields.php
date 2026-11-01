@@ -11,6 +11,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;
+	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
@@ -21,15 +22,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$post_id            = $factory->post->create();
 		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
+		self::$editor_id          = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_post( self::$post_id, true );
 		wp_delete_post( self::$cpt_post_id, true );
+		self::delete_user( self::$editor_id );
 
 		unregister_post_type( 'cpt' );
 	}
@@ -263,12 +266,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
-		wp_set_current_user( $user );
+		wp_set_current_user( self::$editor_id );
 	}
 
 	public function test_get_value() {
@@ -856,12 +854,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 3, $meta[0] );
+		$this->assertSame( '3', $meta[0] );
 
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_custom_schema', $meta );
-		$this->assertEquals( 3, $meta['test_custom_schema'] );
+		$this->assertSame( 3.0, $meta['test_custom_schema'] );
 	}
 
 	public function test_set_value_multiple_custom_schema() {
@@ -885,7 +883,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 2, $meta[0] );
+		$this->assertSame( '2', $meta[0] );
 
 		// Add another value.
 		$data = array(
@@ -1091,7 +1089,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 *
 	 * @return array[] Array of test parameters.
 	 */
-	public function data_delete_does_not_trigger_error_if_no_meta_values() {
+	public static function data_delete_does_not_trigger_error_if_no_meta_values() {
 		return array(
 			array( array() ),
 			array( null ),
@@ -1297,7 +1295,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_get_subtype_meta_value() {
+	public static function data_get_subtype_meta_value() {
 		return array(
 			array( 'cpt', 'test_cpt_single', true, true ),
 			array( 'cpt', 'test_cpt_multi', false, true ),
@@ -1365,8 +1363,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_set_subtype_meta_value() {
-		$data = $this->data_get_subtype_meta_value();
+	public static function data_set_subtype_meta_value() {
+		$data = self::data_get_subtype_meta_value();
 
 		foreach ( $data as $index => $dataset ) {
 			$can_write = true;
@@ -1410,7 +1408,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( $meta_value, $data['meta'][ $meta_key ] );
 	}
 
-	public function data_update_value_return_success_with_same_value() {
+	public static function data_update_value_return_success_with_same_value() {
 		return array(
 			array( 'test_boolean_update', false ),
 			array( 'test_boolean_update', true ),
@@ -2090,7 +2088,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( $expected, $response->get_data()['meta']['safe'] );
 	}
 
-	public function data_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
+	public static function data_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
 		return array(
 			array( 'boolean', 'true', true ),
 			array( 'boolean', 'false', false ),
@@ -2348,7 +2346,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( false, $data['meta']['authenticated'] );
+		$this->assertFalse( $data['meta']['authenticated'] );
 	}
 
 	/**
@@ -2936,7 +2934,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( $expected, $meta[ $meta_key ] );
 	}
 
-	public function data_get_default_data() {
+	public static function data_get_default_data() {
 		return array(
 			array(
 				array(
@@ -3910,7 +3908,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 				'post_type'    => $post_type,
@@ -3978,7 +3976,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	/**
 	 * Provide data for the meta revision checks.
 	 */
-	public function data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
+	public static function data_revisioned_single_post_meta_with_posts_endpoint_page_and_cpt_data_provider() {
 		return array(
 			array(
 				'Test string',

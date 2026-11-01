@@ -42,6 +42,15 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Restores the Customizer global after each test.
+	 */
+	public function tear_down() {
+		$GLOBALS['wp_customize'] = null;
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Test constructor method.
 	 *
 	 * @covers WP_Widget_Text::__construct

@@ -31,20 +31,20 @@ $capability = 'manage_options';
 // This is for back compat and will eventually be removed.
 if ( empty( $option_page ) ) {
 	$option_page = 'options';
-} else {
-
-	/**
-	 * Filters the capability required when using the Settings API.
-	 *
-	 * By default, the options groups for all registered settings require the manage_options capability.
-	 * This filter is required to change the capability required for a certain options page.
-	 *
-	 * @since 3.2.0
-	 *
-	 * @param string $capability The capability used for the page, which is manage_options by default.
-	 */
-	$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 }
+
+/**
+ * Filters the capability required when using the Settings API.
+ *
+ * By default, the options groups for all registered settings require the manage_options capability.
+ * This filter is required to change the capability required for a certain options page.
+ *
+ * @since 3.2.0
+ * @since 7.0.0 Applied when `wp-admin/options.php` is accessed directly.
+ *
+ * @param string $capability The capability used for the page, which is manage_options by default.
+ */
+$capability = apply_filters( "option_page_capability_{$option_page}", $capability );
 
 if ( ! current_user_can( $capability ) ) {
 	wp_die(
@@ -57,7 +57,7 @@ if ( ! current_user_can( $capability ) ) {
 // Handle admin email change requests.
 if ( ! empty( $_GET['adminhash'] ) ) {
 	$new_admin_details = get_option( 'adminhash' );
-	$redirect          = 'options-general.php?updated=false';
+	$redirect          = add_query_arg( array( 'updated' => 'false' ), 'options-general.php' );
 
 	if ( is_array( $new_admin_details )
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
@@ -66,7 +66,13 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
-		$redirect = 'options-general.php?updated=true';
+		$redirect = add_query_arg(
+			array(
+				'updated'             => 'true',
+				'admin_email_updated' => 'true',
+			),
+			'options-general.php',
+		);
 	}
 
 	wp_redirect( admin_url( $redirect ) );
@@ -125,6 +131,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
@@ -395,6 +402,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<input type="hidden" name="option_page" value="options" />
 		<table class="form-table" role="presentation">
 <?php
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
 
 foreach ( (array) $options as $option ) :
@@ -404,21 +416,38 @@ foreach ( (array) $options as $option ) :
 		continue;
 	}
 
+	if ( 'home' === $option->option_name && defined( 'WP_HOME' ) ) {
+		$disabled = true;
+	}
+
+	if ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) ) {
+		$disabled = true;
+	}
+
 	if ( is_serialized( $option->option_value ) ) {
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
 			$value               = maybe_unserialize( $option->option_value );
 			$options_to_update[] = $option->option_name;
-			$class               = 'all-options';
 		} else {
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
-			$class    = 'all-options disabled';
 		}
+	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
+		&& str_ends_with( $option->option_name, '_api_key' )
+	) {
+		// Mask connector API keys and prevent updates from this screen.
+		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$disabled = true;
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
-		$class               = 'all-options';
+	}
+
+	$class = 'all-options';
+
+	if ( $disabled ) {
+		$class .= ' disabled';
 	}
 
 	$name = esc_attr( $option->option_name );

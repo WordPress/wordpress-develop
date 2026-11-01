@@ -43,8 +43,19 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password         The password of the site owner, if their user account didn't already exist.
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
+	 *
+	 * @phpstan-param '' $deprecated
 	 */
-	function wp_install( $blog_title, $user_name, $user_email, $is_public, $deprecated = '', $user_password = '', $language = '' ) {
+	function wp_install(
+		$blog_title,
+		$user_name,
+		$user_email,
+		$is_public,
+		$deprecated = '',
+		#[\SensitiveParameter]
+		$user_password = '',
+		$language = ''
+	) {
 		if ( ! empty( $deprecated ) ) {
 			_deprecated_argument( __FUNCTION__, '2.6.0' );
 		}
@@ -199,7 +210,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		// First post.
 		$now             = current_time( 'mysql' );
-		$now_gmt         = current_time( 'mysql', 1 );
+		$now_gmt         = current_time( 'mysql', true );
 		$first_post_guid = get_option( 'home' ) . '/?p=1';
 
 		if ( is_multisite() ) {
@@ -306,20 +317,20 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			$first_page .= __( "This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:" );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( "Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)" );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( '...or something like this:' );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( 'The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.' );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			$first_page .= sprintf(
@@ -563,7 +574,13 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 	 * @param string $password   Administrator's password. Note that a placeholder message is
 	 *                           usually passed instead of the actual password.
 	 */
-	function wp_new_blog_notification( $blog_title, $blog_url, $user_id, $password ) {
+	function wp_new_blog_notification(
+		$blog_title,
+		$blog_url,
+		$user_id,
+		#[\SensitiveParameter]
+		$password
+	) {
 		$user      = new WP_User( $user_id );
 		$email     = $user->user_email;
 		$name      = $user->user_login;
@@ -606,7 +623,7 @@ https://wordpress.org/
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param array $installed_email {
+		 * @param array   $installed_email {
 		 *     Used to build wp_mail().
 		 *
 		 *     @type string $to      The email address of the recipient.
@@ -614,11 +631,11 @@ https://wordpress.org/
 		 *     @type string $message The content of the email.
 		 *     @type string $headers Headers.
 		 * }
-		 * @param WP_User $user          The site administrator user object.
-		 * @param string  $blog_title    The site title.
-		 * @param string  $blog_url      The site URL.
-		 * @param string  $password      The site administrator's password. Note that a placeholder message
-		 *                               is usually passed instead of the user's actual password.
+		 * @param WP_User $user            The site administrator user object.
+		 * @param string  $blog_title      The site title.
+		 * @param string  $blog_url        The site URL.
+		 * @param string  $password        The site administrator's password. Note that a placeholder message
+		 *                                 is usually passed instead of the user's actual password.
 		 */
 		$installed_email = apply_filters( 'wp_installed_email', $installed_email, $user, $blog_title, $blog_url, $password );
 
@@ -866,6 +883,19 @@ function upgrade_all() {
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
 	}
+
+	if ( $wp_current_db_version < 60421 ) {
+		upgrade_682();
+	}
+
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
+	}
+
+	if ( $wp_current_db_version < 64337 ) {
+		upgrade_720();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -965,6 +995,7 @@ function upgrade_101() {
  *
  * @ignore
  * @since 1.2.0
+ * @since 6.8.0 User passwords are no longer hashed with md5.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -977,13 +1008,6 @@ function upgrade_110() {
 		if ( '' === $user->user_nicename ) {
 			$newname = sanitize_title( $user->user_nickname );
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $newname ), array( 'ID' => $user->ID ) );
-		}
-	}
-
-	$users = $wpdb->get_results( "SELECT ID, user_pass from $wpdb->users" );
-	foreach ( $users as $row ) {
-		if ( ! preg_match( '/^[A-Fa-f0-9]{32}$/', $row->user_pass ) ) {
-			$wpdb->update( $wpdb->users, array( 'user_pass' => md5( $row->user_pass ) ), array( 'ID' => $row->ID ) );
 		}
 	}
 
@@ -1847,7 +1871,7 @@ function upgrade_340() {
 		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
-			add_option( 'uninstall_plugins', $uninstall_plugins, null, false );
+			add_option( 'uninstall_plugins', $uninstall_plugins, '', false );
 		}
 	}
 }
@@ -2019,24 +2043,14 @@ function upgrade_430_fix_comments() {
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
-	if ( is_wp_error( $content_length ) ) {
-		return;
-	}
-
 	if ( false === $content_length ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( ! is_array( $content_length ) || 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
@@ -2400,6 +2414,7 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+
 /**
  * Executes changes made in WordPress 6.7.0.
  *
@@ -2430,6 +2445,84 @@ function upgrade_670() {
 		wp_set_options_autoload( $options, false );
 	}
 }
+
+/**
+ * Executes changes made in WordPress 6.8.2.
+ *
+ * @ignore
+ * @since 6.8.2
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_682() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60421 ) {
+		// Upgrade Ping-O-Matic and Twingly to use HTTPS.
+		$ping_sites_value = get_option( 'ping_sites' );
+		$ping_sites_value = explode( "\n", $ping_sites_value );
+		$ping_sites_value = array_map(
+			function ( $url ) {
+				$url = trim( $url );
+				$url = sanitize_url( $url );
+				if (
+					str_ends_with( trailingslashit( $url ), '://rpc.pingomatic.com/' )
+					|| str_ends_with( trailingslashit( $url ), '://rpc.twingly.com/' )
+				) {
+					$url = set_url_scheme( $url, 'https' );
+				}
+				return $url;
+			},
+			$ping_sites_value
+		);
+		$ping_sites_value = array_filter( $ping_sites_value );
+		$ping_sites_value = implode( "\n", $ping_sites_value );
+		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.0.
+ *
+ * @ignore
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.2.
+ *
+ * @ignore
+ * @since 7.2.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_720(): void {
+	global $wp_current_db_version;
+
+	// Grant the Secrets API's site-level capability to administrators.
+	if ( $wp_current_db_version < 64337 ) {
+		populate_roles_720();
+	}
+}
+
 /**
  * Executes network-level upgrade routines.
  *
@@ -2579,6 +2672,12 @@ function upgrade_network() {
 		$network_id = get_main_network_id();
 		delete_network_option( $network_id, 'site_meta_supported' );
 		is_site_meta_supported();
+	}
+
+	// 7.2.0
+	if ( $wp_current_db_version < 64486 ) {
+		// The compression test that set this option was removed.
+		delete_site_option( 'can_compress_scripts' );
 	}
 }
 
@@ -2780,7 +2879,7 @@ function get_alloptions_110() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $setting Option name.
- * @return mixed
+ * @return mixed Option value.
  */
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
@@ -2799,7 +2898,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 		return __get_option( 'siteurl' );
 	}
 
-	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
+	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base', 'wp_random_base' ), true ) ) {
 		$option = untrailingslashit( $option );
 	}
 
@@ -2851,7 +2950,7 @@ function deslash( $content ) {
  *                                 semicolons. Default empty string.
  * @param bool            $execute Optional. Whether or not to execute the query right away.
  *                                 Default true.
- * @return array Strings containing the results of the various update queries.
+ * @return string[] Strings containing the results of the various update queries.
  */
 function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $wpdb;
@@ -2882,8 +2981,10 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
-			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
-			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];
+			$table_name = trim( $matches[1], '`' );
+
+			$cqueries[ $table_name ]   = $qry;
+			$for_update[ $table_name ] = 'Created table ' . $matches[1];
 			continue;
 		}
 
@@ -2928,6 +3029,33 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	$text_fields = array( 'tinytext', 'text', 'mediumtext', 'longtext' );
 	$blob_fields = array( 'tinyblob', 'blob', 'mediumblob', 'longblob' );
 	$int_fields  = array( 'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint' );
+
+	/*
+	 * Display widths that a server applies by itself when an integer definition omits one.
+	 * MariaDB does this in every version, as did MySQL before 8.0.17.
+	 */
+	$int_display_widths = array(
+		'tinyint'   => array(
+			'signed'   => 4,
+			'unsigned' => 3,
+		),
+		'smallint'  => array(
+			'signed'   => 6,
+			'unsigned' => 5,
+		),
+		'mediumint' => array(
+			'signed'   => 9,
+			'unsigned' => 8,
+		),
+		'int'       => array(
+			'signed'   => 11,
+			'unsigned' => 10,
+		),
+		'bigint'    => array(
+			'signed'   => 20,
+			'unsigned' => 20,
+		),
+	);
 
 	$global_tables  = $wpdb->tables( 'global' );
 	$db_version     = $wpdb->db_version();
@@ -3107,6 +3235,12 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$fieldtype            = $matches[1];
 				$fieldtype_lowercased = strtolower( $fieldtype );
 
+				/*
+				 * `INTEGER` is an alias for `INT`, and the server reports the column as `int`,
+				 * so the alias never compares equal to the type it created.
+				 */
+				$fieldtype_lowercased = preg_replace( '/^integer\b/', 'int', $fieldtype_lowercased );
+
 				$fieldtype_without_parentheses = preg_replace(
 					'/'
 					. '(.+)'       // Field type, e.g. `int`.
@@ -3121,7 +3255,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$fieldtype_base = strtok( $fieldtype_without_parentheses, ' ' );
 
 				// Is actual field type different from the field type in query?
-				if ( $tablefield->Type !== $fieldtype ) {
+				if ( $tablefield->Type !== $fieldtype_lowercased ) {
 					$do_change = true;
 					if ( in_array( $fieldtype_lowercased, $text_fields, true ) && in_array( $tablefield_type_lowercased, $text_fields, true ) ) {
 						if ( array_search( $fieldtype_lowercased, $text_fields, true ) < array_search( $tablefield_type_lowercased, $text_fields, true ) ) {
@@ -3138,15 +3272,31 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					if ( in_array( $fieldtype_base, $int_fields, true ) && in_array( $tablefield_type_base, $int_fields, true )
 						&& $fieldtype_without_parentheses === $tablefield_type_without_parentheses
 					) {
-						/*
-						 * MySQL 8.0.17 or later does not support display width for integer data types,
-						 * so if display width is the only difference, it can be safely ignored.
-						 * Note: This is specific to MySQL and does not affect MariaDB.
-						 */
 						if ( version_compare( $db_version, '8.0.17', '>=' )
 							&& ! str_contains( $db_server_info, 'MariaDB' )
 						) {
+							/*
+							 * MySQL 8.0.17 or later does not support display width for integer data types,
+							 * so if display width is the only difference, it can be safely ignored.
+							 * Note: This is specific to MySQL and does not affect MariaDB.
+							 */
 							$do_change = false;
+						} elseif ( ! str_contains( $fieldtype_lowercased, '(' )
+							&& isset( $int_display_widths[ $fieldtype_base ] )
+						) {
+							/*
+							 * Every other server stores a default display width when the definition
+							 * omits one, so `DESCRIBE` reports a width the query never asked for.
+							 * The `ALTER TABLE` below cannot remove that width, which would leave the
+							 * same difference in place and repeat the query on every call.
+							 */
+							$signedness    = str_contains( $fieldtype_lowercased, 'unsigned' ) ? 'unsigned' : 'signed';
+							$default_width = $int_display_widths[ $fieldtype_base ][ $signedness ];
+							$padded_type   = $fieldtype_base . '(' . $default_width . ')' . substr( $fieldtype_lowercased, strlen( $fieldtype_base ) );
+
+							if ( $tablefield_type_lowercased === $padded_type ) {
+								$do_change = false;
+							}
 						}
 					}
 
@@ -3200,7 +3350,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3321,7 +3471,7 @@ function make_db_current_silent( $tables = 'all' ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return bool
+ * @return bool True on success, false on failure.
  */
 function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$home_path   = get_home_path();
@@ -3661,7 +3811,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3674,6 +3824,20 @@ function pre_schema_upgrade() {
 			// Convert archived from enum to tinyint.
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
+		}
+
+		// Upgrade versions prior to 6.9
+		if ( $wp_current_db_version < 60497 ) {
+			// Convert ID columns from signed to unsigned
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY blog_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogmeta MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY ID bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->site MODIFY id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
 		}
 	}
 
