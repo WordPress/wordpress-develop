@@ -1147,11 +1147,20 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35987
+	 * @ticket 65819
+	 * @covers ::wp_ext2type
 	 */
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
 		$this->assertNotEmpty( $extensions );
+
+		// Literal mappings stay independent of the current registry contents.
+		$this->assertSame( 'image', wp_ext2type( 'jpg' ) );
+		$this->assertSame( 'image', wp_ext2type( 'PNG' ) );
+		$this->assertSame( 'audio', wp_ext2type( 'mp3' ) );
+		$this->assertSame( 'video', wp_ext2type( 'mp4' ) );
+		$this->assertSame( 'document', wp_ext2type( 'pdf' ) );
 
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
