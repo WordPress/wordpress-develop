@@ -23,12 +23,6 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		unregister_post_type( self::CPT_NAME );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests get_the_archive_description() on author archives.
 	 *
@@ -60,7 +54,7 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 		$this->go_to( get_post_type_archive_link( self::CPT_NAME ) );
 
 		$this->assertTrue( is_post_type_archive( self::CPT_NAME ) );
-		$this->assertSame( wpautop( 'Test CPT Archive description.' ), get_the_archive_description() );
+		$this->assertSame( "<p>Test CPT Archive description.</p>\n", get_the_archive_description() );
 	}
 
 	/**
@@ -80,7 +74,7 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 		$this->go_to( get_category_link( $term_id ) );
 
 		$this->assertTrue( is_category() );
-		$this->assertSame( wpautop( 'Category archive description.' ), get_the_archive_description() );
+		$this->assertSame( "<p>Category archive description.</p>\n", get_the_archive_description() );
 	}
 
 	/**
@@ -125,11 +119,8 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 
 		$this->go_to( get_author_posts_url( $author_id ) );
 
-		ob_start();
+		$this->expectOutputString( '<div class="archive-description">Author description.</div>' );
 		the_archive_description( '<div class="archive-description">', '</div>' );
-		$output = ob_get_clean();
-
-		$this->assertSame( '<div class="archive-description">Author description.</div>', $output );
 	}
 
 	/**
@@ -148,10 +139,7 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 
 		$this->go_to( get_author_posts_url( $author_id ) );
 
-		ob_start();
+		$this->expectOutputString( '' );
 		the_archive_description( '<div class="archive-description">', '</div>' );
-		$output = ob_get_clean();
-
-		$this->assertSame( '', $output );
 	}
 }
