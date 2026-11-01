@@ -2265,11 +2265,15 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53668
+	 * @ticket 65819
+	 * @covers ::wp_get_default_extension_for_mime_type
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
 		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotSame( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
 		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'pdf', wp_get_default_extension_for_mime_type( 'application/pdf' ), 'pdf not returned as default extension for "application/pdf"' );
+		$this->assertSame( 'mp3', wp_get_default_extension_for_mime_type( 'audio/mpeg' ), 'mp3 not returned as default extension for "audio/mpeg"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );
