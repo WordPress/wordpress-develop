@@ -25,7 +25,7 @@ class Tests_Media_GetNextImageLink extends WP_Test_Adjacent_Image_Link_TestCase 
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_get_next_image_link() {
+	public static function data_get_next_image_link() {
 		return array(
 			// Happy paths.
 			'when has next link'           => array(

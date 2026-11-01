@@ -1,7 +1,7 @@
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
-Version: 3.2
+Version: 3.3
 Tested up to: 7.1
 Requires at least: 4.7
 Requires PHP: 5.2.4
@@ -1689,7 +1689,8 @@ ul.primary-menu {
 
 .primary-menu li.menu-item-has-children:hover > ul,
 .primary-menu li.menu-item-has-children:focus > ul,
-.primary-menu li.menu-item-has-children.focus > ul {
+.primary-menu li.menu-item-has-children.focus > ul,
+.no-js .primary-menu li.menu-item-has-children > ul:focus-within {
 	right: 0;
 	opacity: 1;
 	transform: translateY(0);
@@ -1744,7 +1745,8 @@ ul.primary-menu {
 
 .primary-menu ul li.menu-item-has-children:hover > ul,
 .primary-menu ul li.menu-item-has-children:focus > ul,
-.primary-menu ul li.menu-item-has-children.focus > ul {
+.primary-menu ul li.menu-item-has-children.focus > ul,
+.no-js .primary-menu ul li.menu-item-has-children > ul:focus-within {
 	right: calc(100% + 2rem);
 }
 
