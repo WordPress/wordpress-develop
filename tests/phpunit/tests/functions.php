@@ -130,6 +130,40 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59729
+	 *
+	 * @dataProvider data_path_is_absolute_non_string
+	 *
+	 * @param mixed $path Value that is not a string.
+	 */
+	public function test_path_is_absolute_returns_false_for_non_string( $path ) {
+		$this->assertFalse( path_is_absolute( $path ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_path_is_absolute_non_string() {
+		return array(
+			'integer' => array( 1 ),
+			'zero'    => array( 0 ),
+			'float'   => array( 1.5 ),
+			'true'    => array( true ),
+			'null'    => array( null ),
+			'array'   => array( array( '/foo' ) ),
+		);
+	}
+
+	/**
+	 * @ticket 59729
+	 */
+	public function test_path_join_with_integer_path() {
+		$this->assertSame( '/foo/123', path_join( '/foo', 123 ) );
+	}
+
+	/**
 	 * Tests path_join().
 	 *
 	 * @ticket 55897
