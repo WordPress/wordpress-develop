@@ -404,6 +404,51 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the boolean `deprecated` meta shorthand filters the collection by deprecation status.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_deprecated_meta_boolean_shorthand(): void {
+		$this->register_deprecated_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'meta', array( 'deprecated' => true ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/deprecated-calculator', $ability_names );
+		$this->assertNotContains( 'test/calculator', $ability_names );
+
+		$request->set_param( 'meta', array( 'deprecated' => false ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertNotContains( 'test/deprecated-calculator', $ability_names );
+		$this->assertContains( 'test/calculator', $ability_names );
+	}
+
+	/**
+	 * Tests that an invalid `deprecated` meta filter is rejected.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_deprecated_meta_invalid_value(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'deprecated' => 'yes-please' ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+	}
+
+	/**
 	 * Tests that the deprecated abilities remain retrievable through their exact REST route.
 	 *
 	 * @ticket 64209

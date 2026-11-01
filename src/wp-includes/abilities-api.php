@@ -526,9 +526,9 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *         'include_deprecated' => true,
  *     ) );
  *
- *     // Only deprecated abilities. An empty array matches any deprecation details.
+ *     // Only deprecated abilities. `true` (or an empty array) matches any deprecation details.
  *     $abilities = wp_get_abilities( array(
- *         'meta' => array( 'deprecated' => array() ),
+ *         'meta' => array( 'deprecated' => true ),
  *     ) );
  *
  *     // Filter by category.
@@ -596,7 +596,8 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *                                                      and non-array values must match strictly, including their types.
  *                                                      Nested arrays are matched recursively as subsets, e.g.
  *                                                      `array( 'mcp' => array( 'public' => true ) )`.
- *                                                      A `deprecated` condition implies `include_deprecated`.
+ *                                                      A `deprecated` condition implies `include_deprecated`. Use
+ *                                                      `true` to match any deprecated ability.
  *     @type bool            $has_required_capabilities Optional. Whether to leave out abilities whose required capabilities
  *                                                      the current user doesn't have. Abilities without required
  *                                                      capabilities pass this check but remain subject to other filters.
@@ -628,6 +629,11 @@ function wp_get_abilities( array $args = array() ): array {
 	$has_required_capabilities = ! empty( $args['has_required_capabilities'] );
 	$item_include_callback     = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
 	$result_callback           = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
+
+	// Treat `meta.deprecated` as shorthand for filtering for only deprecated abilities.
+	if ( isset( $meta['deprecated'] ) && is_bool( $meta['deprecated'] ) ) {
+		$meta['deprecated'] = $meta['deprecated'] ? array() : null;
+	}
 
 	$matched = array();
 

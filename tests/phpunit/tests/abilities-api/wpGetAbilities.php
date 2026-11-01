@@ -239,6 +239,69 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a `true` `deprecated` meta condition returns only deprecated abilities.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_true_condition_matches_deprecated_abilities(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array(
+						'since'       => '2.0.0',
+						'replacement' => 'test/active-ability',
+					),
+				),
+			)
+		);
+
+		$result = wp_get_abilities(
+			array(
+				'meta' => array( 'deprecated' => true ),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'test/active-ability', $result );
+		$this->assertArrayHasKey( 'test/deprecated-ability', $result );
+	}
+
+	/**
+	 * Tests that a `false` `deprecated` meta condition returns only active abilities.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_deprecated_false_condition_matches_active_abilities(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/active-ability' );
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'meta' => array(
+					'deprecated' => array(
+						'since'       => '2.0.0',
+						'replacement' => 'test/active-ability',
+					),
+				),
+			)
+		);
+
+		$result = wp_get_abilities(
+			array(
+				'include_deprecated' => true,
+				'meta'               => array( 'deprecated' => false ),
+			)
+		);
+
+		$this->assertArrayHasKey( 'test/active-ability', $result );
+		$this->assertArrayNotHasKey( 'test/deprecated-ability', $result );
+	}
+
+	/**
 	 * Tests that a `deprecated` meta condition can match specific deprecation details.
 	 *
 	 * @ticket 64209
