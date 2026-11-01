@@ -295,7 +295,9 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	 */
 	public function test_should_trigger_notice_when_font_face_is_not_array() {
 		$method = new ReflectionMethod( 'WP_Font_Face_Resolver', 'parse_settings' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 
 		$settings = array(
 			'typography' => array(
