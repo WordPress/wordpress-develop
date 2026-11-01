@@ -678,18 +678,21 @@ function get_comment_excerpt( $comment_id = 0 ) {
 	$comment_excerpt_length = apply_filters( 'comment_excerpt_length', $comment_excerpt_length );
 
 	$comment_excerpt = wp_trim_words( $comment_text, $comment_excerpt_length, '&hellip;' );
+	$is_trimmed      = wp_trim_words( $comment_text, $comment_excerpt_length, '' ) !== $comment_excerpt;
 
 	/**
 	 * Filters the retrieved comment excerpt.
 	 *
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_id` and `$comment` parameters were added.
+	 * @since 7.2.0 The `$is_trimmed` parameter was added.
 	 *
 	 * @param string     $comment_excerpt The comment excerpt text.
 	 * @param string     $comment_id      The comment ID as a numeric string.
 	 * @param WP_Comment $comment         The comment object.
+	 * @param bool       $is_trimmed      Whether the comment text was trimmed to create the excerpt.
 	 */
-	return apply_filters( 'get_comment_excerpt', $comment_excerpt, $comment->comment_ID, $comment );
+	return apply_filters( 'get_comment_excerpt', $comment_excerpt, $comment->comment_ID, $comment, $is_trimmed );
 }
 
 /**
