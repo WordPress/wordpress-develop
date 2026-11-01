@@ -451,9 +451,7 @@ ul#adminmenu > li.current > a.current::after {
 }
 
 #wpadminbar .quicklinks li .blavatar,
-#wpadminbar .menupop .menupop > .ab-item::before,
-#wpadminbar.mobile .quicklinks .ab-icon::before,
-#wpadminbar.mobile .quicklinks .ab-item::before {
+#wpadminbar .menupop .menupop > .ab-item::before {
 	color: variables.$menu-icon;
 }
 
@@ -474,7 +472,9 @@ ul#adminmenu > li.current > a.current::after {
 #wpadminbar li.hover .ab-icon,
 #wpadminbar li.hover .ab-item::before,
 #wpadminbar li #adminbarsearch.adminbar-focused .ab-icon,
-#wpadminbar.mobile .quicklinks .ab-item:focus::before {
+#wpadminbar.mobile .quicklinks .ab-item:focus::before,
+#wpadminbar.mobile .quicklinks .ab-item:hover::before,
+#wpadminbar.mobile .quicklinks a:hover .ab-icon {
 	color: variables.$menu-submenu-focus-text;
 }
 
