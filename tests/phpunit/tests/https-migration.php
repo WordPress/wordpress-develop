@@ -7,6 +7,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51437
+	 *
+	 * @covers ::wp_should_replace_insecure_home_url
 	 */
 	public function test_wp_should_replace_insecure_home_url() {
 		// Should return false because site is not using HTTPS.
@@ -32,6 +34,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51437
+	 *
+	 * @covers ::wp_replace_insecure_home_url
 	 */
 	public function test_wp_replace_insecure_home_url() {
 		$http_url  = home_url( '', 'http' );
@@ -70,6 +74,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51437
+	 *
+	 * @covers ::wp_update_urls_to_https
 	 */
 	public function test_wp_update_urls_to_https() {
 		remove_all_filters( 'option_home' );
@@ -104,6 +110,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51437
+	 *
+	 * @covers ::wp_update_https_migration_required
 	 */
 	public function test_wp_update_https_migration_required() {
 		// Changing HTTP to HTTPS on a site with content should result in flag being set, requiring migration.
@@ -128,6 +136,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51437
+	 *
+	 * @covers ::wp_should_replace_insecure_home_url
 	 */
 	public function test_wp_should_replace_insecure_home_url_integration() {
 		// Setup (a site on HTTP, with existing content).
