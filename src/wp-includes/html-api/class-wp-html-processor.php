@@ -143,6 +143,14 @@
  * @see WP_HTML_Tag_Processor
  * @link https://html.spec.whatwg.org/
  * @phpstan-consistent-constructor
+ *
+ * @phpstan-type Query array{
+ *                   tag_name?: non-falsy-string|null,
+ *                   match_offset?: int<1, max>|null,
+ *                   class_name?: non-empty-string|null,
+ *                   tag_closers?: 'visit'|'skip'|null,
+ *                   breadcrumbs?: array<non-falsy-string>,
+ *               }|non-falsy-string|null
  */
 class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
@@ -687,6 +695,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *                                     May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * }
 	 * @return bool Whether a tag was matched.
+	 *
+	 * @phpstan-param Query $query
 	 */
 	public function next_tag( $query = null ): bool {
 		$visit_closers = isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'];
@@ -930,6 +940,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string[] $breadcrumbs DOM sub-path at which element is found, e.g. `array( 'FIGURE', 'IMG' )`.
 	 *                              May also contain the wildcard `*` which matches a single element, e.g. `array( 'SECTION', '*' )`.
 	 * @return bool Whether the currently-matched tag is found at the given nested structure.
+	 *
+	 * @phpstan-param array<non-falsy-string> $breadcrumbs
 	 */
 	public function matches_breadcrumbs( $breadcrumbs ): bool {
 		// Everything matches when there are zero constraints.
