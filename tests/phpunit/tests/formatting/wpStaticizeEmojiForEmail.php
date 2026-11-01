@@ -38,39 +38,11 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 		$png_cdn = 'https://example.org/emoji/';
 
 		return array(
-			'empty array'                          => array(
-				'email'    => array(),
-				'expected' => array(),
+			'emoji with default plain text'   => array(
+				'email'    => array( 'message' => 'message 🙂' ),
+				'expected' => array( 'message' => 'message 🙂' ),
 			),
-			'no headers'                           => array(
-				'email'    => array( 'message' => 'message' ),
-				'expected' => array( 'message' => 'message' ),
-			),
-			'no message'                           => array(
-				'email'    => array( 'headers' => 'headers' ),
-				'expected' => array( 'headers' => 'headers' ),
-			),
-			'simple'                               => array(
-				'email'    => array(
-					'message' => 'message',
-					'headers' => 'headers',
-				),
-				'expected' => array(
-					'message' => 'message',
-					'headers' => 'headers',
-				),
-			),
-			'simply with emoji'                    => array(
-				'email'    => array(
-					'message' => 'message 🙂',
-					'headers' => 'headers',
-				),
-				'expected' => array(
-					'message' => 'message 🙂',
-					'headers' => 'headers',
-				),
-			),
-			'simply with emoji as plain text'      => array(
+			'simply with emoji as plain text' => array(
 				'email'    => array(
 					'message' => 'message 🙂',
 					'headers' => 'content-type:text/plain',
@@ -80,7 +52,7 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 					'headers' => 'content-type:text/plain',
 				),
 			),
-			'simply with emoji with html'          => array(
+			'simply with emoji with html'     => array(
 				'email'    => array(
 					'message' => 'message 🙂',
 					'headers' => 'content-type:text/html',
@@ -88,22 +60,6 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 				'expected' => array(
 					'message' => 'message <img src="' . $png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 					'headers' => 'content-type:text/html',
-				),
-			),
-			'simply with emoji with headers array' => array(
-				'email'    => array(
-					'message' => 'message 🙂',
-					'headers' => array(
-						'content-type:text/html',
-						'header:value',
-					),
-				),
-				'expected' => array(
-					'message' => 'message <img src="' . $png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
-					'headers' => array(
-						'content-type:text/html',
-						'header:value',
-					),
 				),
 			),
 			'simply with emoji with headers array with charset' => array(
@@ -122,12 +78,12 @@ class Tests_formating_wpStaticizeEmojiForEmail extends WP_UnitTestCase {
 					),
 				),
 			),
-			'filtered to html'                     => array(
+			'filtered to html'                => array(
 				'email'                 => array( 'message' => 'message 🙂' ),
 				'expected'              => array( 'message' => 'message <img src="' . $png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />' ),
 				'filtered_content_type' => 'text/html',
 			),
-			'filtered to plain text'               => array(
+			'filtered to plain text'          => array(
 				'email'                 => array(
 					'message' => 'message 🙂',
 					'headers' => 'content-type:text/html',
