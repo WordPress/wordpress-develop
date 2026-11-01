@@ -5,6 +5,7 @@
  * @group slashes
  *
  * @covers ::stripslashes_deep
+ * @covers ::stripslashes_from_strings_only
  */
 class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	/**
@@ -54,5 +55,46 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$txt = "I can't see, isn\'t that it?";
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\'t that it?" ) );
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\\\'t that it?" ) );
+	}
+
+	/**
+	 * Tests that stripslashes_from_strings_only() strips slashes from strings.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::stripslashes_from_strings_only
+	 */
+	public function test_stripslashes_from_strings_only_with_string() {
+		$this->assertSame( "I can't see, isn't that it?", stripslashes_from_strings_only( "I can\'t see, isn\'t that it?" ) );
+	}
+
+	/**
+	 * Tests that stripslashes_from_strings_only() preserves non-string values.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::stripslashes_from_strings_only
+	 *
+	 * @dataProvider data_non_string_values
+	 *
+	 * @param mixed $value Non-string value.
+	 */
+	public function test_stripslashes_from_strings_only_with_non_string( $value ) {
+		$this->assertSame( $value, stripslashes_from_strings_only( $value ) );
+	}
+
+	/**
+	 * Data provider for test_stripslashes_from_strings_only_with_non_string().
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_values() {
+		return array(
+			'integer'      => array( 42 ),
+			'float'        => array( 3.14 ),
+			'boolean true' => array( true ),
+			'null'         => array( null ),
+			'array'        => array( array( 'a', 'b' ) ),
+		);
 	}
 }
