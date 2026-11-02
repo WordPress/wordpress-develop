@@ -15,6 +15,7 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\AbstractNodeVisitor;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprStringNode;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\Node as DocNode;
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
@@ -932,6 +933,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				} elseif ( $node instanceof IdentifierTypeNode ) {
 					$node->name = strtolower( ltrim( $node->name, '\\' ) );
 					if ( isset( $this->templates[ $node->name ] ) ) {
+						$this->names_template = true;
+					}
+				} elseif ( $node instanceof ConstFetchNode && '' !== $node->className ) {
+					// The class of `WP_Foo::BAR` is a name, but the constant is case-sensitive.
+					$node->className = strtolower( ltrim( $node->className, '\\' ) );
+					if ( isset( $this->templates[ $node->className ] ) ) {
 						$this->names_template = true;
 					}
 				}
