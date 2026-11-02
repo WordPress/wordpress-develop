@@ -46,8 +46,8 @@
 	<!-- Exclude plugins. -->
 	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
 
-	<!-- Exclude themes except the twenty* themes. -->
-	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+	<!-- Exclude themes except the twenty* themes and Ipsum. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty|ipsum)*</exclude-pattern>
 
 	<!-- Exclude translation files. -->
 	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>
