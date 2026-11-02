@@ -95,7 +95,7 @@ if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 }
 
 // `composer update` reaches repo.packagist.org, so it is re-attempted for the same reasons as `up`.
-const composer = local_env_utils.compose_with_retry( [ 'run', '-T', '--rm', 'php', 'composer', 'update', '-W' ], 3 );
+const composer = local_env_utils.compose_with_retry( [ 'run', '-T', '--rm', 'php', 'composer', 'update', '-W', ...process.argv.slice( 2 ) ], 3 );
 
 if ( composer.status !== 0 ) {
 	console.error( '\nThere was an error while running PHP Composer update.' );
