@@ -255,4 +255,55 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			'UTC time into wp_editComment'
 		);
 	}
+
+	/**
+	 * @ticket 48936
+	 *
+	 * @covers wp_xmlrpc_server::wp_getPost
+	 */
+	public function test_date_get_post() {
+		update_option( 'timezone_string', 'Europe/Helsinki' );
+
+		$editor_id = $this->make_user_by_role( 'editor' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'   => $editor_id,
+				'post_date'     => '2020-08-29 04:51:00',
+				'post_date_gmt' => '2020-08-29 01:51:00',
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'editor', 'editor', $post_id ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( '20200829T04:51:00', $result['post_date']->getIso(), 'Local post date' );
+		$this->assertSame( '20200829T01:51:00', $result['post_date_gmt']->getIso(), 'GMT post date' );
+	}
+
+	/**
+	 * @ticket 48936
+	 *
+	 * @covers wp_xmlrpc_server::wp_getPost
+	 */
+	public function test_date_get_post_with_empty_gmt_date() {
+		update_option( 'timezone_string', 'Europe/Helsinki' );
+
+		$editor_id = $this->make_user_by_role( 'editor' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $editor_id,
+				'post_status' => 'draft',
+				'post_date'   => '2020-08-29 04:51:00',
+			)
+		);
+
+		$this->assertSame( '0000-00-00 00:00:00', get_post( $post_id )->post_date_gmt, 'Draft should have an empty GMT date' );
+
+		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'editor', 'editor', $post_id ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( '20200829T01:51:00', $result['post_date_gmt']->getIso() );
+	}
 }

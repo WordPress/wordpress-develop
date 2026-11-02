@@ -238,7 +238,7 @@ $nonce_action = 'update-post_' . $post->ID;
 $form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
 
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
-if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
+if ( $autosave && strtotime( $autosave->post_modified_gmt ) > strtotime( $post->post_modified_gmt ) ) {
 	foreach ( _wp_post_revision_fields( $post ) as $autosave_field => $_autosave_field ) {
 		if ( normalize_whitespace( $autosave->$autosave_field ) !== normalize_whitespace( $post->$autosave_field ) ) {
 			$notice = sprintf(

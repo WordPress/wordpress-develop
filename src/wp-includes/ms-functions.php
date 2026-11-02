@@ -553,7 +553,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	// Has someone already signed up for this username?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
 	if ( $signup instanceof stdClass ) {
-		$registered_at = mysql2date( 'U', $signup->registered );
+		$registered_at = strtotime( $signup->registered . ' +0000' );
 		$now           = time();
 		$diff          = $now - $registered_at;
 		// If registered more than two days ago, cancel registration and let this signup go through.
@@ -566,7 +566,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
 	if ( $signup instanceof stdClass ) {
-		$diff = time() - mysql2date( 'U', $signup->registered );
+		$diff = time() - strtotime( $signup->registered . ' +0000' );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
@@ -742,7 +742,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 */
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) );
 	if ( $signup instanceof stdClass ) {
-		$diff = time() - mysql2date( 'U', $signup->registered );
+		$diff = time() - strtotime( $signup->registered . ' +0000' );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete(
