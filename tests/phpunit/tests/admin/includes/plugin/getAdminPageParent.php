@@ -107,7 +107,6 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	public static function data_explicit_parent_pages() {
 		return array(
 			'core parent page'            => array( 'options-general.php', 'options-general.php' ),
-			'plugin parent page'          => array( 'my-plugin', 'my-plugin' ),
 			'parent page that is unknown' => array( 'does-not-exist', 'does-not-exist' ),
 			'parent with a real parent'   => array( 'old-parent.php', 'new-parent.php' ),
 		);
@@ -279,6 +278,37 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an existing $parent_file global is kept when the current page has no parent.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_admin_page_parent
+	 *
+	 * @dataProvider data_pages_without_parent_with_parent_file
+	 *
+	 * @param string $pagenow Current admin page.
+	 */
+	public function test_get_admin_page_parent_preserves_existing_parent_file( $pagenow ) {
+		$GLOBALS['pagenow']     = $pagenow;
+		$GLOBALS['parent_file'] = 'edit.php?post_type=page';
+
+		$this->assertSame( '', get_admin_page_parent() );
+		$this->assertSame( 'edit.php?post_type=page', $GLOBALS['parent_file'], 'The $parent_file global should not change.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_pages_without_parent_with_parent_file() {
+		return array(
+			'page that is not in a submenu' => array( 'profile.php' ),
+			'submenu page when the parent file has a query' => array( 'edit.php' ),
+		);
+	}
+
+	/**
 	 * Tests the hook name of a plugin page.
 	 *
 	 * @ticket 65819
@@ -312,7 +342,6 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 			'top-level page with an admin.php parent' => array( 'my-plugin', 'admin.php', 'toplevel_page_my-plugin' ),
 			'top-level page with another parent'      => array( 'my-plugin', 'options-general.php', 'toplevel_page_my-plugin' ),
 			'submenu page of a core menu'             => array( 'my-settings', 'options-general.php', 'settings_page_my-settings' ),
-			'submenu page of a plugin menu'           => array( 'my-subpage', 'my-plugin', 'my-plugin_page_my-subpage' ),
 			'submenu page of a renamed plugin menu'   => array( 'my-subpage', 'renamed-plugin', 'custom-prefix_page_my-subpage' ),
 			'submenu page of an unknown parent'       => array( 'my-subpage', 'does-not-exist', 'admin_page_my-subpage' ),
 			'page without a parent'                   => array( 'my-subpage', '', 'admin_page_my-subpage' ),

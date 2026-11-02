@@ -426,7 +426,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_cancel_comment_reply_link() {
+	public static function data_get_cancel_comment_reply_link() {
 		return array(
 			'text as empty string, a valid post ID and an approved comment'    => array(
 				'text'       => '',
@@ -538,7 +538,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_allow_reply_to_an_approved_comment() {
+	public static function data_should_allow_reply_to_an_approved_comment() {
 		return array(
 			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
 			'a WP_Post object' => array( 'comment_post' => 'POST' ),
@@ -618,7 +618,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_existent_posts() {
+	public static function data_non_existent_posts() {
 		return array(
 			'an unapproved comment and a non-existent post ID' => array(
 				'replytocom'   => false,
@@ -678,7 +678,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_parent_comments() {
+	public static function data_parent_comments() {
 		return array(
 			'an unapproved parent comment (ID)'      => array(
 				'replytocom'   => false,
@@ -772,7 +772,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_comment_reply_id() {
+	public static function data_get_comment_reply_id() {
 		return array(
 			'no comment ID set ($_GET["replytocom"])'     => array(
 				'replytocom' => false,
@@ -1846,7 +1846,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_trash_comment_trashes_child_notes.
 	 */
-	public function data_comment_approved_statuses() {
+	public static function data_comment_approved_statuses() {
 		return array(
 			array( '1' ),
 			array( '0' ),
@@ -2010,6 +2010,525 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that untrashing a top-level note restores the child notes trashed along with it.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_untrash_comment
+	 *
+	 * @dataProvider data_comment_approved_statuses
+	 *
+	 * @param string $approved_status The approved status of the notes.
+	 */
+	public function test_wp_untrash_comment_restores_child_notes( $approved_status ) {
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		wp_trash_comment( $parent_note );
+
+		$this->assertTrue( wp_untrash_comment( $parent_note ), 'Expected the parent note to be restored.' );
+		$this->assertSame( $approved_status, get_comment( $parent_note )->comment_approved, 'Expected the parent note to have its original status.' );
+		$this->assertSame( $approved_status, get_comment( $child_note_1 )->comment_approved, 'Expected the first child note to be restored.' );
+		$this->assertSame( $approved_status, get_comment( $child_note_2 )->comment_approved, 'Expected the second child note to be restored.' );
+		$this->assertSame( '', get_comment_meta( $parent_note, '_wp_trash_meta_children', true ), 'Expected the list of trashed children to be deleted.' );
+	}
+
+	/**
+	 * Tests that untrashing a top-level note does not restore a child note trashed individually beforehand.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_trash_comment
+	 * @covers ::wp_untrash_comment
+	 */
+	public function test_wp_untrash_comment_does_not_restore_child_note_trashed_individually() {
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_comment( $child_note_2 );
+
+		$this->assertTrue( wp_trash_comment( $parent_note ), 'Expected the parent note to be trashed.' );
+		$this->assertSame( array( $child_note_1 ), get_comment_meta( $parent_note, '_wp_trash_meta_children', true ), 'Expected only the child note trashed along with the parent to be recorded.' );
+
+		$this->assertTrue( wp_untrash_comment( $parent_note ), 'Expected the parent note to be restored.' );
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved, 'Expected the parent note to be restored.' );
+		$this->assertSame( '1', get_comment( $child_note_1 )->comment_approved, 'Expected the child note trashed along with the parent to be restored.' );
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved, 'Expected the child note trashed individually to stay in the Trash.' );
+	}
+
+	/**
+	 * Tests that untrashing a top-level note does not affect a child note restored individually in the meantime.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_untrash_comment
+	 */
+	public function test_wp_untrash_comment_skips_child_note_restored_individually() {
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_comment( $parent_note );
+		wp_untrash_comment( $child_note );
+		wp_set_comment_status( $child_note, 'hold' );
+
+		$this->assertTrue( wp_untrash_comment( $parent_note ), 'Expected the parent note to be restored.' );
+		$this->assertSame( '0', get_comment( $child_note )->comment_approved, 'Expected the current status of the child note to be kept.' );
+	}
+
+	/**
+	 * Tests that trashing a top-level comment of a type other than note does not trash its children.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_trash_comment
+	 *
+	 * @dataProvider data_non_note_comment_types
+	 *
+	 * @param string $comment_type The comment type of the comments.
+	 */
+	public function test_wp_trash_comment_does_not_trash_children_of_other_comment_types( $comment_type ) {
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		$this->assertTrue( wp_trash_comment( $parent_comment ), 'Expected the parent comment to be trashed.' );
+		$this->assertSame( '1', get_comment( $child_comment )->comment_approved, 'Expected the child comment not to be modified.' );
+	}
+
+	/**
+	 * Tests that trashing a top-level comment of a type other than note does not record its children.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_trash_comment
+	 *
+	 * @dataProvider data_non_note_comment_types
+	 *
+	 * @param string $comment_type The comment type of the comments.
+	 */
+	public function test_wp_trash_comment_does_not_record_children_of_other_comment_types( $comment_type ) {
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_comment( $parent_comment );
+
+		$this->assertSame( array(), get_comment_meta( $parent_comment, '_wp_trash_meta_children' ), 'Expected no children to be recorded.' );
+	}
+
+	/**
+	 * Tests that untrashing a top-level comment of a type other than note does not modify its children.
+	 *
+	 * @ticket 66255
+	 *
+	 * @covers ::wp_untrash_comment
+	 *
+	 * @dataProvider data_non_note_comment_types
+	 *
+	 * @param string $comment_type The comment type of the comments.
+	 */
+	public function test_wp_untrash_comment_does_not_modify_children_of_other_comment_types( $comment_type ) {
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$trashed_child = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		$held_child = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => $comment_type,
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '0',
+			)
+		);
+
+		wp_trash_comment( $trashed_child );
+		wp_trash_comment( $parent_comment );
+
+		// Record the trashed child anyway, to ensure that the comment type is checked before restoring children.
+		add_comment_meta( $parent_comment, '_wp_trash_meta_children', array( $trashed_child ) );
+
+		$this->assertTrue( wp_untrash_comment( $parent_comment ), 'Expected the parent comment to be restored.' );
+		$this->assertSame( '1', get_comment( $parent_comment )->comment_approved, 'Expected the parent comment to have its original status.' );
+		$this->assertSame( 'trash', get_comment( $trashed_child )->comment_approved, 'Expected the trashed child comment to stay in the Trash.' );
+		$this->assertSame( '0', get_comment( $held_child )->comment_approved, 'Expected the held child comment not to be modified.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public static function data_non_note_comment_types() {
+		return array(
+			'comment'   => array( 'comment' ),
+			'pingback'  => array( 'pingback' ),
+			'trackback' => array( 'trackback' ),
+			'custom'    => array( 'review' ),
+		);
+	}
+
+	/**
+	 * Creates an approved reaction on a note.
+	 *
+	 * @param int    $note_id Parent note comment ID.
+	 * @param string $key     Reaction hex key.
+	 * @return int Reaction comment ID.
+	 */
+	private function create_reaction_on_note( $note_id, $key = '2764' ) {
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+				'comment_content'  => $key,
+			)
+		);
+	}
+
+	/**
+	 * Tests that permanently deleting a note deletes its reactions.
+	 *
+	 * wp_delete_comment() reparents a deleted comment's children one level up.
+	 * A reaction only means anything attached to its note, so without a cascade
+	 * it would survive as an approved top-level row still carrying the
+	 * reactor's identity.
+	 *
+	 * @ticket 64638
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_note_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reaction_1 = $this->create_reaction_on_note( $note_id );
+		$reaction_2 = $this->create_reaction_on_note( $note_id, '1f680' );
+
+		wp_delete_comment( $note_id, true );
+
+		$this->assertNull( get_comment( $reaction_1 ), 'The first reaction outlived its note.' );
+		$this->assertNull( get_comment( $reaction_2 ), 'The second reaction outlived its note.' );
+		$this->assertSame(
+			array(),
+			get_comments(
+				array(
+					'post_id' => self::$post_id,
+					'type'    => 'reaction',
+					'status'  => 'all',
+					'fields'  => 'ids',
+				)
+			),
+			'Reaction rows remained after the note was permanently deleted.'
+		);
+	}
+
+	/**
+	 * Tests that deleting a note reply takes only that reply's reactions.
+	 *
+	 * @ticket 64638
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_note_reply_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$note_reaction  = $this->create_reaction_on_note( $note_id );
+		$reply_reaction = $this->create_reaction_on_note( $reply_id );
+
+		wp_delete_comment( $reply_id, true );
+
+		$this->assertNull( get_comment( $reply_reaction ), "The reply's reaction outlived the reply." );
+		$this->assertNotNull( get_comment( $note_reaction ), "The root note's reaction should be untouched." );
+	}
+
+	/**
+	 * Tests that a regular comment's children are still reparented.
+	 *
+	 * The reaction cascade must not change how any other comment type behaves.
+	 *
+	 * @ticket 64638
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_still_reparents_non_note_children() {
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_delete_comment( $parent_comment, true );
+
+		$child = get_comment( $child_comment );
+		$this->assertNotNull( $child, 'The child comment should survive its parent.' );
+		$this->assertSame( '0', $child->comment_parent, 'The child comment should have moved up a level.' );
+	}
+
+	/**
+	 * Tests that trashing a note carries its reactions along.
+	 *
+	 * Core cascades a trashed note to its `note` children only, so without this
+	 * a reaction stays approved under a trashed note.
+	 *
+	 * @ticket 64638
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_trashes_note_reactions() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reaction_id = $this->create_reaction_on_note( $note_id );
+
+		wp_trash_comment( $note_id );
+		$this->assertSame( 'trash', get_comment( $reaction_id )->comment_approved, 'The reaction stayed approved under a trashed note.' );
+	}
+
+	/**
+	 * Tests that trashing a note reply carries that reply's reactions along.
+	 *
+	 * @ticket 64638
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_trashes_note_reply_reactions() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$reply_reaction = $this->create_reaction_on_note( $reply_id );
+
+		// Trashing the root cascades to the reply, which brings its reactions.
+		wp_trash_comment( $note_id );
+
+		$this->assertSame( 'trash', get_comment( $reply_id )->comment_approved, 'The reply was not trashed.' );
+		$this->assertSame( 'trash', get_comment( $reply_reaction )->comment_approved, "The reply's reaction was not trashed." );
+	}
+
+	/**
+	 * A reaction the user already removed is trashed, not deleted, so deleting
+	 * its note must take it along too rather than leave it orphaned.
+	 *
+	 * @ticket 64638
+	 *
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_trashed_note_reactions() {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$approved = $this->create_reaction_on_note( $note_id );
+		$trashed  = $this->create_reaction_on_note( $note_id, '1f680' );
+		wp_trash_comment( $trashed );
+
+		wp_delete_comment( $note_id, true );
+
+		$this->assertNull( get_comment( $approved ), 'The approved reaction was not deleted.' );
+		$this->assertNull( get_comment( $trashed ), 'The trashed reaction was left behind.' );
+	}
+
+	/**
+	 * Trashing a note trashes its reactions, so permanently deleting the
+	 * trashed note must take those reactions along, as well as any the user
+	 * removed earlier.
+	 *
+	 * @ticket 64638
+	 *
+	 * @covers ::wp_delete_comment
+	 */
+	public function test_wp_delete_comment_deletes_reactions_of_trashed_note() {
+		if ( ! EMPTY_TRASH_DAYS ) {
+			$this->markTestSkipped( 'Trash is disabled, so trashing permanently deletes.' );
+		}
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$removed_id = $this->create_reaction_on_note( $note_id );
+		wp_trash_comment( $removed_id );
+		$live_id = $this->create_reaction_on_note( $note_id );
+
+		wp_trash_comment( $note_id );
+		wp_delete_comment( $note_id, true );
+
+		$this->assertNull( get_comment( $live_id ), 'A reaction trashed with its note outlived it.' );
+		$this->assertNull( get_comment( $removed_id ), 'A reaction the user removed outlived its note.' );
+	}
+
+	/**
 	 * @ticket 61244
 	 *
 	 * @covers ::get_comment
@@ -2039,5 +2558,100 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
 		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+	}
+
+	/**
+	 * Queries made by metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_inside_added_comment_meta_action() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['during'] );
+	}
+
+	/**
+	 * A query primed partway through insertion must be fresh after insertion.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_after_comment_insertion() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['after'] );
+	}
+
+	/**
+	 * Inserts a comment while observing a query affected by its second meta key.
+	 *
+	 * @return array Recorded query results and the inserted comment ID.
+	 */
+	private function insert_comment_with_query_observer() {
+		$post_id = self::factory()->post->create();
+		$args    = array(
+			'post_id'    => $post_id,
+			'fields'     => 'ids',
+			'meta_key'   => 'target_meta_key',
+			'meta_value' => 'present',
+		);
+		$result  = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $comment_id, $meta_key ) use ( $args, &$result ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$result['before'] = get_comments( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$result['during'] = get_comments( $args );
+			}
+		};
+
+		add_action( 'added_comment_meta', $observer, 20, 3 );
+		try {
+			$result['id']    = wp_insert_comment(
+				array(
+					'comment_post_ID' => $post_id,
+					'comment_content' => 'Cache observer fixture',
+					'comment_meta'    => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$result['after'] = get_comments( $args );
+		} finally {
+			remove_action( 'added_comment_meta', $observer, 20 );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * An intentionally absent invalidation callback must remain absent.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_invalidation_preserves_absent_callback() {
+		remove_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		try {
+			wp_insert_comment(
+				array(
+					'comment_content' => 'Callback preservation fixture',
+					'comment_meta'    => array( 'target_meta_key' => 'present' ),
+				)
+			);
+			$this->assertFalse( has_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' ) );
+		} finally {
+			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		}
 	}
 }

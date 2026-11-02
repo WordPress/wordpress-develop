@@ -157,10 +157,10 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$GLOBALS['wp_taxonomies']['post_tag']->object_type = array( 'post' );
 	}
 
-	public function data_vb_insert_get_delete() {
+	public static function data_vb_insert_get_delete() {
 		$post_types = array( 'post', 'cpt' );
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -384,7 +384,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
 	}
 
-	public function data_vb_insert_future_change_status() {
+	public static function data_vb_insert_future_change_status() {
 		$statuses = array(
 			'draft',
 			'static',
@@ -394,7 +394,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'pending',
 		);
 
-		return $this->text_array_to_dataprovider( $statuses );
+		return self::text_array_to_dataprovider( $statuses );
 	}
 
 	/**
@@ -1378,14 +1378,14 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_types() {
+	public static function data_various_post_types() {
 		$post_types = array(
 			'mapped_meta_caps',
 			'unmapped_meta_caps',
 			'post',
 		);
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -1393,7 +1393,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_statuses() {
+	public static function data_various_post_statuses() {
 		$post_statuses = array(
 			'draft',
 			'pending',
@@ -1401,7 +1401,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'publish',
 		);
 
-		return $this->text_array_to_dataprovider( $post_statuses );
+		return self::text_array_to_dataprovider( $post_statuses );
 	}
 
 	/**
@@ -1547,5 +1547,50 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Post metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_post
+	 */
+	public function test_meta_query_is_fresh_inside_added_post_meta_action() {
+		$args    = array(
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+			'meta_key'       => 'target_meta_key',
+			'meta_value'     => 'present',
+		);
+		$results = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $post_id, $meta_key ) use ( $args, &$results ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$results['before'] = get_posts( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$results['during'] = get_posts( $args );
+			}
+		};
+
+		add_action( 'added_post_meta', $observer, 20, 3 );
+		try {
+			$post_id = wp_insert_post(
+				array(
+					'post_title'  => 'Cache observer fixture',
+					'post_status' => 'publish',
+					'meta_input'  => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$this->assertSame( array(), $results['before'] );
+			$this->assertSameSets( array( $post_id ), $results['during'] );
+		} finally {
+			remove_action( 'added_post_meta', $observer, 20 );
+		}
 	}
 }

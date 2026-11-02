@@ -14,6 +14,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  */
 class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax_1' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
+
 	/**
 	 * @ticket 26948
 	 *

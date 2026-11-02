@@ -24,7 +24,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
 	}
 
-	public function data_sanitize_text_field() {
+	public static function data_sanitize_text_field() {
 		return array(
 			array(
 				'оРангутанг', // Ensure UTF-8 text is safe. The Р is D0 A0 and A0 is the non-breaking space.
