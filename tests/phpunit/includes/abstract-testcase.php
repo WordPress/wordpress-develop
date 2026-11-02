@@ -33,6 +33,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * Metadata state before each class's fixtures are created, keyed by class.
+	 *
+	 * @var array[]
+	 */
+	private static $meta_before_class = array();
+
+	/**
+	 * Metadata state before the current test, or null when setup was bypassed.
+	 *
+	 * @var array|null
+	 */
+	private $original_meta_state;
+
+	/**
 	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
 	 *
 	 * @var string|null
@@ -95,7 +109,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		$class = get_called_class();
+		$class                             = get_called_class();
+		self::$meta_before_class[ $class ] = self::backup_meta_state();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
 			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
@@ -112,6 +127,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
+		}
+
+		if ( isset( self::$meta_before_class[ $class ] ) ) {
+			self::restore_meta_state( self::$meta_before_class[ $class ] );
+			unset( self::$meta_before_class[ $class ] );
 		}
 
 		_delete_all_data();
@@ -141,6 +161,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		if ( ! self::$hooks_saved ) {
 			$this->_backup_hooks();
 		}
+
+		$this->original_meta_state = self::backup_meta_state();
 
 		$this->clean_up_global_scope();
 
@@ -268,6 +290,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
+		if ( null !== $this->original_meta_state ) {
+			self::restore_meta_state( $this->original_meta_state );
+		}
 		wp_set_current_user( 0 );
 
 		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
@@ -510,6 +535,57 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+	}
+
+	/**
+	 * Captures registrations and their hooks without re-registering metadata.
+	 *
+	 * The hooks also include legacy registrations without a registry entry and
+	 * callbacks added independently of register_meta().
+	 *
+	 * @return array Metadata registry and cloned metadata hooks.
+	 */
+	private static function backup_meta_state() {
+		$state = array(
+			'keys'  => $GLOBALS['wp_meta_keys'] ?? array(),
+			'hooks' => array(),
+		);
+
+		foreach ( $GLOBALS['wp_filter'] as $name => $hook ) {
+			if ( self::is_meta_hook( $name ) ) {
+				$state['hooks'][ $name ] = clone $hook;
+			}
+		}
+
+		return $state;
+	}
+
+	/**
+	 * Restores metadata hooks after the ordinary hook baseline has been restored.
+	 *
+	 * @param array $state Metadata state captured before the test or class.
+	 */
+	private static function restore_meta_state( $state ) {
+		$GLOBALS['wp_meta_keys'] = $state['keys'];
+
+		foreach ( array_keys( $GLOBALS['wp_filter'] ) as $name ) {
+			if ( self::is_meta_hook( $name ) ) {
+				unset( $GLOBALS['wp_filter'][ $name ] );
+			}
+		}
+		foreach ( $state['hooks'] as $name => $hook ) {
+			$GLOBALS['wp_filter'][ $name ] = clone $hook;
+		}
+	}
+
+	/**
+	 * Identifies the dynamic hooks used by metadata registrations and defaults.
+	 *
+	 * @param string $name Hook name.
+	 * @return bool Whether the hook belongs to the metadata state.
+	 */
+	private static function is_meta_hook( $name ) {
+		return (bool) preg_match( '/^(?:sanitize|auth)_.+_meta_|^default_.+_metadata$/', $name );
 	}
 
 	/**

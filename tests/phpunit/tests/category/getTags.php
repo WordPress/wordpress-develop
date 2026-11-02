@@ -79,7 +79,7 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 		$tags = get_tags();
 
 		$this->assertIsArray( $tags );
-		$this->assertCount( count( self::$tag_ids ), $tags );
+		$this->assertSameSets( self::$tag_ids, wp_list_pluck( $tags, 'term_id' ) );
 
 		foreach ( $tags as $tag ) {
 			$this->assertInstanceOf( WP_Term::class, $tag );

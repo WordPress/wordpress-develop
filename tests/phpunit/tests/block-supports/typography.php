@@ -23,22 +23,29 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->test_block_name = null;
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		$theme_root_callback = function () {
-			return $this->theme_root;
-		};
-		add_filter( 'theme_root', $theme_root_callback );
-		add_filter( 'stylesheet_root', $theme_root_callback );
-		add_filter( 'template_root', $theme_root_callback );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		// Clear caches.
 		wp_clean_themes_cache();
@@ -51,8 +58,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	public function tear_down() {
 		// Restores the original theme directory setup.
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
+
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		// Resets test block name.
 		unregister_block_type( $this->test_block_name );
@@ -62,6 +77,15 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$GLOBALS['wp_script_modules'] = null;
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Filters the theme root to use the test data directory.
+	 *
+	 * @return string Theme root path.
+	 */
+	public function filter_theme_root() {
+		return $this->theme_root;
 	}
 
 	/**

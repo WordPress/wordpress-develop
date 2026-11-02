@@ -26,6 +26,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'yes_title' );
+		unregister_post_type( 'no_title' );
+
+		parent::tear_down();
+	}
+
 	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 

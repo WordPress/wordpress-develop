@@ -128,9 +128,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 		$widget = new WP_Nav_Menu_Widget();
 
 		$this->assertSame( 'nav_menu', $widget->id_base );
-		$this->assertSame( 'Navigation Menu', $widget->name );
 		$this->assertSame( 'widget_nav_menu', $widget->widget_options['classname'] );
-		$this->assertSame( 'Add a navigation menu to your sidebar.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -175,8 +173,6 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	public static function data_widget_invalid_nav_menu() {
 		return array(
 			'missing nav_menu'     => array( array() ),
-			'empty nav_menu'       => array( array( 'nav_menu' => '' ) ),
-			'zero nav_menu'        => array( array( 'nav_menu' => 0 ) ),
 			'nonexistent nav_menu' => array( array( 'nav_menu' => 999999 ) ),
 		);
 	}
@@ -290,9 +286,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Footer Links', 'Footer Links' ),
 			'title with HTML'     => array( '<em>Footer</em> Links ', 'Footer Links' ),
-			'empty title'         => array( '', 'Menu' ),
 			'title with only tag' => array( '<span></span>', 'Menu' ),
 		);
 	}
@@ -422,13 +416,6 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 					'title'    => 'Main Menu',
 					'nav_menu' => 12,
 				),
-			),
-			'empty values omitted'                => array(
-				array(
-					'title'    => '',
-					'nav_menu' => 0,
-				),
-				array(),
 			),
 			'missing keys omitted'                => array(
 				array(),

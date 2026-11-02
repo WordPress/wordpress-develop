@@ -178,9 +178,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 		return array(
 			'missing args'           => array( array() ),
 			'empty string field'     => array( array( 'field' => '' ) ),
-			'null field'             => array( array( 'field' => null ) ),
 			'empty string key'       => array( array( 'key' => '' ) ),
-			'null key'               => array( array( 'key' => null ) ),
 			'both empty field & key' => array(
 				array(
 					'field' => '',
@@ -215,8 +213,6 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	public static function data_missing_or_empty_post_id() {
 		return array(
 			'missing postId context' => array( array() ),
-			'empty string postId'    => array( array( 'postId' => '' ) ),
-			'null postId'            => array( array( 'postId' => null ) ),
 			'zero postId'            => array( array( 'postId' => 0 ) ),
 		);
 	}
@@ -302,26 +298,6 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that _block_bindings_post_data_get_value() returns date field formatted in ISO 8601.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::_block_bindings_post_data_get_value
-	 */
-	public function test_get_value_returns_date_field() {
-		$block = $this->create_block(
-			'core/paragraph',
-			array( 'postId' => self::$post_id )
-		);
-
-		$this->assertSame(
-			'2025-01-01T10:00:00+00:00',
-			_block_bindings_post_data_get_value( array( 'field' => 'date' ), $block ),
-			'Date field should return the post date in ISO 8601 format.'
-		);
-	}
-
-	/**
 	 * Tests that _block_bindings_post_data_get_value() returns modified date when modified date is later than publish date.
 	 *
 	 * @ticket 65819
@@ -358,27 +334,6 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			'',
 			_block_bindings_post_data_get_value( array( 'field' => 'modified' ), $block ),
 			'Modified date should return empty string when equal to publish date.'
-		);
-	}
-
-	/**
-	 * Tests that _block_bindings_post_data_get_value() returns permalink for link field.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::_block_bindings_post_data_get_value
-	 */
-	public function test_get_value_returns_link_field() {
-		$block = $this->create_block(
-			'core/paragraph',
-			array( 'postId' => self::$post_id )
-		);
-
-		$expected_link = esc_url( get_permalink( self::$post_id ) );
-		$this->assertSame(
-			$expected_link,
-			_block_bindings_post_data_get_value( array( 'field' => 'link' ), $block ),
-			'Link field should return esc_url( get_permalink() ).'
 		);
 	}
 

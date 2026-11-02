@@ -63,6 +63,9 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * Restores the theme features a test changed.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'test_book' );
+		unregister_post_type( 'test_note' );
+
 		global $_wp_theme_features;
 
 		$_wp_theme_features = $this->theme_features;
@@ -209,7 +212,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 		$this->assertSame( array( 'core' ), array_unique( array_column( array_column( $fields, 'origin' ), 'registeredBy' ) ), 'The fields carry the origin of WordPress core.' );
 		$this->assertSame(
 			array( self::POST_TYPE_SUPPORTS => array_column( $fields, 'id' ) ),
-			wp_get_registered_entity_field_modules( 'postType', 'test_book' ),
+			array_column( wp_get_registered_entity_field_modules( 'postType', 'test_book' ), 'fields', 'id' ),
 			'Every default field is registered with the module of its folder.'
 		);
 	}
@@ -240,7 +243,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * @return array[] The id of each field and whether the design post types
 	 *                 exclude it.
 	 */
-	public function data_default_fields_of_every_post_type() {
+	public static function data_default_fields_of_every_post_type() {
 		return array(
 			'date'             => array( 'date', true ),
 			'last_edited_date' => array( 'last_edited_date', false ),
@@ -282,7 +285,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @return array[] The id of each field and the supports that give it.
 	 */
-	public function data_default_fields_and_their_supports() {
+	public static function data_default_fields_and_their_supports() {
 		return array(
 			'discussion'        => array( 'discussion', array( 'comments', 'trackbacks' ) ),
 			'excerpt'           => array( 'excerpt', array( 'excerpt' ) ),
@@ -363,7 +366,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 */
 	public function test_pages_get_their_own_title_field() {
 		$fields  = self::get_fields( 'postType', 'page' );
-		$modules = wp_get_registered_entity_field_modules( 'postType', 'page' );
+		$modules = array_column( wp_get_registered_entity_field_modules( 'postType', 'page' ), 'fields', 'id' );
 
 		$this->assertFalse( $fields['title']['enableHiding'], 'The page title is the one of the collection.' );
 		$this->assertSame( 'core', $fields['title']['origin']['registeredBy'], 'The page title is registered by WordPress core.' );
@@ -390,7 +393,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 		$this->assertSame( 'core', $fields['author']['origin']['registeredBy'], 'The template author is registered by WordPress core.' );
 		$this->assertSame(
 			$ids,
-			wp_get_registered_entity_field_modules( 'postType', 'wp_template' )['@wordpress/core-fields/wp_template'],
+			array_column( wp_get_registered_entity_field_modules( 'postType', 'wp_template' ), 'fields', 'id' )['@wordpress/core-fields/wp_template'],
 			'The fields of templates ship their JavaScript parts in the module of the collection.'
 		);
 	}
@@ -412,7 +415,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 		$this->assertSame( 'Title', $fields['title']['label'], 'The title is the one of the collection.' );
 		$this->assertSame(
 			array( 'author', 'title' ),
-			wp_get_registered_entity_field_modules( 'postType', 'wp_template_part' )['@wordpress/core-fields/wp_template_part'],
+			array_column( wp_get_registered_entity_field_modules( 'postType', 'wp_template_part' ), 'fields', 'id' )['@wordpress/core-fields/wp_template_part'],
 			'The fields of template parts ship their JavaScript parts in the module of the collection.'
 		);
 	}
@@ -425,7 +428,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 */
 	public function test_patterns_get_their_own_fields() {
 		$fields  = self::get_fields( 'postType', 'wp_block' );
-		$modules = wp_get_registered_entity_field_modules( 'postType', 'wp_block' );
+		$modules = array_column( wp_get_registered_entity_field_modules( 'postType', 'wp_block' ), 'fields', 'id' );
 
 		$this->assertTrue( post_type_supports( 'wp_block', 'excerpt' ), 'The post type supports excerpts.' );
 		$this->assertSame( 'Description', $fields['excerpt']['label'], 'The excerpt is the description of the collection.' );
@@ -486,7 +489,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 		$this->assertSame( 'core', $fields['date']['origin']['registeredBy'], 'The media fields are registered by WordPress core.' );
 		$this->assertSame(
 			array( '@wordpress/core-fields/attachment' => $ids ),
-			wp_get_registered_entity_field_modules( 'postType', 'attachment' ),
+			array_column( wp_get_registered_entity_field_modules( 'postType', 'attachment' ), 'fields', 'id' ),
 			'Every media field is registered with the module of the collection.'
 		);
 	}
@@ -508,7 +511,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 		$this->assertSame( 'core', $fields['title']['origin']['registeredBy'], 'The fields of the site are registered by WordPress core.' );
 		$this->assertSame(
 			array( '@wordpress/core-fields/root_site' => $ids ),
-			wp_get_registered_entity_field_modules( 'root', 'site' ),
+			array_column( wp_get_registered_entity_field_modules( 'root', 'site' ), 'fields', 'id' ),
 			'Every field of the site is registered with the module of the collection.'
 		);
 	}
@@ -713,7 +716,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 			}
 		);
 
-		$modules = wp_get_registered_entity_field_modules( 'postType', 'wp_template' );
+		$modules = array_column( wp_get_registered_entity_field_modules( 'postType', 'wp_template' ), 'fields', 'id' );
 
 		$this->assertSame( 'my-plugin', self::get_fields( 'postType', 'wp_template' )['author']['origin']['registeredBy'], 'The author field is the one of the plugin.' );
 		$this->assertNotContains( 'author', $modules['@wordpress/core-fields/wp_template'], 'The module of the replaced field no longer applies to it.' );

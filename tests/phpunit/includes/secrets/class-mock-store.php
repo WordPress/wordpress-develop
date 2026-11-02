@@ -40,7 +40,7 @@ class Mock_Store implements WP_Secrets_Store {
 
 		$key = $this->key( $name, $network );
 
-		return array_key_exists( $key, $this->records ) ? $this->records[ $key ] : null;
+		return $this->records[ $key ] ?? null;
 	}
 
 	public function set( string $name, array $record, bool $network = false ) {
