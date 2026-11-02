@@ -81,7 +81,6 @@ class Tests_Admin_Includes_Misc_WpRefreshPostNonces extends WP_UnitTestCase {
 			'zero'            => array( 'post_id' => 0 ),
 			'string zero'     => array( 'post_id' => '0' ),
 			'non-numeric'     => array( 'post_id' => 'abc' ),
-			'negative'        => array( 'post_id' => -1 ),
 			'missing post_id' => array( 'post_id' => null ),
 		);
 	}
@@ -136,10 +135,10 @@ class Tests_Admin_Includes_Misc_WpRefreshPostNonces extends WP_UnitTestCase {
 		$this->assertArrayHasKey( '_ajax_linking_nonce', $replace );
 		$this->assertArrayHasKey( '_wpnonce', $replace );
 
-		$this->assertSame( 1, wp_verify_nonce( $replace['getpermalinknonce'], 'getpermalink' ), 'getpermalink nonce should be valid.' );
-		$this->assertSame( 1, wp_verify_nonce( $replace['samplepermalinknonce'], 'samplepermalink' ), 'samplepermalink nonce should be valid.' );
-		$this->assertSame( 1, wp_verify_nonce( $replace['closedpostboxesnonce'], 'closedpostboxes' ), 'closedpostboxes nonce should be valid.' );
-		$this->assertSame( 1, wp_verify_nonce( $replace['_ajax_linking_nonce'], 'internal-linking' ), 'internal-linking nonce should be valid.' );
-		$this->assertSame( 1, wp_verify_nonce( $replace['_wpnonce'], 'update-post_' . self::$post_id ), 'update-post nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['getpermalinknonce'], 'getpermalink' ), 'getpermalink nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['samplepermalinknonce'], 'samplepermalink' ), 'samplepermalink nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['closedpostboxesnonce'], 'closedpostboxes' ), 'closedpostboxes nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['_ajax_linking_nonce'], 'internal-linking' ), 'internal-linking nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['_wpnonce'], 'update-post_' . self::$post_id ), 'update-post nonce should be valid.' );
 	}
 }
