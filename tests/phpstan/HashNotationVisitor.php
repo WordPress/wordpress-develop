@@ -217,10 +217,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private array $scope_templates = array();
 
 	/**
-	 * Whether the docblock being translated is inside a named namespace, where a
-	 * name with a leading backslash may be another class than the name without.
+	 * Whether a name in the docblock being translated is resolved against a
+	 * namespace or imports, so that one with a leading backslash may be another
+	 * class than the same name without.
+	 *
+	 * That is the case inside a named namespace, and after a `use` import even in
+	 * the global namespace, where `use Example\Block;` makes `Block` another class
+	 * than `\Block`.
 	 */
-	private bool $namespaced = false;
+	private bool $resolves_names = false;
 
 	/**
 	 * Forgets the scopes of the previous file.
@@ -230,7 +235,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	public function beforeTraverse( array $nodes ) {
 		$this->scope_templates = array();
-		$this->namespaced      = false;
+		$this->resolves_names  = false;
 
 		return null;
 	}
@@ -245,7 +250,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
 			array_pop( $this->scope_templates );
 		} elseif ( $node instanceof Node\Stmt\Namespace_ ) {
-			$this->namespaced = false;
+			$this->resolves_names = false;
 		}
 
 		return null;
@@ -265,8 +270,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return null
 	 */
 	public function enterNode( Node $node ): ?Node {
+		// Each namespace has imports of its own, so entering one starts afresh.
 		if ( $node instanceof Node\Stmt\Namespace_ ) {
-			$this->namespaced = null !== $node->name;
+			$this->resolves_names = null !== $node->name;
+		} elseif ( $node instanceof Node\Stmt\GroupUse || ( $node instanceof Node\Stmt\Use_ && Node\Stmt\Use_::TYPE_NORMAL === $node->type ) ) {
+			$this->resolves_names = true;
 		}
 
 		$doc = $node->getDocComment();
@@ -910,10 +918,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * literal are case-sensitive, so they are left as they are: `array{id: int}`
 	 * is not `array{ID: int}`.
 	 *
-	 * Outside a namespace, a name is also stripped of a leading backslash, since
-	 * `\WP_Post` is then the same class as `WP_Post`. Inside one, the two may name
-	 * different classes, as `\Block` and the `Example\Block` that `Block` means in
-	 * `namespace Example`, so the backslash is kept and a hash spelling the class
+	 * Where names are not resolved against a namespace or imports, a name is also
+	 * stripped of a leading backslash, since `\WP_Post` is then the same class as
+	 * `WP_Post`. Where they are, the two may name different classes, as `\Block`
+	 * and the `Example\Block` that `Block` means in `namespace Example` or after
+	 * `use Example\Block;`, so the backslash is kept and a hash spelling the class
 	 * the other way is left untranslated rather than resolved.
 	 *
 	 * A type naming a template has no form to print. Whether a hash narrows a
@@ -926,12 +935,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return string|null The normalized type, or null if it names a template type.
 	 */
 	private function normalize_type( TypeNode $type ): ?string {
-		$key = ( $this->namespaced ? 'ns' : '' ) . ';' . implode( ',', array_keys( $this->templates ) ) . ';' . $type;
+		$key = ( $this->resolves_names ? 'resolved' : '' ) . ';' . implode( ',', array_keys( $this->templates ) ) . ';' . $type;
 		if ( array_key_exists( $key, $this->normalized ) ) {
 			return $this->normalized[ $key ];
 		}
 
-		$visitor = new class( $this->templates, $this->namespaced ) extends AbstractNodeVisitor {
+		$visitor = new class( $this->templates, $this->resolves_names ) extends AbstractNodeVisitor {
 
 			/**
 			 * Template types in scope, keyed by lowercased name.
@@ -941,9 +950,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			private array $templates;
 
 			/**
-			 * Whether the type is written inside a namespace.
+			 * Whether names are resolved against a namespace or imports.
 			 */
-			private bool $namespaced;
+			private bool $resolves_names;
 
 			/**
 			 * Whether the type names a template type.
@@ -951,12 +960,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			public bool $names_template = false;
 
 			/**
-			 * @param array<string, true> $templates  Template types in scope, keyed by lowercased name.
-			 * @param bool                $namespaced Whether the type is written inside a namespace.
+			 * @param array<string, true> $templates      Template types in scope, keyed by lowercased name.
+			 * @param bool                $resolves_names Whether names are resolved against a namespace or imports.
 			 */
-			public function __construct( array $templates, bool $namespaced ) {
-				$this->templates  = $templates;
-				$this->namespaced = $namespaced;
+			public function __construct( array $templates, bool $resolves_names ) {
+				$this->templates      = $templates;
+				$this->resolves_names = $resolves_names;
 			}
 
 			public function enterNode( DocNode $node ): DocNode {
@@ -990,7 +999,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					$this->names_template = true;
 				}
 
-				return $this->namespaced ? $name : $bare;
+				return $this->resolves_names ? $name : $bare;
 			}
 
 			public function leaveNode( DocNode $node ): DocNode {
