@@ -4143,6 +4143,44 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Sending back the meta of a comment with no note status must not fail.
+	 *
+	 * @ticket 66377
+	 */
+	public function test_update_comment_with_meta_echoed_back_from_response() {
+		wp_set_current_user( self::$editor_id );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::factory()->post->create(),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->set_param( 'context', 'edit' );
+		$meta = rest_get_server()->dispatch( $request )->get_data()['meta'];
+
+		$this->assertArrayHasKey( '_wp_note_status', $meta );
+		$this->assertNull( $meta['_wp_note_status'] );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'content' => 'Edited comment.',
+					'meta'    => $meta,
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Edited comment.', get_comment( $comment_id )->comment_content );
+		$this->assertFalse( metadata_exists( 'comment', $comment_id, '_wp_note_status' ) );
+	}
+
+	/**
 	 * @ticket 64096
 	 */
 	public function test_create_duplicate_note() {

@@ -161,9 +161,10 @@ abstract class WP_REST_Meta_Fields {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
-					$current = get_metadata( $this->get_meta_type(), $object_id, $meta_key, true );
+					// Only a stored value needs protecting, so a key with nothing stored is not validated.
+					$current = get_metadata_raw( $this->get_meta_type(), $object_id, $meta_key, true );
 
-					if ( is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
+					if ( null !== $current && is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
 						$error->add(
 							'rest_invalid_stored_value',
 							/* translators: %s: Custom field key. */
