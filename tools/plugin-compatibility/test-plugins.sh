@@ -53,6 +53,11 @@ SERVER_PORT="8889"
 KEEP_INSTALL="no"
 FIXTURES_DIR=""
 EXPECT_FILE=""
+RESULTS_FILE=""
+CACHE_DIR=""
+# Long enough for the slowest download or activation seen in the directory, short enough that a plugin which
+# hangs does not stall a run that is meant to finish overnight.
+PLUGIN_TIMEOUT=300
 
 # How many levels of `Requires Plugins` to follow. Chains in the directory are one level deep in practice, so
 # the bound is only here to stop a circular declaration from looping forever.
@@ -67,6 +72,8 @@ Checks that WordPress.org plugins can be activated against a version of WordPres
 Options:
   --plugins=<list>     Plugin slugs to test, separated by commas or spaces. Slugs can also be passed as
                        positional arguments.
+  --plugins-file=<f>   Read plugin slugs from a file, one per line, such as the output of list-plugins.sh.
+                       Lines starting with # are ignored.
   --wp-version=<ver>   Version of WordPress to test against. Accepts "latest", "nightly", or a version
                        number such as a beta or RC. Default: nightly.
   --php-image=<image>  Container image the checks run in. Default: wordpress:cli-php8.5.
@@ -85,6 +92,13 @@ Options:
   --fixtures=<dir>     Install a plugin from <dir>/<slug> instead of WordPress.org when that directory exists.
   --expect=<file>      Check each plugin's result against the one listed in <file>, and exit 0 only when they
                        all match. Plugins are taken from the file when none are named.
+  --results=<file>     Append each plugin's result to <file> as it is recorded, and skip plugins that already
+                       have a row in it. Running the same command again after an interruption carries on
+                       where it stopped.
+  --cache-dir=<dir>    Keep WP-CLI's download cache in <dir>, so that a second run, against another version
+                       of WordPress for example, does not download every plugin again.
+  --timeout=<seconds>  Give up on a plugin's download, activation or WP-CLI check after this long. A plugin
+                       whose activation does not finish in time fails. 0 turns this off. Default: 300.
   -h, --help           Print this message.
 
 Examples:
@@ -96,6 +110,9 @@ Examples:
 
   # Run the checks here, against a database that is already running.
   test-plugins.sh --no-docker --db-host=127.0.0.1:3306 --db-pass=root hello-dolly
+
+  # Test a long list overnight, resuming if interrupted, and sharing downloads with later runs.
+  test-plugins.sh --plugins-file=plugins.txt --results=nightly.tsv --cache-dir=~/.cache/plugin-compat
 
   # Check that plugins built to break are still caught.
   test-plugins.sh --fixtures=tools/plugin-compatibility/fixtures \
@@ -140,6 +157,15 @@ while [ "$#" -gt 0 ]; do
 		--keep ) KEEP_INSTALL="yes" ;;
 		--fixtures=* ) FIXTURES_DIR="${1#*=}" ;;
 		--expect=* ) EXPECT_FILE="${1#*=}" ;;
+		--plugins-file=* )
+			PLUGINS_FILE="${1#*=}"
+			[ -f "${PLUGINS_FILE}" ] || error "The plugins file ${PLUGINS_FILE} does not exist."
+			PLUGIN_LIST="${PLUGIN_LIST}
+$( grep -v '^[[:space:]]*#' "${PLUGINS_FILE}" )"
+			;;
+		--results=* ) RESULTS_FILE="${1#*=}" ;;
+		--cache-dir=* ) CACHE_DIR="${1#*=}" ;;
+		--timeout=* ) PLUGIN_TIMEOUT="${1#*=}" ;;
 		-h | --help ) usage; exit 0 ;;
 		-* ) usage >&2; error "Unknown option ${1}." ;;
 		* ) PLUGIN_LIST="${PLUGIN_LIST} ${1}" ;;
@@ -151,6 +177,19 @@ done
 if [ -n "${FIXTURES_DIR}" ]; then
 	FIXTURES_DIR="$( cd "${FIXTURES_DIR}" > /dev/null 2>&1 && pwd )" || error "The fixtures directory does not exist."
 fi
+
+if [ -n "${RESULTS_FILE}" ]; then
+	RESULTS_DIR="$( cd "$( dirname "${RESULTS_FILE}" )" > /dev/null 2>&1 && pwd )" || error "The directory for the results file does not exist."
+	RESULTS_FILE="${RESULTS_DIR%/}/$( basename "${RESULTS_FILE}" )"
+	touch "${RESULTS_FILE}" || error "The results file ${RESULTS_FILE} could not be written."
+fi
+
+if [ -n "${CACHE_DIR}" ]; then
+	mkdir -p "${CACHE_DIR}" || error "The cache directory could not be created."
+	CACHE_DIR="$( cd "${CACHE_DIR}" > /dev/null 2>&1 && pwd )"
+fi
+
+printf '%s' "${PLUGIN_TIMEOUT}" | grep -Eq '^[0-9]+$' || error "--timeout must be a number of seconds, got \"${PLUGIN_TIMEOUT}\"."
 
 if [ -n "${EXPECT_FILE}" ]; then
 	[ -f "${EXPECT_FILE}" ] || error "The expected results file does not exist."
@@ -180,6 +219,22 @@ if [ -n "${INVALID_SLUGS}" ]; then
 	exit 1
 fi
 
+# Plugins that already have a result were tested by an earlier run that was interrupted.
+if [ -n "${RESULTS_FILE}" ] && [ -s "${RESULTS_FILE}" ]; then
+	REQUESTED_COUNT="$( printf '%s\n' "${PLUGIN_SLUGS}" | wc -l | tr -d ' ' )"
+	PLUGIN_SLUGS="$( printf '%s\n' "${PLUGIN_SLUGS}" | awk -F '\t' 'NR == FNR { done[$1] = 1; next } !( $0 in done )' "${RESULTS_FILE}" - )"
+	REMAINING_COUNT="$( printf '%s' "${PLUGIN_SLUGS}" | grep -c . )"
+
+	if [ "${REMAINING_COUNT}" -lt "${REQUESTED_COUNT}" ]; then
+		printf '%s of %s plugins already have a result in %s.\n' "$(( REQUESTED_COUNT - REMAINING_COUNT ))" "${REQUESTED_COUNT}" "${RESULTS_FILE}"
+	fi
+
+	if [ "${REMAINING_COUNT}" -eq 0 ]; then
+		printf 'Nothing left to test.\n'
+		exit 0
+	fi
+fi
+
 ##
 # Provisions a database and a PHP, and runs this same script inside them.
 #
@@ -195,7 +250,7 @@ run_in_docker() {
 
 	# Both are removed however this exits, an interrupt included. `--volumes` takes the anonymous volume the
 	# database image keeps its data in along with the container, which would otherwise pile up run after run.
-	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1' EXIT
+	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1; rm -f "${PLUGINS_LIST_FILE:-}"' EXIT
 	exit_on_signal
 
 	printf 'Starting %s.\n' "${DB_IMAGE}"
@@ -244,11 +299,33 @@ run_in_docker() {
 		EXTRA_SCRIPT_ARGS=( "${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"}" --expect=/expected.txt )
 	fi
 
+	# The results file and the cache are written to from inside the container, so it runs as the user who
+	# owns them. Without that a Linux host would refuse the image's own user.
+	if [ -n "${RESULTS_FILE}" ] || [ -n "${CACHE_DIR}" ]; then
+		EXTRA_DOCKER_ARGS=( "${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"}" --user "$( id -u ):$( id -g )" )
+	fi
+
+	if [ -n "${RESULTS_FILE}" ]; then
+		EXTRA_DOCKER_ARGS=( "${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"}" --volume "${RESULTS_DIR}:/results" )
+		EXTRA_SCRIPT_ARGS=( "${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"}" "--results=/results/$( basename "${RESULTS_FILE}" )" )
+	fi
+
+	if [ -n "${CACHE_DIR}" ]; then
+		EXTRA_DOCKER_ARGS=( "${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"}" --volume "${CACHE_DIR}:/wp-cli-cache" )
+		EXTRA_SCRIPT_ARGS=( "${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"}" --cache-dir=/wp-cli-cache )
+	fi
+
+	# The list is handed over as a file, because the whole directory would not fit on a command line.
+	PLUGINS_LIST_FILE="$( mktemp )"
+	printf '%s\n' "${PLUGIN_SLUGS}" > "${PLUGINS_LIST_FILE}"
+	chmod 644 "${PLUGINS_LIST_FILE}"
+
 	# WordPress is installed inside the container rather than in a mounted directory, so a plugin cannot
 	# leave anything behind on the host and file ownership never comes into it. `HOME` is pointed at a
 	# writable directory because WP-CLI caches its downloads there.
 	docker run --rm --network "${DOCKER_NETWORK}" \
 		--volume "${SCRIPT_PATH}:/usr/local/bin/test-plugins.sh:ro" \
+		--volume "${PLUGINS_LIST_FILE}:/plugins.txt:ro" \
 		${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"} \
 		--env HOME=/tmp \
 		--entrypoint bash \
@@ -261,8 +338,9 @@ run_in_docker() {
 		--db-user=root \
 		--db-pass="${DB_PASS}" \
 		--port="${SERVER_PORT}" \
+		--timeout="${PLUGIN_TIMEOUT}" \
 		${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"} \
-		--plugins="$( printf '%s' "${PLUGIN_SLUGS}" | tr '\n' ' ' )"
+		--plugins-file=/plugins.txt
 }
 
 ##
@@ -286,12 +364,38 @@ run_checks() {
 		'#!'* ) WP_CLI_IS_LAUNCHER="yes" ;;
 	esac
 
+	# The steps that run a plugin's code are bounded by `timeout`, which can only run a program, so the WP-CLI
+	# command is kept as a list of arguments rather than only behind the `wp` function.
+	if [ "${WP_CLI_IS_LAUNCHER}" = "yes" ]; then
+		WP_CLI_COMMAND=( env "WP_CLI_PHP_ARGS=-d memory_limit=-1${WP_CLI_PHP_ARGS:+ ${WP_CLI_PHP_ARGS}}" "${WP_CLI_BIN}" )
+	else
+		WP_CLI_COMMAND=( php -d memory_limit=-1 "${WP_CLI_BIN}" )
+	fi
+
+	TIMEOUT_COMMAND=()
+
+	if [ "${PLUGIN_TIMEOUT}" -gt 0 ]; then
+		if command -v timeout > /dev/null 2>&1; then
+			TIMEOUT_COMMAND=( timeout "${PLUGIN_TIMEOUT}" )
+		elif command -v gtimeout > /dev/null 2>&1; then
+			TIMEOUT_COMMAND=( gtimeout "${PLUGIN_TIMEOUT}" )
+		else
+			printf 'Warning: timeout is not installed, so a plugin that hangs will stall the run.\n' >&2
+		fi
+	fi
+
 	WORK_DIR="$( mktemp -d )"
-	RESULTS="${WORK_DIR}/results.tsv"
+	RESULTS="${RESULTS_FILE:-${WORK_DIR}/results.tsv}"
 	RESPONSE_BODY="${WORK_DIR}/response.html"
 	SERVER_LOG="${WORK_DIR}/php-server.log"
 	SERVER_PID=""
-	: > "${RESULTS}"
+
+	# A results file that was handed over holds an earlier run's rows, which are carried on from.
+	[ -n "${RESULTS_FILE}" ] || : > "${RESULTS}"
+
+	if [ -n "${CACHE_DIR}" ]; then
+		export WP_CLI_CACHE_DIR="${CACHE_DIR}"
+	fi
 
 	if [ -z "${WP_DIR}" ]; then
 		WP_DIR="${WORK_DIR}/wordpress"
@@ -433,11 +537,23 @@ run_checks() {
 # launcher, such as the `bin/wp` of a Composer install, is run as it is and passed the limit through the
 # `WP_CLI_PHP_ARGS` it reads. Handing a shell script to PHP would print it rather than run it.
 wp() {
-	if [ "${WP_CLI_IS_LAUNCHER}" = "yes" ]; then
-		WP_CLI_PHP_ARGS="-d memory_limit=-1${WP_CLI_PHP_ARGS:+ ${WP_CLI_PHP_ARGS}}" "${WP_CLI_BIN}" "$@"
-	else
-		php -d memory_limit=-1 "${WP_CLI_BIN}" "$@"
-	fi
+	"${WP_CLI_COMMAND[@]}" "$@"
+}
+
+# wp_limited <arguments>
+#
+# Runs WP-CLI like `wp`, but gives up after --timeout seconds. Used for the steps that run a plugin's code or
+# download it, where a hang would otherwise stall every plugin after it.
+wp_limited() {
+	${TIMEOUT_COMMAND[@]+"${TIMEOUT_COMMAND[@]}"} "${WP_CLI_COMMAND[@]}" "$@"
+}
+
+# timed_out <exit code>
+#
+# Returns zero when the exit code is the one `timeout` uses for a command it stopped: 124 from GNU
+# coreutils, 143 from BusyBox, which the WP-CLI image carries.
+timed_out() {
+	[ "${#TIMEOUT_COMMAND[@]}" -gt 0 ] && { [ "${1}" -eq 124 ] || [ "${1}" -eq 143 ]; }
 }
 
 # record <slug> <version> <status> <dependencies> <reason>
@@ -522,7 +638,7 @@ install_plugin() {
 		return
 	fi
 
-	wp plugin install "${1}" --skip-plugins --skip-themes
+	wp_limited plugin install "${1}" --skip-plugins --skip-themes
 }
 
 # is_active <slug>
@@ -781,7 +897,7 @@ test_plugins() {
 				STILL_INACTIVE=()
 
 				for DEPENDENCY in "${INACTIVE[@]}"; do
-					DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )"
+					DEPENDENCY_OUTPUT="$( wp_limited plugin activate "${DEPENDENCY}" 2>&1 )"
 					printf '%s\n' "${DEPENDENCY_OUTPUT}"
 
 					if ! is_active "${DEPENDENCY}"; then
@@ -829,7 +945,7 @@ test_plugins() {
 			# healthy over HTTP but cannot be loaded by WP-CLI, like the plugins described in step 8, would
 			# stop that activation and have its failure blamed on the plugin under test.
 			if [ "${STATUS}" = "PASS" ]; then
-				DEPENDENCY_EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
+				DEPENDENCY_EVAL_OUTPUT="$( wp_limited eval 'echo "loaded-ok";' 2>&1 )"
 
 				if [ "${DEPENDENCY_EVAL_OUTPUT#*loaded-ok}" = "${DEPENDENCY_EVAL_OUTPUT}" ]; then
 					printf '%s\n' "${DEPENDENCY_EVAL_OUTPUT}"
@@ -846,10 +962,14 @@ test_plugins() {
 		# Step 5: activation. Activation runs the plugin's activation hooks and loads its main file.
 		if [ "${STATUS}" = "PASS" ]; then
 			ACTIVATE_EXIT_CODE=0
-			ACTIVATE_OUTPUT="$( wp plugin activate "${SLUG}" 2>&1 )" || ACTIVATE_EXIT_CODE=$?
+			ACTIVATE_OUTPUT="$( wp_limited plugin activate "${SLUG}" 2>&1 )" || ACTIVATE_EXIT_CODE=$?
 			printf '%s\n' "${ACTIVATE_OUTPUT}"
 
-			if [ "${ACTIVATE_EXIT_CODE}" -ne 0 ]; then
+			# A visitor whose request runs into the same hang gets nothing back either.
+			if timed_out "${ACTIVATE_EXIT_CODE}"; then
+				STATUS="FAIL"
+				REASON="Activation did not finish within ${PLUGIN_TIMEOUT} seconds"
+			elif [ "${ACTIVATE_EXIT_CODE}" -ne 0 ]; then
 				case "${ACTIVATE_OUTPUT}" in
 					# Core refuses to activate a plugin whose declared requirements are not met.
 					# Dependencies are installed above, so what is left here is a plugin asking for a
@@ -926,7 +1046,7 @@ test_plugins() {
 		#
 		# The fatal is written to the debug log too, which is why this comes after the log has been checked.
 		if [ "${STATUS}" = "PASS" ]; then
-			EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
+			EVAL_OUTPUT="$( wp_limited eval 'echo "loaded-ok";' 2>&1 )"
 
 			if [ "${EVAL_OUTPUT#*loaded-ok}" = "${EVAL_OUTPUT}" ]; then
 				printf '%s\n' "${EVAL_OUTPUT}"
