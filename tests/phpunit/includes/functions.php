@@ -4,7 +4,7 @@ require_once __DIR__ . '/class-basic-object.php';
 /**
  * Retrieves PHPUnit runner version.
  *
- * @return double The version number.
+ * @return string|int The version number, or 0 if PHPUnit is not loaded.
  */
 function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
@@ -335,6 +335,17 @@ function _upload_dir_https( $uploads ) {
 	$uploads['baseurl'] = str_replace( 'http://', 'https://', $uploads['baseurl'] );
 
 	return $uploads;
+}
+
+/**
+ * Builds the upload base URL used throughout the test suite.
+ *
+ * @param string $path   Path/filename to append after the uploads URL. No leading slash needed.
+ * @param string $scheme URL scheme, 'http' or 'https'.
+ * @return string The upload URL.
+ */
+function _upload_get_url( $path = '', $scheme = 'http' ) {
+	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( UPLOADS ) . ltrim( $path, '/' );
 }
 
 /**

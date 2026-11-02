@@ -248,6 +248,8 @@ function remove_permastruct( $name ) {
  * @param callable $callback Callback to run on feed display.
  * @return string Feed action name.
  *
+ * @phpstan-param non-empty-string                        $feedname
+ * @phpstan-param callable(bool, non-empty-string): mixed $callback
  * @phpstan-return non-falsy-string
  */
 function add_feed( $feedname, $callback ) {
@@ -283,6 +285,25 @@ function flush_rewrite_rules( $hard = true ) {
 	if ( is_callable( array( $wp_rewrite, 'flush_rules' ) ) ) {
 		$wp_rewrite->flush_rules( $hard );
 	}
+}
+
+/**
+ * Clears the rewrite rules when the site language changes.
+ *
+ * Rewrite rules can contain translated slugs, such as the default random content
+ * base, see {@see WP_Rewrite::get_random_base()}. Clearing the rules causes them to be
+ * regenerated in the new site language.
+ *
+ * The rules are regenerated on the next request rather than immediately, because
+ * the new language is not loaded until after the option is saved. Clearing the
+ * rules also avoids rewriting the .htaccess file.
+ *
+ * Runs on the {@see 'add_option_WPLANG'} and {@see 'update_option_WPLANG'} actions.
+ *
+ * @since 7.2.0
+ */
+function wp_flush_rewrite_rules_on_site_language_change(): void {
+	update_option( 'rewrite_rules', '' );
 }
 
 /**

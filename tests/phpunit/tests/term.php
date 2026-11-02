@@ -147,7 +147,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_remove_object_terms( $posts[0], $tags[1], 'post_tag' ) );
 		$this->assertFalse( wp_remove_object_terms( $posts[0], $tags[0], 'post_tag' ) );
-		$this->assertInstanceOf( 'WP_Error', wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
+		$this->assertWPError( wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
 		$this->assertTrue( wp_remove_object_terms( $posts[1], $three_tags, 'post_tag' ) );
 		$this->assertCount( 0, wp_get_object_terms( $posts[1], 'post_tag' ) );
 
@@ -300,7 +300,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+	public static function data_wp_set_term_objects_finds_term_name_with_special_characters() {
 		return array(
 			'ampersand'               => array( 'name' => 'Foo & Bar' ),
 			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
@@ -406,7 +406,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_term_filter() {
+	public static function data_get_term_filter() {
 		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
 	}
 }

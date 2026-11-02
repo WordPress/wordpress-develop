@@ -36,7 +36,7 @@ class Tests_Functions_GetTagRegex extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_tag_regex_matches() {
+	public static function data_get_tag_regex_matches() {
 		// Each case embeds the element(s) within surrounding HTML, mirroring the
 		// original usage in get_media_embedded_in_content(), which is passed a
 		// string of HTML that may contain media elements rather than the bare

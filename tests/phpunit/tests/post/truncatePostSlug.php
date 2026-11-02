@@ -31,7 +31,7 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_truncate_post_slug_should_truncate() {
+	public static function data_truncate_post_slug_should_truncate() {
 		return array(
 			'a slug that is too long'                      => array(
 				'slug'     => 'truncated slug',
