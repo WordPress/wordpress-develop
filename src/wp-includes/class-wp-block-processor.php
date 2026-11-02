@@ -789,6 +789,16 @@ class WP_Block_Processor {
 		$after_prev_delimiter = $this->matched_delimiter_at + $this->matched_delimiter_length;
 		$at                   = $after_prev_delimiter;
 
+		/*
+		 * Rejected candidates resume scanning after their `<!--`, so many candidates can
+		 * share one comment end. Everything found by scanning back from that end is kept
+		 * for reuse, which keeps the scan linear. See the comment-end search below.
+		 */
+		$known_comment_end   = 0;
+		$known_closer_at     = -1;
+		$known_last_char_at  = 0;
+		$known_has_void_flag = false;
+
 		while ( $at < $end ) {
 			/*
 			 * Find the next possible start of a delimiter.
@@ -803,6 +813,11 @@ class WP_Block_Processor {
 			 * For a more robust parse, scan through the document with the HTML API and parse
 			 * comments once they are matched to see if they are also block delimiters. In
 			 * practice, this nuance has not caused any known problems since developing blocks.
+			 *
+			 * For the same reason, when a candidate turns out not to be a delimiter, scanning
+			 * resumes right after its `<!--` rather than after the end of the HTML comment.
+			 * A `<!--` inside a SCRIPT element or an attribute value does not start a comment,
+			 * and skipping to the next `-->` would swallow the delimiter which ends there.
 			 *
 			 * <⃨!⃨-⃨-⃨ /wp:core/paragraph {"dropCap":true} /-->
 			 */
@@ -871,7 +886,7 @@ class WP_Block_Processor {
 			}
 
 			if ( 0 === $opening_whitespace_length ) {
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
@@ -891,7 +906,7 @@ class WP_Block_Processor {
 					goto incomplete;
 				}
 
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
@@ -911,7 +926,7 @@ class WP_Block_Processor {
 
 			// The namespace must start with a-z.
 			if ( 'a' > $start_of_namespace || 'z' < $start_of_namespace ) {
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
@@ -933,7 +948,7 @@ class WP_Block_Processor {
 				// <!-- /wp:core/p⃨a⃨r⃨a⃨g⃨r⃨a⃨p⃨h⃨ {"dropCap":true} /-->
 				$start_of_name = $text[ $name_at ];
 				if ( 'a' > $start_of_name || 'z' < $start_of_name ) {
-					$at = $this->find_html_comment_end( $comment_opening_at, $end );
+					$at = $comment_opening_at + 4;
 					continue;
 				}
 
@@ -963,7 +978,7 @@ class WP_Block_Processor {
 			}
 
 			if ( 0 === $after_name_whitespace_length ) {
-				$at = $this->find_html_comment_end( $comment_opening_at, $end );
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
@@ -982,8 +997,24 @@ class WP_Block_Processor {
 			 * The delimiter must also be a single complete HTML comment.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
+			 *
+			 * A search starting anywhere up to the last `--` of a known comment end finds
+			 * that same end, so it is only searched for again once the scan has passed it.
 			 */
-			$after_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+			if ( $comment_opening_at + 4 > $known_closer_at ) {
+				$known_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+				$known_closer_at   = $known_comment_end - ( '!' === $text[ $known_comment_end - 2 ] ? 4 : 3 );
+
+				// <!-- /wp:core/paragraph {"dropCap":true} /⃨-->
+				$known_has_void_flag = '/' === $text[ $known_comment_end - 4 ];
+
+				// <!-- /wp:core/paragraph {"dropCap":true⃨} /-->
+				$known_last_char_at = $known_comment_end - 4 - ( $known_has_void_flag ? 1 : 0 );
+				while ( false !== strpos( " \t\f\r\n", $text[ $known_last_char_at ] ) ) {
+					--$known_last_char_at;
+				}
+			}
+			$after_comment_end = $known_comment_end;
 
 			/*
 			 * The reported end of the comment could be after the end of the document if
@@ -999,20 +1030,13 @@ class WP_Block_Processor {
 			 * so skip past any HTML comments ending in `--!>`.
 			 */
 			if ( '!' === $text[ $after_comment_end - 2 ] ) {
-				$at = $after_comment_end;
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
 			$comment_closing_at = $after_comment_end - 3;
-
-			// <!-- /wp:core/paragraph {"dropCap":true} /⃨-->
-			if ( '/' === $text[ $comment_closing_at - 1 ] ) {
-				$has_void_flag    = true;
-				$void_flag_length = 1;
-			} else {
-				$has_void_flag    = false;
-				$void_flag_length = 0;
-			}
+			$has_void_flag      = $known_has_void_flag;
+			$void_flag_length   = $has_void_flag ? 1 : 0;
 
 			/*
 			 * If there's no JSON, then the span of text after the name
@@ -1026,47 +1050,27 @@ class WP_Block_Processor {
 					break;
 				}
 
-				$at = $after_comment_end;
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 
 			/*
-			 * There's JSON, so attempt to find its boundary.
-			 *
-			 * @todo It’s likely faster to scan forward instead of in reverse.
-			 * @todo Skip ahead with `strcspn()` and decide only on syntax characters.
+			 * There's JSON, so attempt to find its boundary: the last character
+			 * before the trailing whitespace must be the closing “}”.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true}⃨ ⃨/-->
 			 */
-			$after_json_whitespace_length = 0;
-			for ( $char_at = $comment_closing_at - $void_flag_length - 1; $char_at > $json_at; $char_at-- ) {
-				$char = $text[ $char_at ];
-
-				switch ( $char ) {
-					case ' ':
-					case "\t":
-					case "\f":
-					case "\r":
-					case "\n":
-						++$after_json_whitespace_length;
-						continue 2;
-
-					case '}':
-						$json_length = $char_at - $json_at + 1;
-						break 2;
-
-					default:
-						$at = $after_comment_end;
-						continue 3;
-				}
+			if ( $known_last_char_at <= $json_at || '}' !== $text[ $known_last_char_at ] ) {
+				$at = $comment_opening_at + 4;
+				continue;
 			}
 
-			/*
-			 * This covers cases where there is no terminating “}” or where
-			 * mandatory whitespace is missing.
-			 */
-			if ( 0 === $json_length || 0 === $after_json_whitespace_length ) {
-				$at = $after_comment_end;
+			$json_length                  = $known_last_char_at - $json_at + 1;
+			$after_json_whitespace_length = $comment_closing_at - $void_flag_length - 1 - $known_last_char_at;
+
+			// Whitespace is mandatory between the JSON attributes and the comment closer.
+			if ( 0 === $after_json_whitespace_length ) {
+				$at = $comment_opening_at + 4;
 				continue;
 			}
 

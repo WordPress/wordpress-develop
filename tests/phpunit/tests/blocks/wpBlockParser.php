@@ -258,4 +258,34 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 			$blocks
 		);
 	}
+
+	/**
+	 * Ensures that a `<!--` inside a SCRIPT element does not swallow the closer of its block.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_comment_opening_inside_script_does_not_hide_the_block_closer() {
+		$parser = new WP_Block_Parser();
+		$blocks = $parser->parse( '<!-- wp:html --><script>var a = "<!--";</script><!-- /wp:html --><!-- wp:paragraph --><p>B</p><!-- /wp:paragraph -->' );
+
+		$this->assertSame(
+			array(
+				array(
+					'blockName'    => 'core/html',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '<script>var a = "<!--";</script>',
+					'innerContent' => array( '<script>var a = "<!--";</script>' ),
+				),
+				array(
+					'blockName'    => 'core/paragraph',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '<p>B</p>',
+					'innerContent' => array( '<p>B</p>' ),
+				),
+			),
+			$blocks
+		);
+	}
 }
