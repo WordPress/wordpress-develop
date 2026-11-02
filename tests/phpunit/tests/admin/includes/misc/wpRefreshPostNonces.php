@@ -81,7 +81,7 @@ class Tests_Admin_Includes_Misc_WpRefreshPostNonces extends WP_UnitTestCase {
 			'zero'            => array( 'post_id' => 0 ),
 			'string zero'     => array( 'post_id' => '0' ),
 			'non-numeric'     => array( 'post_id' => 'abc' ),
-			'missing post_id' => array( 'post_id' => null ),
+			'null post_id'    => array( 'post_id' => null ),
 		);
 	}
 
