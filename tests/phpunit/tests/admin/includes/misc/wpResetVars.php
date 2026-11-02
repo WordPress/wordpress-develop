@@ -94,7 +94,7 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	 *     expected_values: array<string, mixed>,
 	 * }>
 	 */
-	public function data_wp_reset_vars(): array {
+	public static function data_wp_reset_vars(): array {
 		return array(
 			'multiple_vars' => array(
 				'vars'            => array( 'v1', 'v2', 'v3' ),
