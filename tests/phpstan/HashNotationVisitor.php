@@ -561,12 +561,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					$entry['children'] = $children;
 
 					/*
-					 * An entry that opens a hash carries no description beside its
-					 * `@type`, because the `{` ends the line. What describes it is the
-					 * hash's own intro, which is where a marker such as `Optional.`
-					 * for the whole block is written.
+					 * An entry that opens a hash usually carries no description beside
+					 * its `@type`, because the `{` ends the line. What describes it is
+					 * the hash's own intro, which is where a marker such as `Optional.`
+					 * for the whole block is written. Any text that does come before
+					 * the `{` is kept on a line of its own, so the intro still opens
+					 * a line for the markers, which are matched per line.
 					 */
-					$entry['description'] = trim( $entry['description'] . ' ' . $nested );
+					$entry['description'] = trim( $entry['description'] . "\n" . $nested );
 				}
 
 				unset( $entry['opens'] );
@@ -1088,7 +1090,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * "receives optional mixed input", or from the "Optional self closing
 		 * slash" of a match array whose every group is always set.
 		 */
-		if ( preg_match( '#^\s*Optional\.#i', $entry['description'] ) === 1 ) {
+		if ( preg_match( '#^\s*Optional\.#im', $entry['description'] ) === 1 ) {
 			return true;
 		}
 
@@ -1122,7 +1124,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Reports whether a description marks its key as required.
 	 *
 	 * The marker is a `Required.` sentence, written either first, as `Optional.`
-	 * is, or last, as some of core's hashes have it. Only the whole sentence
+	 * is, or last, as some of core's hashes have it, in any line of the
+	 * description, as `parse_entries()` splits it. Only the whole sentence
 	 * counts: the word inside one is prose, as in a "Capability required for the
 	 * panel", or the "Required for multi-widgets" of a key that is not.
 	 *
@@ -1136,7 +1139,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function is_required( string $description ): bool {
-		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#', $description ) === 1;
+		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#m', $description ) === 1;
 	}
 
 	/**
