@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Block Supports
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @group block-supports
  */

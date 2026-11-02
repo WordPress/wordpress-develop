@@ -7,13 +7,13 @@
  * overrides in `style['@tablet'].rotate` and `style['@mobile'].rotate`.
  *
  * @package WordPress
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
  * Registers the style block attribute for block types that support rotation.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
@@ -41,7 +41,7 @@ function wp_register_rotate_support( $block_type ) {
  * Block attributes are untrusted, so anything that is not numeric is ignored.
  * The angle is rounded to two decimals and wrapped into the (-180, 180] range.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param mixed $value Stored rotation.
@@ -75,11 +75,10 @@ function wp_get_rotate_value( $value ) {
 /**
  * Builds the CSS rules that rotate a block, without their selector.
  *
- * The `rotate` property is used rather than `transform` so that it combines with any
- * transforms a theme or block applies. In a viewport override, 0 undoes the default
- * rotation, so it is output as `none`.
+ * The `rotate` property is used because it maps most directly to the editor feature.
+ * In a viewport override, 0 undoes the default rotation, so it is output as `none`.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param array $style                    Block style attribute.
@@ -119,9 +118,9 @@ function wp_get_rotate_style_rules( $style, $responsive_media_queries ) {
  * Rotates a block on the front end.
  *
  * The rules are added to the block supports stylesheet under a class generated from
- * them, the default rotation first, so that viewport overrides win.
+ * them.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param string $block_content Rendered block content.
