@@ -41,7 +41,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch_domains' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_dns_prefetch_domains( $hints, $method ) {
@@ -72,7 +72,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_preconnect_domains' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_preconnect_domains( $hints, $method ) {
@@ -98,7 +98,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_prerender_urls' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_prerender_urls( $hints, $method ) {
@@ -121,7 +121,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch_long_urls' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_dns_prefetch_long_urls( $hints, $method ) {
@@ -146,7 +146,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_dequeue_style( 'googlefonts' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function test_dns_prefetch_scripts() {
@@ -163,7 +163,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_dequeue_style( 'googlefonts' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -179,7 +179,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_deregister_script( 'jquery-elsewhere' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 		$this->assertStringNotContainsString( $unexpected, $actual );
 	}
 
@@ -193,7 +193,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		wp_deregister_script( 'test-script' );
 
 		$actual = get_echo( 'wp_resource_hints' );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -206,13 +206,13 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		add_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_errant_colon' ), 10, 2 );
 		$actual = get_echo( 'wp_resource_hints' );
 		remove_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_errant_colon' ) );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 
 		// Unsupported Scheme.
 		add_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_unsupported_scheme' ), 10, 2 );
 		$actual = get_echo( 'wp_resource_hints' );
 		remove_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_unsupported_scheme' ) );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_malformed_url_errant_colon( $hints, $method ) {
@@ -247,7 +247,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_url_with_attributes' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_url_with_attributes( $hints, $method ) {
@@ -321,7 +321,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 			2
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			"<link href='https://example.com/foo.html' as='document' fetchpriority='low' hreflang='en' media='(min-width: 600px)' referrerpolicy='no-referrer' title='Foo' type='text/html' rel='prefetch' />\n",
 			get_echo( 'wp_resource_hints' )
 		);
@@ -350,7 +350,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 			2
 		);
 
-		$this->assertSame( $expected, get_echo( 'wp_resource_hints' ) );
+		$this->assertEqualHTML( $expected, get_echo( 'wp_resource_hints' ) );
 	}
 
 	/**
