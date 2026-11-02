@@ -74,7 +74,7 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
  *   would not be assignable to a property declared `stdClass`. A template type
- *   the docblock declares is not taken for a class, and neither a `T[]` nor its
+ *   in scope is not taken for a class, and neither a `T[]` nor its
  *   entry may name one, because whether the shape would be an array or an object
  *   one depends on the template's bound.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
@@ -193,17 +193,51 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private array $normalized = array();
 
 	/**
-	 * Template types the docblock being translated declares, keyed by lowercased
-	 * name.
+	 * Template types in scope for the docblock being translated, keyed by
+	 * lowercased name.
 	 *
 	 * A hash on a template type is left untranslated, since the shape it takes
-	 * depends on the template's bound. Only the templates of the docblock itself
-	 * are known: a method's hash on a template of its class is still taken for a
-	 * hash on a class of that name.
+	 * depends on the template's bound. The templates in scope are those the
+	 * docblock declares and those of every class, interface, or trait it is
+	 * nested in, so a method's hash on a template of its class is skipped too.
 	 *
 	 * @var array<string, true>
 	 */
 	private array $templates = array();
+
+	/**
+	 * Template types each enclosing class, interface, or trait declares, from the
+	 * outermost in.
+	 *
+	 * @var list<array<string, true>>
+	 */
+	private array $class_templates = array();
+
+	/**
+	 * Forgets the classes of the previous file.
+	 *
+	 * @param Node[] $nodes The nodes of the file.
+	 * @return null
+	 */
+	public function beforeTraverse( array $nodes ) {
+		$this->class_templates = array();
+
+		return null;
+	}
+
+	/**
+	 * Leaves the scope of a class's templates.
+	 *
+	 * @param Node $node The node being left.
+	 * @return null
+	 */
+	public function leaveNode( Node $node ) {
+		if ( $node instanceof Node\Stmt\ClassLike ) {
+			array_pop( $this->class_templates );
+		}
+
+		return null;
+	}
 
 	/**
 	 * Translates the hashes in a node's docblock into `@phpstan-*` shapes.
@@ -220,6 +254,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	public function enterNode( Node $node ): ?Node {
 		$doc = $node->getDocComment();
+
+		// A class's templates are in scope for its members' docblocks, hash or not.
+		if ( $node instanceof Node\Stmt\ClassLike ) {
+			$this->class_templates[] = null === $doc ? array() : $this->declared_templates( $doc->getText() );
+		}
+
 		if ( null === $doc ) {
 			return null;
 		}
@@ -277,6 +317,18 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
+	 * Collects the template types a docblock declares.
+	 *
+	 * @param string $text Docblock text.
+	 * @return array<string, true> Template types, keyed by lowercased name.
+	 */
+	private function declared_templates( string $text ): array {
+		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+
+		return array_fill_keys( array_map( 'strtolower', $matches[1] ), true );
+	}
+
+	/**
 	 * Collects the parameters a function takes by reference.
 	 *
 	 * @param Node\FunctionLike $node Node the docblock is attached to.
@@ -305,8 +357,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$tags      = $this->split_tags( $text );
 		$covered   = $this->phpstan_counterparts( $tags );
 
-		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
-		$this->templates = array_fill_keys( array_map( 'strtolower', $matches[1] ), true );
+		$this->templates = array_merge( $this->declared_templates( $text ), ...$this->class_templates );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
