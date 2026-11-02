@@ -65,12 +65,13 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	 * @param array $expected_values Expected values for the globals.
 	 */
 	public function test_wp_reset_vars( $vars, $get, $post, $expected_values ) {
-		// Back up current globals that will be affected.
+		// Back up current globals that will be affected and initialize them with a sentinel value.
 		foreach ( $vars as $var ) {
 			$this->had_globals[ $var ] = array_key_exists( $var, $GLOBALS );
 			if ( $this->had_globals[ $var ] ) {
 				$this->original_globals[ $var ] = $GLOBALS[ $var ];
 			}
+			$GLOBALS[ $var ] = 'initial_value';
 		}
 
 		$_GET  = $get;
@@ -95,25 +96,7 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	 */
 	public function data_wp_reset_vars(): array {
 		return array(
-			'reset_from_post'      => array(
-				'vars'            => array( 'var1' ),
-				'get'             => array( 'var1' => 'get_val' ),
-				'post'            => array( 'var1' => 'post_val' ),
-				'expected_values' => array( 'var1' => 'post_val' ),
-			),
-			'reset_from_get'       => array(
-				'vars'            => array( 'var1' ),
-				'get'             => array( 'var1' => 'get_val' ),
-				'post'            => array(),
-				'expected_values' => array( 'var1' => 'get_val' ),
-			),
-			'reset_to_empty'       => array(
-				'vars'            => array( 'var1' ),
-				'get'             => array(),
-				'post'            => array(),
-				'expected_values' => array( 'var1' => '' ),
-			),
-			'multiple_vars'        => array(
+			'multiple_vars' => array(
 				'vars'            => array( 'v1', 'v2', 'v3' ),
 				'get'             => array(
 					'v1' => 'g1',
@@ -126,17 +109,20 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 					'v3' => '',
 				),
 			),
-			'handles_empty_string' => array(
-				'vars'            => array( 'v1' ),
-				'get'             => array( 'v1' => 'g1' ),
-				'post'            => array( 'v1' => '' ), // empty() will be true for ''
-				'expected_values' => array( 'v1' => 'g1' ),
-			),
-			'handles_zero'         => array(
-				'vars'            => array( 'v1' ),
-				'get'             => array( 'v1' => 'g1' ),
-				'post'            => array( 'v1' => '0' ), // empty() will be true for '0'
-				'expected_values' => array( 'v1' => 'g1' ),
+			'handles_zero'  => array(
+				'vars'            => array( 'v1', 'v2' ),
+				'get'             => array(
+					'v1' => 'g1',
+					'v2' => '0',
+				),
+				'post'            => array(
+					'v1' => '0',
+					'v2' => '',
+				),
+				'expected_values' => array(
+					'v1' => 'g1',
+					'v2' => '',
+				),
 			),
 		);
 	}
