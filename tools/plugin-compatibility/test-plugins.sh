@@ -51,6 +51,8 @@ DB_USER="root"
 DB_PASS="password"
 SERVER_PORT="8889"
 KEEP_INSTALL="no"
+FIXTURES_DIR=""
+EXPECT_FILE=""
 
 # How many levels of `Requires Plugins` to follow. Chains in the directory are one level deep in practice, so
 # the bound is only here to stop a circular declaration from looping forever.
@@ -80,6 +82,9 @@ Options:
   --port=<port>        Port the PHP built-in server listens on. Default: 8889.
   --keep               Leave the WordPress install in place on exit rather than removing it. Only used with
                        --no-docker.
+  --fixtures=<dir>     Install a plugin from <dir>/<slug> instead of WordPress.org when that directory exists.
+  --expect=<file>      Check each plugin's result against the one listed in <file>, and exit 0 only when they
+                       all match. Plugins are taken from the file when none are named.
   -h, --help           Print this message.
 
 Examples:
@@ -91,6 +96,10 @@ Examples:
 
   # Run the checks here, against a database that is already running.
   test-plugins.sh --no-docker --db-host=127.0.0.1:3306 --db-pass=root hello-dolly
+
+  # Check that plugins built to break are still caught.
+  test-plugins.sh --fixtures=tools/plugin-compatibility/fixtures \
+    --expect=tools/plugin-compatibility/fixtures/expected.txt
 
 Exits 0 when no plugin fataled, and 1 when one did. A plugin that could not be downloaded, or that core
 declined to activate because its declared requirements are not met, is reported as skipped and does not
@@ -120,12 +129,30 @@ while [ "$#" -gt 0 ]; do
 		--db-pass=* ) DB_PASS="${1#*=}" ;;
 		--port=* ) SERVER_PORT="${1#*=}" ;;
 		--keep ) KEEP_INSTALL="yes" ;;
+		--fixtures=* ) FIXTURES_DIR="${1#*=}" ;;
+		--expect=* ) EXPECT_FILE="${1#*=}" ;;
 		-h | --help ) usage; exit 0 ;;
 		-* ) usage >&2; error "Unknown option ${1}." ;;
 		* ) PLUGIN_LIST="${PLUGIN_LIST} ${1}" ;;
 	esac
 	shift
 done
+
+# Both are resolved now, while relative paths still mean what they meant to whoever passed them.
+if [ -n "${FIXTURES_DIR}" ]; then
+	FIXTURES_DIR="$( cd "${FIXTURES_DIR}" > /dev/null 2>&1 && pwd )" || error "The fixtures directory does not exist."
+fi
+
+if [ -n "${EXPECT_FILE}" ]; then
+	[ -f "${EXPECT_FILE}" ] || error "The expected results file does not exist."
+	EXPECT_DIR="$( cd "$( dirname "${EXPECT_FILE}" )" > /dev/null 2>&1 && pwd )"
+	EXPECT_FILE="${EXPECT_DIR%/}/$( basename "${EXPECT_FILE}" )"
+
+	# The expected results double as the list of plugins to test, in the order they are listed.
+	if [ -z "$( printf '%s' "${PLUGIN_LIST}" | tr -d '[:space:],' )" ]; then
+		PLUGIN_LIST="$( awk '$1 !~ /^#/ && NF > 0 { print $1 }' "${EXPECT_FILE}" )"
+	fi
+fi
 
 # Commas, spaces and newlines all separate slugs, so a list can be pasted in however it was written down.
 PLUGIN_SLUGS="$( printf '%s' "${PLUGIN_LIST}" | tr ',[:space:]' '\n' | grep -v '^$' | awk '!seen[$0]++' )"
@@ -192,11 +219,27 @@ run_in_docker() {
 
 	printf 'The database is ready. Running the checks in %s.\n\n' "${PHP_IMAGE}"
 
+	# Fixtures and expected results live on the host, so they are mounted read only and passed on by their
+	# path inside the container.
+	EXTRA_DOCKER_ARGS=()
+	EXTRA_SCRIPT_ARGS=()
+
+	if [ -n "${FIXTURES_DIR}" ]; then
+		EXTRA_DOCKER_ARGS=( "${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"}" --volume "${FIXTURES_DIR}:/fixtures:ro" )
+		EXTRA_SCRIPT_ARGS=( "${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"}" --fixtures=/fixtures )
+	fi
+
+	if [ -n "${EXPECT_FILE}" ]; then
+		EXTRA_DOCKER_ARGS=( "${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"}" --volume "${EXPECT_FILE}:/expected.txt:ro" )
+		EXTRA_SCRIPT_ARGS=( "${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"}" --expect=/expected.txt )
+	fi
+
 	# WordPress is installed inside the container rather than in a mounted directory, so a plugin cannot
 	# leave anything behind on the host and file ownership never comes into it. `HOME` is pointed at a
 	# writable directory because WP-CLI caches its downloads there.
 	docker run --rm --network "${DOCKER_NETWORK}" \
 		--volume "${SCRIPT_PATH}:/usr/local/bin/test-plugins.sh:ro" \
+		${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"} \
 		--env HOME=/tmp \
 		--entrypoint bash \
 		"${PHP_IMAGE}" /usr/local/bin/test-plugins.sh \
@@ -208,6 +251,7 @@ run_in_docker() {
 		--db-user=root \
 		--db-pass="${DB_PASS}" \
 		--port="${SERVER_PORT}" \
+		${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"} \
 		--plugins="$( printf '%s' "${PLUGIN_SLUGS}" | tr '\n' ' ' )"
 }
 
@@ -351,6 +395,16 @@ run_checks() {
 
 	test_plugins
 	report_results
+	REPORT_EXIT_CODE=$?
+
+	# Plugins built to fail are expected to fail, so with a list of expected results it is whether they matched
+	# that decides the exit code.
+	if [ -n "${EXPECT_FILE}" ]; then
+		check_expectations
+		return
+	fi
+
+	return "${REPORT_EXIT_CODE}"
 }
 
 # wp <arguments>
@@ -415,8 +469,15 @@ logged_fatals() {
 
 # install_plugin <slug>
 #
-# Installs a plugin from WordPress.org. Returns non zero when the download failed.
+# Installs a plugin from the fixtures directory when there is one by that name, and from WordPress.org
+# otherwise. Returns non zero when the plugin could not be installed.
 install_plugin() {
+	if [ -n "${FIXTURES_DIR}" ] && [ -d "${FIXTURES_DIR}/${1}" ]; then
+		printf 'Installing %s from %s.\n' "${1}" "${FIXTURES_DIR}"
+		cp -R "${FIXTURES_DIR}/${1}" "${WP_DIR}/wp-content/plugins/"
+		return
+	fi
+
 	wp plugin install "${1}" --skip-plugins --skip-themes
 }
 
@@ -869,6 +930,60 @@ report_results() {
 	fi
 
 	printf '\nNo plugins fataled against WordPress %s.\n' "${WP_VERSION}"
+}
+
+##
+# Compares each plugin's result with the one the expected results file lists for it, and exits non zero when
+# any of them differ.
+#
+# Each line of the file is a slug, the expected result, and optionally some text that the "Also active" or
+# "Details" column has to contain. That last part is what tells a plugin that failed for the reason it was
+# built to fail apart from one that failed for some other reason.
+##
+check_expectations() {
+	MISMATCH_COUNT=0
+	MATCH_COUNT=0
+
+	printf '\nChecking the results against %s.\n\n' "${EXPECT_FILE}"
+
+	while read -r EXPECTED_SLUG EXPECTED_STATUS EXPECTED_TEXT; do
+		case "${EXPECTED_SLUG}" in
+			'' | '#'* ) continue ;;
+		esac
+
+		ROW="$( awk -F '\t' -v slug="${EXPECTED_SLUG}" '$1 == slug { print; exit }' "${RESULTS}" )"
+		ACTUAL_STATUS="$( printf '%s' "${ROW}" | cut -f 3 )"
+		ACTUAL_TEXT="$( printf '%s' "${ROW}" | cut -f 4- | tr '\t' ' ' )"
+		MATCHED="yes"
+
+		if [ -z "${ROW}" ] || [ "${ACTUAL_STATUS}" != "${EXPECTED_STATUS}" ]; then
+			MATCHED="no"
+		elif [ -n "${EXPECTED_TEXT}" ]; then
+			case "${ACTUAL_TEXT}" in
+				*"${EXPECTED_TEXT}"* ) ;;
+				* ) MATCHED="no" ;;
+			esac
+		fi
+
+		if [ "${MATCHED}" = "yes" ]; then
+			MATCH_COUNT=$(( MATCH_COUNT + 1 ))
+			printf 'ok        %s: %s\n' "${EXPECTED_SLUG}" "${EXPECTED_STATUS}"
+		else
+			MISMATCH_COUNT=$(( MISMATCH_COUNT + 1 ))
+			printf 'MISMATCH  %s: expected %s %s\n          got %s %s\n' "${EXPECTED_SLUG}" "${EXPECTED_STATUS}" "${EXPECTED_TEXT}" "${ACTUAL_STATUS:-no result}" "${ACTUAL_TEXT}"
+		fi
+	done < "${EXPECT_FILE}"
+
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+		printf '%s of %s results matched %s.\n\n' "${MATCH_COUNT}" "$(( MATCH_COUNT + MISMATCH_COUNT ))" "$( basename "${EXPECT_FILE}" )" >> "${GITHUB_STEP_SUMMARY}"
+	fi
+
+	if [ "${MISMATCH_COUNT}" -gt 0 ]; then
+		printf '\n%s result(s) did not match what was expected.\n' "${MISMATCH_COUNT}"
+		return 1
+	fi
+
+	printf '\nEvery result matched what was expected.\n'
 }
 
 if [ "${USE_DOCKER}" = "yes" ]; then
