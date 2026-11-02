@@ -9,7 +9,7 @@ QUnit.module( 'Site Health', function() {
 					status: 'good'
 				}
 			},
-			'The test results contain locale-independent data.'
+			'The test results contain locale-independent data and exclude missing, empty, and whitespace-only identifiers.'
 		);
 		assert.deepEqual(
 			SiteHealth.site_status.issues,

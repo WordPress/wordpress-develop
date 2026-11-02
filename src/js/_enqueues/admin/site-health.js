@@ -115,6 +115,11 @@ jQuery( function( $ ) {
 			return false;
 		}
 
+		// A blank identifier would cause the server to reject the entire cache update.
+		if ( 'string' !== typeof issue.test || '' === issue.test.trim() ) {
+			return false;
+		}
+
 		// Loop over expected data and match the data types.
 		for ( key in minimumExpected ) {
 			value = minimumExpected[ key ];

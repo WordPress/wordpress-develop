@@ -157,6 +157,18 @@
 							label: 'An invalid test with an unsupported status',
 							status: 'info',
 							test: 'unsupported_status_test'
+						},
+						{
+							description: 'An empty identifier.',
+							label: 'An invalid test with an empty identifier',
+							status: 'critical',
+							test: ''
+						},
+						{
+							description: 'A whitespace-only identifier.',
+							label: 'An invalid test with a blank identifier',
+							status: 'recommended',
+							test: ' \t\n\r '
 						}
 					],
 					results: {}
