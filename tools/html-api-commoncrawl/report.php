@@ -106,15 +106,19 @@ function load_results( $dir ) {
 		}
 
 		$documents[ $row['key'] ] = array(
-			'url'        => $row['url'],
-			'bytes'      => $timing['bytes'],
-			'tag_ns'     => median( $timing['tag_ns'] ),
-			'html_ns'    => median( $timing['html_ns'] ),
-			'kses_ns'    => median( $timing['kses_ns'] ),
-			'supported'  => '' === $row['last_error'],
-			'reason'     => $row['reason'],
-			'line'       => $row['line'],
-			'incomplete' => '1' === $row['incomplete'],
+			'url'          => $row['url'],
+			'bytes'        => $timing['bytes'],
+			'tag_ns'       => median( $timing['tag_ns'] ),
+			'html_ns'      => median( $timing['html_ns'] ),
+			'kses_ns'      => median( $timing['kses_ns'] ),
+			'supported'    => '' === $row['last_error'],
+			'reason'       => $row['reason'],
+			'line'         => $row['line'],
+			'incomplete'   => '1' === $row['incomplete'],
+			'token_at'     => $row['token_at'],
+			'token_length' => $row['token_length'],
+			'token_text'   => $row['token_text'],
+			'breadcrumbs'  => $row['breadcrumbs'],
 		);
 	}
 
@@ -210,6 +214,54 @@ function format_code( $text, $max_length = 100 ) {
 	}
 
 	return '`' . str_replace( array( '`', '|', "\n", "\r" ), array( "'", '\|', ' ', ' ' ), $text ) . '`';
+}
+
+/**
+ * Formats the bytes of a document which the HTML Processor stopped on, from where they start to where they end.
+ *
+ * @param array $result Analysis result for one document.
+ * @return string Byte range, or an empty string if it is not known.
+ */
+function format_bytes_span( $result ) {
+	if ( '' === $result['token_at'] ) {
+		return '';
+	}
+
+	return number_format( (int) $result['token_at'] ) . '–' . number_format( (int) $result['token_at'] + (int) $result['token_length'] );
+}
+
+/**
+ * Formats breadcrumbs as inline code, keeping the innermost elements of a deep stack.
+ *
+ * @param string $breadcrumbs Element names from the outermost to the innermost, separated by ` > `.
+ * @param int    $max_count   Most elements to show.
+ * @return string Inline code, or an empty string if there are no breadcrumbs.
+ */
+function format_breadcrumbs( $breadcrumbs, $max_count = 6 ) {
+	if ( '' === $breadcrumbs ) {
+		return '';
+	}
+
+	$elements = explode( ' > ', $breadcrumbs );
+	if ( count( $elements ) > $max_count ) {
+		$elements = array( '…', ...array_slice( $elements, -$max_count ) );
+	}
+
+	return format_code( implode( ' > ', $elements ), 120 );
+}
+
+/**
+ * Formats where the HTML Processor stopped on a document: the token, its bytes, and the breadcrumbs.
+ *
+ * @param array $result Analysis result for one document.
+ * @return string[] Table cells.
+ */
+function failure_cells( $result ) {
+	return array(
+		'' === $result['token_text'] ? '' : format_code( $result['token_text'], 60 ),
+		format_bytes_span( $result ),
+		format_breadcrumbs( $result['breadcrumbs'] ),
+	);
 }
 
 /**
@@ -380,6 +432,9 @@ function slowdowns_table( $pairs, $parser ) {
 /**
  * Renders example documents whose support changed.
  *
+ * Where the HTML Processor stopped is shown for the PR, or for the target
+ * branch when the PR supports the document.
+ *
  * @param array[] $pairs Documents, each with `base` and `merge` results.
  * @return string Markdown table.
  */
@@ -391,10 +446,11 @@ function examples_table( $pairs ) {
 			format_bytes( $pair['base']['bytes'] ),
 			$pair['base']['supported'] ? 'supported' : format_code( "L{$pair['base']['line']}: {$pair['base']['reason']}" ),
 			$pair['merge']['supported'] ? 'supported' : format_code( "L{$pair['merge']['line']}: {$pair['merge']['reason']}" ),
+			...failure_cells( $pair['merge']['supported'] ? $pair['base'] : $pair['merge'] ),
 		);
 	}
 
-	return table( array( 'URL', 'Size', 'Target', 'PR' ), $rows );
+	return table( array( 'URL', 'Size', 'Target', 'PR', 'Token', 'Bytes', 'Breadcrumbs' ), $rows );
 }
 
 /**
@@ -402,7 +458,8 @@ function examples_table( $pairs ) {
  *
  * Examples come from the PR, or from the target branch for a reason only it
  * stops for. They are the smallest documents, which are the easiest to inspect,
- * taking at most one from each host.
+ * taking at most one from each host. Each shows the token the HTML Processor
+ * stopped on, its bytes in the document, and the breadcrumbs at that point.
  *
  * @param array[]  $reasons    Reasons, in report order, each with `base` and `merge` counts, call sites, and documents.
  * @param callable $source_url Returns the link to `class-wp-html-processor.php` at a commit, or null.
@@ -437,6 +494,7 @@ function reason_examples_table( $reasons, $source_url, $base_sha, $merge_sha ) {
 				format_code( $document['url'] ),
 				format_bytes( $document['bytes'] ),
 				'' === $line ? '' : ( $url ? "[L{$line}]({$url}#L{$line})" : "L{$line}" ) . ( 'base' === $side ? ' (target)' : '' ),
+				...failure_cells( $document ),
 			);
 
 			if ( count( $hosts ) === HTML_API_BENCH_REASON_EXAMPLES ) {
@@ -445,7 +503,7 @@ function reason_examples_table( $reasons, $source_url, $base_sha, $merge_sha ) {
 		}
 	}
 
-	return table( array( 'Reason', 'URL', 'Size', 'Call site' ), $rows );
+	return table( array( 'Reason', 'URL', 'Size', 'Call site', 'Token', 'Bytes', 'Breadcrumbs' ), $rows );
 }
 
 $base_results  = load_results( $argv[1] );
@@ -564,11 +622,7 @@ foreach ( $pairs as $pair ) {
 		}
 
 		$reasons[ $result['reason'] ][ $side ]['count']       = ( $reasons[ $result['reason'] ][ $side ]['count'] ?? 0 ) + 1;
-		$reasons[ $result['reason'] ][ $side ]['documents'][] = array(
-			'url'   => $result['url'],
-			'bytes' => $result['bytes'],
-			'line'  => $result['line'],
-		);
+		$reasons[ $result['reason'] ][ $side ]['documents'][] = $result;
 		if ( '' !== $result['line'] ) {
 			$reasons[ $result['reason'] ][ $side ]['lines'][ $result['line'] ] = ( $reasons[ $result['reason'] ][ $side ]['lines'][ $result['line'] ] ?? 0 ) + 1;
 		}

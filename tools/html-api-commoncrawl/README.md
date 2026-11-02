@@ -3,7 +3,7 @@
 Compares how the HTML API parses real-world documents with and without a pull request. It fetches a random sample of HTML documents from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
 
 - how long the Tag Processor and the HTML Processor take to parse each document, and how long `wp_kses( $html, 'post' )` takes on it, for all documents and for small, medium, and large ones;
-- which documents the HTML Processor does not support, and why it stopped on them, with a few example documents for each reason.
+- which documents the HTML Processor does not support, and why it stopped on them, with a few example documents for each reason. Each example shows the token the HTML Processor stopped on, its byte offsets in the document, and the breadcrumbs of open elements at that point.
 
 The [`HTML API CommonCrawl Analysis`](../../.github/workflows/html-api-commoncrawl.yml) workflow runs this for a pull request when:
 - the `html-api-commoncrawl` label is added to the pull request, if it changes the HTML API or `kses.php`. The label is removed straight away, so add it again to run another analysis.
@@ -16,7 +16,7 @@ The report is left as a comment on the pull request. Each new analysis replaces 
 - `cc-analyzer.phar`: [cc-analyzer](#rebuilding-cc-analyzerphar), which fetches documents from CommonCrawl into a local batch, and replays a batch through an analysis script. It streams whole WARC files and keeps their HTML responses. That takes only a handful of requests: CommonCrawl blocks runners which send many, such as one per record. It honors CommonCrawl's rate limiting, and if a download still fails, it lists the failure and the analysis runs on the documents it has.
 - `bootstrap.php`: loads the HTML API, and what `wp_kses()` needs, from the `src/` directory in `HTML_API_BENCH_WP_SRC`, without loading WordPress. It presents a UTF-8 site at example.com. When a change adds a file to the HTML API, add it to the list of files here.
 - `benchmark.php`: an analysis script which times the Tag Processor, the HTML Processor, and `wp_kses( $html, 'post' )` on each document and writes `benchmark.csv`.
-- `analysis.php`: an analysis script which records whether the HTML Processor supports each document and writes `analysis.csv`.
+- `analysis.php`: an analysis script which records whether the HTML Processor supports each document, and where it stopped on those it does not, and writes `analysis.csv`.
 - `report.php`: compares the results from two checkouts and prints the Markdown report.
 
 ## Running locally
