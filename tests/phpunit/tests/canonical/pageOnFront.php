@@ -39,7 +39,7 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data() {
+	public static function data() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.

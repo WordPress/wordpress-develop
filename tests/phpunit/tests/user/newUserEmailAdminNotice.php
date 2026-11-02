@@ -165,7 +165,7 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_multisite_admin_notice_actions() {
+	public static function data_multisite_admin_notice_actions() {
 		return array(
 			'user_admin_notices'    => array( 'user_admin_notices' ),
 			'network_admin_notices' => array( 'network_admin_notices' ),

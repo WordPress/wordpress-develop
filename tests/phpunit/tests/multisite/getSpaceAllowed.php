@@ -44,7 +44,7 @@ class Tests_Multisite_GetSpaceAllowed extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_space_allowed() );
 	}
 
-	public function data_blog_upload_space() {
+	public static function data_blog_upload_space() {
 		return array(
 			// A valid site option will be preferred over a network option.
 			array( 111, 200, 111 ),
