@@ -22,7 +22,7 @@
 <!-- wp:site-tagline {"style":{"layout":{"selfStretch":"fill","flexSize":null}}} /--></div>
 <!-- /wp:group -->
 
-<!-- wp:navigation {"overlay":"navigation-overlay","icon":"menu","fontSize":"small","ariaLabel":"<?php esc_attr_e( 'Primary', 'ipsum' ); ?>"} /--></div>
+<!-- wp:navigation {"overlay":"navigation-overlay","icon":"menu","overlayBackgroundColor":"base","overlayTextColor":"contrast","fontSize":"small","ariaLabel":"<?php esc_attr_e( 'Primary', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group --></div>
 <!-- /wp:group -->
 
