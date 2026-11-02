@@ -107,6 +107,14 @@ class Tests_Block_Supports_WpGetSpacingClassesAndStyles extends WP_UnitTestCase 
 				),
 				'expected'         => array(),
 			),
+			'object attributes'    => array(
+				'block_attributes' => (object) array(
+					'style' => array(
+						'spacing' => array( 'margin' => '3px' ),
+					),
+				),
+				'expected'         => array(),
+			),
 		);
 	}
 }

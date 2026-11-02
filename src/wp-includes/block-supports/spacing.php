@@ -80,6 +80,10 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
  * @return array Array with `class` and `style` keys, each present only when non-empty.
  */
 function wp_get_spacing_classes_and_styles( $block_attributes ) {
+	if ( ! is_array( $block_attributes ) ) {
+		return array();
+	}
+
 	$spacing = $block_attributes['style']['spacing'] ?? null;
 	if ( ! is_array( $spacing ) ) {
 		return array();

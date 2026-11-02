@@ -62,6 +62,10 @@ class Tests_Block_Supports_WpGetShadowClassesAndStyles extends WP_UnitTestCase {
 				'block_attributes' => null,
 				'expected'         => array(),
 			),
+			'object attributes'    => array(
+				'block_attributes' => (object) array( 'style' => array( 'shadow' => '1px 1px 1px #000' ) ),
+				'expected'         => array(),
+			),
 		);
 	}
 }
