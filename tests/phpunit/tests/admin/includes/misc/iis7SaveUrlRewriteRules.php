@@ -94,6 +94,7 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 			$is_iis7 = $this->orig_is_iis7;
 		}
 
+		add_filter( 'flush_rewrite_rules_hard', '__return_false' );
 		parent::tear_down();
 	}
 
