@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * Tests for the `wp_default_editor()` function.
+ *
+ * @group general
+ * @group editor
+ *
+ * @covers ::wp_default_editor
+ */
+class Tests_General_WpDefaultEditor extends WP_UnitTestCase {
+
+	/**
+	 * Tests that wp_default_editor() returns 'tinymce' by default.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_wp_default_editor_default() {
+		$this->assertSame( 'tinymce', wp_default_editor() );
+	}
+
+	/**
+	 * Tests that wp_default_editor() returns user editor setting when set.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_wp_default_editor_respects_user_setting() {
+		$user_id = self::factory()->user->create();
+		wp_set_current_user( $user_id );
+
+		$_COOKIE[ 'wp-settings-' . $user_id ] = 'editor=html';
+
+		$this->assertSame( 'html', wp_default_editor() );
+
+		unset( $_COOKIE[ 'wp-settings-' . $user_id ] );
+	}
+
+	/**
+	 * Tests that the wp_default_editor filter modifies the default editor.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_wp_default_editor_filter() {
+		add_filter(
+			'wp_default_editor',
+			static function () {
+				return 'html';
+			}
+		);
+
+		$this->assertSame( 'html', wp_default_editor() );
+	}
+}
