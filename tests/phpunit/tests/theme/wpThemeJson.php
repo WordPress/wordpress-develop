@@ -1687,7 +1687,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 */
 	public function test_variation_rule_from_a_pseudo_node_ignores_the_pseudo_clip() {
 		register_block_style(

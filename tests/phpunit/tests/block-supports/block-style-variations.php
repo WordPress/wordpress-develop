@@ -725,7 +725,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	/**
 	 * Tests that a variation text color refills the letters over a block type text gradient.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 *
 	 * @covers ::wp_render_block_style_variation_support_styles
 	 */
@@ -763,7 +763,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 * Tests that an inner block color in a variation shared by several blocks
 	 * refills the letters over the inner block type text gradient.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 *
 	 * @covers ::wp_render_block_style_variation_support_styles
 	 */
@@ -806,7 +806,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 * Tests that a variation breakpoint text color refills the letters over a
 	 * block type text gradient.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 *
 	 * @covers ::wp_render_block_style_variation_support_styles
 	 */
@@ -846,7 +846,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 * Tests that a variation pseudo-state text color refills the letters over
 	 * a block type text gradient.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 *
 	 * @covers ::wp_render_block_style_variation_support_styles
 	 */
@@ -885,7 +885,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	/**
 	 * Tests that variation styles are unchanged when no block type sets a text clip.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66438
 	 *
 	 * @covers ::wp_render_block_style_variation_support_styles
 	 */
