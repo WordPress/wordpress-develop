@@ -420,6 +420,13 @@ install_plugin() {
 	INSTALLED_DIRS[${#INSTALLED_DIRS[@]} - 1]="$( wp plugin path "${1}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
 }
 
+# is_active <slug>
+#
+# Returns zero when core has recorded the plugin as active.
+is_active() {
+	wp plugin is-active "${1}" --skip-plugins --skip-themes > /dev/null 2>&1
+}
+
 # plugin_dependencies <slug>
 #
 # Prints the slugs named in the plugin's `Requires Plugins` header, one per line. WordPress' own header
@@ -539,9 +546,11 @@ test_plugins() {
 		# most popular plugins - would go untested.
 		#
 		# Dependencies are resolved a level at a time so that a dependency declaring its own is installed
-		# too. Anything already installed is left alone, which covers a plugin named twice in the same tree
-		# as well as a declaration pointing back at the plugin under test.
+		# too. Each one is resolved only once, which covers a plugin named twice in the same tree as well as a
+		# declaration pointing back at the plugin under test. A dependency that is already installed, such as
+		# the Akismet that ships with core, is not downloaded again but is still activated and followed.
 		PENDING=()
+		RESOLVED=$'\n'"${SLUG}"$'\n'
 
 		while IFS= read -r DEPENDENCY; do
 			[ -n "${DEPENDENCY}" ] && PENDING[${#PENDING[@]}]="${DEPENDENCY}"
@@ -553,16 +562,20 @@ test_plugins() {
 			NEXT=()
 
 			for DEPENDENCY in "${PENDING[@]}"; do
-				if wp plugin is-installed "${DEPENDENCY}" --skip-plugins --skip-themes > /dev/null 2>&1; then
-					continue
-				fi
+				case "${RESOLVED}" in
+					*$'\n'"${DEPENDENCY}"$'\n'* ) continue ;;
+				esac
 
-				printf 'Installing %s, which %s requires.\n' "${DEPENDENCY}" "${SLUG}"
+				RESOLVED="${RESOLVED}${DEPENDENCY}"$'\n'
 
-				if ! install_plugin "${DEPENDENCY}"; then
-					STATUS="SKIPPED"
-					REASON="The required plugin ${DEPENDENCY} is not available from WordPress.org"
-					break 2
+				if ! wp plugin is-installed "${DEPENDENCY}" --skip-plugins --skip-themes > /dev/null 2>&1; then
+					printf 'Installing %s, which %s requires.\n' "${DEPENDENCY}" "${SLUG}"
+
+					if ! install_plugin "${DEPENDENCY}"; then
+						STATUS="SKIPPED"
+						REASON="The required plugin ${DEPENDENCY} is not available from WordPress.org"
+						break 2
+					fi
 				fi
 
 				DEPENDENCIES[${#DEPENDENCIES[@]}]="${DEPENDENCY}"
@@ -582,6 +595,9 @@ test_plugins() {
 		# activated in passes: each pass activates whatever it can, and whatever core declined is tried
 		# again on the next. A pass that activates nothing means the rest can never be activated, whether
 		# because one of them is broken or because they require each other.
+		#
+		# A successful exit is not taken as proof of activation. A plugin that calls `exit` while activating
+		# ends WP-CLI with a zero status before core has recorded it as active.
 		if [ "${STATUS}" = "PASS" ] && [ "${#DEPENDENCIES[@]}" -gt 0 ]; then
 			INACTIVE=( "${DEPENDENCIES[@]}" )
 
@@ -589,8 +605,12 @@ test_plugins() {
 				STILL_INACTIVE=()
 
 				for DEPENDENCY in "${INACTIVE[@]}"; do
-					DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )" || STILL_INACTIVE[${#STILL_INACTIVE[@]}]="${DEPENDENCY}"
+					DEPENDENCY_OUTPUT="$( wp plugin activate "${DEPENDENCY}" 2>&1 )"
 					printf '%s\n' "${DEPENDENCY_OUTPUT}"
+
+					if ! is_active "${DEPENDENCY}"; then
+						STILL_INACTIVE[${#STILL_INACTIVE[@]}]="${DEPENDENCY}"
+					fi
 				done
 
 				if [ "${#STILL_INACTIVE[@]}" -eq "${#INACTIVE[@]}" ]; then
@@ -654,6 +674,10 @@ test_plugins() {
 						REASON="The plugin could not be activated"
 						;;
 				esac
+			elif ! is_active "${SLUG}"; then
+				# Checking the site now would be checking it without the plugin, and passing it for that.
+				STATUS="SKIPPED"
+				REASON="WP-CLI reported success, but the plugin was not active afterwards, so its activation stopped early"
 			fi
 		fi
 
