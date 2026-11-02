@@ -124,6 +124,19 @@ final class WP_Post_Type {
 	public $embeddable = null;
 
 	/**
+	 * Whether posts of this post type can be selected by random content redirects.
+	 *
+	 * Random content redirects send requests such as `example.com/random/` to a
+	 * randomly selected post.
+	 *
+	 * Default is true when $publicly_queryable is true and the post type has an archive.
+	 *
+	 * @since 7.2.0
+	 * @var bool $randomable
+	 */
+	public $randomable = null;
+
+	/**
 	 * Whether to generate and allow a UI for managing this post type in the admin.
 	 *
 	 * Default is the value of $public.
@@ -374,6 +387,17 @@ final class WP_Post_Type {
 	public $show_in_rest;
 
 	/**
+	 * Whether this post type should be exposed through the Abilities API.
+	 *
+	 * Default false. If true, the core content abilities can access the post type's
+	 * posts, subject to the current user's capabilities.
+	 *
+	 * @since 7.2.0
+	 * @var bool $show_in_abilities
+	 */
+	public $show_in_abilities;
+
+	/**
 	 * The base path for this post type's REST API endpoints.
 	 *
 	 * @since 4.7.4
@@ -535,6 +559,7 @@ final class WP_Post_Type {
 			'exclude_from_search'             => null,
 			'publicly_queryable'              => null,
 			'embeddable'                      => null,
+			'randomable'                      => null,
 			'show_ui'                         => null,
 			'show_in_menu'                    => null,
 			'show_in_nav_menus'               => null,
@@ -553,6 +578,7 @@ final class WP_Post_Type {
 			'can_export'                      => true,
 			'delete_with_user'                => null,
 			'show_in_rest'                    => false,
+			'show_in_abilities'               => false,
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,
@@ -578,10 +604,16 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'public'.
 		$args['embeddable'] ??= $args['public'];
 
+		// If not set, default to publicly queryable post types with an archive.
+		$args['randomable'] ??= $args['publicly_queryable'] && (bool) $args['has_archive'];
+
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
 			$args['rest_namespace'] = 'wp/v2';
 		}
+
+		// Only `true` exposes the post type, so other values, such as arrays, can be given a meaning later.
+		$args['show_in_abilities'] = true === $args['show_in_abilities'];
 
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {

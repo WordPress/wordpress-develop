@@ -178,7 +178,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_get_context_param() {
+	public static function data_get_context_param() {
 		return array(
 			'Collection' => array( false ),
 			'Single'     => array( true ),
@@ -447,7 +447,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'The font_face_settings data should match the expected data.'
 		);
 
-		$expected_file_path = WP_CONTENT_DIR . '/uploads/fonts/subdir/' . reset( $files )['name'];
+		$expected_file_path = ABSPATH . '/' . UPLOADS . '/fonts/subdir/' . reset( $files )['name'];
 		$expected_post_meta = 'subdir/' . reset( $files )['name'];
 		$this->assertFileExists( $expected_file_path, 'The font file should exist in the expected subdirectory.' );
 		$this->assertSame( $expected_post_meta, get_post_meta( $data['id'], '_wp_font_face_file', true ), 'The post meta should match the expected subdirectory.' );
@@ -682,7 +682,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_theme_json_version() {
+	public static function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
 			array( 4 ),
@@ -712,7 +712,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_settings() {
+	public static function data_create_item_invalid_settings() {
 		return array(
 			'Missing fontFamily'     => array(
 				'settings' => array_diff_key( self::$default_settings, array( 'fontFamily' => '' ) ),
@@ -860,7 +860,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_font_face_settings() {
+	public static function data_sanitize_font_face_settings() {
 		return array(
 			'settings with tags, extra whitespace, new lines' => array(
 				'settings' => array(

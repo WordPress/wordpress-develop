@@ -26,6 +26,7 @@ final class WP_Interactivity_API {
 	 *     'data-wp-class': 'data_wp_class_processor',
 	 *     'data-wp-style': 'data_wp_style_processor',
 	 *     'data-wp-text': 'data_wp_text_processor',
+	 *     'data-wp-html': 'data_wp_html_processor',
 	 *     'data-wp-each': 'data_wp_each_processor',
 	 * }
 	 */
@@ -37,6 +38,12 @@ final class WP_Interactivity_API {
 		'data-wp-class'         => 'data_wp_class_processor',
 		'data-wp-style'         => 'data_wp_style_processor',
 		'data-wp-text'          => 'data_wp_text_processor',
+		/*
+		 * `data-wp-html` is processed after `data-wp-text`, which it cannot be
+		 * combined with, and before `data-wp-each`, so that it resolves its
+		 * reference in the namespace and context its own element declares.
+		 */
+		'data-wp-html'          => 'data_wp_html_processor',
 		/*
 		 * `data-wp-each` needs to be processed in the last place because it moves
 		 * the cursor to the end of the processed items to prevent them to be
@@ -143,6 +150,25 @@ final class WP_Interactivity_API {
 	 * @var array{attributes: array<string, string|bool>}|null
 	 */
 	private $current_element = null;
+
+	/**
+	 * Marker that makes the placeholders of the current `process_directives()`
+	 * call recognizable. It occurs nowhere in the HTML that call received.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	private $html_placeholder_marker = '';
+
+	/**
+	 * Trusted HTML written by `data-wp-html` during the current
+	 * `process_directives()` call, indexed by the placeholder comment standing
+	 * in for it until the call has finished.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, string>
+	 */
+	private $html_placeholders = array();
 
 	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
@@ -455,6 +481,8 @@ final class WP_Interactivity_API {
 	 * and updates the markup accordingly.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 The output includes the trusted HTML that `data-wp-html` renders. That HTML is
+	 *              added once the whole call has finished, so it is never processed.
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
@@ -467,12 +495,34 @@ final class WP_Interactivity_API {
 		$this->namespace_stack = array();
 		$this->context_stack   = array();
 
+		/*
+		 * The trusted HTML of `data-wp-html` hosts never takes part in the
+		 * processing: each host receives a placeholder comment, and the comments
+		 * are replaced by their HTML once the result is known. The marker that
+		 * identifies them is chosen so that it occurs nowhere in the input, which
+		 * makes it impossible for the input to contain a placeholder.
+		 */
+		$marker = 'wp-interactivity-dangerous-html';
+		while ( str_contains( $html, $marker ) ) {
+			$marker .= '_';
+		}
+		$this->html_placeholder_marker = $marker;
+		$this->html_placeholders       = array();
+
 		$result = $this->_process_directives( $html );
 
 		$this->namespace_stack = null;
 		$this->context_stack   = null;
 
-		return $result ?? $html;
+		$placeholders            = $this->html_placeholders;
+		$this->html_placeholders = array();
+
+		if ( null === $result ) {
+			return $html;
+		}
+
+		// `strtr()` never searches the replacements it has inserted.
+		return strtr( $result, $placeholders );
 	}
 
 	/**
@@ -920,12 +970,13 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
 	 * @param string                                    $prefix The directive prefix to filter by.
-	 * @return array An array of entries containing the directive namespace, value, suffix, and unique ID.
+	 * @return array An array of entries containing the directive namespace, value, suffix, unique ID, and attribute name.
 	 * @phpstan-return list<array{
 	 *     namespace: string|null,
 	 *     value: mixed,
 	 *     suffix: string|null,
 	 *     unique_id: string|null,
+	 *     attribute_name: non-empty-string,
 	 * }>
 	 */
 	private function get_directive_entries( WP_Interactivity_API_Directives_Processor $p, string $prefix ): array {
@@ -962,10 +1013,11 @@ final class WP_Interactivity_API {
 
 			list( $namespace, $value ) = $this->extract_directive_value( $attribute_value, $default_namespace );
 			$entries[]                 = array(
-				'namespace' => $namespace,
-				'value'     => $value,
-				'suffix'    => $suffix,
-				'unique_id' => $unique_id,
+				'namespace'      => $namespace,
+				'value'          => $value,
+				'suffix'         => $suffix,
+				'unique_id'      => $unique_id,
+				'attribute_name' => $attribute_name,
 			);
 		}
 		// Sort directive entries to ensure stable ordering with the client.
@@ -1113,6 +1165,24 @@ final class WP_Interactivity_API {
 					continue;
 				}
 
+				/*
+				 * Remove a binding that would change an `object` attribute whose value KSES checks,
+				 * so that a client runtime without this check does not apply it either.
+				 */
+				if ( 'OBJECT' === $p->get_tag() && ! self::is_bindable_object_attribute( $entry['suffix'] ) ) {
+					$p->remove_attribute( $entry['attribute_name'] );
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The attribute name. */
+							__( 'The "%s" attribute cannot be bound on an "object" element, so the binding was ignored.' ),
+							esc_html( $entry['suffix'] )
+						),
+						'7.1.4'
+					);
+					continue;
+				}
+
 				// Skip if the suffix is an event handler.
 				if ( str_starts_with( $entry['suffix'], 'on' ) ) {
 					_doing_it_wrong(
@@ -1240,12 +1310,40 @@ final class WP_Interactivity_API {
 					) {
 						$result = $result ? 'true' : 'false';
 					}
+
 					$p->set_attribute( $entry['suffix'], $result );
 				} else {
 					$p->remove_attribute( $entry['suffix'] );
 				}
 			}
 		}
+	}
+
+	/**
+	 * Determines whether a binding may set or remove an attribute of an `object` element.
+	 *
+	 * KSES only allows an `object` element in post content after checking the values of its
+	 * `data` and `type` attributes. Neither the server nor the client can repeat that check for
+	 * a bound value, so a binding on an `object` element may only change attributes that cannot
+	 * change what it loads: `aria-*` attributes, `data-*` attributes other than directives,
+	 * `width`, `height`, and the global attributes KSES allows on any element. Any `aria-*`
+	 * attribute is allowed, where KSES lists only some. A `data-wp-*` attribute is refused
+	 * because it is a directive, which could bind `data` or `type` once rendered. The client
+	 * runtime enforces the same set.
+	 *
+	 * @since 7.1.4
+	 *
+	 * @param string $attribute_name The name of the bound attribute.
+	 * @return bool Whether the attribute may be bound on an `object` element.
+	 */
+	private static function is_bindable_object_attribute( string $attribute_name ): bool {
+		$attribute_name = strtolower( $attribute_name );
+
+		return (
+			str_starts_with( $attribute_name, 'aria-' ) ||
+			( str_starts_with( $attribute_name, 'data-' ) && ! str_starts_with( $attribute_name, 'data-wp-' ) ) ||
+			in_array( $attribute_name, array( 'class', 'dir', 'height', 'hidden', 'id', 'lang', 'role', 'style', 'tabindex', 'title', 'width' ), true )
+		);
 	}
 
 	/**
@@ -1411,6 +1509,111 @@ final class WP_Interactivity_API {
 			} else {
 				$p->set_content_between_balanced_tags( '' );
 			}
+		}
+	}
+
+	/**
+	 * Processes the `data-wp-html` directive.
+	 *
+	 * It sets the content of the current HTML element to the HTML of the token
+	 * that its associated reference resolves to. The HTML is written as given and
+	 * the directives inside it are not processed. See
+	 * {@see wp_interactivity_as_dangerous_html()} for the risks of marking HTML
+	 * as trusted.
+	 *
+	 * The element is left as it would be without the directive, and a notice
+	 * reports the reason, when the reference does not resolve to a token, the
+	 * element cannot hold content, or the element also carries `data-wp-text` or,
+	 * for a `template`, `data-wp-each`. A reference that resolves to `null`
+	 * declines without a notice. Only the entry without a suffix or a unique ID
+	 * is processed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
+	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
+	 */
+	private function data_wp_html_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
+		if ( 'enter' !== $mode ) {
+			return;
+		}
+
+		// Get the first valid `data-wp-html` entry without suffix or unique ID.
+		$valid_entry = array_find(
+			$this->get_directive_entries( $p, 'html' ),
+			fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] && ! empty( $entry['value'] )
+		);
+
+		if ( null === $valid_entry ) {
+			return;
+		}
+
+		/*
+		 * The structural reasons decline without evaluating the reference, so
+		 * their notice does not depend on the value and no derived state runs
+		 * for a result that would be discarded.
+		 */
+		if ( ! $p->has_and_visits_its_closer_tag() ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The HTML tag name of the element, in lowercase. */
+					__( 'The "data-wp-html" directive cannot set the content of a <%s> element because it cannot hold content. The element is left as it is.' ),
+					esc_html( strtolower( $p->get_tag() ) )
+				),
+				'7.2.0'
+			);
+			return;
+		}
+
+		$combined_directive = null;
+		if ( array_find( $this->get_directive_entries( $p, 'text' ), fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] ) ) {
+			$combined_directive = 'data-wp-text';
+		} elseif ( 'TEMPLATE' === $p->get_tag() && ! empty( $this->get_directive_entries( $p, 'each' ) ) ) {
+			$combined_directive = 'data-wp-each';
+		}
+		if ( null !== $combined_directive ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The directive combined with data-wp-html, such as data-wp-text. */
+					__( 'The "data-wp-html" directive cannot be combined with the "%s" directive on the same element. The "data-wp-html" directive is ignored.' ),
+					esc_html( $combined_directive )
+				),
+				'7.2.0'
+			);
+			return;
+		}
+
+		/*
+		 * An entry value that is not a string is a JSON literal written in the
+		 * markup, which no store property can be named by, so it is not evaluated.
+		 */
+		$result = is_string( $valid_entry['value'] ) ? $this->evaluate( $valid_entry ) : $valid_entry['value'];
+
+		// Unresolved references and `null` values keep the element as it is, as they do in the client.
+		if ( null === $result ) {
+			return;
+		}
+
+		$html = WP_Interactivity_Dangerous_HTML::get_html( $result );
+		if ( null === $html ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The "data-wp-html" directive requires a reference that resolves to the value returned by wp_interactivity_as_dangerous_html(). Other values, such as strings of HTML, are not rendered and the element is left as it is.' ),
+				'7.2.0'
+			);
+			return;
+		}
+
+		/*
+		 * The HTML is held back and a placeholder comment takes its place, so no
+		 * later step of the call scans it. A comment is a single token for the
+		 * processors, and the marker in it occurs nowhere in the input.
+		 */
+		$placeholder = '<!--' . $this->html_placeholder_marker . ':' . count( $this->html_placeholders ) . '-->';
+		if ( $p->set_raw_content_between_balanced_tags( $placeholder ) ) {
+			$this->html_placeholders[ $placeholder ] = $html;
 		}
 	}
 

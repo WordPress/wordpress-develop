@@ -108,7 +108,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_approve_a_pingback_only_when_it_comes_from_this_site() {
+	public static function data_should_approve_a_pingback_only_when_it_comes_from_this_site() {
 		return array(
 			'a pingback from this site'    => array( true, 1 ),
 			'a pingback from another site' => array( false, 0 ),

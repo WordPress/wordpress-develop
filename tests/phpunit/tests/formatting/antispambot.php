@@ -28,7 +28,7 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 	 *
 	 * return array[]
 	 */
-	public function data_returns_valid_utf8() {
+	public static function data_returns_valid_utf8() {
 		return array(
 			'plain'                => array( 'bob@example.com' ),
 			'plain with ip'        => array( 'ace@204.32.222.14' ),
@@ -76,7 +76,7 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 	 *
 	 * @return Generator
 	 */
-	public function data_antispambot_obfuscates() {
+	public static function data_antispambot_obfuscates() {
 		$addresses = array(
 			'example@example.com',
 			'#@example.com',

@@ -7,6 +7,12 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 	protected $query = '';
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
