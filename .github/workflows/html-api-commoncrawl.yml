@@ -27,11 +27,11 @@ on:
         description: 'Pull request number to analyze'
         required: true
         type: number
-      documents:
-        description: 'How many documents to fetch from CommonCrawl'
+      warcs:
+        description: 'How many WARC files to download from CommonCrawl, each with around 20,000 HTML documents'
         required: false
         type: number
-        default: 2000
+        default: 1
       fetch-duration:
         description: 'Longest time to spend fetching documents, e.g. 90s, 30m, 1h'
         required: false
@@ -63,8 +63,8 @@ concurrency:
 permissions: {}
 
 env:
-  # The analysis stops fetching documents when it has this many or when the fetch duration has passed, whichever is first.
-  HTML_API_BENCH_DOCUMENTS: ${{ inputs.documents || 2000 }}
+  # The analysis keeps every HTML document in this many WARC files, unless the fetch duration passes first.
+  HTML_API_BENCH_WARCS: ${{ inputs.warcs || 1 }}
   HTML_API_BENCH_FETCH_DURATION: ${{ inputs.fetch-duration || '30m' }}
   HTML_API_BENCH_ROUNDS: ${{ inputs.rounds || 3 }}
   HTML_API_BENCH_SMALL_MAX_BYTES: ${{ inputs.small-max-bytes || 32768 }}
@@ -119,18 +119,17 @@ jobs:
           ini-values: memory_limit=1G
 
       # Streams whole WARC files, a handful of requests in all: CommonCrawl blocks runners which send many requests, such as
-      # one per record. Each WARC file from a crawl holds around 20,000 HTML documents, so documents are taken from up to
-      # 10,000 per file. When CommonCrawl asks to slow down, with HTTP 429 or 503, no request is sent until its Retry-After
-      # or the backoff has passed. A download which still fails is listed, and the analysis runs on the documents already
-      # fetched. The cache limit is raised so that pruning never runs during the fetch.
+      # one per record. Every HTML document in them is kept; the number of files only bounds the download. When CommonCrawl
+      # asks to slow down, with HTTP 429 or 503, no request is sent until its Retry-After or the backoff has passed. A download
+      # which still fails is listed, and the analysis runs on the documents already fetched. The cache limit is raised so
+      # that pruning never runs during the fetch.
       - name: Fetch documents from CommonCrawl
         run: |
-          warcs=$(( ( HTML_API_BENCH_DOCUMENTS + 9999 ) / 10000 ))
           php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch fetch corpus \
             --resource-types html \
-            --limit "$(( ( HTML_API_BENCH_DOCUMENTS + warcs - 1 ) / warcs ))" \
-            --limit-warcs "$warcs" \
-            --max-jobs "$warcs" \
+            --limit all \
+            --limit-warcs "$HTML_API_BENCH_WARCS" \
+            --max-jobs "$HTML_API_BENCH_WARCS" \
             --http-retries 6 \
             --cache-max-bytes 17179869184 \
             --duration "$HTML_API_BENCH_FETCH_DURATION" \

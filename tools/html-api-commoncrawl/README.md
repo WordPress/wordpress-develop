@@ -24,7 +24,8 @@ The report is left as a comment on the pull request. Each new analysis replaces 
 This needs PHP 8.5, as used by the workflow, with the `curl`, `pdo_sqlite`, and `zlib` extensions. Each analysis script runs in a separate process for each checkout, because PHP cannot load two versions of the HTML API into one process.
 
 ```sh
-# Fetch 1,000 documents, or as many as can be fetched in 5 minutes.
+# Fetch 1,000 documents, or as many as can be fetched in 5 minutes. The workflow uses --limit all instead, to keep every
+# HTML document in the WARC files it downloads.
 php -d memory_limit=1G tools/html-api-commoncrawl/cc-analyzer.phar --workspace /tmp/cc batch fetch corpus \
 	--resource-types html --limit 1000 --limit-warcs 1 --max-jobs 1 --http-retries 6 --duration 5m --progress text
 
@@ -52,7 +53,7 @@ The workflow reads these environment variables. When it is run manually, each on
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `HTML_API_BENCH_DOCUMENTS` | `2000` | How many documents to fetch. |
+| `HTML_API_BENCH_WARCS` | `1` | How many WARC files to download. Every HTML document in them is analyzed; each file holds around 20,000. |
 | `HTML_API_BENCH_FETCH_DURATION` | `30m` | Longest time to spend fetching. Fetching stops at whichever limit is reached first. |
 | `HTML_API_BENCH_ROUNDS` | `3` | How many times to time each document with each checkout. Each document's time is its median. |
 | `HTML_API_BENCH_SMALL_MAX_BYTES` | `32768` | Documents smaller than this are small. |
@@ -60,7 +61,7 @@ The workflow reads these environment variables. When it is run manually, each on
 
 ## Rebuilding `cc-analyzer.phar`
 
-`cc-analyzer.phar` was built from cc-analyzer commit `a17b1f6` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
+`cc-analyzer.phar` was built from cc-analyzer commit `57bfbca` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
 
 - `src/Http/CurlStreamClient.php`: `DEFAULT_USER_AGENT` set to `'cc-analyzer/0.1 PHP-cURL'` and `DEFAULT_CONTACT_HEADER` set to `''`.
 - `src/Cli/Application.php`: the `--user-agent` and `--contact-email` defaults set to the same values, and the help text to match.
