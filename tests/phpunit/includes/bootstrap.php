@@ -341,23 +341,28 @@ if ( ! empty( $delete_tests_uploads_dir ) ) {
 	$uploads_test_run_dir = ABSPATH . UPLOADS;
 
 	if ( is_dir( $uploads_test_run_dir ) ) {
-		$uploads_test_run_files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
+		try {
+			$uploads_test_run_files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
 
-		foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
-			if ( $uploads_test_run_file->isDir() && ! $uploads_test_run_file->isLink() ) {
-				rmdir( $uploads_test_run_file->getPathname() );
-			} else {
-				unlink( $uploads_test_run_file->getPathname() );
+			foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+				// Windows removes symlinks to directories with rmdir(), not unlink().
+				if ( $uploads_test_run_file->isDir() && ( ! $uploads_test_run_file->isLink() || 'Windows' === PHP_OS_FAMILY ) ) {
+					rmdir( $uploads_test_run_file->getPathname() );
+				} else {
+					unlink( $uploads_test_run_file->getPathname() );
+				}
 			}
-		}
 
-		rmdir( $uploads_test_run_dir );
+			rmdir( $uploads_test_run_dir );
+		} catch ( UnexpectedValueException $uploads_test_run_exception ) {
+			echo 'Could not delete the test uploads directory: ' . $uploads_test_run_exception->getMessage() . PHP_EOL;
+		}
 	}
 
-	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file );
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file, $uploads_test_run_exception );
 }
 unset( $delete_tests_uploads_dir );
 
