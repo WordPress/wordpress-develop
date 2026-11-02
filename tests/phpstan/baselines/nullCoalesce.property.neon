@@ -19,17 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Locale\:\:\$word_count_type \(string\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-locale.php
-		-
 			message: '#^Property WP_Query\:\:\$max_num_pages \(int\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Property WP_Post_Type\:\:\$template \(array\<array\>\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-post-types-controller.php
