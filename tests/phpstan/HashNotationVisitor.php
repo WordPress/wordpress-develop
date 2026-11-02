@@ -73,7 +73,10 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   elements the way a hash on a bare `array` would. A shape derived for a
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
- *   would not be assignable to a property declared `stdClass`.
+ *   would not be assignable to a property declared `stdClass`. A template type
+ *   the docblock declares is not taken for a class, and neither a `T[]` nor its
+ *   entry may name one, because whether the shape would be an array or an object
+ *   one depends on the template's bound.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
  *   own, and every `@type` carrying a `$name` and a type PHPStan's own type
  *   parser reads as one. Anything else, and the whole tag is skipped.
@@ -183,19 +186,20 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 	/**
 	 * Types `normalize_type()` has already normalized, keyed by the template types
-	 * in scope and the type as printed.
+	 * in scope and the type as printed. A type naming a template is kept as null.
 	 *
-	 * @var array<string, string>
+	 * @var array<string, string|null>
 	 */
 	private array $normalized = array();
 
 	/**
-	 * Template types the docblock being translated declares, keyed by name.
+	 * Template types the docblock being translated declares, keyed by lowercased
+	 * name.
 	 *
-	 * Unlike a class name, a template type's name is case-sensitive, so comparing
-	 * types has to know which names are templates. Only the templates of the
-	 * docblock itself are known: a method's hash naming a template of its class in
-	 * another case is still taken for that template.
+	 * A hash on a template type is left untranslated, since the shape it takes
+	 * depends on the template's bound. Only the templates of the docblock itself
+	 * are known: a method's hash on a template of its class is still taken for a
+	 * hash on a class of that name.
 	 *
 	 * @var array<string, true>
 	 */
@@ -302,7 +306,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$covered   = $this->phpstan_counterparts( $tags );
 
 		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
-		$this->templates = array_fill_keys( $matches[1], true );
+		$this->templates = array_fill_keys( array_map( 'strtolower', $matches[1] ), true );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
@@ -752,6 +756,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
+		/*
+		 * Nor is a template type, whose bound decides whether a shape would have to
+		 * be an array or an object one, as `normalize_type()` explains.
+		 */
+		if ( isset( $this->templates[ ltrim( $normalized, '\\' ) ] ) ) {
+			return false;
+		}
+
 		return preg_match( '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#', $member ) === 1;
 	}
 
@@ -797,6 +809,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$element = $this->normalize_type( $array->type );
 		$type    = $this->normalize_type( $type );
+		if ( null === $element || null === $type ) {
+			return null;
+		}
 
 		if ( $element === $type ) {
 			return $array->type;
@@ -817,32 +832,41 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * differences of spacing and of redundant parentheses, as between
 	 * `(int|string)` and `int|string`. Names are then lowercased and stripped of a
 	 * leading backslash, because PHP type and class names are case-insensitive, so
-	 * `wp_post` is the same type as `\WP_Post`. The keys of a shape, the content of a
-	 * string literal, and the name of a template type are case-sensitive, so they
-	 * are left as they are: `array{id: int}` is not `array{ID: int}`, and `t` is a
-	 * class rather than the template `T`, so a hash naming either contradicts the
-	 * declaration instead of describing its elements.
+	 * `wp_post` is the same type as `\WP_Post`. The keys of a shape and the content
+	 * of a string literal are case-sensitive, so they are left as they are:
+	 * `array{id: int}` is not `array{ID: int}`.
+	 *
+	 * A type naming a template has no form to print. Whether a hash narrows a
+	 * template depends on its bound, which a `T of array` would need shaped as an
+	 * array and a `T of WP_Post` as an object, so such a hash is left untranslated
+	 * rather than guessed at. A name matching a template in another case counts
+	 * too, since lowercasing would otherwise make the class `T` the template `t`.
 	 *
 	 * @param TypeNode $type Parsed type, which is left unchanged.
-	 * @return string
+	 * @return string|null The normalized type, or null if it names a template type.
 	 */
-	private function normalize_type( TypeNode $type ): string {
+	private function normalize_type( TypeNode $type ): ?string {
 		$key = implode( ',', array_keys( $this->templates ) ) . ';' . $type;
-		if ( isset( $this->normalized[ $key ] ) ) {
+		if ( array_key_exists( $key, $this->normalized ) ) {
 			return $this->normalized[ $key ];
 		}
 
 		$visitor = new class( $this->templates ) extends AbstractNodeVisitor {
 
 			/**
-			 * Template types in scope, keyed by name.
+			 * Template types in scope, keyed by lowercased name.
 			 *
 			 * @var array<string, true>
 			 */
 			private array $templates;
 
 			/**
-			 * @param array<string, true> $templates Template types in scope, keyed by name.
+			 * Whether the type names a template type.
+			 */
+			public bool $names_template = false;
+
+			/**
+			 * @param array<string, true> $templates Template types in scope, keyed by lowercased name.
 			 */
 			public function __construct( array $templates ) {
 				$this->templates = $templates;
@@ -854,8 +878,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					$node->keyName = new ConstExprStringNode( $node->keyName->name, ConstExprStringNode::SINGLE_QUOTED );
 				} elseif ( $node instanceof ConstExprStringNode ) {
 					$node->quoteType = ConstExprStringNode::SINGLE_QUOTED;
-				} elseif ( $node instanceof IdentifierTypeNode && ! isset( $this->templates[ $node->name ] ) ) {
+				} elseif ( $node instanceof IdentifierTypeNode ) {
 					$node->name = strtolower( ltrim( $node->name, '\\' ) );
+					if ( isset( $this->templates[ $node->name ] ) ) {
+						$this->names_template = true;
+					}
 				}
 
 				return $node;
@@ -866,7 +893,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$traverser = new NodeTraverser( array( new CloningVisitor(), $visitor ) );
 		$nodes     = $traverser->traverse( array( $type ) );
 
-		$this->normalized[ $key ] = (string) $nodes[0];
+		$this->normalized[ $key ] = $visitor->names_template ? null : (string) $nodes[0];
 
 		return $this->normalized[ $key ];
 	}
