@@ -45,7 +45,7 @@ BASELINE="${1}"
 CANDIDATE="${2}"
 
 for FILE in "${BASELINE}" "${CANDIDATE}"; do
-	[ -f "${FILE}" ] || { printf 'Error: %s does not exist.\n' "${FILE}" >&2; exit 2; }
+	[ -s "${FILE}" ] || { printf 'Error: %s does not exist or is empty.\n' "${FILE}" >&2; exit 2; }
 done
 
 # One row per plugin that is in both files: slug, baseline version, baseline result, candidate version,

@@ -247,10 +247,11 @@ run_in_docker() {
 	# Everything is named after the process so that two runs at once do not collide.
 	DOCKER_NETWORK="plugin-compatibility-$$"
 	DB_CONTAINER="plugin-compatibility-db-$$"
+	CHECKS_CONTAINER="plugin-compatibility-checks-$$"
 
 	# Both are removed however this exits, an interrupt included. `--volumes` takes the anonymous volume the
 	# database image keeps its data in along with the container, which would otherwise pile up run after run.
-	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1; rm -f "${PLUGINS_LIST_FILE:-}"' EXIT
+	trap 'docker rm --force "${CHECKS_CONTAINER}" > /dev/null 2>&1; docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1; rm -f "${PLUGINS_LIST_FILE:-}"' EXIT
 	exit_on_signal
 
 	printf 'Starting %s.\n' "${DB_IMAGE}"
@@ -323,7 +324,11 @@ run_in_docker() {
 	# WordPress is installed inside the container rather than in a mounted directory, so a plugin cannot
 	# leave anything behind on the host and file ownership never comes into it. `HOME` is pointed at a
 	# writable directory because WP-CLI caches its downloads there.
-	docker run --rm --network "${DOCKER_NETWORK}" \
+	#
+	# It runs in the background and is waited on, because Bash holds a signal until a foreground command
+	# finishes. Waited on, an interrupt or a TERM from test-all-plugins.sh stops it at once, and the EXIT trap
+	# removes the container.
+	docker run --rm --name "${CHECKS_CONTAINER}" --network "${DOCKER_NETWORK}" \
 		--volume "${SCRIPT_PATH}:/usr/local/bin/test-plugins.sh:ro" \
 		--volume "${PLUGINS_LIST_FILE}:/plugins.txt:ro" \
 		${EXTRA_DOCKER_ARGS[@]+"${EXTRA_DOCKER_ARGS[@]}"} \
@@ -340,7 +345,9 @@ run_in_docker() {
 		--port="${SERVER_PORT}" \
 		--timeout="${PLUGIN_TIMEOUT}" \
 		${EXTRA_SCRIPT_ARGS[@]+"${EXTRA_SCRIPT_ARGS[@]}"} \
-		--plugins-file=/plugins.txt
+		--plugins-file=/plugins.txt &
+
+	wait "$!"
 }
 
 ##
