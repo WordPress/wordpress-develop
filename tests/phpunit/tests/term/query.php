@@ -1106,7 +1106,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test parameters.
 	 */
-	public function data_query_cache() {
+	public static function data_query_cache() {
 		return array(
 			'empty query'                => array(
 				'args' => array(),

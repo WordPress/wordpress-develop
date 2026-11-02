@@ -227,7 +227,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
 
 		$errors = $theme->errors();
-		$this->assertInstanceOf( WP_Error::class, $errors, 'The theme was not read back from the cache in an error state.' );
+		$this->assertWPError( $errors, 'The theme was not read back from the cache in an error state.' );
 		$this->assertSame( 'theme_child_invalid', $errors->get_error_code(), 'The theme was not read back from the cache with the expected error.' );
 		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not restored from the cache.' );
 	}

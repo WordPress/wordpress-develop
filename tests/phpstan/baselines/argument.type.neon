@@ -99,11 +99,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/class-custom-image-header.php
 		-
-			message: '#^Parameter \#1 \$language_updates of method Language_Pack_Upgrader\:\:bulk_upgrade\(\) expects array\<object\>, list\<string\>\|string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
-		-
 			message: '#^Parameter \#1 \$str of function md5 expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -304,11 +299,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
 		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/translation-install.php
-		-
 			message: '#^Parameter \#3 \$overwrite of method WP_Filesystem_Base\:\:copy\(\) expects bool, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -425,11 +415,6 @@ parameters:
 			path: ../../../src/wp-content/themes/twentyeleven/image.php
 		-
 			message: '#^Parameter \#1 \$screen of function add_contextual_help expects string, WP_Screen\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
-		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, show_in_abilities\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -669,11 +654,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/author-template.php
 		-
-			message: '#^Parameter \#1 \$separator of function explode expects string, float given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/block-supports/layout.php
-		-
 			message: '#^Parameter \#1 \$block of function filter_block_kses expects WP_Block_Parser_Block, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -748,11 +728,6 @@ parameters:
 			identifier: argument.type
 			count: 3
 			path: ../../../src/wp-includes/class-wp-date-query.php
-		-
-			message: '#^Parameter \#1 \$value of static method WP_Duotone\:\:colord_parse_hue\(\) expects float, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-duotone.php
 		-
 			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
 			identifier: argument.type
@@ -1188,11 +1163,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/rest-api.php
-		-
-			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/class-wp-rest-server.php
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:envelope_response\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
 			identifier: argument.type

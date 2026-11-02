@@ -80,4 +80,61 @@ class Tests_Filesystem_CopyDir extends WP_UnitTestCase {
 		$this->assertDirectoryExists( $to . 'subfolder1/', 'The destination subfolder was not created.' );
 		$this->assertFileExists( $to . 'subfolder1/file2.txt', 'The destination subfolder file was not created.' );
 	}
+
+	/**
+	 * Tests that files and directories named in the skip list are not copied.
+	 *
+	 * @ticket 46581
+	 */
+	public function test_should_skip_files_and_directories_in_the_skip_list() {
+		global $wp_filesystem;
+
+		$from = self::$test_dir . 'folder1/';
+		$to   = self::$test_dir . 'folder2/';
+
+		$wp_filesystem->mkdir( $from );
+		$wp_filesystem->touch( $from . 'keep-me.txt' );
+		$wp_filesystem->touch( $from . 'skip-me.txt' );
+		$wp_filesystem->mkdir( $from . 'keep-folder' );
+		$wp_filesystem->touch( $from . 'keep-folder/file.txt' );
+		$wp_filesystem->mkdir( $from . 'skip-folder' );
+		$wp_filesystem->touch( $from . 'skip-folder/file.txt' );
+
+		$this->assertTrue( copy_dir( $from, $to, array( 'skip-me.txt', 'skip-folder' ) ), 'copy_dir() failed.' );
+
+		$this->assertFileExists( $to . 'keep-me.txt', 'The non-skip-listed file was not copied.' );
+		$this->assertDirectoryExists( $to . 'keep-folder', 'The non-skip-listed directory was not copied.' );
+		$this->assertFileExists( $to . 'keep-folder/file.txt', 'The contents of the non-skip-listed directory were not copied.' );
+
+		$this->assertFileDoesNotExist( $to . 'skip-me.txt', 'The skip-listed file was copied.' );
+		$this->assertDirectoryDoesNotExist( $to . 'skip-folder', 'The skip-listed directory was copied.' );
+	}
+
+	/**
+	 * Tests that a numeric-looking directory name is not skipped just because
+	 * it's loosely equal to an unrelated `$skip_list` entry.
+	 *
+	 * `in_array( $filename, $skip_list )` without strict type checking compares
+	 * two numeric strings numerically, so a directory named `0019` would be
+	 * considered equal to a `$skip_list` entry of `19` even though the two
+	 * strings are different paths. `copy_dir()` must use a strict comparison
+	 * so only an exact match is skipped.
+	 *
+	 * @ticket 46581
+	 */
+	public function test_should_not_skip_directory_loosely_equal_to_a_skip_list_entry() {
+		global $wp_filesystem;
+
+		$from = self::$test_dir . 'folder1/';
+		$to   = self::$test_dir . 'folder2/';
+
+		$wp_filesystem->mkdir( $from );
+		$wp_filesystem->mkdir( $from . '0019' );
+		$wp_filesystem->touch( $from . '0019/file.txt' );
+
+		$this->assertTrue( copy_dir( $from, $to, array( '19' ) ), 'copy_dir() failed.' );
+
+		$this->assertDirectoryExists( $to . '0019', 'The directory was incorrectly skipped due to a loose comparison with an unrelated skip list entry.' );
+		$this->assertFileExists( $to . '0019/file.txt', 'The contents of the incorrectly skipped directory were not copied.' );
+	}
 }
