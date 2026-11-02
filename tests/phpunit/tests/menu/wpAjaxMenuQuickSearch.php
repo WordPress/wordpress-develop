@@ -5,6 +5,12 @@
  */
 class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_post_type( 'wptests_123' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Test search returns results for pages.
 	 *

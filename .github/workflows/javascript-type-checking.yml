@@ -24,6 +24,7 @@ on:
       # This directory contains TypeScript definitions. Changes could affect the outcome.
       - 'typings/**'
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/javascript-type-checking.yml'
       - '.github/workflows/reusable-javascript-type-checking-v1.yml'
   workflow_dispatch:
@@ -46,7 +47,14 @@ jobs:
     uses: ./.github/workflows/reusable-javascript-type-checking-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
 
   slack-notifications:
     name: Slack Notifications
