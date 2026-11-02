@@ -429,6 +429,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/upgrade.php
 		-
+			message: '#^Variable \$user_login might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: ../../../src/wp-admin/user-edit.php
+		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
