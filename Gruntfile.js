@@ -2433,9 +2433,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php.slice();
-
-		args.unshift( 'format' );
+		var args = [ 'format' ].concat( changedFiles.php );
 
 		grunt.util.spawn( {
 			cmd: 'composer',
@@ -2453,9 +2451,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'lint:php', 'Runs the code linter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php.slice();
-
-		args.unshift( 'lint' );
+		var args = [ 'lint' ].concat( changedFiles.php );
 
 		grunt.util.spawn( {
 			cmd: 'composer',
