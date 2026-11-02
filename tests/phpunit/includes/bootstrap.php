@@ -372,7 +372,7 @@ class WP_PHPUnit_Util_Getopt {
 			'html-api-html5lib-tests' => true,
 		);
 
-		if ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE ) {
+		if ( is_multisite() ) {
 			$skipped_groups['ms-excluded']    = true;
 			$skipped_groups['oembed-headers'] = true;
 		} else {
@@ -383,9 +383,9 @@ class WP_PHPUnit_Util_Getopt {
 	}
 
 	/**
-	 * Resets the parsed command line state.
+	 * Initializes the parsed command line state.
 	 */
-	public static function reset() {
+	protected static function reset() {
 		self::$skipped_groups   = self::get_default_skipped_groups();
 		self::$requested_groups = array();
 	}
@@ -393,15 +393,20 @@ class WP_PHPUnit_Util_Getopt {
 	public function __construct( $argv ) {
 		self::reset();
 
-		while ( current( $argv ) ) {
-			$option = current( $argv );
-			$value  = next( $argv );
+		foreach ( $argv as $index => $argument ) {
+			$option = $argument;
+			$value  = isset( $argv[ $index + 1 ] ) ? $argv[ $index + 1 ] : '';
+
+			if ( 0 === strpos( $option, '--group=' ) ) {
+				$value  = substr( $option, strlen( '--group=' ) );
+				$option = '--group';
+			}
 
 			switch ( $option ) {
 				case '--exclude-group':
 					// PHPUnit replaces XML exclusions when this option is provided.
 					// Keep our default skipped groups active unless they are requested explicitly.
-					continue 2;
+					break;
 				case '--group':
 					$groups = explode( ',', $value );
 					foreach ( $groups as $group ) {
@@ -417,7 +422,7 @@ class WP_PHPUnit_Util_Getopt {
 							self::$skipped_groups[ $group_name ] = false;
 						}
 					}
-					continue 2;
+					break;
 			}
 		}
 
@@ -454,3 +459,42 @@ class WP_PHPUnit_Util_Getopt {
 	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
+
+/**
+ * Removes default-excluded tests from PHPUnit suites before class fixtures run.
+ */
+class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
+	use PHPUnit\Framework\TestListenerDefaultImplementation;
+
+	/**
+	 * Filters default-excluded tests from a suite and all nested suites.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	public function startTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
+		$this->filter_suite( $suite );
+	}
+
+	/**
+	 * Filters a test suite recursively.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	protected function filter_suite( PHPUnit\Framework\TestSuite $suite ) {
+		$tests = array();
+
+		foreach ( $suite->tests() as $test ) {
+			if ( $test instanceof PHPUnit\Framework\TestSuite ) {
+				$this->filter_suite( $test );
+
+				if ( count( $test ) ) {
+					$tests[] = $test;
+				}
+			} elseif ( ! method_exists( $test, 'getGroups' ) || ! WP_UnitTestCase_Base::get_default_excluded_groups_for_test( $test->getGroups() ) ) {
+				$tests[] = $test;
+			}
+		}
+
+		$suite->setTests( $tests );
+	}
+}
