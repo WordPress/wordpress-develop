@@ -204,15 +204,11 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 			)
 		);
 
-		try {
-			$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template_null' );
-			$response = rest_get_server()->dispatch( $request );
-			$data     = $response->get_data();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template_null' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
-			$this->assertSame( array(), $data['template'] );
-		} finally {
-			unregister_post_type( 'cpt_template_null' );
-		}
+		$this->assertSame( array(), $data['template'] );
 	}
 
 	public function test_get_item_page() {
