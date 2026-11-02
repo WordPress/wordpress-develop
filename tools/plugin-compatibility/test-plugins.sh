@@ -278,6 +278,14 @@ run_checks() {
 
 	[ -n "${WP_CLI_BIN}" ] || error "WP-CLI is required to run the checks without Docker."
 
+	# A phar or PHP entry point either has no shebang or one naming PHP. Any other shebang is a launcher.
+	WP_CLI_IS_LAUNCHER="no"
+
+	case "$( head -n 1 "${WP_CLI_BIN}" 2>/dev/null | tr -d '\000' )" in
+		'#!'*php* ) ;;
+		'#!'* ) WP_CLI_IS_LAUNCHER="yes" ;;
+	esac
+
 	WORK_DIR="$( mktemp -d )"
 	RESULTS="${WORK_DIR}/results.tsv"
 	RESPONSE_BODY="${WORK_DIR}/response.html"
@@ -421,10 +429,15 @@ run_checks() {
 # wp <arguments>
 #
 # Runs WP-CLI with the memory limit lifted. Unpacking a WordPress zip needs more than the 128M a stock
-# php.ini allows, and WP-CLI reads its own `WP_CLI_PHP_ARGS` only when it is installed as a wrapper script
-# rather than as the phar most environments carry.
+# php.ini allows. The phar most environments carry is handed to PHP with the limit set, while a shell
+# launcher, such as the `bin/wp` of a Composer install, is run as it is and passed the limit through the
+# `WP_CLI_PHP_ARGS` it reads. Handing a shell script to PHP would print it rather than run it.
 wp() {
-	php -d memory_limit=-1 "${WP_CLI_BIN}" "$@"
+	if [ "${WP_CLI_IS_LAUNCHER}" = "yes" ]; then
+		WP_CLI_PHP_ARGS="-d memory_limit=-1${WP_CLI_PHP_ARGS:+ ${WP_CLI_PHP_ARGS}}" "${WP_CLI_BIN}" "$@"
+	else
+		php -d memory_limit=-1 "${WP_CLI_BIN}" "$@"
+	fi
 }
 
 # record <slug> <version> <status> <dependencies> <reason>
