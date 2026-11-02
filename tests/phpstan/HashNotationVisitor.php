@@ -217,6 +217,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private array $scope_templates = array();
 
 	/**
+	 * Whether the docblock being translated is inside a named namespace, where a
+	 * name with a leading backslash may be another class than the name without.
+	 */
+	private bool $namespaced = false;
+
+	/**
 	 * Forgets the scopes of the previous file.
 	 *
 	 * @param Node[] $nodes The nodes of the file.
@@ -224,12 +230,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	public function beforeTraverse( array $nodes ) {
 		$this->scope_templates = array();
+		$this->namespaced      = false;
 
 		return null;
 	}
 
 	/**
-	 * Leaves the scope of a class's or function's templates.
+	 * Leaves the scope of a class's or function's templates, or of a namespace.
 	 *
 	 * @param Node $node The node being left.
 	 * @return null
@@ -237,6 +244,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	public function leaveNode( Node $node ) {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
 			array_pop( $this->scope_templates );
+		} elseif ( $node instanceof Node\Stmt\Namespace_ ) {
+			$this->namespaced = false;
 		}
 
 		return null;
@@ -256,6 +265,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return null
 	 */
 	public function enterNode( Node $node ): ?Node {
+		if ( $node instanceof Node\Stmt\Namespace_ ) {
+			$this->namespaced = null !== $node->name;
+		}
+
 		$doc = $node->getDocComment();
 
 		/*
@@ -891,11 +904,17 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * derived from it is always spelled as declared. Parsing does away with
 	 * differences of spacing and of redundant parentheses, as between
 	 * `(int|string)` and `int|string`, and the members of a union or intersection
-	 * are sorted, so `string|int` is the same type too. Names are then lowercased and stripped of a
-	 * leading backslash, because PHP type and class names are case-insensitive, so
-	 * `wp_post` is the same type as `\WP_Post`. The keys of a shape and the content
-	 * of a string literal are case-sensitive, so they are left as they are:
-	 * `array{id: int}` is not `array{ID: int}`.
+	 * are sorted, so `string|int` is the same type too. Names are then lowercased,
+	 * because PHP type and class names are case-insensitive, so `wp_post` is the
+	 * same type as `WP_Post`. The keys of a shape and the content of a string
+	 * literal are case-sensitive, so they are left as they are: `array{id: int}`
+	 * is not `array{ID: int}`.
+	 *
+	 * Outside a namespace, a name is also stripped of a leading backslash, since
+	 * `\WP_Post` is then the same class as `WP_Post`. Inside one, the two may name
+	 * different classes, as `\Block` and the `Example\Block` that `Block` means in
+	 * `namespace Example`, so the backslash is kept and a hash spelling the class
+	 * the other way is left untranslated rather than resolved.
 	 *
 	 * A type naming a template has no form to print. Whether a hash narrows a
 	 * template depends on its bound, which a `T of array` would need shaped as an
@@ -907,12 +926,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return string|null The normalized type, or null if it names a template type.
 	 */
 	private function normalize_type( TypeNode $type ): ?string {
-		$key = implode( ',', array_keys( $this->templates ) ) . ';' . $type;
+		$key = ( $this->namespaced ? 'ns' : '' ) . ';' . implode( ',', array_keys( $this->templates ) ) . ';' . $type;
 		if ( array_key_exists( $key, $this->normalized ) ) {
 			return $this->normalized[ $key ];
 		}
 
-		$visitor = new class( $this->templates ) extends AbstractNodeVisitor {
+		$visitor = new class( $this->templates, $this->namespaced ) extends AbstractNodeVisitor {
 
 			/**
 			 * Template types in scope, keyed by lowercased name.
@@ -922,15 +941,22 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			private array $templates;
 
 			/**
+			 * Whether the type is written inside a namespace.
+			 */
+			private bool $namespaced;
+
+			/**
 			 * Whether the type names a template type.
 			 */
 			public bool $names_template = false;
 
 			/**
-			 * @param array<string, true> $templates Template types in scope, keyed by lowercased name.
+			 * @param array<string, true> $templates  Template types in scope, keyed by lowercased name.
+			 * @param bool                $namespaced Whether the type is written inside a namespace.
 			 */
-			public function __construct( array $templates ) {
-				$this->templates = $templates;
+			public function __construct( array $templates, bool $namespaced ) {
+				$this->templates  = $templates;
+				$this->namespaced = $namespaced;
 			}
 
 			public function enterNode( DocNode $node ): DocNode {
@@ -940,19 +966,31 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				} elseif ( $node instanceof ConstExprStringNode ) {
 					$node->quoteType = ConstExprStringNode::SINGLE_QUOTED;
 				} elseif ( $node instanceof IdentifierTypeNode ) {
-					$node->name = strtolower( ltrim( $node->name, '\\' ) );
-					if ( isset( $this->templates[ $node->name ] ) ) {
-						$this->names_template = true;
-					}
+					$node->name = $this->normalize_name( $node->name );
 				} elseif ( $node instanceof ConstFetchNode && '' !== $node->className ) {
 					// The class of `WP_Foo::BAR` is a name, but the constant is case-sensitive.
-					$node->className = strtolower( ltrim( $node->className, '\\' ) );
-					if ( isset( $this->templates[ $node->className ] ) ) {
-						$this->names_template = true;
-					}
+					$node->className = $this->normalize_name( $node->className );
 				}
 
 				return $node;
+			}
+
+			/**
+			 * Normalizes a type or class name, noting whether it names a template.
+			 *
+			 * @param string $name Name as written.
+			 * @return string
+			 */
+			private function normalize_name( string $name ): string {
+				$name = strtolower( $name );
+				$bare = ltrim( $name, '\\' );
+
+				// Conservatively, `\T` counts as naming the template `T` too.
+				if ( isset( $this->templates[ $bare ] ) ) {
+					$this->names_template = true;
+				}
+
+				return $this->namespaced ? $name : $bare;
 			}
 
 			public function leaveNode( DocNode $node ): DocNode {
