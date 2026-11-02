@@ -101,6 +101,14 @@ jobs:
       shards: ${{ steps.plugin-shards.outputs.shards }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+          sparse-checkout: tools/plugin-compatibility
+          sparse-checkout-cone-mode: false
+
       - name: Build the list of plugins to test
         id: plugin-shards
         env:
@@ -164,53 +172,8 @@ jobs:
               exit 1
             fi
 
-            # The API caps `per_page` at 250 and returns 250 without complaint for anything larger, so counts
-            # above that have to be paged.
-            PAGE_SIZE=250
-            PAGE=1
-            UNIQUE_COUNT=0
-
-            while : ; do
-              # The bracketed `request[...]` parameters are URL encoded by curl rather than written inline.
-              # The unneeded response fields are turned off to keep the payload small.
-              curl -sS --fail --retry 3 --retry-delay 5 \
-                --get 'https://api.wordpress.org/plugins/info/1.2/' \
-                --data-urlencode 'action=query_plugins' \
-                --data-urlencode 'request[browse]=popular' \
-                --data-urlencode "request[per_page]=${PAGE_SIZE}" \
-                --data-urlencode "request[page]=${PAGE}" \
-                --data-urlencode 'request[fields][short_description]=0' \
-                --data-urlencode 'request[fields][sections]=0' \
-                --data-urlencode 'request[fields][icons]=0' \
-                --data-urlencode 'request[fields][banners]=0' \
-                --data-urlencode 'request[fields][ratings]=0' \
-                --data-urlencode 'request[fields][tags]=0' \
-                --data-urlencode 'request[fields][compatibility]=0' \
-                --data-urlencode 'request[fields][screenshots]=0' \
-                -o "${RUNNER_TEMP}/plugins-page.json"
-
-              PAGE_COUNT="$( jq '.plugins | length' "${RUNNER_TEMP}/plugins-page.json" )"
-              jq -r '.plugins[] | .slug // empty' "${RUNNER_TEMP}/plugins-page.json" >> "${RAW_SLUGS}"
-
-              # Popularity ordering can shift between two requests, so the same slug can turn up on more than
-              # one page. Duplicates are dropped while the first occurrence keeps its position.
-              awk '!seen[$0]++ && NF > 0' "${RAW_SLUGS}" > "${DEDUPED_SLUGS}"
-              UNIQUE_COUNT="$( wc -l < "${DEDUPED_SLUGS}" | tr -d ' ' )"
-
-              printf 'Page %s returned %s plugins, %s unique slugs collected so far.\n' "${PAGE}" "${PAGE_COUNT}" "${UNIQUE_COUNT}"
-
-              if [ "${UNIQUE_COUNT}" -ge "${PLUGIN_COUNT}" ]; then
-                break
-              fi
-
-              # A short page means the directory has nothing left to give.
-              if [ "${PAGE_COUNT}" -lt "${PAGE_SIZE}" ]; then
-                printf 'The API returned fewer than %s plugins on page %s, so %s is everything available.\n' "${PAGE_SIZE}" "${PAGE}" "${UNIQUE_COUNT}"
-                break
-              fi
-
-              PAGE=$(( PAGE + 1 ))
-            done
+            # The same script a full run on a developer's machine uses, so both test the same plugins.
+            ./tools/plugin-compatibility/list-plugins.sh --count="${PLUGIN_COUNT}" > "${DEDUPED_SLUGS}"
           fi
 
           SLUGS="$( head -n "${PLUGIN_COUNT}" "${DEDUPED_SLUGS}" | jq -R -s -c 'split( "\n" ) | map( select( . != "" ) )' )"
