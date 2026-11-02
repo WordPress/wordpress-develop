@@ -28,6 +28,13 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		$this->taxonomies = null;
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'wptests_tax_3' );
+		unregister_taxonomy( 'wptests_tax_4' );
+		unregister_taxonomy( 'wptests_tax_hierarchical' );
 
 		parent::tear_down();
 	}

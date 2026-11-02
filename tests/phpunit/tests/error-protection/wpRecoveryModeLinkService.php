@@ -50,7 +50,7 @@ class Tests_Error_Protection_wpRecoveryModeLinkService extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->orig_pagenow = isset( $GLOBALS['pagenow'] ) ? $GLOBALS['pagenow'] : null;
+		$this->orig_pagenow = $GLOBALS['pagenow'] ?? null;
 		$this->orig_get     = $_GET;
 		$_GET               = array();
 

@@ -46,7 +46,7 @@ class Tests_Functions_wpNonceField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_nonce_field() {
+	public static function data_wp_nonce_field() {
 		return array(
 			'default'     => array(
 				'action'          => -1,

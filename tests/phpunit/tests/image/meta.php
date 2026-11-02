@@ -193,7 +193,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_stream() {
+	public static function data_stream() {
 		return array(
 			'Orientation only metadata'                => array(
 				'file'     => 'testimagemeta://wp_read_image_metadata/image1.jpg',

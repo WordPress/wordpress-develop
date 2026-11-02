@@ -14,6 +14,7 @@ on:
       - 'src/**.php'
       - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-wp-cli/**'
       - '.github/actions/smoke-check/**'
       - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
@@ -29,6 +30,7 @@ on:
       - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
       - '.github/actions/setup-npm/**'
+      - '.github/actions/setup-wp-cli/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   schedule:
