@@ -330,25 +330,39 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
-// Load WordPress.
-require_once ABSPATH . 'wp-settings.php';
-
-// Process delete wp-content/test-suite-uploads folder.
+/*
+ * Delete the wp-content/test-suite-uploads folder before WordPress loads.
+ *
+ * Plugins and themes may call wp_upload_dir() while loading, which creates the folder and
+ * caches it as created. Deleting it afterwards would leave a cached path that no longer exists.
+ * WordPress functions are not available yet, so this uses plain PHP.
+ */
 if ( ! empty( $delete_tests_uploads_dir ) ) {
 	$uploads_test_run_dir = ABSPATH . UPLOADS;
 
 	if ( is_dir( $uploads_test_run_dir ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		$uploads_test_run_files = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::CHILD_FIRST
+		);
 
-		// Use the direct transport, as WP_Filesystem() may pick FTP and fail without credentials.
-		$uploads_test_run_fs = new WP_Filesystem_Direct( null );
-		$uploads_test_run_fs->delete( $uploads_test_run_dir, true );
+		foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+			if ( $uploads_test_run_file->isDir() && ! $uploads_test_run_file->isLink() ) {
+				rmdir( $uploads_test_run_file->getPathname() );
+			} else {
+				unlink( $uploads_test_run_file->getPathname() );
+			}
+		}
+
+		rmdir( $uploads_test_run_dir );
 	}
 
-	unset( $uploads_test_run_dir, $uploads_test_run_fs );
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file );
 }
 unset( $delete_tests_uploads_dir );
+
+// Load WordPress.
+require_once ABSPATH . 'wp-settings.php';
 
 // Override the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';
