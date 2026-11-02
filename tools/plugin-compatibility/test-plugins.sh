@@ -533,8 +533,9 @@ plugin_dependencies() {
 		$plugin_data = get_plugin_data( getenv( "PLUGIN_FILE" ), false, false );
 
 		foreach ( explode( ",", $plugin_data["RequiresPlugins"] ?? "" ) as $dependency ) {
-			// Core only accepts a WordPress.org slug here, so anything else is ignored.
-			if ( preg_match( "/^[a-z0-9-]+$/", trim( $dependency ) ) ) {
+			// The same pattern as WP_Plugin_Dependencies::sanitize_dependency_slugs(). Core ignores anything
+			// else, so a malformed entry must not make the plugin wait on a dependency core never asks for.
+			if ( preg_match( "/^[a-z0-9]+(-[a-z0-9]+)*$/", trim( $dependency ) ) ) {
 				echo trim( $dependency ), "\n";
 			}
 		}
