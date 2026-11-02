@@ -10,6 +10,14 @@
  * @group meta-revisions
  */
 class Tests_Post_MetaRevisions extends WP_UnitTestCase {
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'custom_type' );
+		parent::tear_down();
+	}
+
 
 	/**
 	 * Callback function to add the revisioned keys.
@@ -85,7 +93,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 	/**
 	 * Provide data for the slashed data tests.
 	 */
-	public function slashed_data_provider() {
+	public static function slashed_data_provider() {
 		return array(
 			array(
 				'some\text',
@@ -603,7 +611,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		$GLOBALS['wp_meta_keys'] = array();
 	}
 
-	public function data_register_post_meta_supports_revisions() {
+	public static function data_register_post_meta_supports_revisions() {
 		return array(
 			array( 'post', 'registered_key1', array( 'single' => true ), false ),
 			array(
@@ -698,7 +706,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 	/**
 	 * Provide data for the page post type tests.
 	 */
-	public function page_post_type_data_provider() {
+	public static function page_post_type_data_provider() {
 		return array(
 			array(
 				'Test string',

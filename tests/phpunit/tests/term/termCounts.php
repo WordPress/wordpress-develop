@@ -67,6 +67,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		self::register_taxonomies();
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wp_test_tax_counts' );
+		unregister_taxonomy( 'wp_test_user_tax_counts' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Register taxonomies used by tests.
 	 *

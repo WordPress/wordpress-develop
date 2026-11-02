@@ -8,6 +8,8 @@
  * @group entity-actions
  *
  * @covers ::_wp_add_entity_action_modules_to_editor_script
+ * @covers ::_wp_add_entity_modules_to_editor_script
+ * @covers ::_wp_add_entity_preload_paths
  * @covers ::_wp_preload_entity_actions
  * @covers ::wp_get_all_registered_entity_action_modules
  * @covers ::wp_register_entity_actions
@@ -671,7 +673,16 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 			$actions,
 			'The removed action is gone, and the replaced one has the new definition and origin.'
 		);
-		$this->assertSame( array( 'core/defaults' => array( 'move-to-trash' ) ), $modules, 'The replaced action keeps the script module of the default.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'      => 'core/defaults',
+					'actions' => array( 'move-to-trash' ),
+				),
+			),
+			$modules,
+			'The replaced action keeps the script module of the default.'
+		);
 	}
 
 	/**
@@ -717,7 +728,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'feature', $actions, 'The rest of the actions of the call are registered.' );
 		$this->assertSame( 'Rename…', $actions['rename-post']['label'], 'The registered action is left untouched.' );
 		$this->assertSame( 'core', $actions['rename-post']['origin']['registeredBy'] );
-		$this->assertSame( array( 'feature' ), wp_get_registered_entity_action_modules( 'postType', 'page' )['plugin/actions'], 'The script module only applies to the actions registered.' );
+		$this->assertSame( array( 'feature' ), array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'actions', 'id' )['plugin/actions'], 'The script module only applies to the actions registered.' );
 		$this->assertCount( 1, $reported );
 		$this->assertStringContainsString( 'postType "page"', $reported[0], 'The notice names the entity.' );
 		$this->assertStringContainsString( 'already registered: rename-post', $reported[0], 'The notice names the action that is already registered, not the others of the call.' );
@@ -813,9 +824,18 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'core/defaults'        => array( 'rename-post', 'move-to-trash' ),
-				'plugin/actions'       => array( 'feature', 'archive' ),
-				'other-plugin/actions' => array( 'share' ),
+				array(
+					'id'      => 'core/defaults',
+					'actions' => array( 'rename-post', 'move-to-trash' ),
+				),
+				array(
+					'id'      => 'plugin/actions',
+					'actions' => array( 'feature', 'archive' ),
+				),
+				array(
+					'id'      => 'other-plugin/actions',
+					'actions' => array( 'share' ),
+				),
 			),
 			wp_get_registered_entity_action_modules( 'postType', 'page' ),
 			'Each module applies to the actions it was registered with, in registration order.'
@@ -844,7 +864,16 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		$this->assertSame( array( 'feature' ), array_column( $result['unregistered'], 'id' ), 'Unregistering the first entity only removes its own action.' );
 		$this->assertSame( array(), wp_get_registered_entity_actions( 'a/b', 'c' ) );
 		$this->assertSame( array( 'feature', 'archive' ), array_column( wp_get_registered_entity_actions( 'a', 'b/c' ), 'id' ), 'The second entity keeps its actions.' );
-		$this->assertSame( array( 'plugin/second' => array( 'feature', 'archive' ) ), wp_get_registered_entity_action_modules( 'a', 'b/c' ), 'The second entity keeps only its own module.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'      => 'plugin/second',
+					'actions' => array( 'feature', 'archive' ),
+				),
+			),
+			wp_get_registered_entity_action_modules( 'a', 'b/c' ),
+			'The second entity keeps only its own module.'
+		);
 		$this->assertSame( array( 'b/c' => array( 'plugin/second' ) ), wp_get_all_registered_entity_action_modules()['a'], 'Only the second entity has modules under its kind.' );
 		$this->assertArrayNotHasKey( 'a/b', wp_get_all_registered_entity_action_modules(), 'The kind of the first entity, emptied, is forgotten.' );
 	}
@@ -881,7 +910,16 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 			$unregistered['by_id'],
 			'The actions unregistered by id are returned in registration order.'
 		);
-		$this->assertSame( array( 'plugin/first' => array( 'b' ) ), $modules['by_id'], 'The unregistered actions leave their modules, and an emptied module is forgotten.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'      => 'plugin/first',
+					'actions' => array( 'b' ),
+				),
+			),
+			$modules['by_id'],
+			'The unregistered actions leave their modules, and an emptied module is forgotten.'
+		);
 		$this->assertSame( array(), $unregistered['missing'], 'Nothing is returned when no action is registered.' );
 		$this->assertSame(
 			array( array_merge( $this->action( 'b' ), array( 'origin' => $origin ) ) ),
@@ -988,7 +1026,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		);
 		$this->assertCount( 3, $reported );
 		$this->assertNotContains( 'feature', array_column( wp_get_registered_entity_actions( 'postType', 'page' ), 'id' ) );
-		$this->assertArrayNotHasKey( 'plugin/actions', wp_get_registered_entity_action_modules( 'postType', 'page' ) );
+		$this->assertNotContains( 'plugin/actions', array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'id' ) );
 	}
 
 	/**
@@ -1084,6 +1122,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) ), '123' );
 
 		$this->assertSame( array( 'core/defaults', '123' ), wp_get_all_registered_entity_action_modules()['postType']['page'] );
+		$this->assertSame( array( 'core/defaults', '123' ), array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'id' ) );
 	}
 
 	/**
@@ -1102,7 +1141,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 		$this->assertSame( array(), wp_register_entity_actions( 'test-plugin', 'postType', 'page', array( $this->action( 'feature' ) ), 'plugin/feature' ) );
 		$this->assertSame( $fired, did_action( 'wp_entity_actions_api_init' ), 'Refusing does not fire the action.' );
 		$this->assertNotContains( 'feature', array_column( wp_get_registered_entity_actions( 'postType', 'page' ), 'id' ) );
-		$this->assertArrayNotHasKey( 'plugin/feature', wp_get_registered_entity_action_modules( 'postType', 'page' ) );
+		$this->assertNotContains( 'plugin/feature', array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'id' ) );
 	}
 
 	/**
