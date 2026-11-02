@@ -118,6 +118,10 @@ jobs:
           extensions: curl, mbstring, pdo_sqlite, zlib
           ini-values: memory_limit=1G
 
+      # Temporary: shows whether CommonCrawl serves WARC records to this runner before anything else is requested.
+      - name: Check CommonCrawl access
+        run: bash "$SCRIPTS/check-commoncrawl-access.sh"
+
       # Samples successful HTML captures from random blocks of the crawl's URL index, from many hosts across the whole crawl,
       # and downloads only those records, four at a time. When CommonCrawl asks to slow down, with HTTP 429 or 503, no
       # request is sent until its Retry-After or the backoff has passed. A record which still can't be downloaded is listed
@@ -134,6 +138,11 @@ jobs:
             --cache-max-bytes 17179869184 \
             --duration "$HTML_API_BENCH_FETCH_DURATION" \
             --progress text
+
+      # Temporary: shows whether CommonCrawl still serves this runner after a failed fetch.
+      - name: Check CommonCrawl access after the fetch
+        if: ${{ failure() }}
+        run: bash "$SCRIPTS/check-commoncrawl-access.sh"
 
       - name: Time parsing with both checkouts
         run: |
