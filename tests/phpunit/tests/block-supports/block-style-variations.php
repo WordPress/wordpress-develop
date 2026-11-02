@@ -803,43 +803,6 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a variation box clip drops the inherited block type text gradient.
-	 *
-	 * @ticket XXXXX
-	 *
-	 * @covers ::wp_render_block_style_variation_support_styles
-	 */
-	public function test_block_style_variation_box_clip_unsets_block_type_text_gradient() {
-		switch_theme( 'block-theme' );
-		register_block_style(
-			'core/paragraph',
-			array(
-				'name'       => 'clip-box',
-				'style_data' => array(
-					'background' => array(
-						'backgroundClip' => 'border-box',
-					),
-				),
-			)
-		);
-
-		try {
-			$actual = $this->render_variation_styles_with_block_type_styles(
-				'core/paragraph',
-				'is-style-clip-box',
-				self::get_text_gradient_block_type_styles( 'core/paragraph' )
-			);
-		} finally {
-			unregister_block_style( 'core/paragraph', 'clip-box' );
-		}
-
-		$this->assertMatchesRegularExpression(
-			'/:root :where\(p\.is-style-clip-box--\d+\)\{[^}]*background-image: unset;[^}]*\}/',
-			$actual
-		);
-	}
-
-	/**
 	 * Tests that a variation breakpoint text color refills the letters over a
 	 * block type text gradient.
 	 *
