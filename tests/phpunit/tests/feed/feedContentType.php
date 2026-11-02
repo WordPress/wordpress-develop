@@ -1,24 +1,59 @@
 <?php
 /**
- * Tests for get_default_feed().
+ * Tests for feed_content_type().
  *
  * @group feed
  *
- * @covers ::get_default_feed
+ * @covers ::feed_content_type
  */
-class Tests_Feed_GetDefaultFeed extends WP_UnitTestCase {
+class Tests_Feed_FeedContentType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_known_feed_content_types
+	 *
+	 * @param string $type     Feed type.
+	 * @param string $expected Expected content type.
 	 */
-	public function test_returns_rss2_by_default() {
-		$this->assertSame( 'rss2', get_default_feed() );
+	public function test_returns_content_type_for_known_feed_types( $type, $expected ) {
+		$this->assertSame( $expected, feed_content_type( $type ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_known_feed_content_types() {
+		return array(
+			'rss'      => array( 'rss', 'application/rss+xml' ),
+			'rss2'     => array( 'rss2', 'application/rss+xml' ),
+			'rss-http' => array( 'rss-http', 'text/xml' ),
+			'atom'     => array( 'atom', 'application/atom+xml' ),
+			'rdf'      => array( 'rdf', 'application/rdf+xml' ),
+		);
 	}
 
 	/**
 	 * @ticket 65819
 	 */
-	public function test_filter_can_change_default_feed() {
+	public function test_returns_octet_stream_for_unknown_feed_type() {
+		$this->assertSame( 'application/octet-stream', feed_content_type( 'foo' ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 */
+	public function test_empty_type_uses_default_feed() {
+		$this->assertSame( 'application/rss+xml', feed_content_type() );
+		$this->assertSame( 'application/rss+xml', feed_content_type( '' ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 */
+	public function test_empty_type_respects_default_feed_filter() {
 		add_filter(
 			'default_feed',
 			static function () {
@@ -26,34 +61,20 @@ class Tests_Feed_GetDefaultFeed extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame( 'atom', get_default_feed() );
+		$this->assertSame( 'application/atom+xml', feed_content_type() );
 	}
 
 	/**
 	 * @ticket 65819
 	 */
-	public function test_maps_legacy_rss_alias_to_rss2() {
-		add_filter(
-			'default_feed',
-			static function () {
-				return 'rss';
-			}
-		);
-
-		$this->assertSame( 'rss2', get_default_feed() );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_filter_receives_unfiltered_default() {
+	public function test_filter_receives_content_type_and_type() {
 		$filter = new MockAction();
-		add_filter( 'default_feed', array( $filter, 'filter_append' ) );
+		add_filter( 'feed_content_type', array( $filter, 'filter_append' ), 10, 2 );
 
-		$result = get_default_feed();
+		$result = feed_content_type( 'atom' );
 
-		$this->assertSame( 'rss2_append', $result );
+		$this->assertSame( 'application/atom+xml_append', $result );
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( 'rss2' ), $filter->get_args()[0] );
+		$this->assertSame( array( 'application/atom+xml', 'atom' ), $filter->get_args()[0] );
 	}
 }
