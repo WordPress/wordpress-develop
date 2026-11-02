@@ -57,6 +57,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		);
 
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		delete_user_meta( $user_id, 'admin_color' );
 		wp_set_current_user( $user_id );
 
 		ob_start();
@@ -196,9 +197,10 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 
 		$dom = new DOMDocument();
 		// Suppress warnings for HTML5 elements or invalid HTML.
-		libxml_use_internal_errors( true );
+		$libxml_error_state = libxml_use_internal_errors( true );
 		$dom->loadHTML( $output );
 		libxml_clear_errors();
+		libxml_use_internal_errors( $libxml_error_state );
 
 		$inputs       = $dom->getElementsByTagName( 'input' );
 		$found_colors = array();
@@ -234,9 +236,10 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$dom = new DOMDocument();
-		libxml_use_internal_errors( true );
+		$libxml_error_state = libxml_use_internal_errors( true );
 		$dom->loadHTML( $output );
 		libxml_clear_errors();
+		libxml_use_internal_errors( $libxml_error_state );
 
 		$xpath = new DOMXPath( $dom );
 
