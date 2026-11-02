@@ -457,6 +457,56 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Invalid meta must not leave a half-created site behind.
+	 *
+	 * @covers ::create_item
+	 */
+	public function test_create_item_with_invalid_meta_creates_no_site() {
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/invalid-meta/' );
+		$request->set_param(
+			'meta',
+			array(
+				'test_single'        => 'valid',
+				'test_custom_schema' => 'not a number',
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
+		$this->assertNull( domain_exists( WP_TESTS_DOMAIN, '/invalid-meta/' ) );
+	}
+
+	/**
+	 * Invalid meta must not leave a half-updated site behind.
+	 *
+	 * @covers ::update_item
+	 */
+	public function test_update_item_with_invalid_meta_changes_nothing() {
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'archived', true );
+		$request->set_param(
+			'meta',
+			array(
+				'test_single'              => 'valid',
+				'test_custom_schema_multi' => array( 'not a number' ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
+		$this->assertSame( '0', get_site( self::$site_id )->archived );
+		$this->assertSame( '', get_site_meta( self::$site_id, 'test_single', true ) );
+	}
+
+	/**
 	 * @depends test_get_value
 	 * @covers ::update_item
 	 */

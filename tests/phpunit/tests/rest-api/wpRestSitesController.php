@@ -521,6 +521,29 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * In a subdirectory install the path names the site, so it is required.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 */
+	public function test_create_item_requires_path_in_subdirectory_install() {
+		if ( is_subdomain_install() ) {
+			$this->markTestSkipped( 'The path defaults to "/" in a subdomain install.' );
+		}
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_missing_callback_param', $response, 400 );
+		$this->assertSame( array( 'path' ), $response->get_data()['data']['params'] );
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::update_item
 	 * @group ms-required
@@ -953,8 +976,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Deleting without force marks the site as deleted and removes its users,
-	 * but does not drop the site.
+	 * Deleting without force marks the site as deleted, like flagging it for
+	 * deletion in Network Admin, but does not drop the site or remove its users.
 	 *
 	 * @ticket 40365
 	 * @covers ::delete_item
@@ -982,8 +1005,89 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertNotNull( $site );
 		$this->assertEquals( '1', $site->deleted );
 
-		// Its users have been removed from the blog.
-		$this->assertFalse( is_user_member_of_blog( $user_id, $blog_id ) );
+		$this->assertSame( 1, did_action( 'deactivate_blog' ) );
+
+		// Undeleting the site brings it back with its users.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_body_params( array( 'deleted' => false ) );
+		$this->assertSame( 200, rest_get_server()->dispatch( $request )->get_status() );
+
+		$this->assertTrue( is_user_member_of_blog( $user_id, $blog_id ) );
+	}
+
+	/**
+	 * An `id` in the body or query must not redirect a request to another site.
+	 *
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @dataProvider data_mismatched_id_is_rejected
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $source Where the mismatched ID is sent: 'body' or 'query'.
+	 */
+	public function test_mismatched_id_is_rejected( $method, $source ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$blog_id  = self::factory()->blog->create( array( 'path' => '/mismatch-target/' ) );
+		$other_id = self::factory()->blog->create( array( 'path' => '/mismatch-other/' ) );
+
+		$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
+		if ( 'body' === $source ) {
+			$request->set_body_params(
+				array(
+					'id'     => $other_id,
+					'public' => false,
+				)
+			);
+		} else {
+			$request->set_query_params( array( 'id' => $other_id ) );
+		}
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertSame( '1', get_site( $other_id )->public );
+		$this->assertSame( '0', get_site( $other_id )->deleted );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_mismatched_id_is_rejected() {
+		return array(
+			'GET with query id'    => array( 'GET', 'query' ),
+			'PUT with body id'     => array( 'PUT', 'body' ),
+			'PUT with query id'    => array( 'PUT', 'query' ),
+			'DELETE with query id' => array( 'DELETE', 'query' ),
+		);
+	}
+
+	/**
+	 * An `id` matching the URL, e.g. from a site fetched before, is accepted.
+	 *
+	 * @ticket 40365
+	 * @group ms-required
+	 */
+	public function test_update_item_with_matching_id() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$blog_id = self::factory()->blog->create( array( 'path' => '/matching-id/' ) );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_body_params(
+			array(
+				'id'     => $blog_id,
+				'public' => false,
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '0', get_site( $blog_id )->public );
 	}
 
 	/**
@@ -1005,6 +1109,63 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertErrorResponse( 'rest_cannot_delete_main_site', $response, 403 );
 		$this->assertNotNull( get_site( $main_site_id ) );
+	}
+
+	/**
+	 * Archiving, spamming, deleting or moving the main site would take the whole network down.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @group ms-required
+	 * @dataProvider data_update_main_site
+	 */
+	public function test_update_main_site( $params, $is_allowed ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$main_site = get_site( get_main_site_id() );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $main_site->id );
+		$request->set_body_params( $params );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $is_allowed ) {
+			$this->assertSame( 200, $response->get_status() );
+		} else {
+			$this->assertErrorResponse( 'rest_cannot_edit_main_site', $response, 403 );
+		}
+
+		$site = get_site( $main_site->id );
+		$this->assertSame( '0', $site->archived );
+		$this->assertSame( '0', $site->spam );
+		$this->assertSame( '0', $site->deleted );
+		$this->assertSame( $main_site->domain, $site->domain );
+		$this->assertSame( $main_site->path, $site->path );
+	}
+
+	/**
+	 * Data provider for test_update_main_site().
+	 *
+	 * @return array
+	 */
+	public function data_update_main_site() {
+		return array(
+			'archive'          => array( array( 'archived' => true ), false ),
+			'spam'             => array( array( 'spam' => true ), false ),
+			'delete'           => array( array( 'deleted' => true ), false ),
+			'other domain'     => array( array( 'domain' => 'moved.example.org' ), false ),
+			'other path'       => array( array( 'path' => '/moved/' ), false ),
+			'unchanged values' => array(
+				array(
+					'archived' => false,
+					'spam'     => false,
+					'deleted'  => false,
+					'domain'   => WP_TESTS_DOMAIN,
+					'path'     => '/',
+				),
+				true,
+			),
+		);
 	}
 
 	/**
@@ -1588,27 +1749,6 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The data is stored as sent, without added slashes.
-	 *
-	 * @ticket 40365
-	 * @covers ::update_item
-	 * @group ms-required
-	 */
-	public function test_update_item_does_not_slash_the_stored_data() {
-		wp_set_current_user( self::$superadmin_id );
-
-		$blog_id = self::factory()->blog->create( array( 'path' => '/sit/' ) );
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'path', "/o'brien/" );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( "/o'brien/", get_site( $blog_id )->path );
-	}
-
-	/**
 	 * The status fields are stored when a site is created.
 	 *
 	 * @ticket 40365
@@ -1685,6 +1825,34 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( $domain, get_site( $blog_id )->domain );
 		$this->assertEquals( 0, get_site( $blog_id )->public );
+	}
+
+	/**
+	 * Moving a site moves its home and siteurl along, keeping their scheme,
+	 * but leaves URLs alone that point elsewhere on purpose.
+	 *
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 */
+	public function test_update_item_moves_home_and_siteurl() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$blog_id = self::factory()->blog->create( array( 'path' => '/before-move/' ) );
+		$domain  = get_site( $blog_id )->domain;
+		update_blog_option( $blog_id, 'siteurl', 'https://' . $domain . '/before-move' );
+		update_blog_option( $blog_id, 'home', 'https://mapped.example.org' );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'domain', 'moved.example.org' );
+		$request->set_param( 'path', '/after-move/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'https://moved.example.org/after-move', get_blog_option( $blog_id, 'siteurl' ) );
+		$this->assertSame( 'https://mapped.example.org', get_blog_option( $blog_id, 'home' ) );
+		$this->assertSame( get_site_url( $blog_id ), $response->get_data()['siteurl'] );
 	}
 
 	/**
@@ -1830,8 +1998,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( $is_valid ) {
 			$this->assertEquals( 201, $response->get_status(), "path '{$path}' should have been accepted." );
 
+			// The path is lowercased like Add New Site does.
 			$data = $response->get_data();
-			$this->assertEquals( $path, $data['path'] );
+			$this->assertEquals( strtolower( $path ), $data['path'] );
 		} else {
 			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		}
@@ -1866,8 +2035,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( 200, $response->get_status(), "path '{$path}' should have been accepted." );
 
 			$data = $response->get_data();
-			$this->assertEquals( $path, $data['path'] );
-			$this->assertEquals( $path, get_site( $blog_id )->path );
+			$this->assertEquals( strtolower( $path ), $data['path'] );
+			$this->assertEquals( strtolower( $path ), get_site( $blog_id )->path );
 		} else {
 			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 			$this->assertEquals( $orig_path, get_site( $blog_id )->path );
@@ -1881,9 +2050,11 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_path_validation_on_nested_network() {
 		return array(
+			'site name below base'        => array( '/parent/child/', true, '/parent/' ),
+			'site name outside base'      => array( '/child/', false, '/parent/' ),
 			'reserved name after base'    => array( '/parent/wp-json/', false, '/parent/' ),
 			'reserved name outside base'  => array( '/wp-json/', false, '/parent/' ),
-			'reserved name deeper nested' => array( '/parent/child/wp-json/', true, '/parent/' ),
+			'reserved name deeper nested' => array( '/parent/child/wp-json/', false, '/parent/' ),
 		);
 	}
 
@@ -1896,26 +2067,41 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = array(
 			'root path'                => array( '/', true ),
 			'single segment'           => array( '/tempor/', true ),
-			'nested segments'          => array( '/parent/child/', true ),
-			'segment with apostrophe'  => array( "/o'brien/", true ),
-			'segment with punctuation' => array( '/with-hyphen_and.dot~tilde/', true ),
-			'percent encoded segment'  => array( '/percent%20encoded/', true ),
+			'letters, numbers, hyphen' => array( '/site-2-go/', true ),
+			'uppercase'                => array( '/Tempor-Upper/', true ),
 			'empty path'               => array( '', false ),
 			'no leading slash'         => array( 'no-leading-slash/', false ),
 			'no trailing slash'        => array( '/no-trailing-slash', false ),
 			'double slash'             => array( '//double-slash//', false ),
+			// Like Add New Site in Network Admin, a site name is a single segment of letters, numbers and hyphens.
+			'nested segments'          => array( '/parent/child/', false ),
+			'segment with apostrophe'  => array( "/o'brien/", false ),
+			'segment with punctuation' => array( '/with-hyphen_and.dot~tilde/', false ),
+			'percent encoded segment'  => array( '/percent%20encoded/', false ),
+			'encoded, not reserved'    => array( '/caf%C3%A9/', false ),
 			'path with a space'        => array( '/with space/', false ),
 			'path with a query string' => array( '/with?query/', false ),
 			'path with a fragment'     => array( '/with#fragment/', false ),
 			'path with a double quote' => array( '/with"quote/', false ),
-			// A site on these paths would take over the REST API or the login page of the whole network.
+			// A site on these paths would take over the REST API, the login page or other files of the whole network.
 			'reserved name, uppercase' => array( '/WP-JSON/', false ),
 			'reserved name as parent'  => array( '/wp-admin/child/', false ),
-			'reserved name nested'     => array( '/parent/wp-json/', true ),
+			'reserved name nested'     => array( '/parent/wp-json/', false ),
 			'login file'               => array( '/wp-login.php/', false ),
 			'php file, uppercase'      => array( '/XMLRPC.PHP/', false ),
 			'php file nested'          => array( '/parent/wp-login.php/', false ),
-			'php in the middle'        => array( '/my.php.site/', true ),
+			'php in the middle'        => array( '/my.php.site/', false ),
+			'php file, encoded dot'    => array( '/wp-login%2ephp/', false ),
+			'reserved name, encoded'   => array( '/%77p-json/', false ),
+			'reserved name, encoded /' => array( '/wp-json%2F/', false ),
+			'robots file'              => array( '/robots.txt/', false ),
+			'sitemap file'             => array( '/wp-sitemap.xml/', false ),
+			// Browsers resolve dot segments, so these sites could never be reached.
+			'dot segment'              => array( '/parent/./', false ),
+			'double dot segment'       => array( '/parent/../', false ),
+			'leading double dot'       => array( '/../child/', false ),
+			'double dot, encoded'      => array( '/parent/%2e%2E/', false ),
+			'three dots'               => array( '/.../', false ),
 			// The wp_blogs.path column is varchar(100).
 			'path at max length'       => array( '/' . str_repeat( 'a', 98 ) . '/', true ),
 			'path over max length'     => array( '/' . str_repeat( 'a', 99 ) . '/', false ),
