@@ -197,7 +197,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ performance ]
+    needs: [ determine-matrix, performance ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
