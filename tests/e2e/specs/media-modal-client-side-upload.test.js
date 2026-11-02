@@ -94,6 +94,10 @@ async function failMediaCreate( page ) {
  * @return {Promise<import('@playwright/test').Locator>} The modal.
  */
 async function openModalFromImageBlock( page, editor ) {
+	// Blocks inserted before the editor sets up the post are reset away.
+	await expect(
+		editor.canvas.getByRole( 'textbox', { name: 'Add title' } )
+	).toBeVisible();
 	await editor.insertBlock( { name: 'core/image' } );
 	await editor.canvas.getByRole( 'button', { name: 'Media Library' } ).click();
 
