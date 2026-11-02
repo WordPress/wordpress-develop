@@ -56,7 +56,17 @@ class Tests_Feed_GetTheContentFeed extends WP_UnitTestCase {
 			999
 		);
 
-		$this->assertSame( 'Before ]]&gt; After', get_the_content_feed( 'rss2' ) );
+		$filter = new MockAction();
+		add_filter( 'the_content_feed', array( $filter, 'filter' ), 10, 2 );
+
+		$result = get_the_content_feed( 'rss2' );
+
+		$this->assertSame( 'Before ]]&gt; After', $result );
+		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame(
+			array( 'Before ]]&gt; After', 'rss2' ),
+			$filter->get_args()[0]
+		);
 	}
 
 	/**
@@ -80,12 +90,19 @@ class Tests_Feed_GetTheContentFeed extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_null_feed_type_uses_default_feed() {
+		add_filter(
+			'default_feed',
+			static function () {
+				return 'atom';
+			}
+		);
+
 		$filter = new MockAction();
 		add_filter( 'the_content_feed', array( $filter, 'filter' ), 10, 2 );
 
 		get_the_content_feed( null );
 
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( 'rss2', $filter->get_args()[0][1] );
+		$this->assertSame( 'atom', $filter->get_args()[0][1] );
 	}
 }
