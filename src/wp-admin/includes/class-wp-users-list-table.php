@@ -468,10 +468,10 @@ class WP_Users_List_Table extends WP_List_Table {
 			);
 
 			if ( current_user_can( 'edit_user', $user_object->ID ) ) {
-				$edit            = "<strong><a href=\"{$edit_link}\">{$user_object->user_login}</a>{$super_admin}</strong><br />";
+				$edit            = '<strong><a href="' . $edit_link . '">' . esc_html( $user_object->user_login ) . "</a>{$super_admin}</strong><br />";
 				$actions['edit'] = '<a href="' . $edit_link . '">' . __( 'Edit' ) . '</a>';
 			} else {
-				$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
+				$edit = '<strong>' . esc_html( $user_object->user_login ) . "{$super_admin}</strong><br />";
 			}
 
 			if ( ! is_multisite()
@@ -529,11 +529,11 @@ class WP_Users_List_Table extends WP_List_Table {
 				$user_object->ID,
 				$role_classes,
 				/* translators: Hidden accessibility text. %s: User login. */
-				sprintf( __( 'Select %s' ), $user_object->user_login )
+				sprintf( __( 'Select %s' ), esc_html( $user_object->user_login ) )
 			);
 
 		} else {
-			$edit = "<strong>{$user_object->user_login}{$super_admin}</strong>";
+			$edit = '<strong>' . esc_html( $user_object->user_login ) . "{$super_admin}</strong>";
 		}
 
 		$avatar = get_avatar( $user_object->ID, 32 );
@@ -563,9 +563,16 @@ class WP_Users_List_Table extends WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				$row .= "<th scope='row' class='check-column'>$checkbox</th>";
+				$row .= "<td class='check-column'>$checkbox</td>";
 			} else {
-				$row .= "<td $attributes>";
+				$is_primary = ( $primary === $column_name );
+				$tag        = $is_primary ? 'th' : 'td';
+				$scope      = $is_primary ? ' scope="row"' : '';
+				$aria_label = '';
+				if ( $is_primary ) {
+					$aria_label = ' aria-label="' . esc_attr( $user_object->user_login ) . '"';
+				}
+				$row .= "<$tag $attributes$scope$aria_label>";
 				switch ( $column_name ) {
 					case 'username':
 						$row .= "$avatar $edit";
@@ -628,7 +635,8 @@ class WP_Users_List_Table extends WP_List_Table {
 				if ( $primary === $column_name ) {
 					$row .= $this->row_actions( $actions );
 				}
-				$row .= '</td>';
+				$tag  = ( $primary === $column_name ) ? 'th' : 'td';
+				$row .= "</$tag>";
 			}
 		}
 		$row .= '</tr>';

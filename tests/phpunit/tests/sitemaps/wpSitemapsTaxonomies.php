@@ -37,6 +37,16 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'test_taxonomy' );
+		unregister_taxonomy( 'private_taxonomy' );
+		unregister_taxonomy( 'non_queryable_tax' );
+		unregister_taxonomy( 'public_taxonomy' );
+		unregister_taxonomy( 'non_queryable_taxonomy' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test getting a URL list for default taxonomies via
 	 * WP_Sitemaps_Taxonomies::get_url_list().
@@ -45,8 +55,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		// Add the default category to the list of categories we're testing.
 		$categories = array_merge( array( 1 ), self::$cats );
 
-		// Create a test post to calculate update times.
-		$post = self::factory()->post->create_and_get(
+		// Create a test post so the test terms are assigned and counted.
+		self::factory()->post->create(
 			array(
 				'tags_input'    => self::$post_tags,
 				'post_category' => $categories,
@@ -58,7 +68,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$cat_list = $tax_provider->get_url_list( 1, 'category' );
 
 		$expected_cats = array_map(
-			static function ( $id ) use ( $post ) {
+			static function ( $id ) {
 				return array(
 					'loc' => get_term_link( $id, 'category' ),
 				);
@@ -71,7 +81,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$tag_list = $tax_provider->get_url_list( 1, 'post_tag' );
 
 		$expected_tags = array_map(
-			static function ( $id ) use ( $post ) {
+			static function ( $id ) {
 				return array(
 					'loc' => get_term_link( $id, 'post_tag' ),
 				);
@@ -97,10 +107,10 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
-		$post = self::factory()->post->create_and_get( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
 
 		$expected = array_map(
-			static function ( $id ) use ( $taxonomy, $post ) {
+			static function ( $id ) use ( $taxonomy ) {
 				return array(
 					'loc' => get_term_link( $id, $taxonomy ),
 				);
@@ -131,7 +141,8 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
-		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+		$post_id = self::factory()->post->create();
+		wp_add_object_terms( $post_id, $terms, $taxonomy );
 
 		$tax_provider = new WP_Sitemaps_Taxonomies();
 
@@ -144,7 +155,10 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test getting a URL list for a custom taxonomy that is not publicly queryable.
+	 * Test getting a sitemap for a custom taxonomy that is not publicly queryable.
+	 *
+	 * @ticket 50607
+	 * @ticket 61293
 	 */
 	public function test_get_url_list_custom_taxonomy_not_publicly_queryable() {
 		// Create a custom taxonomy for this test.
@@ -155,11 +169,18 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
-		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+		$post_id = self::factory()->post->create();
+		wp_add_object_terms( $post_id, $terms, 'non_queryable_tax' );
 
+		$sitemaps     = wp_sitemaps_get_server();
 		$tax_provider = new WP_Sitemaps_Taxonomies();
 
 		$post_list = $tax_provider->get_url_list( 1, $taxonomy );
+
+		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), 'Private taxonomy sitemaps should 404' );
 
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
@@ -169,6 +190,9 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 
 	/**
 	 * Test sitemap index entries with public and private taxonomies.
+	 *
+	 * @ticket #50117
+	 * @ticket #50607
 	 */
 	public function test_get_sitemap_entries_custom_taxonomies() {
 		wp_set_current_user( self::$editor_id );
@@ -218,5 +242,92 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		$subtypes = $taxonomies_provider->get_object_subtypes();
 
 		$this->assertSame( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
+	}
+
+	/**
+	 * Ensure unregistered taxonomy sub-type throws a 404.
+	 *
+	 * @ticket 61293
+	 */
+	public function test_unregistered_taxonomy_sitemap_404s() {
+		$taxonomy = 'unregistered_test_taxonomy';
+		$sitemaps = wp_sitemaps_get_server();
+
+		$this->go_to( home_url( "/?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), 'Unregistered taxonomy sitemaps should 404' );
+	}
+
+	/**
+	 * Ensure in each page for a registered sub-type returns the correct response.
+	 *
+	 * Tests the two pages that are in range return a 200 and that third, out of
+	 * range, page returns a 404.
+	 *
+	 * @dataProvider data_sitemap_does_not_404_for_valid_sitemap_subtypes
+	 *
+	 * @param string $taxonomy The taxonomy to test.
+	 */
+	public function test_sitemap_does_not_404_for_valid_sitemap_subtypes( string $taxonomy ) {
+		register_taxonomy( 'valid_custom_taxonomy', 'post', array( 'public' => true ) );
+
+		$post_id = self::factory()->post->create();
+		$terms   = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'number'     => 5,
+			)
+		);
+
+		$this->assertIsArray( $terms );
+		$count = count( $terms );
+		if ( $count < 5 ) {
+			$terms = array_merge( $terms, self::factory()->term->create_many( 5 - $count, array( 'taxonomy' => $taxonomy ) ) );
+		}
+		wp_add_object_terms( $post_id, $terms, $taxonomy );
+
+		add_filter(
+			'wp_sitemaps_max_urls',
+			static function () {
+				return 3;
+			}
+		);
+
+		$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertFalse( is_404(), 'Sitemap should not 404 when page is unspecified' );
+
+		foreach ( array( 1, 2 ) as $page ) {
+			$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}&paged={$page}" ) );
+			$sitemaps = wp_sitemaps_get_server();
+			// Wrap in get_echo to prevent unexpected test suite output.
+			get_echo( array( $sitemaps, 'render_sitemaps' ) );
+			$this->assertFalse( is_404(), "Sitemap should not 404 when page is set to {$page}" );
+		}
+
+		$page = 3;
+		$this->go_to( home_url( "?sitemap=taxonomies&sitemap-subtype={$taxonomy}&paged={$page}" ) );
+		$sitemaps = wp_sitemaps_get_server();
+		// Wrap in get_echo to prevent unexpected test suite output.
+		get_echo( array( $sitemaps, 'render_sitemaps' ) );
+		$this->assertTrue( is_404(), "Sitemap should 404 when page is set to {$page} (out of range)" );
+	}
+
+	/**
+	 * Data provider for {@see self::test_sitemap_does_not_404_for_valid_sitemap_subtypes()}.
+	 *
+	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
+	 */
+	public static function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
+		return array(
+			'category'              => array( 'category' ),
+			'valid custom taxonomy' => array( 'valid_custom_taxonomy' ),
+			'tag'                   => array( 'post_tag' ),
+		);
 	}
 }
