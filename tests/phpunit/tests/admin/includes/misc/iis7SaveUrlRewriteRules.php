@@ -12,20 +12,6 @@
 class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 
 	/**
-	 * Original home path.
-	 *
-	 * @var string|bool
-	 */
-	private $orig_home;
-
-	/**
-	 * Original siteurl path.
-	 *
-	 * @var string|bool
-	 */
-	private $orig_siteurl;
-
-	/**
 	 * Temporary home directory.
 	 *
 	 * @var string
@@ -68,17 +54,18 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		$this->orig_home            = get_option( 'home' );
-		$this->orig_siteurl         = get_option( 'siteurl' );
 		$this->orig_script_filename = isset( $_SERVER['SCRIPT_FILENAME'] ) ? $_SERVER['SCRIPT_FILENAME'] : null;
 		$this->orig_iis_rewritten   = isset( $_SERVER['IIS_WasUrlRewritten'] ) ? $_SERVER['IIS_WasUrlRewritten'] : null;
 		$this->orig_iis_url_rewrite = isset( $_SERVER['IIS_UrlRewriteModule'] ) ? $_SERVER['IIS_UrlRewriteModule'] : null;
 		$this->orig_is_iis7         = isset( $is_iis7 ) ? $is_iis7 : null;
 
-		$this->temp_home = get_temp_dir() . 'wp_iis_test_home/';
-		if ( ! is_dir( $this->temp_home ) ) {
-			mkdir( $this->temp_home );
-		}
+		$this->temp_home = get_temp_dir() . 'wp_iis_test_home_' . uniqid( '', true ) . '/';
+		mkdir( $this->temp_home );
+		mkdir( $this->temp_home . 'wp' );
+
+		update_option( 'home', 'http://localhost' );
+		update_option( 'siteurl', 'http://localhost/wp' );
+		$_SERVER['SCRIPT_FILENAME'] = $this->temp_home . 'wp/index.php';
 	}
 
 	public function tear_down() {
@@ -88,8 +75,6 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 
 		global $is_iis7;
 
-		update_option( 'home', $this->orig_home );
-		update_option( 'siteurl', $this->orig_siteurl );
 		if ( null !== $this->orig_script_filename ) {
 			$_SERVER['SCRIPT_FILENAME'] = $this->orig_script_filename;
 		} else {
@@ -133,7 +118,7 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that iis7_save_url_rewrite_rules() correctly writes rules to web.config.
+	 * Tests that iis7_save_url_rewrite_rules() correctly writes rules to web.config when file does not exist.
 	 *
 	 * @ticket 65147
 	 *
@@ -148,27 +133,15 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 		$is_iis7                         = true;
 		$_SERVER['IIS_UrlRewriteModule'] = '1';
 
-		// Update home/siteurl to match the temp directory.
-		update_option( 'home', 'http://localhost' );
-		update_option( 'siteurl', 'http://localhost/wp' );
-		$_SERVER['SCRIPT_FILENAME'] = $this->temp_home . 'wp/index.php';
-		if ( ! is_dir( $this->temp_home . 'wp' ) ) {
-			mkdir( $this->temp_home . 'wp' );
-		}
-
 		// Mock iis7_supports_permalinks() because test runner is not on cgi-fcgi SAPI.
 		add_filter( 'iis7_supports_permalinks', '__return_true' );
 
 		// Setup permalinks.
-		$orig_structure = $wp_rewrite->permalink_structure;
 		$wp_rewrite->set_permalink_structure( '/%postname%/' );
 
 		$web_config_file = $this->temp_home . 'web.config';
 
 		$result = iis7_save_url_rewrite_rules();
-
-		$wp_rewrite->set_permalink_structure( $orig_structure );
-		remove_filter( 'iis7_supports_permalinks', '__return_true' );
 
 		$this->assertTrue( $result, 'iis7_save_url_rewrite_rules() should return true on success.' );
 		$this->assertFileExists( $web_config_file );
@@ -177,6 +150,72 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'name="WordPress', $content );
 		$this->assertStringContainsString( '<match url="*', $content );
 		$this->assertStringContainsString( '<action type="Rewrite" url="index.php"', $content );
+	}
+
+	/**
+	 * Tests that iis7_save_url_rewrite_rules() updates an existing web.config while preserving unrelated rules.
+	 *
+	 * @ticket 65147
+	 *
+	 * @group ms-excluded
+	 */
+	public function test_iis7_save_url_rewrite_rules_existing_config() {
+		$this->skipWithMultisite();
+
+		global $wp_rewrite, $is_iis7;
+
+		$is_iis7                         = true;
+		$_SERVER['IIS_UrlRewriteModule'] = '1';
+
+		add_filter( 'iis7_supports_permalinks', '__return_true' );
+
+		$web_config_file = $this->temp_home . 'web.config';
+		$initial_content = '<configuration><system.webServer><rewrite><rules><rule name="custom_rule" /></rules></rewrite></system.webServer></configuration>';
+		file_put_contents( $web_config_file, $initial_content );
+
+		$wp_rewrite->set_permalink_structure( '/%postname%/' );
+
+		$result = iis7_save_url_rewrite_rules();
+
+		$this->assertTrue( $result, 'iis7_save_url_rewrite_rules() should return true on success.' );
+		$this->assertFileExists( $web_config_file );
+
+		$content = file_get_contents( $web_config_file );
+		$this->assertStringContainsString( 'name="custom_rule"', $content );
+		$this->assertStringContainsString( 'name="WordPress', $content );
+	}
+
+	/**
+	 * Tests that iis7_save_url_rewrite_rules() removes WordPress rules when plain permalinks are enabled.
+	 *
+	 * @ticket 65147
+	 *
+	 * @group ms-excluded
+	 */
+	public function test_iis7_save_url_rewrite_rules_deletes_rules_when_plain_permalinks() {
+		$this->skipWithMultisite();
+
+		global $wp_rewrite, $is_iis7;
+
+		$is_iis7                         = true;
+		$_SERVER['IIS_UrlRewriteModule'] = '1';
+
+		add_filter( 'iis7_supports_permalinks', '__return_true' );
+
+		$web_config_file = $this->temp_home . 'web.config';
+		$initial_content = '<configuration><system.webServer><rewrite><rules><rule name="WordPress Rule 1" /><rule name="custom_rule" /></rules></rewrite></system.webServer></configuration>';
+		file_put_contents( $web_config_file, $initial_content );
+
+		$wp_rewrite->set_permalink_structure( '' );
+
+		$result = iis7_save_url_rewrite_rules();
+
+		$this->assertTrue( $result, 'iis7_save_url_rewrite_rules() should return true when deleting rules.' );
+		$this->assertFileExists( $web_config_file );
+
+		$content = file_get_contents( $web_config_file );
+		$this->assertStringContainsString( 'name="custom_rule"', $content );
+		$this->assertStringNotContainsString( 'name="WordPress', $content );
 	}
 
 	/**
@@ -192,21 +231,12 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 		global $wp_rewrite, $is_iis7;
 
 		$is_iis7 = false;
-		update_option( 'home', 'http://localhost' );
-		update_option( 'siteurl', 'http://localhost/wp' );
-		$_SERVER['SCRIPT_FILENAME'] = $this->temp_home . 'wp/index.php';
-		if ( ! is_dir( $this->temp_home . 'wp' ) ) {
-			mkdir( $this->temp_home . 'wp' );
-		}
 
 		// Configure permalinks and create a writable web.config so failure is specifically due to non-IIS environment.
-		$orig_structure = $wp_rewrite->permalink_structure;
 		$wp_rewrite->set_permalink_structure( '/%postname%/' );
 		file_put_contents( $this->temp_home . 'web.config', '<configuration/>' );
 
 		$result = iis7_save_url_rewrite_rules();
-
-		$wp_rewrite->set_permalink_structure( $orig_structure );
 
 		$this->assertFalse( $result, 'iis7_save_url_rewrite_rules() should return false when not on IIS.' );
 	}
