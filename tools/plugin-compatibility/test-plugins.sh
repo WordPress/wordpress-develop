@@ -157,8 +157,9 @@ run_in_docker() {
 	DOCKER_NETWORK="plugin-compatibility-$$"
 	DB_CONTAINER="plugin-compatibility-db-$$"
 
-	# Both are removed however this exits, an interrupt included.
-	trap 'docker rm --force "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1' EXIT INT TERM
+	# Both are removed however this exits, an interrupt included. `--volumes` takes the anonymous volume the
+	# database image keeps its data in along with the container, which would otherwise pile up run after run.
+	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1' EXIT INT TERM
 
 	printf 'Starting %s.\n' "${DB_IMAGE}"
 
@@ -266,6 +267,9 @@ run_checks() {
 	trap cleanup_environment EXIT INT TERM
 
 	cd "${WP_DIR}" || error "The WordPress directory could not be entered."
+
+	# A relative `--dir` would be resolved against the wrong directory from here on.
+	WP_DIR="$( pwd )"
 
 	SITE_URL="http://127.0.0.1:${SERVER_PORT}"
 
