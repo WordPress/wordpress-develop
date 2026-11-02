@@ -816,6 +816,43 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				),
 				'[{}]',
 			),
+			'array branch whose oneOf matches more than once' => array(
+				array(),
+				array(
+					'type'  => array( 'object', 'array' ),
+					'anyOf' => array(
+						array(
+							'oneOf' => array(
+								array( 'type' => 'array' ),
+								array(
+									'type'     => 'array',
+									'maxItems' => 5,
+								),
+							),
+						),
+						array( 'type' => 'object' ),
+					),
+				),
+				'{}',
+			),
+			'branch whose anyOf allows an array but whose oneOf does not' => array(
+				array(),
+				array(
+					'type'  => array( 'object', 'array' ),
+					'anyOf' => array(
+						array(
+							'anyOf' => array(
+								array( 'type' => 'array' ),
+							),
+							'oneOf' => array(
+								array( 'type' => 'object' ),
+							),
+						),
+						array( 'type' => 'array' ),
+					),
+				),
+				'[]',
+			),
 		);
 	}
 
@@ -982,5 +1019,51 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$prepared = wp_prepare_json_value_for_client( $value, $schema );
 
 		$this->assertSame( '{"item-1":{}}', wp_json_encode( $prepared ) );
+	}
+
+	/**
+	 * Data provider for test_wp_json_schema_matches_type().
+	 *
+	 * @return array<string, array{0: mixed, 1: array<string, mixed>, 2: string, 3: bool}>
+	 */
+	public static function data_wp_json_schema_matches_type() {
+		return array(
+			'type allows the requested type'               => array(
+				array(),
+				array( 'type' => array( 'object', 'array' ) ),
+				'array',
+				true,
+			),
+			'type does not allow the requested type'       => array(
+				array(),
+				array( 'type' => 'object' ),
+				'array',
+				false,
+			),
+			'value fails validation as the requested type' => array(
+				array(),
+				array(
+					'type'     => 'array',
+					'minItems' => 1,
+				),
+				'array',
+				false,
+			),
+		);
+	}
+
+	/**
+	 * Tests whether a value matches a schema through a given type.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_wp_json_schema_matches_type
+	 *
+	 * @param mixed                $value    The value to validate.
+	 * @param array<string, mixed> $schema   The schema to inspect.
+	 * @param string               $type     The type to match.
+	 * @param bool                 $expected Whether the value is expected to match.
+	 */
+	public function test_wp_json_schema_matches_type( $value, $schema, $type, $expected ) {
+		$this->assertSame( $expected, _wp_json_schema_matches_type( $value, $schema, $type ) );
 	}
 }

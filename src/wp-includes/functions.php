@@ -1158,9 +1158,10 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
  * @since 5.3.0 Formalized the existing and already documented parameters
  *              by adding `...$args` to the function signature.
  *
- * @param string|array $key   Either a query variable key, or an associative array of query variables.
- * @param string       $value Optional. Either a query variable value, or a URL to act upon.
- * @param string       $url   Optional. A URL to act upon.
+ * @param mixed ...$args Either a query variable key (string), its value (required; false removes
+ *                       the key), and an optional URL (string), or an associative array of query
+ *                       variables and an optional URL (string). If the URL is omitted or false,
+ *                       the current URL (`$_SERVER['REQUEST_URI']`) is used.
  * @return string New URL query string (unescaped).
  */
 function add_query_arg( ...$args ) {
@@ -2136,7 +2137,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
@@ -2149,8 +2154,8 @@ function wp_mkdir_p( $target ) {
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
  *
+ * @phpstan-assert-if-true =non-falsy-string $path
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
- * @phpstan-assert-if-true non-falsy-string $path
  */
 function path_is_absolute( $path ) {
 	/*
@@ -2911,6 +2916,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
 
 	// Edge case, file names like `.ext`.
 	if ( empty( $fname ) ) {
+
 		return false;
 	}
 
@@ -5460,7 +5466,7 @@ function wp_is_numeric_array( $data ): bool {
  * Key represents property name, and value represents property value.
  *
  * If an object has more properties than those specified in arguments,
- * that will not disqualify it. When using the 'AND' operator,
+ * that will not disqualify it. When using the 'and' operator,
  * any missing properties will disqualify it.
  *
  * When using the `$field` argument, this function can also retrieve
@@ -5473,13 +5479,15 @@ function wp_is_numeric_array( $data ): bool {
  * @param array       $input_list An array of objects to filter.
  * @param array       $args       Optional. An array of key => value arguments to match
  *                                against each object. Default empty array.
- * @param string      $operator   Optional. The logical operation to perform. 'AND' means
- *                                all elements from the array must match. 'OR' means only
- *                                one element needs to match. 'NOT' means no elements may
- *                                match. Default 'AND'.
+ * @param string      $operator   Optional. The logical operation to perform. 'and' means
+ *                                all elements from the array must match. 'or' means only
+ *                                one element needs to match. 'not' means no elements may
+ *                                match. The value is case-insensitive. Default 'and'.
  * @param bool|string $field      Optional. A field from the object to place instead
  *                                of the entire object. Default false.
  * @return array A list of objects or object fields.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5504,7 +5512,7 @@ function wp_filter_object_list( $input_list, $args = array(), $operator = 'and',
  * Key represents property name, and value represents property value.
  *
  * If an object has more properties than those specified in arguments,
- * that will not disqualify it. When using the 'AND' operator,
+ * that will not disqualify it. When using the 'and' operator,
  * any missing properties will disqualify it.
  *
  * If you want to retrieve a particular field from all matching objects,
@@ -5517,13 +5525,15 @@ function wp_filter_object_list( $input_list, $args = array(), $operator = 'and',
  * @param array  $input_list An array of objects to filter.
  * @param array  $args       Optional. An array of key => value arguments to match
  *                           against each object. Default empty array.
- * @param string $operator   Optional. The logical operation to perform. 'AND' means
- *                           all elements from the array must match. 'OR' means only
- *                           one element needs to match. 'NOT' means no elements may
- *                           match. Default 'AND'.
+ * @param string $operator   Optional. The logical operation to perform. 'and' means
+ *                           all elements from the array must match. 'or' means only
+ *                           one element needs to match. 'not' means no elements may
+ *                           match. The value is case-insensitive. Default 'and'.
  * @return array Array of found values.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
-function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
+function wp_list_filter( $input_list, $args = array(), $operator = 'and' ) {
 	return wp_filter_object_list( $input_list, $args, $operator );
 }
 
@@ -6875,9 +6885,9 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 		// This determines what gets set and translated - we don't translate Etc/* strings here, they are done later.
 		$exists    = array(
-			0 => ( isset( $zone[0] ) && $zone[0] ),
-			1 => ( isset( $zone[1] ) && $zone[1] ),
-			2 => ( isset( $zone[2] ) && $zone[2] ),
+			0 => ! empty( $zone[0] ),
+			1 => ! empty( $zone[1] ),
+			2 => ! empty( $zone[2] ),
 		);
 		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
 		$exists[4] = ( $exists[1] && $exists[3] );
@@ -6945,7 +6955,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$structure[] = '<option ' . $selected . 'value="' . esc_attr( $value ) . '" dir="auto">' . esc_html( $display ) . '</option>';
 
 		// Close continent optgroup.
-		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || ( isset( $zonen[ $key + 1 ] ) && $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) ) {
+		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) {
 			$structure[] = '</optgroup>';
 		}
 	}
@@ -7597,6 +7607,8 @@ function _device_can_upload() {
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $path
  */
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
@@ -8229,6 +8241,7 @@ function wp_generate_uuid4() {
  *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
  *
+ * @phpstan-assert-if-true =lowercase-string&non-falsy-string $uuid
  * @phpstan-return ( $version is 4|null ? bool : false )
  */
 function wp_is_uuid( $uuid, $version = null ) {

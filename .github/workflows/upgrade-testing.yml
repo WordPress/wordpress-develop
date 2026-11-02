@@ -9,6 +9,7 @@ on:
       - trunk
     # Always test the workflow after it's updated.
     paths:
+      - '.github/actions/setup-wp-cli/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
@@ -18,6 +19,7 @@ on:
       - trunk
     # Always test the workflow when changes are suggested.
     paths:
+      - '.github/actions/setup-wp-cli/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
@@ -297,6 +299,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
