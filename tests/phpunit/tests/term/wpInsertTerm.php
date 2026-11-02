@@ -16,6 +16,13 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_2' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_insert_delete_term() {
 		$taxonomy = 'wptests_tax';
 		register_taxonomy( $taxonomy, 'post' );
@@ -675,7 +682,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		 * allow for duplicate slugs.
 		 */
 		$this->assertSame( 'foo-2', $new_term->slug );
-		$this->assertNotEquals( $new_term->term_id, $term->term_id );
+		$this->assertNotSame( $new_term->term_id, $term->term_id );
 
 		_unregister_taxonomy( 'wptests_tax', 'post' );
 	}
@@ -764,7 +771,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
 		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
 
-		$this->assertNotEquals( $t1['term_id'], $t2['term_id'] );
+		$this->assertNotSame( $t1['term_id'], $t2['term_id'] );
 	}
 
 	public function test_wp_insert_term_should_return_term_id_and_term_taxonomy_id() {
@@ -908,6 +915,77 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$this->assertWPError( $term );
 		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
+	}
+
+	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_root_level_term_with_same_name_as_child_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Foo',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'foo-bar',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t3 = wp_insert_term( 'Bar', 'wptests_tax' );
+
+		$this->assertNotWPError( $t3 );
+		$t3_term = get_term( $t3['term_id'], 'wptests_tax' );
+		$this->assertSame( 'bar', $t3_term->slug );
+	}
+
+	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_child_term_with_same_name_as_another_child_under_different_parent_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent One',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent Two',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Child',
+				'slug'     => 'parent-one-child',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t4 = wp_insert_term(
+			'Child',
+			'wptests_tax',
+			array(
+				'parent' => $t2,
+			)
+		);
+
+		$this->assertNotWPError( $t4 );
+		$t4_term = get_term( $t4['term_id'], 'wptests_tax' );
+		$this->assertSame( 'child', $t4_term->slug );
 	}
 
 	/**

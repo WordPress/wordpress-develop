@@ -33,7 +33,7 @@ class Tests_Compat_arrayIsList extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_is_list() {
+	public static function data_array_is_list() {
 		return array(
 			'empty array'                   => array(
 				'expected' => true,
