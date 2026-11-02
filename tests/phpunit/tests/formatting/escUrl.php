@@ -4,6 +4,7 @@
  * @group formatting
  *
  * @covers ::esc_url
+ * @covers ::esc_url_raw
  */
 class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
@@ -310,5 +311,38 @@ EOT;
 		// IPv6 with square brackets in the query? Why not.
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
+	}
+
+	/**
+	 * Tests that esc_url_raw() does not entity-encode ampersands.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_esc_url_raw_does_not_entity_encode_ampersands() {
+		$url = 'http://example.com/?one=1&two=2&three=3';
+
+		$this->assertSame( $url, esc_url_raw( $url ) );
+	}
+
+	/**
+	 * Tests that esc_url_raw() sanitizes bad characters and invalid protocols.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_esc_url_raw_sanitizes_url() {
+		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url_raw( 'http://example.com/watchthelinefeed%0Ago' ) );
+		$this->assertSame( '', esc_url_raw( 'javascript:alert(1)' ) );
+	}
+
+	/**
+	 * Tests that esc_url_raw() accepts custom allowed protocols.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_esc_url_raw_custom_protocols() {
+		$url = 'custom://example.com';
+
+		$this->assertSame( '', esc_url_raw( $url ) );
+		$this->assertSame( $url, esc_url_raw( $url, array( 'custom' ) ) );
 	}
 }
