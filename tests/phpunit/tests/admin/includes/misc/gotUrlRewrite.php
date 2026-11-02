@@ -73,6 +73,7 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 		remove_filter( 'got_rewrite', $mod_rewrite ? '__return_true' : '__return_false' );
 		if ( null !== $filter_val ) {
 			remove_filter( 'got_url_rewrite', $filter_val ? '__return_true' : '__return_false' );
+		}
 	}
 
   /**
