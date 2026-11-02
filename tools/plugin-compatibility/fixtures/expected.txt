@@ -13,6 +13,7 @@ fixture-fatal-on-activation        FAIL     The plugin could not be activated
 fixture-exit-on-activation         SKIPPED  the plugin was not active afterwards
 fixture-requires-newer-php         SKIPPED  declared requirements are not met
 fixture-requires-newer-wordpress   SKIPPED  declared requirements are not met
+fixture-requires-newer-both        SKIPPED  declared requirements are not met
 fixture-fatal-on-front-end         FAIL     The request to / returned HTTP 500
 fixture-fatal-on-login             FAIL     The request to /wp-login.php returned HTTP 500
 fixture-fatal-after-output         FAIL     PHP Fatal error

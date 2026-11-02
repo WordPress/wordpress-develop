@@ -820,8 +820,9 @@ test_plugins() {
 					# Dependencies are installed above, so what is left here is a plugin asking for a
 					# version of PHP or WordPress this run is not using, or for a dependency that is not on
 					# WordPress.org. That is core working as designed rather than a fatal, so it is recorded
-					# as skipped.
-					*"to be installed and activated"* | *"does not meet minimum requirements"* )
+					# as skipped. Core says "does not meet" when one of the two is unmet and "do not meet" when
+					# both are.
+					*"to be installed and activated"* | *"does not meet minimum requirements"* | *"do not meet minimum requirements"* )
 						STATUS="SKIPPED"
 						REASON="Core declined to activate the plugin because its declared requirements are not met"
 						;;
