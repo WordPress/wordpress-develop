@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "5715a61334c4d29f21b67cf34b46061dc1b62502",
+		"sha": "cc75a79186fd23e72eb015d594e82f40c6209eb5",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -42,8 +42,9 @@
 		"@343dev/gifsicle": "1.2.0",
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@napi-rs/image": "1.14.0",
-		"@playwright/test": "1.61.1",
+		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
+		"@types/backbone": "1.4.23",
 		"@types/codemirror": "5.60.17",
 		"@types/espree": "10.1.0",
 		"@types/htmlhint": "1.1.5",
@@ -55,7 +56,6 @@
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
 		"chalk": "5.6.2",
-		"check-node-version": "4.2.1",
 		"cssnano": "7.1.9",
 		"dotenv": "17.4.2",
 		"dotenv-expand": "13.0.0",
@@ -115,7 +115,7 @@
 		"jsonlint": "1.6.3",
 		"lodash": "4.18.1",
 		"masonry-layout": "4.2.2",
-		"moment": "2.30.1",
+		"moment": "2.31.0",
 		"objectFitPolyfill": "2.3.5",
 		"polyfill-library": "4.8.0",
 		"react": "18.3.1",
@@ -140,7 +140,7 @@
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
 		"typecheck:js": "tsc --build",
-		"env:start": "node ./tools/local-env/scripts/start.js && node ./tools/local-env/scripts/docker.js run -T --rm php composer update -W",
+		"env:start": "node ./tools/local-env/scripts/start.js",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
 		"env:restart": "npm run env:stop && npm run env:start",
 		"env:clean": "node ./tools/local-env/scripts/docker.js down -v --remove-orphans",

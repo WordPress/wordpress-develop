@@ -10,6 +10,13 @@ class Tests_Term_WpUniqueTermSlug extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax2', 'post', array( 'hierarchical' => true ) );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+
+		parent::tear_down();
+	}
+
 	public function test_unique_slug_should_be_unchanged() {
 		$term = self::factory()->term->create_and_get(
 			array(

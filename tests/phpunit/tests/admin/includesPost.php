@@ -26,6 +26,13 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'yes_title' );
+		unregister_post_type( 'no_title' );
+
+		parent::tear_down();
+	}
+
 	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
@@ -967,6 +974,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -975,6 +983,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 

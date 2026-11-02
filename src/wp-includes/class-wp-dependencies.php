@@ -316,7 +316,7 @@ class WP_Dependencies {
 		}
 		if ( 'conditional' === $key && '_required-conditional-dependency_' !== $value ) {
 			_deprecated_argument(
-				'WP_Dependencies->add_data()',
+				'WP_Dependencies::add_data()',
 				'6.9.0',
 				__( 'IE conditional comments are ignored by all supported browsers.' )
 			);
@@ -534,19 +534,19 @@ class WP_Dependencies {
 	 * Get etag header for cache validation.
 	 *
 	 * @since 6.7.0
+	 * @deprecated 7.2.0 Scripts and styles are no longer concatenated by load-scripts.php or load-styles.php.
 	 *
 	 * @global string $wp_version The WordPress version string.
 	 *
 	 * @param string[] $load Array of script or style handles to load.
 	 * @return string Etag header.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_etag( $load ) {
-		/*
-		 * Note: wp_get_wp_version() is not used here, as this file can be included
-		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
-		 * wp-includes/functions.php is not loaded.
-		 */
 		global $wp_version;
+
+		_deprecated_function( __METHOD__, '7.2.0' );
 
 		$etag = "WP:{$wp_version};";
 
