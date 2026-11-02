@@ -75,10 +75,9 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 
 	public function test_default_group_filter_removes_tests_from_nested_suites() {
 		$test = clone $this;
-		$test->setGroups( array( 'ajax' ) );
 
 		$class_suite = new PHPUnit\Framework\TestSuite();
-		$class_suite->addTest( $test );
+		$class_suite->addTest( $test, array( 'ajax' ) );
 
 		$root_suite = new PHPUnit\Framework\TestSuite();
 		$root_suite->addTest( $class_suite );
