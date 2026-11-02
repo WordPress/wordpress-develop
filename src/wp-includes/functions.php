@@ -2137,7 +2137,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
@@ -2912,6 +2916,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
 
 	// Edge case, file names like `.ext`.
 	if ( empty( $fname ) ) {
+
 		return false;
 	}
 
@@ -6880,9 +6885,9 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 		// This determines what gets set and translated - we don't translate Etc/* strings here, they are done later.
 		$exists    = array(
-			0 => ( isset( $zone[0] ) && $zone[0] ),
-			1 => ( isset( $zone[1] ) && $zone[1] ),
-			2 => ( isset( $zone[2] ) && $zone[2] ),
+			0 => ! empty( $zone[0] ),
+			1 => ! empty( $zone[1] ),
+			2 => ! empty( $zone[2] ),
 		);
 		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
 		$exists[4] = ( $exists[1] && $exists[3] );
@@ -6950,7 +6955,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$structure[] = '<option ' . $selected . 'value="' . esc_attr( $value ) . '" dir="auto">' . esc_html( $display ) . '</option>';
 
 		// Close continent optgroup.
-		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || ( isset( $zonen[ $key + 1 ] ) && $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) ) {
+		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) {
 			$structure[] = '</optgroup>';
 		}
 	}
