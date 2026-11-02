@@ -297,6 +297,9 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * @return string The output if any was sent, otherwise the wp_die() message.
 	 */
 	protected function get_ajax_response( $action ) {
+		// dieHandler() appends to the previous response, which would leak into this one.
+		$this->_last_response = '';
+
 		try {
 			$this->_handleAjax( $action );
 		} catch ( WPAjaxDieStopException $e ) {
