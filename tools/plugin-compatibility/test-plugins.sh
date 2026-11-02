@@ -314,19 +314,30 @@ run_checks() {
 	SERVER_PID=$!
 	set +m
 
+	# Any server already listening on the port would answer a request for a WordPress page just as well, and
+	# every check after this would then be made against that site instead. So readiness means this server is
+	# still running and is serving a file that only exists in this install.
+	READY_FILE="plugin-compatibility-ready-$$-${RANDOM}.txt"
+	READY_TOKEN="$$-${RANDOM}-$( date +%s )"
+	printf '%s' "${READY_TOKEN}" > "${WP_DIR}/${READY_FILE}"
+
 	SERVER_READY="no"
 
 	for _ in $( seq 1 30 ); do
-		if curl -sSf -o /dev/null "${SITE_URL}/wp-login.php"; then
+		kill -0 "${SERVER_PID}" > /dev/null 2>&1 || break
+
+		if [ "$( curl -sf "${SITE_URL}/${READY_FILE}" 2>/dev/null )" = "${READY_TOKEN}" ]; then
 			SERVER_READY="yes"
 			break
 		fi
 		sleep 1
 	done
 
+	rm -f "${WP_DIR:?}/${READY_FILE}"
+
 	if [ "${SERVER_READY}" != "yes" ]; then
 		cat "${SERVER_LOG}"
-		error "The PHP built-in server did not start on port ${SERVER_PORT}."
+		error "The PHP built-in server did not start on port ${SERVER_PORT}, or something else is already listening on it."
 	fi
 
 	printf 'The PHP built-in server is ready on %s.\n' "${SITE_URL}"
