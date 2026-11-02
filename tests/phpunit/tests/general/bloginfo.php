@@ -16,6 +16,8 @@ class Tests_General_Bloginfo extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_bloginfo_default_displays_name() {
+		update_option( 'blogname', 'Test Blog' );
+
 		$this->expectOutputString( 'Test Blog' );
 		bloginfo();
 	}
@@ -26,6 +28,8 @@ class Tests_General_Bloginfo extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_bloginfo_name() {
+		update_option( 'blogname', 'Test Blog' );
+
 		$this->expectOutputString( 'Test Blog' );
 		bloginfo( 'name' );
 	}
@@ -36,6 +40,8 @@ class Tests_General_Bloginfo extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_bloginfo_url() {
+		update_option( 'home', 'http://example.org' );
+
 		$this->expectOutputString( 'http://example.org' );
 		bloginfo( 'url' );
 	}
