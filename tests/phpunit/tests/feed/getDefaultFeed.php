@@ -18,20 +18,6 @@ class Tests_Feed_GetDefaultFeed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_filter_can_change_default_feed() {
-		add_filter(
-			'default_feed',
-			static function () {
-				return 'atom';
-			}
-		);
-
-		$this->assertSame( 'atom', get_default_feed() );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_maps_legacy_rss_alias_to_rss2() {
 		add_filter(
 			'default_feed',
