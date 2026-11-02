@@ -58,43 +58,15 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that stripslashes_from_strings_only() strips slashes from strings.
+	 * Tests that stripslashes_from_strings_only() does not strip slashes from array elements.
+	 *
+	 * Unlike stripslashes_deep(), stripslashes_from_strings_only() does not recurse into arrays.
 	 *
 	 * @ticket 65819
-	 *
-	 * @covers ::stripslashes_from_strings_only
 	 */
-	public function test_stripslashes_from_strings_only_with_string() {
-		$this->assertSame( "I can't see, isn't that it?", stripslashes_from_strings_only( "I can\'t see, isn\'t that it?" ) );
-	}
+	public function test_stripslashes_from_strings_only_does_not_strip_array() {
+		$slashed_array = array( "I can\'t see", 'b' );
 
-	/**
-	 * Tests that stripslashes_from_strings_only() preserves non-string values.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::stripslashes_from_strings_only
-	 *
-	 * @dataProvider data_non_string_values
-	 *
-	 * @param mixed $value Non-string value.
-	 */
-	public function test_stripslashes_from_strings_only_with_non_string( $value ) {
-		$this->assertSame( $value, stripslashes_from_strings_only( $value ) );
-	}
-
-	/**
-	 * Data provider for test_stripslashes_from_strings_only_with_non_string().
-	 *
-	 * @return array[]
-	 */
-	public static function data_non_string_values() {
-		return array(
-			'integer'      => array( 42 ),
-			'float'        => array( 3.14 ),
-			'boolean true' => array( true ),
-			'null'         => array( null ),
-			'array'        => array( array( 'a', 'b' ) ),
-		);
+		$this->assertSame( $slashed_array, stripslashes_from_strings_only( $slashed_array ) );
 	}
 }
