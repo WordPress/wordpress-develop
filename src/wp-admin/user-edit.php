@@ -167,8 +167,10 @@ switch ( $action ) {
 		if ( is_multisite() ) {
 			$user = get_userdata( $user_id );
 
-			if ( $user->user_login && isset( $_POST['email'] ) && is_email( $_POST['email'] ) && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $user->user_login ) ) ) {
-				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $_POST['email'], $user_login ) );
+			$email = isset( $_POST['email'] ) ? wp_unslash( $_POST['email'] ) : '';
+
+			if ( $user->user_login && $email && is_email( $email ) && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $user->user_login ) ) ) {
+				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $email, $user->user_login ) );
 			}
 		}
 
