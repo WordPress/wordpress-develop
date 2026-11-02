@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "be6a50be6834e922b9db12c75c9a2cd817b2db59",
+		"sha": "cc75a79186fd23e72eb015d594e82f40c6209eb5",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -42,7 +42,7 @@
 		"@343dev/gifsicle": "1.2.0",
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@napi-rs/image": "1.14.0",
-		"@playwright/test": "1.61.1",
+		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/backbone": "1.4.23",
 		"@types/codemirror": "5.60.17",
@@ -140,7 +140,7 @@
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
 		"typecheck:js": "tsc --build",
-		"env:start": "node ./tools/local-env/scripts/start.js && node ./tools/local-env/scripts/docker.js run -T --rm php composer update -W",
+		"env:start": "node ./tools/local-env/scripts/start.js",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
 		"env:restart": "npm run env:stop && npm run env:start",
 		"env:clean": "node ./tools/local-env/scripts/docker.js down -v --remove-orphans",
