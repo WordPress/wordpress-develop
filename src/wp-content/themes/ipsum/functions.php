@@ -220,3 +220,6 @@ if ( ! function_exists( 'ipsum_register_block_styles' ) ) :
 	}
 endif;
 add_action( 'init', 'ipsum_register_block_styles' );
+
+// Registers the design guide ability for agents.
+require get_parent_theme_file_path( 'inc/abilities.php' );
