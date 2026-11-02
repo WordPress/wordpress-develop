@@ -119,6 +119,8 @@ function load_results( $dir ) {
 			'token_length' => $row['token_length'],
 			'token_text'   => $row['token_text'],
 			'breadcrumbs'  => $row['breadcrumbs'],
+			'before'       => $row['context_before'],
+			'after'        => $row['context_after'],
 		);
 	}
 
@@ -251,7 +253,28 @@ function format_breadcrumbs( $breadcrumbs, $max_count = 6 ) {
 }
 
 /**
- * Formats where the HTML Processor stopped on a document: the token, its bytes, and the breadcrumbs.
+ * Formats the token the HTML Processor stopped on with the text around it in the document.
+ *
+ * A long token is shortened in the middle, so that the text on either side of it stays in view.
+ *
+ * @param array $result Analysis result for one document.
+ * @return string Inline code, or an empty string if the token is not known.
+ */
+function format_context( $result ) {
+	if ( '' === $result['token_at'] ) {
+		return '';
+	}
+
+	$token = $result['token_text'];
+	if ( mb_strlen( $token ) > 40 ) {
+		$token = mb_substr( $token, 0, 20 ) . '…' . mb_substr( $token, -19 );
+	}
+
+	return format_code( $result['before'] . $token . $result['after'], 400 );
+}
+
+/**
+ * Formats where the HTML Processor stopped on a document: the token, the text around it, its bytes, and the breadcrumbs.
  *
  * @param array $result Analysis result for one document.
  * @return string[] Table cells.
@@ -259,6 +282,7 @@ function format_breadcrumbs( $breadcrumbs, $max_count = 6 ) {
 function failure_cells( $result ) {
 	return array(
 		'' === $result['token_text'] ? '' : format_code( $result['token_text'], 60 ),
+		format_context( $result ),
 		format_bytes_span( $result ),
 		format_breadcrumbs( $result['breadcrumbs'] ),
 	);
@@ -450,7 +474,7 @@ function examples_table( $pairs ) {
 		);
 	}
 
-	return table( array( 'URL', 'Size', 'Target', 'PR', 'Token', 'Bytes', 'Breadcrumbs' ), $rows );
+	return table( array( 'URL', 'Size', 'Target', 'PR', 'Token', 'Context', 'Bytes', 'Breadcrumbs' ), $rows );
 }
 
 /**
@@ -459,7 +483,8 @@ function examples_table( $pairs ) {
  * Examples come from the PR, or from the target branch for a reason only it
  * stops for. They are the smallest documents, which are the easiest to inspect,
  * taking at most one from each host. Each shows the token the HTML Processor
- * stopped on, its bytes in the document, and the breadcrumbs at that point.
+ * stopped on, the text around it, its bytes in the document, and the
+ * breadcrumbs at that point.
  *
  * @param array[]  $reasons    Reasons, in report order, each with `base` and `merge` counts, call sites, and documents.
  * @param callable $source_url Returns the link to `class-wp-html-processor.php` at a commit, or null.
@@ -503,7 +528,7 @@ function reason_examples_table( $reasons, $source_url, $base_sha, $merge_sha ) {
 		}
 	}
 
-	return table( array( 'Reason', 'URL', 'Size', 'Call site', 'Token', 'Bytes', 'Breadcrumbs' ), $rows );
+	return table( array( 'Reason', 'URL', 'Size', 'Call site', 'Token', 'Context', 'Bytes', 'Breadcrumbs' ), $rows );
 }
 
 $base_results  = load_results( $argv[1] );
