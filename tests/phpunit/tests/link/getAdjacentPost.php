@@ -2,6 +2,8 @@
 /**
  * @group link
  * @covers ::get_adjacent_post
+ * @covers ::get_previous_post
+ * @covers ::get_next_post
  */
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
@@ -801,5 +803,115 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$next = get_adjacent_post( true, '', false, 'category' );
 		$this->assertInstanceOf( 'WP_Post', $next );
 		$this->assertSame( $post_ids[3], $next->ID ); // Post 4 (in category)
+	}
+
+	/**
+	 * Tests get_previous_post().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_get_previous_post() {
+		$post_one   = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First Post',
+				'post_date'  => '2024-01-01 12:00:00',
+			)
+		);
+		$post_two   = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second Post',
+				'post_date'  => '2024-01-02 12:00:00',
+			)
+		);
+		$post_three = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Third Post',
+				'post_date'  => '2024-01-03 12:00:00',
+			)
+		);
+
+		$category_one = self::factory()->category->create( array( 'name' => 'Category One' ) );
+		$category_two = self::factory()->category->create( array( 'name' => 'Category Two' ) );
+
+		wp_set_post_categories( $post_one->ID, array( $category_one ) );
+		wp_set_post_categories( $post_two->ID, array( $category_two ) );
+		wp_set_post_categories( $post_three->ID, array( $category_one ) );
+
+		// Navigate to post two.
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		// Returns previous post object.
+		$previous = get_previous_post();
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertSame( $post_one->ID, $previous->ID );
+
+		// Navigate to post one (first post, no previous post).
+		$this->go_to( get_permalink( $post_one->ID ) );
+		$this->assertSame( '', get_previous_post() );
+
+		// Navigate to post three with taxonomy filter (in_same_term = true).
+		$this->go_to( get_permalink( $post_three->ID ) );
+		$previous_in_term = get_previous_post( true, '', 'category' );
+		$this->assertInstanceOf( 'WP_Post', $previous_in_term );
+		$this->assertSame( $post_one->ID, $previous_in_term->ID );
+
+		// When global $post is unset, get_previous_post() returns null.
+		unset( $GLOBALS['post'] );
+		$this->assertNull( get_previous_post() );
+	}
+
+	/**
+	 * Tests get_next_post().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_get_next_post() {
+		$post_one   = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First Post',
+				'post_date'  => '2024-01-01 12:00:00',
+			)
+		);
+		$post_two   = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second Post',
+				'post_date'  => '2024-01-02 12:00:00',
+			)
+		);
+		$post_three = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Third Post',
+				'post_date'  => '2024-01-03 12:00:00',
+			)
+		);
+
+		$category_one = self::factory()->category->create( array( 'name' => 'Category One' ) );
+		$category_two = self::factory()->category->create( array( 'name' => 'Category Two' ) );
+
+		wp_set_post_categories( $post_one->ID, array( $category_one ) );
+		wp_set_post_categories( $post_two->ID, array( $category_two ) );
+		wp_set_post_categories( $post_three->ID, array( $category_one ) );
+
+		// Navigate to post two.
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		// Returns next post object.
+		$next = get_next_post();
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertSame( $post_three->ID, $next->ID );
+
+		// Navigate to post three (last post, no next post).
+		$this->go_to( get_permalink( $post_three->ID ) );
+		$this->assertSame( '', get_next_post() );
+
+		// Navigate to post one with taxonomy filter (in_same_term = true).
+		$this->go_to( get_permalink( $post_one->ID ) );
+		$next_in_term = get_next_post( true, '', 'category' );
+		$this->assertInstanceOf( 'WP_Post', $next_in_term );
+		$this->assertSame( $post_three->ID, $next_in_term->ID );
+
+		// When global $post is unset, get_next_post() returns null.
+		unset( $GLOBALS['post'] );
+		$this->assertNull( get_next_post() );
 	}
 }
