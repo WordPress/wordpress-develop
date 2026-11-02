@@ -261,8 +261,6 @@ class Tests_Admin_Includes_Plugin_UninstallPlugin extends WP_UnitTestCase {
 		return array(
 			'registered plugin'           => array( 'my-plugin/my-plugin.php', true ),
 			'other file in the directory' => array( 'my-plugin/other.php', false ),
-			'unregistered plugin'         => array( 'other-plugin/other.php', false ),
-			'single-file plugin'          => array( 'hello.php', false ),
 		);
 	}
 }

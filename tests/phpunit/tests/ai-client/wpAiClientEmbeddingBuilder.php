@@ -157,7 +157,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_embedding_model_metadata();
+		$metadata ??= $this->create_test_embedding_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock',

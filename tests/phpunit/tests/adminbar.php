@@ -176,7 +176,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$primary_profile_url = get_admin_url( $primary->blog_id, 'profile.php' );
 
 		// Ensure the user's primary blog is not the same as the main site.
-		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $primary_profile_url, $node_my_account->href );
@@ -229,7 +229,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$user_profile_url = user_admin_url( 'profile.php' );
 
-		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $user_profile_url, $node_my_account->href );
@@ -276,7 +276,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_admin_bar_nodes_with_tabindex_meta() {
+	public static function data_admin_bar_nodes_with_tabindex_meta() {
 		return array(
 			array(
 				// No tabindex.
@@ -804,7 +804,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_my_sites_network_menu_items() {
+	public static function data_my_sites_network_menu_items() {
 		return array(
 			array( 'my-sites-super-admin', 'manage_network' ),
 			array( 'network-admin', 'manage_network' ),
@@ -964,6 +964,33 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The display name and user login are escaped in the account menu.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_escapes_display_name_and_user_login() {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+
+		$current_user               = wp_get_current_user();
+		$current_user->display_name = '<svg onload=alert(1)>';
+		$current_user->user_login   = '<b>login</b>';
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringNotContainsString( '<svg', $node_my_account->title, 'The display name should be escaped in the my-account node.' );
+		$this->assertStringContainsString( '&lt;svg onload=alert(1)&gt;', $node_my_account->title );
+		$this->assertStringNotContainsString( '<svg', $node_user_info->title, 'The display name should be escaped in the user-info node.' );
+		$this->assertStringNotContainsString( '<b>login</b>', $node_user_info->title, 'The user login should be escaped in the user-info node.' );
+		$this->assertStringContainsString( '&lt;b&gt;login&lt;/b&gt;', $node_user_info->title );
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
@@ -990,6 +1017,88 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
+	}
+
+	/**
+	 * Tests that the Shortlink node is not added when shortlink is empty.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_does_not_add_node_when_shortlink_is_empty() {
+		$this->go_to( home_url( '/' ) );
+		$this->assertFalse( is_singular(), 'Precondition: the query should not be singular.' );
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNull( $node, 'The Shortlink node should not be added when shortlink is empty.' );
+	}
+
+	/**
+	 * Tests that the Shortlink node is added when a shortlink exists.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
+		$post_id  = self::factory()->post->create();
+		$expected = home_url( '?p=' . $post_id );
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when shortlink exists.' );
+		$this->assertSame( $expected, $node->href, 'The node href should be the post shortlink.' );
+		$this->assertSame( 'Shortlink', $node->title, 'The node title should be "Shortlink".' );
+		$this->assertStringContainsString(
+			'value="' . esc_attr( $expected ) . '"',
+			$node->meta['html'],
+			'The node HTML should contain the shortlink as the input value.'
+		);
+		$this->assertStringContainsString(
+			'aria-label="Shortlink"',
+			$node->meta['html'],
+			'The node HTML should contain "Shortlink" as the aria label.'
+		);
+	}
+
+	/**
+	 * Tests that the Shortlink node escapes the shortlink value in the HTML input value.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_escapes_shortlink_in_input_value() {
+		$expected = home_url( '?test=&quot;first&quot;&amp;coverage=&quot;second&quot;' );
+
+		add_filter(
+			'pre_get_shortlink',
+			static function () {
+				return home_url( '?test="first"&coverage="second"' );
+			}
+		);
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when a shortlink exists.' );
+		$this->assertStringContainsString(
+			'value="' . $expected . '"',
+			$node->meta['html'],
+			'The node HTML should contain the properly escaped shortlink in the input value.'
+		);
 	}
 
 	/**
