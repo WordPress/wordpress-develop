@@ -41,53 +41,41 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_got_url_rewrite
 	 *
-	 * @param bool $expected     The expected result from got_url_rewrite().
-	 * @param bool $mod_rewrite  Whether mod_rewrite is reported as supported.
-	 * @param bool $is_nginx_val Value for the $is_nginx global.
-	 * @param bool $is_caddy_val Value for the $is_caddy global.
-	 * @param bool $iis7_perm    Whether IIS7 supports permalinks (simulated).
-	 * @param bool|null $filter_val Optional value for the 'got_url_rewrite' filter.
+	 * @param bool      $expected     The expected result from got_url_rewrite().
+	 * @param bool      $mod_rewrite  Whether mod_rewrite is reported as supported.
+	 * @param bool      $is_nginx_val Value for the $is_nginx global.
+	 * @param bool      $is_caddy_val Value for the $is_caddy global.
+	 * @param bool      $iis7_perm    Whether IIS7 supports permalinks (simulated).
+	 * @param bool|null $filter_val   Optional value for the 'got_url_rewrite' filter.
 	 */
-	public function test_got_url_rewrite( $expected, $mod_rewrite, $is_nginx_val, $is_caddy_val, $iis7_perm, $filter_val = null ) {
+	public function test_got_url_rewrite( bool $expected, bool $mod_rewrite, bool $is_nginx_val, bool $is_caddy_val, bool $iis7_perm, ?bool $filter_val = null ): void {
 		global $is_nginx, $is_caddy;
 
 		$is_nginx = $is_nginx_val;
 		$is_caddy = $is_caddy_val;
 
-		// Mock got_mod_rewrite and iis7_supports_permalinks via filters if possible.
-		// However, got_url_rewrite calls got_mod_rewrite() which calls apache_mod_loaded.
-		// We can use the 'got_rewrite' filter to control got_mod_rewrite()'s output.
 		add_filter( 'got_rewrite', $mod_rewrite ? '__return_true' : '__return_false' );
-
-		// iis7_supports_permalinks() uses iis7_rewrite_rule_exists() which checks files.
-		// For simplicity, if we are on a non-IIS environment, it returns false.
-		// If we need to test IIS path, we might need more complex mocking or just rely on the final filter.
+		add_filter( 'iis7_supports_permalinks', $iis7_perm ? '__return_true' : '__return_false' );
 
 		if ( null !== $filter_val ) {
 			add_filter( 'got_url_rewrite', $filter_val ? '__return_true' : '__return_false' );
 		}
 
 		$this->assertSame( $expected, got_url_rewrite() );
-
-		// Cleanup.
-		remove_filter( 'got_rewrite', $mod_rewrite ? '__return_true' : '__return_false' );
-		if ( null !== $filter_val ) {
-			remove_filter( 'got_url_rewrite', $filter_val ? '__return_true' : '__return_false' );
-		}
 	}
 
-  /**
-  * Data provider for test_got_url_rewrite.
-  *
-  * @return array<string, array{
-  *     expected:    bool,
-  *     mod_rewrite: bool,
-  *     is_nginx:    bool,
-  *     is_caddy:    bool,
-  *     iis7_perm:   bool,
-  *     filter_val?: bool|null,
-  * }>
-  */
+	/**
+	 * Data provider for test_got_url_rewrite.
+	 *
+	 * @return array<string, array{
+	 *     expected:    bool,
+	 *     mod_rewrite: bool,
+	 *     is_nginx:    bool,
+	 *     is_caddy:    bool,
+	 *     iis7_perm:   bool,
+	 *     filter_val?: bool|null,
+	 * }>
+	 */
 	public function data_got_url_rewrite(): array {
 		return array(
 			'All false'                    => array(
@@ -117,6 +105,13 @@ class Tests_got_url_rewrite extends WP_UnitTestCase {
 				'is_nginx'    => false,
 				'is_caddy'    => true,
 				'iis7_perm'   => false,
+			),
+			'IIS7 permalinks supported'    => array(
+				'expected'    => true,
+				'mod_rewrite' => false,
+				'is_nginx'    => false,
+				'is_caddy'    => false,
+				'iis7_perm'   => true,
 			),
 			'Filter overrides to true'     => array(
 				'expected'    => true,
