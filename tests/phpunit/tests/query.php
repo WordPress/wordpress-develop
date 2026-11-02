@@ -76,6 +76,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tag' ) );
 		$this->assertEmpty( get_query_var( 'tax_query' ) );
 		$this->assertCount( 1, get_query_var( 'tag_slug__in' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $tag );
 
 		remove_action( 'pre_get_posts', array( $this, 'tag_queried_object' ), 11 );
@@ -87,6 +88,7 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'tag' ) );
 		$this->assertCount( 1, $query->get( 'tag_slug__in' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $query->get_queried_object(), $tag );
 	}
 
@@ -721,6 +723,50 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_User', get_queried_object() );
 		$this->assertSame( get_queried_object_id(), $user_id );
+	}
+
+	/**
+	 * @ticket 65400
+	 *
+	 * @covers ::get_queried_object
+	 * @covers WP_Query::get_queried_object
+	 */
+	public function test_get_queried_object_should_return_null_when_author_id_is_non_existent(): void {
+		add_action(
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
+				$wp_query->set( 'author', 999999 );
+			}
+		);
+
+		$this->go_to( home_url( '/' ) );
+
+		$this->assertNull( get_queried_object() );
+	}
+
+	/**
+	 * @ticket 65400
+	 *
+	 * @covers ::get_queried_object
+	 * @covers WP_Query::get_queried_object
+	 */
+	public function test_get_queried_object_should_return_null_when_author_is_unset(): void {
+		// Trigger is_author without a valid author query var.
+		add_action(
+			'wp',
+			static function () {
+				/** @var WP_Query $wp_query */
+				global $wp_query;
+				$wp_query->is_author = true;
+			}
+		);
+
+		$this->go_to( home_url( '/' ) );
+
+		$this->assertNull( get_queried_object() );
 	}
 
 	/**

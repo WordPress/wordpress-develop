@@ -518,7 +518,7 @@ HTML;
 	 */
 	public static function data_incomplete_html_with_target_nodes_for_seeking() {
 		return array(
-			'Compete document'    => array( '<div><img target></div>' ),
+			'Complete document'   => array( '<div><img target></div>' ),
 			'Incomplete document' => array( '<div><img target></div' ),
 		);
 	}
