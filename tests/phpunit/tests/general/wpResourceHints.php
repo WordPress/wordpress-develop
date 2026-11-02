@@ -354,7 +354,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_boolean_attributes()}.
 	 *
 	 * @return array<string, array{ hint: array<int|string, mixed>, expected: string }>
 	 */
