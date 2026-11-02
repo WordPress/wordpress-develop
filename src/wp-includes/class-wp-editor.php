@@ -940,9 +940,10 @@ final class _WP_Editors {
 		if ( $user_can_richedit ) {
 			$settings = self::default_settings();
 
-			$settings['toolbar1'] = 'bold,italic,bullist,numlist,link';
-			$settings['wpautop']  = false;
-			$settings['indent']   = true;
+			$settings['toolbar1']    = 'bold,italic,bullist,numlist,link';
+			$settings['wpautop']     = false;
+			$settings['indent']      = true;
+			$settings['elementpath'] = false;
 
 			if ( is_rtl() ) {
 				$settings['directionality'] = 'rtl';
@@ -1518,9 +1519,10 @@ final class _WP_Editors {
 	/**
 	 * Force uncompressed TinyMCE when a custom theme has been defined.
 	 *
-	 * The compressed TinyMCE file cannot deal with custom themes, so this makes
-	 * sure that WordPress uses the uncompressed TinyMCE file if a theme is defined.
-	 * Even if the website is running on a production environment.
+	 * The `wp-tinymce.js` bundle cannot deal with custom themes. Core registers
+	 * the separate TinyMCE files, but a site can still register the bundle under
+	 * the `wp-tinymce` handle, so this makes sure that the separate files are used
+	 * if a theme is defined.
 	 *
 	 * @since 5.0.0
 	 */
@@ -1540,28 +1542,20 @@ final class _WP_Editors {
 		$wp_scripts = wp_scripts();
 
 		$wp_scripts->remove( 'wp-tinymce' );
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( $wp_scripts );
 	}
 
 	/**
 	 * Print (output) the main TinyMCE scripts.
 	 *
 	 * @since 4.8.0
-	 *
-	 * @global bool $concatenate_scripts
 	 */
 	public static function print_tinymce_scripts() {
-		global $concatenate_scripts;
-
 		if ( self::$tinymce_scripts_printed ) {
 			return;
 		}
 
 		self::$tinymce_scripts_printed = true;
-
-		if ( ! isset( $concatenate_scripts ) ) {
-			script_concat_settings();
-		}
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
@@ -1768,7 +1762,7 @@ final class _WP_Editors {
 	 *     @type int    $pagenum Page number. Default 1.
 	 *     @type string $s       Search keywords.
 	 * }
-	 * @return array|false $results {
+	 * @return array|false {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
 	 *     @type array ...$0 {
