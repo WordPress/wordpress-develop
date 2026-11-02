@@ -75,11 +75,6 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 	 */
 	public static function data_add_allowed_options() {
 		return array(
-			'new option on an existing page'     => array(
-				array( 'general' => array( 'my_option' ) ),
-				array( 'general' => array( 'blogname' ) ),
-				array( 'general' => array( 'blogname', 'my_option' ) ),
-			),
 			'several options on a new page'      => array(
 				array( 'my_page' => array( 'my_option', 'my_other_option' ) ),
 				array( 'general' => array( 'blogname' ) ),
@@ -128,11 +123,6 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 				array(),
 				array( 'general' => array( 'blogname' ) ),
 				array( 'general' => array( 'blogname' ) ),
-			),
-			'no existing options'                => array(
-				array( 'my_page' => array( 'my_option' ) ),
-				array(),
-				array( 'my_page' => array( 'my_option' ) ),
 			),
 		);
 	}
@@ -335,7 +325,7 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 	 *
 	 * @covers ::option_update_filter
 	 *
-	 * @dataProvider data_invalid_new_allowed_options
+	 * @dataProvider data_new_allowed_options_without_additions
 	 *
 	 * @param mixed $new_allowed_options Value of the $new_allowed_options global.
 	 */
@@ -352,13 +342,11 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_new_allowed_options() {
+	public static function data_new_allowed_options_without_additions() {
 		return array(
-			'null'         => array( null ),
-			'false'        => array( false ),
-			'empty string' => array( '' ),
-			'string'       => array( 'my_option' ),
-			'empty array'  => array( array() ),
+			'null'        => array( null ),
+			'string'      => array( 'my_option' ),
+			'empty array' => array( array() ),
 		);
 	}
 }

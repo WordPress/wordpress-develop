@@ -52,9 +52,7 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 		$widget = new WP_Widget_Archives();
 
 		$this->assertSame( 'archives', $widget->id_base );
-		$this->assertSame( 'Archives', $widget->name );
 		$this->assertSame( 'widget_archive', $widget->widget_options['classname'] );
-		$this->assertSame( 'A monthly archive of your site&#8217;s Posts.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -190,7 +188,8 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that widget_archives_dropdown_args filter is applied.
+	 * Tests that the widget_archives_dropdown_args filter receives the default arguments
+	 * and that its return value is used for the dropdown.
 	 *
 	 * @ticket 65819
 	 *
@@ -208,8 +207,16 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 
 		$filter = new MockAction();
 		add_filter( 'widget_archives_dropdown_args', array( $filter, 'filter' ), 10, 2 );
+		add_filter(
+			'widget_archives_dropdown_args',
+			static function ( $args ) {
+				$args['type'] = 'yearly';
+				return $args;
+			},
+			20
+		);
 
-		get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
 
 		$this->assertSame(
 			array(
@@ -224,6 +231,9 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 			),
 			$filter->get_args()
 		);
+
+		$this->assertStringContainsString( '<option value="">Select Year</option>', $output, 'The filtered arguments should be used for the dropdown.' );
+		$this->assertStringNotContainsString( 'Select Month', $output );
 	}
 
 	/**

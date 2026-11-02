@@ -10,38 +10,6 @@
 class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 
 	/**
-	 * Original path to the stylesheet directory.
-	 *
-	 * @var string|null
-	 */
-	private $original_stylesheet_path;
-
-	/**
-	 * Original path to the template directory.
-	 *
-	 * @var string|null
-	 */
-	private $original_template_path;
-
-	public function set_up() {
-		parent::set_up();
-
-		global $wp_stylesheet_path, $wp_template_path;
-
-		$this->original_stylesheet_path = $wp_stylesheet_path;
-		$this->original_template_path   = $wp_template_path;
-	}
-
-	public function tear_down() {
-		global $wp_stylesheet_path, $wp_template_path;
-
-		$wp_stylesheet_path = $this->original_stylesheet_path;
-		$wp_template_path   = $this->original_template_path;
-
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests that a path without a parent directory segment is allowed without further checks.
 	 *
 	 * @ticket 65819

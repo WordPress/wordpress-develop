@@ -10,33 +10,21 @@
 class Tests_Theme_LocateTemplate extends WP_UnitTestCase {
 
 	/**
-	 * Original path to the stylesheet directory.
+	 * Original stylesheet.
 	 *
-	 * @var string|null
+	 * @var string
 	 */
-	private $original_stylesheet_path;
-
-	/**
-	 * Original path to the template directory.
-	 *
-	 * @var string|null
-	 */
-	private $original_template_path;
+	private $original_stylesheet;
 
 	public function set_up() {
 		parent::set_up();
-
-		global $wp_stylesheet_path, $wp_template_path;
-
-		$this->original_stylesheet_path = $wp_stylesheet_path;
-		$this->original_template_path   = $wp_template_path;
+		$this->original_stylesheet = get_stylesheet();
 	}
 
 	public function tear_down() {
-		global $wp_stylesheet_path, $wp_template_path;
-
-		$wp_stylesheet_path = $this->original_stylesheet_path;
-		$wp_template_path   = $this->original_template_path;
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}

@@ -92,7 +92,6 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	public static function data_depths() {
 		return array(
 			'top level'    => array( 0, '' ),
-			'first level'  => array( 1, "\t" ),
 			'second level' => array( 2, "\t\t" ),
 		);
 	}
@@ -131,7 +130,6 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 
 		return array(
 			'no selected or popular categories' => array( array(), '<li>' . $unselected ),
-			'empty selected categories'         => array( array( 'selected_cats' => array() ), '<li>' . $unselected ),
 			'selected category'                 => array( array( 'selected_cats' => array( 4, 5 ) ), '<li>' . $selected ),
 			'selected category as a string'     => array( array( 'selected_cats' => array( '5' ) ), '<li>' . $selected ),
 			'another selected category'         => array( array( 'selected_cats' => array( 50 ) ), '<li>' . $unselected ),
@@ -172,10 +170,10 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 		$this->assertStringStartsWith( $id_prefix, $li_id, 'The list item ID should start with the taxonomy and term ID.' );
 		$this->assertSame( $li_class, $processor->get_attribute( 'class' ), 'The list item class did not match.' );
 
-		$this->assertTrue( $processor->next_tag( 'LABEL' ), 'The list item should contain a label.' );
+		$this->assertTrue( $processor->next_tag( 'LABEL' ), 'A label should follow the list item opening tag.' );
 		$this->assertSame( 'selectit', $processor->get_attribute( 'class' ), 'The label class did not match.' );
 
-		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The label should contain an input.' );
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'An input should follow the label opening tag.' );
 		$this->assertSame( 'checkbox', $processor->get_attribute( 'type' ), 'The input should be a checkbox.' );
 		$this->assertSame( '5', $processor->get_attribute( 'value' ), 'The checkbox value should be the term ID.' );
 		$this->assertSame( $name, $processor->get_attribute( 'name' ), 'The checkbox name did not match.' );

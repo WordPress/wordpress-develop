@@ -28,7 +28,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
-	public function data_wp_filter_post_kses_address() {
+	public static function data_wp_filter_post_kses_address() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -76,7 +76,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
-	public function data_wp_filter_post_kses_a() {
+	public static function data_wp_filter_post_kses_a() {
 		$attributes = array(
 			'class'    => 'classname',
 			'id'       => 'id',
@@ -177,7 +177,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *     @type string $expected Expected output following KSES parsing.
 	 * }
 	 */
-	public function data_wp_kses_video() {
+	public static function data_wp_kses_video() {
 		return array(
 			// Set 0: Valid post object params in post context.
 			array(
@@ -227,7 +227,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *     @type string $expected Expected result after passing through kses.
 	 * }
 	 */
-	public function data_wp_filter_post_kses_abbr() {
+	public static function data_wp_filter_post_kses_abbr() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -903,7 +903,7 @@ EOF;
 		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
-	public function data_ctrl_removal() {
+	public static function data_ctrl_removal() {
 		return array(
 			array(
 				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0C\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\X1C\x1D\x1E\x1F",
@@ -955,7 +955,7 @@ EOF;
 		return $this->assertEqualHTML( $expected, wp_kses( $content, $with_style ) );
 	}
 
-	public function data_slash_zero_removal() {
+	public static function data_slash_zero_removal() {
 		return array(
 			array(
 				'This \\0 should be no big deal.',
@@ -1005,7 +1005,7 @@ EOF;
 		return $this->assertSame( $output, wp_kses_hair_parse( $input ) );
 	}
 
-	public function data_hair_parse() {
+	public static function data_hair_parse() {
 		return array(
 			array(
 				'title="hello" href="#" id="my_id" ',
@@ -1071,7 +1071,7 @@ EOF;
 		return $this->assertSame( $output, wp_kses_attr_parse( $input ) );
 	}
 
-	public function data_attr_parse() {
+	public static function data_attr_parse() {
 		return array(
 			array(
 				'<a title="hello" href="#" id="my_id" >',
@@ -1129,7 +1129,7 @@ EOF;
 		return $this->assertSame( $output, wp_kses_one_attr( $input, $element ) );
 	}
 
-	public function data_one_attr() {
+	public static function data_one_attr() {
 		return array(
 			array(
 				'a',
@@ -1307,7 +1307,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_safecss_filter_attr() {
+	public static function data_safecss_filter_attr() {
 		return array(
 			// Empty input, empty output.
 			array(
@@ -2062,7 +2062,7 @@ EOF;
 	 *               [0] The prefix being tested.
 	 *               [1] The outcome of `wp_kses_attr_check` for the prefix.
 	 */
-	public function data_wildcard_attribute_prefixes() {
+	public static function data_wildcard_attribute_prefixes() {
 		return array(
 			// Ends correctly.
 			array( 'data-*', true ),
@@ -2101,7 +2101,7 @@ EOF;
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
+	public static function data_wp_kses_style_attr_decodes_entities_before_css_filtering() {
 		return array(
 			'background image URL with single quotes' => array(
 				'<div style="background-image: url(\'https://localhost/image.jpg\');"></div>',
@@ -2145,7 +2145,7 @@ EOF;
 	 *
 	 * @return array Nested array of input, expected pairs.
 	 */
-	public function data_kses_style_attr_with_url() {
+	public static function data_kses_style_attr_with_url() {
 		return array(
 			/*
 			 * Valid use cases.
@@ -2297,7 +2297,7 @@ EOF;
 	 *     }
 	 * }
 	 */
-	public function data_safecss_filter_attr_filtered() {
+	public static function data_safecss_filter_attr_filtered() {
 		return array(
 
 			// A single attribute name, with a single value.
@@ -2423,7 +2423,7 @@ EOF;
 	/**
 	 * Data provider for test_wp_kses_object_tag_allowed().
 	 */
-	public function data_wp_kses_object_tag_allowed() {
+	public static function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
@@ -2534,7 +2534,7 @@ EOF;
 	/**
 	 * Data provider for test_wp_kses_object_data_url_with_port_number_allowed().
 	 */
-	public function data_wp_kses_object_data_url_with_port_number_allowed() {
+	public static function data_wp_kses_object_data_url_with_port_number_allowed() {
 		return array(
 			'url with port number'                   => array(
 				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
@@ -2665,7 +2665,7 @@ HTML;
 	/**
 	 * Data provider for test_wp_kses_allowed_values_list().
 	 */
-	public function data_wp_kses_allowed_values_list() {
+	public static function data_wp_kses_allowed_values_list() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>',
@@ -2723,7 +2723,7 @@ HTML;
 	/**
 	 * Data provider for test_wp_kses_required_attribute().
 	 */
-	public function data_wp_kses_required_attribute() {
+	public static function data_wp_kses_required_attribute() {
 		$data = array(
 			'valid dir attribute value'             => array(
 				'<p dir="ltr">foo</p>', // Test HTML.
@@ -2844,7 +2844,7 @@ HTML;
 	 *
 	 * @return array Nested array of input, expected pairs.
 	 */
-	public function data_wp_kses_xml_named_entities() {
+	public static function data_wp_kses_xml_named_entities() {
 		return array(
 			// Empty string value testing.
 			'empty string'       => array(
@@ -2913,7 +2913,7 @@ HTML;
 	 *
 	 * @return array
 	 */
-	public function data_kses_globals_are_defined() {
+	public static function data_kses_globals_are_defined() {
 		$required_kses_globals = array(
 			'allowedposttags',
 			'allowedtags',
@@ -2921,7 +2921,7 @@ HTML;
 			'allowedxmlentitynames',
 		);
 
-		return $this->text_array_to_dataprovider( $required_kses_globals );
+		return self::text_array_to_dataprovider( $required_kses_globals );
 	}
 
 	/**
@@ -2946,7 +2946,7 @@ HTML;
 	 *
 	 * @return array
 	 */
-	public function data_target_attribute_preserved_in_descriptions() {
+	public static function data_target_attribute_preserved_in_descriptions() {
 		return array(
 			array(
 				'user_description',
@@ -2983,7 +2983,7 @@ HTML;
 	 *
 	 * @return array
 	 */
-	public function data_allowed_attributes_in_descriptions() {
+	public static function data_allowed_attributes_in_descriptions() {
 		return array(
 			array(
 				'user_description',
@@ -2993,6 +2993,33 @@ HTML;
 				'pre_term_description',
 				array( 'target', 'href', 'rel' ),
 			),
+		);
+	}
+
+	/**
+	 * Tests that the pre_kses filter receives its documented context arguments.
+	 *
+	 * @ticket 65819
+	 * @covers ::wp_kses_hook
+	 */
+	public function test_pre_kses_filter_receives_context_arguments() {
+		$received = null;
+		$filter   = static function ( $content, $allowed_html, $allowed_protocols ) use ( &$received ) {
+			$received = array( $content, $allowed_html, $allowed_protocols );
+			return $content;
+		};
+
+		// Run before the default priority-10 filters so the probe sees these exact inputs.
+		add_filter( 'pre_kses', $filter, 9, 3 );
+		try {
+			wp_kses_hook( 'content', 'data', array( 'http', 'https' ) );
+		} finally {
+			remove_filter( 'pre_kses', $filter, 9 );
+		}
+
+		$this->assertSame(
+			array( 'content', 'data', array( 'http', 'https' ) ),
+			$received
 		);
 	}
 }

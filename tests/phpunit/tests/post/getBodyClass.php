@@ -7,9 +7,27 @@
 class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	protected $post_id;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->post_id = self::factory()->post->create();
+		$this->original_stylesheet = get_stylesheet();
+		$this->post_id             = self::factory()->post->create();
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**

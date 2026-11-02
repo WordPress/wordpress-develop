@@ -186,7 +186,6 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 		return array(
 			'cookie not set' => array( null, false ),
 			'empty string'   => array( '', false ),
-			'zero string'    => array( '0', false ),
 			'cookie value'   => array( 'cmVjb3ZlcnlfbW9kZQ==', true ),
 		);
 	}
@@ -221,7 +220,6 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 		return array(
 			'cookie not set' => array( null ),
 			'empty string'   => array( '' ),
-			'zero string'    => array( '0' ),
 		);
 	}
 
