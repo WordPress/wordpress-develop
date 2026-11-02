@@ -76,9 +76,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
  *   would not be assignable to a property declared `stdClass`. A template type
- *   in scope is not taken for a class, and neither a `T[]` nor its
+ *   or type alias in scope is not taken for a class, and neither a `T[]` nor its
  *   entry may name one, because whether the shape would be an array or an object
- *   one depends on the template's bound.
+ *   one depends on the template's bound or the alias's declared type.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
  *   own, and every `@type` carrying a `$name` and a type PHPStan's own type
  *   parser reads as one. Anything else, and the whole tag is skipped.
@@ -187,34 +187,37 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private array $parsed = array();
 
 	/**
-	 * Types `normalize_type()` has already normalized, keyed by the template types
-	 * in scope and the type as printed. A type naming a template is kept as null.
+	 * Types `normalize_type()` has already normalized, keyed by whether names are
+	 * resolved, the local types in scope, and the type as printed. A type naming
+	 * a local type is kept as null.
 	 *
 	 * @var array<string, string|null>
 	 */
 	private array $normalized = array();
 
 	/**
-	 * Template types in scope for the docblock being translated, keyed by
-	 * lowercased name.
+	 * Template types and type aliases in scope for the docblock being translated,
+	 * keyed by lowercased name.
 	 *
-	 * A hash on a template type is left untranslated, since the shape it takes
-	 * depends on the template's bound. The templates in scope are those the
-	 * docblock declares and those of every class, interface, trait, function, or
-	 * closure it is nested in, so a method's hash on a template of its class is
-	 * skipped too, as is a hook's hash on a template of the function calling it.
+	 * A hash on either is left untranslated, since the shape it takes depends on
+	 * what the name stands for: a template's bound, or the type an alias is
+	 * declared as, which the visitor does not resolve. The names in scope are
+	 * those the docblock declares and those of every class, interface, trait,
+	 * function, or closure it is nested in, so a method's hash on a template or
+	 * alias of its class is skipped too, as is a hook's hash on a template of the
+	 * function calling it.
 	 *
 	 * @var array<string, true>
 	 */
-	private array $templates = array();
+	private array $local_types = array();
 
 	/**
-	 * Template types each enclosing class, interface, trait, function, or closure
-	 * declares, from the outermost in.
+	 * Template types and type aliases each enclosing class, interface, trait,
+	 * function, or closure declares, from the outermost in.
 	 *
 	 * @var list<array<string, true>>
 	 */
-	private array $scope_templates = array();
+	private array $scope_local_types = array();
 
 	/**
 	 * Whether a name in the docblock being translated is resolved against a
@@ -234,7 +237,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return null Always null, leaving the nodes as they are.
 	 */
 	public function beforeTraverse( array $nodes ) {
-		$this->scope_templates = array();
+		$this->scope_local_types = array();
 		$this->resolves_names  = false;
 
 		return null;
@@ -248,7 +251,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 */
 	public function leaveNode( Node $node ) {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
-			array_pop( $this->scope_templates );
+			array_pop( $this->scope_local_types );
 		} elseif ( $node instanceof Node\Stmt\Namespace_ ) {
 			$this->resolves_names = false;
 		}
@@ -280,12 +283,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$doc = $node->getDocComment();
 
 		/*
-		 * A class's templates are in scope for its members' docblocks, and a
-		 * function's for the hooks it calls, whether or not the scope's own
-		 * docblock has a hash.
+		 * A class's templates and type aliases are in scope for its members'
+		 * docblocks, and a function's templates for the hooks it calls, whether
+		 * or not the scope's own docblock has a hash.
 		 */
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
-			$this->scope_templates[] = null === $doc ? array() : $this->declared_templates( $doc->getText() );
+			$this->scope_local_types[] = null === $doc ? array() : $this->declared_local_types( $doc->getText() );
 		}
 
 		if ( null === $doc ) {
@@ -345,15 +348,27 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Collects the template types a docblock declares.
+	 * Collects the template types and type aliases a docblock declares.
+	 *
+	 * An imported alias counts under both its own name and the name it is
+	 * imported as, which only ever leaves more hashes untranslated.
 	 *
 	 * @param string $text Docblock text.
-	 * @return array<string, true> Template types, keyed by lowercased name.
+	 * @return array<string, true> Template types and type aliases, keyed by lowercased name.
 	 */
-	private function declared_templates( string $text ): array {
-		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+	private function declared_local_types( string $text ): array {
+		$names = array();
 
-		return array_fill_keys( array_map( 'strtolower', $matches[1] ), true );
+		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+		array_push( $names, ...$matches[1] );
+
+		preg_match_all( '#@(?:phpstan|psalm)-type[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+		array_push( $names, ...$matches[1] );
+
+		preg_match_all( '#@(?:phpstan|psalm)-import-type[ \t]+([A-Za-z_][A-Za-z0-9_]*)(?:[ \t]+from[ \t]+\S+[ \t]+as[ \t]+([A-Za-z_][A-Za-z0-9_]*))?#', $text, $matches );
+		array_push( $names, ...$matches[1], ...array_filter( $matches[2] ) );
+
+		return array_fill_keys( array_map( 'strtolower', $names ), true );
 	}
 
 	/**
@@ -385,7 +400,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$tags      = $this->split_tags( $text );
 		$covered   = $this->phpstan_counterparts( $tags );
 
-		$this->templates = array_merge( $this->declared_templates( $text ), ...$this->scope_templates );
+		$this->local_types = array_merge( $this->declared_local_types( $text ), ...$this->scope_local_types );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
@@ -838,10 +853,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		/*
-		 * Nor is a template type, whose bound decides whether a shape would have to
-		 * be an array or an object one, as `normalize_type()` explains.
+		 * Nor is a template type or type alias, whose bound or declared type decides
+		 * whether a shape would have to be an array or an object one, as
+		 * `normalize_type()` explains.
 		 */
-		if ( isset( $this->templates[ ltrim( $normalized, '\\' ) ] ) ) {
+		if ( isset( $this->local_types[ ltrim( $normalized, '\\' ) ] ) ) {
 			return false;
 		}
 
@@ -925,29 +941,30 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * `use Example\Block;`, so the backslash is kept and a hash spelling the class
 	 * the other way is left untranslated rather than resolved.
 	 *
-	 * A type naming a template has no form to print. Whether a hash narrows a
-	 * template depends on its bound, which a `T of array` would need shaped as an
-	 * array and a `T of WP_Post` as an object, so such a hash is left untranslated
-	 * rather than guessed at. A name matching a template in another case counts
-	 * too, since lowercasing would otherwise make the class `T` the template `t`.
+	 * A type naming a template type or type alias has no form to print. Whether a
+	 * hash narrows a template depends on its bound, which a `T of array` would
+	 * need shaped as an array and a `T of WP_Post` as an object, and the same goes
+	 * for the type an alias is declared as, so such a hash is left untranslated
+	 * rather than guessed at. A name matching one in another case counts too,
+	 * since lowercasing would otherwise make the class `T` the template `t`.
 	 *
 	 * @param TypeNode $type Parsed type, which is left unchanged.
-	 * @return string|null The normalized type, or null if it names a template type.
+	 * @return string|null The normalized type, or null if it names a template type or type alias.
 	 */
 	private function normalize_type( TypeNode $type ): ?string {
-		$key = ( $this->resolves_names ? 'resolved' : '' ) . ';' . implode( ',', array_keys( $this->templates ) ) . ';' . $type;
+		$key = ( $this->resolves_names ? 'resolved' : '' ) . ';' . implode( ',', array_keys( $this->local_types ) ) . ';' . $type;
 		if ( array_key_exists( $key, $this->normalized ) ) {
 			return $this->normalized[ $key ];
 		}
 
-		$visitor = new class( $this->templates, $this->resolves_names ) extends AbstractNodeVisitor {
+		$visitor = new class( $this->local_types, $this->resolves_names ) extends AbstractNodeVisitor {
 
 			/**
-			 * Template types in scope, keyed by lowercased name.
+			 * Template types and type aliases in scope, keyed by lowercased name.
 			 *
 			 * @var array<string, true>
 			 */
-			private array $templates;
+			private array $local_types;
 
 			/**
 			 * Whether names are resolved against a namespace or imports.
@@ -955,16 +972,16 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			private bool $resolves_names;
 
 			/**
-			 * Whether the type names a template type.
+			 * Whether the type names a template type or type alias.
 			 */
-			public bool $names_template = false;
+			public bool $names_local_type = false;
 
 			/**
-			 * @param array<string, true> $templates      Template types in scope, keyed by lowercased name.
+			 * @param array<string, true> $local_types    Template types and type aliases in scope, keyed by lowercased name.
 			 * @param bool                $resolves_names Whether names are resolved against a namespace or imports.
 			 */
-			public function __construct( array $templates, bool $resolves_names ) {
-				$this->templates      = $templates;
+			public function __construct( array $local_types, bool $resolves_names ) {
+				$this->local_types    = $local_types;
 				$this->resolves_names = $resolves_names;
 			}
 
@@ -985,7 +1002,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			}
 
 			/**
-			 * Normalizes a type or class name, noting whether it names a template.
+			 * Normalizes a type or class name, noting whether it names a local type.
 			 *
 			 * @param string $name Name as written.
 			 * @return string The name lowercased, and stripped of a leading backslash where
@@ -995,9 +1012,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				$name = strtolower( $name );
 				$bare = ltrim( $name, '\\' );
 
-				// Conservatively, `\T` counts as naming the template `T` too.
-				if ( isset( $this->templates[ $bare ] ) ) {
-					$this->names_template = true;
+				// Conservatively, `\T` counts as naming the template or alias `T` too.
+				if ( isset( $this->local_types[ $bare ] ) ) {
+					$this->names_local_type = true;
 				}
 
 				return $this->resolves_names ? $name : $bare;
@@ -1026,7 +1043,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$traverser = new NodeTraverser( array( new CloningVisitor(), $visitor ) );
 		$nodes     = $traverser->traverse( array( $type ) );
 
-		$this->normalized[ $key ] = $visitor->names_template ? null : (string) $nodes[0];
+		$this->normalized[ $key ] = $visitor->names_local_type ? null : (string) $nodes[0];
 
 		return $this->normalized[ $key ];
 	}
