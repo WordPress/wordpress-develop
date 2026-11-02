@@ -26,7 +26,6 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 
 		$this->assertSame( 13, $scanned );
 		$this->assertSame( 0, $invalid_length );
-		$this->assertIsBool( $has_noncharacters );
 		$this->assertFalse( $has_noncharacters );
 	}
 
@@ -46,7 +45,6 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 
 		_wp_scan_utf8( $text, $at, $invalid_length, null, null, $has_noncharacters );
 
-		$this->assertIsBool( $has_noncharacters );
 		$this->assertTrue( $has_noncharacters );
 	}
 
@@ -77,7 +75,6 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 
 		_wp_scan_utf8( $text, $at, $invalid_length, null, null, $has_noncharacters );
 
-		$this->assertIsBool( $has_noncharacters );
 		$this->assertFalse( $has_noncharacters );
 	}
 }
