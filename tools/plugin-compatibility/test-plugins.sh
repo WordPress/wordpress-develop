@@ -3,10 +3,10 @@
 # Checks that plugins from the WordPress.org directory can be activated against a version of WordPress
 # without fataling.
 #
-# Each plugin is installed on its own, activated, exercised over HTTP and through WP-CLI, and then removed
-# again before the next one is installed, so that one broken plugin cannot mask (or break) the next. A plugin
-# that declares `Requires Plugins` has those dependencies installed and activated alongside it, because core
-# refuses to activate it otherwise.
+# Each plugin is installed on its own, activated, exercised over HTTP and through WP-CLI, and then the site is
+# reset to the fresh install - files and database - before the next one is installed, so that one broken
+# plugin cannot mask (or break) the next. A plugin that declares `Requires Plugins` has those dependencies
+# installed and activated alongside it, because core refuses to activate it otherwise.
 #
 # What a real request does is what decides whether a plugin passed. The WP-CLI check runs last and only ever
 # adds a note, because WP-CLI loads WordPress in a way a visitor never does.
@@ -300,6 +300,9 @@ run_checks() {
 		--admin_password=password --admin_email=me@example.org --skip-email \
 		|| error "WordPress could not be installed. Check that the database is reachable at ${DB_HOST}."
 
+	rm -f "${WP_DIR}/wp-content/debug.log"
+	snapshot_site || error "The freshly installed site could not be recorded for resetting between plugins."
+
 	# The site needs to answer real requests so that fatals which only happen on a front end or admin page
 	# load are caught. The built-in server is enough for that and needs nothing installed.
 	#
@@ -408,16 +411,9 @@ logged_fatals() {
 
 # install_plugin <slug>
 #
-# Installs a plugin from WordPress.org and remembers it so that it is removed again once the plugin under
-# test has been checked. The slug is remembered before the download is attempted so that a partial download
-# is still cleaned up. Returns non zero when the download failed.
+# Installs a plugin from WordPress.org. Returns non zero when the download failed.
 install_plugin() {
-	INSTALLED_SLUGS[${#INSTALLED_SLUGS[@]}]="${1}"
-	INSTALLED_DIRS[${#INSTALLED_DIRS[@]}]=""
-
-	wp plugin install "${1}" --skip-plugins --skip-themes || return 1
-
-	INSTALLED_DIRS[${#INSTALLED_DIRS[@]} - 1]="$( wp plugin path "${1}" --dir --skip-plugins --skip-themes 2>/dev/null || printf '' )"
+	wp plugin install "${1}" --skip-plugins --skip-themes
 }
 
 # is_active <slug>
@@ -456,34 +452,102 @@ plugin_dependencies() {
 	' 2>/dev/null
 }
 
-# cleanup_plugins
+# Prefix of the copies of the freshly installed site's tables, which every plugin's changes are rolled back to.
+BASELINE_TABLE_PREFIX="pcbaseline_"
+
+# snapshot_site
 #
-# Returns the site to a clean slate by removing everything installed for the current plugin, its
-# dependencies included. A plugin that fatals can take WP-CLI down with it, so every command here is allowed
-# to fail and the plugin directory is removed directly as a fallback. `--skip-plugins` keeps WP-CLI from
-# loading the broken plugin while cleaning up after it.
-cleanup_plugins() {
-	if [ "${#INSTALLED_SLUGS[@]}" -gt 0 ]; then
-		for INDEX in "${!INSTALLED_SLUGS[@]}"; do
-			CLEANUP_SLUG="${INSTALLED_SLUGS[${INDEX}]}"
-			CLEANUP_DIR="${INSTALLED_DIRS[${INDEX}]}"
+# Records the freshly installed site so that it can be put back exactly after each plugin: the entries at the
+# root of the install, `wp-config.php` and `wp-content` as an archive, and a copy of every database table.
+snapshot_site() {
+	BASELINE_DIR="${WORK_DIR}/baseline"
+	mkdir -p "${BASELINE_DIR}" || return 1
 
-			wp plugin deactivate "${CLEANUP_SLUG}" --skip-plugins --skip-themes > /dev/null 2>&1
-			wp plugin delete "${CLEANUP_SLUG}" --skip-plugins --skip-themes > /dev/null 2>&1
+	(
+		shopt -s dotglob nullglob
 
-			if [ -n "${CLEANUP_DIR}" ] && [ -d "${CLEANUP_DIR}" ] && [ "${CLEANUP_DIR}" != "${PLUGINS_ROOT}" ]; then
-				rm -rf "${CLEANUP_DIR}"
-			fi
-
-			rm -rf "${WP_DIR}/wp-content/plugins/${CLEANUP_SLUG}"
+		for ENTRY in "${WP_DIR}"/*; do
+			printf '%s\n' "${ENTRY##*/}"
 		done
-	fi
+	) > "${BASELINE_DIR}/root-entries" || return 1
+	tar -C "${WP_DIR}" -cf "${BASELINE_DIR}/files.tar" wp-config.php wp-content || return 1
 
-	INSTALLED_SLUGS=()
-	INSTALLED_DIRS=()
+	# The table copies live in the same database, which saves depending on a database client being
+	# installed that can talk to whatever server version the run is using. The prefix is handed over as an
+	# environment variable so that it never reaches PHP as source code.
+	export BASELINE_TABLE_PREFIX
 
-	# Make sure nothing is left behind in `active_plugins` pointing at a plugin that is now gone.
-	wp option update active_plugins '[]' --format=json --skip-plugins --skip-themes > /dev/null 2>&1
+	# shellcheck disable=SC2016
+	wp eval --skip-plugins --skip-themes '
+		global $wpdb;
+
+		$prefix = getenv( "BASELINE_TABLE_PREFIX" );
+
+		foreach ( $wpdb->get_col( "SHOW TABLES" ) as $table ) {
+			// Left over from an earlier run against the same database.
+			if ( 0 === strpos( $table, $prefix ) ) {
+				continue;
+			}
+
+			$wpdb->query( "DROP TABLE IF EXISTS `{$prefix}{$table}`" );
+
+			if ( false === $wpdb->query( "CREATE TABLE `{$prefix}{$table}` LIKE `{$table}`" )
+				|| false === $wpdb->query( "INSERT INTO `{$prefix}{$table}` SELECT * FROM `{$table}`" ) ) {
+				exit( 1 );
+			}
+		}
+	'
+}
+
+# reset_site
+#
+# Puts the site back the way `snapshot_site` found it. Removing the plugin directories is not enough on its
+# own: plenty of plugins write drop-ins such as `advanced-cache.php`, add constants to `wp-config.php`, or
+# create tables and options, and a drop-in left loading files that are gone would break every plugin tested
+# after it. The files are restored first so that no drop-in is around to be loaded while the database is put
+# back.
+reset_site() {
+	(
+		shopt -s dotglob nullglob
+
+		for ENTRY in "${WP_DIR}"/*; do
+			grep -qxF -- "${ENTRY##*/}" "${BASELINE_DIR}/root-entries" || rm -rf "${ENTRY}"
+		done
+	)
+
+	rm -rf "${WP_DIR:?}/wp-content" || return 1
+	tar -C "${WP_DIR}" -xf "${BASELINE_DIR}/files.tar" || return 1
+
+	# shellcheck disable=SC2016
+	wp eval --skip-plugins --skip-themes '
+		global $wpdb;
+
+		$prefix   = getenv( "BASELINE_TABLE_PREFIX" );
+		$baseline = array();
+
+		$wpdb->query( "SET FOREIGN_KEY_CHECKS = 0" );
+
+		foreach ( $wpdb->get_results( "SHOW FULL TABLES", ARRAY_N ) as $row ) {
+			list( $table, $type ) = $row;
+
+			if ( 0 === strpos( $table, $prefix ) ) {
+				$baseline[] = substr( $table, strlen( $prefix ) );
+			} else {
+				$wpdb->query( ( "VIEW" === $type ? "DROP VIEW" : "DROP TABLE" ) . " `{$table}`" );
+			}
+		}
+
+		if ( ! $baseline ) {
+			exit( 1 );
+		}
+
+		foreach ( $baseline as $table ) {
+			if ( false === $wpdb->query( "CREATE TABLE `{$table}` LIKE `{$prefix}{$table}`" )
+				|| false === $wpdb->query( "INSERT INTO `{$table}` SELECT * FROM `{$prefix}{$table}`" ) ) {
+				exit( 1 );
+			}
+		}
+	'
 }
 
 # group_start <name> / group_end
@@ -504,19 +568,21 @@ group_end() {
 	fi
 }
 
+# reset_failed <slug>
+#
+# Stops the run when the site could not be put back after a plugin. Every result after that point would be
+# measured against whatever the plugin left behind, so the results so far are reported and nothing more is
+# tested.
+reset_failed() {
+	printf '\nThe site could not be reset after %s, so no further plugins were tested.\n' "${1}" >&2
+	report_results
+	exit 1
+}
+
 ##
 # Tests each plugin in turn, writing a row per plugin to the results file.
 ##
 test_plugins() {
-	# The plugins directory itself must never be removed, only directories inside it.
-	PLUGINS_ROOT="$( wp plugin path )"
-
-	# Everything installed for the plugin currently under test, that plugin included. The directories are
-	# tracked alongside the slugs because a plugin does not always unpack into a directory named after its
-	# slug.
-	INSTALLED_SLUGS=()
-	INSTALLED_DIRS=()
-
 	while IFS= read -r SLUG; do
 		[ -n "${SLUG}" ] || continue
 
@@ -534,7 +600,7 @@ test_plugins() {
 		# it generally means a network flake or a plugin that is no longer in the directory.
 		if ! install_plugin "${SLUG}"; then
 			record "${SLUG}" "unknown" "SKIPPED" "-" "The plugin could not be downloaded from WordPress.org"
-			cleanup_plugins
+			reset_site || reset_failed "${SLUG}"
 			group_end
 			continue
 		fi
@@ -742,7 +808,7 @@ test_plugins() {
 		fi
 
 		record "${SLUG}" "${VERSION}" "${STATUS}" "${DEPENDENCY_LIST}" "${REASON}"
-		cleanup_plugins
+		reset_site || reset_failed "${SLUG}"
 
 		printf '%s: %s\n' "${SLUG}" "${STATUS}"
 		group_end
