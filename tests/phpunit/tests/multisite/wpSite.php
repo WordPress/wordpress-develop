@@ -68,7 +68,7 @@ class Tests_Multisite_wpSite extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ mixed }>
 	 */
-	public function data_get_instance_returns_false_for_an_empty_site_id(): array {
+	public static function data_get_instance_returns_false_for_an_empty_site_id(): array {
 		return array(
 			'zero as an integer'   => array( 0 ),
 			'zero as a string'     => array( '0' ),
@@ -247,7 +247,7 @@ class Tests_Multisite_wpSite extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ mixed }>
 	 */
-	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+	public static function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
 		return array(
 			'true'                      => array( true ),
 			'a non-numeric string'      => array( 'not-a-site' ),
@@ -298,7 +298,7 @@ class Tests_Multisite_wpSite extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ int|numeric-string }>
 	 */
-	public function data_get_instance_treats_a_numeric_cache_value_as_a_cached_miss(): array {
+	public static function data_get_instance_treats_a_numeric_cache_value_as_a_cached_miss(): array {
 		return array(
 			'the -1 miss sentinel' => array( -1 ),
 			'-1 as a string'       => array( '-1' ),
