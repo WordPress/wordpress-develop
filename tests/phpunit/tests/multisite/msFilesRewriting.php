@@ -15,28 +15,39 @@ class Tests_Multisite_msFilesRewriting extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		update_site_option( 'ms_files_rewriting', 1 );
+
+		// Legacy ms-files subsite uploads ignore UPLOADS, so keep them in the test dir.
+		if ( ! defined( 'UPLOADBLOGSDIR' ) ) {
+			define( 'UPLOADBLOGSDIR', UPLOADS . '/blogs.dir' );
+		}
+
 		ms_upload_constants();
+
+		// The main site ignores UPLOADS with ms-files rewriting, so keep its legacy path in the test dir.
+		update_option( 'upload_path', UPLOADS );
+
+		// Refresh the upload dir cache, which was populated before ms-files rewriting was enabled.
+		wp_upload_dir( null, false, true );
 	}
 
 	public function test_switch_upload_dir() {
 		$this->assertTrue( is_main_site() );
 
-		$site = get_current_site();
 		$date = date_format( date_create( 'now' ), 'Y/m' );
 
 		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$blog_id2 = self::factory()->blog->create( array( 'user_id' => $user_id ) );
 		$info     = wp_upload_dir();
-		$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . $date, $info['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/uploads/' . $date, $info['path'] );
+		$this->assertSame( _upload_get_url( $date ), $info['url'] );
+		$this->assertSame( ABSPATH . UPLOADS . '/' . $date, $info['path'] );
 		$this->assertSame( '/' . $date, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 
 		switch_to_blog( $blog_id2 );
 		$info2 = wp_upload_dir();
 		$this->assertNotSame( $info, $info2 );
-		$this->assertSame( get_option( 'siteurl' ) . '/wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . $date, $info2['url'] );
-		$this->assertSame( ABSPATH . 'wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . $date, $info2['path'] );
+		$this->assertSame( get_option( 'siteurl' ) . '/' . UPLOADBLOGSDIR . '/' . get_current_blog_id() . '/files/' . $date, $info2['url'] );
+		$this->assertSame( ABSPATH . UPLOADBLOGSDIR . '/' . get_current_blog_id() . '/files/' . $date, $info2['path'] );
 		$this->assertSame( '/' . $date, $info2['subdir'] );
 		$this->assertFalse( $info2['error'] );
 		restore_current_blog();

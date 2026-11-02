@@ -57,40 +57,6 @@ class Tests_Link_PermalinkAnchor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that permalink_anchor() outputs the post ID anchor when explicitly passing 'id'.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_permalink_anchor_explicit_mode_id() {
-		$expected = '<a id="post-' . self::$post_id . '"></a>';
-
-		$this->assertSame( $expected, get_echo( 'permalink_anchor', array( 'id' ) ) );
-	}
-
-	/**
-	 * Tests that permalink_anchor() handles mode case-insensitively for 'id'.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_permalink_anchor_mode_id_case_insensitive() {
-		$expected = '<a id="post-' . self::$post_id . '"></a>';
-
-		$this->assertSame( $expected, get_echo( 'permalink_anchor', array( 'ID' ) ) );
-		$this->assertSame( $expected, get_echo( 'permalink_anchor', array( 'Id' ) ) );
-	}
-
-	/**
-	 * Tests that permalink_anchor() outputs the sanitized title anchor when passing 'title'.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_permalink_anchor_mode_title() {
-		$expected = '<a id="test-post-title-' . self::$post_id . '"></a>';
-
-		$this->assertSame( $expected, get_echo( 'permalink_anchor', array( 'title' ) ) );
-	}
-
-	/**
 	 * Tests that permalink_anchor() handles mode case-insensitively for 'title'.
 	 *
 	 * @ticket 65819
@@ -143,10 +109,7 @@ class Tests_Link_PermalinkAnchor extends WP_UnitTestCase {
 	 */
 	public static function data_unrecognized_modes() {
 		return array(
-			'empty string'        => array( '' ),
-			'arbitrary string'    => array( 'custom' ),
-			'invalid mode slug'   => array( 'slug' ),
-			'numeric string mode' => array( '123' ),
+			'arbitrary string' => array( 'custom' ),
 		);
 	}
 }

@@ -3113,7 +3113,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $expected, $meta[ $meta_key ] );
 	}
 
-	public function data_get_default_data() {
+	public static function data_get_default_data() {
 		return array(
 			array(
 				array(

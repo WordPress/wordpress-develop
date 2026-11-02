@@ -109,7 +109,21 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Check whether theme exists
+        id: theme-exists
+        working-directory: .
+        run: |
+          if [[ -d "src/wp-content/themes/${THEME}" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Theme ${THEME} does not exist on the selected branch."
+          fi
+        env:
+          THEME: ${{ matrix.theme }}
+
       - name: Check for zero-byte (empty) files
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         run: |
           [[ ! $(find "src/wp-content/themes/${THEME}" -empty) ]]
         env:
@@ -160,7 +174,21 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Check whether theme exists
+        id: theme-exists
+        working-directory: .
+        run: |
+          if [[ -d "src/wp-content/themes/${THEME}" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Theme ${THEME} does not exist on the selected branch."
+          fi
+        env:
+          THEME: ${{ matrix.theme }}
+
       - name: Set up Node.js
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
@@ -168,20 +196,22 @@ jobs:
 
       - name: Set up npm
         # A workflow_dispatch run can check out a release branch, which lacks the action.
-        if: ${{ hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && hashFiles('.github/actions/setup-npm/action.yml') != '' }}
         uses: ./.github/actions/setup-npm
         with:
           working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Install npm dependencies
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         run: npm ci
 
       - name: Build theme
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         run: npm run build
 
       - name: Check for changes to versioned files
         id: built-file-check
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && github.event_name == 'pull_request' }}
         run: |
           if git diff --quiet; then
             echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
@@ -206,6 +236,7 @@ jobs:
           path: src/wp-content/themes/${{ matrix.theme }}/changes.diff
 
       - name: Ensure version-controlled files are not modified or deleted
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         run: git diff --exit-code
 
   # Prepares bundled themes for release.
@@ -251,8 +282,21 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Check whether theme exists
+        id: theme-exists
+        working-directory: .
+        run: |
+          if [[ -d "src/wp-content/themes/${THEME}" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Theme ${THEME} does not exist on the selected branch."
+          fi
+        env:
+          THEME: ${{ matrix.theme }}
+
       - name: Set up Node.js for themes needing minification
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: 'src/wp-content/themes/${{ matrix.theme }}/.nvmrc'
@@ -260,22 +304,23 @@ jobs:
 
       - name: Set up npm
         # A workflow_dispatch run can check out a release branch, which lacks the action.
-        if: ${{ ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) && hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) && hashFiles('.github/actions/setup-npm/action.yml') != '' }}
         uses: ./.github/actions/setup-npm
         with:
           working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Install npm dependencies
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) }}
         run: npm ci
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Build theme assets
-        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        if: ${{ steps.theme-exists.outputs.exists == 'true' && ( matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive' ) }}
         run: npm run build
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
       - name: Upload theme ZIP as an artifact
+        if: ${{ steps.theme-exists.outputs.exists == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.theme }}
@@ -283,7 +328,6 @@ jobs:
             src/wp-content/themes/${{ matrix.theme }}
             !src/wp-content/themes/${{ matrix.theme }}/node_modules
           if-no-files-found: error
-          include-hidden-files: true
 
   slack-notifications:
     name: Slack Notifications

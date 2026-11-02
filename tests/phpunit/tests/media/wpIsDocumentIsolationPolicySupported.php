@@ -48,7 +48,7 @@ class Tests_Media_wpIsDocumentIsolationPolicySupported extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_user_agents() {
+	public static function data_user_agents() {
 		return array(
 			'no user agent' => array( null, false ),
 			'Firefox'       => array( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0', false ),
