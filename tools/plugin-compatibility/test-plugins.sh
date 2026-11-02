@@ -171,10 +171,14 @@ run_in_docker() {
 		"${DB_IMAGE}" > /dev/null || error "The database container could not be started."
 
 	# A first run has to initialise the data directory, which takes appreciably longer than a later one.
+	#
+	# The image initialises it with a temporary server that answers on the socket and then restarts, so the
+	# ping goes over TCP, which only the real server listens on. A socket ping can succeed in that window and
+	# leave the next step to find the database gone.
 	DB_READY="no"
 
 	for _ in $( seq 1 90 ); do
-		if docker exec "${DB_CONTAINER}" mysqladmin ping --silent --user=root --password="${DB_PASS}" > /dev/null 2>&1; then
+		if docker exec "${DB_CONTAINER}" mysqladmin ping --silent --protocol=tcp --host=127.0.0.1 --user=root --password="${DB_PASS}" > /dev/null 2>&1; then
 			DB_READY="yes"
 			break
 		fi
