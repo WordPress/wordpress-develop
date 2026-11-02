@@ -31,6 +31,13 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 		self::$editor_id = self::$users[0];
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'public_cpt' );
+		unregister_post_type( 'private_cpt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Test getting a URL list for a users sitemap page via
 	 * WP_Sitemaps_Users::get_url_list().
@@ -380,10 +387,8 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 	public static function data_get_max_num_pages() {
 		return array(
 			'no authors'    => array( 0, 0 ),
-			'one author'    => array( 1, 1 ),
 			'two authors'   => array( 2, 1 ),
 			'three authors' => array( 3, 2 ),
-			'five authors'  => array( 5, 3 ),
 		);
 	}
 

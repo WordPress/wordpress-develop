@@ -11,6 +11,13 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax2' );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 

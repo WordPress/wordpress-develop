@@ -22,7 +22,7 @@ class Tests_REST_WpRestTemplatesControllerSanitizeTemplateId extends WP_UnitTest
 		);
 	}
 
-	public function data_sanitize_template_id() {
+	public static function data_sanitize_template_id() {
 		return array(
 			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
 			array( 'tt1-blocks//index', 'tt1-blocks//index' ),

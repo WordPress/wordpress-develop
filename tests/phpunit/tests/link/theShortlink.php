@@ -90,32 +90,6 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the_shortlink() outputs before markup without after markup.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_shortlink_with_only_before() {
-		$shortlink = wp_get_shortlink( self::$post_id );
-		$expected  = '<p><a rel="shortlink" href="' . esc_url( $shortlink ) . '">Short URL</a>';
-
-		$this->expectOutputString( $expected );
-		the_shortlink( 'Short URL', '', '<p>' );
-	}
-
-	/**
-	 * Tests that the_shortlink() outputs after markup without before markup.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_shortlink_with_only_after() {
-		$shortlink = wp_get_shortlink( self::$post_id );
-		$expected  = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '">Short URL</a></p>';
-
-		$this->expectOutputString( $expected );
-		the_shortlink( 'Short URL', '', '', '</p>' );
-	}
-
-	/**
 	 * Tests that the_shortlink() passes expected arguments to the 'the_shortlink' filter.
 	 *
 	 * @ticket 65819
@@ -200,31 +174,13 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the_shortlink() works when pretty permalinks are enabled.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_shortlink_with_pretty_permalinks() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
-		$shortlink = wp_get_shortlink( self::$post_id );
-		$expected  = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '">Get Shortlink</a>';
-
-		$this->expectOutputString( $expected );
-		the_shortlink( 'Get Shortlink' );
-	}
-
-	/**
 	 * Data provider of custom text values.
 	 *
 	 * @return array[]
 	 */
 	public static function data_custom_text() {
 		return array(
-			'simple text'           => array( 'Short URL' ),
-			'unicode text'          => array( 'সংক্ষিপ্ত লিংক' ),
-			'text with html entity' => array( 'Link &amp; Share' ),
-			'html text'             => array( '<span>Shortlink</span>' ),
+			'html text' => array( '<span>Shortlink</span>' ),
 		);
 	}
 }

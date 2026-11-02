@@ -105,6 +105,10 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * theme of the test; the next read fires `wp_entity_actions_api_init` again.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'test_book' );
+		unregister_post_type( 'test_note' );
+		unregister_post_type( 'test_hidden' );
+
 		self::reset_registry();
 
 		parent::tear_down();
@@ -164,7 +168,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 				self::POST_TYPE_SUPPORTS => $ids,
 				self::PAGE               => self::PAGE_ACTIONS,
 			),
-			wp_get_registered_entity_action_modules( 'postType', 'page' ),
+			array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'actions', 'id' ),
 			'Each action of pages is registered with the module of its folder.'
 		);
 		$this->assertSame( array( 'core' ), array_unique( array_column( array_column( wp_get_registered_entity_actions( 'postType', 'page' ), 'origin' ), 'registeredBy' ) ), 'Every action is registered by core.' );
@@ -205,7 +209,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 				self::POST_TYPE_SUPPORTS => array_merge( array( 'view-post-revisions', 'rename-post' ), self::EVERY_POST_TYPE ),
 				self::WP_BLOCK           => array( 'duplicate-pattern', 'export-pattern' ),
 			),
-			wp_get_registered_entity_action_modules( 'postType', 'wp_block' ),
+			array_column( wp_get_registered_entity_action_modules( 'postType', 'wp_block' ), 'actions', 'id' ),
 			'The actions of patterns come from the `wp_block` module.'
 		);
 	}
@@ -243,7 +247,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array( 'duplicate-template-part' ),
-			wp_get_registered_entity_action_modules( 'postType', 'wp_template_part' )[ self::WP_TEMPLATE_PART ],
+			array_column( wp_get_registered_entity_action_modules( 'postType', 'wp_template_part' ), 'actions', 'id' )[ self::WP_TEMPLATE_PART ],
 			'The action comes from the `wp_template_part` module.'
 		);
 
@@ -385,7 +389,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'id'                => 'move-to-trash',
-				'label'             => 'Trash…',
+				'label'             => 'Trash',
 				'isPrimary'         => true,
 				'supportsBulk'      => true,
 				'hideModalHeader'   => true,
@@ -417,7 +421,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		add_filter(
 			'gettext',
 			static function ( $translation, $text, $domain ) use ( &$domains ) {
-				if ( 'Trash…' === $text ) {
+				if ( 'Trash' === $text ) {
 					$domains[] = $domain;
 				}
 				return $translation;
@@ -428,7 +432,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		add_filter(
 			'gettext_with_context',
 			static function ( $translation, $text, $context, $domain ) use ( &$domains ) {
-				if ( 'Trash…' === $text ) {
+				if ( 'Trash' === $text ) {
 					$domains[] = $domain;
 				}
 				return $translation;
@@ -522,7 +526,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 				self::POST_TYPE_SUPPORTS => array_merge( $ids, array( 'move-to-trash' ) ),
 				self::PAGE               => self::PAGE_ACTIONS,
 			),
-			wp_get_registered_entity_action_modules( 'postType', 'page' ),
+			array_column( wp_get_registered_entity_action_modules( 'postType', 'page' ), 'actions', 'id' ),
 			'The replaced action keeps the module of the core action.'
 		);
 
