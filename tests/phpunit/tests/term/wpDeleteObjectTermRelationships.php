@@ -5,6 +5,15 @@
  * @covers ::wp_delete_object_term_relationships
  */
 class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax1' );
+		unregister_taxonomy( 'wptests_tax2' );
+		unregister_taxonomy( 'wptests_tax3' );
+
+		parent::tear_down();
+	}
+
 	public function test_single_taxonomy() {
 		register_taxonomy( 'wptests_tax1', 'post' );
 		register_taxonomy( 'wptests_tax2', 'post' );
@@ -52,5 +61,25 @@ class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
 		$terms = wp_get_object_terms( $object_id, array( 'wptests_tax1', 'wptests_tax2', 'wptests_tax3' ), array( 'fields' => 'ids' ) );
 
 		$this->assertSameSets( array( $t2 ), $terms );
+	}
+
+	/**
+	 * @ticket 64406
+	 */
+	public function test_delete_when_error() {
+		$taxonomy_name = 'wptests_tax';
+		register_taxonomy( $taxonomy_name, 'post' );
+		$term_id   = self::factory()->term->create( array( 'taxonomy' => $taxonomy_name ) );
+		$object_id = 567;
+		wp_set_object_terms( $object_id, array( $term_id ), $taxonomy_name );
+
+		// Confirm the setup.
+		$terms = wp_get_object_terms( $object_id, array( $taxonomy_name ), array( 'fields' => 'ids' ) );
+		$this->assertSame( array( $term_id ), $terms, 'Expected same object terms.' );
+
+		// Try wp_delete_object_term_relationships() when the taxonomy is invalid (no change expected).
+		wp_delete_object_term_relationships( $object_id, 'wptests_taxation' );
+		$terms = wp_get_object_terms( $object_id, array( $taxonomy_name ), array( 'fields' => 'ids' ) );
+		$this->assertSame( array( $term_id ), $terms, 'Expected the object terms to be unchanged.' );
 	}
 }

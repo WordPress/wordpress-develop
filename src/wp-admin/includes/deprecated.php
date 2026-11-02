@@ -53,7 +53,7 @@ function wp_shrink_dimensions( $width, $height, $wmax = 128, $hmax = 96 ) {
 }
 
 /**
- * Calculated the new dimensions for a downsampled image.
+ * Calculates the new dimensions for a downsampled image.
  *
  * @since 2.0.0
  * @deprecated 3.5.0 Use wp_constrain_dimensions()
@@ -1427,13 +1427,15 @@ function _relocate_children( $old_ID, $new_ID ) {
  * @see add_menu_page()
  * @global int $_wp_last_object_menu
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $callback   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+ * @param string               $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string               $menu_title The text to be used for the menu.
+ * @param string               $capability The capability required for this menu to be displayed to the user.
+ * @param string               $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
+ * @param callable|string|null $callback   Optional. The function to be called to output the content for this page.
+ * @param string               $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
+ *
+ * @phpstan-param ''|(callable(): mixed)|null $callback
  */
 function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
@@ -1460,13 +1462,15 @@ function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $ca
  * @see add_menu_page()
  * @global int $_wp_last_utility_menu
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $callback   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+ * @param string               $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string               $menu_title The text to be used for the menu.
+ * @param string               $capability The capability required for this menu to be displayed to the user.
+ * @param string               $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
+ * @param callable|string|null $callback   Optional. The function to be called to output the content for this page.
+ * @param string               $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
+ *
+ * @phpstan-param ''|(callable(): mixed)|null $callback
  */
 function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
@@ -1511,7 +1515,7 @@ function post_form_autocomplete_off() {
  */
 function options_permalink_add_js() {
 	?>
-	<script type="text/javascript">
+	<script>
 		jQuery( function() {
 			jQuery('.permalink-structure input:radio').change(function() {
 				if ( 'custom' == this.value )
@@ -1588,4 +1592,39 @@ function image_attachment_fields_to_save( $post, $attachment ) {
 	_deprecated_function( __FUNCTION__, '6.0.0' );
 
 	return $post;
+}
+
+/**
+ * Was used to add JavaScript to the delete users form.
+ *
+ * @since 3.5.0
+ * @deprecated 7.1.0
+ * @access private
+ */
+function delete_users_add_js() {
+	_deprecated_function( __FUNCTION__, '7.1.0' );
+}
+
+/**
+ * Was used to output JavaScript that tested whether compressing scripts from PHP works.
+ *
+ * The scripts and styles have not been compressed from PHP since 4.9.9, so the result
+ * of the test went unused.
+ *
+ * @since 2.8.0
+ * @deprecated 7.2.0
+ */
+function compression_test() {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+}
+
+/**
+ * Was used to handle the compression test via AJAX.
+ *
+ * @since 3.1.0
+ * @deprecated 7.2.0
+ */
+function wp_ajax_wp_compression_test() {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+	wp_die( 0 );
 }

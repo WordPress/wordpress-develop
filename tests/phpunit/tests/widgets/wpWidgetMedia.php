@@ -16,14 +16,25 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	/**
 	 * Clean up global scope.
 	 *
-	 * @global WP_Scripts $wp_scripts
-	 * @global WP_Styles $wp_styles
+	 * @global WP_Scripts           $wp_scripts
+	 * @global WP_Styles            $wp_styles
+	 * @global WP_Customize_Manager $wp_customize
 	 */
 	public function clean_up_global_scope() {
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts, $wp_styles, $wp_customize;
 		parent::clean_up_global_scope();
-		$wp_scripts = null;
-		$wp_styles  = null;
+		$wp_scripts   = null;
+		$wp_styles    = null;
+		$wp_customize = null;
+	}
+
+	/**
+	 * Restores the Customizer global after each test.
+	 */
+	public function tear_down() {
+		$GLOBALS['wp_customize'] = null;
+
+		parent::tear_down();
 	}
 
 	/**
@@ -494,7 +505,9 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 
 		$wp_widget_media = new ReflectionClass( 'WP_Widget_Media' );
 		$has_content     = $wp_widget_media->getMethod( 'has_content' );
-		$has_content->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$has_content->setAccessible( true );
+		}
 
 		$result = $has_content->invokeArgs(
 			$this->get_mocked_class_instance(),

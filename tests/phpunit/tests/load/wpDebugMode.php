@@ -14,11 +14,64 @@
  */
 class Test_WP_Debug_Mode extends WP_UnitTestCase {
 	/**
+	 * Original error_reporting level.
+	 *
+	 * @var int
+	 */
+	private $original_error_reporting;
+
+	/**
+	 * Original display_errors setting.
+	 *
+	 * @var string|false
+	 */
+	private $original_display_errors;
+
+	/**
+	 * Original log_errors setting.
+	 *
+	 * @var string|false
+	 */
+	private $original_log_errors;
+
+	/**
+	 * Original error_log setting.
+	 *
+	 * @var string|false
+	 */
+	private $original_error_log;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_error_reporting = error_reporting();
+		$this->original_display_errors  = ini_get( 'display_errors' );
+		$this->original_log_errors      = ini_get( 'log_errors' );
+		$this->original_error_log       = ini_get( 'error_log' );
+	}
+
+	public function tear_down() {
+		error_reporting( $this->original_error_reporting );
+		ini_set( 'display_errors', $this->original_display_errors );
+		ini_set( 'log_errors', $this->original_log_errors );
+		ini_set( 'error_log', $this->original_error_log );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Test: `wp_debug_mode()` should log, but not display, errors for `ms-files.php`.
 	 *
+	 * Runs in a separate process because it defines `MS_FILES_REQUEST`, which cannot be
+	 * undone by teardown and can affect later `wp_debug_mode()` calls.
+	 *
 	 * @ticket 53493
+	 * @ticket 65893
 	 *
 	 * @since 5.9.0
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_ms_files_logs_but_doesnt_display_errors() {
 		/*

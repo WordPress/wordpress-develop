@@ -63,7 +63,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		// Setup an empty testing instance of `WP_Block_Patterns_Registry` and save the original.
 		self::$orig_registry              = WP_Block_Patterns_Registry::get_instance();
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Patterns_Registry', 'instance' );
-		self::$registry_instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( true );
+		}
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
 		self::$registry_instance_property->setValue( null, $test_registry );
 
@@ -107,15 +109,33 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 		// Restore the original registry instance.
 		self::$registry_instance_property->setValue( null, self::$orig_registry );
-		self::$registry_instance_property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( false );
+		}
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
 	}
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'emptytheme' );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
@@ -125,6 +145,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,content,source,template_types';
@@ -194,6 +215,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 */
 	public function test_get_items_migrate_pattern_categories() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,categories';
@@ -229,51 +251,195 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Mocks requests to the wordpress.org pattern directory with an empty result set.
+	 */
+	public function mock_pattern_directory_request() {
+		return array(
+			'headers'  => array(),
+			'body'     => '[]',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * Block patterns endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/test-one' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$request->set_param( 'title', 'Example pattern' );
+		$request->set_param( 'content', '<!-- wp:paragraph --><p>Example</p><!-- /wp:paragraph -->' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', static::REQUEST_ROUTE . '/test-one' );
+		$request->set_param( 'title', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE . '/test-one' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$pattern = array(
+			'name'          => 'test/sample-pattern',
+			'title'         => 'Sample Pattern',
+			'content'       => '<!-- wp:paragraph --><p>Sample pattern content</p><!-- /wp:paragraph -->',
+			'description'   => 'A sample pattern for tests',
+			'viewportWidth' => 1200,
+			'inserter'      => true,
+			'categories'    => array( 'buttons' ),
+			'keywords'      => array( 'sample', 'test' ),
+			'blockTypes'    => array( 'core/paragraph' ),
+			'postTypes'     => array( 'post' ),
+			'templateTypes' => array( 'single' ),
+			'source'        => 'core',
+		);
+
+		$endpoint = new WP_REST_Block_Patterns_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$response = $endpoint->prepare_item_for_response( $pattern, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'test/sample-pattern', $data['name'] );
+		$this->assertSame( 'Sample Pattern', $data['title'] );
+		$this->assertSame( '<!-- wp:paragraph --><p>Sample pattern content</p><!-- /wp:paragraph -->', $data['content'] );
+		$this->assertSame( 'A sample pattern for tests', $data['description'] );
+		$this->assertSame( 1200, $data['viewport_width'] );
+		$this->assertTrue( $data['inserter'] );
+		$this->assertSame( array( 'buttons' ), $data['categories'] );
+		$this->assertSame( array( 'sample', 'test' ), $data['keywords'] );
+		$this->assertSame( array( 'core/paragraph' ), $data['block_types'] );
+		$this->assertSame( array( 'post' ), $data['post_types'] );
+		$this->assertSame( array( 'single' ), $data['template_types'] );
+		$this->assertSame( 'core', $data['source'] );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$pattern = array(
+			'name'    => 'test/sample-pattern',
+			'title'   => 'Sample Pattern',
+			'content' => '<!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->',
+		);
+
+		$endpoint = new WP_REST_Block_Patterns_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name,title' );
+
+		$response = $endpoint->prepare_item_for_response( $pattern, $request );
+		$this->assertSame(
+			array(
+				'name'  => 'test/sample-pattern',
+				'title' => 'Sample Pattern',
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'name',
+				'title',
+				'content',
+				'description',
+				'viewport_width',
+				'inserter',
+				'categories',
+				'keywords',
+				'block_types',
+				'post_types',
+				'template_types',
+				'source',
+			),
+			array_keys( $properties )
+		);
 	}
 }
