@@ -257,7 +257,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'imagesizes_without_href_or_imagesrcset' => array(
+			'imagesizes_only'        => array(
 				'expected'  => "<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w' imagesizes='100vw' />\n",
 				'resources' => array(
 					// No href and no imagesrcset, so there is nothing to preload.
@@ -276,7 +276,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'missing_href_and_as'                    => array(
+			'missing_href_and_as'    => array(
 				'expected'  => '',
 				'resources' => array(
 					array(
