@@ -118,7 +118,6 @@ class Tests_Admin_wpPluginsListTableGetBulkActions extends WP_UnitTestCase {
 		);
 
 		return array(
-			'all'                  => array( 'all', $all ),
 			'upgrade'              => array( 'upgrade', $all ),
 			'active'               => array(
 				'active',

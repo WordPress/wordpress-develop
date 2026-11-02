@@ -251,6 +251,24 @@ define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
+/*
+ * Tests that cover the upload_path and upload_url_path options run in a separate process
+ * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
+ */
+if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
+
+	/*
+	 * Delete the test uploads dir exactly once per run, via an env var (we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process).
+	 */
+	$delete_tests_uploads_dir = ( false === getenv( 'WP_TESTS_UPLOADS_RUN_ID' ) );
+
+	if ( $delete_tests_uploads_dir ) {
+		putenv( 'WP_TESTS_UPLOADS_RUN_ID=' . getmypid() . '-' . uniqid() );
+	}
+}
+
 $PHP_SELF            = '/index.php';
 $GLOBALS['PHP_SELF'] = '/index.php';
 $_SERVER['PHP_SELF'] = '/index.php';
@@ -314,6 +332,23 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
+
+// Process delete wp-content/test-suite-uploads folder.
+if ( ! empty( $delete_tests_uploads_dir ) ) {
+	$uploads_test_run_dir = ABSPATH . UPLOADS;
+
+	if ( is_dir( $uploads_test_run_dir ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+
+		// Use the direct transport, as WP_Filesystem() may pick FTP and fail without credentials.
+		$uploads_test_run_fs = new WP_Filesystem_Direct( null );
+		$uploads_test_run_fs->delete( $uploads_test_run_dir, true );
+	}
+
+	unset( $uploads_test_run_dir, $uploads_test_run_fs );
+}
+unset( $delete_tests_uploads_dir );
 
 // Override the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';

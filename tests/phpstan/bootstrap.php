@@ -83,9 +83,9 @@ define( 'WP_POST_REVISIONS', true );
 define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 
 /** @see wp_templating_constants() */
-define( 'TEMPLATEPATH', WP_CONTENT_DIR . '/themes/twentytwentyfive' );
-define( 'STYLESHEETPATH', WP_CONTENT_DIR . '/themes/twentytwentyfive' );
-define( 'WP_DEFAULT_THEME', 'twentytwentyfive' );
+define( 'TEMPLATEPATH', WP_CONTENT_DIR . '/themes/ipsum' );
+define( 'STYLESHEETPATH', WP_CONTENT_DIR . '/themes/ipsum' );
+define( 'WP_DEFAULT_THEME', 'ipsum' );
 
 /** @see ms_file_constants() */
 define( 'WPMU_SENDFILE', false );

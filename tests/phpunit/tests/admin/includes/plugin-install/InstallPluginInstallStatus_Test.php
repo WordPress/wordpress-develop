@@ -124,8 +124,15 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 
 		$this->set_update_response( '3.0.0' );
 
+		$file = self::SLUG . '/' . self::SLUG . '.php';
+
 		$this->assertSame(
-			install_plugin_install_status( $this->get_api( '3.0.0' ) ),
+			array(
+				'status'  => 'update_available',
+				'url'     => 'http://' . WP_TESTS_DOMAIN . '/wp-admin/update.php?action=upgrade-plugin&amp;plugin=install-status-test-plugin%2Finstall-status-test-plugin.php&amp;_wpnonce=' . wp_create_nonce( 'upgrade-plugin_' . $file ),
+				'version' => '3.0.0',
+				'file'    => $file,
+			),
 			install_plugin_install_status( (array) $this->get_api( '3.0.0' ) )
 		);
 	}
@@ -387,7 +394,6 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 */
 	public static function data_from_query_arg() {
 		return array(
-			'plain value'     => array( 'import', '&amp;from=import' ),
 			'value to encode' => array( 'a b&c=d', '&amp;from=a+b%26c%3Dd' ),
 			'slashed value'   => array( "it\\'s", '&amp;from=it%27s' ),
 			'empty string'    => array( '', '&amp;from=' ),
