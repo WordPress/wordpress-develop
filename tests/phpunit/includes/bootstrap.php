@@ -330,25 +330,44 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
-// Load WordPress.
-require_once ABSPATH . 'wp-settings.php';
-
-// Process delete wp-content/test-suite-uploads folder.
+/*
+ * Delete the wp-content/test-suite-uploads folder before WordPress loads.
+ *
+ * Plugins and themes may call wp_upload_dir() while loading, which creates the folder and
+ * caches it as created. Deleting it afterwards would leave a cached path that no longer exists.
+ * WordPress functions are not available yet, so this uses plain PHP.
+ */
 if ( ! empty( $delete_tests_uploads_dir ) ) {
 	$uploads_test_run_dir = ABSPATH . UPLOADS;
 
 	if ( is_dir( $uploads_test_run_dir ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		try {
+			$uploads_test_run_files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
 
-		// Use the direct transport, as WP_Filesystem() may pick FTP and fail without credentials.
-		$uploads_test_run_fs = new WP_Filesystem_Direct( null );
-		$uploads_test_run_fs->delete( $uploads_test_run_dir, true );
+			foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+				// Windows removes symlinks to directories with rmdir(), not unlink().
+				if ( $uploads_test_run_file->isDir() && ( ! $uploads_test_run_file->isLink() || 'Windows' === PHP_OS_FAMILY ) ) {
+					rmdir( $uploads_test_run_file->getPathname() );
+				} else {
+					unlink( $uploads_test_run_file->getPathname() );
+				}
+			}
+
+			rmdir( $uploads_test_run_dir );
+		} catch ( UnexpectedValueException $uploads_test_run_exception ) {
+			echo 'Could not delete the test uploads directory: ' . $uploads_test_run_exception->getMessage() . PHP_EOL;
+		}
 	}
 
-	unset( $uploads_test_run_dir, $uploads_test_run_fs );
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file, $uploads_test_run_exception );
 }
 unset( $delete_tests_uploads_dir );
+
+// Load WordPress.
+require_once ABSPATH . 'wp-settings.php';
 
 // Override the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';
