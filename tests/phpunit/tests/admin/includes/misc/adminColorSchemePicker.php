@@ -102,7 +102,13 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		update_user_meta( $user_id, 'admin_color', 'blue' );
-		wp_set_current_user( $user_id );
+		$current_user_id = self::factory()->user->create(
+			array(
+				'role'        => 'administrator',
+				'admin_color' => 'modern',
+			)
+		);
+		wp_set_current_user( $current_user_id );
 
 		ob_start();
 		admin_color_scheme_picker( $user_id );
