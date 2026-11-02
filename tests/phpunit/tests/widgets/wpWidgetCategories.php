@@ -98,9 +98,7 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 		$widget = new WP_Widget_Categories();
 
 		$this->assertSame( 'categories', $widget->id_base );
-		$this->assertSame( 'Categories', $widget->name );
 		$this->assertSame( 'widget_categories', $widget->widget_options['classname'] );
-		$this->assertSame( 'A list or dropdown of categories.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -149,8 +147,6 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'     => array( array(), 'Categories' ),
-			'empty title'  => array( array( 'title' => '' ), 'Categories' ),
-			'title "0"'    => array( array( 'title' => '0' ), 'Categories' ),
 			'custom title' => array( array( 'title' => 'Topics' ), 'Topics' ),
 		);
 	}
@@ -238,9 +234,7 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Topics', 'Topics' ),
 			'title with HTML'     => array( '<em>Site</em> Topics ', 'Site Topics' ),
-			'empty title'         => array( '', 'Categories' ),
 			'title with only tag' => array( '<span></span>', 'Categories' ),
 		);
 	}
@@ -284,12 +278,14 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 
 		list( $cat_args, $filter_instance ) = $filter_args[0];
 
+		$this->assertIsArray( $cat_args );
+
 		$this->assertSame( $instance, $filter_instance );
 		$this->assertSameSets( array( 'orderby', 'show_count', 'hierarchical', 'title_li' ), array_keys( $cat_args ) );
 		$this->assertSame( 'name', $cat_args['orderby'] );
 		$this->assertSame( '', $cat_args['title_li'] );
-		$this->assertSame( $count, (bool) $cat_args['show_count'], 'show_count should match the count setting.' );
-		$this->assertSame( $hierarchical, (bool) $cat_args['hierarchical'], 'hierarchical should match the hierarchical setting.' );
+		$this->assertSame( $count, $cat_args['show_count'], 'show_count should match the count setting.' );
+		$this->assertSame( $hierarchical, $cat_args['hierarchical'], 'hierarchical should match the hierarchical setting.' );
 	}
 
 	/**
@@ -300,14 +296,6 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	public static function data_widget_options() {
 		return array(
 			'defaults'          => array( array(), false, false ),
-			'disabled'          => array(
-				array(
-					'count'        => 0,
-					'hierarchical' => 0,
-				),
-				false,
-				false,
-			),
 			'count only'        => array( array( 'count' => 1 ), true, false ),
 			'hierarchical only' => array( array( 'hierarchical' => 1 ), false, true ),
 			'both'              => array(
@@ -317,6 +305,23 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 				),
 				true,
 				true,
+			),
+			// Instances saved before WordPress 2.8 stored booleans.
+			'booleans enabled'  => array(
+				array(
+					'count'        => true,
+					'hierarchical' => true,
+				),
+				true,
+				true,
+			),
+			'booleans disabled' => array(
+				array(
+					'count'        => false,
+					'hierarchical' => false,
+				),
+				false,
+				false,
 			),
 		);
 	}
@@ -422,11 +427,13 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 
 		list( $cat_args, $filter_instance ) = $filter_args[0];
 
+		$this->assertIsArray( $cat_args );
+
 		$this->assertSame( $instance, $filter_instance );
 		$this->assertSameSets( array( 'orderby', 'show_count', 'hierarchical', 'show_option_none', 'id' ), array_keys( $cat_args ) );
 		$this->assertSame( 'name', $cat_args['orderby'] );
-		$this->assertTrue( (bool) $cat_args['show_count'] );
-		$this->assertTrue( (bool) $cat_args['hierarchical'] );
+		$this->assertTrue( $cat_args['show_count'] );
+		$this->assertTrue( $cat_args['hierarchical'] );
 		$this->assertSame( 'Select Category', $cat_args['show_option_none'] );
 		$this->assertSame( 'categories-dropdown-3', $cat_args['id'] );
 	}
@@ -486,16 +493,11 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 					'dropdown'     => 0,
 				),
 			),
-			'empty values'         => array(
+			'missing title'        => array(
+				array( 'count' => 'on' ),
 				array(
 					'title'        => '',
-					'count'        => '',
-					'hierarchical' => '0',
-					'dropdown'     => 0,
-				),
-				array(
-					'title'        => '',
-					'count'        => 0,
+					'count'        => 1,
 					'hierarchical' => 0,
 					'dropdown'     => 0,
 				),

@@ -144,12 +144,12 @@ function wp_get_global_stylesheet( $types = array() ) {
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
 	 * See some of the existing hooks to modify theme.json behavior:
-	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 * @link https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
 	 * events such as options add/update/delete, user meta, etc.
 	 * It was judged not enough, hence this approach.
-	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 * @link https://github.com/WordPress/gutenberg/pull/45372
 	 */
 	$cache_group = 'theme_json';
 	$cache_key   = 'wp_get_global_stylesheet';
@@ -387,18 +387,7 @@ function wp_theme_has_theme_json() {
 		return $theme_has_support[ $stylesheet ];
 	}
 
-	$stylesheet_directory = get_stylesheet_directory();
-	$template_directory   = get_template_directory();
-
-	// This is the same as get_theme_file_path(), which isn't available in load-styles.php context
-	if ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/theme.json' ) ) {
-		$path = $stylesheet_directory . '/theme.json';
-	} else {
-		$path = $template_directory . '/theme.json';
-	}
-
-	/** This filter is documented in wp-includes/link-template.php */
-	$path = apply_filters( 'theme_file_path', $path, 'theme.json' );
+	$path = get_theme_file_path( 'theme.json' );
 
 	$theme_has_support[ $stylesheet ] = file_exists( $path );
 

@@ -246,10 +246,28 @@ if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
  */
 define( 'DISABLE_WP_CRON', true );
 
-define( 'WP_MEMORY_LIMIT', -1 );
-define( 'WP_MAX_MEMORY_LIMIT', -1 );
+define( 'WP_MEMORY_LIMIT', '-1' );
+define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
+
+/*
+ * Tests that cover the upload_path and upload_url_path options run in a separate process
+ * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
+ */
+if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
+
+	/*
+	 * Delete the test uploads dir exactly once per run, via an env var (we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process).
+	 */
+	$delete_tests_uploads_dir = ( false === getenv( 'WP_TESTS_UPLOADS_RUN_ID' ) );
+
+	if ( $delete_tests_uploads_dir ) {
+		putenv( 'WP_TESTS_UPLOADS_RUN_ID=' . getmypid() . '-' . uniqid() );
+	}
+}
 
 $PHP_SELF            = '/index.php';
 $GLOBALS['PHP_SELF'] = '/index.php';
@@ -311,6 +329,42 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 		tests_add_filter( 'pre_option_' . $key, 'wp_tests_options' );
 	}
 }
+
+/*
+ * Delete the wp-content/test-suite-uploads folder before WordPress loads.
+ *
+ * Plugins and themes may call wp_upload_dir() while loading, which creates the folder and
+ * caches it as created. Deleting it afterwards would leave a cached path that no longer exists.
+ * WordPress functions are not available yet, so this uses plain PHP.
+ */
+if ( ! empty( $delete_tests_uploads_dir ) ) {
+	$uploads_test_run_dir = ABSPATH . UPLOADS;
+
+	if ( is_dir( $uploads_test_run_dir ) ) {
+		try {
+			$uploads_test_run_files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+
+			foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+				// Windows removes symlinks to directories with rmdir(), not unlink().
+				if ( $uploads_test_run_file->isDir() && ( ! $uploads_test_run_file->isLink() || 'Windows' === PHP_OS_FAMILY ) ) {
+					rmdir( $uploads_test_run_file->getPathname() );
+				} else {
+					unlink( $uploads_test_run_file->getPathname() );
+				}
+			}
+
+			rmdir( $uploads_test_run_dir );
+		} catch ( UnexpectedValueException $uploads_test_run_exception ) {
+			echo 'Could not delete the test uploads directory: ' . $uploads_test_run_exception->getMessage() . PHP_EOL;
+		}
+	}
+
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file, $uploads_test_run_exception );
+}
+unset( $delete_tests_uploads_dir );
 
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';

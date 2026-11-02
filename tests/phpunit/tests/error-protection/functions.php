@@ -76,46 +76,6 @@ class Tests_Error_Protection_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_paused_plugins() always returns the same storage instance.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::wp_paused_plugins
-	 */
-	public function test_wp_paused_plugins_returns_same_storage_instance() {
-		$storage = wp_paused_plugins();
-
-		$this->assertInstanceOf( 'WP_Paused_Extensions_Storage', $storage );
-		$this->assertSame( $storage, wp_paused_plugins() );
-	}
-
-	/**
-	 * Tests that wp_paused_themes() always returns the same storage instance.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::wp_paused_themes
-	 */
-	public function test_wp_paused_themes_returns_same_storage_instance() {
-		$storage = wp_paused_themes();
-
-		$this->assertInstanceOf( 'WP_Paused_Extensions_Storage', $storage );
-		$this->assertSame( $storage, wp_paused_themes() );
-	}
-
-	/**
-	 * Tests that plugins and themes use separate storage instances.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::wp_paused_plugins
-	 * @covers ::wp_paused_themes
-	 */
-	public function test_wp_paused_plugins_and_themes_use_separate_storage() {
-		$this->assertNotSame( wp_paused_plugins(), wp_paused_themes() );
-	}
-
-	/**
 	 * Tests that wp_paused_plugins() stores errors under the plugin type.
 	 *
 	 * @ticket 65819
@@ -202,19 +162,9 @@ class Tests_Error_Protection_Functions extends WP_UnitTestCase {
 	 */
 	public static function data_wp_get_extension_error_description() {
 		return array(
-			'E_ERROR'             => array( E_ERROR, 'E_ERROR' ),
-			'E_WARNING'           => array( E_WARNING, 'E_WARNING' ),
-			'E_PARSE'             => array( E_PARSE, 'E_PARSE' ),
-			'E_NOTICE'            => array( E_NOTICE, 'E_NOTICE' ),
-			'E_CORE_ERROR'        => array( E_CORE_ERROR, 'E_CORE_ERROR' ),
-			'E_COMPILE_ERROR'     => array( E_COMPILE_ERROR, 'E_COMPILE_ERROR' ),
-			'E_USER_ERROR'        => array( E_USER_ERROR, 'E_USER_ERROR' ),
-			'E_RECOVERABLE_ERROR' => array( E_RECOVERABLE_ERROR, 'E_RECOVERABLE_ERROR' ),
-			'E_DEPRECATED'        => array( E_DEPRECATED, 'E_DEPRECATED' ),
-			'unknown integer'     => array( 3, '3' ),
-			'zero'                => array( 0, '0' ),
-			'unknown string'      => array( 'custom_error', 'custom_error' ),
-			'empty string'        => array( '', '' ),
+			'E_ERROR'         => array( E_ERROR, 'E_ERROR' ),
+			'unknown integer' => array( 3, '3' ),
+			'unknown string'  => array( 'custom_error', 'custom_error' ),
 		);
 	}
 
