@@ -231,7 +231,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Forgets the scopes of the previous file.
 	 *
 	 * @param Node[] $nodes The nodes of the file.
-	 * @return null
+	 * @return null Always null, leaving the nodes as they are.
 	 */
 	public function beforeTraverse( array $nodes ) {
 		$this->scope_templates = array();
@@ -244,7 +244,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Leaves the scope of a class's or function's templates, or of a namespace.
 	 *
 	 * @param Node $node The node being left.
-	 * @return null
+	 * @return null Always null, leaving the node as it is.
 	 */
 	public function leaveNode( Node $node ) {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
@@ -988,7 +988,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			 * Normalizes a type or class name, noting whether it names a template.
 			 *
 			 * @param string $name Name as written.
-			 * @return string
+			 * @return string The name lowercased, and stripped of a leading backslash where
+			 *                names are not resolved against a namespace or imports.
 			 */
 			private function normalize_name( string $name ): string {
 				$name = strtolower( $name );
@@ -1183,7 +1184,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * prose for `Optional.` merely loosens the type, so that one may match broadly.
 	 *
 	 * @param string $description Description of the entry.
-	 * @return bool
+	 * @return bool Whether a `Required.` sentence opens or closes a line of the description.
 	 */
 	private function is_required( string $description ): bool {
 		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#m', $description ) === 1;
