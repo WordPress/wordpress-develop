@@ -41,7 +41,16 @@ class Tests_Feed_GetTheContentFeed extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_filtered_content_for_default_feed_type() {
+		$filter = new MockAction();
+		add_filter( 'the_content_feed', array( $filter, 'filter' ), 10, 2 );
+
 		$this->assertSame( "<p>Hello feed content</p>\n", get_the_content_feed() );
+		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( 'rss2', $filter->get_args()[0][1] );
+
+		$this->assertSame( "<p>Hello feed content</p>\n", get_the_content_feed( null ) );
+		$this->assertSame( 2, $filter->get_call_count() );
+		$this->assertSame( 'rss2', $filter->get_args()[1][1] );
 	}
 
 	/**
