@@ -1960,11 +1960,11 @@ module.exports = function(grunt) {
 
 							// Find .php files that have been modified or added.
 							PHPfiles = PHPfiles.filter( function( file ) {
-								return /^\s*[MA]\s*.*\.php$/.test( file );
+								return /^\s*[MA]{1,2}\s+.*\.php$/.test( file );
 							} );
 
 							PHPfiles = PHPfiles.map( function( file ) {
-								return file.replace( /^\s*[MA]\s*/, '' );
+								return file.replace( /^\s*[MA]{1,2}\s+/, '' );
 							} );
 
 							changedFiles = {
@@ -2472,9 +2472,19 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'compat:php', 'Runs the PHPCompatibility ruleset on changed files.', function() {
 		var done = this.async();
-		var args = changedFiles.php.slice();
 
-		args.unshift( 'compat' );
+		// phpcompat.xml.dist only scans src/; paths passed on the command line bypass its <file> selection.
+		var files = changedFiles.php.filter( function( file ) {
+			return 0 === file.indexOf( 'src/' );
+		} );
+
+		if ( changedFiles.php.length && ! files.length ) {
+			grunt.log.writeln( 'No changed PHP files in src/. Skipping PHP compatibility checks.' );
+			done();
+			return;
+		}
+
+		var args = [ 'compat' ].concat( files );
 
 		grunt.util.spawn( {
 			cmd: 'composer',
