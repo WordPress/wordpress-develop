@@ -217,8 +217,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The `user=me` own-sites filter requires being logged in, same as any
-	 * other collection request - it is not an anonymous-access bypass.
+	 * The `user=me` filter does not let a logged-out request through.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
@@ -230,8 +229,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		// Logged out, "me" is no one, so it is treated like another user's ID.
-		$this->assertErrorResponse( 'rest_forbidden_user', $response, 401 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	/**
@@ -308,14 +306,13 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * A member of the site (even without `manage_sites`) can view it in
-	 * the default view context.
+	 * Being a member of the site is not enough to read it, it needs `manage_sites`.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_item_permissions_check
 	 * @group ms-required
 	 */
-	public function test_get_item_view_context_allowed_for_site_member() {
+	public function test_get_item_view_context_forbidden_for_site_member() {
 		$blog_id = self::factory()->blog->create();
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
@@ -325,7 +322,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 	}
 
 	/**
@@ -1389,7 +1386,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_items_me_filter_reports_the_filtered_total() {
 		$blog_ids = self::factory()->blog->create_many( 3 );
-		$user_id  = self::factory()->user->create();
+		$user_id  = self::$superadmin_id;
 
 		wp_set_current_user( $user_id );
 
@@ -2036,7 +2033,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_me_filter_user() {
 
 		$blog_ids = self::factory()->blog->create_many( 5 );
-		$user_id  = self::factory()->user->create();
+		$user_id  = self::$superadmin_id;
 		wp_set_current_user( $user_id );
 		foreach ( $blog_ids as $blog_id ) {
 			add_user_to_blog( $blog_id, $user_id, 'subscriber' );
@@ -2070,7 +2067,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 		$request->set_param( 'user', (string) $user_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden_user', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 	}
 
 	/**
@@ -2142,9 +2139,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_permissions_check_allows_a_site_on_the_current_network() {
 		$blog_id = self::factory()->blog->create();
-		$user_id = self::factory()->user->create();
-		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$superadmin_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
 		$request->set_param( 'id', $blog_id );
@@ -2607,8 +2602,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_get_items_off_the_main_site() {
 		return array(
-			'own sites as me'           => array( 'me', 'view', true ),
-			'own sites by ID'           => array( 'own', 'view', true ),
+			'own sites as me'           => array( 'me', 'view', 'rest_cannot_view_not_on_main_site' ),
+			'own sites by ID'           => array( 'own', 'view', 'rest_cannot_view_not_on_main_site' ),
 			'own sites in edit context' => array( 'me', 'edit', 'rest_cannot_view_not_on_main_site' ),
 			'own sites in embed'        => array( 'me', 'embed', 'rest_cannot_view_not_on_main_site' ),
 			'every site'                => array( '', 'view', 'rest_cannot_view_not_on_main_site' ),
@@ -2617,8 +2612,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Only a user listing their own sites in the view context is let through away
-	 * from the main site, even a super admin needs the main site for everything else.
+	 * Away from the main site every listing is refused, even a super admin listing
+	 * their own sites.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
@@ -2659,13 +2654,13 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * A member lists their own sites through a request served by a subsite.
+	 * A member cannot list their own sites through a request served by a subsite.
 	 *
 	 * @ticket 40365
-	 * @covers ::get_items
+	 * @covers ::get_items_permissions_check
 	 * @group ms-required
 	 */
-	public function test_get_items_me_filter_from_a_subsite() {
+	public function test_get_items_me_filter_from_a_subsite_is_forbidden() {
 		$blog_ids = self::factory()->blog->create_many( 2 );
 		$user_id  = self::factory()->user->create();
 
@@ -2682,8 +2677,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		restore_current_blog();
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets( array_merge( array( 1 ), $blog_ids ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertErrorResponse( 'rest_cannot_view_not_on_main_site', $response, 403 );
 	}
 
 	/**
@@ -2720,8 +2714,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Away from the main site, only a member reading in the view context is let
-	 * through, whether or not the site exists.
+	 * Away from the main site every read is refused, members and super admins
+	 * alike, whether or not the site exists.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_item_permissions_check
@@ -2748,14 +2742,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			return $result;
 		};
 
-		$this->assertTrue( $check( $member_id, $target_id, 'view' ), 'A member may read the site in the view context.' );
-
-		$result = $check( $member_id, $target_id, 'edit' );
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_forbidden_context', $result->get_error_code(), 'The edit context needs the capability before the site matters.' );
-
 		$denied = array(
+			'member in view context'  => array( $member_id, $target_id, 'view' ),
+			'member in edit context'  => array( $member_id, $target_id, 'edit' ),
 			'member in embed context' => array( $member_id, $target_id, 'embed' ),
 			'non-member'              => array( $outsider, $target_id, 'view' ),
 			'super admin'             => array( self::$superadmin_id, $target_id, 'view' ),
@@ -2774,17 +2763,15 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The fields that are not in the view context and the meta are left out for
-	 * site members and super admins alike, and are part of the edit context.
+	 * The fields that are not in the view context and the meta are left out of
+	 * it, and are part of the edit context.
 	 *
 	 * @ticket 40365
 	 * @covers ::prepare_item_for_response
 	 * @group ms-required
 	 */
 	public function test_edit_only_fields_are_left_out_of_the_view_context() {
-		$blog_id   = self::factory()->blog->create( array( 'path' => '/contexts/' ) );
-		$member_id = self::factory()->user->create();
-		add_user_to_blog( $blog_id, $member_id, 'subscriber' );
+		$blog_id = self::factory()->blog->create( array( 'path' => '/contexts/' ) );
 
 		$edit_only = array(
 			'registered',
@@ -2800,20 +2787,18 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'meta',
 		);
 
-		foreach ( array( $member_id, self::$superadmin_id ) as $user_id ) {
-			wp_set_current_user( $user_id );
+		wp_set_current_user( self::$superadmin_id );
 
-			$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
-			$response = rest_get_server()->dispatch( $request );
-			$data     = $response->get_data();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
-			$this->assertEquals( 200, $response->get_status() );
-			$this->assertSame( $blog_id, $data['id'] );
-			$this->assertSame( get_admin_url( $blog_id ), $data['admin_url'] );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( $blog_id, $data['id'] );
+		$this->assertSame( get_admin_url( $blog_id ), $data['admin_url'] );
 
-			foreach ( $edit_only as $field ) {
-				$this->assertArrayNotHasKey( $field, $data, "$field should not be in the view context." );
-			}
+		foreach ( $edit_only as $field ) {
+			$this->assertArrayNotHasKey( $field, $data, "$field should not be in the view context." );
 		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
@@ -2972,102 +2957,6 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Data provider for the collection parameters that only apply with the
-	 * capability to manage sites.
-	 *
-	 * @return array[]
-	 */
-	public function data_get_items_hidden_field_params() {
-		return array(
-			'archived'        => array( 'archived', true ),
-			'mature'          => array( 'mature', true ),
-			'spam'            => array( 'spam', true ),
-			'deleted'         => array( 'deleted', true ),
-			'lang_id'         => array( 'lang_id', array( 7 ) ),
-			'lang_id_exclude' => array( 'lang_id_exclude', array( 0 ) ),
-			'before'          => array( 'before', '2000-01-01T00:00:00' ),
-			'after'           => array( 'after', '2999-01-01T00:00:00' ),
-			'spam false'      => array( 'spam', false ),
-			'orderby date'    => array( 'orderby', 'registered' ),
-			'orderby update'  => array( 'orderby', 'last_updated' ),
-		);
-	}
-
-	/**
-	 * Users listing their own sites cannot filter or order by the fields they
-	 * cannot see, otherwise the results would give the hidden values away.
-	 *
-	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @covers ::has_edit_only_filter
-	 * @group ms-required
-	 * @dataProvider data_get_items_hidden_field_params
-	 *
-	 * @param string $param Collection parameter.
-	 * @param mixed  $value Value that would narrow or reorder the results.
-	 */
-	public function test_get_items_me_filter_rejects_hidden_field_params( $param, $value ) {
-		$blog_id = self::factory()->blog->create( array( 'path' => '/hidden-params/' ) );
-		$user_id = self::factory()->user->create();
-		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
-		wp_set_current_user( $user_id );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'user', 'me' );
-		$request->set_param( $param, $value );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_forbidden_param', $response, 403 );
-	}
-
-	/**
-	 * A super admin listing their own sites can still use every filter.
-	 *
-	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @group ms-required
-	 * @dataProvider data_get_items_hidden_field_params
-	 *
-	 * @param string $param Collection parameter.
-	 * @param mixed  $value Value that would narrow or reorder the results.
-	 */
-	public function test_get_items_me_filter_allows_hidden_field_params_for_super_admins( $param, $value ) {
-		wp_set_current_user( self::$superadmin_id );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'user', 'me' );
-		$request->set_param( $param, $value );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-	}
-
-	/**
-	 * The empty default of the language filters and the default order are not
-	 * treated as filters, so a plain own-sites request is still allowed.
-	 *
-	 * @ticket 40365
-	 * @covers ::has_edit_only_filter
-	 * @group ms-required
-	 */
-	public function test_get_items_me_filter_allows_the_default_params() {
-		$user_id = self::factory()->user->create();
-		wp_set_current_user( $user_id );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'user', 'me' );
-		$request->set_param( 'lang_id', array() );
-		$request->set_param( 'orderby', 'domain' );
-		$request->set_param( 'public', true );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-	}
-
-	/**
 	 * Data provider for user filters that match no sites.
 	 *
 	 * @return array[]
@@ -3103,10 +2992,10 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			add_user_to_blog( 1, $user_id, 'subscriber' );
 		}
 
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$superadmin_id );
 
 		$request = new WP_REST_Request( $method, '/wp/v2/sites' );
-		$request->set_param( 'user', 'me' );
+		$request->set_param( 'user', $user_id );
 
 		if ( $with_include ) {
 			$request->set_param( 'include', array( $blog_id ) );
@@ -3155,7 +3044,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$blog_id = self::factory()->blog->create( array( 'path' => '/widened/' ) );
 		$user_id = self::factory()->user->create();
 		remove_user_from_blog( $user_id, 1 );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$superadmin_id );
 
 		$widen = static function ( $args ) use ( $blog_id ) {
 			$args['site__in'] = array( $blog_id );
@@ -3165,7 +3054,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		add_filter( 'rest_site_query', $widen );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'user', 'me' );
+		$request->set_param( 'user', $user_id );
 
 		$response = rest_get_server()->dispatch( $request );
 
@@ -3387,34 +3276,23 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Without the capability to manage sites, a user may only filter by their
-	 * own ID or "me", whichever site serves the request.
+	 * Without the capability to manage sites, a user cannot list any sites,
+	 * not even their own.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
 	 * @group ms-required
 	 */
-	public function test_get_items_another_user_needs_the_capability() {
-		$subsite_id = self::factory()->blog->create( array( 'path' => '/other-user/' ) );
-		$user_id    = self::factory()->user->create();
-		$other_id   = self::factory()->user->create();
+	public function test_get_items_user_filter_needs_the_capability() {
+		$user_id  = self::factory()->user->create();
+		$other_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'user', $other_id );
+		foreach ( array( $other_id, 'me', $user_id, (string) $user_id ) as $user ) {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+			$request->set_param( 'user', $user );
 
-		$this->assertErrorResponse( 'rest_forbidden_user', rest_get_server()->dispatch( $request ), 403 );
-
-		switch_to_blog( $subsite_id );
-		$response = rest_get_server()->dispatch( $request );
-		restore_current_blog();
-
-		$this->assertErrorResponse( 'rest_forbidden_user', $response, 403 );
-
-		foreach ( array( 'me', $user_id, (string) $user_id ) as $own ) {
-			$request->set_param( 'user', $own );
-
-			$this->assertEquals( 200, rest_get_server()->dispatch( $request )->get_status(), 'A user can list their own sites.' );
+			$this->assertErrorResponse( 'rest_forbidden_context', rest_get_server()->dispatch( $request ), 403 );
 		}
 	}
 
@@ -3429,7 +3307,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 		$request->set_param( 'user', self::$superadmin_id );
 
-		$this->assertErrorResponse( 'rest_forbidden_user', rest_get_server()->dispatch( $request ), 401 );
+		$this->assertErrorResponse( 'rest_forbidden_context', rest_get_server()->dispatch( $request ), 401 );
 	}
 
 	/**
@@ -3467,8 +3345,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The edit context needs the capability to manage sites, even for a member
-	 * reading their own site or listing their own sites.
+	 * The edit context needs the capability to manage sites, and a member cannot
+	 * get around it from their own site.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
@@ -3510,7 +3388,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$result = $this->endpoint->$permission_check( $request );
 		restore_current_blog();
 
-		$assert_forbidden( $result, 403, 'A member on their own site.' );
+		$this->assertWPError( $result, 'A member on their own site.' );
+		$this->assertSame( 'rest_cannot_view_not_on_main_site', $result->get_error_code(), 'A member on their own site.' );
 
 		wp_set_current_user( self::$superadmin_id );
 

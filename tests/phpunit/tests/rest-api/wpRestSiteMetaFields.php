@@ -482,18 +482,16 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Registered site meta may hold sensitive data, so site members reading
-	 * their own site in the view context do not get it.
+	 * Registered site meta may hold sensitive data, so it is left out of the
+	 * view context.
 	 *
 	 * @ticket 40365
 	 * @covers WP_REST_Sites_Controller::prepare_item_for_response
 	 */
-	public function test_site_member_does_not_see_meta_in_view_context() {
+	public function test_meta_is_not_in_view_context() {
 		update_site_meta( self::$site_id, 'test_single', 'testvalue' );
 
-		$member_id = self::factory()->user->create();
-		add_user_to_blog( self::$site_id, $member_id, 'subscriber' );
-		wp_set_current_user( $member_id );
+		wp_set_current_user( self::$superadmin_id );
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
 		$response = rest_get_server()->dispatch( $request );
