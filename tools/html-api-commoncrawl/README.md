@@ -60,7 +60,7 @@ The workflow reads these environment variables. When it is run manually, each on
 
 ## Rebuilding `cc-analyzer.phar`
 
-`cc-analyzer.phar` was built from cc-analyzer commit `b13eb07` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
+`cc-analyzer.phar` was built from cc-analyzer commit `8f38286` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
 
 - `src/Http/CurlStreamClient.php`: `DEFAULT_USER_AGENT` set to `'cc-analyzer/0.1 PHP-cURL'` and `DEFAULT_CONTACT_HEADER` set to `''`.
 - `src/Cli/Application.php`: the `--user-agent` and `--contact-email` defaults set to the same values, and the help text to match.
