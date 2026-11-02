@@ -16,6 +16,13 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	private $original_globals = array();
 
 	/**
+	 * Backs up whether global variables existed before each test.
+	 *
+	 * @var array
+	 */
+	private $had_globals = array();
+
+	/**
 	 * Backs up $_GET and $_POST.
 	 *
 	 * @var array
@@ -25,16 +32,22 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_get  = $_GET;
-		$this->original_post = $_POST;
+		$this->original_get     = $_GET;
+		$this->original_post    = $_POST;
+		$this->original_globals = array();
+		$this->had_globals      = array();
 	}
 
 	public function tear_down() {
 		$_GET  = $this->original_get;
 		$_POST = $this->original_post;
 
-		foreach ( $this->original_globals as $var => $value ) {
-			$GLOBALS[ $var ] = $value;
+		foreach ( $this->had_globals as $var => $had_global ) {
+			if ( $had_global ) {
+				$GLOBALS[ $var ] = $this->original_globals[ $var ];
+			} else {
+				unset( $GLOBALS[ $var ] );
+			}
 		}
 
 		parent::tear_down();
@@ -46,23 +59,17 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	 * @ticket 65180
 	 * @dataProvider data_wp_reset_vars
 	 *
-	 * @param array $vars           Array of variables to reset.
-	 * @param array $get            Mocked $_GET array.
-	 * @param array $post           Mocked $_POST array.
+	 * @param array $vars            Array of variables to reset.
+	 * @param array $get             Mocked $_GET array.
+	 * @param array $post            Mocked $_POST array.
 	 * @param array $expected_values Expected values for the globals.
 	 */
 	public function test_wp_reset_vars( $vars, $get, $post, $expected_values ) {
-		if ( empty( $vars ) ) {
-			$this->assertTrue( true ); // Avoid risky test.
-			return;
-		}
 		// Back up current globals that will be affected.
 		foreach ( $vars as $var ) {
-			if ( isset( $GLOBALS[ $var ] ) ) {
+			$this->had_globals[ $var ] = array_key_exists( $var, $GLOBALS );
+			if ( $this->had_globals[ $var ] ) {
 				$this->original_globals[ $var ] = $GLOBALS[ $var ];
-			} else {
-				// Use a unique marker if it wasn't set.
-				$this->original_globals[ $var ] = null;
 			}
 		}
 
@@ -88,12 +95,6 @@ class Tests_wp_reset_vars extends WP_UnitTestCase {
 	 */
 	public function data_wp_reset_vars(): array {
 		return array(
-			'empty_vars'           => array(
-				'vars'            => array(),
-				'get'             => array( 'a' => '1' ),
-				'post'            => array( 'b' => '2' ),
-				'expected_values' => array(),
-			),
 			'reset_from_post'      => array(
 				'vars'            => array( 'var1' ),
 				'get'             => array( 'var1' => 'get_val' ),
