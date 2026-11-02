@@ -7,6 +7,12 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 	protected $query = '';
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
@@ -26,6 +32,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'id', $term1['term_id'], 'category' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 

@@ -228,7 +228,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_elements_block_support_class() {
+	public static function data_elements_block_support_class() {
 		$color_styles = array(
 			'text'       => 'var:preset|color|vivid-red',
 			'background' => '#fff',

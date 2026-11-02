@@ -58,6 +58,11 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 		register_post_type( 'wptests_pt' );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		parent::tear_down();
+	}
+
 	public function test_count_user_posts_post_type_should_default_to_post() {
 		$this->assertSame( '4', count_user_posts( self::$user_id ) );
 	}

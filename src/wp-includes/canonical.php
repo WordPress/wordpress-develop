@@ -456,8 +456,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$default_feed = get_default_feed();
 
 			if ( is_feed() && in_array( $feed, $wp_rewrite->feeds, true ) ) {
-				$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
-
 				if ( ! is_singular() && get_query_var( 'withcomments' ) ) {
 					$addl_path .= 'comments/';
 				}
@@ -1007,7 +1005,8 @@ function redirect_guess_404_permalink() {
 
 		$query = "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')";
 
-		$key          = md5( $query );
+		// Remove the per-request placeholder escape so the cache key is stable across requests.
+		$key          = md5( $wpdb->remove_placeholder_escape( $query ) );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		$cache_key    = "redirect_guess_404_permalink:$key";
 		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
@@ -1077,6 +1076,39 @@ function wp_redirect_admin_locations() {
 
 	if ( in_array( untrailingslashit( $_SERVER['REQUEST_URI'] ), $logins, true ) ) {
 		wp_redirect( wp_login_url() );
+		exit;
+	}
+
+	/**
+	 * Filters the well-known change password URL (/.well-known/change-password).
+	 *
+	 * By default visiting the well-known change password URL will redirect to
+	 * the user's profile page when requested by a browser or password manager.
+	 *
+	 * Sites with a custom URL structure for modifying the passwords can modify
+	 * the destination with this filter.
+	 *
+	 * The resulting URL is redirected using {@see wp_safe_redirect}, if the
+	 * filtered URL is on an external host, that host will need to be included
+	 * as an allowed host via the {@see 'allowed_redirect_hosts'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $change_password_url The URL to redirect to. Default is the user profile page.
+	 */
+	$change_password_url = apply_filters( 'wp_change_password_url', admin_url( 'profile.php' ) );
+
+	/*
+	 * The well-known change-password URL is always at the root of the origin
+	 * per the spec (https://w3c.github.io/webappsec-change-password-url/), so
+	 * only the root-relative path is matched here, regardless of whether
+	 * WordPress is installed in a subdirectory.
+	 */
+	if (
+		'/.well-known/change-password' === untrailingslashit( $_SERVER['REQUEST_URI'] )
+		&& $change_password_url
+		&& wp_safe_redirect( $change_password_url )
+	) {
 		exit;
 	}
 }

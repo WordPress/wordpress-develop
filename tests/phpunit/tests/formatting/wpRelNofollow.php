@@ -33,7 +33,7 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 		$this->assertEqualHTML( $output, stripslashes( wp_rel_nofollow( $input ) ) );
 	}
 
-	public function data_wp_rel_nofollow() {
+	public static function data_wp_rel_nofollow() {
 		$home_url_http  = set_url_scheme( home_url(), 'http' );
 		$home_url_https = set_url_scheme( home_url(), 'https' );
 

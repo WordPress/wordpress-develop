@@ -2392,7 +2392,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
 		 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
 		 *
-		 * @see https://core.trac.wordpress.org/tickets/42957
+		 * @link https://core.trac.wordpress.org/ticket/42957
 		 */
 		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n";
 
@@ -2540,6 +2540,8 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 	 *
 	 * @param string|int $action Scalar value to add context to the nonce.
 	 * @return string The token.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_create_nonce( $action = -1 ) {
 		$user = wp_get_current_user();
@@ -2722,6 +2724,8 @@ if ( ! function_exists( 'wp_hash' ) ) :
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
 	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
 	 * @return string Hash of $data.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
 		$salt = wp_salt( $scheme );

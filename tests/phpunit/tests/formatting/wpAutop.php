@@ -500,7 +500,7 @@ Paragraph two.';
 		return $this->assertSame( $output, wpautop( $input ) );
 	}
 
-	public function data_element_sanity() {
+	public static function data_element_sanity() {
 		return array(
 			array(
 				"Hello <a\nhref='world'>",
