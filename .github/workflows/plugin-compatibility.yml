@@ -319,7 +319,9 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       actions: write
-    needs: [ slack-notifications ]
+    # `needs` only exposes the result of the jobs listed here, and Slack succeeds whether or not the runs it
+    # reports on did, so the test jobs are listed too.
+    needs: [ build-plugin-matrix, plugin-compatibility-tests, fixture-tests, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
