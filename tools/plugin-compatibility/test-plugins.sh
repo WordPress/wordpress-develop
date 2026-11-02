@@ -115,6 +115,15 @@ error() {
 	exit 1
 }
 
+# exit_on_signal
+#
+# Exits on an interrupt rather than carrying on, so that the EXIT trap cleans up once and nothing runs against
+# the server or container it removed. A trap that only cleans up hands control back to whatever was running.
+exit_on_signal() {
+	trap 'exit 130' INT
+	trap 'exit 143' TERM
+}
+
 while [ "$#" -gt 0 ]; do
 	case "${1}" in
 		--plugins=* ) PLUGIN_LIST="${PLUGIN_LIST} ${1#*=}" ;;
@@ -186,7 +195,8 @@ run_in_docker() {
 
 	# Both are removed however this exits, an interrupt included. `--volumes` takes the anonymous volume the
 	# database image keeps its data in along with the container, which would otherwise pile up run after run.
-	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1' EXIT INT TERM
+	trap 'docker rm --force --volumes "${DB_CONTAINER}" > /dev/null 2>&1; docker network rm "${DOCKER_NETWORK}" > /dev/null 2>&1' EXIT
+	exit_on_signal
 
 	printf 'Starting %s.\n' "${DB_IMAGE}"
 
@@ -312,7 +322,8 @@ run_checks() {
 		SERVER_PID=""
 	}
 
-	trap cleanup_environment EXIT INT TERM
+	trap cleanup_environment EXIT
+	exit_on_signal
 
 	cd "${WP_DIR}" || error "The WordPress directory could not be entered."
 
