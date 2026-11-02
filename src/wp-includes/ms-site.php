@@ -647,7 +647,8 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
  *     Optional. Arguments to modify the initialization behavior.
  *
  *     @type int    $user_id User ID for the site administrator. Default 0, in which
- *                           case the site is created without an administrator.
+ *                           case the site is created without an administrator
+ *                           and with an empty admin email address.
  *     @type string $title   Site title. Default is 'Site %d' where %d is the
  *                           site ID.
  *     @type array  $options Custom option $key => $value pairs to use. Default
