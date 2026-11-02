@@ -5449,7 +5449,9 @@ function wp_ajax_health_check_loopback_requests() {
  * Handles site health check to update the result status via AJAX.
  *
  * Counts and compact per-test results are saved together. Counts-only requests
- * remain supported for compatibility, and results-only requests preserve counts.
+ * remain supported for compatibility, and results-only requests preserve stored counts.
+ * Core readers calculate counts from valid, unexpired per-test results when available;
+ * the stored counts remain for consumers that read the transient directly.
  *
  * @since 5.2.0
  * @since 7.3.0 The submitted counts are validated, and optional per-test statuses

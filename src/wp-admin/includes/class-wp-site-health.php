@@ -111,8 +111,9 @@ class WP_Site_Health {
 	/**
 	 * Transient name for the cached Site Health counts and verified test results.
 	 *
-	 * The existing top-level counts describe the latest run, including unavailable
-	 * tests. Compact, locale-independent results retain each test's latest verified
+	 * The top-level counts describe the latest run, including unavailable tests,
+	 * and remain stored for consumers that read the transient directly. Core readers derive counts from
+	 * the compact, locale-independent results, which retain each test's latest verified
 	 * status. This transient remains autoloaded for the admin menu and Dashboard.
 	 *
 	 * @since 7.3.0
@@ -3566,7 +3567,13 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Returns the cached aggregate Site Health status counts.
+	 * Calculates Site Health status counts from unexpired cached results.
+	 *
+	 * Stored aggregate counts are only used for caches without valid detailed results,
+	 * including legacy counts-only values. An empty or fully expired set of valid
+	 * detailed results returns zero counts instead of falling back to stored counts.
+	 * The fallback preserves compatibility; it does not imply that stored counts
+	 * are newer or more accurate than the detailed results.
 	 *
 	 * @since 7.3.0
 	 *
@@ -3575,6 +3582,11 @@ class WP_Site_Health {
 	 */
 	public static function get_site_status_counts(): array {
 		$counts = self::read_site_status_cache();
+		$detail = self::normalize_site_status_detail( $counts );
+		if ( $detail['timestamp'] > 0 ) {
+			return self::count_site_status_results( $detail['results'] );
+		}
+
 		if ( is_wp_error( rest_validate_value_from_schema( $counts, self::STATUS_COUNTS_SCHEMA ) ) ) {
 			$counts = array();
 		}
@@ -3586,6 +3598,8 @@ class WP_Site_Health {
 	 * Caches the aggregate Site Health status counts.
 	 *
 	 * Preserves unexpired verified results and their collection timestamps.
+	 * These stored counts are retained for backward compatibility; readers derive
+	 * counts from valid detailed results when available.
 	 *
 	 * @since 7.3.0
 	 *
@@ -3607,9 +3621,9 @@ class WP_Site_Health {
 	 * Returns the cached detailed Site Health test results.
 	 *
 	 * The `counts` are derived from the cached `results`, so the two are always
-	 * internally consistent. They may differ from WP_Site_Health::get_site_status_counts(),
-	 * which reflects the latest run for the admin menu and Dashboard. Consumers that need a
-	 * consistent view of counts and detailed results should read both from here.
+	 * internally consistent. WP_Site_Health::get_site_status_counts() uses the same
+	 * calculation when valid detailed results are available, falling back to stored
+	 * counts only for caches without valid details, including legacy counts-only values.
 	 * Results older than a month are excluded even when no writer has refreshed
 	 * the autoloaded transient.
 	 *
@@ -3639,8 +3653,10 @@ class WP_Site_Health {
 	 * dropped, for example when the plugin that registered a test has been deactivated.
 	 * At most 500 results are kept. When there are more, critical results are kept
 	 * first, then recommended, then good, and the newest results within each status.
-	 * Optional latest-run counts are validated and saved in the same write. When
-	 * omitted, the existing counts are preserved.
+	 * Optional latest-run counts are validated and saved in the same write for
+	 * consumers that read the transient directly. When omitted, the stored counts
+	 * are preserved. Core readers calculate counts from the retained, unexpired
+	 * results instead, so expiry and the storage limit also affect those counts.
 	 *
 	 * @since 7.3.0
 	 *

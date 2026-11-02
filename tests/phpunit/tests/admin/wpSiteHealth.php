@@ -1041,7 +1041,10 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'my_async', $results_by_id );
 		$this->assertSame( 'good', $results_by_id['my_async']['status'] );
 		$this->assertSame( $cached_at, $results_by_id['my_async']['timestamp'] );
-		$this->assertSame( 1, WP_Site_Health::get_site_status_counts()['recommended'] );
+		$this->assertSame( 0, WP_Site_Health::get_site_status_counts()['recommended'] );
+		$this->assertSame( $detail['counts'], WP_Site_Health::get_site_status_counts() );
+		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$this->assertSame( 1, $stored['recommended'], 'Unavailable tests remain in the stored counts for compatibility.' );
 	}
 
 	/**
@@ -1166,14 +1169,75 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Old counts-only values can be extended without changing the existing counts.
+	 * An empty detailed cache must not revive stored counts.
+	 *
+	 * @ticket 65232
+	 * @covers ::get_site_status_counts
+	 */
+	public function test_empty_details_override_stored_counts(): void {
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array(),
+				array(
+					'good'        => 5,
+					'recommended' => 2,
+					'critical'    => 1,
+				)
+			)
+		);
+		$this->assertSame(
+			array(
+				'good'        => 0,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
+	}
+
+	/**
+	 * The Dashboard counts verified results and treats expired results as unavailable.
+	 *
+	 * @ticket 65232
+	 * @covers ::get_site_status_counts
+	 * @covers ::get_site_status_detail
+	 * @covers \wp_dashboard_site_health
+	 */
+	public function test_dashboard_uses_unexpired_result_counts(): void {
+		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+
+		$this->assertTrue(
+			WP_Site_Health::update_site_status_detail(
+				array( 'verified' => array( 'status' => 'critical' ) ),
+				array(
+					'good'        => 5,
+					'recommended' => 0,
+					'critical'    => 0,
+				)
+			)
+		);
+		$output = get_echo( 'wp_dashboard_site_health' );
+		$this->assertStringContainsString( 'Your site has a critical issue', $output );
+		$this->assertStringNotContainsString( 'Great job!', $output );
+
+		$stored                                     = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$stored['results']['verified']['timestamp'] = time() - MONTH_IN_SECONDS - 10;
+		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $stored ) );
+
+		$output = get_echo( 'wp_dashboard_site_health' );
+		$this->assertStringContainsString( 'No information yet', $output );
+		$this->assertStringNotContainsString( 'Great job!', $output );
+	}
+
+	/**
+	 * Old counts remain stored for compatibility, but readers count detailed results once available.
 	 *
 	 * @ticket 65232
 	 * @covers ::update_site_status_detail
 	 * @covers ::set_site_status_counts
 	 * @covers ::get_site_status_counts
 	 */
-	public function test_extending_legacy_counts_preserves_each_kind_of_data(): void {
+	public function test_extending_legacy_counts_switches_readers_to_detailed_results(): void {
 		$counts = array(
 			'good'        => 9,
 			'recommended' => 2,
@@ -1186,24 +1250,40 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$reads_before = did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT );
 		$this->assertTrue( WP_Site_Health::update_site_status_detail( array( 'verified' => array( 'status' => 'good' ) ) ) );
 		$this->assertSame( 1, did_filter( 'pre_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) - $reads_before, 'A results-only update should read the shared cache once.' );
-		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
 		$detail = WP_Site_Health::get_site_status_detail();
 
 		$counts['critical'] = 3;
 		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
 		$this->assertSame( $detail, WP_Site_Health::get_site_status_detail() );
-		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+		$this->assertSame(
+			array(
+				'good'        => 1,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
+		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$this->assertSame( $counts, array_intersect_key( $stored, $counts ) );
 	}
 
 	/**
-	 * Details expire even without a scheduled update; latest-run counts are retained.
+	 * Counts exclude expired results even without a scheduled update.
 	 *
 	 * @ticket 65232
 	 * @covers ::get_site_status_detail
 	 * @covers ::update_site_status_detail
 	 * @covers ::set_site_status_counts
 	 */
-	public function test_reading_expired_details_preserves_counts(): void {
+	public function test_reading_expired_details_recalculates_counts(): void {
 		$counts = array(
 			'good'        => 4,
 			'recommended' => 1,
@@ -1231,6 +1311,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertSame( array( 'new' ), array_keys( $detail['results'] ) );
 		$this->assertSame( 1, $detail['counts']['good'] );
 		$this->assertSame( 0, $detail['counts']['critical'] );
+		$this->assertSame( $detail['counts'], WP_Site_Health::get_site_status_counts() );
 
 		$this->assertTrue( WP_Site_Health::update_site_status_detail( array() ) );
 		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
@@ -1241,7 +1322,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		set_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT, wp_json_encode( $status ) );
 		$this->assertSame( array(), WP_Site_Health::get_site_status_detail()['results'] );
 		$this->assertSame( $old, WP_Site_Health::get_site_status_detail()['timestamp'] );
-		$this->assertSame( $counts, WP_Site_Health::get_site_status_counts() );
+		$this->assertSame(
+			array(
+				'good'        => 0,
+				'recommended' => 0,
+				'critical'    => 0,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
 
 		// A counts-only update must prune expired details without refreshing their age.
 		$this->assertTrue( WP_Site_Health::set_site_status_counts( $counts ) );
@@ -1291,6 +1379,14 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'cached_1', $results, 'The oldest good result must be dropped.' );
 		$this->assertSame( 'recommended', $results['cached_2']['status'] );
 		$this->assertArrayHasKey( 'submitted', $results );
+		$this->assertSame(
+			array(
+				'good'        => 497,
+				'recommended' => 2,
+				'critical'    => 1,
+			),
+			WP_Site_Health::get_site_status_counts()
+		);
 
 		$submitted = array();
 		for ( $i = 0; $i < 500; $i++ ) {

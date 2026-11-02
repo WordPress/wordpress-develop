@@ -102,7 +102,9 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$writes_before = did_action( 'set_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT );
 		$this->assertTrue( $this->dispatch_result_request()['success'] );
 		$this->assertSame( 1, did_action( 'set_transient_' . WP_Site_Health::STATUS_RESULT_TRANSIENT ) - $writes_before );
-		$this->assertSame( $_POST['counts'], WP_Site_Health::get_site_status_counts() );
+		$stored = json_decode( get_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT ), true );
+		$this->assertSame( $_POST['counts'], array_intersect_key( $stored, $_POST['counts'] ) );
+		$this->assertSame( WP_Site_Health::get_site_status_detail()['counts'], WP_Site_Health::get_site_status_counts() );
 		$detail = WP_Site_Health::get_site_status_detail();
 		$this->assertSame( array( 'a' ), array_keys( $detail['results'] ) );
 		$this->assertSame( 'critical', $detail['results']['a']['status'] );
@@ -121,7 +123,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 	 *
 	 * @ticket 65232
 	 */
-	public function test_posting_results_only_updates_detail_without_counts(): void {
+	public function test_posting_results_only_updates_calculated_counts(): void {
 		delete_transient( WP_Site_Health::STATUS_RESULT_TRANSIENT );
 
 		$this->set_user_with_site_health_capability();
@@ -136,12 +138,12 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 		$results = WP_Site_Health::get_site_status_detail()['results'];
 		$this->assertSame( array( 'a' ), array_keys( $results ) );
 
-		// Results-only requests preserve the default counts.
+		// Readers calculate counts from the posted results.
 		$this->assertSame(
 			array(
 				'good'        => 0,
 				'recommended' => 0,
-				'critical'    => 0,
+				'critical'    => 1,
 			),
 			WP_Site_Health::get_site_status_counts()
 		);
@@ -170,7 +172,7 @@ class Tests_Ajax_wpAjaxHealthCheckSiteStatusResult extends WP_Ajax_UnitTestCase 
 
 		$this->assertSame(
 			array(
-				'good'        => 3,
+				'good'        => 1,
 				'recommended' => 0,
 				'critical'    => 0,
 			),
