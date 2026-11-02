@@ -342,7 +342,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * @param  string[] $search_columns Array of column names to be searched.
 	 * @param  string   $search         Text being searched.
 	 * @param  WP_Query $wp_query       The current WP_Query instance.
-	 * @return string[] $search_columns Array of column names to be searched.
+	 * @return string[] Array of column names to be searched.
 	 */
 	public function post_supported_search_column( $search_columns, $search, $wp_query ) {
 		$search_columns = array( 'post_title' );
@@ -373,7 +373,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * @param  string[] $search_columns Array of column names to be searched.
 	 * @param  string   $search         Text being searched.
 	 * @param  WP_Query $wp_query       The current WP_Query instance.
-	 * @return string[] $search_columns Array of column names to be searched.
+	 * @return string[] Array of column names to be searched.
 	 */
 	public function post_non_supported_search_column( $search_columns, $search, $wp_query ) {
 		$search_columns = array( 'post_name' );
@@ -404,7 +404,7 @@ class Tests_Query_SearchColumns extends WP_UnitTestCase {
 	 * @param  string[] $search_columns Array of column names to be searched.
 	 * @param  string   $search         Text being searched.
 	 * @param  WP_Query $wp_query       The current WP_Query instance.
-	 * @return string[] $search_columns Array of column names to be searched.
+	 * @return string[] Array of column names to be searched.
 	 */
 	public function post_non_existing_search_column( $search_columns, $search, $wp_query ) {
 		$search_columns = array( 'post_non_existing_column' );

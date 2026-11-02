@@ -75,7 +75,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
-	public function data_wp_register_anchor_support(): array {
+	public static function data_wp_register_anchor_support(): array {
 		return array(
 			'anchor attribute is registered when block supports anchor' => array(
 				'support'  => true,
@@ -130,7 +130,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
-	public function data_wp_apply_anchor_support(): array {
+	public static function data_wp_apply_anchor_support(): array {
 		return array(
 			'anchor id attribute is applied'          => array(
 				'support'  => true,
