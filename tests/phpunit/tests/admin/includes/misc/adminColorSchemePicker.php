@@ -235,7 +235,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		admin_color_scheme_picker( $user_id );
 		$output = ob_get_clean();
 
-		$dom = new DOMDocument();
+		$dom                = new DOMDocument();
 		$libxml_error_state = libxml_use_internal_errors( true );
 		$dom->loadHTML( $output );
 		libxml_clear_errors();
