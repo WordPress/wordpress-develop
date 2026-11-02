@@ -110,8 +110,6 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 	 * Tests that the_posts_navigation() echoes the navigation markup.
 	 *
 	 * @ticket 65819
-	 *
-	 * @covers ::the_posts_navigation
 	 */
 	public function test_the_posts_navigation_echoes() {
 		$this->set_permalink_structure( '' );
@@ -135,7 +133,7 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 			}
 		);
 
-		$expected = '<nav class="echo-navigation" aria-label="Echo ARIA"><h2>Echo Reader</h2><div class="nav-previous"><a href="http://example.org/?paged=3" >Older posts</a></div><div class="nav-next"><a href="http://example.org/" >Newer posts</a></div></nav>';
+		$expected = '<nav class="echo-navigation" aria-label="Echo ARIA"><h2>Echo Reader</h2><div class="nav-previous"><a href="' . esc_url( home_url( '/?paged=3' ) ) . '" >Older posts</a></div><div class="nav-next"><a href="' . esc_url( home_url( '/' ) ) . '" >Newer posts</a></div></nav>';
 
 		$this->expectOutputString( $expected );
 		the_posts_navigation(
