@@ -731,7 +731,7 @@ test_plugins() {
 					# version of PHP or WordPress this run is not using, or for a dependency that is not on
 					# WordPress.org. That is core working as designed rather than a fatal, so it is recorded
 					# as skipped.
-					*"to be installed and activated"* | *"requires PHP version"* | *"requires WordPress version"* )
+					*"to be installed and activated"* | *"does not meet minimum requirements"* )
 						STATUS="SKIPPED"
 						REASON="Core declined to activate the plugin because its declared requirements are not met"
 						;;
