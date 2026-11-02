@@ -55,16 +55,8 @@
 <!-- /wp:group --></div>
 <!-- /wp:group -->
 
-<!-- wp:separator -->
-<hr class="wp-block-separator has-alpha-channel-opacity"/>
-<!-- /wp:separator -->
-
 <!-- wp:pattern {"slug":"ipsum/hidden-comments"} /--></div>
 <!-- /wp:group -->
-
-<!-- wp:separator -->
-<hr class="wp-block-separator has-alpha-channel-opacity"/>
-<!-- /wp:separator -->
 
 <!-- wp:pattern {"slug":"ipsum/hidden-keep-reading"} /--></div>
 <!-- /wp:column -->

@@ -183,6 +183,17 @@ footer.wp-block-template-part {
 }
 
 /*
+ * Comments rows in post lists: core renders nothing for the Comments Link
+ * block when comments are closed, but the hand-written "·" and "›" would
+ * remain. Hide the row when the Comments Link block renders nothing, so the
+ * separators disappear with it.
+ * https://github.com/WordPress/ipsum/issues/173
+ */
+.comments-meta:not(:has(.wp-block-post-comments-link)) {
+	display: none;
+}
+
+/*
  * Sticky headers: a sticky root block inside a template part has no room to
  * travel — the part's wrapper element is exactly as tall as its content — so
  * the wrapper itself must carry the stickiness. Keyed on the class core emits

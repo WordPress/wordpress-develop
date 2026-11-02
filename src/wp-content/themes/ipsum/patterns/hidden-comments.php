@@ -9,8 +9,8 @@
  */
 
 ?>
-<!-- wp:comments {"className":"wp-block-comments-query-loop"} -->
-<div class="wp-block-comments wp-block-comments-query-loop"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Comments Titles', 'Name of the group holding the comments heading and count', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":{"top":"var:preset|spacing|20"}}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"stretch"}} -->
+<!-- wp:comments {"className":"wp-block-comments-query-loop","style":{"spacing":{"padding":{"top":"var:preset|spacing|60"}},"border":{"top":{"color":"var:preset|color|accent-6","style":"solid","width":"1px"}}}} -->
+<div class="wp-block-comments wp-block-comments-query-loop" style="border-top-color:var(--wp--preset--color--accent-6);border-top-style:solid;border-top-width:1px;padding-top:var(--wp--preset--spacing--60)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Comments Titles', 'Name of the group holding the comments heading and count', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":{"top":"var:preset|spacing|20"}}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"stretch"}} -->
 <div class="wp-block-group"><!-- wp:heading -->
 <h2 class="wp-block-heading"><?php esc_html_e( 'Comments', 'ipsum' ); ?></h2>
 <!-- /wp:heading -->

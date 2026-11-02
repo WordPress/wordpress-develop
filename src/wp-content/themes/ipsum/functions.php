@@ -64,7 +64,8 @@ add_action( 'wp_enqueue_scripts', 'ipsum_enqueue_styles' );
 
 if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	/**
-	 * Returns the comments call to action for the current post.
+	 * Returns the comments call to action for the current post, or nothing when
+	 * comments are closed, since readers can no longer comment.
 	 *
 	 * @since Ipsum 1.0
 	 *
@@ -73,7 +74,12 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	 * @return string The call to action text.
 	 */
 	function ipsum_comments_cta_binding( $source_args, $block_instance ) {
-		$post_id    = $block_instance->context['postId'] ?? get_the_ID();
+		$post_id = $block_instance->context['postId'] ?? get_the_ID();
+
+		if ( ! comments_open( $post_id ) ) {
+			return '';
+		}
+
 		$post_title = wp_strip_all_tags( get_the_title( $post_id ) );
 		$has_title  = ! empty( $post_title );
 
