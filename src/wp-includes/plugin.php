@@ -1079,8 +1079,9 @@ function wp_get_plugin_path_from_realpath( $file ) {
 	arsort( $wp_plugin_paths );
 
 	foreach ( $wp_plugin_paths as $dir => $realdir ) {
-		if ( str_starts_with( $file, $realdir ) ) {
-			$file = $dir . substr( $file, strlen( $realdir ) );
+		$realdir_slash = rtrim( $realdir, '/' ) . '/';
+		if ( str_starts_with( $file, $realdir_slash ) || $file === $realdir ) {
+			return rtrim( $dir, '/' ) . '/' . substr( $file, strlen( $realdir_slash ) );
 		}
 	}
 
