@@ -94,7 +94,6 @@ function edit_user( $user_id = 0 ) {
 	} else {
 			$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	}
-
 	if ( isset( $_POST['url'] ) ) {
 		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
 			$user->user_url = '';
