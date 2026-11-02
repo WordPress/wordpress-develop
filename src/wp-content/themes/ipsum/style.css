@@ -215,6 +215,14 @@ header.wp-block-template-part:has(> .is-position-sticky) {
 }
 
 /*
+ * While the navigation overlay is open, lift the sticky header above the
+ * admin bar and the pinned Search Bar, matching the non-sticky headers.
+ */
+header.wp-block-template-part:has(> .is-position-sticky):has(.wp-block-navigation__responsive-container.is-menu-open) {
+	z-index: 100000;
+}
+
+/*
  * Short pages: a sticky bottom bar can only pin within the page's own height,
  * so the site wrapper must reach at least the viewport; main grows to push
  * the footer and the pinned bar down on pages with little content.
