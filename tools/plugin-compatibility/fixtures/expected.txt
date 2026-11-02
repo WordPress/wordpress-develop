@@ -21,6 +21,7 @@ fixture-parse-error-after-output   FAIL     PHP Parse error
 fixture-wp-cli-only-fatal          PASS     WP-CLI fatals when it loads WordPress
 fixture-requires-akismet           PASS     akismet
 fixture-requires-broken-dependency SKIPPED  The required plugins are not healthy on their own
+fixture-requires-wp-cli-only-fatal SKIPPED  WP-CLI cannot load WordPress with the required plugins active
 
 # These two must stay together and in this order: the second fatals if anything the first wrote survived the
 # reset between plugins.

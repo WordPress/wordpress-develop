@@ -803,6 +803,19 @@ test_plugins() {
 				REASON="The required plugins are not healthy on their own: $( printf '%s\n' "${LOGGED_FATALS}" | head -n 1 | cut -c 1-200 )"
 			fi
 
+			# The plugin under test is activated through WP-CLI, which loads the dependencies first. One that is
+			# healthy over HTTP but cannot be loaded by WP-CLI, like the plugins described in step 8, would
+			# stop that activation and have its failure blamed on the plugin under test.
+			if [ "${STATUS}" = "PASS" ]; then
+				DEPENDENCY_EVAL_OUTPUT="$( wp eval 'echo "loaded-ok";' 2>&1 )"
+
+				if [ "${DEPENDENCY_EVAL_OUTPUT#*loaded-ok}" = "${DEPENDENCY_EVAL_OUTPUT}" ]; then
+					printf '%s\n' "${DEPENDENCY_EVAL_OUTPUT}"
+					STATUS="SKIPPED"
+					REASON="WP-CLI cannot load WordPress with the required plugins active, so the plugin cannot be activated"
+				fi
+			fi
+
 			# Anything else the dependencies logged on their way up is not the responsibility of the plugin
 			# under test, so the log starts empty again here.
 			rm -f "${WP_DIR}/wp-content/debug.log"
