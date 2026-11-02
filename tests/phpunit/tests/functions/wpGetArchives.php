@@ -17,6 +17,12 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 		$this->year_url  = get_year_link( gmdate( 'Y' ) );
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'taco' );
+
+		parent::tear_down();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(
 			8,
@@ -203,5 +209,40 @@ EOF;
 			)
 		);
 		$this->assertSame( $expected, trim( $archives ) );
+	}
+
+	/**
+	 * @ticket 64304
+	 */
+	public function test_wp_get_archives_args_filter() {
+		// Test that the filter can modify the limit argument.
+		add_filter(
+			'wp_get_archives_args',
+			static function ( $args ) {
+				$args['limit'] = 3;
+				return $args;
+			}
+		);
+
+		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
+
+		$expected = implode(
+			'',
+			array_map(
+				static function ( $id ) {
+					return sprintf( "\t<li><a href='%s'>%s</a></li>\n", get_permalink( $id ), get_the_title( $id ) );
+				},
+				$ids
+			)
+		);
+		$archives = wp_get_archives(
+			array(
+				'echo'  => false,
+				'type'  => 'postbypost',
+				'limit' => 5, // This should be overridden by the filter to 3.
+			)
+		);
+
+		$this->assertEqualHTML( $expected, $archives );
 	}
 }

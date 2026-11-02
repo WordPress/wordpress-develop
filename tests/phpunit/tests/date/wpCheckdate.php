@@ -3,8 +3,6 @@
 /**
  * Tests for the wp_checkdate() function.
  *
- * @ticket 59825
- *
  * @group date
  * @group datetime
  * @group functions
@@ -14,6 +12,8 @@
 class Tests_Date_wpCheckdate extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 59825
+	 *
 	 * @dataProvider data_wp_checkdate
 	 *
 	 * @param int|string $month       The month to check.
@@ -31,7 +31,7 @@ class Tests_Date_wpCheckdate extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_checkdate() {
+	public static function data_wp_checkdate() {
 		return array(
 			'integers'              => array( 1, 1, 1, '1-1-1', true ),
 			'strings'               => array( '1', '1', '1', '1-1-1', true ),
