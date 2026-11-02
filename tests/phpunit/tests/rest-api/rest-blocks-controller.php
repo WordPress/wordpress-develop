@@ -73,7 +73,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function data_capabilities() {
+	public static function data_capabilities() {
 		return array(
 			array( 'create', 'editor', 201 ),
 			array( 'create', 'author', 201 ),
@@ -349,7 +349,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_change_author() {
+	public static function data_change_author() {
 		return array(
 			'editor' => array( 'editor', 200 ),
 			'author' => array( 'author', 403 ),

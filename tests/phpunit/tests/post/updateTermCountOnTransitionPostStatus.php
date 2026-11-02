@@ -57,6 +57,7 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 */
 	public function tear_down() {
 		unregister_taxonomy( 'category_with_pending' );
+		_unregister_post_status( 'counted' );
 		parent::tear_down();
 	}
 

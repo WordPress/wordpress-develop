@@ -1147,11 +1147,20 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35987
+	 * @ticket 65819
+	 * @covers ::wp_ext2type
 	 */
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
 		$this->assertNotEmpty( $extensions );
+
+		// Literal mappings stay independent of the current registry contents.
+		$this->assertSame( 'image', wp_ext2type( 'jpg' ) );
+		$this->assertSame( 'image', wp_ext2type( 'PNG' ) );
+		$this->assertSame( 'audio', wp_ext2type( 'mp3' ) );
+		$this->assertSame( 'video', wp_ext2type( 'mp4' ) );
+		$this->assertSame( 'document', wp_ext2type( 'pdf' ) );
 
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
@@ -2265,11 +2274,15 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53668
+	 * @ticket 65819
+	 * @covers ::wp_get_default_extension_for_mime_type
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
 		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotSame( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
 		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'pdf', wp_get_default_extension_for_mime_type( 'application/pdf' ), 'pdf not returned as default extension for "application/pdf"' );
+		$this->assertSame( 'mp3', wp_get_default_extension_for_mime_type( 'audio/mpeg' ), 'mp3 not returned as default extension for "audio/mpeg"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );

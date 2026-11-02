@@ -479,7 +479,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSameSets( $parsed_args, $filter_args[0][1], 'Unexpected $parsed_args for get_pages_query_args filter' );
 	}
 
-	public function data_get_pages_args() {
+	public static function data_get_pages_args() {
 		return array(
 			'default'            => array(
 				'args'                => array(),
