@@ -145,7 +145,7 @@ class Tests_iis7_save_url_rewrite_rules extends WP_UnitTestCase {
 		global $wp_rewrite, $is_iis7;
 
 		// Simulate IIS7 with permalink support.
-		$is_iis7                        = true;
+		$is_iis7                         = true;
 		$_SERVER['IIS_UrlRewriteModule'] = '1';
 
 		// Update home/siteurl to match the temp directory.

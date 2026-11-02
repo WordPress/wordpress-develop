@@ -13,9 +13,263 @@
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
 	public $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
-	public $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
+
+	/**
+	 * URL of the local stream/size fixture (set in set_up_before_class()).
+	 *
+	 * @var string
+	 */
+	public $file_stream_url = '';
+
+	/**
+	 * Byte size of the local stream/size fixture payload.
+	 *
+	 * @var int
+	 */
+	protected static $file_stream_size = 20000;
+
+	/**
+	 * Directory containing the local fixture payload.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_dir = null;
+
+	/**
+	 * Process resource for the local PHP built-in server.
+	 *
+	 * @var resource|null
+	 */
+	private static $file_stream_fixture_process = null;
+
+	/**
+	 * Local fixture URL shared with instance tests after set_up_before_class().
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_url = null;
+
+	/**
+	 * Local redirection fixture URL shared with instance tests after set_up_before_class().
+	 *
+	 * @var string|null
+	 */
+	private static $redirection_fixture_url = null;
+
+	/**
+	 * Skip reason when a fixture prerequisite is unavailable.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_skip_reason = null;
+
+	/**
+	 * Failure reason when fixture server startup fails unexpectedly.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_fail_reason = null;
 
 	protected $http_request_args;
+
+	/**
+	 * Starts a local HTTP fixture server for stream and response-size tests.
+	 *
+	 * Uses a deterministic payload and the real Requests transports so coverage
+	 * does not depend on a live s.w.org download.
+	 *
+	 * Missing prerequisites (for example no `proc_open()`) skip fixture-dependent
+	 * tests. Unexpected startup failures are recorded and surfaced as test
+	 * failures rather than silent skips.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		self::$file_stream_fixture_skip_reason = null;
+		self::$file_stream_fixture_fail_reason = null;
+
+		if ( ! function_exists( 'proc_open' ) ) {
+			self::$file_stream_fixture_skip_reason = 'proc_open() is not available.';
+			return;
+		}
+
+		$fixture_dir = get_temp_dir() . 'wp-http-stream-fixture-' . uniqid( '', true );
+		if ( ! mkdir( $fixture_dir ) && ! is_dir( $fixture_dir ) ) {
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not create the local HTTP stream fixture directory: %s',
+				$fixture_dir
+			);
+			return;
+		}
+
+		$payload = str_repeat( 'a', self::$file_stream_size );
+		if ( false === file_put_contents( $fixture_dir . '/dashboard.bin', $payload ) ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not write the local HTTP stream fixture payload in: %s',
+				$fixture_dir
+			);
+			return;
+		}
+
+		$redirection_copied        = false;
+		$redirection_script_source = DIR_TESTDATA . '/WPHTTP-testcase-redirection-script.php';
+		if ( file_exists( $redirection_script_source ) ) {
+			$redirection_copied = copy( $redirection_script_source, $fixture_dir . '/redirection.php' );
+		}
+
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
+		try {
+			$socket = stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
+		} finally {
+			restore_error_handler();
+		}
+
+		if ( ! $socket ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not reserve a local TCP port for the HTTP stream fixture server (%d: %s).',
+				(int) $errno,
+				$errstr ? $errstr : 'unknown error'
+			);
+			return;
+		}
+
+		$address = stream_socket_get_name( $socket, false );
+		fclose( $socket );
+
+		$port = (int) substr( strrchr( $address, ':' ), 1 );
+		if ( $port <= 0 ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not determine a local TCP port from socket address: %s',
+				$address ? $address : '(empty)'
+			);
+			return;
+		}
+
+		$command = array(
+			PHP_BINARY,
+			'-S',
+			'127.0.0.1:' . $port,
+			'-t',
+			$fixture_dir,
+		);
+
+		$descriptors = array(
+			0 => array( 'pipe', 'r' ),
+			1 => array( 'pipe', 'w' ),
+			2 => array( 'pipe', 'w' ),
+		);
+
+		$process = proc_open( $command, $descriptors, $pipes, $fixture_dir );
+		if ( ! is_resource( $process ) ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not start the local HTTP stream fixture server with %s on 127.0.0.1:%d.',
+				PHP_BINARY,
+				$port
+			);
+			return;
+		}
+
+		foreach ( $pipes as $pipe ) {
+			if ( is_resource( $pipe ) ) {
+				fclose( $pipe );
+			}
+		}
+
+		$url      = 'http://127.0.0.1:' . $port . '/dashboard.bin';
+		$deadline = microtime( true ) + 5.0;
+		$ready    = false;
+
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
+		try {
+			while ( microtime( true ) < $deadline ) {
+				$connection = fsockopen( '127.0.0.1', $port, $errno, $errstr, 0.1 );
+				if ( $connection ) {
+					fclose( $connection );
+					$ready = true;
+					break;
+				}
+				usleep( 50000 );
+			}
+		} finally {
+			restore_error_handler();
+		}
+
+		if ( ! $ready ) {
+			proc_terminate( $process );
+			proc_close( $process );
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'The local HTTP stream fixture server at 127.0.0.1:%d did not accept connections within 5 seconds.',
+				$port
+			);
+			return;
+		}
+
+		self::$file_stream_fixture_dir     = $fixture_dir;
+		self::$file_stream_fixture_process = $process;
+		self::$file_stream_fixture_url     = $url;
+		if ( $redirection_copied ) {
+			self::$redirection_fixture_url = 'http://127.0.0.1:' . $port . '/redirection.php';
+		}
+	}
+
+	/**
+	 * Stops the local HTTP fixture server.
+	 */
+	public static function tear_down_after_class() {
+		if ( is_resource( self::$file_stream_fixture_process ) ) {
+			proc_terminate( self::$file_stream_fixture_process );
+			proc_close( self::$file_stream_fixture_process );
+			self::$file_stream_fixture_process = null;
+		}
+
+		if ( self::$file_stream_fixture_dir ) {
+			self::remove_file_stream_fixture_dir( self::$file_stream_fixture_dir );
+			self::$file_stream_fixture_dir = null;
+		}
+
+		self::$file_stream_fixture_url         = null;
+		self::$redirection_fixture_url         = null;
+		self::$file_stream_fixture_skip_reason = null;
+		self::$file_stream_fixture_fail_reason = null;
+
+		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Deletes a fixture directory and its contents.
+	 *
+	 * @param string $directory Directory path.
+	 */
+	private static function remove_file_stream_fixture_dir( $directory ) {
+		if ( ! is_dir( $directory ) ) {
+			return;
+		}
+
+		foreach ( scandir( $directory ) as $item ) {
+			if ( '.' === $item || '..' === $item ) {
+				continue;
+			}
+			$path = $directory . '/' . $item;
+			if ( is_file( $path ) ) {
+				unlink( $path );
+			}
+		}
+
+		rmdir( $directory );
+	}
 
 	public function set_up() {
 		parent::set_up();
@@ -31,6 +285,14 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			if ( $t !== $this->transport ) {
 				add_filter( "use_{$t}_transport", '__return_false' ); // ...and add it back if need be.
 			}
+		}
+
+		if ( self::$file_stream_fixture_url ) {
+			$this->file_stream_url = self::$file_stream_fixture_url;
+		}
+
+		if ( self::$redirection_fixture_url ) {
+			$this->redirection_script = self::$redirection_fixture_url;
 		}
 	}
 
@@ -195,7 +457,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_no_redirection_on_PUT() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?201-location=1';
+		$url = $this->redirection_script . '?201-location=1';
 
 		// Test 301 - POST to POST.
 		$res = $this->wp_remote_request(
@@ -209,6 +471,31 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 		$this->assertNotEmpty( $res['headers']['location'] );
+	}
+
+	/**
+	 * Parses the plain-text body from the redirection script `header-check` endpoint.
+	 *
+	 * @param string $body Response body.
+	 * @return array Header name => value pairs.
+	 */
+	protected function parse_header_check_body( $body ) {
+		$headers = array();
+
+		foreach ( explode( "\n", $body ) as $line ) {
+			if ( empty( $line ) ) {
+				continue;
+			}
+
+			$parts = explode( ':', $line, 2 );
+			if ( 2 !== count( $parts ) ) {
+				continue;
+			}
+
+			$headers[ $parts[0] ] = $parts[1];
+		}
+
+		return $headers;
 	}
 
 	/**
@@ -227,15 +514,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 
-		$headers = array();
-		foreach ( explode( "\n", $res['body'] ) as $key => $value ) {
-			if ( empty( $value ) ) {
-				continue;
-			}
-			$parts = explode( ':', $value, 2 );
-			unset( $headers[ $key ] );
-			$headers[ $parts[0] ] = $parts[1];
-		}
+		$headers = $this->parse_header_check_body( $res['body'] );
 
 		$this->assertArrayHasKey( 'test1', $headers );
 		$this->assertSame( 'test', $headers['test1'] );
@@ -248,11 +527,37 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the local stream fixture server is available.
+	 *
+	 * Skips when a prerequisite is missing. Fails with a diagnostic when
+	 * fixture startup failed unexpectedly.
+	 */
+	protected function require_file_stream_fixture() {
+		if ( ! empty( $this->file_stream_url ) ) {
+			return;
+		}
+
+		if ( self::$file_stream_fixture_skip_reason ) {
+			$this->markTestSkipped( self::$file_stream_fixture_skip_reason );
+		}
+
+		if ( self::$file_stream_fixture_fail_reason ) {
+			$this->fail( self::$file_stream_fixture_fail_reason );
+		}
+
+		$this->fail( 'The local HTTP stream fixture server was not started.' );
+	}
+
+	/**
+	 * @ticket 63914
+	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_file_stream() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
-		$size = 153204;
+		$size = self::$file_stream_size;
 		$res  = $this->wp_remote_request(
 			$url,
 			array(
@@ -269,17 +574,20 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( '', $res['body'] ); // The body should be empty.
-		$this->assertEquals( $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
+		$this->assertSame( (string) $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
 		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
 		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
 	}
 
 	/**
 	 * @ticket 26726
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_file_stream_limited_size() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
 		$size = 10000;
 		$res  = $this->wp_remote_request(
@@ -305,10 +613,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Tests limiting the response size when returning strings.
 	 *
 	 * @ticket 31172
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_request_limited_size() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
 		$size = 10000;
 
@@ -335,7 +646,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_post_redirect_to_method_300( $response_code, $method ) {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?post-redirect-to-method=1';
+		$url = $this->redirection_script . '?post-redirect-to-method=1';
 
 		$res = $this->wp_remote_post( add_query_arg( 'response_code', $response_code, $url ), array( 'timeout' => 30 ) );
 
@@ -343,7 +654,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertSame( $method, wp_remote_retrieve_body( $res ) );
 	}
 
-	public function data_post_redirect_to_method_300() {
+	public static function data_post_redirect_to_method_300() {
 		return array(
 			// Test 300 - POST to POST.
 			array(
@@ -371,17 +682,49 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP Requests using an IP URL, with a HOST header specified.
 	 *
+	 * Prefers the local redirection fixture when available. Falls back to the
+	 * live api.wordpress.org script only when the fixture was not started.
+	 *
+	 * Uses `header-check` so the assertion proves the custom Host header reached
+	 * the server, not only that some response body was returned.
+	 *
 	 * @ticket 24182
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_ip_url_with_host_header() {
-		$ip   = gethostbyname( 'api.wordpress.org' );
-		$url  = 'http://' . $ip . '/core/tests/1.0/redirection.php?print-pass=1';
+		$parts = wp_parse_url( $this->redirection_script );
+		$this->assertIsArray( $parts );
+		$this->assertNotEmpty( $parts['host'] );
+		$this->assertNotEmpty( $parts['path'] );
+
+		$host = $parts['host'];
+		$port = isset( $parts['port'] ) ? (int) $parts['port'] : null;
+
+		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			/*
+			 * Local fixture host is already an IP. Send a different Host value so
+			 * the test fails if the transport ignores the caller-supplied header.
+			 */
+			$ip          = $host;
+			$host_header = 'localhost';
+		} else {
+			$ip          = gethostbyname( $host );
+			$host_header = $host;
+		}
+
+		$url = 'http://' . $ip;
+		if ( $port ) {
+			$url         .= ':' . $port;
+			$host_header .= ':' . $port;
+		}
+		$url .= $parts['path'] . '?header-check';
+
 		$args = array(
 			'headers'     => array(
-				'Host' => 'api.wordpress.org',
+				'Host' => $host_header,
 			),
 			'timeout'     => 30,
 			'redirection' => 0,
@@ -390,7 +733,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = $this->wp_remote_get( $url, $args );
 
 		$this->assertNotWPError( $res );
-		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
+
+		$received_headers = $this->parse_header_check_body( wp_remote_retrieve_body( $res ) );
+
+		$this->assertArrayHasKey( 'host', $received_headers );
+		$this->assertSame( $host_header, $received_headers['host'] );
 	}
 
 	/**
@@ -419,18 +766,64 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP Cookie handling.
 	 *
+	 * Uses the local redirection fixture when available so cookie acceptance and
+	 * rejection checks do not depend on a live api.wordpress.org request.
+	 *
+	 * Parent-domain cookie acceptance is covered by
+	 * test_parent_domain_cookie_is_sent_on_redirect().
+	 *
 	 * @ticket 21182
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_cookie_handling() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?cookie-test=1';
+		$url = $this->redirection_script . '?cookie-test=1';
 
 		$res = $this->wp_remote_get( $url );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
+	}
+
+	/**
+	 * Verifies parent-domain cookies are accepted and sent on redirect.
+	 *
+	 * Complements test_cookie_handling(): the IP-based local fixture intentionally
+	 * omits parent-domain cookies, so this named-origin mock keeps Domain=.example.test
+	 * acceptance deterministic without a live network request.
+	 *
+	 * @ticket 21182
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_parent_domain_cookie_is_sent_on_redirect() {
+		add_action( 'requests-requests.before_request', array( $this, 'inject_parent_domain_cookie_test_transport' ), 10, 5 );
+
+		try {
+			$res = $this->wp_remote_get( 'http://api.example.test/cookie-wildcard-test' );
+		} finally {
+			remove_action( 'requests-requests.before_request', array( $this, 'inject_parent_domain_cookie_test_transport' ), 10 );
+		}
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
+	}
+
+	/**
+	 * Injects the parent-domain cookie test transport into Requests options.
+	 *
+	 * @param string       $url     Request URL.
+	 * @param array        $headers Request headers.
+	 * @param string|array $data    Request data.
+	 * @param string       $type    HTTP method.
+	 * @param array        $options Request options (passed by reference).
+	 */
+	public function inject_parent_domain_cookie_test_transport( $url, $headers, $data, $type, &$options ) {
+		$options['transport'] = new WP_HTTP_Parent_Domain_Cookie_Test_Transport();
 	}
 
 	/**
@@ -465,5 +858,92 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = $this->wp_remote_request( $url );
 
 		$this->assertNotWPError( $res );
+	}
+}
+
+/**
+ * Test-only Requests transport for parent-domain cookie acceptance.
+ *
+ * Used by WP_HTTP_UnitTestCase::test_parent_domain_cookie_is_sent_on_redirect().
+ */
+class WP_HTTP_Parent_Domain_Cookie_Test_Transport implements WpOrg\Requests\Transport {
+
+	/**
+	 * Performs a request against the canned cookie-redirect responses.
+	 *
+	 * @param string       $url     URL to request.
+	 * @param array        $headers Associative array of request headers.
+	 * @param string|array $data    Request data.
+	 * @param array        $options Request options.
+	 * @return string Raw HTTP response.
+	 *
+	 * @throws WpOrg\Requests\Exception When no canned response exists for the URL.
+	 */
+	public function request( $url, $headers = array(), $data = array(), $options = array() ) {
+		if ( 'http://api.example.test/cookie-wildcard-test' === $url ) {
+			return "HTTP/1.1 302 Found\r\n"
+				. "Set-Cookie: api_test_wildcard_domain=value; Domain=.example.test; Path=/\r\n"
+				. "Set-Cookie: api_test_cookie_wrong_host=value; Domain=example.com; Path=/\r\n"
+				. "Location: http://api.example.test/cookie-wildcard-test?done=1\r\n\r\n";
+		}
+
+		if ( 'http://api.example.test/cookie-wildcard-test?done=1' === $url ) {
+			$cookie_header = '';
+			foreach ( $headers as $header_name => $header_value ) {
+				if ( 0 !== strcasecmp( (string) $header_name, 'Cookie' ) ) {
+					continue;
+				}
+
+				$cookie_header = is_array( $header_value ) ? implode( '; ', $header_value ) : (string) $header_value;
+				break;
+			}
+
+			if ( false === strpos( $cookie_header, 'api_test_wildcard_domain=value' ) ) {
+				return "HTTP/1.1 200 OK\r\n\r\nFAIL_NO_WILDCARD";
+			}
+
+			if ( false !== strpos( $cookie_header, 'api_test_cookie_wrong_host=' ) ) {
+				return "HTTP/1.1 200 OK\r\n\r\nFAIL_WRONG_HOST";
+			}
+
+			return "HTTP/1.1 200 OK\r\n\r\nPASS";
+		}
+
+		throw new WpOrg\Requests\Exception(
+			sprintf( 'Unexpected HTTP request for URL: %s', $url ),
+			'testtransport.unhandled'
+		);
+	}
+
+	/**
+	 * Performs multiple requests sequentially.
+	 *
+	 * @param array $requests Request data.
+	 * @param array $options  Global options.
+	 * @return array Array of responses.
+	 */
+	public function request_multiple( $requests, $options ) {
+		$responses = array();
+
+		foreach ( $requests as $key => $request ) {
+			$responses[ $key ] = $this->request(
+				$request['url'],
+				$request['headers'],
+				$request['data'],
+				$request['options']
+			);
+		}
+
+		return $responses;
+	}
+
+	/**
+	 * Self-test whether the transport can be used.
+	 *
+	 * @param array<string, bool> $capabilities Optional. Capabilities to test against.
+	 * @return bool Always true for the test transport.
+	 */
+	public static function test( $capabilities = array() ) {
+		return true;
 	}
 }

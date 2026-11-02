@@ -22,20 +22,6 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 	private $psr17_factory;
 
 	/**
-	 * Captured URL from the last intercepted HTTP request.
-	 *
-	 * @var string
-	 */
-	private $captured_url;
-
-	/**
-	 * Captured args from the last intercepted HTTP request.
-	 *
-	 * @var array
-	 */
-	private $captured_args;
-
-	/**
 	 * Sets up a fresh client instance before each test.
 	 */
 	public function set_up() {
@@ -327,6 +313,32 @@ class Tests_AI_Client_HTTP_Client extends WP_UnitTestCase {
 
 		$this->expectException( WordPress\AiClient\Providers\Http\Exception\NetworkException::class );
 		$this->client->sendRequestWithOptions( $request, $options );
+	}
+
+	/**
+	 * Test that sendRequestWithOptions includes the HTTP method in the NetworkException message.
+	 *
+	 * @ticket 65421
+	 */
+	public function test_send_request_with_options_wp_error_message_includes_method() {
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_failed', 'Connection refused' );
+			}
+		);
+
+		$options = new WordPress\AiClient\Providers\Http\DTO\RequestOptions();
+		$request = $this->psr17_factory->createRequest( 'POST', 'https://api.example.com/generate' );
+
+		try {
+			$this->client->sendRequestWithOptions( $request, $options );
+			$this->fail( 'Expected NetworkException was not thrown.' );
+		} catch ( WordPress\AiClient\Providers\Http\Exception\NetworkException $e ) {
+			$this->assertStringContainsString( 'POST', $e->getMessage() );
+			$this->assertStringContainsString( 'https://api.example.com/generate', $e->getMessage() );
+			$this->assertStringContainsString( 'Connection refused', $e->getMessage() );
+		}
 	}
 
 	/**
