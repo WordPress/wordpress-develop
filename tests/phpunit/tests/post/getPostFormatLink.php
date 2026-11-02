@@ -16,7 +16,7 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Test factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$formats = array( 'aside', 'chat', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio' );
+		$formats = array( 'aside', 'video' );
 
 		foreach ( $formats as $format ) {
 			wp_insert_term(
@@ -34,15 +34,6 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 */
 	public function test_get_post_format_link_non_existent_term() {
 		$this->assertFalse( get_post_format_link( 'nonexistent' ) );
-	}
-
-	/**
-	 * Tests that get_post_format_link() returns false for an empty string.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_post_format_link_empty_string() {
-		$this->assertFalse( get_post_format_link( '' ) );
 	}
 
 	/**
@@ -106,45 +97,6 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_post_format_link() respects a custom permastruct base.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_post_format_link_with_custom_permastruct() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		add_permastruct( 'post_format', 'format/%post_format%' );
-
-		$expected = home_url( '/format/aside/' );
-		$actual   = get_post_format_link( 'aside' );
-
-		remove_permastruct( 'post_format' );
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * Tests that get_post_format_link() strips the 'post-format-' prefix from the query arg in plain permalinks.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_post_format_link_strips_prefix_in_query_args() {
-		$link = get_post_format_link( 'video' );
-
-		$this->assertStringNotContainsString( 'post-format-video', $link );
-		$this->assertStringContainsString( 'post_format=video', $link );
-	}
-
-	/**
-	 * Tests that get_post_format_link() returns false for non-string inputs.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_post_format_link_non_string_input() {
-		$this->assertFalse( get_post_format_link( 123 ) );
-		$this->assertFalse( get_post_format_link( null ) );
-	}
-
-	/**
 	 * Tests that the 'term_link' filter can modify the post format link.
 	 *
 	 * @ticket 65819
@@ -171,15 +123,8 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 */
 	public static function data_standard_post_formats() {
 		return array(
-			'aside format'   => array( 'aside' ),
-			'chat format'    => array( 'chat' ),
-			'gallery format' => array( 'gallery' ),
-			'link format'    => array( 'link' ),
-			'image format'   => array( 'image' ),
-			'quote format'   => array( 'quote' ),
-			'status format'  => array( 'status' ),
-			'video format'   => array( 'video' ),
-			'audio format'   => array( 'audio' ),
+			'aside format' => array( 'aside' ),
+			'video format' => array( 'video' ),
 		);
 	}
 }

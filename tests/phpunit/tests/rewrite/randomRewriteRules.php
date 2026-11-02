@@ -29,6 +29,14 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		 */
 		delete_option( 'wp_random_base' );
 
+		unregister_post_type( 'wptests_book' );
+		unregister_post_type( 'wptests_film' );
+		unregister_post_type( 'wptests_note' );
+		unregister_post_type( 'wptests_private' );
+		unregister_taxonomy( 'wptests_genre' );
+		unregister_taxonomy( 'wptests_hidden' );
+		unregister_taxonomy( 'wptests_norewrite' );
+
 		parent::tear_down();
 	}
 

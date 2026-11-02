@@ -32,7 +32,7 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_render_duotone_support_invalid_attribute() {
+	public static function data_render_duotone_support_invalid_attribute() {
 		return array(
 			'false'   => array( false ),
 			'true'    => array( true ),
