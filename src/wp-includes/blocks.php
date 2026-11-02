@@ -1956,6 +1956,8 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *         @type string      $innerHTML    HTML from inside block comment delimiters.
  *         @type array       $innerContent List of string fragments and null markers where
  *                                         inner blocks were found.
+ *         @type mixed       ...$key       Any other keys a block passed in carries, which
+ *                                         are returned unchanged.
  *     }
  * }
  */
