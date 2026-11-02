@@ -3727,8 +3727,8 @@ function plugins_url( $path = '', $plugin = '' ) {
 
 	$url = set_url_scheme( $url );
 
-	if ( ! empty( $plugin_path ) && is_string( $plugin_path ) ) {
-		$folder = dirname( plugin_basename( $plugin_path ) );
+	if ( ! empty( $plugin ) && is_string( $plugin ) ) {
+		$folder = dirname( plugin_basename( $plugin ) );
 		if ( '.' !== $folder ) {
 			$url .= '/' . ltrim( $folder, '/' );
 		}
