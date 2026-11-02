@@ -450,6 +450,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode:hover > .ab-item,
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode > .ab-item:focus {
 	color: #fff;
+	outline-color: currentColor;
 }
 
 /**
