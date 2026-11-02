@@ -21,38 +21,38 @@ async function uploadPlugin( admin, page, version ) {
 		.click();
 }
 
-test.describe( 'Plugin management', () => {
-	let ownsPlugin;
+async function deletePlugin( requestUtils ) {
+	const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
+	const installed = plugins.find( ( item ) => item.plugin === plugin );
+	if ( ! installed ) {
+		return;
+	}
+	if ( installed.status !== 'inactive' ) {
+		await requestUtils.rest( {
+			method: 'PUT',
+			path: `/wp/v2/plugins/${ plugin }`,
+			data: { status: 'inactive' },
+		} );
+	}
+	await requestUtils.rest( {
+		method: 'DELETE',
+		path: `/wp/v2/plugins/${ plugin }`,
+	} );
+}
 
+test.describe( 'Plugin management', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		// The fixture slug requires an environment not shared with another test run.
-		ownsPlugin = false;
+		// An interrupted run can leave the fixture plugin installed.
+		await deletePlugin( requestUtils );
 		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
 		expect( plugins.map( ( item ) => item.plugin ) ).not.toContain(
 			plugin
 		);
-		ownsPlugin = true;
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( ! ownsPlugin ) {
-			return;
-		}
-		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
-		const installed = plugins.find( ( item ) => item.plugin === plugin );
-		if ( installed ) {
-			if ( installed.status !== 'inactive' ) {
-				await requestUtils.rest( {
-					method: 'PUT',
-					path: `/wp/v2/plugins/${ plugin }`,
-					data: { status: 'inactive' },
-				} );
-			}
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/plugins/${ plugin }`,
-			} );
-		}
+		await deletePlugin( requestUtils );
 	} );
 
 	test( 'uploads, activates and deactivates a plugin', async ( {
