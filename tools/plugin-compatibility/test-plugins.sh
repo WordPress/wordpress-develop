@@ -392,9 +392,18 @@ check_url() {
 
 	# Belt and braces. Errors are not displayed by default, but a plugin can turn display_errors back on for
 	# itself.
-	if grep -qi 'Fatal error' "${RESPONSE_BODY}"; then
+	if grep -qiE '(Fatal|Parse) error' "${RESPONSE_BODY}"; then
 		printf 'The response from %s contained a fatal error' "${1}"
 	fi
+}
+
+# logged_fatals
+#
+# Prints the fatal and parse errors in the debug log, one per line, and returns non zero when there are none.
+# A parse error in a file included after output has started ends the request just as surely as a fatal does,
+# and still answers with a 200.
+logged_fatals() {
+	[ -f "${WP_DIR}/wp-content/debug.log" ] && grep -E 'PHP (Fatal|Parse) error' "${WP_DIR}/wp-content/debug.log"
 }
 
 # install_plugin <slug>
@@ -612,10 +621,10 @@ test_plugins() {
 			# A dependency can fatal after the page has started to render, which still answers with a 200.
 			# The fatal only shows up in the log, and it would show up again once the plugin under test is
 			# active and be blamed on that plugin, so the log is checked before it is cleared.
-			if [ "${STATUS}" = "PASS" ] && [ -f "${WP_DIR}/wp-content/debug.log" ] && grep -q 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"; then
-				grep 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"
+			if [ "${STATUS}" = "PASS" ] && LOGGED_FATALS="$( logged_fatals )"; then
+				printf '%s\n' "${LOGGED_FATALS}"
 				STATUS="SKIPPED"
-				REASON="The required plugins are not healthy on their own: $( grep -m 1 'PHP Fatal' "${WP_DIR}/wp-content/debug.log" | cut -c 1-200 )"
+				REASON="The required plugins are not healthy on their own: $( printf '%s\n' "${LOGGED_FATALS}" | head -n 1 | cut -c 1-200 )"
 			fi
 
 			# Anything else the dependencies logged on their way up is not the responsibility of the plugin
@@ -662,12 +671,12 @@ test_plugins() {
 			done
 		fi
 
-		# Step 7: a fatal can be logged without changing the HTTP status, for example during a shutdown
-		# hook, so the debug log is checked separately.
-		if [ "${STATUS}" = "PASS" ] && [ -f "${WP_DIR}/wp-content/debug.log" ] && grep -q 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"; then
-			grep 'PHP Fatal' "${WP_DIR}/wp-content/debug.log"
+		# Step 7: a fatal or parse error can be logged without changing the HTTP status, for example during
+		# a shutdown hook, so the debug log is checked separately.
+		if [ "${STATUS}" = "PASS" ] && LOGGED_FATALS="$( logged_fatals )"; then
+			printf '%s\n' "${LOGGED_FATALS}"
 			STATUS="FAIL"
-			REASON="A fatal error was logged: $( grep -m 1 'PHP Fatal' "${WP_DIR}/wp-content/debug.log" | cut -c 1-200 )"
+			REASON="A fatal error was logged: $( printf '%s\n' "${LOGGED_FATALS}" | head -n 1 | cut -c 1-200 )"
 		fi
 
 		# Step 8: boot all of core plus the active plugin through WP-CLI. This runs last and cannot fail a
@@ -688,7 +697,7 @@ test_plugins() {
 				printf '%s\n' "${EVAL_OUTPUT}"
 
 				case "${EVAL_OUTPUT}" in
-					*"Fatal error"* | *"PHP Fatal"* | *"Uncaught"* )
+					*"Fatal error"* | *"Parse error"* | *"Uncaught"* )
 						REASON="The site is healthy over HTTP, but WP-CLI fatals when it loads WordPress with the plugin active"
 						;;
 					# Some plugins redirect or exit while loading, which stops WP-CLI without anything being
