@@ -67,16 +67,16 @@ class WP_Block_Parser {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $document Input document being parsed.
+	 * @param string|null $document Input document being parsed. Null is treated as an empty document.
 	 * @return array[]
 	 */
 	public function parse( $document ) {
-		$this->document = $document;
+		$this->document = $document ?? '';
 		$this->offset   = 0;
 		$this->output   = array();
 		$this->stack    = array();
 
-		$this->block_processor = new WP_Block_Processor( $document );
+		$this->block_processor = new WP_Block_Processor( $this->document );
 
 		while ( $this->proceed() ) {
 			continue;
