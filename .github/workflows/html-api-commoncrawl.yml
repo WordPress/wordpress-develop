@@ -119,8 +119,10 @@ jobs:
           ini-values: memory_limit=1G
 
       # Samples successful HTML captures from random blocks of the crawl's URL index, from many hosts across the whole crawl,
-      # and downloads only those records, four at a time. CommonCrawl answers bursts of requests with HTTP 503, so each
-      # transfer is retried with backoff. The cache limit is raised so that pruning never runs during the fetch.
+      # and downloads only those records, four at a time. When CommonCrawl asks to slow down, with HTTP 429 or 503, no
+      # request is sent until its Retry-After or the backoff has passed. A record which still can't be downloaded is listed
+      # and skipped, and a 403, which means this runner has been blocked, stops fetching; the analysis then runs on the
+      # documents already fetched. The cache limit is raised so that pruning never runs during the fetch.
       - name: Fetch documents from CommonCrawl
         run: |
           php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch fetch corpus \
