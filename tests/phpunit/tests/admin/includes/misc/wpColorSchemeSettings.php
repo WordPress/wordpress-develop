@@ -32,7 +32,7 @@ class Tests_wp_color_scheme_settings extends WP_UnitTestCase {
 	public function test_wp_color_scheme_settings_valid_scheme() {
 		global $_wp_admin_css_colors;
 
-		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 		update_user_option( $user_id, 'admin_color', 'blue' );
 
@@ -67,7 +67,7 @@ class Tests_wp_color_scheme_settings extends WP_UnitTestCase {
 	public function test_wp_color_scheme_settings_invalid_scheme_fallback_to_modern() {
 		global $_wp_admin_css_colors;
 
-		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 		update_user_option( $user_id, 'admin_color', 'non-existent' );
 
@@ -102,7 +102,7 @@ class Tests_wp_color_scheme_settings extends WP_UnitTestCase {
 	public function test_wp_color_scheme_settings_no_icon_colors_fallback() {
 		global $_wp_admin_css_colors;
 
-		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 		update_user_option( $user_id, 'admin_color', 'empty-scheme' );
 

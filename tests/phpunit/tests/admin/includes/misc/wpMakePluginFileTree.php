@@ -29,7 +29,7 @@ class Tests_wp_make_plugin_file_tree extends WP_UnitTestCase {
 	 *     expected:              array<string, mixed>,
 	 * }>
 	 */
-	public function data_wp_make_plugin_file_tree(): array {
+	public static function data_wp_make_plugin_file_tree(): array {
 		return array(
 			'empty_list'          => array(
 				'plugin_editable_files' => array(),

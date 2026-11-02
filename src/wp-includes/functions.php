@@ -2138,7 +2138,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
@@ -6952,7 +6956,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$structure[] = '<option ' . $selected . 'value="' . esc_attr( $value ) . '" dir="auto">' . esc_html( $display ) . '</option>';
 
 		// Close continent optgroup.
-		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || ( isset( $zonen[ $key + 1 ] ) && $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) ) {
+		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) {
 			$structure[] = '</optgroup>';
 		}
 	}
