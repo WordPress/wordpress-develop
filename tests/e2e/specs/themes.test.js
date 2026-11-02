@@ -6,13 +6,35 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const themeSlug = 'e2e-test-theme';
 const themeName = 'E2E Test Theme';
 
+async function deleteTheme( requestUtils ) {
+	const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
+	if ( ! themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
+		return;
+	}
+	const themesResponse = await requestUtils.request.get(
+		'wp-admin/themes.php'
+	);
+	const html = await themesResponse.text();
+	await themesResponse.dispose();
+	const deleteQuery = html.match(
+		`action=delete&amp;stylesheet=${ themeSlug }&amp;_wpnonce=[a-z0-9]+`
+	);
+	expect( deleteQuery ).not.toBeNull();
+	const response = await requestUtils.request.get(
+		`wp-admin/themes.php?${ deleteQuery[ 0 ].replace( /&amp;/g, '&' ) }`
+	);
+	expect( response.ok() ).toBe( true );
+	await response.dispose();
+}
+
 test.describe( 'Theme management', () => {
 	let previousTheme;
-	let ownsTheme;
 
 	test.beforeEach( async ( { admin, page, requestUtils } ) => {
+		previousTheme = undefined;
 		// The fixture slug requires an environment not shared with another test run.
-		ownsTheme = false;
+		// An interrupted run can leave the fixture theme installed.
+		await deleteTheme( requestUtils );
 		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 		expect( themes.map( ( theme ) => theme.stylesheet ) ).not.toContain(
 			themeSlug
@@ -20,7 +42,6 @@ test.describe( 'Theme management', () => {
 		previousTheme = themes.find(
 			( theme ) => theme.status === 'active'
 		).stylesheet;
-		ownsTheme = true;
 		await admin.visitAdminPage( 'theme-install.php' );
 		await page
 			.getByRole( 'button', { name: 'Upload Theme', exact: true } )
@@ -37,27 +58,11 @@ test.describe( 'Theme management', () => {
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( ! ownsTheme ) {
+		if ( ! previousTheme ) {
 			return;
 		}
 		await requestUtils.activateTheme( previousTheme );
-		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
-		if ( themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
-			const themesResponse = await requestUtils.request.get(
-				'wp-admin/themes.php'
-			);
-			const html = await themesResponse.text();
-			await themesResponse.dispose();
-			const deleteQuery = html.match(
-				`action=delete&amp;stylesheet=${ themeSlug }&amp;_wpnonce=[a-z0-9]+`
-			);
-			expect( deleteQuery ).not.toBeNull();
-			const response = await requestUtils.request.get(
-				`wp-admin/themes.php?${ deleteQuery[ 0 ].replace( /&amp;/g, '&' ) }`
-			);
-			expect( response.ok() ).toBe( true );
-			await response.dispose();
-		}
+		await deleteTheme( requestUtils );
 		const remainingThemes = await requestUtils.rest( {
 			path: '/wp/v2/themes',
 		} );
