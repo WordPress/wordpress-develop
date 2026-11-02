@@ -199,42 +199,43 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * A hash on a template type is left untranslated, since the shape it takes
 	 * depends on the template's bound. The templates in scope are those the
-	 * docblock declares and those of every class, interface, or trait it is
-	 * nested in, so a method's hash on a template of its class is skipped too.
+	 * docblock declares and those of every class, interface, trait, function, or
+	 * closure it is nested in, so a method's hash on a template of its class is
+	 * skipped too, as is a hook's hash on a template of the function calling it.
 	 *
 	 * @var array<string, true>
 	 */
 	private array $templates = array();
 
 	/**
-	 * Template types each enclosing class, interface, or trait declares, from the
-	 * outermost in.
+	 * Template types each enclosing class, interface, trait, function, or closure
+	 * declares, from the outermost in.
 	 *
 	 * @var list<array<string, true>>
 	 */
-	private array $class_templates = array();
+	private array $scope_templates = array();
 
 	/**
-	 * Forgets the classes of the previous file.
+	 * Forgets the scopes of the previous file.
 	 *
 	 * @param Node[] $nodes The nodes of the file.
 	 * @return null
 	 */
 	public function beforeTraverse( array $nodes ) {
-		$this->class_templates = array();
+		$this->scope_templates = array();
 
 		return null;
 	}
 
 	/**
-	 * Leaves the scope of a class's templates.
+	 * Leaves the scope of a class's or function's templates.
 	 *
 	 * @param Node $node The node being left.
 	 * @return null
 	 */
 	public function leaveNode( Node $node ) {
-		if ( $node instanceof Node\Stmt\ClassLike ) {
-			array_pop( $this->class_templates );
+		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
+			array_pop( $this->scope_templates );
 		}
 
 		return null;
@@ -256,9 +257,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	public function enterNode( Node $node ): ?Node {
 		$doc = $node->getDocComment();
 
-		// A class's templates are in scope for its members' docblocks, hash or not.
-		if ( $node instanceof Node\Stmt\ClassLike ) {
-			$this->class_templates[] = null === $doc ? array() : $this->declared_templates( $doc->getText() );
+		/*
+		 * A class's templates are in scope for its members' docblocks, and a
+		 * function's for the hooks it calls, whether or not the scope's own
+		 * docblock has a hash.
+		 */
+		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
+			$this->scope_templates[] = null === $doc ? array() : $this->declared_templates( $doc->getText() );
 		}
 
 		if ( null === $doc ) {
@@ -358,7 +363,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$tags      = $this->split_tags( $text );
 		$covered   = $this->phpstan_counterparts( $tags );
 
-		$this->templates = array_merge( $this->declared_templates( $text ), ...$this->class_templates );
+		$this->templates = array_merge( $this->declared_templates( $text ), ...$this->scope_templates );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
