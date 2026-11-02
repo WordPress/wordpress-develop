@@ -3,7 +3,8 @@
 # activated against it without fataling.
 #
 # Each plugin in the `plugin-slugs` shard is tested on its own: it is installed, activated, exercised, and then
-# removed before the next one is installed. This keeps one broken plugin from masking (or breaking) the next.
+# the site is reset to the fresh install before the next one is installed. This keeps one broken plugin from
+# masking (or breaking) the next.
 #
 # The exception is a plugin that declares a `Requires Plugins` dependency, which core will not activate until
 # that dependency is installed and active. Those dependencies are installed and activated alongside it, and the
@@ -35,9 +36,15 @@ on:
         type: 'string'
         default: '8.3'
       plugin-slugs:
-        description: 'A JSON array of WordPress.org plugin slugs to test in this shard.'
-        required: true
+        description: 'A JSON array of WordPress.org plugin slugs to test in this shard. Ignored when fixtures is true.'
+        required: false
         type: 'string'
+        default: '[]'
+      fixtures:
+        description: 'Test the fixture plugins in tools/plugin-compatibility/fixtures, which are built to break, and pass only when each gets the result expected for it.'
+        required: false
+        type: 'boolean'
+        default: false
       db-type:
         description: 'Database type. Valid types are mysql and mariadb.'
         required: false
@@ -109,10 +116,20 @@ jobs:
       - name: Test each plugin in isolation
         env:
           PLUGIN_SLUGS: ${{ inputs.plugin-slugs }}
+          FIXTURES: ${{ inputs.fixtures }}
           WP_VERSION: ${{ inputs.wp-version }}
           DB_PORT: ${{ job.services.database.ports['3306'] }}
         run: |
           set -uo pipefail
+
+          if [ "${FIXTURES}" = "true" ]; then
+            SELECTION=(
+              --fixtures=./tools/plugin-compatibility/fixtures
+              --expect=./tools/plugin-compatibility/fixtures/expected.txt
+            )
+          else
+            SELECTION=( --plugins="$( printf '%s' "${PLUGIN_SLUGS}" | jq -r 'join( " " )' )" )
+          fi
 
           ./tools/plugin-compatibility/test-plugins.sh \
             --no-docker \
@@ -122,4 +139,4 @@ jobs:
             --db-name=test_db \
             --db-user=root \
             --db-pass=root \
-            --plugins="$( printf '%s' "${PLUGIN_SLUGS}" | jq -r 'join( " " )' )"
+            "${SELECTION[@]}"

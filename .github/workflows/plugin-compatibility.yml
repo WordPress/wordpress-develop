@@ -278,13 +278,33 @@ jobs:
       db-type: 'mysql'
       db-version: '8.4'
 
+  # Tests the fixture plugins, each built to break in one specific way, and passes only when every one of them
+  # gets the result listed for it in tools/plugin-compatibility/fixtures/expected.txt.
+  #
+  # The real plugins above can only show that nothing broke. This is what shows that a broken plugin is still
+  # caught, so a change to the checks that stops catching one fails here instead of quietly passing everything.
+  # The fixtures are installed from the checkout, so nothing is downloaded but WordPress itself.
+  fixture-tests:
+    name: WP ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }} / Fixture plugins
+    uses: ./.github/workflows/reusable-plugin-compatibility.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'workflow_dispatch' }}
+    with:
+      os: 'ubuntu-24.04'
+      wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
+      php-version: '8.3'
+      fixtures: true
+      db-type: 'mysql'
+      db-version: '8.4'
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ build-plugin-matrix, plugin-compatibility-tests ]
+    needs: [ build-plugin-matrix, plugin-compatibility-tests, fixture-tests ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
