@@ -436,6 +436,65 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Search only post titles with the `search_columns` parameter.
+	 *
+	 * @ticket 66317
+	 */
+	public function test_get_items_search_columns_post_title() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page'       => 100,
+				'search'         => 'foo',
+				'search_columns' => array( 'post_title' ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array_merge(
+				self::$my_title_post_ids,
+				self::$my_title_page_ids
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search only post content with the `search_columns` parameter.
+	 *
+	 * @ticket 66317
+	 */
+	public function test_get_items_search_columns_post_content() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page'       => 100,
+				'search'         => 'foo',
+				'search_columns' => array( 'post_content' ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			self::$my_content_post_ids,
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 66317
+	 */
+	public function test_get_items_search_columns_invalid() {
+		$response = $this->do_request_with_params(
+			array(
+				'search'         => 'foo',
+				'search_columns' => array( 'post_name' ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
 	 * @ticket 55674
 	 */
 	public function test_get_items_search_prime_ids() {

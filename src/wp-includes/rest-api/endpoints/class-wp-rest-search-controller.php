@@ -310,6 +310,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the search results collection.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Added the `search_columns` parameter.
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -363,6 +364,16 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 				'type' => 'integer',
 			),
 			'default'     => array(),
+		);
+
+		$query_params['search_columns'] = array(
+			'default'     => array(),
+			'description' => __( 'Array of column names to be searched. Only applies to post searches.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'enum' => array( 'post_title', 'post_content', 'post_excerpt' ),
+				'type' => 'string',
+			),
 		);
 
 		return $query_params;

@@ -43,6 +43,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 * Searches posts for a given search request.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Added support for the `search_columns` parameter.
 	 *
 	 * @param WP_REST_Request $request Full REST request.
 	 * @return array {
@@ -78,6 +79,10 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 		if ( ! empty( $request['include'] ) ) {
 			$query_args['post__in'] = $request['include'];
+		}
+
+		if ( ! empty( $request['search_columns'] ) ) {
+			$query_args['search_columns'] = $request['search_columns'];
 		}
 
 		/**
