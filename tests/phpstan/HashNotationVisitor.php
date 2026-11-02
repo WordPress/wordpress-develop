@@ -22,6 +22,7 @@ use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
 use PHPStan\PhpDocParser\Ast\Type\ArrayShapeItemNode;
 use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\ObjectShapeItemNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
@@ -887,7 +888,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * This only decides whether a hash's element type is the declared one; the type
 	 * derived from it is always spelled as declared. Parsing does away with
 	 * differences of spacing and of redundant parentheses, as between
-	 * `(int|string)` and `int|string`. Names are then lowercased and stripped of a
+	 * `(int|string)` and `int|string`, and the members of a union or intersection
+	 * are sorted, so `string|int` is the same type too. Names are then lowercased and stripped of a
 	 * leading backslash, because PHP type and class names are case-insensitive, so
 	 * `wp_post` is the same type as `\WP_Post`. The keys of a shape and the content
 	 * of a string literal are case-sensitive, so they are left as they are:
@@ -946,6 +948,24 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					if ( isset( $this->templates[ $node->className ] ) ) {
 						$this->names_template = true;
 					}
+				}
+
+				return $node;
+			}
+
+			public function leaveNode( DocNode $node ): DocNode {
+				/*
+				 * The order of a union or intersection says nothing, so `string|array`
+				 * is `array|string`. Its members are normalized by now, so sorting
+				 * them as printed puts every spelling in the same order.
+				 */
+				if ( $node instanceof UnionTypeNode || $node instanceof IntersectionTypeNode ) {
+					usort(
+						$node->types,
+						static function ( TypeNode $a, TypeNode $b ): int {
+							return strcmp( (string) $a, (string) $b );
+						}
+					);
 				}
 
 				return $node;
