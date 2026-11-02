@@ -33,6 +33,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static string $test_avif_file;
 
 	/**
+	 * @var string The path to the TGA test image.
+	 */
+	private static string $test_tga_file;
+
+	/**
 	 * @var string The path to the SVG test image.
 	 */
 	private static string $test_svg_file;
@@ -101,6 +106,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( file_exists( self::$test_avif_file ) ) {
 			unlink( self::$test_avif_file );
 		}
+		if ( file_exists( self::$test_tga_file ) ) {
+			unlink( self::$test_tga_file );
+		}
 		if ( file_exists( self::$test_video_file ) ) {
 			unlink( self::$test_video_file );
 		}
@@ -151,6 +159,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::$test_avif_file = get_temp_dir() . 'avif-lossy.avif';
 		if ( ! file_exists( self::$test_avif_file ) ) {
 			copy( $orig_avif_file, self::$test_avif_file );
+		}
+
+		$orig_tga_file       = DIR_TESTDATA . '/images/test-image.tga';
+		self::$test_tga_file = get_temp_dir() . 'test-image.tga';
+		if ( ! file_exists( self::$test_tga_file ) ) {
+			copy( $orig_tga_file, self::$test_tga_file );
 		}
 
 		$test_svg_file       = DIR_TESTDATA . '/uploads/video-play.svg';
@@ -1192,6 +1206,63 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertIsArray( $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
 		$this->assertArrayNotHasKey( 'source_url', $data['media_details']['sizes']['rest-api-test'] );
+	}
+
+	/**
+	 * @ticket 65251
+	 */
+	public function test_get_item_sizes_empty_sizes_is_object() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			),
+			self::$test_file
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'      => 50,
+				'height'     => 50,
+				'file'       => 'canola.jpg',
+				'sizes'      => array(),
+				'image_meta' => array(),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertInstanceOf( 'stdClass', $data['media_details']['sizes'], 'Sizes should be an empty object (stdClass) when empty.' );
+		$this->assertSame( '{}', wp_json_encode( $data['media_details']['sizes'] ), 'Sizes must JSON-encode as an empty object.' );
+	}
+
+	/**
+	 * @ticket 65251
+	 */
+	public function test_get_item_empty_media_details_is_object() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			),
+			self::$test_file
+		);
+
+		delete_post_meta( $attachment_id, '_wp_attachment_metadata' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertInstanceOf( 'stdClass', $data['media_details'], 'media_details should be an empty object (stdClass) when metadata is missing.' );
+		$this->assertSame( '{}', wp_json_encode( $data['media_details'] ), 'media_details must JSON-encode as an empty object.' );
 	}
 
 	public function test_get_item_private_post_not_authenticated() {
@@ -3445,46 +3516,66 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Test that uploading unsupported image types throws a `rest_upload_image_type_not_supported` error.
 	 *
+	 * Uses TGA because it is reliably unsupported by the image editors, unlike AVIF which
+	 * is commonly supported in CI. File params are required because the permission check
+	 * reads `get_file_params()`.
+	 *
 	 * @ticket 61167
+	 * @ticket 64225
 	 */
 	public function test_upload_unsupported_image_type() {
-
-		// Only run this test when the editor doesn't support AVIF.
-		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
-			$this->markTestSkipped( 'The image editor suppports AVIF.' );
+		// Only run this test when the editor doesn't support TGA.
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/tga' ) ) ) {
+			$this->markTestSkipped( 'The image editor supports TGA.' );
 		}
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
-
 		wp_set_current_user( self::$author_id );
-		$request->set_header( 'Content-Type', 'image/avif' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
-		$request->set_body( file_get_contents( self::$test_avif_file ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'test-image.tga',
+					'type'     => 'image/tga',
+					'tmp_name' => self::$test_tga_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_tga_file ),
+				),
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_upload_image_type_not_supported', $response, 400 );
 	}
 
 	/**
-	 * Test that the `wp_prevent_unsupported_image_uploads` filter enables uploading of unsupported image types.
+	 * Test that the `wp_prevent_unsupported_mime_type_uploads` filter enables uploading of unsupported image types.
+	 *
+	 * Forces the image editors list empty so the format is treated as unsupported regardless
+	 * of host capabilities, then uses an allowed upload mime (AVIF) so the request can still
+	 * complete with a successful 201 once the filter bypasses the editor-support check.
 	 *
 	 * @ticket 61167
+	 * @ticket 64225
 	 */
 	public function test_upload_unsupported_image_type_with_filter() {
-
-		// Only run this test when the editor doesn't support AVIF.
-		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
-			$this->markTestSkipped( 'The image editor suppports AVIF.' );
-		}
-
-		add_filter( 'wp_prevent_unsupported_image_uploads', '__return_false' );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+		add_filter( 'wp_prevent_unsupported_mime_type_uploads', '__return_false' );
 
 		wp_set_current_user( self::$author_id );
-		$request->set_header( 'Content-Type', 'image/avif' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
-		$request->set_body( file_get_contents( self::$test_avif_file ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'name'     => 'avif-lossy.avif',
+					'type'     => 'image/avif',
+					'tmp_name' => self::$test_avif_file,
+					'error'    => 0,
+					'size'     => filesize( self::$test_avif_file ),
+				),
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status() );
