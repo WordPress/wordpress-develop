@@ -3,7 +3,7 @@
 Compares how the HTML API parses real-world documents with and without a pull request. It fetches a random sample of HTML documents from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
 
 - how long the Tag Processor and the HTML Processor take to parse each document, and how long `wp_kses( $html, 'post' )` takes on it, for all documents and for small, medium, and large ones;
-- which documents the HTML Processor does not support, and why it stopped on them.
+- which documents the HTML Processor does not support, and why it stopped on them, with a few example documents for each reason.
 
 The [`HTML API CommonCrawl Analysis`](../../.github/workflows/html-api-commoncrawl.yml) workflow runs this for a pull request when:
 - the `html-api-commoncrawl` label is added to the pull request, if it changes the HTML API or `kses.php`. The label is removed straight away, so add it again to run another analysis.

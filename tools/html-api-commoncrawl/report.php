@@ -24,6 +24,9 @@
 const HTML_API_BENCH_REPORT_MARKER = '<!-- html-api-commoncrawl-report -->';
 const HTML_API_BENCH_EXAMPLES      = 10;
 
+// How many example documents to show for each reason the HTML Processor stopped.
+const HTML_API_BENCH_REASON_EXAMPLES = 3;
+
 // The smallest share of documents a size bin at either end of the chart needs to be drawn.
 const HTML_API_BENCH_CHART_MIN_BIN_SHARE = 0.02;
 
@@ -394,6 +397,57 @@ function examples_table( $pairs ) {
 	return table( array( 'URL', 'Size', 'Target', 'PR' ), $rows );
 }
 
+/**
+ * Renders a few example documents for each reason the HTML Processor stopped.
+ *
+ * Examples come from the PR, or from the target branch for a reason only it
+ * stops for. They are the smallest documents, which are the easiest to inspect,
+ * taking at most one from each host.
+ *
+ * @param array[]  $reasons    Reasons, in report order, each with `base` and `merge` counts, call sites, and documents.
+ * @param callable $source_url Returns the link to `class-wp-html-processor.php` at a commit, or null.
+ * @param string   $base_sha   Commit of the target branch.
+ * @param string   $merge_sha  Commit of the PR merged into the target branch.
+ * @return string Markdown table.
+ */
+function reason_examples_table( $reasons, $source_url, $base_sha, $merge_sha ) {
+	$rows = array();
+	foreach ( $reasons as $reason => $sides ) {
+		$side      = isset( $sides['merge']['documents'] ) ? 'merge' : 'base';
+		$documents = $sides[ $side ]['documents'];
+		$url       = $source_url( 'merge' === $side ? $merge_sha : $base_sha );
+		usort(
+			$documents,
+			static function ( $a, $b ) {
+				return $a['bytes'] <=> $b['bytes'];
+			}
+		);
+
+		$hosts = array();
+		foreach ( $documents as $document ) {
+			$host = strtolower( (string) parse_url( $document['url'], PHP_URL_HOST ) );
+			if ( isset( $hosts[ $host ] ) ) {
+				continue;
+			}
+
+			$hosts[ $host ] = true;
+			$line           = $document['line'];
+			$rows[]         = array(
+				1 === count( $hosts ) ? format_code( $reason, 120 ) : '',
+				format_code( $document['url'] ),
+				format_bytes( $document['bytes'] ),
+				'' === $line ? '' : ( $url ? "[L{$line}]({$url}#L{$line})" : "L{$line}" ) . ( 'base' === $side ? ' (target)' : '' ),
+			);
+
+			if ( count( $hosts ) === HTML_API_BENCH_REASON_EXAMPLES ) {
+				break;
+			}
+		}
+	}
+
+	return table( array( 'Reason', 'URL', 'Size', 'Call site' ), $rows );
+}
+
 $base_results  = load_results( $argv[1] );
 $merge_results = load_results( $argv[2] );
 
@@ -509,7 +563,12 @@ foreach ( $pairs as $pair ) {
 			continue;
 		}
 
-		$reasons[ $result['reason'] ][ $side ]['count'] = ( $reasons[ $result['reason'] ][ $side ]['count'] ?? 0 ) + 1;
+		$reasons[ $result['reason'] ][ $side ]['count']       = ( $reasons[ $result['reason'] ][ $side ]['count'] ?? 0 ) + 1;
+		$reasons[ $result['reason'] ][ $side ]['documents'][] = array(
+			'url'   => $result['url'],
+			'bytes' => $result['bytes'],
+			'line'  => $result['line'],
+		);
 		if ( '' !== $result['line'] ) {
 			$reasons[ $result['reason'] ][ $side ]['lines'][ $result['line'] ] = ( $reasons[ $result['reason'] ][ $side ]['lines'][ $result['line'] ] ?? 0 ) + 1;
 		}
@@ -559,6 +618,9 @@ foreach ( $reasons as $reason => $sides ) {
 }
 $report .= "Unsupported documents by the reason the HTML Processor stopped. Call sites are lines in `class-wp-html-processor.php` of each checkout.\n\n";
 $report .= table( array( 'Reason', 'Target', 'PR', 'Δ', 'Target call sites', 'PR call sites' ), $rows ) . "\n";
+if ( array() !== $reasons ) {
+	$report .= "<details><summary>Example documents for each reason</summary>\n\n" . reason_examples_table( $reasons, $source_url, $base_sha, $merge_sha ) . "\n</details>\n\n";
+}
 
 $newly_unsupported = array_values(
 	array_filter(
