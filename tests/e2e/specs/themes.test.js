@@ -8,12 +8,8 @@ const themeName = 'E2E Test Theme';
 
 async function deleteTheme( requestUtils ) {
 	const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
-	const fixture = themes.find( ( theme ) => theme.stylesheet === themeSlug );
-	if ( ! fixture ) {
+	if ( ! themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
 		return;
-	}
-	if ( fixture.status === 'active' ) {
-		await requestUtils.activateTheme( 'twentytwentyone' );
 	}
 	const themesResponse = await requestUtils.request.get(
 		'wp-admin/themes.php'
