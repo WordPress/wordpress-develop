@@ -158,8 +158,10 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		foreach ( $entries as $key => $entry ) {
 
 			// Get post for comparison.
-			$id   = xml_find( $entries[ $key ]['child'], 'id' );
-			$post = get_post( url_to_postid( $id[0]['content'] ) );
+			$id      = xml_find( $entries[ $key ]['child'], 'id' );
+			$post_id = url_to_postid( $id[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Author.
 			$author = xml_find( $entries[ $key ]['child'], 'author', 'name' );

@@ -242,8 +242,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( $items as $key => $item ) {
 
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			$post = get_post( url_to_postid( $guid[0]['content'] ) );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
@@ -329,8 +331,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			$post = get_post( url_to_postid( $guid[0]['content'] ) );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
