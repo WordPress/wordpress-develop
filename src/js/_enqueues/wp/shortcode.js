@@ -83,7 +83,7 @@ window.wp = window.wp || {};
 
 				// Make sure to return any of the extra brackets if they
 				// weren't used to escape the shortcode.
-				return result ? left + result + right : match;
+				return result || '' === result ? left + result + right : match;
 			});
 		},
 
