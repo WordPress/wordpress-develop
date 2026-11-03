@@ -2567,10 +2567,11 @@ final class WP_Customize_Manager {
 				'message' => $r->get_error_message(),
 				'code'    => $r->get_error_code(),
 			);
-			if ( is_array( $r->get_error_data() ) ) {
-				$response = array_merge( $response, $r->get_error_data() );
+			$error_data = $r->get_error_data();
+			if ( is_array( $error_data ) ) {
+				$response = array_merge( $response, $error_data );
 			} else {
-				$response['data'] = $r->get_error_data();
+				$response['data'] = $error_data;
 			}
 		} else {
 			$response       = $r;
