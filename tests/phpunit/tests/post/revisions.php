@@ -18,6 +18,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
+	public function tear_down() {
+		unregister_post_type( self::POST_TYPE );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Note: Test needs reviewing when #16215 is fixed because I'm not sure the test current tests the "correct" behavior
 	 *
