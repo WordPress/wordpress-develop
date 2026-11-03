@@ -292,6 +292,7 @@ parameters:
 		- ../../src/wp-trackback.php
 		- ../../src/xmlrpc.php
 		- GlobalDocBlockVisitor.php
+		- HashEntry.php
 		- HashNotationVisitor.php
 		- HookDocsVisitor.php
 		- HookDocBlock.php
