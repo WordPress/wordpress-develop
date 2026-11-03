@@ -16,17 +16,25 @@ class Tests_Feed_ThePermalinkRss extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( $post_id );
 		setup_postdata( $GLOBALS['post'] );
 
-		$filter = new MockAction();
-		add_filter( 'the_permalink_rss', array( $filter, 'filter_append' ) );
+		$permalink = get_permalink( $post_id );
+		$filtered  = null;
+
+		add_filter(
+			'the_permalink_rss',
+			static function ( $url ) use ( &$filtered ) {
+				$filtered = $url;
+
+				// Include a raw ampersand so missing esc_url() would fail the assertion below.
+				return 'https://example.org/?a=1&b=2';
+			}
+		);
 
 		ob_start();
 		the_permalink_rss();
 		$output = ob_get_clean();
 
-		$permalink = get_permalink( $post_id );
-
-		$this->assertSame( esc_url( $permalink . '_append' ), $output );
-		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( $permalink ), $filter->get_args()[0] );
+		$this->assertSame( $permalink, $filtered );
+		// Literal escaped form — do not derive this via esc_url().
+		$this->assertSame( 'https://example.org/?a=1&#038;b=2', $output );
 	}
 }
