@@ -985,7 +985,8 @@ check_expectations() {
 
 	printf '\nChecking the results against %s.\n\n' "${EXPECT_FILE}"
 
-	while read -r EXPECTED_SLUG EXPECTED_STATUS EXPECTED_TEXT; do
+	# The `|| [ -n ... ]` keeps the last line when the file does not end with a newline.
+	while read -r EXPECTED_SLUG EXPECTED_STATUS EXPECTED_TEXT || [ -n "${EXPECTED_SLUG}" ]; do
 		case "${EXPECTED_SLUG}" in
 			'' | '#'* ) continue ;;
 		esac
