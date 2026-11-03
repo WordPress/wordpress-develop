@@ -30,7 +30,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_strips_css_from_blocks() {
+	public static function data_strips_css_from_blocks() {
 		return array(
 			'single block' => array(
 				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',
@@ -97,6 +97,27 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 
 		$this->assertArrayNotHasKey( 'css', $blocks[0]['attrs']['style'], 'style.css should be stripped.' );
 		$this->assertSame( '#ff0000', $blocks[0]['attrs']['style']['color']['text'], 'Other style properties should be preserved.' );
+	}
+
+	/**
+	 * Tests that custom CSS is stripped from nested pseudo-selector and viewport states.
+	 *
+	 * @ticket 66288
+	 *
+	 * @covers ::wp_strip_custom_css_from_blocks
+	 * @covers ::wp_strip_custom_css_from_style_array
+	 */
+	public function test_strips_css_from_nested_style_states() {
+		$content = '<!-- wp:paragraph {"style":{"css":"color: red;",":hover":{"css":"color: blue;","color":{"text":"#0000ff"}},"@mobile":{"css":"color: green;",":focus":{"css":"color: purple;"}}}} --><p>Hello</p><!-- /wp:paragraph -->';
+
+		$result = wp_unslash( wp_strip_custom_css_from_blocks( $content ) );
+		$blocks = parse_blocks( $result );
+		$style  = $blocks[0]['attrs']['style'];
+
+		$this->assertArrayNotHasKey( 'css', $style );
+		$this->assertArrayNotHasKey( 'css', $style[':hover'] );
+		$this->assertSame( '#0000ff', $style[':hover']['color']['text'] );
+		$this->assertArrayNotHasKey( '@mobile', $style, 'Empty nested style states should be removed after stripping custom CSS.' );
 	}
 
 	/**

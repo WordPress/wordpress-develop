@@ -226,7 +226,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
-	public function data_export_data_grouped_invalid_type() {
+	public static function data_export_data_grouped_invalid_type() {
 		return array(
 			array( 10 ),
 			array( 'WordPress' ),
@@ -448,7 +448,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		return str_replace( '{{TIMESTAMP}}', $timestamp, $expected_content );
 	}
 
-	public function data_contents() {
+	public static function data_contents() {
 		return array(
 			// Unhappy path.
 			'should contain null when integer'           => array(

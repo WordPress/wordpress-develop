@@ -33,7 +33,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_output_admin_notice() {
+	public static function data_should_output_admin_notice() {
 		return array(
 			'defaults'                                  => array(
 				'message'  => 'A notice with defaults.',

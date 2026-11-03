@@ -37,13 +37,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $admin_id;
 
 	/**
-	 * The current theme object.
+	 * Theme support state before the class tests run.
 	 *
-	 * @since 5.0.0
-	 *
-	 * @var WP_Theme $current_theme
+	 * @var array
 	 */
-	protected static $current_theme;
+	protected static $theme_features;
+
+	/**
+	 * Registered theme feature state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $registered_theme_features;
 
 	/**
 	 * The REST API route for themes.
@@ -113,7 +118,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 				'role' => 'contributor',
 			)
 		);
-		self::$current_theme  = wp_get_theme();
+
+		self::$theme_features            = $GLOBALS['_wp_theme_features'];
+		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		wp_set_current_user( self::$contributor_id );
 	}
@@ -141,7 +148,21 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		parent::set_up();
 
 		wp_set_current_user( self::$contributor_id );
-		switch_theme( 'rest-api' );
+
+		// Select the fixture theme without running theme activation side effects.
+		update_option( 'template', 'default' );
+		update_option( 'stylesheet', 'rest-api' );
+		update_option( 'template_root', DIR_TESTDATA . '/themedir1' );
+		update_option( 'stylesheet_root', DIR_TESTDATA . '/themedir1' );
+		wp_set_template_globals();
+		wp_clean_theme_json_cache();
+	}
+
+	public function tear_down() {
+		$GLOBALS['_wp_theme_features']            = self::$theme_features;
+		$GLOBALS['_wp_registered_theme_features'] = self::$registered_theme_features;
+
+		parent::tear_down();
 	}
 
 	/**
@@ -338,7 +359,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( $error_code, $response, 403 );
 	}
 
-	public function data_get_items_by_status() {
+	public static function data_get_items_by_status() {
 		return array(
 			array( 'active', 'rest_cannot_view_active_theme' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -365,7 +386,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function data_get_items_by_status_for_contributor() {
+	public static function data_get_items_by_status_for_contributor() {
 		return array(
 			array( 'active', '' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -1381,21 +1402,38 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The create_item() method does not exist for themes.
+	 * Themes is read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The update_item() method does not exist for themes.
+	 * Themes is read-only; update requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = self::$themes_route . '/' . get_stylesheet();
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
@@ -1500,7 +1538,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_non_subdir_theme() {
+	public static function data_get_item_non_subdir_theme() {
 		return array(
 			'parent theme'                => array(
 				'theme_dir'     => '/block-theme',
@@ -1548,7 +1586,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_subdirectory_theme() {
+	public static function data_get_item_subdirectory_theme() {
 		return array(
 			'theme2'                      => array(
 				'theme_dir'     => '/subdir/theme2',
@@ -1586,20 +1624,44 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The delete_item() method does not exist for themes.
+	 * Themes is read-only; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = self::$themes_route . '/' . get_stylesheet();
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
 	 * Context is not supported for themes.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		// Collection.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
+
+		// Single.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 	}
 }

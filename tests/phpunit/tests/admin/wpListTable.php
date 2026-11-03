@@ -98,7 +98,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_only_add_primary_column_when_needed() {
+	public static function data_should_only_add_primary_column_when_needed() {
 		/*
 		 * `WP_Post_Comments_List_Table` overrides `get_column_info()` rather than
 		 * use the default `WP_List_Table::get_column_info()`. Therefore it is
@@ -187,7 +187,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_views_links() {
+	public static function data_get_views_links() {
 		return array(
 			'one "current" link'                           => array(
 				'link_data' => array(
@@ -301,7 +301,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_views_links_doing_it_wrong() {
+	public static function data_get_views_links_doing_it_wrong() {
 		return array(
 			'non-array $link_data'               => array(
 				'link_data' => 'https://example.org, All, class="current" aria-current="page"',
@@ -509,7 +509,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_compat_fields() {
+	public static function data_compat_fields() {
 		return array(
 			'_args'            => array(
 				'property_name' => '_args',

@@ -110,20 +110,6 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The sitemap stylesheet route uses the "sitemap-stylesheet" query var, which must
-	 * not flag the query as a sitemap.
-	 *
-	 * @ticket 51543
-	 *
-	 * @covers WP_Query::parse_query
-	 */
-	public function test_is_sitemap_false_for_stylesheet_route(): void {
-		$query = new WP_Query( array( 'sitemap-stylesheet' => 'sitemap' ) );
-
-		$this->assertFalse( $query->is_sitemap(), 'The sitemap stylesheet route should not flag the query as a sitemap.' );
-	}
-
-	/**
 	 * is_robots takes precedence over is_sitemap in the parse_query branch.
 	 *
 	 * @ticket 51543

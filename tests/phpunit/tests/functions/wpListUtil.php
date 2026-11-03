@@ -89,7 +89,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_pluck() {
+	public static function data_wp_list_util_pluck() {
 		return array(
 			'simple'        => array(
 				'target_array' => array(
@@ -149,7 +149,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input() {
+	public static function data_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input() {
 		return array(
 			'int[] 0'                   => array( array( 0 ) ),
 			'int[] 1'                   => array( array( 1 ) ),
@@ -246,7 +246,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_string_arrays() {
+	public static function data_wp_list_util_sort_string_arrays() {
 		return array(
 			'string[], no keys, no ordering'     => array(
 				'expected'     => array( 'four', 'two', 'three', 'one' ),
@@ -322,7 +322,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_int_arrays() {
+	public static function data_wp_list_util_sort_int_arrays() {
 		return array(
 			'int[], no keys, no ordering'     => array(
 				'expected'     => array( 4, 2, 3, 1 ),
@@ -398,7 +398,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_arrays_of_arrays() {
+	public static function data_wp_list_util_sort_arrays_of_arrays() {
 		return array(
 			'array[], no keys, no ordering'     => array(
 				'expected'     => array(
@@ -774,7 +774,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_object_arrays() {
+	public static function data_wp_list_util_sort_object_arrays() {
 		return array(
 			'object[], no keys, no ordering'     => array(
 				'expected'     => array(
@@ -1007,7 +1007,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_non_existent_orderby_fields() {
+	public static function data_wp_list_util_sort_non_existent_orderby_fields() {
 		return array(
 			'int[], int keys, $orderby a non-existent field, $order = ASC and $preserve_keys = false' => array(
 				'expected'      => array( 4, 2, 3, 1 ),

@@ -29,7 +29,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$template_name = 'test-plugin//test-template';
 		$template      = self::$registry->register( $template_name );
 
-		$this->assertSame( $template->slug, 'test-template' );
+		$this->assertSame( 'test-template', $template->slug );
 
 		self::$registry->unregister( $template_name );
 	}

@@ -49,6 +49,16 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt_public' );
+		unregister_post_type( 'wptests_pt_private' );
+
+		parent::tear_down();
+	}
+
 	public function test_get_and_set() {
 		$users = new WP_User_Query();
 
@@ -194,7 +204,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertStringContainsString( "ORDER BY $full_key", $q->query_orderby );
 	}
 
-	public function data_orderby_should_convert_non_prefixed_keys() {
+	public static function data_orderby_should_convert_non_prefixed_keys() {
 		return array(
 			array( 'nicename', 'user_nicename' ),
 			array( 'email', 'user_email' ),
@@ -2012,7 +2022,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returning_field_subset_as_string() {
+	public static function data_returning_field_subset_as_string() {
 		$data = array(
 			'id'            => array(
 				'fields'   => 'id',
@@ -2094,7 +2104,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returning_field_subset_as_array() {
+	public static function data_returning_field_subset_as_array() {
 		$data = array(
 			'id'                 => array(
 				'fields'   => array( 'id' ),
@@ -2370,7 +2380,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_compat_fields() {
+	public static function data_compat_fields() {
 		return array(
 			'results'     => array(
 				'property_name' => 'results',

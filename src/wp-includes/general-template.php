@@ -584,8 +584,11 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 */
 		$markup = sprintf(
 			'<span class="%1$s">
-				%7$s
-				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+				%8$s
+				<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
+					'<span class="wp-tooltip__text">%7$s</span>' .
+				'</span>' .
+				'<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
@@ -598,6 +601,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			esc_attr( $icon ),
 			esc_html( $content ),
 			esc_attr( $args['close_label'] ),
+			esc_html( $args['label'] ),
 			$button,
 		);
 	}
@@ -4069,7 +4073,8 @@ function wp_preload_resources() {
 	 *     @type array ...$0 {
 	 *         Array of resource attributes.
 	 *
-	 *         @type string $href          URL to include in resource preloads. Required.
+	 *         @type string $href          URL to include in resource preloads. May be omitted
+	 *                                     for an image preloaded by its `$imagesrcset`.
 	 *         @type string $as            How the browser should treat the resource
 	 *                                     (`script`, `style`, `image`, `document`, etc).
 	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
@@ -4103,9 +4108,7 @@ function wp_preload_resources() {
 			}
 			$unique_resources[ $href ] = $attributes;
 			// Media can use imagesrcset and not href.
-		} elseif ( ( 'image' === $resource['as'] ) &&
-			( isset( $resource['imagesrcset'] ) || isset( $resource['imagesizes'] ) )
-		) {
+		} elseif ( isset( $resource['as'], $resource['imagesrcset'] ) && 'image' === $resource['as'] ) {
 			if ( isset( $unique_resources[ $resource['imagesrcset'] ] ) ) {
 				continue;
 			}
@@ -5241,7 +5244,7 @@ function register_admin_color_schemes() {
 		false,
 		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
-			'base'    => '#a7aaad',
+			'base'    => '#c3c4c7',
 			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)
