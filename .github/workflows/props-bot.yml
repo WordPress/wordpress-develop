@@ -31,9 +31,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ contains( fromJSON( '["pull_request_target", "pull_request_review", "pull_request_review_comment"]' ), github.event_name ) && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

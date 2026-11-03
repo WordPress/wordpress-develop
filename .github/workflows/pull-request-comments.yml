@@ -11,9 +11,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
