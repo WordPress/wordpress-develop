@@ -10,6 +10,15 @@
 class Tests_Admin_Includes_Image_WpExifDate2ts extends WP_UnitTestCase {
 
 	/**
+	 * Loads the tested file.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+	}
+
+	/**
 	 * @ticket 65819
 	 */
 	public function test_converts_exif_datetime_to_timestamp() {
