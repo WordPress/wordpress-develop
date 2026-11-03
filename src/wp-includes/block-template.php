@@ -299,6 +299,15 @@ function get_the_block_template_html() {
 	$content = wp_filter_content_tags( $content, 'template' );
 	$content = str_replace( ']]>', ']]&gt;', $content );
 
+	/**
+	 * Filters the block template HTML.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $content The block template HTML.
+	 */
+	$content = apply_filters( 'the_block_template_html', $content );
+
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
 	$template_html = '<div class="wp-site-blocks">' . $content . '</div>';
