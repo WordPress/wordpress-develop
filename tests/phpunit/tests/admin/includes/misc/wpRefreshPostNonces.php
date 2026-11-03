@@ -78,10 +78,10 @@ class Tests_Admin_Includes_Misc_WpRefreshPostNonces extends WP_UnitTestCase {
 	 */
 	public static function data_wp_refresh_post_nonces_invalid_post_id(): array {
 		return array(
-			'zero'            => array( 'post_id' => 0 ),
-			'string zero'     => array( 'post_id' => '0' ),
-			'non-numeric'     => array( 'post_id' => 'abc' ),
-			'null post_id'    => array( 'post_id' => null ),
+			'zero'         => array( 'post_id' => 0 ),
+			'string zero'  => array( 'post_id' => '0' ),
+			'non-numeric'  => array( 'post_id' => 'abc' ),
+			'null post_id' => array( 'post_id' => null ),
 		);
 	}
 
