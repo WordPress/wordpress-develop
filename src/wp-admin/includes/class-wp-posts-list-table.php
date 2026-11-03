@@ -83,21 +83,25 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type        = $this->screen->post_type;
 		$post_type_object = get_post_type_object( $post_type );
 
-		$exclude_states = get_post_stati(
+		$include_states = get_post_stati(
 			array(
-				'show_in_admin_all_list' => false,
+				'show_in_admin_all_list' => true,
 			)
 		);
 
+		/*
+		 * List the statuses to count rather than the ones to skip, so the database can
+		 * use the post_author part of the type_status_author index and only read the
+		 * rows of the current user.
+		 */
 		$this->user_posts_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT( 1 )
 				FROM $wpdb->posts
 				WHERE post_type = %s
-				AND post_status NOT IN ( '" . implode( "','", $exclude_states ) . "' )
-				AND post_author = %d",
-				$post_type,
-				get_current_user_id()
+				AND post_status IN ( " . implode( ', ', array_fill( 0, count( $include_states ), '%s' ) ) . ' )
+				AND post_author = %d',
+				array_merge( array( $post_type ), array_values( $include_states ), array( get_current_user_id() ) )
 			)
 		);
 
