@@ -30,10 +30,12 @@ while ( have_posts() ) {
 				 */
 				$image_size = apply_filters( 'twenty_twenty_one_attachment_size', 'full' );
 				echo wp_get_attachment_image( get_the_ID(), $image_size );
+
+				$caption = wp_get_attachment_caption();
 				?>
 
-				<?php if ( wp_get_attachment_caption() ) : ?>
-					<figcaption class="wp-caption-text"><?php echo wp_kses_post( wp_get_attachment_caption() ); ?></figcaption>
+				<?php if ( $caption ) : ?>
+					<figcaption class="wp-caption-text"><?php echo wp_kses_post( $caption ); ?></figcaption>
 				<?php endif; ?>
 			</figure><!-- .wp-block-image -->
 
