@@ -20,11 +20,6 @@ name: Plugin Compatibility Tests
 on:
   workflow_call:
     inputs:
-      os:
-        description: 'Operating system to run tests on.'
-        required: false
-        type: 'string'
-        default: 'ubuntu-24.04'
       wp-version:
         description: 'The version of WordPress to test against. Accepts a version number, "latest", or "nightly".'
         required: false
@@ -71,7 +66,7 @@ jobs:
     name: PHP ${{ inputs.php-version }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}
     permissions:
       contents: read
-    runs-on: ${{ inputs.os }}
+    runs-on: ubuntu-24.04
     # Installing a plugin's dependencies before testing it adds a download and an activation for each
     # one, and a dependency the size of WooCommerce is not quick to activate.
     timeout-minutes: 45

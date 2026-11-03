@@ -271,7 +271,6 @@ jobs:
       matrix:
         shard: ${{ fromJSON( needs.build-plugin-matrix.outputs.shards ) }}
     with:
-      os: 'ubuntu-24.04'
       wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
       php-version: '8.5'
       plugin-slugs: ${{ matrix.shard.slugs }}
@@ -291,7 +290,6 @@ jobs:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'workflow_dispatch' }}
     with:
-      os: 'ubuntu-24.04'
       wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
       php-version: '8.5'
       fixtures: true
