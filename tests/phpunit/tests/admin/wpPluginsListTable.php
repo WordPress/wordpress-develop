@@ -41,6 +41,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 			'Network'     => false,
 			'Title'       => 'Fake Plugin',
 			'AuthorName'  => 'WordPress',
+			'UninstallNotification'  => '',
 		),
 	);
 
