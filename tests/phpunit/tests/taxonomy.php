@@ -4,12 +4,28 @@
  * @group taxonomy
  */
 class Tests_Taxonomy extends WP_UnitTestCase {
+
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
 	public function test_get_post_taxonomies() {
 		$this->assertSame( array( 'category', 'post_tag', 'post_format' ), get_object_taxonomies( 'post' ) );
 	}
 
 	public function test_get_link_taxonomies() {
 		$this->assertSame( array( 'link_category' ), get_object_taxonomies( 'link' ) );
+	}
+
+	public function test_get_block_taxonomies() {
+		$this->assertSame( array( 'wp_pattern_category' ), get_object_taxonomies( 'wp_block' ) );
 	}
 
 	/**
@@ -24,7 +40,11 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	public function test_get_post_taxonomy() {
-		foreach ( get_object_taxonomies( 'post' ) as $taxonomy ) {
+		$taxonomies = get_object_taxonomies( 'post' );
+
+		$this->assertNotEmpty( $taxonomies );
+
+		foreach ( $taxonomies as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertIsObject( $tax );
@@ -106,7 +126,11 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	public function test_get_link_taxonomy() {
-		foreach ( get_object_taxonomies( 'link' ) as $taxonomy ) {
+		$taxonomies = get_object_taxonomies( 'link' );
+
+		$this->assertNotEmpty( $taxonomies );
+
+		foreach ( $taxonomies as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertIsObject( $tax );
@@ -119,6 +143,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( taxonomy_exists( 'category' ) );
 		$this->assertTrue( taxonomy_exists( 'post_tag' ) );
 		$this->assertTrue( taxonomy_exists( 'link_category' ) );
+		$this->assertTrue( taxonomy_exists( 'wp_pattern_category' ) );
 	}
 
 	public function test_taxonomy_exists_unknown() {
@@ -126,6 +151,41 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( taxonomy_exists( '' ) );
 		$this->assertFalse( taxonomy_exists( 0 ) );
 		$this->assertFalse( taxonomy_exists( null ) );
+	}
+
+	/**
+	 * Tests that `taxonomy_exists()` returns `false` when the `$taxonomy`
+	 * argument is not a string.
+	 *
+	 * @ticket 56338
+	 *
+	 * @covers ::taxonomy_exists
+	 *
+	 * @dataProvider data_taxonomy_exists_should_return_false_with_non_string_taxonomy
+	 *
+	 * @param mixed $taxonomy The non-string taxonomy.
+	 */
+	public function test_taxonomy_exists_should_return_false_with_non_string_taxonomy( $taxonomy ) {
+		$this->assertFalse( taxonomy_exists( $taxonomy ) );
+	}
+
+	/**
+	 * Data provider with non-string values.
+	 *
+	 * @return array
+	 */
+	public static function data_taxonomy_exists_should_return_false_with_non_string_taxonomy() {
+		return array(
+			'array'        => array( array() ),
+			'object'       => array( new stdClass() ),
+			'bool (true)'  => array( true ),
+			'bool (false)' => array( false ),
+			'null'         => array( null ),
+			'integer (0)'  => array( 0 ),
+			'integer (1)'  => array( 1 ),
+			'float (0.0)'  => array( 0.0 ),
+			'float (1.1)'  => array( 1.1 ),
+		);
 	}
 
 	public function test_is_taxonomy_hierarchical() {
@@ -182,7 +242,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_too_long_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
 	}
 
 	/**
@@ -191,7 +251,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_empty_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( '', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( '', 'post', array() ) );
 	}
 
 	/**
@@ -249,7 +309,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		// Create a post type to test with.
 		$post_type = 'test_cpt';
 		$this->assertFalse( get_post_type( $post_type ) );
-		$this->assertObjectHasAttribute( 'name', register_post_type( $post_type ) );
+		$this->assertObjectHasProperty( 'name', register_post_type( $post_type ) );
 
 		// Core taxonomy, core post type.
 		$this->assertTrue( unregister_taxonomy_for_object_type( 'category', 'post' ) );
@@ -283,7 +343,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 		_unregister_post_type( $post_type );
-
 	}
 
 	/**
@@ -300,7 +359,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	public function test_get_objects_in_term_should_return_invalid_taxonomy_error() {
 		$terms = get_objects_in_term( 1, 'invalid_taxonomy' );
-		$this->assertInstanceOf( 'WP_Error', $terms );
+		$this->assertWPError( $terms );
 		$this->assertSame( 'invalid_taxonomy', $terms->get_error_code() );
 	}
 
@@ -332,10 +391,10 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$posts_with_terms = array_merge( $posts_with_tag, $posts_with_category );
 
-		$this->assertEquals( $posts_with_tag, get_objects_in_term( $tag_id, 'post_tag' ) );
-		$this->assertEquals( $posts_with_category, get_objects_in_term( $cat_id, 'category' ) );
-		$this->assertEquals( $posts_with_terms, get_objects_in_term( array( $tag_id, $cat_id ), array( 'post_tag', 'category' ) ) );
-		$this->assertEquals( array_reverse( $posts_with_tag ), get_objects_in_term( $tag_id, 'post_tag', array( 'order' => 'desc' ) ) );
+		$this->assertSame( array_map( 'strval', $posts_with_tag ), get_objects_in_term( $tag_id, 'post_tag' ) );
+		$this->assertSame( array_map( 'strval', $posts_with_category ), get_objects_in_term( $cat_id, 'category' ) );
+		$this->assertSame( array_map( 'strval', $posts_with_terms ), get_objects_in_term( array( $tag_id, $cat_id ), array( 'post_tag', 'category' ) ) );
+		$this->assertSame( array_map( 'strval', array_reverse( $posts_with_tag ) ), get_objects_in_term( $tag_id, 'post_tag', array( 'order' => 'desc' ) ) );
 	}
 
 	/**
@@ -413,23 +472,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( array(), $after );
 	}
 
-	/**
-	 * @ticket 25706
-	 */
-	public function test_in_category() {
-		$post = self::factory()->post->create_and_get();
-
-		// in_category() returns false when first parameter is empty().
-		$this->assertFalse( in_category( '', $post ) );
-		$this->assertFalse( in_category( false, $post ) );
-		$this->assertFalse( in_category( null, $post ) );
-
-		// Test expected behavior of in_category().
-		$term = wp_insert_term( 'Test', 'category' );
-		wp_set_object_terms( $post->ID, $term['term_id'], 'category' );
-		$this->assertTrue( in_category( $term['term_id'], $post ) );
-	}
-
 	public function test_insert_category_create() {
 		$cat = array(
 			'cat_ID'   => 0,
@@ -454,7 +496,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'force_error',
 			'cat_name' => 'Error',
 		);
-		$this->assertInstanceOf( 'WP_Error', wp_insert_category( $cat, true ) );
+		$this->assertWPError( wp_insert_category( $cat, true ) );
 	}
 
 	public function test_insert_category_force_error_no_handle() {
@@ -646,13 +688,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'publicly_queryable' => false,
 			)
 		);
-		$t = $this->factory->term->create_and_get(
+		$t = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 
-		$p = $this->factory->post->create();
+		$p = self::factory()->post->create();
 		wp_set_object_terms( $p, $t->slug, 'wptests_tax' );
 
 		add_filter( 'do_parse_request', array( $this, 'register_query_var' ) );
@@ -836,7 +878,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
-		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'bar', $wp->public_query_vars );
 	}
 
 	/**
@@ -963,7 +1005,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		$updated_post_id = edit_post(
 			array(
 				'post_ID'   => $post->ID,
@@ -989,7 +1031,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_default_term_for_custom_taxonomy() {
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 
 		$tax = 'custom-tax';
 
@@ -1044,9 +1086,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
-
-		unregister_taxonomy( $tax );
-		$this->assertSame( get_option( 'default_term_' . $tax ), false );
 	}
 
 	/**

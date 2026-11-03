@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Renderer_Controller tests.
+ * Unit tests covering WP_REST_Block_Renderer_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_REST_Block_Renderer_Controller.
- *
  * @since 5.0.0
  *
  * @covers WP_REST_Block_Renderer_Controller
@@ -386,6 +380,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $defaults, json_decode( $data['rendered'], true ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			json_decode( $block_type->render( $defaults ) ),
 			json_decode( $data['rendered'] )
@@ -421,7 +416,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $expected_attributes, json_decode( $data['rendered'], true ) );
-		$this->assertEquals(
+		$this->assertEqualSetsWithIndex(
 			json_decode( $block_type->render( $attributes ), true ),
 			json_decode( $data['rendered'], true )
 		);
@@ -435,7 +430,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function test_get_item_with_pre_render_block_filter() {
 		wp_set_current_user( self::$user_id );
 
-		$pre_render_filter = static function( $output, $block ) {
+		$pre_render_filter = static function ( $output, $block ) {
 			if ( $block['blockName'] === self::$block_name ) {
 				return '<p>Alternate content.</p>';
 			}
@@ -501,7 +496,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$attributes       = array( 'some_string' => $string_attribute );
 		$request          = new WP_REST_Request( 'POST', self::$rest_api_route . self::$block_name );
 		$request->set_param( 'context', 'edit' );
-		$request->set_header( 'content-type', 'application/json' );
+		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( compact( 'attributes' ) ) );
 		$response = rest_get_server()->dispatch( $request );
 
@@ -607,50 +602,91 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertArrayHasKey( 'schema', $data );
 		$this->assertSame( 'rendered-block', $data['schema']['title'] );
 		$this->assertSame( 'object', $data['schema']['type'] );
-		$this->arrayHasKey( 'rendered', $data['schema']['properties'] );
-		$this->arrayHasKey( 'string', $data['schema']['properties']['rendered']['type'] );
+		$this->assertArrayHasKey( 'rendered', $data['schema']['properties'] );
+		$this->assertSame( 'string', $data['schema']['properties']['rendered']['type'] );
 		$this->assertSame( array( 'edit' ), $data['schema']['properties']['rendered']['context'] );
 	}
 
 	/**
-	 * The update_item() method does not exist for block rendering.
-	 */
-	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not implement update_item().' );
-	}
-
-	/**
-	 * The create_item() method does not exist for block rendering.
+	 * Block rendering has no create collection route.
+	 *
+	 * Item-level POST is a read-like request and is covered by test_get_item_post_request().
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/block-renderer' );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The delete_item() method does not exist for block rendering.
+	 * Block rendering does not support update requests.
+	 *
+	 * @ticket 66073
+	 */
+	public function test_update_item() {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'PUT', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+	}
+
+	/**
+	 * Block rendering does not support delete requests.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		wp_set_current_user( self::$user_id );
+
+		$request  = new WP_REST_Request( 'DELETE', self::$rest_api_route . self::$block_name );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The get_items() method does not exist for block rendering.
+	 * Block rendering has no collection route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not implement get_items().' );
+		wp_set_current_user( self::$user_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-renderer' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The context_param() method does not exist for block rendering.
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		$request  = new WP_REST_Request( 'OPTIONS', self::$rest_api_route . self::$block_name );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'], 'The context default should be view.' );
+		$this->assertSame( array( 'edit' ), $data['endpoints'][0]['args']['context']['enum'], 'The context enum should be edit.' );
 	}
 
 	/**
 	 * The prepare_item() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 }

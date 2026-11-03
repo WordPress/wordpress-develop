@@ -1,26 +1,41 @@
 /**
- * Default settings for jQuery UI Autocomplete for use with non-hierarchical taxonomies.
- *
  * @output wp-admin/js/tags-suggest.js
  */
-( function( $ ) {
-	if ( typeof window.uiAutocompleteL10n === 'undefined' ) {
-		return;
-	}
 
+/**
+ * Default settings for jQuery UI Autocomplete for use with non-hierarchical taxonomies.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
+( function( $ ) {
 	var tempID = 0;
 	var separator = wp.i18n._x( ',', 'tag delimiter' ) || ',';
+	var __ = wp.i18n.__,
+	    _n = wp.i18n._n,
+	    sprintf = wp.i18n.sprintf;
 
+	/**
+	 * Splits a string into an array of terms based on the separator.
+	 *
+	 * @param {string} val The string to split.
+	 * @return {string[]} An array of terms.
+	 */
 	function split( val ) {
 		return val.split( new RegExp( separator + '\\s*' ) );
 	}
 
+	/**
+	 * Gets the last term from a string based on the separator.
+	 *
+	 * @param {string} term The string to get the last term from.
+	 * @return {string} The last term.
+	 */
 	function getLast( term ) {
 		return split( term ).pop();
 	}
 
 	/**
-	 * Add UI Autocomplete to an input or textarea element with presets for use
+	 * Adds UI Autocomplete to an input or textarea element with presets for use
 	 * with non-hierarchical taxonomies.
 	 *
 	 * Example: `$( element ).wpTagsSuggest( options )`.
@@ -139,13 +154,17 @@
 				collision: 'none'
 			},
 			messages: {
-				noResults: window.uiAutocompleteL10n.noResults,
+				noResults: __( 'No results found.' ),
 				results: function( number ) {
-					if ( number > 1 ) {
-						return window.uiAutocompleteL10n.manyResults.replace( '%d', number );
-					}
-
-					return window.uiAutocompleteL10n.oneResult;
+					return sprintf(
+						/* translators: %d: Number of search results found. */
+						_n(
+							'%d result found. Use up and down arrow keys to navigate.',
+							'%d results found. Use up and down arrow keys to navigate.',
+							number
+						),
+						number
+					);
 				}
 			}
 		}, options );

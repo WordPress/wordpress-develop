@@ -1,11 +1,39 @@
 <?php
 
 /**
+ * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ *
  * @group comment
  *
- * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ * @covers ::comments_template
  */
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
+
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+		switch_theme( 'default' );
+	}
+
+	/**
+	 * Cleans up after every test.
+	 */
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+		parent::tear_down();
+	}
 
 	/**
 	 * @ticket 8071
@@ -556,6 +584,9 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		// Find the comment permalinks.
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p1, $matches );
 
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
+
 		// This is the main post page, so we don't expect any cpage param.
 		foreach ( $matches[1] as $m ) {
 			$this->assertStringNotContainsString( 'cpage', $m );
@@ -575,6 +606,9 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// Find the comment permalinks.
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p2, $matches );
+
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
@@ -649,6 +683,9 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		// Find the comment permalinks.
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p0, $matches );
 
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
+
 		foreach ( $matches[1] as $m ) {
 			$this->assertStringContainsString( 'cpage=3', $m );
 		}
@@ -667,6 +704,9 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// Find the comment permalinks.
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p2, $matches );
+
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
@@ -688,6 +728,9 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// Find the comment permalinks.
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p1, $matches );
+
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
@@ -1020,10 +1063,10 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( $expected_ids, array_map( 'intval', $matches[1] ) );
-		$this->assertEquals( $expected['offset'], $offset );
+		$this->assertSame( $expected['offset'], $offset );
 	}
 
-	public function data_comments_template_top_level_query_args() {
+	public static function data_comments_template_top_level_query_args() {
 		return array(
 			array(
 				array(

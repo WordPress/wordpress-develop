@@ -4,18 +4,12 @@
  *
  * @package WordPress
  * @since 4.9.9
- */
-
-/**
- * Tests_User_WpSendUserRequest class.
- *
- * @since 4.9.9
  *
  * @group privacy
  * @group user
  * @covers ::wp_send_user_request
  */
-class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
+class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 
 	/**
 	 * Test administrator user.

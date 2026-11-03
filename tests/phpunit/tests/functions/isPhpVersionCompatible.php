@@ -3,7 +3,8 @@
 /**
  * Tests the is_php_version_compatible() function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::is_php_version_compatible
  */
 class Tests_Functions_IsPhpVersionCompatible extends WP_UnitTestCase {
@@ -24,10 +25,10 @@ class Tests_Functions_IsPhpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function data_is_php_version_compatible() {
-		$php_version = phpversion();
+	public static function data_is_php_version_compatible() {
+		$php_version = PHP_VERSION;
 
 		$version_parts  = explode( '.', $php_version );
 		$lower_version  = $version_parts;

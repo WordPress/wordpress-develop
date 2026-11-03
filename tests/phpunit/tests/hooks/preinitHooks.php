@@ -9,12 +9,12 @@
 class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {
 
 	public function test_array_to_hooks() {
-		$tag1      = __FUNCTION__ . '_1';
-		$priority1 = 1;
-		$tag2      = __FUNCTION__ . '_2';
-		$priority2 = 2;
-		$filters   = array(
-			$tag1 => array(
+		$hook_name1 = __FUNCTION__ . '_1';
+		$priority1  = 1;
+		$hook_name2 = __FUNCTION__ . '_2';
+		$priority2  = 2;
+		$filters    = array(
+			$hook_name1 => array(
 				$priority1 => array(
 					'test1' => array(
 						'function'      => '__return_false',
@@ -22,7 +22,7 @@ class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {
 					),
 				),
 			),
-			$tag2 => array(
+			$hook_name2 => array(
 				$priority2 => array(
 					'test1' => array(
 						'function'      => '__return_null',
@@ -34,7 +34,7 @@ class Tests_Hooks_PreinitHooks extends WP_UnitTestCase {
 
 		$hooks = WP_Hook::build_preinitialized_hooks( $filters );
 
-		$this->assertSame( $priority1, $hooks[ $tag1 ]->has_filter( $tag1, '__return_false' ) );
-		$this->assertSame( $priority2, $hooks[ $tag2 ]->has_filter( $tag2, '__return_null' ) );
+		$this->assertSame( $priority1, $hooks[ $hook_name1 ]->has_filter( $hook_name1, '__return_false' ) );
+		$this->assertSame( $priority2, $hooks[ $hook_name2 ]->has_filter( $hook_name2, '__return_null' ) );
 	}
 }

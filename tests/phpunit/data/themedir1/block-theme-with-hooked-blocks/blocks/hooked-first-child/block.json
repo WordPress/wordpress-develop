@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"title": "Hooked Block (first child)",
+	"name": "tests/hooked-first-child",
+	"blockHooks": {
+		"core/comments": "firstChild"
+	},
+	"render": "file:render.php"
+}

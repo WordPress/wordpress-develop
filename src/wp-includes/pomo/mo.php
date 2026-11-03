@@ -13,6 +13,11 @@ require_once __DIR__ . '/streams.php';
 if ( ! class_exists( 'MO', false ) ) :
 	class MO extends Gettext_Translations {
 
+		/**
+		 * Number of plural forms.
+		 *
+		 * @var int
+		 */
 		public $_nplurals = 2;
 
 		/**
@@ -124,7 +129,7 @@ if ( ! class_exists( 'MO', false ) ) :
 
 			// Headers' msgid is an empty string.
 			fwrite( $fh, pack( 'VV', 0, $current_addr ) );
-			$current_addr++;
+			++$current_addr;
 			$originals_table = "\0";
 
 			$reader = new POMO_Reader();
@@ -201,9 +206,9 @@ if ( ! class_exists( 'MO', false ) ) :
 			$magic_little_64 = (int) 2500072158;
 			// 0xde120495
 			$magic_big = ( (int) - 569244523 ) & 0xFFFFFFFF;
-			if ( $magic_little == $magic || $magic_little_64 == $magic ) {
+			if ( $magic_little === $magic || $magic_little_64 === $magic ) {
 				return 'little';
-			} elseif ( $magic_big == $magic ) {
+			} elseif ( $magic_big === $magic ) {
 				return 'big';
 			} else {
 				return false;
@@ -224,7 +229,7 @@ if ( ! class_exists( 'MO', false ) ) :
 			$endian = ( 'big' === $endian_string ) ? 'N' : 'V';
 
 			$header = $reader->read( 24 );
-			if ( $reader->strlen( $header ) != 24 ) {
+			if ( $reader->strlen( $header ) !== 24 ) {
 				return false;
 			}
 
@@ -235,7 +240,7 @@ if ( ! class_exists( 'MO', false ) ) :
 			}
 
 			// Support revision 0 of MO format specs, only.
-			if ( 0 != $header['revision'] ) {
+			if ( 0 !== $header['revision'] ) {
 				return false;
 			}
 
@@ -244,23 +249,23 @@ if ( ! class_exists( 'MO', false ) ) :
 
 			// Read originals' indices.
 			$originals_lengths_length = $header['translations_lengths_addr'] - $header['originals_lengths_addr'];
-			if ( $originals_lengths_length != $header['total'] * 8 ) {
+			if ( $originals_lengths_length !== $header['total'] * 8 ) {
 				return false;
 			}
 
 			$originals = $reader->read( $originals_lengths_length );
-			if ( $reader->strlen( $originals ) != $originals_lengths_length ) {
+			if ( $reader->strlen( $originals ) !== $originals_lengths_length ) {
 				return false;
 			}
 
 			// Read translations' indices.
 			$translations_lengths_length = $header['hash_addr'] - $header['translations_lengths_addr'];
-			if ( $translations_lengths_length != $header['total'] * 8 ) {
+			if ( $translations_lengths_length !== $header['total'] * 8 ) {
 				return false;
 			}
 
 			$translations = $reader->read( $translations_lengths_length );
-			if ( $reader->strlen( $translations ) != $translations_lengths_length ) {
+			if ( $reader->strlen( $translations ) !== $translations_lengths_length ) {
 				return false;
 			}
 
@@ -305,10 +310,10 @@ if ( ! class_exists( 'MO', false ) ) :
 		 * found in a MO file
 		 *
 		 * @static
-		 * @param string $original original string to translate from MO file. Might contain
-		 *  0x04 as context separator or 0x00 as singular/plural separator
+		 * @param string $original    original string to translate from MO file. Might contain
+		 *                            0x04 as context separator or 0x00 as singular/plural separator
 		 * @param string $translation translation string from MO file. Might contain
-		 *  0x00 as a plural translations separator
+		 *                            0x00 as a plural translations separator
 		 * @return Translation_Entry Entry instance.
 		 */
 		public function &make_entry( $original, $translation ) {

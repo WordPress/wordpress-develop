@@ -10,7 +10,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
 		// Support the config file from the root of the develop repository.
 		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
-			$config_file_path = dirname( dirname( $config_file_path ) );
+			$config_file_path = dirname( $config_file_path, 2 );
 		}
 	}
 	$config_file_path .= '/wp-tests-config.php';
@@ -28,6 +28,21 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 
 require_once $config_file_path;
+
+/*
+ * The Secrets API will not derive a key from the placeholder salts that
+ * wp-tests-config-sample.php ships with, so give the suite a fixed test key.
+ *
+ * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
+ * while it loads this file in a child process, and the Secrets API tests that
+ * run isolated do so precisely to define WP_SECRETS_KEY themselves, or to
+ * leave it undefined.
+ */
+if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] )
+	&& defined( 'LOGGED_IN_KEY' ) && 'put your unique phrase here' === LOGGED_IN_KEY
+) {
+	define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+}
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
@@ -79,7 +94,7 @@ if ( version_compare( $phpunit_version, '5.7.21', '<' ) ) {
  */
 if ( ! class_exists( 'Yoast\PHPUnitPolyfills\Autoload' ) ) {
 	// Default location of the autoloader for WP core test runs.
-	$phpunit_polyfills_autoloader = dirname( dirname( dirname( __DIR__ ) ) ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+	$phpunit_polyfills_autoloader = dirname( __DIR__, 3 ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
 	$phpunit_polyfills_error      = false;
 
 	// Allow for a custom installation location to be provided for plugin/theme integration tests.
@@ -139,7 +154,7 @@ unset( $phpunit_polyfills_autoloader, $phpunit_polyfills_error, $phpunit_polyfil
  * Minimum version of the PHPUnit Polyfills package as declared in `composer.json`.
  * Only needs updating when new polyfill features start being used in the test suite.
  */
-$phpunit_polyfills_minimum_version = '1.0.1';
+$phpunit_polyfills_minimum_version = '1.1.0';
 if ( class_exists( '\Yoast\PHPUnitPolyfills\Autoload' )
 	&& ( defined( '\Yoast\PHPUnitPolyfills\Autoload::VERSION' ) === false
 	|| version_compare( Yoast\PHPUnitPolyfills\Autoload::VERSION, $phpunit_polyfills_minimum_version, '<' ) )
@@ -181,7 +196,7 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			'Error: The following required PHP extensions are missing from the testing environment: %s.' . PHP_EOL,
 			implode( ', ', $missing_extensions )
 		);
-		echo 'Please make sure they are installed and enabled.' . PHP_EOL,
+		echo 'Please make sure they are installed and enabled.' . PHP_EOL;
 		exit( 1 );
 	}
 }
@@ -205,7 +220,7 @@ if ( $missing_constants ) {
 		'Error: The following required constants are not defined: %s.' . PHP_EOL,
 		implode( ', ', $missing_constants )
 	);
-	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL,
+	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL;
 	exit( 1 );
 }
 
@@ -215,7 +230,11 @@ define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
-define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
+define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
+}
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
@@ -227,10 +246,28 @@ if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
  */
 define( 'DISABLE_WP_CRON', true );
 
-define( 'WP_MEMORY_LIMIT', -1 );
-define( 'WP_MAX_MEMORY_LIMIT', -1 );
+define( 'WP_MEMORY_LIMIT', '-1' );
+define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
+
+/*
+ * Tests that cover the upload_path and upload_url_path options run in a separate process
+ * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
+ */
+if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
+
+	/*
+	 * Delete the test uploads dir exactly once per run, via an env var (we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process).
+	 */
+	$delete_tests_uploads_dir = ( false === getenv( 'WP_TESTS_UPLOADS_RUN_ID' ) );
+
+	if ( $delete_tests_uploads_dir ) {
+		putenv( 'WP_TESTS_UPLOADS_RUN_ID=' . getmypid() . '-' . uniqid() );
+	}
+}
 
 $PHP_SELF            = '/index.php';
 $GLOBALS['PHP_SELF'] = '/index.php';
@@ -240,10 +277,6 @@ $_SERVER['PHP_SELF'] = '/index.php';
 $multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
-
-// Override the PHPMailer.
-require_once __DIR__ . '/mock-mailer.php';
-$phpmailer = new MockPHPMailer( true );
 
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
@@ -297,8 +330,49 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
+/*
+ * Delete the wp-content/test-suite-uploads folder before WordPress loads.
+ *
+ * Plugins and themes may call wp_upload_dir() while loading, which creates the folder and
+ * caches it as created. Deleting it afterwards would leave a cached path that no longer exists.
+ * WordPress functions are not available yet, so this uses plain PHP.
+ */
+if ( ! empty( $delete_tests_uploads_dir ) ) {
+	$uploads_test_run_dir = ABSPATH . UPLOADS;
+
+	if ( is_dir( $uploads_test_run_dir ) ) {
+		try {
+			$uploads_test_run_files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+
+			foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+				// Windows removes symlinks to directories with rmdir(), not unlink().
+				if ( $uploads_test_run_file->isDir() && ( ! $uploads_test_run_file->isLink() || 'Windows' === PHP_OS_FAMILY ) ) {
+					rmdir( $uploads_test_run_file->getPathname() );
+				} else {
+					unlink( $uploads_test_run_file->getPathname() );
+				}
+			}
+
+			rmdir( $uploads_test_run_dir );
+		} catch ( UnexpectedValueException $uploads_test_run_exception ) {
+			echo 'Could not delete the test uploads directory: ' . $uploads_test_run_exception->getMessage() . PHP_EOL;
+		}
+	}
+
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file, $uploads_test_run_exception );
+}
+unset( $delete_tests_uploads_dir );
+
 // Load WordPress.
-require_once ABSPATH . '/wp-settings.php';
+require_once ABSPATH . 'wp-settings.php';
+
+// Override the PHPMailer.
+require_once __DIR__ . '/mock-mailer.php';
+
+$phpmailer = new MockPHPMailer( true );
 
 // Delete any default posts & related data.
 _delete_all_posts();
@@ -324,9 +398,15 @@ require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-fake-hasher.php';
 require __DIR__ . '/class-wp-sitemaps-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
+require __DIR__ . '/secrets/trait-wp-secrets-assertions.php';
+require __DIR__ . '/secrets/class-mock-store.php';
+require __DIR__ . '/secrets/class-mock-keyring.php';
+require __DIR__ . '/secrets/class-wp-secrets-provider-conformance.php';
+require __DIR__ . '/secrets/class-wp-secrets-keyring-conformance.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.
@@ -386,6 +466,5 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
-
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

@@ -1,19 +1,17 @@
 /*!
- * jQuery UI Selectmenu 1.13.1
- * http://jqueryui.com
+ * jQuery UI Selectmenu 1.14.2
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Selectmenu
 //>>group: Widgets
-/* eslint-disable max-len */
 //>>description: Duplicates and extends the functionality of a native HTML select element, allowing it to be customizable in behavior and appearance far beyond the limitations of a native select.
-/* eslint-enable max-len */
-//>>docs: http://api.jqueryui.com/selectmenu/
-//>>demos: http://jqueryui.com/selectmenu/
+//>>docs: https://api.jqueryui.com/selectmenu/
+//>>demos: https://jqueryui.com/selectmenu/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/selectmenu.css, ../../themes/base/button.css
 //>>css.theme: ../../themes/base/theme.css
@@ -27,7 +25,13 @@
 		define( [
 			"jquery",
 			"./menu",
-			"./core"
+			"../form-reset-mixin",
+			"../keycode",
+			"../labels",
+			"../position",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -38,7 +42,7 @@
 "use strict";
 
 return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
-	version: "1.13.1",
+	version: "1.14.2",
 	defaultElement: "<select>",
 	options: {
 		appendTo: null,
@@ -161,12 +165,6 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 				role: "listbox",
 				select: function( event, ui ) {
 					event.preventDefault();
-
-					// Support: IE8
-					// If the item was selected via a click, the text selection
-					// will be destroyed in IE
-					that._setSelection();
-
 					that._select( ui.item.data( "ui-selectmenu-item" ), event );
 				},
 				focus: function( event, ui ) {
@@ -227,7 +225,7 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		this.menuInstance.refresh();
 		this.menuItems = this.menu.find( "li" )
 			.not( ".ui-selectmenu-optgroup" )
-			.find( ".ui-menu-item-wrapper" );
+				.find( ".ui-menu-item-wrapper" );
 
 		this._rendered = true;
 
@@ -348,7 +346,12 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		if ( item.disabled ) {
 			this._addClass( li, null, "ui-state-disabled" );
 		}
-		this._setText( wrapper, item.label );
+
+		if ( item.hidden ) {
+			li.prop( "hidden", true );
+		} else {
+			this._setText( wrapper, item.label );
+		}
 
 		return li.append( wrapper ).appendTo( ul );
 	},
@@ -398,20 +401,9 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			return;
 		}
 
-		if ( window.getSelection ) {
-			selection = window.getSelection();
-			selection.removeAllRanges();
-			selection.addRange( this.range );
-
-			// Support: IE8
-		} else {
-			this.range.select();
-		}
-
-		// Support: IE
-		// Setting the text selection kills the button focus in IE, but
-		// restoring the focus doesn't kill the selection.
-		this.button.focus();
+		selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange( this.range );
 	},
 
 	_documentClick: {
@@ -421,7 +413,7 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			}
 
 			if ( !$( event.target ).closest( ".ui-selectmenu-menu, #" +
-				$.escapeSelector( this.ids.button ) ).length ) {
+				CSS.escape( this.ids.button ) ).length ) {
 				this.close( event );
 			}
 		}
@@ -431,17 +423,9 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 
 		// Prevent text selection from being reset when interacting with the selectmenu (#10144)
 		mousedown: function() {
-			var selection;
-
-			if ( window.getSelection ) {
-				selection = window.getSelection();
-				if ( selection.rangeCount ) {
-					this.range = selection.getRangeAt( 0 );
-				}
-
-				// Support: IE8
-			} else {
-				this.range = document.selection.createRange();
+			var selection = window.getSelection();
+			if ( selection.rangeCount ) {
+				this.range = selection.getRangeAt( 0 );
 			}
 		},
 
@@ -453,54 +437,54 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		keydown: function( event ) {
 			var preventDefault = true;
 			switch ( event.keyCode ) {
-				case $.ui.keyCode.TAB:
-				case $.ui.keyCode.ESCAPE:
-					this.close( event );
-					preventDefault = false;
-					break;
-				case $.ui.keyCode.ENTER:
-					if ( this.isOpen ) {
-						this._selectFocusedItem( event );
-					}
-					break;
-				case $.ui.keyCode.UP:
-					if ( event.altKey ) {
-						this._toggle( event );
-					} else {
-						this._move( "prev", event );
-					}
-					break;
-				case $.ui.keyCode.DOWN:
-					if ( event.altKey ) {
-						this._toggle( event );
-					} else {
-						this._move( "next", event );
-					}
-					break;
-				case $.ui.keyCode.SPACE:
-					if ( this.isOpen ) {
-						this._selectFocusedItem( event );
-					} else {
-						this._toggle( event );
-					}
-					break;
-				case $.ui.keyCode.LEFT:
+			case $.ui.keyCode.TAB:
+			case $.ui.keyCode.ESCAPE:
+				this.close( event );
+				preventDefault = false;
+				break;
+			case $.ui.keyCode.ENTER:
+				if ( this.isOpen ) {
+					this._selectFocusedItem( event );
+				}
+				break;
+			case $.ui.keyCode.UP:
+				if ( event.altKey ) {
+					this._toggle( event );
+				} else {
 					this._move( "prev", event );
-					break;
-				case $.ui.keyCode.RIGHT:
+				}
+				break;
+			case $.ui.keyCode.DOWN:
+				if ( event.altKey ) {
+					this._toggle( event );
+				} else {
 					this._move( "next", event );
-					break;
-				case $.ui.keyCode.HOME:
-				case $.ui.keyCode.PAGE_UP:
-					this._move( "first", event );
-					break;
-				case $.ui.keyCode.END:
-				case $.ui.keyCode.PAGE_DOWN:
-					this._move( "last", event );
-					break;
-				default:
-					this.menu.trigger( event );
-					preventDefault = false;
+				}
+				break;
+			case $.ui.keyCode.SPACE:
+				if ( this.isOpen ) {
+					this._selectFocusedItem( event );
+				} else {
+					this._toggle( event );
+				}
+				break;
+			case $.ui.keyCode.LEFT:
+				this._move( "prev", event );
+				break;
+			case $.ui.keyCode.RIGHT:
+				this._move( "next", event );
+				break;
+			case $.ui.keyCode.HOME:
+			case $.ui.keyCode.PAGE_UP:
+				this._move( "first", event );
+				break;
+			case $.ui.keyCode.END:
+			case $.ui.keyCode.PAGE_DOWN:
+				this._move( "last", event );
+				break;
+			default:
+				this.menu.trigger( event );
+				preventDefault = false;
 			}
 
 			if ( preventDefault ) {
@@ -632,11 +616,7 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	_resizeMenu: function() {
 		this.menu.outerWidth( Math.max(
 			this.button.outerWidth(),
-
-			// Support: IE10
-			// IE10 wraps long text (possibly a rounding bug)
-			// so we add 1px to avoid the wrapping
-			this.menu.width( "" ).outerWidth() + 1
+			this.menu.width( "" ).outerWidth()
 		) );
 	},
 
@@ -652,10 +632,6 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		var that = this,
 			data = [];
 		options.each( function( index, item ) {
-			if ( item.hidden ) {
-				return;
-			}
-
 			data.push( that._parseOption( $( item ), index ) );
 		} );
 		this.items = data;
@@ -669,6 +645,7 @@ return $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			index: index,
 			value: option.val(),
 			label: option.text(),
+			hidden: optgroup.prop( "hidden" ) || option.prop( "hidden" ),
 			optgroup: optgroup.attr( "label" ) || "",
 			disabled: optgroup.prop( "disabled" ) || option.prop( "disabled" )
 		};

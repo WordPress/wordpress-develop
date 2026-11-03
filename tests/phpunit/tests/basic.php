@@ -1,12 +1,17 @@
 <?php
 
 /**
- * just make sure the test framework is working
+ * Test the content in some root directory files.
  *
- * @group testsuite
+ * @group basic
  */
 class Tests_Basic extends WP_UnitTestCase {
 
+	/**
+	 * Test copyright year in license.txt.
+	 *
+	 * @coversNothing
+	 */
 	public function test_license() {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
@@ -19,6 +24,11 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertSame( $this_year, $license_year, "license.txt's year needs to be updated to $this_year." );
 	}
 
+	/**
+	 * Test latest stable version is included in SECURITY.md.
+	 *
+	 * @coversNothing
+	 */
 	public function test_security_md() {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
@@ -32,6 +42,11 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertContains( $latest_stable, $supported_versions, "SECURITY.md's version needs to be updated to $latest_stable." );
 	}
 
+	/**
+	 * Test the version number in package.json is correct.
+	 *
+	 * @coversNothing
+	 */
 	public function test_package_json() {
 		$package_json    = file_get_contents( dirname( ABSPATH ) . '/package.json' );
 		$package_json    = json_decode( $package_json, true );
@@ -48,56 +63,120 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test engines.node is included in package.json.
+	 *
 	 * @depends test_package_json
+	 *
+	 * @coversNothing
 	 */
 	public function test_package_json_node_engine( $package_json ) {
 		$this->assertArrayHasKey( 'engines', $package_json );
 		$this->assertArrayHasKey( 'node', $package_json['engines'] );
 	}
 
-	// Test some helper utility functions.
+	/**
+	 * Test the version numbers in package-lock.json are correct.
+	 *
+	 * In pull requests, the package-lock.json file is updated automatically
+	 * to match the version in package.json. This test is intended to ensure
+	 * the version numbers are correct in production branches.
+	 *
+	 * @coversNothing
+	 *
+	 * @dataProvider data_package_lock_json
+	 */
+	public function test_package_lock_json( $path ) {
+		$package_lock_json = file_get_contents( dirname( ABSPATH ) . '/package-lock.json' );
+		$package_lock_json = json_decode( $package_lock_json, true );
+		list( $version )   = explode( '-', $GLOBALS['wp_version'] );
 
-	public function test_strip_ws() {
-		$this->assertSame( '', strip_ws( '' ) );
-		$this->assertSame( 'foo', strip_ws( 'foo' ) );
-		$this->assertSame( '', strip_ws( "\r\n\t  \n\r\t" ) );
+		// package-lock.json uses x.y.z, so fill cleaned $wp_version for .0 releases.
+		if ( 1 === substr_count( $version, '.' ) ) {
+			$version .= '.0';
+		}
 
-		$in  = "asdf\n";
-		$in .= "asdf asdf\n";
-		$in .= "asdf     asdf\n";
-		$in .= "\tasdf\n";
-		$in .= "\tasdf\t\n";
-		$in .= "\t\tasdf\n";
-		$in .= "foo bar\n\r\n";
-		$in .= "foo\n";
+		$json_paths           = explode( '.', $path );
+		$package_lock_version = $package_lock_json;
+		foreach ( $json_paths as $json_path ) {
+			if ( ! isset( $package_lock_version[ $json_path ] ) ) {
+				$this->fail( "package-lock.json does not contain the path '$path'." );
+			}
+			$package_lock_version = $package_lock_version[ $json_path ];
+		}
 
-		$expected  = "asdf\n";
-		$expected .= "asdf asdf\n";
-		$expected .= "asdf     asdf\n";
-		$expected .= "asdf\n";
-		$expected .= "asdf\n";
-		$expected .= "asdf\n";
-		$expected .= "foo bar\n";
-		$expected .= 'foo';
-
-		$this->assertSame( $expected, strip_ws( $in ) );
-
+		$this->assertSame( $version, $package_lock_version, "package-lock.json's $path needs to be updated to $version." );
 	}
 
-	public function test_mask_input_value() {
-		$in = <<<EOF
-<h2>Assign Authors</h2>
-<p>To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.</p>
-<p>If a new user is created by WordPress, the password will be set, by default, to "changeme". Quite suggestive, eh? ;)</p>
-        <ol id="authors"><form action="?import=wordpress&amp;step=2&amp;id=" method="post"><input type="hidden" name="_wpnonce" value="855ae98911" /><input type="hidden" name="_wp_http_referer" value="wp-test.php" /><li>Current author: <strong>Alex Shiels</strong><br />Create user  <input type="text" value="Alex Shiels" name="user[]" maxlength="30"> <br /> or map to existing<select name="userselect[0]">
-EOF;
-		// _wpnonce value should be replaced with 'xxx'.
-		$expected = <<<EOF
-<h2>Assign Authors</h2>
-<p>To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.</p>
-<p>If a new user is created by WordPress, the password will be set, by default, to "changeme". Quite suggestive, eh? ;)</p>
-        <ol id="authors"><form action="?import=wordpress&amp;step=2&amp;id=" method="post"><input type="hidden" name="_wpnonce" value="***" /><input type="hidden" name="_wp_http_referer" value="wp-test.php" /><li>Current author: <strong>Alex Shiels</strong><br />Create user  <input type="text" value="Alex Shiels" name="user[]" maxlength="30"> <br /> or map to existing<select name="userselect[0]">
-EOF;
-		$this->assertSame( $expected, mask_input_value( $in ) );
+	/**
+	 * Data provider for test_package_lock_json.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public static function data_package_lock_json() {
+		return array(
+			'top level' => array( 'version' ),
+			'package'   => array( 'packages..version' ),
+		);
+	}
+
+	/**
+	 * Test the version number in composer.json is correct.
+	 *
+	 * @coversNothing
+	 */
+	public function test_composer_json() {
+		$composer_json   = file_get_contents( dirname( ABSPATH ) . '/composer.json' );
+		$composer_json   = json_decode( $composer_json, true );
+		list( $version ) = explode( '-', $GLOBALS['wp_version'] );
+
+		// composer.json uses x.y.z, so fill cleaned $wp_version for .0 releases.
+		if ( 1 === substr_count( $version, '.' ) ) {
+			$version .= '.0';
+		}
+
+		$this->assertSame( $version, $composer_json['version'], "composer.json's version needs to be updated to $version." );
+	}
+
+	/**
+	 * Test the src wp_version always ends with '-src'.
+	 *
+	 * @coversNothing
+	 */
+	public function test_src_wp_version_ends_with_src() {
+		$version_file = dirname( ABSPATH ) . '/src/wp-includes/version.php';
+
+		$src_wp_version = $this->get_wp_version_from_file( $version_file );
+
+		$this->assertStringEndsWith( '-src', $src_wp_version, 'The src wp_version must end with -src.' );
+	}
+
+	/**
+	 * Test the build wp_version never ends with '-src'.
+	 *
+	 * @coversNothing
+	 */
+	public function test_build_wp_version_does_not_end_with_src() {
+		$version_file = dirname( ABSPATH ) . '/build/wp-includes/version.php';
+
+		if ( ! file_exists( $version_file ) ) {
+			$this->markTestSkipped( 'The build directory does not exist.' );
+		}
+
+		$build_wp_version = $this->get_wp_version_from_file( $version_file );
+
+		$this->assertStringEndsNotWith( '-src', $build_wp_version, 'The build wp_version must not end with -src.' );
+	}
+
+	/**
+	 * Includes a version.php file in an isolated scope and returns its $wp_version.
+	 *
+	 * @param string $file Path to a version.php file.
+	 * @return string The value of $wp_version defined in the file.
+	 */
+	private function get_wp_version_from_file( $file ) {
+		$wp_version = '';
+		include $file;
+
+		return $wp_version;
 	}
 }

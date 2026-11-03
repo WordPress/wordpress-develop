@@ -2,6 +2,8 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_rewrite_endpoint
  */
 class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	private $qvs;
@@ -108,5 +110,4 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		$this->assertTrue( is_404() );
 		$this->assertSame( '', get_query_var( 'page_endpoint' ) );
 	}
-
 }

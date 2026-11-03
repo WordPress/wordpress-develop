@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Spinner 1.13.1
- * http://jqueryui.com
+ * jQuery UI Spinner 1.14.2
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Spinner
 //>>group: Widgets
 //>>description: Displays buttons to easily input numbers via the keyboard or mouse.
-//>>docs: http://api.jqueryui.com/spinner/
-//>>demos: http://jqueryui.com/spinner/
+//>>docs: https://api.jqueryui.com/spinner/
+//>>demos: https://jqueryui.com/spinner/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/spinner.css
 //>>css.theme: ../../themes/base/theme.css
@@ -25,7 +25,9 @@
 		define( [
 			"jquery",
 			"./button",
-			"./core"
+			"../version",
+			"../keycode",
+			"../widget"
 		], factory );
 	} else {
 
@@ -47,7 +49,7 @@ function spinnerModifier( fn ) {
 }
 
 $.widget( "ui.spinner", {
-	version: "1.13.1",
+	version: "1.14.2",
 	defaultElement: "<input>",
 	widgetEventPrefix: "spin",
 	options: {
@@ -128,20 +130,16 @@ $.widget( "ui.spinner", {
 			this.previous = this.element.val();
 		},
 		blur: function( event ) {
-			if ( this.cancelBlur ) {
-				delete this.cancelBlur;
-				return;
-			}
-
 			this._stop();
 			this._refresh();
 			if ( this.previous !== this.element.val() ) {
 				this._trigger( "change", event );
 			}
 		},
-		mousewheel: function( event, delta ) {
-			var activeElement = $.ui.safeActiveElement( this.document[ 0 ] );
+		wheel: function( event ) {
+			var activeElement = this.document[ 0 ].activeElement;
 			var isActive = this.element[ 0 ] === activeElement;
+			var delta = event.deltaY || event.originalEvent && event.originalEvent.deltaY;
 
 			if ( !isActive || !delta ) {
 				return;
@@ -151,7 +149,7 @@ $.widget( "ui.spinner", {
 				return false;
 			}
 
-			this._spin( ( delta > 0 ? 1 : -1 ) * this.options.step, event );
+			this._spin( ( delta > 0 ? -1 : 1 ) * this.options.step, event );
 			clearTimeout( this.mousewheelTimer );
 			this.mousewheelTimer = this._delay( function() {
 				if ( this.spinning ) {
@@ -160,6 +158,27 @@ $.widget( "ui.spinner", {
 			}, 100 );
 			event.preventDefault();
 		},
+
+		// DEPRECATED
+		// Kept for backwards compatibility. Please use the modern `wheel`
+		// event. The `delta` parameter is provided by the jQuery Mousewheel
+		// plugin if one is loaded.
+		mousewheel: function( event, delta ) {
+			if ( !event.isTrigger ) {
+
+				// If this is not a trigger call, the `wheel` handler will
+				// fire as well, let's not duplicate it.
+				return;
+			}
+
+			var wheelEvent = $.Event( event );
+			wheelEvent.type = "wheel";
+			if ( delta ) {
+				wheelEvent.deltaY = -delta;
+			}
+			return this._events.wheel.call( this, wheelEvent );
+		},
+
 		"mousedown .ui-spinner-button": function( event ) {
 			var previous;
 
@@ -168,36 +187,19 @@ $.widget( "ui.spinner", {
 			// If the input is focused then this.previous is properly set from
 			// when the input first received focus. If the input is not focused
 			// then we need to set this.previous based on the value before spinning.
-			previous = this.element[ 0 ] === $.ui.safeActiveElement( this.document[ 0 ] ) ?
+			previous = this.element[ 0 ] === this.document[ 0 ].activeElement ?
 				this.previous : this.element.val();
 			function checkFocus() {
-				var isActive = this.element[ 0 ] === $.ui.safeActiveElement( this.document[ 0 ] );
+				var isActive = this.element[ 0 ] === this.document[ 0 ].activeElement;
 				if ( !isActive ) {
 					this.element.trigger( "focus" );
 					this.previous = previous;
-
-					// support: IE
-					// IE sets focus asynchronously, so we need to check if focus
-					// moved off of the input because the user clicked on the button.
-					this._delay( function() {
-						this.previous = previous;
-					} );
 				}
 			}
 
 			// Ensure focus is on (or stays on) the text field
 			event.preventDefault();
 			checkFocus.call( this );
-
-			// Support: IE
-			// IE doesn't prevent moving focus even with event.preventDefault()
-			// so we set a flag to know when we should ignore the blur event
-			// and check (again) if focus moved off of the input.
-			this.cancelBlur = true;
-			this._delay( function() {
-				delete this.cancelBlur;
-				checkFocus.call( this );
-			} );
 
 			if ( this._start( event ) === false ) {
 				return;
@@ -234,10 +236,10 @@ $.widget( "ui.spinner", {
 			.wrap( "<span>" )
 			.parent()
 
-			// Add buttons
-			.append(
-				"<a></a><a></a>"
-			);
+				// Add buttons
+				.append(
+					"<a></a><a></a>"
+				);
 	},
 
 	_draw: function() {
@@ -275,7 +277,7 @@ $.widget( "ui.spinner", {
 		// IE 6 doesn't understand height: 50% for the buttons
 		// unless the wrapper has an explicit height
 		if ( this.buttons.height() > Math.ceil( this.uiSpinner.height() * 0.5 ) &&
-			this.uiSpinner.height() > 0 ) {
+				this.uiSpinner.height() > 0 ) {
 			this.uiSpinner.height( this.uiSpinner.height() );
 		}
 	},
@@ -285,18 +287,18 @@ $.widget( "ui.spinner", {
 			keyCode = $.ui.keyCode;
 
 		switch ( event.keyCode ) {
-			case keyCode.UP:
-				this._repeat( null, 1, event );
-				return true;
-			case keyCode.DOWN:
-				this._repeat( null, -1, event );
-				return true;
-			case keyCode.PAGE_UP:
-				this._repeat( null, options.page, event );
-				return true;
-			case keyCode.PAGE_DOWN:
-				this._repeat( null, -options.page, event );
-				return true;
+		case keyCode.UP:
+			this._repeat( null, 1, event );
+			return true;
+		case keyCode.DOWN:
+			this._repeat( null, -1, event );
+			return true;
+		case keyCode.PAGE_UP:
+			this._repeat( null, options.page, event );
+			return true;
+		case keyCode.PAGE_DOWN:
+			this._repeat( null, -options.page, event );
+			return true;
 		}
 
 		return false;
@@ -551,7 +553,7 @@ $.widget( "ui.spinner", {
 
 // DEPRECATED
 // TODO: switch return back to widget declaration at top of file when this is removed
-if ( $.uiBackCompat !== false ) {
+if ( $.uiBackCompat === true ) {
 
 	// Backcompat for spinner html extension points
 	$.widget( "ui.spinner", $.ui.spinner, {
@@ -561,8 +563,8 @@ if ( $.uiBackCompat !== false ) {
 				.wrap( this._uiSpinnerHtml() )
 				.parent()
 
-				// Add buttons
-				.append( this._buttonHtml() );
+					// Add buttons
+					.append( this._buttonHtml() );
 		},
 		_uiSpinnerHtml: function() {
 			return "<span>";

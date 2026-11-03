@@ -10,7 +10,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::query
 	 */
 	public function test_location_of_jquery() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		wp_default_scripts( $scripts );
 
 		if ( SCRIPT_DEBUG ) {
@@ -37,6 +37,33 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			$this->assertArrayHasKey( $dep, $jquery_scripts );
 			$this->assertSame( $jquery_scripts[ $dep ], $o->src );
 		}
+	}
+
+	/**
+	 * Ensure the required jQuery files exist on the file system.
+	 *
+	 * @ticket 60478
+	 *
+	 * @dataProvider data_jquery_files_exist
+	 *
+	 * @param non-falsy-string $file_name The file name the should exist.
+	 */
+	public function test_jquery_files_exist( string $file_name ) {
+		$this->assertFileExists( ABSPATH . "/wp-includes/js/jquery/{$file_name}" );
+	}
+
+	/**
+	 * Data provider for {@see self::test_jquery_files_exist()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_jquery_files_exist(): array {
+		return array(
+			'jquery'             => array( 'jquery.js' ),
+			'jquery-min'         => array( 'jquery.min.js' ),
+			'jquery-migrate'     => array( 'jquery-migrate.js' ),
+			'jquery-migrate-min' => array( 'jquery-migrate.min.js' ),
+		);
 	}
 
 	/**
@@ -85,20 +112,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 28404
-	 *
-	 * @covers ::wp_script_is
-	 */
-	public function test_wp_script_is_dep_enqueued() {
-		wp_enqueue_script( 'jquery-ui-accordion' );
-
-		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'underscore', 'enqueued' ) );
-
-		unset( $GLOBALS['wp_scripts'] );
-	}
-
-	/**
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
@@ -106,7 +119,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::do_items
 	 */
 	public function test_jquery_in_footer() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );
 		$scripts->add( 'jquery-migrate', '/jquery-migrate.js', array() );
