@@ -32,6 +32,16 @@ on:
         required: false
         type: number
         default: 1
+      seed:
+        description: 'Picks the WARC files: leave empty for a new random choice, or give the seed from an earlier report to analyze the same documents again'
+        required: false
+        type: string
+        default: ''
+      crawl:
+        description: 'CommonCrawl crawl to read, e.g. CC-MAIN-2026-43, or latest'
+        required: false
+        type: string
+        default: 'latest'
       fetch-duration:
         description: 'Longest time to spend fetching documents, e.g. 90s, 30m, 1h'
         required: false
@@ -65,6 +75,8 @@ permissions: {}
 env:
   # The analysis keeps every HTML document in this many WARC files, unless the fetch duration passes first.
   HTML_API_BENCH_WARCS: ${{ inputs.warcs || 1 }}
+  HTML_API_BENCH_SEED: ${{ inputs.seed || '' }}
+  HTML_API_BENCH_CRAWL: ${{ inputs.crawl || 'latest' }}
   HTML_API_BENCH_FETCH_DURATION: ${{ inputs.fetch-duration || '30m' }}
   HTML_API_BENCH_ROUNDS: ${{ inputs.rounds || 2 }}
   HTML_API_BENCH_SMALL_MAX_BYTES: ${{ inputs.small-max-bytes || 32768 }}
@@ -76,7 +88,7 @@ jobs:
   # Performs the following steps:
   # - Checks out the pull request merged into its target branch, and the target branch beside it.
   # - Sets up PHP.
-  # - Fetches a random sample of HTML documents from the latest CommonCrawl crawl.
+  # - Fetches every HTML document in WARC files picked at random from the latest CommonCrawl crawl.
   # - Times the Tag Processor, the HTML Processor, and wp_kses() on each document with both checkouts, running the rounds
   #   of both checkouts at the same time, one per vCPU, so that both share the same load.
   # - Records which documents each checkout supports, and why the others are unsupported, with both checkouts at once.
@@ -119,13 +131,21 @@ jobs:
           ini-values: memory_limit=1G
 
       # Streams whole WARC files, a handful of requests in all: CommonCrawl blocks runners which send many requests, such as
-      # one per record. Every HTML document in them is kept; the number of files only bounds the download. When CommonCrawl
+      # one per record. Every HTML document in them is kept; the number of files only bounds the download. The files are
+      # picked at random from the crawl's whole list, around 100,000 files fetched over a couple of weeks, so that each run
+      # sees a different part of the web. The seed is reported, and running the workflow again with it reads the same files. When CommonCrawl
       # asks to slow down, with HTTP 429 or 503, no request is sent until its Retry-After or the backoff has passed. A download
       # which still fails is listed, and the analysis runs on the documents already fetched. The cache limit is raised so
       # that pruning never runs during the fetch.
       - name: Fetch documents from CommonCrawl
+        id: fetch
         run: |
+          seed="${HTML_API_BENCH_SEED:-$(( (RANDOM << 15) | RANDOM ))}"
+          echo "seed=$seed" >> "$GITHUB_OUTPUT"
           php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch fetch corpus \
+            --crawl "$HTML_API_BENCH_CRAWL" \
+            --warc-order random \
+            --seed "$seed" \
             --resource-types html \
             --limit all \
             --limit-warcs "$HTML_API_BENCH_WARCS" \
@@ -187,6 +207,7 @@ jobs:
           HTML_API_BENCH_BASE_SHA: ${{ steps.checkouts.outputs.base-sha }}
           HTML_API_BENCH_MERGE_SHA: ${{ steps.checkouts.outputs.merge-sha }}
           HTML_API_BENCH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          HTML_API_BENCH_SEED: ${{ steps.fetch.outputs.seed }}
 
       - name: Upload the report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

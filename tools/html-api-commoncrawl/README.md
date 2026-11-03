@@ -1,6 +1,6 @@
 # HTML API CommonCrawl analysis
 
-Compares how the HTML API parses real-world documents with and without a pull request. It fetches a random sample of HTML documents from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
+Compares how the HTML API parses real-world documents with and without a pull request. It fetches every HTML document in a WARC file picked at random from the latest [CommonCrawl](https://commoncrawl.org/) crawl, then replays the same documents through both checkouts to measure:
 
 - how long the Tag Processor and the HTML Processor take to parse each document, and how long `wp_kses( $html, 'post' )` takes on it, for all documents and for small, medium, and large ones;
 - which documents the HTML Processor does not support, and why it stopped on them, with a few example documents for each reason. Each example shows the token the HTML Processor stopped on, the token with up to 30 characters (extended grapheme clusters) of the document on either side, its byte offsets in the document, and the breadcrumbs of open elements at that point.
@@ -13,7 +13,7 @@ The report is left as a comment on the pull request. Each new analysis replaces 
 
 ## Files
 
-- `cc-analyzer.phar`: [cc-analyzer](#rebuilding-cc-analyzerphar), which fetches documents from CommonCrawl into a local batch, and replays a batch through an analysis script. It streams whole WARC files and keeps their HTML responses. That takes only a handful of requests: CommonCrawl blocks runners which send many, such as one per record. It honors CommonCrawl's rate limiting, and if a download still fails, it lists the failure and the analysis runs on the documents it has.
+- `cc-analyzer.phar`: [cc-analyzer](#rebuilding-cc-analyzerphar), which fetches documents from CommonCrawl into a local batch, and replays a batch through an analysis script. It streams whole WARC files and keeps their HTML responses. That takes only a handful of requests: CommonCrawl blocks runners which send many, such as one per record. The files are picked at random from the crawl's whole list of around 100,000, fetched over a couple of weeks, so each analysis sees a different part of the web. One file already holds documents from nearly 20,000 hosts. It honors CommonCrawl's rate limiting, and if a download still fails, it lists the failure and the analysis runs on the documents it has.
 - `bootstrap.php`: loads the HTML API, and what `wp_kses()` needs, from the `src/` directory in `HTML_API_BENCH_WP_SRC`, without loading WordPress. It presents a UTF-8 site at example.com. When a change adds a file to the HTML API, add it to the list of files here.
 - `benchmark.php`: an analysis script which times the Tag Processor, the HTML Processor, and `wp_kses( $html, 'post' )` on each document and writes `benchmark.csv`.
 - `analysis.php`: an analysis script which records whether the HTML Processor supports each document, and where it stopped on those it does not, and writes `analysis.csv`.
@@ -27,7 +27,7 @@ This needs PHP 8.5, as used by the workflow, with the `curl`, `pdo_sqlite`, and 
 # Fetch 1,000 documents, or as many as can be fetched in 5 minutes. The workflow uses --limit all instead, to keep every
 # HTML document in the WARC files it downloads.
 php -d memory_limit=1G tools/html-api-commoncrawl/cc-analyzer.phar --workspace /tmp/cc batch fetch corpus \
-	--resource-types html --limit 1000 --limit-warcs 1 --max-jobs 1 --http-retries 6 --duration 5m --progress text
+	--resource-types html --warc-order random --limit 1000 --limit-warcs 1 --max-jobs 1 --http-retries 6 --duration 5m --progress text
 
 # Time each document three times with each checkout, and record support once.
 for checkout in base merge; do
@@ -56,6 +56,8 @@ The workflow reads these environment variables. When it is run manually, each on
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `HTML_API_BENCH_WARCS` | `1` | How many WARC files to download. Every HTML document in them is analyzed; each file holds around 20,000. |
+| `HTML_API_BENCH_SEED` | random | Picks the WARC files. The report gives the seed it used; give it again, with the same crawl, to analyze the same documents. |
+| `HTML_API_BENCH_CRAWL` | `latest` | The CommonCrawl crawl to read, such as `CC-MAIN-2026-43`. |
 | `HTML_API_BENCH_FETCH_DURATION` | `30m` | Longest time to spend fetching. Fetching stops at whichever limit is reached first. |
 | `HTML_API_BENCH_ROUNDS` | `2` | How many times to time each document with each checkout. Each document's time is its median. |
 | `HTML_API_BENCH_SMALL_MAX_BYTES` | `32768` | Documents smaller than this are small. |
@@ -63,7 +65,7 @@ The workflow reads these environment variables. When it is run manually, each on
 
 ## Rebuilding `cc-analyzer.phar`
 
-`cc-analyzer.phar` was built from cc-analyzer commit `57bfbca` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
+`cc-analyzer.phar` was built from cc-analyzer commit `1bca572` (branch `index-sampled-fetch`) with `tools/build-phar.php`. Before building, the default HTTP identity was removed so that requests carry only a generic `User-Agent` and no `From` header:
 
 - `src/Http/CurlStreamClient.php`: `DEFAULT_USER_AGENT` set to `'cc-analyzer/0.1 PHP-cURL'` and `DEFAULT_CONTACT_HEADER` set to `''`.
 - `src/Cli/Application.php`: the `--user-agent` and `--contact-email` defaults set to the same values, and the help text to match.

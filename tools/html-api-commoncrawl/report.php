@@ -17,6 +17,7 @@
  *     HTML_API_BENCH_BASE_SHA         Commit of the target branch, shown in the report.
  *     HTML_API_BENCH_MERGE_SHA        Commit of the PR merged into the target branch, shown in the report.
  *     HTML_API_BENCH_RUN_URL          Link to the workflow run, shown in the report.
+ *     HTML_API_BENCH_SEED             Seed which picked the WARC files, shown in the report so that they can be read again.
  *
  * @package WordPress
  */
@@ -573,6 +574,16 @@ preg_match( '~/crawl-data/([^/]+)/~', array_key_first( $pairs ), $crawl );
 $base_sha  = getenv( 'HTML_API_BENCH_BASE_SHA' );
 $merge_sha = getenv( 'HTML_API_BENCH_MERGE_SHA' );
 $run_url   = getenv( 'HTML_API_BENCH_RUN_URL' );
+$seed      = getenv( 'HTML_API_BENCH_SEED' );
+
+// The WARC files the documents came from, named by the part of each document's key before its record range.
+$warcs = array();
+foreach ( array_keys( $pairs ) as $key ) {
+	if ( preg_match( '~/(crawl-data/[^#|]+\.warc\.gz)~', $key, $warc ) ) {
+		$warcs[ $warc[1] ] = true;
+	}
+}
+ksort( $warcs );
 
 $report  = HTML_API_BENCH_REPORT_MARKER . "\n";
 $report .= "## HTML API CommonCrawl analysis\n\n";
@@ -584,6 +595,14 @@ $report .= sprintf(
 	$merge_sha ? ' (`' . substr( $merge_sha, 0, 10 ) . '`)' : '',
 	1 === $rounds ? 'Each document was timed once' : "Each time is the median of {$rounds} rounds",
 	$run_url ? " [Workflow run]({$run_url})." : ''
+);
+$report .= sprintf(
+	"<details><summary>%s</summary>\n\n%s\n%s</details>\n\n",
+	1 === count( $warcs ) ? 'The WARC file read' : sprintf( 'The %d WARC files read', count( $warcs ) ),
+	implode( '', array_map( static fn ( $path ) => "- `{$path}`\n", array_keys( $warcs ) ) ),
+	false !== $seed && '' !== $seed
+		? sprintf( "%s picked at random with seed `%s`. Run the workflow manually with this seed and crawl `%s` to analyze the same documents again.\n\n", 1 === count( $warcs ) ? 'It was' : 'They were', $seed, $crawl[1] )
+		: ''
 );
 
 $report .= "### HTML Processor parse time\n\n";
