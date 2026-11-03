@@ -2328,13 +2328,17 @@ function rest_get_allowed_schema_keywords() {
  *              Support the "multipleOf" keyword for numbers and integers.
  *              Support the "patternProperties" keyword for objects.
  *              Support the "anyOf" and "oneOf" keywords.
+ * @since 7.3.0 Added the `$all_errors` parameter.
  *
- * @param mixed  $value The value to validate.
- * @param array  $args  Schema array to use for validation.
- * @param string $param The parameter name, used in error messages.
+ * @param mixed  $value      The value to validate.
+ * @param array  $args       Schema array to use for validation.
+ * @param string $param      The parameter name, used in error messages.
+ * @param bool   $all_errors Optional. Whether to keep validating object properties and array items
+ *                           after a failure and return every error in a single WP_Error, instead of
+ *                           returning the first error found. Default false.
  * @return true|WP_Error
  */
-function rest_validate_value_from_schema( $value, $args, $param = '' ) {
+function rest_validate_value_from_schema( $value, $args, $param = '', $all_errors = false ) {
 	if ( isset( $args['anyOf'] ) ) {
 		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
@@ -2396,10 +2400,10 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			$is_valid = rest_validate_boolean_value_from_schema( $value, $param );
 			break;
 		case 'object':
-			$is_valid = rest_validate_object_value_from_schema( $value, $args, $param );
+			$is_valid = rest_validate_object_value_from_schema( $value, $args, $param, $all_errors );
 			break;
 		case 'array':
-			$is_valid = rest_validate_array_value_from_schema( $value, $args, $param );
+			$is_valid = rest_validate_array_value_from_schema( $value, $args, $param, $all_errors );
 			break;
 		case 'number':
 			$is_valid = rest_validate_number_value_from_schema( $value, $args, $param );
@@ -2517,13 +2521,16 @@ function rest_validate_boolean_value_from_schema( $value, $param ) {
  * Validates an object value based on a schema.
  *
  * @since 5.7.0
+ * @since 7.3.0 Added the `$all_errors` parameter.
  *
- * @param mixed  $value The value to validate.
- * @param array  $args  Schema array to use for validation.
- * @param string $param The parameter name, used in error messages.
+ * @param mixed  $value      The value to validate.
+ * @param array  $args       Schema array to use for validation.
+ * @param string $param      The parameter name, used in error messages.
+ * @param bool   $all_errors Optional. Whether to return every error instead of the first one.
+ *                           Default false.
  * @return true|WP_Error
  */
-function rest_validate_object_value_from_schema( $value, $args, $param ) {
+function rest_validate_object_value_from_schema( $value, $args, $param, $all_errors = false ) {
 	if ( ! rest_is_object( $value ) ) {
 		return new WP_Error(
 			'rest_invalid_type',
@@ -2533,68 +2540,77 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		);
 	}
 
-	$value = rest_sanitize_object( $value );
+	$value  = rest_sanitize_object( $value );
+	$errors = new WP_Error();
 
 	if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
 		foreach ( $args['required'] as $name ) {
 			if ( ! array_key_exists( $name, $value ) ) {
-				return new WP_Error(
+				$error = new WP_Error(
 					'rest_property_required',
 					/* translators: 1: Property of an object, 2: Parameter. */
 					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
 				);
+
+				if ( ! $all_errors ) {
+					return $error;
+				}
+
+				$errors->merge_from( $error );
 			}
 		}
 	} elseif ( isset( $args['properties'] ) ) { // schema version 3
 		foreach ( $args['properties'] as $name => $property ) {
 			if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
-				return new WP_Error(
+				$error = new WP_Error(
 					'rest_property_required',
 					/* translators: 1: Property of an object, 2: Parameter. */
 					sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param )
 				);
+
+				if ( ! $all_errors ) {
+					return $error;
+				}
+
+				$errors->merge_from( $error );
 			}
 		}
 	}
 
 	foreach ( $value as $property => $v ) {
+		$is_valid = true;
+
 		if ( isset( $args['properties'][ $property ] ) ) {
-			$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
-			if ( is_wp_error( $is_valid ) ) {
-				return $is_valid;
-			}
-			continue;
-		}
+			$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']', $all_errors );
+		} else {
+			$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
 
-		$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
-		if ( null !== $pattern_property_schema ) {
-			$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
-			if ( is_wp_error( $is_valid ) ) {
-				return $is_valid;
-			}
-			continue;
-		}
-
-		if ( isset( $args['additionalProperties'] ) ) {
-			if ( false === $args['additionalProperties'] ) {
-				return new WP_Error(
-					'rest_additional_properties_forbidden',
-					/* translators: %s: Property of an object. */
-					sprintf( __( '%1$s is not a valid property of Object.' ), $property )
-				);
-			}
-
-			if ( is_array( $args['additionalProperties'] ) ) {
-				$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
-				if ( is_wp_error( $is_valid ) ) {
-					return $is_valid;
+			if ( null !== $pattern_property_schema ) {
+				$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']', $all_errors );
+			} elseif ( isset( $args['additionalProperties'] ) ) {
+				if ( false === $args['additionalProperties'] ) {
+					$is_valid = new WP_Error(
+						'rest_additional_properties_forbidden',
+						/* translators: %s: Property of an object. */
+						sprintf( __( '%1$s is not a valid property of Object.' ), $property )
+					);
+				} elseif ( is_array( $args['additionalProperties'] ) ) {
+					$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']', $all_errors );
 				}
 			}
+		}
+
+		if ( is_wp_error( $is_valid ) ) {
+			if ( ! $all_errors ) {
+				return $is_valid;
+			}
+
+			$errors->merge_from( $is_valid );
 		}
 	}
 
 	if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
-		return new WP_Error(
+		$error = new WP_Error(
 			'rest_too_few_properties',
 			sprintf(
 				/* translators: 1: Parameter, 2: Number. */
@@ -2607,10 +2623,16 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 				number_format_i18n( $args['minProperties'] )
 			)
 		);
+
+		if ( ! $all_errors ) {
+			return $error;
+		}
+
+		$errors->merge_from( $error );
 	}
 
 	if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
-		return new WP_Error(
+		$error = new WP_Error(
 			'rest_too_many_properties',
 			sprintf(
 				/* translators: 1: Parameter, 2: Number. */
@@ -2623,22 +2645,31 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 				number_format_i18n( $args['maxProperties'] )
 			)
 		);
+
+		if ( ! $all_errors ) {
+			return $error;
+		}
+
+		$errors->merge_from( $error );
 	}
 
-	return true;
+	return $errors->has_errors() ? $errors : true;
 }
 
 /**
  * Validates an array value based on a schema.
  *
  * @since 5.7.0
+ * @since 7.3.0 Added the `$all_errors` parameter.
  *
- * @param mixed  $value The value to validate.
- * @param array  $args  Schema array to use for validation.
- * @param string $param The parameter name, used in error messages.
+ * @param mixed  $value      The value to validate.
+ * @param array  $args       Schema array to use for validation.
+ * @param string $param      The parameter name, used in error messages.
+ * @param bool   $all_errors Optional. Whether to return every error instead of the first one.
+ *                           Default false.
  * @return true|WP_Error
  */
-function rest_validate_array_value_from_schema( $value, $args, $param ) {
+function rest_validate_array_value_from_schema( $value, $args, $param, $all_errors = false ) {
 	if ( ! rest_is_array( $value ) ) {
 		return new WP_Error(
 			'rest_invalid_type',
@@ -2648,19 +2679,24 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 		);
 	}
 
-	$value = rest_sanitize_array( $value );
+	$value  = rest_sanitize_array( $value );
+	$errors = new WP_Error();
 
 	if ( isset( $args['items'] ) ) {
 		foreach ( $value as $index => $v ) {
-			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']', $all_errors );
 			if ( is_wp_error( $is_valid ) ) {
-				return $is_valid;
+				if ( ! $all_errors ) {
+					return $is_valid;
+				}
+
+				$errors->merge_from( $is_valid );
 			}
 		}
 	}
 
 	if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-		return new WP_Error(
+		$error = new WP_Error(
 			'rest_too_few_items',
 			sprintf(
 				/* translators: 1: Parameter, 2: Number. */
@@ -2673,10 +2709,16 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 				number_format_i18n( $args['minItems'] )
 			)
 		);
+
+		if ( ! $all_errors ) {
+			return $error;
+		}
+
+		$errors->merge_from( $error );
 	}
 
 	if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-		return new WP_Error(
+		$error = new WP_Error(
 			'rest_too_many_items',
 			sprintf(
 				/* translators: 1: Parameter, 2: Number. */
@@ -2689,14 +2731,26 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 				number_format_i18n( $args['maxItems'] )
 			)
 		);
+
+		if ( ! $all_errors ) {
+			return $error;
+		}
+
+		$errors->merge_from( $error );
 	}
 
 	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
 		/* translators: %s: Parameter. */
-		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
+		$error = new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
+
+		if ( ! $all_errors ) {
+			return $error;
+		}
+
+		$errors->merge_from( $error );
 	}
 
-	return true;
+	return $errors->has_errors() ? $errors : true;
 }
 
 /**

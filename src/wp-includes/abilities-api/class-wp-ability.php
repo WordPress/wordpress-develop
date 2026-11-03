@@ -637,6 +637,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_validate_input` filter.
+	 * @since 7.3.0 Reports every schema validation error instead of only the first one.
 	 *
 	 * @param mixed $input Optional. The input data to validate. Default `null`.
 	 * @return true|WP_Error Returns true if valid or the WP_Error object if validation fails.
@@ -658,7 +659,7 @@ class WP_Ability {
 			);
 		}
 
-		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
+		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input', true );
 		if ( is_wp_error( $valid_input ) ) {
 			$is_valid = new WP_Error(
 				'ability_invalid_input',
@@ -666,9 +667,12 @@ class WP_Ability {
 					/* translators: %1$s ability name, %2$s error message. */
 					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
 					$this->name,
-					$valid_input->get_error_message()
+					implode( ' ', $valid_input->get_error_messages() )
 				)
 			);
+
+			// Keep each individual validation error, so clients can address every invalid field at once.
+			$is_valid->merge_from( $valid_input );
 		} else {
 			$is_valid = true;
 		}
