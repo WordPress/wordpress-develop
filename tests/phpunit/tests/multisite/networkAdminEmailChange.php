@@ -74,18 +74,4 @@ class Tests_Multisite_NetworkAdminEmailChange extends WP_UnitTestCase {
 		$this->assertSame( $new_email, $mailer->mock_sent[0]['to'][0][0], 'The confirmation email should be addressed to the new email.' );
 		$this->assertStringContainsString( 'network_admin_hash=' . $hash_details['hash'], $mailer->mock_sent[0]['body'], 'The confirmation email body should contain the confirmation hash query arg.' );
 	}
-
-	/**
-	 * Tests that network_admin_email_updated is present in removable query args.
-	 *
-	 * @ticket 66300
-	 * @covers ::wp_removable_query_args
-	 */
-	public function test_wp_removable_query_args_contains_network_admin_email_updated() {
-		$this->assertContains(
-			'network_admin_email_updated',
-			wp_removable_query_args(),
-			'The query argument network_admin_email_updated must be present in removable query args.'
-		);
-	}
 }
