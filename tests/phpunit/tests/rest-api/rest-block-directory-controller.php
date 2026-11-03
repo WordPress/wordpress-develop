@@ -219,6 +219,31 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		);
 
 		$this->assertSame( $expected, $response->get_data() );
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertArrayHasKey( 'https://api.w.org/install-plugin', $links );
+	}
+
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$controller = new WP_REST_Block_Directory_Controller();
+
+		$plugin  = $this->get_mock_plugin();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
+		$request->set_query_params(
+			array(
+				'term'    => 'block',
+				'_fields' => 'id,name',
+			)
+		);
+
+		$response = $controller->prepare_item_for_response( $plugin, $request );
+
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when not requested in _fields.' );
 	}
 
 	/**

@@ -161,7 +161,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public function data_response_value_without_valid_methods(): array {
+	public static function data_response_value_without_valid_methods(): array {
 		return array(
 			'empty'           => array( '' ),
 			'whitespace'      => array( ' ' ),
@@ -422,7 +422,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: callable, 1: array<string, string>, 2: string }>
 	 */
-	public function data_filter_value_that_is_not_a_list(): array {
+	public static function data_filter_value_that_is_not_a_list(): array {
 		return array(
 			'null'                    => array( '__return_null', array(), self::DEFAULT_ALLOW_METHODS ),
 			'false'                   => array( '__return_false', array(), self::DEFAULT_ALLOW_METHODS ),
