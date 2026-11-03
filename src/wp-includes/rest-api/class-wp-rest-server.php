@@ -418,15 +418,17 @@ class WP_REST_Server {
 		}
 
 		/*
-		 * The `_method` query parameter overrides the request method below. Accept only a
-		 * common HTTP method, in any case, and reject anything else, such as an array or a
-		 * custom method, with a 400. The pattern ends with `\z` because `$` also matches
-		 * before a trailing newline.
+		 * The `_method` query parameter overrides the request method below. Accept only the
+		 * methods in ALLMETHODS plus HEAD and OPTIONS, case-insensitively, and reject anything
+		 * else with a 400. ALLMETHODS lacks HEAD and OPTIONS because routes do not need to
+		 * register them: HEAD falls back to the GET handler, and OPTIONS is answered by
+		 * rest_handle_options_request().
 		 */
 		$method = null;
 		if ( isset( $_GET['_method'] ) ) {
-			$method = wp_unslash( $_GET['_method'] );
-			if ( ! is_string( $method ) || ! preg_match( '/^(?:GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH|QUERY)\z/i', $method ) ) {
+			$method          = wp_unslash( $_GET['_method'] );
+			$allowed_methods = array_merge( wp_parse_list( self::ALLMETHODS ), array( 'HEAD', 'OPTIONS' ) );
+			if ( ! is_string( $method ) || ! in_array( strtoupper( $method ), $allowed_methods, true ) ) {
 				echo $this->json_error(
 					'rest_invalid_param',
 					/* translators: %s: List of invalid parameters. */
