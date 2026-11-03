@@ -76,7 +76,7 @@ parameters:
 		-
 			message: '#^Call to function is_string\(\) with non\-falsy\-string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/link-template.php
 		-
 			message: '#^Call to function wp_die\(\) with arguments non\-falsy\-string, mixed and array\{exit\: false, code\: ''mysql_not_found''\} will always evaluate to true\.$#'
