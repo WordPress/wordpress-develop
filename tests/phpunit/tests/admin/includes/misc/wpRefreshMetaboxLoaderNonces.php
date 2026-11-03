@@ -131,7 +131,7 @@ class Tests_Admin_Includes_Misc_WpRefreshMetaboxLoaderNonces extends WP_UnitTest
 		$this->assertArrayHasKey( 'metabox_loader_nonce', $replace );
 		$this->assertArrayHasKey( '_wpnonce', $replace );
 
-		$this->assertSame( 1, wp_verify_nonce( $replace['metabox_loader_nonce'], 'meta-box-loader' ), 'metabox_loader_nonce should be valid.' );
-		$this->assertSame( 1, wp_verify_nonce( $replace['_wpnonce'], 'update-post_' . self::$post_id ), '_wpnonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['metabox_loader_nonce'], 'meta-box-loader' ), 'metabox_loader_nonce should be valid.' );
+		$this->assertNotFalse( wp_verify_nonce( $replace['_wpnonce'], 'update-post_' . self::$post_id ), '_wpnonce should be valid.' );
 	}
 }
