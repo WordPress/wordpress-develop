@@ -240,6 +240,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function put_contents( $file, $contents, $mode = false ) {
+		if ( ! $this->link ) {
+			return false;
+		}
+
 		$tempfile   = wp_tempnam( $file );
 		$temphandle = fopen( $tempfile, 'wb+' );
 
@@ -263,10 +267,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 
-		$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
-
-		fclose( $temphandle );
-		unlink( $tempfile );
+		try {
+			$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
+		} finally {
+			// Remove the temporary file even if the upload throws, for example on a closed connection.
+			fclose( $temphandle );
+			unlink( $tempfile );
+		}
 
 		$this->chmod( $file, $mode );
 
