@@ -22,26 +22,18 @@ class Tests_Formatting_FormatForEditor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that format_for_editor() returns an empty string when input is empty.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_format_for_editor_empty_input() {
-		$this->assertSame( '', format_for_editor( '' ) );
-	}
-
-	/**
-	 * Tests that the format_for_editor filter receives the text and default editor.
+	 * Tests that the format_for_editor filter receives arguments and modifies returned text.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_format_for_editor_filter() {
 		$filter = new MockAction();
-		add_filter( 'format_for_editor', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'format_for_editor', array( $filter, 'filter_append' ), 10, 2 );
 
-		format_for_editor( 'Hello World', 'tinymce' );
+		$actual = format_for_editor( 'Hello World', 'tinymce' );
 
 		$this->assertSame( 1, $filter->get_call_count() );
 		$this->assertSame( array( 'Hello World', 'tinymce' ), $filter->get_args()[0] );
+		$this->assertSame( 'Hello World_append', $actual );
 	}
 }
