@@ -1006,6 +1006,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-bind` removes event handler bindings.
 	 *
+	 * @ticket 66452
+	 *
 	 * @covers ::process_directives
 	 *
 	 * @dataProvider data_event_handler_bindings
@@ -1024,6 +1026,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` removes an event handler binding but still
 	 * processes valid bind directives on the same element.
 	 *
+	 * @ticket 66452
+	 *
 	 * @covers ::process_directives
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
@@ -1037,6 +1041,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that the notice for an event handler binding suggests the equivalent
 	 * `data-wp-on` directive.
+	 *
+	 * @ticket 66452
 	 *
 	 * @covers ::process_directives
 	 *
