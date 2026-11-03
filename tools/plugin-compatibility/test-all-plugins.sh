@@ -4,7 +4,7 @@
 # version of WordPress, and reports the plugins that pass on the baseline and fail on the candidate.
 #
 # This is the run to make ahead of a major or security release, on a developer's machine or a spare server
-# rather than in Actions: the whole directory is roughly 74,000 plugins, which at about 7 seconds each is far
+# rather than in Actions: the whole directory is roughly 78,000 plugins, which at about 7 seconds each is far
 # more runner time than a shared CI pool should give to one job.
 #
 #     tools/plugin-compatibility/test-all-plugins.sh --count=5000 --wp-version=7.2-RC1 --jobs=8

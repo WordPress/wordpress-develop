@@ -47,7 +47,7 @@ Rough sizes, at the roughly 7 seconds per plugin measured on the most popular pl
 | --- | --- | --- | --- |
 | `--count=1000` | 1,000 | 15 minutes | 30 minutes |
 | `--updated-since` two years ago | about 42,000 | 10 hours | 20 hours |
-| `--all` | about 74,000 | 18 hours | 36 hours |
+| `--all` | about 78,000 | 19 hours | 38 hours |
 
 Each job runs its own database and PHP containers, so memory is usually what limits `--jobs`.
 

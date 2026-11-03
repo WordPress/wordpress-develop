@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##
-# Prints plugin slugs from the WordPress.org directory, one per line: the most popular first, or with
-# `--updated-since`, the most recently updated first.
+# Prints plugin slugs from the WordPress.org directory, one per line: the most popular first, or with `--all`
+# or `--updated-since`, the most recently updated first.
 #
 # This is where both the Plugin Compatibility Tests workflow and `test-all-plugins.sh` get their list from, so
 # that a run on a developer's machine tests the same plugins, in the same order, as a workflow run would.
@@ -28,7 +28,8 @@ Prints WordPress.org plugin slugs, one per line.
 
 Options:
   --count=<n>               How many plugins to list.
-  --all                     List every plugin in the directory, roughly 74,000 of them.
+  --all                     List every plugin in the directory, roughly 78,000 of them, most recently
+                            updated first.
   --updated-since=<date>    List the plugins updated on or after <date>, written YYYY-MM-DD, most recently
                             updated first. Combine with --count to cap the list. A plugin nobody has updated
                             in years is likely to fail on a current PHP whatever version of WordPress it
@@ -57,6 +58,11 @@ if [ -n "${UPDATED_SINCE}" ]; then
 	printf '%s' "${UPDATED_SINCE}" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' \
 		|| error "--updated-since must be a date written YYYY-MM-DD, got \"${UPDATED_SINCE}\"."
 	COUNT="${COUNT:-all}"
+	BROWSE="updated"
+elif [ "${COUNT}" = "all" ]; then
+	# Popularity is a poor order to page through all of: tens of thousands of plugins share the same rounded
+	# install count, their order shifts from one page to the next, and paging to the end returns only about
+	# 57,000 different plugins. Sorted by update, paging returns all of them, about 78,000.
 	BROWSE="updated"
 else
 	BROWSE="popular"
