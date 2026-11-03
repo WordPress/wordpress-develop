@@ -1060,4 +1060,33 @@ class Tests_Post extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that a post title containing %10 produces a working permalink.
+	 *
+	 * @ticket 3329
+	 *
+	 * @covers ::get_permalink
+	 * @covers WP::parse_request
+	 */
+	public function test_post_title_with_percentage_followed_by_numbers() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Test Title %10',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( 'test-title-%10', get_post( $post_id )->post_name );
+
+		$permalink = get_permalink( $post_id );
+		$this->assertStringContainsString( 'test-title-%10', $permalink );
+
+		$this->go_to( $permalink );
+
+		$this->assertTrue( is_single() );
+		$this->assertSame( $post_id, get_queried_object_id() );
+	}
 }
