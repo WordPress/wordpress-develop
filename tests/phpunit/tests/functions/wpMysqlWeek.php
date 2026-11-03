@@ -29,7 +29,7 @@ class Tests_Functions_WpMysqlWeek extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_wp_mysql_week() {
+	public static function data_wp_mysql_week() {
 		return array(
 			array( '1969-12-25', 0, 'WEEK( col_name, 0 )' ),
 			array( '1969-12-25', 1, 'WEEK( col_name, 1 )' ),
