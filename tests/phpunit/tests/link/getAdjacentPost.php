@@ -2,6 +2,8 @@
 /**
  * @group link
  * @covers ::get_adjacent_post
+ * @covers ::get_previous_post
+ * @covers ::get_next_post
  */
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
@@ -59,6 +61,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
+		$this->assertSame( $post_one->ID, get_previous_post()->ID );
+		$this->assertSame( $post_three->ID, get_next_post()->ID );
 
 		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', true )->ID );
 		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', false )->ID );

@@ -1,12 +1,15 @@
 <?php
 
 /**
- * Tests for get_adjacent_post_rel_link(), adjacent_posts_rel_link(), and adjacent_posts_rel_link_wp_head().
+ * Tests for get_adjacent_post_rel_link(), adjacent_posts_rel_link(), adjacent_posts_rel_link_wp_head(),
+ * next_post_rel_link(), and prev_post_rel_link().
  *
  * @group link
  * @covers ::get_adjacent_post_rel_link
  * @covers ::adjacent_posts_rel_link
  * @covers ::adjacent_posts_rel_link_wp_head
+ * @covers ::next_post_rel_link
+ * @covers ::prev_post_rel_link
  */
 class Tests_Link_GetAdjacentPostRelLink extends WP_UnitTestCase {
 
@@ -127,5 +130,39 @@ class Tests_Link_GetAdjacentPostRelLink extends WP_UnitTestCase {
 		$this->go_to( home_url( '/' ) );
 		$this->expectOutputString( '' );
 		adjacent_posts_rel_link_wp_head();
+	}
+
+	/**
+	 * Tests next_post_rel_link() outputs relational link for next post.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::next_post_rel_link
+	 */
+	public function test_next_post_rel_link() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_ids[1] ) );
+
+		$expected = "<link rel='next' title='Third Post' href='" . home_url( '?p=' . self::$post_ids[2] ) . "' />\n";
+
+		$this->expectOutputString( $expected );
+		next_post_rel_link();
+	}
+
+	/**
+	 * Tests prev_post_rel_link() outputs relational link for previous post.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::prev_post_rel_link
+	 */
+	public function test_prev_post_rel_link() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_ids[1] ) );
+
+		$expected = "<link rel='prev' title='First Post' href='" . home_url( '?p=' . self::$post_ids[0] ) . "' />\n";
+
+		$this->expectOutputString( $expected );
+		prev_post_rel_link();
 	}
 }
