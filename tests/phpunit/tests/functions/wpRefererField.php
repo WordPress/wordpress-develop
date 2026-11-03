@@ -5,7 +5,8 @@
  *
  * @since 6.1.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_referer_field
  */
 class Tests_Functions_wpRefererField extends WP_UnitTestCase {
@@ -47,9 +48,9 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_referer_field_should_respect_display_arg().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function data_wp_referer_field_should_respect_display_arg() {
+	public static function data_wp_referer_field_should_respect_display_arg() {
 		return array(
 			'true'         => array( true ),
 			'(int) 1'      => array( 1 ),

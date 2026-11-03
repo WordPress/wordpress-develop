@@ -7,6 +7,11 @@
  * @since 4.7.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Table renderer to display the diff lines.
  *
@@ -29,6 +34,30 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @since 2.6.0
 	 */
 	public $_trailing_context_lines = 10000;
+
+	/**
+	 * Title of the item being compared.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title;
+
+	/**
+	 * Title for the left column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_left;
+
+	/**
+	 * Title for the right column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_right;
 
 	/**
 	 * Threshold for when a diff should be saved or omitted.
@@ -206,7 +235,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			if ( $encode ) {
 				$processed_line = htmlspecialchars( $line );
 
-				/** This filter is documented in wp-includes/wp-diff.php */
+				/** This filter is documented in wp-includes/class-wp-text-diff-renderer-table.php */
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'deleted' );
 			}
 			if ( $this->_show_split_view ) {
@@ -231,7 +260,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			if ( $encode ) {
 				$processed_line = htmlspecialchars( $line );
 
-				/** This filter is documented in wp-includes/wp-diff.php */
+				/** This filter is documented in wp-includes/class-wp-text-diff-renderer-table.php */
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'unchanged' );
 			}
 			if ( $this->_show_split_view ) {
