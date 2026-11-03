@@ -92,11 +92,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		self::$test_provider = new WP_Sitemaps_Test_Provider();
 	}
 
-	public function set_up() {
-		parent::set_up();
-		$this->set_permalink_structure( '' );
-	}
-
 	/**
 	 * Helper function to get all sitemap entries data.
 	 *
@@ -119,6 +114,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test default sitemap entries.
 	 */
 	public function test_get_sitemap_entries() {
+		$this->set_permalink_structure( '' );
+
 		$entries = $this->_get_sitemap_entries();
 
 		$expected = array(
@@ -146,8 +143,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test default sitemap entries with permalinks on.
 	 */
 	public function test_get_sitemap_entries_post_with_permalinks() {
-		$this->set_permalink_structure( '/%year%/%postname%/' );
-
 		$entries = $this->_get_sitemap_entries();
 
 		$expected = array(
@@ -175,6 +170,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test sitemap index entries with public and private custom post types.
 	 */
 	public function test_get_sitemap_entries_custom_post_types() {
+		$this->set_permalink_structure( '' );
+
 		// Register and create a public post type post.
 		register_post_type( 'public_cpt', array( 'public' => true ) );
 		self::factory()->post->create( array( 'post_type' => 'public_cpt' ) );
@@ -199,6 +196,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @ticket 50607
 	 */
 	public function test_get_sitemap_entries_not_publicly_queryable_post_types() {
+		$this->set_permalink_structure( '' );
+
 		register_post_type(
 			'non_queryable_cpt',
 			array(
@@ -406,6 +405,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test robots.txt output.
 	 */
 	public function test_robots_text() {
+		$this->set_permalink_structure( '' );
+
 		// Get the text added to the default robots text output.
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
@@ -417,6 +418,8 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test robots.txt output for a private site.
 	 */
 	public function test_robots_text_private_site() {
+		$this->set_permalink_structure( '' );
+
 		$robots_text    = apply_filters( 'robots_txt', '', false );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
@@ -427,9 +430,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * Test robots.txt output with permalinks set.
 	 */
 	public function test_robots_text_with_permalinks() {
-		// Set permalinks for testing.
-		$this->set_permalink_structure( '/%year%/%postname%/' );
-
 		// Get the text added to the default robots text output.
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/wp-sitemap.xml';
@@ -526,8 +526,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @param non-falsy-string $query_string Query string to append to a nonexistent URL.
 	 */
 	public function test_unusable_sitemap_query_var_should_return_404( string $query_string ) {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		// Instantiate the server before navigating: registering the sitemap
 		// rewrite tags is what adds the query vars to `$wp->public_query_vars`.
 		$sitemaps = wp_sitemaps_get_server();
