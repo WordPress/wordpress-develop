@@ -105,6 +105,10 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * theme of the test; the next read fires `wp_entity_actions_api_init` again.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'test_book' );
+		unregister_post_type( 'test_note' );
+		unregister_post_type( 'test_hidden' );
+
 		self::reset_registry();
 
 		parent::tear_down();
@@ -385,7 +389,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'id'                => 'move-to-trash',
-				'label'             => 'Trash…',
+				'label'             => 'Trash',
 				'isPrimary'         => true,
 				'supportsBulk'      => true,
 				'hideModalHeader'   => true,
@@ -417,7 +421,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		add_filter(
 			'gettext',
 			static function ( $translation, $text, $domain ) use ( &$domains ) {
-				if ( 'Trash…' === $text ) {
+				if ( 'Trash' === $text ) {
 					$domains[] = $domain;
 				}
 				return $translation;
@@ -428,7 +432,7 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 		add_filter(
 			'gettext_with_context',
 			static function ( $translation, $text, $context, $domain ) use ( &$domains ) {
-				if ( 'Trash…' === $text ) {
+				if ( 'Trash' === $text ) {
 					$domains[] = $domain;
 				}
 				return $translation;

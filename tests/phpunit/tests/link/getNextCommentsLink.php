@@ -4,6 +4,7 @@
  * @group link
  * @group comment
  * @covers ::get_next_comments_link
+ * @covers ::next_comments_link
  */
 class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 
@@ -54,5 +55,45 @@ class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
 		set_query_var( 'cpage', $old_cpage );
 
 		$this->assertStringContainsString( 'cpage=4', $link );
+	}
+
+	/**
+	 * Tests that next_comments_link() echoes get_next_comments_link().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_next_comments_link_echoes_get_next_comments_link() {
+		$p = self::factory()->post->create();
+		$this->go_to( get_permalink( $p ) );
+
+		$old_cpage = get_query_var( 'cpage' );
+		set_query_var( 'cpage', 1 );
+
+		$expected = get_next_comments_link( 'Next Page', 3 );
+		$actual   = get_echo( 'next_comments_link', array( 'Next Page', 3 ) );
+
+		set_query_var( 'cpage', $old_cpage );
+
+		$this->assertNotEmpty( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that next_comments_link() outputs nothing when on the last page.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_next_comments_link_outputs_nothing_on_last_page() {
+		$p = self::factory()->post->create();
+		$this->go_to( get_permalink( $p ) );
+
+		$old_cpage = get_query_var( 'cpage' );
+		set_query_var( 'cpage', 3 );
+
+		$actual = get_echo( 'next_comments_link', array( 'Next Page', 3 ) );
+
+		set_query_var( 'cpage', $old_cpage );
+
+		$this->assertSame( '', $actual );
 	}
 }

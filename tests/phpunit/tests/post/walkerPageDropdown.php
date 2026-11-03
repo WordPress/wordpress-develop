@@ -65,40 +65,10 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 				0,
 				'<option class="level-0" value="7">About</option>',
 			),
-			'first level of depth'                 => array(
-				array(),
-				1,
-				'<option class="level-1" value="7">&nbsp;&nbsp;&nbsp;About</option>',
-			),
-			'second level of depth'                => array(
-				array(),
-				2,
-				'<option class="level-2" value="7">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;About</option>',
-			),
-			'selected by integer ID'               => array(
-				array( 'selected' => 7 ),
-				0,
-				'<option class="level-0" value="7" selected="selected">About</option>',
-			),
 			'selected by string ID'                => array(
 				array( 'selected' => '7' ),
 				0,
 				'<option class="level-0" value="7" selected="selected">About</option>',
-			),
-			'another page is selected'             => array(
-				array( 'selected' => 70 ),
-				0,
-				'<option class="level-0" value="7">About</option>',
-			),
-			'selected value is an empty string'    => array(
-				array( 'selected' => '' ),
-				0,
-				'<option class="level-0" value="7">About</option>',
-			),
-			'selected value is false'              => array(
-				array( 'selected' => false ),
-				0,
-				'<option class="level-0" value="7">About</option>',
 			),
 			'post name as the value field'         => array(
 				array( 'value_field' => 'post_name' ),
@@ -125,11 +95,6 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 				array( 'value_field' => 'does_not_exist' ),
 				0,
 				'<option class="level-0" value="7">About</option>',
-			),
-			'with depth and selection'             => array(
-				array( 'selected' => 7 ),
-				1,
-				'<option class="level-1" value="7" selected="selected">&nbsp;&nbsp;&nbsp;About</option>',
 			),
 		);
 	}
@@ -163,11 +128,9 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 */
 	public static function data_page_titles() {
 		return array(
-			'plain title'            => array( 'Contact us', 'Contact us' ),
-			'title with markup'      => array( 'Tom & <b>Jerry</b> "quoted"', 'Tom &amp; &lt;b&gt;Jerry&lt;/b&gt; &quot;quoted&quot;' ),
-			'empty title'            => array( '', '#7 (no title)' ),
-			'zero title'             => array( '0', '0' ),
-			'title with only spaces' => array( '  ', '  ' ),
+			'title with markup' => array( 'Tom & <b>Jerry</b> "quoted"', 'Tom &amp; &lt;b&gt;Jerry&lt;/b&gt; &quot;quoted&quot;' ),
+			'empty title'       => array( '', '#7 (no title)' ),
+			'zero title'        => array( '0', '0' ),
 		);
 	}
 

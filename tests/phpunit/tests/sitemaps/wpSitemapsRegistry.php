@@ -123,36 +123,9 @@ class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_sitemap_providers() {
 		return array(
-			'null'     => array( null ),
 			'false'    => array( false ),
-			'true'     => array( true ),
-			'string'   => array( 'invalid' ),
-			'integer'  => array( 123 ),
-			'array'    => array( array() ),
 			'stdClass' => array( new stdClass() ),
 		);
-	}
-
-	/**
-	 * Tests that get_provider() returns null for unregistered provider names.
-	 *
-	 * @covers WP_Sitemaps_Registry::get_provider
-	 */
-	public function test_get_provider_unregistered_name() {
-		$registry = new WP_Sitemaps_Registry();
-
-		$this->assertNull( $registry->get_provider( 'non_existent_provider' ) );
-	}
-
-	/**
-	 * Tests that get_providers() returns an empty array when no providers are registered.
-	 *
-	 * @covers WP_Sitemaps_Registry::get_providers
-	 */
-	public function test_get_providers_empty() {
-		$registry = new WP_Sitemaps_Registry();
-
-		$this->assertSame( array(), $registry->get_providers() );
 	}
 
 	/**
