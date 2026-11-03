@@ -463,15 +463,14 @@ new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
 /**
  * Removes default-excluded tests from PHPUnit suites before class fixtures run.
  */
-class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
-	use PHPUnit\Framework\TestListenerDefaultImplementation;
+trait WP_PHPUnit_Default_Group_Filter_Methods {
 
 	/**
 	 * Filters default-excluded tests from a suite and all nested suites.
 	 *
 	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
 	 */
-	public function startTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
+	public function start_test_suite( $suite ) {
 		$this->filter_suite( $suite );
 	}
 
@@ -480,7 +479,7 @@ class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener 
 	 *
 	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
 	 */
-	protected function filter_suite( PHPUnit\Framework\TestSuite $suite ) {
+	protected function filter_suite( $suite ) {
 		$tests = array();
 
 		foreach ( $suite->tests() as $test ) {
@@ -496,5 +495,19 @@ class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener 
 		}
 
 		$suite->setTests( $tests );
+	}
+}
+
+if ( version_compare( tests_get_phpunit_version(), '6.0', '<' ) ) {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit_Framework_TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
+	}
+} else {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
 	}
 }
