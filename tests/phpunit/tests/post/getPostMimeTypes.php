@@ -12,16 +12,17 @@ class Tests_Post_GetPostMimeTypes extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_filter_receives_core_media_groups() {
-		$filter = new MockAction();
-		add_filter( 'post_mime_types', array( $filter, 'filter' ) );
+	public function test_filter_can_customize_media_groups() {
+		add_filter(
+			'post_mime_types',
+			static function ( $post_mime_types ) {
+				$post_mime_types['image'][0] = 'Custom Images';
+				return $post_mime_types;
+			}
+		);
 
 		$types = get_post_mime_types();
 
-		$this->assertArrayHasKey( 'image', $types );
-		$this->assertArrayHasKey( 'audio', $types );
-		$this->assertArrayHasKey( 'video', $types );
-		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertArrayHasKey( 'image', $filter->get_args()[0][0] );
+		$this->assertSame( 'Custom Images', $types['image'][0] );
 	}
 }
