@@ -444,6 +444,8 @@ function get_http_origin() {
  * @since 3.4.0
  *
  * @return string[] Array of origin URLs.
+ *
+ * @phpstan-return array<non-falsy-string>
  */
 function get_allowed_http_origins() {
 	$parsed_urls = array(
@@ -474,6 +476,8 @@ function get_allowed_http_origins() {
 	 * @since 3.4.0
 	 *
 	 * @param string[] $allowed_origins Array of allowed HTTP origins.
+	 *
+	 * @phpstan-param array<non-falsy-string> $allowed_origins
 	 */
 	return apply_filters( 'allowed_http_origins', $allowed_origins );
 }
