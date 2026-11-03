@@ -18,6 +18,7 @@ fixture-fatal-on-front-end         FAIL     The request to / returned HTTP 500
 fixture-fatal-on-login             FAIL     The request to /wp-login.php returned HTTP 500
 fixture-fatal-after-output         FAIL     PHP Fatal error
 fixture-parse-error-after-output   FAIL     PHP Parse error
+fixture-fatal-in-background-request FAIL    PHP Fatal error
 fixture-wp-cli-only-fatal          PASS     WP-CLI fatals when it loads WordPress
 fixture-requires-akismet           PASS     akismet
 fixture-requires-broken-dependency SKIPPED  The required plugins are not healthy on their own

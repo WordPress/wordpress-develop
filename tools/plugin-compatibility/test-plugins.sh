@@ -482,6 +482,26 @@ check_url() {
 	fi
 }
 
+# wait_for_requests
+#
+# Waits until the built-in server has finished every request it has accepted, for up to 30 seconds, and
+# returns non zero when some are still running after that.
+#
+# A plugin can start a request of its own that the checks never wait on, such as a non-blocking loopback to
+# run a background task. A fatal in it would be logged after the log has been checked, or after the reset,
+# where it would be blamed on the next plugin. The server logs "Accepted" and "Closing" for every connection,
+# so the difference between the two is the number still running.
+wait_for_requests() {
+	for _ in $( seq 1 30 ); do
+		OPEN_REQUESTS="$( awk '/ Accepted$/ { open++ } / Closing$/ { open-- } END { print open + 0 }' "${SERVER_LOG}" )"
+		[ "${OPEN_REQUESTS}" -gt 0 ] || return 0
+		sleep 1
+	done
+
+	printf '%s requests to the test site were still running after 30 seconds.\n' "${OPEN_REQUESTS}"
+	return 1
+}
+
 # logged_fatals
 #
 # Prints the fatal and parse errors in the debug log, one per line, and returns non zero when there are none.
@@ -797,6 +817,8 @@ test_plugins() {
 			# A dependency can fatal after the page has started to render, which still answers with a 200.
 			# The fatal only shows up in the log, and it would show up again once the plugin under test is
 			# active and be blamed on that plugin, so the log is checked before it is cleared.
+			wait_for_requests || true
+
 			if [ "${STATUS}" = "PASS" ] && LOGGED_FATALS="$( logged_fatals )"; then
 				printf '%s\n' "${LOGGED_FATALS}"
 				STATUS="SKIPPED"
@@ -866,7 +888,12 @@ test_plugins() {
 		fi
 
 		# Step 7: a fatal or parse error can be logged without changing the HTTP status, for example during
-		# a shutdown hook, so the debug log is checked separately.
+		# a shutdown hook, so the debug log is checked separately, once any request the plugin started on its
+		# own has finished.
+		# A request that is still running after the wait is not a fatal on its own, so it does not change the
+		# result.
+		wait_for_requests || true
+
 		if [ "${STATUS}" = "PASS" ] && LOGGED_FATALS="$( logged_fatals )"; then
 			printf '%s\n' "${LOGGED_FATALS}"
 			STATUS="FAIL"
@@ -912,6 +939,9 @@ test_plugins() {
 		fi
 
 		record "${SLUG}" "${VERSION}" "${STATUS}" "${DEPENDENCY_LIST}" "${REASON}"
+
+		# A request still running when the site is reset could write to the next plugin's log or database.
+		wait_for_requests || true
 		reset_site || reset_failed "${SLUG}"
 
 		printf '%s: %s\n' "${SLUG}" "${STATUS}"
