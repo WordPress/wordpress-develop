@@ -9,6 +9,16 @@ class Tests_Query extends WP_UnitTestCase {
 		create_initial_taxonomies();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'guide' );
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'test_tax_cat' );
+		unregister_taxonomy( 'tax1' );
+		unregister_taxonomy( 'tax2' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 24785
 	 */
