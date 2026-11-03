@@ -35,15 +35,12 @@ if ( is_multisite() ) {
 	$submenu['index.php'][5] = array( __( 'My Sites' ), 'read', 'my-sites.php' );
 }
 
-if ( ! is_multisite() || current_user_can( 'update_core' ) ) {
+$is_multisite = is_multisite();
+if ( ! $is_multisite || current_user_can( 'update_core' ) ) {
 	$update_data = wp_get_update_data();
 }
 
-if ( ! is_multisite() ) {
-	if ( ! isset( $update_data ) ) {
-		$update_data = wp_get_update_data();
-	}
-
+if ( ! $is_multisite ) {
 	if ( current_user_can( 'update_core' ) ) {
 		$capability = 'update_core';
 	} elseif ( current_user_can( 'update_plugins' ) ) {
@@ -215,7 +212,7 @@ $appearance_capability = current_user_can( 'switch_themes' ) ? 'switch_themes' :
 $menu[60] = array( __( 'Appearance' ), $appearance_capability, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-admin-appearance' );
 
 $count = '';
-if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
+if ( ! $is_multisite && current_user_can( 'update_themes' ) ) {
 	if ( ! isset( $update_data ) ) {
 		$update_data = wp_get_update_data();
 	}
@@ -318,7 +315,7 @@ function _add_plugin_file_editor_to_tools() {
 }
 
 $count = '';
-if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
+if ( ! $is_multisite && current_user_can( 'update_plugins' ) ) {
 	if ( ! isset( $update_data ) ) {
 		$update_data = wp_get_update_data();
 	}
@@ -344,7 +341,7 @@ if ( ! is_multisite() ) {
 	}
 }
 
-unset( $update_data );
+unset( $update_data, $is_multisite );
 
 if ( current_user_can( 'list_users' ) ) {
 	$menu[70] = array( __( 'Users' ), 'list_users', 'users.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
