@@ -778,8 +778,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_preview_links_for_draft_and_pending_posts_with_no_post_name() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -932,8 +930,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 35368
 	 */
 	public function test_get_sample_permalink_should_respect_hierarchy_of_draft_pages() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$parent = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',

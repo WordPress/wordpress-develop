@@ -379,8 +379,6 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type_removes_rewrite_tags() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		global $wp_rewrite;
 
 		register_post_type(
@@ -405,8 +403,6 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type_removes_rewrite_rules() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		global $wp_rewrite;
 
 		register_post_type(

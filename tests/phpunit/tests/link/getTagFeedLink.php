@@ -56,7 +56,6 @@ class Tests_Link_GetTagFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_pretty_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		$this->assertSame(
@@ -75,7 +74,6 @@ class Tests_Link_GetTagFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_tag_feed_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		$filter = new MockAction();

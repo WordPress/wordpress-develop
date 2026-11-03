@@ -332,8 +332,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_posts() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'post',
@@ -349,8 +347,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_pages() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -366,8 +362,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_attachments() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'attachment',

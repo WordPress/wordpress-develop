@@ -64,8 +64,6 @@ class Tests_User_GetAuthorPostsUrl extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_pretty_permalink_and_looks_up_nicename() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame(
 			'http://' . WP_TESTS_DOMAIN . '/author/' . self::$author_nicename . '/',
 			get_author_posts_url( self::$author_id )
@@ -75,8 +73,6 @@ class Tests_User_GetAuthorPostsUrl extends WP_UnitTestCase {
 			'http://' . WP_TESTS_DOMAIN . '/author/custom-nicename/',
 			get_author_posts_url( self::$author_id, 'custom-nicename' )
 		);
-
-		$this->set_permalink_structure( '' );
 	}
 
 	/**

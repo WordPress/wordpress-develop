@@ -168,9 +168,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 			),
 		);
 
-		// Clean up permalinks.
-		$this->set_permalink_structure();
-
 		$this->assertSame( $expected, $entries );
 	}
 
@@ -436,9 +433,6 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 		// Get the text added to the default robots text output.
 		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/wp-sitemap.xml';
-
-		// Clean up permalinks.
-		$this->set_permalink_structure();
 
 		$this->assertStringContainsString( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
 	}

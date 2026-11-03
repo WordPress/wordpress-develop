@@ -56,8 +56,6 @@ class Tests_Link_GetAuthorFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_pretty_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame(
 			home_url( '/author/johndoe/feed/' ),
 			get_author_feed_link( self::$author_id )
@@ -74,8 +72,6 @@ class Tests_Link_GetAuthorFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_respects_default_feed_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		add_filter(
 			'default_feed',
 			static function () {
@@ -106,8 +102,6 @@ class Tests_Link_GetAuthorFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_author_feed_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$filter = new MockAction();
 		add_filter( 'author_feed_link', array( $filter, 'filter' ), 10, 2 );
 		add_filter(

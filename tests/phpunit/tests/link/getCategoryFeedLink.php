@@ -65,7 +65,6 @@ class Tests_Link_GetCategoryFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_pretty_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		$this->assertSame(
@@ -84,7 +83,6 @@ class Tests_Link_GetCategoryFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_accepts_term_object() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		$cat = get_term( self::$cat_id, 'category' );
@@ -100,7 +98,6 @@ class Tests_Link_GetCategoryFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_respects_default_feed_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		add_filter(
@@ -133,7 +130,6 @@ class Tests_Link_GetCategoryFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_category_feed_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
 		create_initial_taxonomies();
 
 		$filter = new MockAction();

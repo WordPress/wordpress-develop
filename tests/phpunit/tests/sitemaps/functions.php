@@ -79,8 +79,6 @@ class Tests_Sitemaps_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_get_sitemap_url_pretty_permalinks
 	 */
 	public function test_get_sitemap_url_pretty_permalinks( $name, $subtype_name, $page, $expected ) {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$actual = get_sitemap_url( $name, $subtype_name, $page );
 
 		$this->assertSame( $expected, $actual );
