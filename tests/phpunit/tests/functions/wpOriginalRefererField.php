@@ -6,7 +6,7 @@
  * @since 6.0.0
  *
  * @group functions.php
- * @covers ::wp_referer_field
+ * @covers ::wp_original_referer_field
  */
 class Tests_Functions_wpOriginalRefererField extends WP_UnitTestCase {
 	public function set_up() {
