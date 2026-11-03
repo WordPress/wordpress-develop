@@ -1,0 +1,50 @@
+name: 'Set up WP-CLI'
+description: 'Installs WP-CLI as `wp`, retrying the download and falling back to a previously cached phar when it fails.'
+
+inputs:
+  version:
+    description: 'Optional. The WP-CLI version to install, e.g. 2.4.0. Defaults to the latest release.'
+    required: false
+    default: 'latest'
+
+# Not installed with the setup-php `tools` input: that downloads WP-CLI in a single attempt
+# and only logs an error on failure, so the job breaks later with `wp: command not found`.
+# The phar is cached in 6 hour windows, so jobs keep getting new WP-CLI releases without each
+# downloading it. When a new window's download fails, the previous window's phar is used instead.
+runs:
+  using: 'composite'
+  steps:
+    - name: Get the WP-CLI cache window
+      id: get-wp-cli-window
+      shell: bash
+      run: echo "window=$(( $(/bin/date -u '+%s') / WP_CLI_CACHE_SECONDS ))" >> "$GITHUB_OUTPUT"
+      env:
+        WP_CLI_CACHE_SECONDS: 21600 # 6 hours.
+
+    - name: Cache WP-CLI
+      id: cache-wp-cli
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ${{ runner.temp }}/wp-cli.phar
+        key: ${{ runner.os }}-wp-cli-${{ inputs.version }}-${{ steps.get-wp-cli-window.outputs.window }}
+        restore-keys: ${{ runner.os }}-wp-cli-${{ inputs.version }}-
+
+    - name: Install WP-CLI
+      shell: bash
+      run: |
+        if [ "$CACHE_HIT" != 'true' ]; then
+          if curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+            --output "${RUNNER_TEMP}/wp-cli.phar.download" "$WP_CLI_URL"; then
+            mv "${RUNNER_TEMP}/wp-cli.phar.download" "${RUNNER_TEMP}/wp-cli.phar"
+          elif [ -f "${RUNNER_TEMP}/wp-cli.phar" ]; then
+            echo "::warning::Could not download WP-CLI, using the previously cached version."
+          else
+            echo "::error::Could not download WP-CLI."
+            exit 1
+          fi
+        fi
+        sudo install -m 0755 "${RUNNER_TEMP}/wp-cli.phar" /usr/local/bin/wp
+        wp --version
+      env:
+        CACHE_HIT: ${{ steps.cache-wp-cli.outputs.cache-hit }}
+        WP_CLI_URL: ${{ inputs.version == 'latest' && 'https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar' || format('https://github.com/wp-cli/wp-cli/releases/download/v{0}/wp-cli-{0}.phar', inputs.version) }}

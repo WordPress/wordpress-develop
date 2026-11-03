@@ -382,7 +382,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public function data_provider_skip_link_actions(): array {
+	public static function data_provider_skip_link_actions(): array {
 		return array(
 			'the_block_template_skip_link'        => array(
 				'action'   => 'wp_footer',
@@ -428,7 +428,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_block_theme_folders() {
+	public static function data_get_block_theme_folders() {
 		return array(
 			'block-theme'                       => array(
 				'block-theme',
@@ -596,7 +596,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{theme_directory: string, template_type: string, expected_slugs: string[]}>
 	 */
-	public function data_get_block_templates_files_slugs() {
+	public static function data_get_block_templates_files_slugs() {
 		return array(
 			'template parts in a theme whose directory name does not end with parts' => array(
 				'theme_directory' => 'default',

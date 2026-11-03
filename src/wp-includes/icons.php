@@ -140,7 +140,8 @@ function _wp_register_default_icons() {
 	 *     label: string,
 	 *     filePath: non-empty-string,
 	 *     collections: non-empty-list<lowercase-string&non-falsy-string>,
-	 *     keywords?: list<string>
+	 *     keywords?: list<string>,
+	 *     dashicons?: non-empty-list<non-falsy-string>
 	 * }> $collection
 	 */
 	$collection = include $manifest_path;
