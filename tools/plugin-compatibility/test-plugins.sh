@@ -41,9 +41,9 @@ WP_VERSION="nightly"
 PLUGIN_LIST=""
 USE_DOCKER="yes"
 # The official WP-CLI image carries PHP, WP-CLI, `mysqli` and curl, which is everything the checks need.
-PHP_IMAGE="wordpress:cli-php8.3"
+PHP_IMAGE="wordpress:cli-php8.5"
 # Matches the database the workflow runs against by default.
-DB_IMAGE="mysql:8.4"
+DB_IMAGE="mysql:9.7"
 WP_DIR=""
 DB_HOST="127.0.0.1"
 DB_NAME="test_db"
@@ -69,8 +69,8 @@ Options:
                        positional arguments.
   --wp-version=<ver>   Version of WordPress to test against. Accepts "latest", "nightly", or a version
                        number such as a beta or RC. Default: nightly.
-  --php-image=<image>  Container image the checks run in. Default: wordpress:cli-php8.3.
-  --db-image=<image>   Container image the database runs in. Default: mysql:8.4.
+  --php-image=<image>  Container image the checks run in. Default: wordpress:cli-php8.5.
+  --db-image=<image>   Container image the database runs in. Default: mysql:9.7.
   --no-docker          Run the checks in the current environment rather than in a container. Requires PHP,
                        WP-CLI, curl and a database that is already running.
   --dir=<path>         Where to install WordPress. Only used with --no-docker. Default: a temporary

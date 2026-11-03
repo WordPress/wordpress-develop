@@ -273,7 +273,7 @@ jobs:
     with:
       os: 'ubuntu-24.04'
       wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
-      php-version: '8.3'
+      php-version: '8.5'
       plugin-slugs: ${{ matrix.shard.slugs }}
       db-type: 'mysql'
       db-version: '9.7'
@@ -293,10 +293,10 @@ jobs:
     with:
       os: 'ubuntu-24.04'
       wp-version: ${{ inputs.wp-version || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && 'latest' ) || 'nightly' }}
-      php-version: '8.3'
+      php-version: '8.5'
       fixtures: true
       db-type: 'mysql'
-      db-version: '8.4'
+      db-version: '9.7'
 
   slack-notifications:
     name: Slack Notifications
