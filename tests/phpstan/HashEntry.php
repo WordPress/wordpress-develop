@@ -21,14 +21,16 @@ final class HashEntry {
 	/**
 	 * Type as written in the docblock.
 	 *
-	 * @var string
+	 * @var non-empty-string
 	 */
 	public string $type;
 
 	/**
 	 * Key name, without the `$`.
 	 *
-	 * @var string
+	 * Not a non-falsy string, since the `$0` of a `...$0` entry is a key of `0`.
+	 *
+	 * @var non-empty-string
 	 */
 	public string $name;
 
@@ -60,10 +62,10 @@ final class HashEntry {
 	/**
 	 * Constructor.
 	 *
-	 * @param string $type        Type as written in the docblock.
-	 * @param string $name        Key name, without the `$`.
-	 * @param bool   $variadic    Whether the entry is written as `...$name`.
-	 * @param string $description Description of the entry.
+	 * @param non-empty-string $type        Type as written in the docblock.
+	 * @param non-empty-string $name        Key name, without the `$`.
+	 * @param bool             $variadic    Whether the entry is written as `...$name`.
+	 * @param string           $description Description of the entry.
 	 */
 	public function __construct( string $type, string $name, bool $variadic, string $description ) {
 		$this->type        = $type;

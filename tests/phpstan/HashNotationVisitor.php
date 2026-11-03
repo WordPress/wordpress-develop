@@ -685,7 +685,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * `$deps`, rather than at the space inside the angle brackets.
 	 *
 	 * @param string $text Text beginning with a type.
-	 * @return array{0: string, 1: string}|null Type and remainder, or null if there is no type.
+	 * @return array{0: non-empty-string, 1: string}|null Type and remainder, or null if there is no type.
 	 */
 	private function split_type( string $text ): ?array {
 		$text   = ltrim( $text );
@@ -798,14 +798,20 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * A union is written back without the parentheses `(string|array)[]` needs
 		 * around it, since `substitute()` looks for the bare `array` to shape among
 		 * the members of the entry's type. The type is rewritten on a copy of the
-		 * entry, so the parsed hash is left as it was written.
+		 * entry, so the parsed hash is left as it was written. A type that prints as
+		 * nothing cannot be respelled, so the hash is then left untranslated.
 		 */
 		$element = $elements[ $target ] ?? null;
 		if ( null !== $element ) {
-			$entry       = clone $entries[0];
-			$entry->type = $element instanceof UnionTypeNode
+			$respelled = $element instanceof UnionTypeNode
 				? implode( '|', array_map( 'strval', $element->types ) )
 				: (string) $element;
+			if ( '' === $respelled ) {
+				return null;
+			}
+
+			$entry       = clone $entries[0];
+			$entry->type = $respelled;
 			$entries     = array( $entry, ...array_slice( $entries, 1 ) );
 		}
 		$is_array   = 'array' === $normalized || null !== $element;
