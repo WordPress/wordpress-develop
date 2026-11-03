@@ -264,9 +264,9 @@ jobs:
           output: themeunittestdata.wordpress.xml
 
       - name: Import mock data
-        # The import's attachment downloads don't time out quickly, so a stalled
-        # download could otherwise run until the 6 hour job limit.
-        timeout-minutes: 5
+        # The importer waits up to 300 s per attachment download and skips the ones that
+        # fail: the cap leaves room for a stalled attachment, not a hung import.
+        timeout-minutes: 15
         run: |
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
