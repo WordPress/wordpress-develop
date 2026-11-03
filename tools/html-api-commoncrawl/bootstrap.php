@@ -120,3 +120,27 @@ add_filter(
 		return '';
 	}
 );
+
+/**
+ * Reports progress through a batch every 1,000 documents, so that a long run does not look stuck.
+ *
+ * Call it once for each document, after the document's measurements. It writes
+ * to STDERR, which shows in the workflow log between the analysis script's runs.
+ *
+ * @param string $label What is being done, such as `timing`.
+ */
+function html_api_bench_progress( $label ) {
+	static $count      = 0;
+	static $started_at = null;
+
+	$started_at ??= hrtime( true );
+	if ( 0 !== ++$count % 1000 ) {
+		return;
+	}
+
+	$seconds = max( 1, intdiv( hrtime( true ) - $started_at, 1000000000 ) );
+	fwrite(
+		STDERR,
+		sprintf( "  %s: %s documents after %dm %02ds (%.0f per second)\n", $label, number_format( $count ), intdiv( $seconds, 60 ), $seconds % 60, $count / $seconds )
+	);
+}

@@ -84,4 +84,6 @@ return static function ( $document ) use ( $csv ) {
 		'"',
 		''
 	);
+
+	html_api_bench_progress( 'timing' );
 };
