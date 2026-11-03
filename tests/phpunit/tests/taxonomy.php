@@ -210,9 +210,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		register_taxonomy( $tax, 'post' );
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertFalse( is_taxonomy_hierarchical( $tax ) );
-
-		// Clean up.
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 	}
 
 	public function test_register_hierarchical_taxonomy() {
@@ -224,9 +221,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertTrue( is_taxonomy_hierarchical( $tax ) );
-
-		// Clean up.
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 	}
 
 	/**
@@ -341,7 +335,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( register_taxonomy_for_object_type( $tax, 'user' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, 'user' ) );
 
-		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 		_unregister_post_type( $post_type );
 	}
 
@@ -646,7 +639,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSameSets( array( $p1 ), get_ancestors( $p2, 'wptests_conflict', 'post_type' ) );
 		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict', 'taxonomy' ) );
 		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict' ) );
-		_unregister_post_type( 'wptests_pt' );
 	}
 
 	/**
