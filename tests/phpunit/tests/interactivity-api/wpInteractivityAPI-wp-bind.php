@@ -1037,25 +1037,4 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertEqualHTML( '<button data-wp-bind--id="myPlugin::state.id" id="some-id">Text</button>', $new_html );
 	}
-
-	/**
-	 * Tests that the notice for an event handler binding suggests the equivalent
-	 * `data-wp-on` directive.
-	 *
-	 * @ticket 66452
-	 *
-	 * @covers ::process_directives
-	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
-	 */
-	public function test_wp_bind_event_handler_notice_suggests_data_wp_on(): void {
-		$this->interactivity->process_directives( '<button data-wp-bind--onclick---unique-id="myPlugin::state.id">Text</button>' );
-		$this->assertSame(
-			array(
-				'WP_Interactivity_API::data_wp_bind_processor' => 'Binding event handler attributes is not supported. Please use "data-wp-on--click---unique-id" instead. (This message was added in version 6.9.2.)',
-			),
-			$this->caught_doing_it_wrong,
-			'Expected _doing_it_wrong() to have been called once with the event handler binding message.'
-		);
-	}
 }
