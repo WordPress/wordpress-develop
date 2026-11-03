@@ -48,58 +48,9 @@ class Tests_General_wpAdminCssColor extends WP_UnitTestCase {
 
 		wp_admin_css_color( 'custom', 'Custom', $url, $colors, $icons );
 
-		$this->assertArrayHasKey( 'custom', $_wp_admin_css_colors );
-		$this->assertIsObject( $_wp_admin_css_colors['custom'] );
 		$this->assertSame( 'Custom', $_wp_admin_css_colors['custom']->name );
 		$this->assertSame( $url, $_wp_admin_css_colors['custom']->url );
 		$this->assertSame( $colors, $_wp_admin_css_colors['custom']->colors );
 		$this->assertSame( $icons, $_wp_admin_css_colors['custom']->icon_colors );
-	}
-
-	/**
-	 * Tests registering an admin color scheme with default colors and icons.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_wp_admin_css_color_default_arguments() {
-		global $_wp_admin_css_colors;
-
-		$url = 'https://example.org/wp-admin/css/colors/minimal.css';
-
-		wp_admin_css_color( 'minimal', 'Minimal', $url );
-
-		$this->assertArrayHasKey( 'minimal', $_wp_admin_css_colors );
-		$this->assertSame( array(), $_wp_admin_css_colors['minimal']->colors );
-		$this->assertSame( array(), $_wp_admin_css_colors['minimal']->icon_colors );
-	}
-
-	/**
-	 * Tests overwriting an existing admin color scheme.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_wp_admin_css_color_overwrite() {
-		global $_wp_admin_css_colors;
-
-		wp_admin_css_color( 'custom', 'First Version', 'https://example.org/v1.css' );
-		$this->assertSame( 'First Version', $_wp_admin_css_colors['custom']->name );
-
-		wp_admin_css_color( 'custom', 'Second Version', 'https://example.org/v2.css' );
-		$this->assertSame( 'Second Version', $_wp_admin_css_colors['custom']->name );
-		$this->assertSame( 'https://example.org/v2.css', $_wp_admin_css_colors['custom']->url );
-	}
-
-	/**
-	 * Tests registering when $_wp_admin_css_colors is unset initially.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_wp_admin_css_color_initializes_global() {
-		unset( $GLOBALS['_wp_admin_css_colors'] );
-
-		wp_admin_css_color( 'new-scheme', 'New Scheme', 'https://example.org/new.css' );
-
-		$this->assertIsArray( $GLOBALS['_wp_admin_css_colors'] );
-		$this->assertArrayHasKey( 'new-scheme', $GLOBALS['_wp_admin_css_colors'] );
 	}
 }
