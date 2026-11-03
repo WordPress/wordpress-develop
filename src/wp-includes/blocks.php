@@ -1932,7 +1932,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *     An array of blocks.
  *
  *     @type array ...$0 {
- *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
  *
  *         @type string|null $blockName    Required. Name of block.
  *         @type array       $attrs        Required. Attributes from block comment delimiters.
@@ -1947,7 +1947,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *     An array of blocks with patterns replaced by their content.
  *
  *     @type array ...$0 {
- *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
  *
  *         @type string|null $blockName    Name of block.
  *         @type array       $attrs        Attributes from block comment delimiters.
