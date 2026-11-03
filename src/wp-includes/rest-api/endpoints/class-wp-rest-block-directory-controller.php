@@ -18,6 +18,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.5.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -26,6 +28,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.5.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -136,7 +140,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			'author_block_rating' => $plugin['author_block_rating'] / 20,
 			'author_block_count'  => (int) $plugin['author_block_count'],
 			'author'              => wp_strip_all_tags( $plugin['author'] ),
-			'icon'                => ( isset( $plugin['icons']['1x'] ) ? $plugin['icons']['1x'] : 'block-default' ),
+			'icon'                => $plugin['icons']['1x'] ?? 'block-default',
 			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf(
 				/* translators: %s: Human-readable time difference. */
@@ -200,9 +204,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			return '';
 		}
 
-		$plugin_files = array_keys( $plugin_files );
-
-		return $slug . '/' . reset( $plugin_files );
+		return $slug . '/' . array_key_first( $plugin_files );
 	}
 
 	/**

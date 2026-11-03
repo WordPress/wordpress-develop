@@ -23,7 +23,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	protected static $_core_actions_get = array(
 		'fetch-list',
 		'ajax-tag-search',
-		'wp-compression-test',
 		'imgedit-preview',
 		'oembed-cache',
 		'autocomplete-user',
@@ -66,6 +65,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'add-user',
 		'closed-postboxes',
 		'hidden-columns',
+		'meta-box-reordering',
 		'update-welcome-panel',
 		'menu-get-metabox',
 		'wp-link-ajax',
@@ -122,7 +122,13 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		remove_action( 'admin_init', '_maybe_update_plugins' );
 		remove_action( 'admin_init', '_maybe_update_themes' );
 
-		// Register the core actions.
+		self::register_core_actions();
+	}
+
+	/**
+	 * Registers the core Ajax actions.
+	 */
+	protected static function register_core_actions() {
 		foreach ( array_merge( self::$_core_actions_get, self::$_core_actions_post ) as $action ) {
 			if ( function_exists( 'wp_ajax_' . str_replace( '-', '_', $action ) ) ) {
 				add_action( 'wp_ajax_' . $action, 'wp_ajax_' . str_replace( '-', '_', $action ), 1 );
@@ -137,6 +143,15 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		/*
+		 * The shared hook snapshot may have been captured before an Ajax test case
+		 * registered these callbacks, then restored after another randomized test.
+		 */
+		self::register_core_actions();
+		remove_action( 'admin_init', '_maybe_update_core' );
+		remove_action( 'admin_init', '_maybe_update_plugins' );
+		remove_action( 'admin_init', '_maybe_update_themes' );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
@@ -182,7 +197,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns our callback handler
 	 *
-	 * @return callback
+	 * @return callable
 	 */
 	public function getDieHandler() {
 		return array( $this, 'dieHandler' );
@@ -269,5 +284,30 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		if ( ! empty( $buffer ) ) {
 			$this->_last_response = $buffer;
 		}
+	}
+
+	/**
+	 * Dispatches an Ajax action and returns its response.
+	 *
+	 * Fails the test if the handler returns without calling wp_die().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $action The action to handle.
+	 * @return string The output if any was sent, otherwise the wp_die() message.
+	 */
+	protected function get_ajax_response( $action ) {
+		// dieHandler() appends to the previous response, which would leak into this one.
+		$this->_last_response = '';
+
+		try {
+			$this->_handleAjax( $action );
+		} catch ( WPAjaxDieStopException $e ) {
+			return $e->getMessage();
+		} catch ( WPAjaxDieContinueException $e ) {
+			return $this->_last_response;
+		}
+
+		$this->fail( "The '{$action}' Ajax handler did not terminate." );
 	}
 }

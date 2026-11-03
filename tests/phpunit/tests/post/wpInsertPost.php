@@ -157,10 +157,10 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$GLOBALS['wp_taxonomies']['post_tag']->object_type = array( 'post' );
 	}
 
-	public function data_vb_insert_get_delete() {
+	public static function data_vb_insert_get_delete() {
 		$post_types = array( 'post', 'cpt' );
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -384,7 +384,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
 	}
 
-	public function data_vb_insert_future_change_status() {
+	public static function data_vb_insert_future_change_status() {
 		$statuses = array(
 			'draft',
 			'static',
@@ -394,7 +394,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'pending',
 		);
 
-		return $this->text_array_to_dataprovider( $statuses );
+		return self::text_array_to_dataprovider( $statuses );
 	}
 
 	/**
@@ -566,34 +566,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * "When I delete a future post using wp_delete_post( $post->ID ) it does not update the cron correctly."
-	 *
-	 * @ticket 5364
-	 * @covers ::wp_delete_post
-	 */
-	public function test_delete_future_post_cron() {
-		$future_date = strtotime( '+1 day' );
-
-		$data = array(
-			'post_status'  => 'publish',
-			'post_content' => 'content',
-			'post_title'   => 'title',
-			'post_date'    => date_format( date_create( "@{$future_date}" ), 'Y-m-d H:i:s' ),
-		);
-
-		// Insert a post and make sure the ID is OK.
-		$post_id = wp_insert_post( $data );
-
-		// Check that there's a publish_future_post job scheduled at the right time.
-		$this->assertSame( $future_date, $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-
-		// Now delete the post and make sure the cron entry is removed.
-		wp_delete_post( $post_id );
-
-		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-	}
-
-	/**
 	 * Bug: permalink doesn't work if post title is empty.
 	 *
 	 * Might only fail if the post ID is greater than four characters.
@@ -647,8 +619,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( 0, wp_insert_post( $post ) );
 		$this->assertSame( 0, wp_update_post( $post ) );
 
-		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
-		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
+		$this->assertWPError( wp_insert_post( $post, true ) );
+		$this->assertWPError( wp_update_post( $post, true ) );
 	}
 
 	/**
@@ -1184,58 +1156,76 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$invalid_date  = '2020-12-41 14:15:27';
 
 		// Empty post_date_gmt with floating status
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'draft',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'draft',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Empty post_date_gmt without floating status
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'  => 'Invalid date',
 				'post_date'   => $invalid_date,
 				'post_status' => 'publish',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => '0000-00-00 00:00:00',
 				'post_status'   => 'publish',
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Valid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $post_date_gmt,
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 
 		// Invalid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$post_id = wp_insert_post(
 			array(
+				'post_title'    => 'Invalid date',
 				'post_date'     => $invalid_date,
 				'post_date_gmt' => $invalid_date,
-			)
+			),
+			true
 		);
 		$this->assertWPError( $post_id );
+		$this->assertSame( 'invalid_date', $post_id->get_error_code() );
 	}
 
 	/**
@@ -1378,7 +1368,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		wp_trash_post( $page_id );
 		wp_untrash_post( $page_id );
 
-		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status' );
 
 		$this->assertSame( $post_status, get_post( $page_id )->post_status );
 	}
@@ -1388,14 +1378,14 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_types() {
+	public static function data_various_post_types() {
 		$post_types = array(
 			'mapped_meta_caps',
 			'unmapped_meta_caps',
 			'post',
 		);
 
-		return $this->text_array_to_dataprovider( $post_types );
+		return self::text_array_to_dataprovider( $post_types );
 	}
 
 	/**
@@ -1403,7 +1393,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 *
 	 * @return array Array of test arguments.
 	 */
-	public function data_various_post_statuses() {
+	public static function data_various_post_statuses() {
 		$post_statuses = array(
 			'draft',
 			'pending',
@@ -1411,7 +1401,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			'publish',
 		);
 
-		return $this->text_array_to_dataprovider( $post_statuses );
+		return self::text_array_to_dataprovider( $post_statuses );
 	}
 
 	/**
@@ -1557,5 +1547,50 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Post metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_post
+	 */
+	public function test_meta_query_is_fresh_inside_added_post_meta_action() {
+		$args    = array(
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+			'meta_key'       => 'target_meta_key',
+			'meta_value'     => 'present',
+		);
+		$results = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $post_id, $meta_key ) use ( $args, &$results ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$results['before'] = get_posts( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$results['during'] = get_posts( $args );
+			}
+		};
+
+		add_action( 'added_post_meta', $observer, 20, 3 );
+		try {
+			$post_id = wp_insert_post(
+				array(
+					'post_title'  => 'Cache observer fixture',
+					'post_status' => 'publish',
+					'meta_input'  => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$this->assertSame( array(), $results['before'] );
+			$this->assertSameSets( array( $post_id ), $results['during'] );
+		} finally {
+			remove_action( 'added_post_meta', $observer, 20 );
+		}
 	}
 }

@@ -73,6 +73,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax1' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Ensure cache keys are generated without WPDB placeholders.
 	 *
@@ -102,7 +107,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		}
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
@@ -158,7 +165,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
@@ -191,7 +200,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request1   = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request1 );
 		unregister_post_type( 'wptests_pt' );
@@ -227,10 +238,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -288,10 +303,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -345,10 +364,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -385,10 +408,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertSame( $request1, $request2, 'Queries should match' );
 
@@ -450,7 +477,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_query_cache_duplicate() {
+	public static function data_query_cache_duplicate() {
 		return array(
 			'post type empty'                              => array(
 				'query_vars1' => array( 'post_type' => '' ),
@@ -728,7 +755,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test parameters.
 	 */
-	public function data_query_cache() {
+	public static function data_query_cache() {
 		return array(
 			'cache true'                                  => array(
 				'args' => array(
@@ -1194,7 +1221,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'cache_results'          => true,
 			'fields'                 => 'ids',
 			'suppress_filters'       => true,
-			'cache_results'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'lazy_load_term_meta'    => false,
@@ -1464,7 +1490,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertTrue( $query2->have_comments() );
 
 		$feed_comment = $query1->next_comment();
-		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
 
 	/**
@@ -1781,7 +1807,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		return array( get_post( self::$posts[0] ) );
 	}
 
-	public function data_query_filter_posts_results() {
+	public static function data_query_filter_posts_results() {
 		return array(
 			array( 'posts_results' ),
 			array( 'the_posts' ),
@@ -1904,7 +1930,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, get_num_queries(), 'Second query is not cached.' );
 	}
 
-	public function data_query_cache_with_empty_result_set() {
+	public static function data_query_cache_with_empty_result_set() {
 		return array(
 			array( '', '' ),
 			array( '', 'ids' ),
@@ -1977,7 +2003,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_author_cache_warmed_by_the_loop() {
+	public static function data_author_cache_warmed_by_the_loop() {
 		return array(
 			'fields: empty'      => array( '' ),
 			'fields: all'        => array( 'all' ),

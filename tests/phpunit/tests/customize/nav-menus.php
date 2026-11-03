@@ -45,6 +45,15 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
 	public function clean_up_global_scope() {
@@ -128,12 +137,12 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Invalid post type $obj_name.
 		$items = $menus->load_available_items_query( 'post_type', 'invalid' );
-		$this->assertInstanceOf( 'WP_Error', $items );
+		$this->assertWPError( $items );
 		$this->assertSame( 'nav_menus_invalid_post_type', $items->get_error_code() );
 
 		// Invalid taxonomy $obj_name.
 		$items = $menus->load_available_items_query( 'taxonomy', 'invalid' );
-		$this->assertInstanceOf( 'WP_Error', $items );
+		$this->assertWPError( $items );
 		$this->assertSame( 'invalid_taxonomy', $items->get_error_code() );
 	}
 
@@ -184,13 +193,14 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Expected menu item array.
 		$expected = array(
-			'id'         => "post-{$post_id}",
-			'title'      => 'Post Title',
-			'type'       => 'post_type',
-			'type_label' => 'Post',
-			'object'     => 'post',
-			'object_id'  => (int) $post_id,
-			'url'        => get_permalink( (int) $post_id ),
+			'id'             => "post-{$post_id}",
+			'title'          => 'Post Title',
+			'original_title' => 'Post Title',
+			'type'           => 'post_type',
+			'type_label'     => 'Post',
+			'object'         => 'post',
+			'object_id'      => (int) $post_id,
+			'url'            => get_permalink( (int) $post_id ),
 		);
 
 		// Offset the query and get the second page of menu items.
@@ -216,13 +226,14 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Expected menu item array.
 		$expected = array(
-			'id'         => "post-{$page_id}",
-			'title'      => 'Page Title',
-			'type'       => 'post_type',
-			'type_label' => 'Page',
-			'object'     => 'page',
-			'object_id'  => (int) $page_id,
-			'url'        => get_permalink( (int) $page_id ),
+			'id'             => "post-{$page_id}",
+			'title'          => 'Page Title',
+			'original_title' => 'Page Title',
+			'type'           => 'post_type',
+			'type_label'     => 'Page',
+			'object'         => 'page',
+			'object_id'      => (int) $page_id,
+			'url'            => get_permalink( (int) $page_id ),
 		);
 
 		$items = $menus->load_available_items_query( 'post_type', 'page', 0 );
@@ -242,13 +253,14 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Expected menu item array.
 		$expected = array(
-			'id'         => "post-{$post_id}",
-			'title'      => 'Post Title',
-			'type'       => 'post_type',
-			'type_label' => 'Post',
-			'object'     => 'post',
-			'object_id'  => (int) $post_id,
-			'url'        => get_permalink( (int) $post_id ),
+			'id'             => "post-{$post_id}",
+			'title'          => 'Post Title',
+			'original_title' => 'Post Title',
+			'type'           => 'post_type',
+			'type_label'     => 'Post',
+			'object'         => 'post',
+			'object_id'      => (int) $post_id,
+			'url'            => get_permalink( (int) $post_id ),
 		);
 
 		$items = $menus->load_available_items_query( 'post_type', 'post', 0 );
@@ -268,13 +280,14 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Expected menu item array.
 		$expected = array(
-			'id'         => "term-{$term_id}",
-			'title'      => 'Term Title',
-			'type'       => 'taxonomy',
-			'type_label' => 'Category',
-			'object'     => 'category',
-			'object_id'  => (int) $term_id,
-			'url'        => get_term_link( (int) $term_id, 'category' ),
+			'id'             => "term-{$term_id}",
+			'title'          => 'Term Title',
+			'original_title' => 'Term Title',
+			'type'           => 'taxonomy',
+			'type_label'     => 'Category',
+			'object'         => 'category',
+			'object_id'      => (int) $term_id,
+			'url'            => get_term_link( (int) $term_id, 'category' ),
 		);
 
 		$items = $menus->load_available_items_query( 'taxonomy', 'category', 0 );
@@ -682,7 +695,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
 
 		$r = $menus->insert_auto_draft_post( array() );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'unknown_post_type', $r->get_error_code() );
 
 		// Non-existent post types allowed as of #39610.
@@ -696,7 +709,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( $this->wp_customize->changeset_uuid(), get_post_meta( $r->ID, '_customize_changeset_uuid', true ) );
 
 		$r = $menus->insert_auto_draft_post( array( 'post_type' => 'post' ) );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'empty_title', $r->get_error_code() );
 
 		$r = $menus->insert_auto_draft_post(
@@ -706,7 +719,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 				'post_type'   => 'post',
 			)
 		);
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'status_forbidden', $r->get_error_code() );
 
 		$r = $menus->insert_auto_draft_post(

@@ -69,7 +69,7 @@
 		 * View events.
 		 *
 		 * @since 4.9.0
-		 * @type {object}
+		 * @type {Object}
 		 */
 		events: _.extend( {}, component.MediaWidgetControl.prototype.events, {
 			'click .media-widget-gallery-preview': 'editMedia'
@@ -84,10 +84,10 @@
 		 * @augments   wp.mediaWidgets.MediaWidgetControl
 		 *
 		 * @since 4.9.0
-		 * @param {Object}         options - Options.
-		 * @param {Backbone.Model} options.model - Model.
-		 * @param {jQuery}         options.el - Control field container element.
-		 * @param {jQuery}         options.syncContainer - Container element where fields are synced for the server.
+		 * @param {Object}         options               Options.
+		 * @param {Backbone.Model} options.model         Model.
+		 * @param {jQuery}         options.el            Control field container element.
+		 * @param {jQuery}         options.syncContainer Container element where fields are synced for the server.
 		 * @return {void}
 		 */
 		initialize: function initialize( options ) {
@@ -320,7 +320,7 @@
 		 * Clear the selected attachment when it is deleted in the media select frame.
 		 *
 		 * @since 4.9.0
-		 * @param {wp.media.models.Attachment} attachment - Attachment.
+		 * @param {wp.media.models.Attachment} attachment Attachment.
 		 * @return {void}
 		 */
 		handleAttachmentDestroy: function handleAttachmentDestroy( attachment ) {
