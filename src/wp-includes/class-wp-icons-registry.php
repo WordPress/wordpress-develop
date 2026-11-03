@@ -267,7 +267,6 @@ class WP_Icons_Registry {
 	 * administration interface and cannot be unregistered.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 The core icons in the "core-admin" collection can no longer be unregistered.
 	 *
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
 	 *                          (e.g. "core/arrow-left").

@@ -158,7 +158,6 @@ class WP_Icon_Collections_Registry {
 	 * interface and cannot be unregistered.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 The "core-admin" collection can no longer be unregistered.
 	 *
 	 * @param string $collection_slug Icon collection slug.
 	 * @return bool True if the collection was unregistered successfully, false otherwise.
