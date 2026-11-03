@@ -23,6 +23,13 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	private static $send_plugin_theme_email;
 
 	/**
+	 * Files and directories to remove after each test, in creation order.
+	 *
+	 * @var string[]
+	 */
+	private $vcs_fixture_paths = array();
+
+	/**
 	 * Sets up shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -38,6 +45,20 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		add_filter( 'pre_wp_mail', '__return_false' );
+	}
+
+	public function tear_down() {
+		foreach ( array_reverse( $this->vcs_fixture_paths ) as $path ) {
+			if ( is_dir( $path ) ) {
+				rmdir( $path );
+			} else {
+				unlink( $path );
+			}
+		}
+
+		$this->vcs_fixture_paths = array();
+
+		parent::tear_down();
 	}
 
 	/**
@@ -755,6 +776,146 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturn( false );
 
 		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
+	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::is_vcs_checkout()` detects a VCS entry
+	 * in the checked directory or above it.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 *
+	 * @dataProvider data_is_vcs_checkout_should_detect_vcs_entries
+	 *
+	 * @param string $entry The VCS entry to create, relative to the fixture root.
+	 * @param string $type  The type of entry to create. Accepts 'file' or 'dir'.
+	 */
+	public function test_is_vcs_checkout_should_detect_vcs_entries( $entry, $type ) {
+		$root = $this->create_vcs_fixture();
+
+		if ( 'file' === $type ) {
+			// As in a worktree inside a container, the path in a `.git` file does not have to exist.
+			file_put_contents( "$root/$entry", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
+		} else {
+			mkdir( "$root/$entry" );
+		}
+		$this->vcs_fixture_paths[] = "$root/$entry";
+
+		$this->assertTrue( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{entry: string, type: string}>
+	 */
+	public function data_is_vcs_checkout_should_detect_vcs_entries() {
+		return array(
+			'.git file in the checked directory'         => array(
+				'entry' => 'wordpress/.git',
+				'type'  => 'file',
+			),
+			'.git file above the checked directory'      => array(
+				'entry' => '.git',
+				'type'  => 'file',
+			),
+			'.git directory in the checked directory'    => array(
+				'entry' => 'wordpress/.git',
+				'type'  => 'dir',
+			),
+			'.git directory above the checked directory' => array(
+				'entry' => '.git',
+				'type'  => 'dir',
+			),
+			'.svn directory'                             => array(
+				'entry' => 'wordpress/.svn',
+				'type'  => 'dir',
+			),
+			'.hg directory'                              => array(
+				'entry' => 'wordpress/.hg',
+				'type'  => 'dir',
+			),
+			'.bzr directory'                             => array(
+				'entry' => 'wordpress/.bzr',
+				'type'  => 'dir',
+			),
+		);
+	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::is_vcs_checkout()` returns `false`
+	 * when there is no VCS entry in an allowed directory.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_should_return_false_when_no_vcs_entry_exists() {
+		$root = $this->create_vcs_fixture();
+
+		$this->assertFalse( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+	}
+
+	/**
+	 * Tests that the `automatic_updates_is_vcs_checkout` filter is told about
+	 * a `.git` file, and can still allow updates.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_should_allow_filter_to_override_git_file() {
+		$root = $this->create_vcs_fixture();
+
+		file_put_contents( "$root/wordpress/.git", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
+		$this->vcs_fixture_paths[] = "$root/wordpress/.git";
+
+		$filter = new MockAction();
+		add_filter( 'automatic_updates_is_vcs_checkout', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'automatic_updates_is_vcs_checkout', '__return_false', 20 );
+
+		$this->assertFalse( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+		$this->assertSame( array( array( true, "$root/wordpress" ) ), $filter->get_args() );
+	}
+
+	/**
+	 * Creates a temporary directory with a `wordpress` directory inside it.
+	 *
+	 * @return string The path to the temporary directory.
+	 */
+	private function create_vcs_fixture() {
+		$root = untrailingslashit( get_temp_dir() ) . '/' . uniqid( 'wp-vcs-checkout-' );
+
+		mkdir( "$root/wordpress", 0777, true );
+		$this->vcs_fixture_paths[] = $root;
+		$this->vcs_fixture_paths[] = "$root/wordpress";
+
+		return $root;
+	}
+
+	/**
+	 * Gets an updater that only checks directories inside the given directory.
+	 *
+	 * `::is_vcs_checkout()` also walks up from ABSPATH and every directory's parents,
+	 * and the test suite is usually run from a real checkout.
+	 *
+	 * @param string $root The directory to limit the updater to.
+	 * @return WP_Automatic_Updater The updater.
+	 */
+	private function get_updater_limited_to( $root ) {
+		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
+			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+			->setMethods( array( 'is_allowed_dir' ) )
+			->getMock();
+
+		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturnCallback(
+			static function ( $dir ) use ( $root ) {
+				return str_starts_with( $dir, $root );
+			}
+		);
+
+		return $updater_mock;
 	}
 
 	/**
