@@ -110,7 +110,7 @@ class Tests_HtmlApi_WebPlatformTests extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_external_web_platform_tests() {
+	public static function data_external_web_platform_tests() {
 		$test_dir = DIR_TESTDATA . '/web-platform-tests/html_syntax_parsing_resources/';
 
 		$handle = opendir( $test_dir );

@@ -34,7 +34,7 @@
  *         style="margin-top:50px;margin-bottom:50px;"
  *
  *
- * @see https://github.com/web-platform-tests/wpt/blob/master/html/syntax/parsing/resources/README.md
+ * @link https://github.com/web-platform-tests/wpt/blob/master/html/syntax/parsing/resources/README.md
  *
  * @since 6.9.0
  *

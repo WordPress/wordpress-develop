@@ -33,6 +33,35 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * Metadata state before each class's fixtures are created, keyed by class.
+	 *
+	 * @var array[]
+	 */
+	private static $meta_before_class = array();
+
+	/**
+	 * Metadata state before the current test, or null when setup was bypassed.
+	 *
+	 * @var array|null
+	 */
+	private $original_meta_state;
+
+	/**
+	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
+	 *
+	 * @var string|null
+	 */
+	protected $original_locale;
+
+	/**
+	 * The translation controller's locale before each test, or null if
+	 * set_up() did not capture it.
+	 *
+	 * @var string|null
+	 */
+	protected $original_translation_locale;
+
+	/**
 	 * Fixture factory.
 	 *
 	 * @deprecated 6.1.0 Use the WP_UnitTestCase_Base::factory() method instead.
@@ -80,7 +109,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		$class = get_called_class();
+		$class                             = get_called_class();
+		self::$meta_before_class[ $class ] = self::backup_meta_state();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
 			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
@@ -97,6 +127,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
+		}
+
+		if ( isset( self::$meta_before_class[ $class ] ) ) {
+			self::restore_meta_state( self::$meta_before_class[ $class ] );
+			unset( self::$meta_before_class[ $class ] );
 		}
 
 		_delete_all_data();
@@ -127,7 +162,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->_backup_hooks();
 		}
 
+		$this->original_meta_state = self::backup_meta_state();
+
 		$this->clean_up_global_scope();
+
+		$this->original_locale             = $GLOBALS['locale'] ?? null;
+		$this->original_translation_locale = WP_Translation_Controller::get_instance()->get_locale();
 
 		/*
 		 * When running core tests, ensure that post types and taxonomies
@@ -175,13 +215,22 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 *
-	 * @global wpdb     $wpdb         WordPress database abstraction object.
-	 * @global WP_Query $wp_the_query Main WordPress query object.
-	 * @global WP_Query $wp_query     WordPress query object.
-	 * @global WP       $wp           WordPress environment object.
+	 * @global wpdb       $wpdb         WordPress database abstraction object.
+	 * @global WP_Query   $wp_the_query Main WordPress query object.
+	 * @global WP_Query   $wp_query     WordPress query object.
+	 * @global WP         $wp           WordPress environment object.
+	 * @global WP_Rewrite $wp_rewrite   WordPress rewrite rules object.
 	 */
 	public function tear_down() {
-		global $wpdb, $wp_the_query, $wp_query, $wp;
+		global $wpdb, $wp_the_query, $wp_query, $wp, $wp_rewrite;
+
+		/*
+		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
+		 * remains synchronized with the restored database option for subsequent class fixtures.
+		 */
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( '' );
+		}
 
 		$wpdb->query( 'ROLLBACK' );
 
@@ -241,7 +290,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
+		if ( null !== $this->original_meta_state ) {
+			self::restore_meta_state( $this->original_meta_state );
+		}
 		wp_set_current_user( 0 );
+
+		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
+		if ( null !== $this->original_translation_locale ) {
+			if ( null === $this->original_locale ) {
+				unset( $GLOBALS['locale'] );
+			} else {
+				$GLOBALS['locale'] = $this->original_locale;
+			}
+			WP_Translation_Controller::get_instance()->set_locale( $this->original_translation_locale );
+		}
 
 		$this->reset_lazyload_queue();
 
@@ -473,6 +535,57 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+	}
+
+	/**
+	 * Captures registrations and their hooks without re-registering metadata.
+	 *
+	 * The hooks also include legacy registrations without a registry entry and
+	 * callbacks added independently of register_meta().
+	 *
+	 * @return array Metadata registry and cloned metadata hooks.
+	 */
+	private static function backup_meta_state() {
+		$state = array(
+			'keys'  => $GLOBALS['wp_meta_keys'] ?? array(),
+			'hooks' => array(),
+		);
+
+		foreach ( $GLOBALS['wp_filter'] as $name => $hook ) {
+			if ( self::is_meta_hook( $name ) ) {
+				$state['hooks'][ $name ] = clone $hook;
+			}
+		}
+
+		return $state;
+	}
+
+	/**
+	 * Restores metadata hooks after the ordinary hook baseline has been restored.
+	 *
+	 * @param array $state Metadata state captured before the test or class.
+	 */
+	private static function restore_meta_state( $state ) {
+		$GLOBALS['wp_meta_keys'] = $state['keys'];
+
+		foreach ( array_keys( $GLOBALS['wp_filter'] ) as $name ) {
+			if ( self::is_meta_hook( $name ) ) {
+				unset( $GLOBALS['wp_filter'][ $name ] );
+			}
+		}
+		foreach ( $state['hooks'] as $name => $hook ) {
+			$GLOBALS['wp_filter'][ $name ] = clone $hook;
+		}
+	}
+
+	/**
+	 * Identifies the dynamic hooks used by metadata registrations and defaults.
+	 *
+	 * @param string $name Hook name.
+	 * @return bool Whether the hook belongs to the metadata state.
+	 */
+	private static function is_meta_hook( $name ) {
+		return (bool) preg_match( '/^(?:sanitize|auth)_.+_meta_|^default_.+_metadata$/', $name );
 	}
 
 	/**
@@ -1014,6 +1127,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$actual = preg_replace( '/\s*/', '', $actual );
 		}
 
+		/*
+		 * Keep assertEquals() because this helper accepts mixed types and only
+		 * normalizes whitespace for strings.
+		 */
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1108,6 +1225,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		sort( $expected );
 		sort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSets().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1146,6 +1264,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		ksort( $expected );
 		ksort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSetsWithIndex().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 

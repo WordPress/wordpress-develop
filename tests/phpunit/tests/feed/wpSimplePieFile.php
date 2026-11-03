@@ -41,7 +41,7 @@ class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_header_parsing() {
+	public static function data_header_parsing() {
 		return array(
 			'single content type header works' => array(
 				'mocked_response_single_header_values',
