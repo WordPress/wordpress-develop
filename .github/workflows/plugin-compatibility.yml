@@ -111,9 +111,6 @@ jobs:
           # this workflow rather than the ecosystem, so they use a small count. See the note on the
           # plugin-compatibility-tests job below.
           PLUGIN_COUNT: ${{ inputs.plugin-count || ( contains( fromJSON('["pull_request", "push"]'), github.event_name ) && '10' ) || '100' }}
-          # The API caps `per_page` at 250 and returns 250 without complaint for anything larger, so counts
-          # above that have to be paged.
-          PAGE_SIZE: '250'
           # Anything higher would take longer than the 20 minute wall time this is meant to fit inside. The
           # directory holds roughly 66,000 plugins, so this is a guard against a typo, not a real limit.
           MAX_PLUGIN_COUNT: '1000'
@@ -167,6 +164,9 @@ jobs:
               exit 1
             fi
 
+            # The API caps `per_page` at 250 and returns 250 without complaint for anything larger, so counts
+            # above that have to be paged.
+            PAGE_SIZE=250
             PAGE=1
             UNIQUE_COUNT=0
 
