@@ -1,0 +1,22 @@
+name: 'Download with retry'
+description: 'Downloads a file with curl, retrying on any error.'
+
+inputs:
+  url:
+    description: 'The URL to download.'
+    required: true
+  output:
+    description: 'The path to save the file to, relative to the workspace.'
+    required: true
+
+# curl has no transfer timeout: set `timeout-minutes` on the calling step, or a stalled
+# download runs until the 6 hour job limit.
+runs:
+  using: 'composite'
+  steps:
+    - name: Download the file
+      shell: bash
+      run: curl --fail --no-progress-meter --location --retry 5 --retry-all-errors --output "$OUTPUT" "$URL"
+      env:
+        URL: ${{ inputs.url }}
+        OUTPUT: ${{ inputs.output }}

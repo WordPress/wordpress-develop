@@ -13,6 +13,7 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
@@ -21,6 +22,7 @@ on:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
@@ -145,20 +147,14 @@ jobs:
       - name: Download WordPress
         # WP-CLI requests WordPress from WordPress.org once, so a network error fails the job.
         # It extracts only after a complete download, so a retry starts from an empty directory.
-        run: |
-          for (( attempt = 1; attempt <= WP_CORE_DOWNLOAD_MAX_ATTEMPTS; attempt++ )); do
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: |
             case "${WP_VERSION}" in
-              nightly|trunk) wp core download --version=nightly && exit 0 ;;
-              *) wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" && exit 0 ;;
+              nightly|trunk) wp core download --version=nightly ;;
+              *) wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" ;;
             esac
-            echo "::warning::WordPress download failed on attempt $attempt of $WP_CORE_DOWNLOAD_MAX_ATTEMPTS."
-            if (( attempt < WP_CORE_DOWNLOAD_MAX_ATTEMPTS )); then
-              sleep $(( attempt * 10 ))
-            fi
-          done
-          exit 1
         env:
-          WP_CORE_DOWNLOAD_MAX_ATTEMPTS: 3
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
       - name: Create wp-config.php file
