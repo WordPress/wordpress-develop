@@ -243,9 +243,6 @@ jobs:
 
       - name: Download WordPress Importer plugin
         # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
-        # curl has no transfer timeout, so a stalled download would otherwise run until
-        # the 6 hour job limit.
-        timeout-minutes: 5
         uses: $/.github/actions/download-with-retry
         with:
           url: https://downloads.wordpress.org/plugin/wordpress-importer.latest-stable.zip
@@ -257,7 +254,6 @@ jobs:
           rm wordpress-importer.zip
 
       - name: Download mock data
-        timeout-minutes: 5
         uses: $/.github/actions/download-with-retry
         with:
           url: https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml

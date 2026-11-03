@@ -9,14 +9,15 @@ inputs:
     description: 'The path to save the file to, relative to the workspace.'
     required: true
 
-# curl has no transfer timeout: set `timeout-minutes` on the calling step, or a stalled
-# download runs until the 6 hour job limit.
 runs:
   using: 'composite'
   steps:
     - name: Download the file
       shell: bash
-      run: curl --fail --no-progress-meter --location --retry 5 --retry-all-errors --output "$OUTPUT" "$URL"
+      # A stalled attempt (connecting for over 30 s, or under 1 KB/s for 30 s) fails and is
+      # retried: curl has no transfer timeout, and `timeout-minutes` would end the step unretried.
+      # No retry starts after 10 minutes, so a long `Retry-After` can't stretch the waits.
+      run: curl --fail --no-progress-meter --location --retry 5 --retry-all-errors --retry-max-time 600 --connect-timeout 30 --speed-limit 1024 --speed-time 30 --output "$OUTPUT" "$URL"
       env:
         URL: ${{ inputs.url }}
         OUTPUT: ${{ inputs.output }}
