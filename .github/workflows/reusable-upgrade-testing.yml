@@ -73,8 +73,10 @@ jobs:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
         ports:
           - 3306
+        # Ping over TCP, to wait for the TCP server rather than the Unix socket.
+        # MariaDB 11.0 dropped the `mysqladmin` symlink, so pick the client the image ships.
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="${{ inputs.db-type == 'mariadb' && ! contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), inputs.db-version ) && 'mariadb-admin' || 'mysqladmin' }} ping -h 127.0.0.1 --protocol=tcp"
           --health-interval="30s"
           --health-timeout="10s"
           --health-retries="5"
@@ -87,7 +89,10 @@ jobs:
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
-          tools: wp-cli
+
+      - name: Set up WP-CLI
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/setup-wp-cli
 
       - name: Download WordPress ${{ inputs.wp }}
         run: wp core download --version="${WP_VERSION}"

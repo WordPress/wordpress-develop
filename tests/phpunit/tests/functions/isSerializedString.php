@@ -26,7 +26,7 @@ class Tests_Functions_IsSerializedString extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_serialized_string() {
+	public static function data_is_serialized_string() {
 		return array(
 			'an array'                                => array(
 				'data'     => array(),
