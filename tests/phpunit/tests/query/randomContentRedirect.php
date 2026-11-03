@@ -252,6 +252,20 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Creates a published post and returns the post object.
+	 *
+	 * @param array<string, mixed> $args Optional. Post arguments.
+	 * @return WP_Post Post object.
+	 */
+	protected function create_post_object( array $args = array() ): WP_Post {
+		$post = get_post( $this->create_post( $args ) );
+
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		return $post;
+	}
+
+	/**
 	 * Asserts that the request redirected to one of the given posts.
 	 *
 	 * @param int[]  $post_ids Allowed post IDs.
@@ -1404,6 +1418,198 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 0, $flushes->get_call_count(), 'Only pages and posts at the random base should flush the rewrite rules.' );
+	}
+
+	/**
+	 * @dataProvider data_invalid_arguments
+	 *
+	 * @param array<int, mixed> $args The arguments to call the function with.
+	 */
+	public function test_invalid_arguments_do_not_flush_rewrite_rules( array $args ): void {
+		// The data provider cannot query the database, so PHP_INT_MAX stands in for a nonexistent post ID.
+		$args = array_map(
+			function ( $arg ) {
+				return PHP_INT_MAX === $arg ? $this->get_nonexistent_post_id() : $arg;
+			},
+			$args
+		);
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( ...$args ); // @phpstan-ignore argument.type (Intentionally passing invalid values.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Invalid arguments should not flush the rewrite rules.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Core never fires the `wp_after_insert_post` and `after_delete_post` actions with invalid
+	 * arguments, but third-party code can. Doing so is incorrect usage and must not cause a
+	 * fatal error.
+	 *
+	 * `PHP_INT_MAX` is replaced with a post ID that is verified not to exist when the test runs.
+	 *
+	 * @return array<string, array{array<int, mixed>}>
+	 */
+	public function data_invalid_arguments(): array {
+		return array(
+			'nulls'                              => array( array( null, null, false, null ) ),
+			'strings'                            => array( array( 'random', 'random', 'yes', 'random' ) ),
+			'arrays'                             => array( array( array(), array( 'post_name' => 'random' ), 1, array() ) ),
+			'nulls without optional values'      => array( array( null, null ) ),
+			'strings without optional values'    => array( array( 'random', 'random' ) ),
+			'post ID of zero without a post'     => array( array( 0 ) ),
+			'nonexistent post ID without a post' => array( array( PHP_INT_MAX ) ),
+		);
+	}
+
+	/**
+	 * Returns a post ID that does not exist.
+	 *
+	 * Starts at `PHP_INT_MAX` and decrements until no post is found.
+	 *
+	 * @return int Post ID.
+	 */
+	protected function get_nonexistent_post_id(): int {
+		$post_id = PHP_INT_MAX;
+
+		while ( get_post( $post_id ) instanceof WP_Post ) {
+			--$post_id;
+		}
+
+		return $post_id;
+	}
+
+	/**
+	 * Tests that an omitted post object does not fall back to the global post.
+	 *
+	 * `get_post()` returns the global post for an empty value, which would flush the
+	 * rewrite rules for whatever post is being displayed rather than the one passed in.
+	 */
+	public function test_omitted_post_does_not_fall_back_to_the_global_post(): void {
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$GLOBALS['post'] = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( null ); // @phpstan-ignore argument.type (Intentionally omitting the post ID.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'An omitted post should not be looked up from the global post.' );
+	}
+
+	/**
+	 * Tests that an omitted post object is looked up from the post ID.
+	 *
+	 * The `$post` parameter was added to `after_delete_post` in 5.5.0, but third-party
+	 * code written against the original signature may still fire the action with only
+	 * the post ID.
+	 */
+	public function test_omitted_post_is_looked_up_from_the_post_id(): void {
+		$page_id = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( $page_id );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page at the random base should flush the rewrite rules when only its ID is passed.' );
+	}
+
+	/**
+	 * Tests that firing `after_delete_post` with only a post ID does not cause a fatal error.
+	 *
+	 * As the post is already deleted, it cannot be looked up from the ID, so the call is
+	 * incorrect usage and the rewrite rules are left alone.
+	 *
+	 * @covers ::_update_posts_count_on_delete
+	 */
+	public function test_after_delete_post_fired_with_only_a_post_id_does_not_flush_rewrite_rules(): void {
+		$post_id = $this->create_post();
+		wp_delete_post( $post_id, true );
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'after_delete_post', $post_id ); // @phpstan-ignore WordPress.hookParamCountMismatch (Intentionally omitting the post object.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Firing after_delete_post for a deleted post without the post object should not flush the rewrite rules.' );
+	}
+
+	public function test_page_named_random_still_flushes_rewrite_rules_when_the_other_arguments_are_invalid(): void {
+		$page = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'wp_after_insert_post', (string) $page->ID, $page, 'yes', false );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page at the random base should flush the rewrite rules even when the other arguments are invalid.' );
+	}
+
+	/**
+	 * Tests that the previous post object is only considered on `wp_after_insert_post`.
+	 *
+	 * `after_delete_post` has no previous post, so a value passed in its place is ignored
+	 * rather than reported as incorrect usage.
+	 */
+	public function test_post_before_is_ignored_outside_wp_after_insert_post(): void {
+		$page_before = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+		$post        = $this->create_post_object();
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( $post->ID, $post, false, 'not a post' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+		wp_random_content_flush_rewrite_rules_for_post( $post->ID, $post, false, $page_before );
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'The previous post should not be considered outside wp_after_insert_post.' );
+	}
+
+	public function test_renamed_page_at_random_base_flushes_rewrite_rules_via_post_before(): void {
+		$page_before = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+		$post        = $this->create_post_object();
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'wp_after_insert_post', $post->ID, $post, true, $page_before );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page previously at the random base should flush the rewrite rules on wp_after_insert_post.' );
 	}
 
 	/*
