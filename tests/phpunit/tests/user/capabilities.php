@@ -2546,6 +2546,72 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that checking `edit_block_binding` does not change the registered post type object.
+	 *
+	 * @ticket 66453
+	 */
+	public function test_edit_block_binding_does_not_modify_the_post_type_object() {
+		register_post_type(
+			'wptests_story',
+			array(
+				'capability_type' => array( 'story', 'stories' ),
+				'map_meta_cap'    => true,
+			)
+		);
+
+		foreach ( array( 'post', 'wptests_story' ) as $post_type ) {
+			$post             = self::factory()->post->create_and_get( array( 'post_type' => $post_type ) );
+			$post_type_object = get_post_type_object( $post_type );
+			$expected         = clone $post_type_object;
+
+			user_can( self::$users['administrator']->ID, 'edit_block_binding', new WP_Block_Editor_Context( array( 'post' => $post ) ) );
+
+			$this->assertEquals( $expected, $post_type_object, "The {$post_type} post type object should not change." );
+		}
+
+		_unregister_post_type( 'wptests_story' );
+	}
+
+	/**
+	 * Tests that `edit_block_binding` uses the `edit_post` capability registered for the post type.
+	 *
+	 * @ticket 66453
+	 */
+	public function test_edit_block_binding_uses_the_registered_edit_post_capability() {
+		register_post_type(
+			'wptests_book',
+			array(
+				'capability_type' => 'book',
+				'capabilities'    => array(
+					'edit_post' => 'edit_novel',
+				),
+			)
+		);
+
+		$post    = self::factory()->post->create_and_get( array( 'post_type' => 'wptests_book' ) );
+		$user_id = self::$users['editor']->ID;
+
+		$this->assertSame( array( 'edit_novel' ), map_meta_cap( 'edit_post', $user_id, $post->ID ), 'edit_post should map to the registered capability.' );
+		$this->assertSame( array( 'edit_novel' ), map_meta_cap( 'edit_block_binding', $user_id, new WP_Block_Editor_Context( array( 'post' => $post ) ) ) );
+
+		_unregister_post_type( 'wptests_book' );
+	}
+
+	/**
+	 * Tests that `edit_block_binding` for a post of a type that is not registered maps like `edit_post`.
+	 *
+	 * @ticket 66453
+	 * @expectedIncorrectUsage map_meta_cap
+	 */
+	public function test_edit_block_binding_for_a_post_type_that_is_not_registered() {
+		register_post_type( 'wptests_gone' );
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wptests_gone' ) );
+		_unregister_post_type( 'wptests_gone' );
+
+		$this->assertSame( array( 'edit_others_posts' ), map_meta_cap( 'edit_block_binding', self::$users['editor']->ID, new WP_Block_Editor_Context( array( 'post' => $post ) ) ) );
+	}
+
+	/**
 	 * Ensure that caps are updated correctly when using `update_option()` to save roles.
 	 *
 	 * Compares the efficiency and accuracy of updating role capabilities when `WP_Roles`
