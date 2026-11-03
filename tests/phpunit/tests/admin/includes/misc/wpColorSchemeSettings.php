@@ -117,7 +117,7 @@ class Tests_wp_color_scheme_settings extends WP_UnitTestCase {
 
 		$expected = array(
 			'icons' => array(
-				'base'    => '#a7aaad',
+				'base'    => '#c3c4c7',
 				'focus'   => '#72aee6',
 				'current' => '#fff',
 			),
