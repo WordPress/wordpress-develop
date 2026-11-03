@@ -8515,18 +8515,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param string $expected Expected results.
 	 */
 	public function test_process_blocks_custom_css( $input, $expected ) {
-		$theme_json = new WP_Theme_JSON(
-			array(
-				'version' => WP_Theme_JSON::LATEST_SCHEMA,
-				'styles'  => array(),
-			)
-		);
-		$reflection = new ReflectionMethod( $theme_json, 'process_blocks_custom_css' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-
-		$this->assertSame( $expected, $reflection->invoke( $theme_json, $input['css'], $input['selector'] ) );
+		$this->assertSame( $expected, WP_Theme_JSON::process_blocks_custom_css( $input['css'], $input['selector'] ) );
 	}
 
 	/**
