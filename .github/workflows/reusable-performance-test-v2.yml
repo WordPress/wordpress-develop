@@ -231,7 +231,10 @@ jobs:
           npm run env:cli -- theme enable twentytwentythree --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
-          npm run env:cli -- theme enable ipsum --network --path="/var/www/${LOCAL_DIR}"
+          # Ipsum is only bundled from 7.2 onward. Release branches older than that also use this workflow.
+          if npm run env:cli -- theme is-installed ipsum --path="/var/www/${LOCAL_DIR}"; then
+            npm run env:cli -- theme enable ipsum --network --path="/var/www/${LOCAL_DIR}"
+          fi
 
       - name: Install WordPress Importer plugin
         run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
