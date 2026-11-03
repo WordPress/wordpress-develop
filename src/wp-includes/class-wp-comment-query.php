@@ -149,6 +149,7 @@ class WP_Comment_Query {
 	 * @since 4.9.0 Introduced the `$paged` argument.
 	 * @since 5.1.0 Introduced the `$meta_compare_key` argument.
 	 * @since 5.3.0 Introduced the `$meta_type_key` argument.
+	 * @since 7.2.0 Introduced the '$status__not_in' argument.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of comment query parameters. Default empty.
@@ -250,6 +251,8 @@ class WP_Comment_Query {
 	 *                                                      or space/comma-separated list of 'hold' (`comment_status=0`),
 	 *                                                      'approve' (`comment_status=1`), 'all', or a custom
 	 *                                                      comment status. Default 'all'.
+	 *     @type string[]        $status__not_in            Exclude comments from a given array of comment statuses.
+	 *                                                      Default empty array.
 	 *     @type string|string[] $type                      Include comments of a given type, or array of types.
 	 *                                                      Accepts 'comment', 'pings' (includes 'pingback' and
 	 *                                                      'trackback'), or any custom type string. Default empty.
@@ -308,6 +311,7 @@ class WP_Comment_Query {
 			'post_status'               => '',
 			'post_type'                 => '',
 			'status'                    => 'all',
+			'status__not_in'            => array(),
 			'type'                      => '',
 			'type__in'                  => '',
 			'type__not_in'              => '',
@@ -569,6 +573,34 @@ class WP_Comment_Query {
 		// Empty 'status' should be interpreted as 'all'.
 		if ( empty( $statuses ) ) {
 			$statuses = array( 'all' );
+		}
+
+		// unlike 'status', 'status__not_in' accepts only an array
+		$status__not_in = $this->query_vars['status__not_in'];
+		if ( ! is_array( $status__not_in ) ) {
+			$status__not_in = array();
+		}
+		if ( ! empty( $status__not_in ) ) {
+			$statuses_for_db = array();
+
+			foreach ( $status__not_in as $status_exclude ) {
+				if ( 'all' === $status_exclude ) {
+					$statuses_for_db[] = '1';
+					$statuses_for_db[] = '0';
+				} elseif ( 'approve' === $status_exclude ) {
+					$statuses_for_db[] = '1';
+				} elseif ( 'hold' === $status_exclude ) {
+					$statuses_for_db[] = '0';
+				} else {
+					$statuses_for_db[] = $status_exclude;
+				}
+			}
+
+			$status__not_in = array_unique( $statuses_for_db );
+
+			unset( $statuses_for_db );
+
+			$this->sql_clauses['where']['status__not_in'] = "comment_approved NOT IN ( '" . implode( "','", $status__not_in ) . "' )";
 		}
 
 		// 'any' overrides other statuses.
