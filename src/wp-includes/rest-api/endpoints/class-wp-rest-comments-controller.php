@@ -1337,7 +1337,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'reaction' === $comment->comment_type ) {
+		if ( 'reaction' === strtolower( $comment->comment_type ) ) {
 			// A reaction speaks for its author, so only they can remove it.
 			if ( get_current_user_id() !== (int) $comment->user_id ) {
 				return new WP_Error(
