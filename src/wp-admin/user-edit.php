@@ -551,10 +551,7 @@ switch ( $action ) {
 								<?php
 									$public_display                     = array();
 									$public_display['display_nickname'] = $profile_user->nickname;
-
-								if ( ! is_email( $profile_user->user_login ) ) {
 									$public_display['display_username'] = $profile_user->user_login;
-								}
 
 								if ( ! empty( $profile_user->first_name ) ) {
 									$public_display['display_firstname'] = $profile_user->first_name;

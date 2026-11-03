@@ -512,16 +512,12 @@
 		if ( select.length ) {
 			$('#first_name, #last_name, #nickname').on( 'blur.user_profile', function() {
 				var dub = [],
-					username = $('#user_login').val() || '',
 					inputs = {
 						display_nickname  : $('#nickname').val() || '',
+						display_username  : $('#user_login').val() || '',
 						display_firstname : $('#first_name').val() || '',
 						display_lastname  : $('#last_name').val() || ''
 					};
-
-				if ( username && username.indexOf( '@' ) === -1 ) {
-					inputs.display_username = username;
-				}
 
 				if ( inputs.display_firstname && inputs.display_lastname ) {
 					inputs.display_firstlast = inputs.display_firstname + ' ' + inputs.display_lastname;
