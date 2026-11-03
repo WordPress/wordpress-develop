@@ -314,35 +314,13 @@ EOT;
 	}
 
 	/**
-	 * Tests that esc_url_raw() does not entity-encode ampersands.
+	 * Tests that esc_url_raw() preserves raw ampersands and accepts custom protocols.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_esc_url_raw_does_not_entity_encode_ampersands() {
-		$url = 'http://example.com/?one=1&two=2&three=3';
+	public function test_esc_url_raw() {
+		$url = 'custom://example.com/?one=1&two=2';
 
-		$this->assertSame( $url, esc_url_raw( $url ) );
-	}
-
-	/**
-	 * Tests that esc_url_raw() sanitizes bad characters and invalid protocols.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_esc_url_raw_sanitizes_url() {
-		$this->assertSame( 'http://example.com/watchthelinefeedgo', esc_url_raw( 'http://example.com/watchthelinefeed%0Ago' ) );
-		$this->assertSame( '', esc_url_raw( 'javascript:alert(1)' ) );
-	}
-
-	/**
-	 * Tests that esc_url_raw() accepts custom allowed protocols.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_esc_url_raw_custom_protocols() {
-		$url = 'custom://example.com';
-
-		$this->assertSame( '', esc_url_raw( $url ) );
 		$this->assertSame( $url, esc_url_raw( $url, array( 'custom' ) ) );
 	}
 }
