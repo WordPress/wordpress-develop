@@ -2,6 +2,8 @@
  * External dependencies
  */
 import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * WordPress dependencies
@@ -153,5 +155,162 @@ test.describe( 'User management', () => {
 		expect( remaining.map( ( user ) => user.id ) ).toEqual( [
 			users[ 2 ].id,
 		] );
+	} );
+
+	test.describe( 'Send password reset', () => {
+		const muPlugins = join(
+			process.cwd(),
+			process.env.LOCAL_DIR ?? 'src',
+			'wp-content/mu-plugins'
+		);
+		const muPluginFile = join( muPlugins, 'e2e-pre-wp-mail.php' );
+
+		/**
+		 * Short-circuits wp_mail() so that sending either succeeds or fails.
+		 *
+		 * @param {boolean} succeed Whether wp_mail() should report success.
+		 */
+		function mockMail( succeed ) {
+			if ( ! existsSync( muPlugins ) ) {
+				mkdirSync( muPlugins, { recursive: true } );
+			}
+			writeFileSync(
+				muPluginFile,
+				`<?php add_filter( 'pre_wp_mail', '__return_${
+					succeed ? 'true' : 'false'
+				}' );`
+			);
+		}
+
+		async function createUsers( requestUtils, count ) {
+			const users = [];
+			for ( let i = 0; i < count; i++ ) {
+				const username = `${ prefix }-reset-${ i }`;
+				usernames.push( username );
+				users.push(
+					await requestUtils.createUser( {
+						username,
+						email: `${ username }@example.org`,
+						password: randomUUID(),
+						roles: [ 'subscriber' ],
+					} )
+				);
+			}
+			return users;
+		}
+
+		async function bulkResetPassword( page, userIds ) {
+			for ( const id of userIds ) {
+				await page
+					.locator( `#user-${ id }` )
+					.getByRole( 'checkbox' )
+					.check();
+			}
+			await page
+				.locator( '#bulk-action-selector-top' )
+				.selectOption( 'resetpassword' );
+			await page.locator( '#doaction' ).click();
+		}
+
+		test.afterEach( () => {
+			if ( existsSync( muPluginFile ) ) {
+				unlinkSync( muPluginFile );
+			}
+		} );
+
+		test( 'shows an error when the email fails to send from the row action', async ( {
+			admin,
+			page,
+			requestUtils,
+		} ) => {
+			mockMail( false );
+			const [ user ] = await createUsers( requestUtils, 1 );
+			await admin.visitAdminPage( '/users.php', `s=${ prefix }` );
+			const row = page.locator( `#user-${ user.id }` );
+			await row.hover();
+			await row
+				.getByRole( 'link', { name: 'Send password reset' } )
+				.click();
+
+			await expect(
+				page.locator( '.notice.error' ).filter( {
+					hasText:
+						'The password reset link could not be sent to 1 user.',
+				} )
+			).toBeVisible();
+			await expect( page.locator( '.notice.updated' ) ).toHaveCount( 0 );
+		} );
+
+		test( 'shows an error when emails fail to send in bulk', async ( {
+			admin,
+			page,
+			requestUtils,
+		} ) => {
+			mockMail( false );
+			const users = await createUsers( requestUtils, 3 );
+			await admin.visitAdminPage( '/users.php', `s=${ prefix }` );
+			await bulkResetPassword(
+				page,
+				users.map( ( user ) => user.id )
+			);
+
+			await expect(
+				page.locator( '.notice.error' ).filter( {
+					hasText:
+						'The password reset links could not be sent to 3 users.',
+				} )
+			).toBeVisible();
+			await expect( page.locator( '.notice.updated' ) ).toHaveCount( 0 );
+		} );
+
+		test( 'reports the number of emails sent in bulk', async ( {
+			admin,
+			page,
+			requestUtils,
+		} ) => {
+			mockMail( true );
+			const users = await createUsers( requestUtils, 3 );
+			await admin.visitAdminPage( '/users.php', `s=${ prefix }` );
+			await bulkResetPassword(
+				page,
+				users.map( ( user ) => user.id )
+			);
+
+			await expect(
+				page.locator( '.notice.updated' ).filter( {
+					hasText: 'Password reset links sent to 3 users.',
+				} )
+			).toBeVisible();
+			await expect( page.locator( '.notice.error' ) ).toHaveCount( 0 );
+		} );
+
+		test( 'shows an error when the current user is selected', async ( {
+			admin,
+			page,
+			requestUtils,
+		} ) => {
+			mockMail( true );
+			const users = await createUsers( requestUtils, 2 );
+			const currentUser = await requestUtils.rest( {
+				path: '/wp/v2/users/me',
+			} );
+			await admin.visitAdminPage( '/users.php' );
+			await bulkResetPassword( page, [
+				currentUser.id,
+				...users.map( ( user ) => user.id ),
+			] );
+
+			await expect(
+				page.locator( '.notice.error' ).filter( {
+					hasText: 'You cannot reset your own password here.',
+				} )
+			).toBeVisible();
+			await expect(
+				page.locator( '.notice.updated' ).filter( {
+					hasText: 'Password reset links sent to 2 users.',
+				} )
+			).toBeVisible();
+			await expect( page.locator( '[id="message"]' ) ).toHaveCount( 1 );
+		} );
 	} );
 } );
