@@ -55,31 +55,34 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 * Tests that the fields are sanitized without markup.
 	 *
 	 * @ticket 65819
+	 * @ticket 31136
 	 */
 	public function test_should_sanitize_fields_without_markup() {
 		$plugin_data = $this->get_plugin_data(
 			array(
-				'Name'        => 'My <strong>Plugin</strong> <a href="https://example.org/">Link</a><script>alert(1)</script>',
-				'PluginURI'   => 'javascript:alert(1)',
-				'Version'     => '1.0 <em>beta</em> <b>bold</b>',
-				'Description' => 'A <em>fine</em> <a href="https://example.org/" onclick="alert(1)">plugin</a> <cite>cited</cite> & "quoted".',
-				'Author'      => '<a href="https://example.org/" onclick="alert(1)">Jane</a> & <i>Co</i>',
-				'AuthorURI'   => 'https://example.org/author?a=1&b="2"',
+				'Name'                  => 'My <strong>Plugin</strong> <a href="https://example.org/">Link</a><script>alert(1)</script>',
+				'PluginURI'             => 'javascript:alert(1)',
+				'Version'               => '1.0 <em>beta</em> <b>bold</b>',
+				'Description'           => 'A <em>fine</em> <a href="https://example.org/" onclick="alert(1)">plugin</a> <cite>cited</cite> & "quoted".',
+				'Author'                => '<a href="https://example.org/" onclick="alert(1)">Jane</a> & <i>Co</i>',
+				'AuthorURI'             => 'https://example.org/author?a=1&b="2"',
+				'UninstallNotification' => 'Back up <strong>first</strong>. <a href="https://example.org/" onclick="alert(1)">Docs</a><img src="x.png">',
 			)
 		);
 
 		$this->assertSame(
 			array(
-				'Name'        => 'My <strong>Plugin</strong> Link',
-				'PluginURI'   => '',
-				'Version'     => '1.0 <em>beta</em> bold',
-				'Description' => 'A <em>fine</em> <a href="https://example.org/">plugin</a> cited &amp; "quoted".',
-				'Author'      => '<a href="https://example.org/">Jane</a> &amp; Co',
-				'AuthorURI'   => 'https://example.org/author?a=1&#038;b=2',
-				'TextDomain'  => '',
-				'DomainPath'  => '',
-				'Title'       => 'My <strong>Plugin</strong> Link',
-				'AuthorName'  => '<a href="https://example.org/">Jane</a> &amp; Co',
+				'Name'                  => 'My <strong>Plugin</strong> Link',
+				'PluginURI'             => '',
+				'Version'               => '1.0 <em>beta</em> bold',
+				'Description'           => 'A <em>fine</em> <a href="https://example.org/">plugin</a> cited &amp; "quoted".',
+				'Author'                => '<a href="https://example.org/">Jane</a> &amp; Co',
+				'AuthorURI'             => 'https://example.org/author?a=1&#038;b=2',
+				'TextDomain'            => '',
+				'DomainPath'            => '',
+				'UninstallNotification' => 'Back up <strong>first</strong>. <a href="https://example.org/">Docs</a>',
+				'Title'                 => 'My <strong>Plugin</strong> Link',
+				'AuthorName'            => '<a href="https://example.org/">Jane</a> &amp; Co',
 			),
 			_get_plugin_data_markup_translate( WP_PLUGIN_DIR . '/my-plugin/my-plugin.php', $plugin_data, false, false )
 		);
@@ -378,14 +381,15 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	private function get_plugin_data( $fields ) {
 		return array_merge(
 			array(
-				'Name'        => '',
-				'PluginURI'   => '',
-				'Version'     => '',
-				'Description' => '',
-				'Author'      => '',
-				'AuthorURI'   => '',
-				'TextDomain'  => '',
-				'DomainPath'  => '',
+				'Name'                  => '',
+				'PluginURI'             => '',
+				'Version'               => '',
+				'Description'           => '',
+				'Author'                => '',
+				'AuthorURI'             => '',
+				'TextDomain'            => '',
+				'DomainPath'            => '',
+				'UninstallNotification' => '',
 			),
 			$fields
 		);
