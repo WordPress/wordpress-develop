@@ -41,6 +41,27 @@ class Walker_Comment extends Walker {
 	);
 
 	/**
+	 * Parses arguments with defaults.
+	 *
+	 * @since unreleased
+	 *
+	 * @param array $args Arguments to parse.
+	 * @return array Parsed arguments.
+	 */
+	protected function get_args( array $args ): array {
+		return array_merge(
+			array(
+				'style'       => 'ul',
+				'avatar_size' => 32,
+				'format'      => current_theme_supports( 'html5', 'comment-list' ) ? 'html5' : 'xhtml',
+				'short_ping'  => false,
+				'max_depth'   => '',
+			),
+			$args
+		);
+	}
+
+	/**
 	 * Starts the list before the elements are added.
 	 *
 	 * @since 2.7.0
@@ -53,6 +74,8 @@ class Walker_Comment extends Walker {
 	 * @param array  $args   Optional. Uses 'style' argument for type of HTML list. Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
+		$args = $this->get_args( $args );
+
 		$GLOBALS['comment_depth'] = $depth + 1;
 
 		switch ( $args['style'] ) {
@@ -82,6 +105,8 @@ class Walker_Comment extends Walker {
 	 *                       Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
+		$args = $this->get_args( $args );
+
 		$GLOBALS['comment_depth'] = $depth + 1;
 
 		switch ( $args['style'] ) {
@@ -171,6 +196,8 @@ class Walker_Comment extends Walker {
 	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
+		$args = $this->get_args( $args );
+
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $data_object;
 
@@ -223,6 +250,8 @@ class Walker_Comment extends Walker {
 	 * @param array      $args        Optional. An array of arguments. Default empty array.
 	 */
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
+		$args = $this->get_args( $args );
+
 		if ( ! empty( $args['end-callback'] ) ) {
 			ob_start();
 			call_user_func(
@@ -253,6 +282,8 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function ping( $comment, $depth, $args ) {
+		$args = $this->get_args( $args );
+
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 		?>
 		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( '', $comment ); ?>>
@@ -297,6 +328,8 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function comment( $comment, $depth, $args ) {
+		$args = $this->get_args( $args );
+
 		if ( 'div' === $args['style'] ) {
 			$tag       = 'div';
 			$add_below = 'comment';
@@ -407,6 +440,8 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function html5_comment( $comment, $depth, $args ) {
+		$args = $this->get_args( $args );
+
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 
 		$commenter          = wp_get_current_commenter();
