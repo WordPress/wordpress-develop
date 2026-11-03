@@ -1153,6 +1153,7 @@ final class WP_Interactivity_API {
 	 * @since 7.1.0 An object is resolved to whatever it serializes to for the client, a number is formatted by the
 	 *              JSON encoder, and a value which cannot be sent to the client is rejected rather than passed to
 	 *              WP_HTML_Tag_Processor::set_attribute().
+	 * @since 7.2.0 Event handler bind directives are removed.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
