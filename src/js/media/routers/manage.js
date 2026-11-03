@@ -39,19 +39,40 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 		var media = wp.media,
 			frame = media.frames.browse,
 			library = frame.state().get('library'),
+			itemId = parseInt( query, 10 ),
 			item;
 
 		// Trigger the media frame to open the correct item.
-		item = library.findWhere( { id: parseInt( query, 10 ) } );
+		item = library.findWhere( { id: itemId } );
 
 		if ( item ) {
 			item.set( 'skipHistory', true );
 			frame.trigger( 'edit:attachment', item );
 		} else {
-			item = media.attachment( query );
+			item = media.attachment( itemId );
 			frame.listenTo( item, 'change', function( model ) {
 				frame.stopListening( item );
 				frame.trigger( 'edit:attachment', model );
+
+				// Load library items in batches until target item is found.
+				var loadMore = function() {
+					var foundItem = library.findWhere( { id: itemId } );
+
+					if ( foundItem ) {
+						// Item found - update edit frame to enable navigation.
+						var editFrame = wp.media.frames.edit;
+						if ( editFrame && editFrame.toggleNav ) {
+							editFrame.model = foundItem;
+							editFrame.toggleNav();
+						}
+					} else if ( library.hasMore() ) {
+						library.more().done( loadMore );
+					}
+				};
+
+				if ( library.hasMore() ) {
+					loadMore();
+				}
 			} );
 			item.fetch();
 		}
