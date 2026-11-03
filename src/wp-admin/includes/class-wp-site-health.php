@@ -133,8 +133,9 @@ class WP_Site_Health {
 						$test['test']
 					);
 
-					if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
-						$health_check_js_variables['site_status']['direct'][] = $this->perform_test( array( $this, $test_function ) );
+					$test_callback = array( $this, $test_function );
+					if ( method_exists( $this, $test_function ) && is_callable( $test_callback ) ) {
+						$health_check_js_variables['site_status']['direct'][] = $this->perform_test( $test_callback );
 						continue;
 					}
 				}
@@ -3794,8 +3795,9 @@ class WP_Site_Health {
 					$test['test']
 				);
 
-				if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
-					$results[] = $this->perform_test( array( $this, $test_function ) );
+				$test_callback = array( $this, $test_function );
+				if ( method_exists( $this, $test_function ) && is_callable( $test_callback ) ) {
+					$results[] = $this->perform_test( $test_callback );
 					continue;
 				}
 			}
