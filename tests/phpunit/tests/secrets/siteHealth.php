@@ -71,7 +71,37 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( 'generate-key', $result['description'] );
+		$this->assertStringContainsString( 'can still be replaced', $result['description'] );
+		$this->assertStringNotContainsString( 'generate-key', $result['description'], 'There is no such WP-CLI command in core.' );
+	}
+
+	/**
+	 * Replacing the key once secrets are stored would make them unreadable.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_warns_to_keep_a_legacy_key_once_secrets_are_stored(): void {
+		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertStringContainsString( 'Keep its current value', $result['description'] );
+	}
+
+	public function test_key_source_test_is_critical_when_the_key_does_not_match_the_stored_secrets(): void {
+		wp_set_secret( 'myplugin/api-key', 'value' );
+
+		// Stands in for a root key that was wrapped with a different site key.
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, base64_encode( random_bytes( 72 ) ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+		$this->assertStringContainsString( 'Restoring the previous value', $result['description'] );
 	}
 
 	/**
@@ -96,6 +126,75 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'critical', $result['status'] );
+	}
+
+	/**
+	 * The broken keyring describes itself with a translated string.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_critical_when_the_keyring_is_broken_on_a_translated_site(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return 'broken secrets.php drop-in' === $text ? 'defektes secrets.php-Drop-in' : $translation;
+			},
+			10,
+			2
+		);
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	/**
+	 * A provider from a secrets.php drop-in does not use the default keyring.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_good_when_a_dropin_replaces_the_provider(): void {
+		$provider = $this->createMock( WP_Secrets_Provider::class );
+		$provider->method( 'get_label' )->willReturn( 'Example Vault' );
+
+		$GLOBALS['wp_secrets_provider'] = $provider;
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertStringContainsString( 'Example Vault', $result['description'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_undecryptable_test_is_critical_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_undecryptable();
+
+		$this->assertSame( 'critical', $result['status'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_needs_rotation_test_is_recommended_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_needs_rotation();
+
+		$this->assertSame( 'recommended', $result['status'] );
 	}
 
 	public function test_undecryptable_test_is_good_when_nothing_is_broken(): void {
