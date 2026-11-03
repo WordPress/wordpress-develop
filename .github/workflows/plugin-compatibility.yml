@@ -276,7 +276,7 @@ jobs:
       php-version: '8.3'
       plugin-slugs: ${{ matrix.shard.slugs }}
       db-type: 'mysql'
-      db-version: '8.4'
+      db-version: '9.7'
 
   # Tests the fixture plugins, each built to break in one specific way, and passes only when every one of them
   # gets the result listed for it in tools/plugin-compatibility/fixtures/expected.txt.
