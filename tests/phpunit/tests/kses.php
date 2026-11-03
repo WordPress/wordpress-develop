@@ -1287,6 +1287,7 @@ EOF;
 	 * @ticket 64974
 	 * @ticket 65832
 	 * @ticket 64972
+	 * @ticket 66448
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1529,6 +1530,15 @@ EOF;
 			array(
 				'css'      => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
 				'expected' => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+			),
+			// `text-wrap` introduced in 7.3.0.
+			array(
+				'css'      => 'text-wrap: balance',
+				'expected' => 'text-wrap: balance',
+			),
+			array(
+				'css'      => 'text-wrap: pretty',
+				'expected' => 'text-wrap: pretty',
 			),
 			array(
 				'css'      => 'text-shadow: var(--wp--preset--text-shadow--soft)',
