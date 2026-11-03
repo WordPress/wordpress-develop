@@ -5568,6 +5568,67 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Creates a note on a post the given moderator cannot edit.
+	 *
+	 * @return array{0: int, 1: int} The note ID and the ID of a user who can moderate
+	 *                               comments but cannot edit the note's post.
+	 */
+	private function create_note_and_moderator_without_edit_access() {
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$moderator = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		$moderator->add_cap( 'moderate_comments' );
+
+		$this->assertFalse( user_can( $moderator, 'edit_post', $post_id ), 'The moderator should not be able to edit the post.' );
+
+		return array( $note_id, $moderator->ID );
+	}
+
+	/**
+	 * A user who can moderate comments but cannot edit the note's post cannot update the note.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_moderator_without_edit_access_cannot_update_note() {
+		list( $note_id, $moderator_id ) = $this->create_note_and_moderator_without_edit_access();
+
+		wp_set_current_user( $moderator_id );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'content' => 'Edited note' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		$this->assertSame( 'Test note', get_comment( $note_id )->comment_content );
+	}
+
+	/**
+	 * A user who can moderate comments but cannot edit the note's post cannot delete the note.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_moderator_without_edit_access_cannot_delete_note() {
+		list( $note_id, $moderator_id ) = $this->create_note_and_moderator_without_edit_access();
+
+		wp_set_current_user( $moderator_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertInstanceOf( WP_Comment::class, get_comment( $note_id ) );
+	}
+
+	/**
 	 * The note response exposes a `reaction_summary` field aggregating
 	 * counts per emoji hex key, plus the current user's reaction ID as
 	 * `current_user_reaction`.

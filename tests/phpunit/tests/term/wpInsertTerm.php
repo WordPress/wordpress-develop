@@ -918,6 +918,77 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_root_level_term_with_same_name_as_child_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Foo',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'foo-bar',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t3 = wp_insert_term( 'Bar', 'wptests_tax' );
+
+		$this->assertNotWPError( $t3 );
+		$t3_term = get_term( $t3['term_id'], 'wptests_tax' );
+		$this->assertSame( 'bar', $t3_term->slug );
+	}
+
+	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_child_term_with_same_name_as_another_child_under_different_parent_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent One',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent Two',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Child',
+				'slug'     => 'parent-one-child',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t4 = wp_insert_term(
+			'Child',
+			'wptests_tax',
+			array(
+				'parent' => $t2,
+			)
+		);
+
+		$this->assertNotWPError( $t4 );
+		$t4_term = get_term( $t4['term_id'], 'wptests_tax' );
+		$this->assertSame( 'child', $t4_term->slug );
+	}
+
+	/**
 	 * Non-ASCII slugs are stored percent-encoded, so a short term name can still
 	 * overflow the 200 character `slug` column once a parent slug is appended.
 	 *
