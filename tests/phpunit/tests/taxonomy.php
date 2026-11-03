@@ -210,9 +210,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		register_taxonomy( $tax, 'post' );
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertFalse( is_taxonomy_hierarchical( $tax ) );
-
-		// Clean up.
-		unregister_taxonomy( $tax );
 	}
 
 	public function test_register_hierarchical_taxonomy() {
@@ -224,9 +221,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertTrue( is_taxonomy_hierarchical( $tax ) );
-
-		// Clean up.
-		unregister_taxonomy( $tax );
 	}
 
 	/**
@@ -341,7 +335,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( register_taxonomy_for_object_type( $tax, 'user' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, 'user' ) );
 
-		unregister_taxonomy( $tax );
 		_unregister_post_type( $post_type );
 	}
 
