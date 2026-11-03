@@ -20,7 +20,7 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 		$this->assertSame( $sorted, $unsorted );
 	}
 
-	public function data_wp_timezone_choice_usort_callback() {
+	public static function data_wp_timezone_choice_usort_callback() {
 		return array(
 			'just GMT+'                         => array(
 				'unsorted' => array(

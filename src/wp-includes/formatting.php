@@ -622,8 +622,11 @@ function wp_html_split( $input ) {
  * @since 4.4.0
  *
  * @return string The regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
+	/** @var non-falsy-string|null $regex */
 	static $regex;
 
 	if ( ! isset( $regex ) ) {
@@ -2051,9 +2054,9 @@ function sanitize_file_name( $filename ) {
 		 * The “Zs” in the pattern selects characters in the `Space_Separator`
 		 * category, which is what Unicode considers space characters.
 		 *
-		 * @see https://www.unicode.org/reports/tr44/#General_Category_Values
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
-		 * @see https://www.php.net/manual/en/regexp.reference.unicode.php
+		 * @link https://www.unicode.org/reports/tr44/#General_Category_Values
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
+		 * @link https://www.php.net/manual/en/regexp.reference.unicode.php
 		 */
 		$filename = preg_replace( '#\p{Zs}#siu', ' ', $filename );
 	}
@@ -2184,7 +2187,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key.
+ * @param mixed $key String key. Other scalars are cast to a string; any other type yields an empty string.
  * @return string Sanitized key.
  * @phpstan-return lowercase-string
  */
@@ -2192,7 +2195,7 @@ function sanitize_key( $key ) {
 	$sanitized_key = '';
 
 	if ( is_scalar( $key ) ) {
-		$sanitized_key = strtolower( $key );
+		$sanitized_key = strtolower( (string) $key );
 		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
 	}
 
@@ -2202,7 +2205,8 @@ function sanitize_key( $key ) {
 	 * @since 3.0.0
 	 *
 	 * @param string $sanitized_key Sanitized key.
-	 * @param string $key           The key prior to sanitization.
+	 * @param mixed  $key           The key prior to sanitization.
+	 * @phpstan-param lowercase-string $sanitized_key
 	 */
 	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
@@ -2278,6 +2282,8 @@ function sanitize_title_for_query( $title ) {
  *                          When set to 'save', additional entities are converted to hyphens
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
+ *
+ * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
@@ -2397,6 +2403,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = preg_replace( '|-+|', '-', $title );
 	$title = trim( $title, '-' );
 
+	/** @var lowercase-string $title Only lowercase characters remain after the replacements above. */
 	return $title;
 }
 
@@ -2498,6 +2505,11 @@ function sanitize_html_class( $classname, $fallback = '' ) {
  * @return string The sanitized value.
  */
 function sanitize_locale_name( $locale_name ) {
+	// Request values can arrive as arrays, and preg_replace() would map over them.
+	if ( ! is_string( $locale_name ) ) {
+		return '';
+	}
+
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
 	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $locale_name );
 
@@ -2520,6 +2532,8 @@ function sanitize_locale_name( $locale_name ) {
  * @param string $content    String of characters to be converted.
  * @param string $deprecated Not used.
  * @return string Converted string.
+ *
+ * @phpstan-param '' $deprecated
  */
 function convert_chars( $content, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2642,8 +2656,8 @@ function force_balance_tags( $text ) {
 	 * To get the pattern as a string without the comments paste into a PHP
 	 * REPL like `php -a`.
 	 *
-	 * @see https://html.spec.whatwg.org/#elements-2
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @link https://html.spec.whatwg.org/#elements-2
+	 * @link https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 *
 	 * @example
 	 * ~# php -a
@@ -2863,6 +2877,8 @@ function backslashit( $value ) {
  *
  * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
+ *
+ * @phpstan-return non-falsy-string
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -3651,6 +3667,8 @@ function convert_smilies( $text ) {
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
  * @return string|false Valid email address on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function is_email( $email, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3995,46 +4013,28 @@ function human_time_diff( $from, $to = 0 ) {
 		}
 		/* translators: Time difference between two dates, in seconds. %s: Number of seconds. */
 		$since = sprintf( _n( '%s second', '%s seconds', $secs ), $secs );
-	} elseif ( $diff < HOUR_IN_SECONDS && $diff >= MINUTE_IN_SECONDS ) {
-		$mins = round( $diff / MINUTE_IN_SECONDS );
-		if ( $mins <= 1 ) {
-			$mins = 1;
-		}
+	} elseif ( $diff < HOUR_IN_SECONDS ) {
+		$mins = (int) round( $diff / MINUTE_IN_SECONDS );
 		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
 		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
-	} elseif ( $diff < DAY_IN_SECONDS && $diff >= HOUR_IN_SECONDS ) {
-		$hours = round( $diff / HOUR_IN_SECONDS );
-		if ( $hours <= 1 ) {
-			$hours = 1;
-		}
+	} elseif ( $diff < DAY_IN_SECONDS ) {
+		$hours = (int) round( $diff / HOUR_IN_SECONDS );
 		/* translators: Time difference between two dates, in hours. %s: Number of hours. */
 		$since = sprintf( _n( '%s hour', '%s hours', $hours ), $hours );
-	} elseif ( $diff < WEEK_IN_SECONDS && $diff >= DAY_IN_SECONDS ) {
-		$days = round( $diff / DAY_IN_SECONDS );
-		if ( $days <= 1 ) {
-			$days = 1;
-		}
+	} elseif ( $diff < WEEK_IN_SECONDS ) {
+		$days = (int) round( $diff / DAY_IN_SECONDS );
 		/* translators: Time difference between two dates, in days. %s: Number of days. */
 		$since = sprintf( _n( '%s day', '%s days', $days ), $days );
-	} elseif ( $diff < MONTH_IN_SECONDS && $diff >= WEEK_IN_SECONDS ) {
-		$weeks = round( $diff / WEEK_IN_SECONDS );
-		if ( $weeks <= 1 ) {
-			$weeks = 1;
-		}
+	} elseif ( $diff < MONTH_IN_SECONDS ) {
+		$weeks = (int) round( $diff / WEEK_IN_SECONDS );
 		/* translators: Time difference between two dates, in weeks. %s: Number of weeks. */
 		$since = sprintf( _n( '%s week', '%s weeks', $weeks ), $weeks );
-	} elseif ( $diff < YEAR_IN_SECONDS && $diff >= MONTH_IN_SECONDS ) {
-		$months = round( $diff / MONTH_IN_SECONDS );
-		if ( $months <= 1 ) {
-			$months = 1;
-		}
+	} elseif ( $diff < YEAR_IN_SECONDS ) {
+		$months = (int) round( $diff / MONTH_IN_SECONDS );
 		/* translators: Time difference between two dates, in months. %s: Number of months. */
 		$since = sprintf( _n( '%s month', '%s months', $months ), $months );
-	} elseif ( $diff >= YEAR_IN_SECONDS ) {
-		$years = round( $diff / YEAR_IN_SECONDS );
-		if ( $years <= 1 ) {
-			$years = 1;
-		}
+	} else {
+		$years = (int) round( $diff / YEAR_IN_SECONDS );
 		/* translators: Time difference between two dates, in years. %s: Number of years. */
 		$since = sprintf( _n( '%s year', '%s years', $years ), $years );
 	}
@@ -5185,6 +5185,7 @@ function sanitize_option( $option, $value ) {
 		case 'permalink_structure':
 		case 'category_base':
 		case 'tag_base':
+		case 'wp_random_base':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
@@ -5309,10 +5310,18 @@ function wp_parse_str( $input_string, &$result ) {
  *
  * @since 2.3.0
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string $content Text to be converted.
  * @return string Converted text.
  */
 function wp_pre_kses_less_than( $content ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
 }
 
@@ -5337,6 +5346,8 @@ function wp_pre_kses_less_than_callback( $matches ) {
  *
  * @since 5.3.1
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string         $content           Content to be run through KSES.
  * @param array[]|string $allowed_html      An array of allowed HTML elements
  *                                          and attributes, or a context name
@@ -5345,6 +5356,12 @@ function wp_pre_kses_less_than_callback( $matches ) {
  * @return string Filtered text to run through KSES.
  */
 function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protocols ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	/*
 	 * `filter_block_content` is expected to call `wp_kses`. Temporarily remove
 	 * the filter to avoid recursion.

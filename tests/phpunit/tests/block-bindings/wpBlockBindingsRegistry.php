@@ -227,6 +227,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::unregister
+	 * @covers WP_Block_Bindings_Registry::get_registered
+	 * @covers WP_Block_Bindings_Registry::is_registered
 	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
@@ -242,6 +244,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			),
 			$result
 		);
+		$this->assertNull( $this->registry->get_registered( self::$test_source_name ) );
+		$this->assertFalse( $this->registry->is_registered( self::$test_source_name ) );
 	}
 
 	/**
