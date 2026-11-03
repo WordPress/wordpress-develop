@@ -531,13 +531,12 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$is_core_block        = str_starts_with( $file_or_folder, wp_normalize_path( ABSPATH . WPINC ) );
-	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
-	$registry_metadata    = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
+	$is_core_block     = str_starts_with( $file_or_folder, wp_normalize_path( ABSPATH . WPINC ) );
+	$registry_metadata = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 
 	if ( $registry_metadata ) {
 		$metadata = $registry_metadata;
-	} elseif ( $metadata_file_exists ) {
+	} elseif ( $is_core_block || file_exists( $metadata_file ) ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	} else {
 		$metadata = array();
@@ -547,7 +546,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 
-	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
+	$metadata_file_realpath = realpath( $metadata_file );
+	$metadata_file_exists   = false !== $metadata_file_realpath;
+	$metadata['file']       = $metadata_file_exists ? wp_normalize_path( $metadata_file_realpath ) : null;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
