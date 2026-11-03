@@ -33,6 +33,16 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 	private $widget_globals_backup = array();
 
 	/**
+	 * Text widget used by the test.
+	 *
+	 * A new instance is used for each test, rather than the shared widget factory's,
+	 * because other tests empty the factory and update_callback() only runs once per instance.
+	 *
+	 * @var WP_Widget_Text
+	 */
+	private $text_widget;
+
+	/**
 	 * Setup test fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory
@@ -51,9 +61,6 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 			$this->widget_globals_backup[ $global ] = $GLOBALS[ $global ];
 		}
 
-		// update_callback() only runs once per widget object, and the object is shared between tests.
-		$this->get_text_widget()->updated = false;
-
 		update_option(
 			'widget_text',
 			array(
@@ -68,7 +75,10 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 				'_multiwidget' => 1,
 			)
 		);
-		$this->get_text_widget()->_register();
+		// wp_register_widget_control() keeps an existing update callback, so remove the shared one first.
+		unset( $GLOBALS['wp_registered_widget_updates']['text'] );
+		$this->text_widget = new WP_Widget_Text();
+		$this->text_widget->_register();
 
 		wp_set_sidebars_widgets( array( 'sidebar-1' => array( 'text-2', 'text-3' ) ) );
 
@@ -83,20 +93,7 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 			$GLOBALS[ $global ] = $value;
 		}
 
-		$this->get_text_widget()->updated = false;
-
 		parent::tear_down();
-	}
-
-	/**
-	 * Returns the core Text widget object.
-	 *
-	 * @return WP_Widget_Text
-	 */
-	private function get_text_widget(): WP_Widget_Text {
-		global $wp_widget_factory;
-
-		return $wp_widget_factory->get_widget_object( 'text' );
 	}
 
 	/**
