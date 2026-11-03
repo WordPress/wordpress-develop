@@ -577,12 +577,12 @@ $run_url   = getenv( 'HTML_API_BENCH_RUN_URL' );
 $report  = HTML_API_BENCH_REPORT_MARKER . "\n";
 $report .= "## HTML API CommonCrawl analysis\n\n";
 $report .= sprintf(
-	"Parsed %s documents from CommonCrawl `%s` with the target branch%s and with this PR merged into it%s. Each time is the median of %d rounds. Negative deltas mean the PR is faster.%s\n\n",
+	"Parsed %s documents from CommonCrawl `%s` with the target branch%s and with this PR merged into it%s. %s. Negative deltas mean the PR is faster.%s\n\n",
 	number_format( count( $pairs ) ),
 	$crawl[1],
 	$base_sha ? ' (`' . substr( $base_sha, 0, 10 ) . '`)' : '',
 	$merge_sha ? ' (`' . substr( $merge_sha, 0, 10 ) . '`)' : '',
-	$rounds,
+	1 === $rounds ? 'Each document was timed once' : "Each time is the median of {$rounds} rounds",
 	$run_url ? " [Workflow run]({$run_url})." : ''
 );
 

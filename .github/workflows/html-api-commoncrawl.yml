@@ -38,10 +38,10 @@ on:
         type: string
         default: '30m'
       rounds:
-        description: 'How many times to time each document with each checkout'
+        description: 'How many times to time each document with each checkout. Two processes per round run at once on each pair of vCPUs'
         required: false
         type: number
-        default: 3
+        default: 2
       small-max-bytes:
         description: 'Documents smaller than this many bytes are small'
         required: false
@@ -66,7 +66,7 @@ env:
   # The analysis keeps every HTML document in this many WARC files, unless the fetch duration passes first.
   HTML_API_BENCH_WARCS: ${{ inputs.warcs || 1 }}
   HTML_API_BENCH_FETCH_DURATION: ${{ inputs.fetch-duration || '30m' }}
-  HTML_API_BENCH_ROUNDS: ${{ inputs.rounds || 3 }}
+  HTML_API_BENCH_ROUNDS: ${{ inputs.rounds || 2 }}
   HTML_API_BENCH_SMALL_MAX_BYTES: ${{ inputs.small-max-bytes || 32768 }}
   HTML_API_BENCH_LARGE_MIN_BYTES: ${{ inputs.large-min-bytes || 262144 }}
 
@@ -77,9 +77,9 @@ jobs:
   # - Checks out the pull request merged into its target branch, and the target branch beside it.
   # - Sets up PHP.
   # - Fetches a random sample of HTML documents from the latest CommonCrawl crawl.
-  # - Times the Tag Processor, the HTML Processor, and wp_kses() on each document with both checkouts, alternating which
-  #   goes first in each round.
-  # - Records which documents each checkout supports, and why the others are unsupported.
+  # - Times the Tag Processor, the HTML Processor, and wp_kses() on each document with both checkouts, running the rounds
+  #   of both checkouts at the same time, one per vCPU, so that both share the same load.
+  # - Records which documents each checkout supports, and why the others are unsupported, with both checkouts at once.
   # - Writes the report.
   # - Uploads the report and the pull request number.
   analyze:
@@ -135,24 +135,46 @@ jobs:
             --duration "$HTML_API_BENCH_FETCH_DURATION" \
             --progress text
 
+      # Each round runs one process for each checkout, and as many rounds run at once as there are pairs of vCPUs: two on
+      # the standard runner. Both checkouts are timed under the same load, as on a busy server, and the step takes about
+      # as long as one round would on its own. Each process replays the batch separately, so the documents' times are
+      # independent. If one process fails, the others are stopped and the step fails.
       - name: Time parsing with both checkouts
         run: |
-          for round in $( seq 1 "$HTML_API_BENCH_ROUNDS" ); do
-            if (( round % 2 )); then order='base merge'; else order='merge base'; fi
-            for checkout in $order; do
-              echo "Round ${round}: ${checkout}"
-              HTML_API_BENCH_WP_SRC="$GITHUB_WORKSPACE/$checkout/src" \
-              CC_ANALYZER_OUTPUT_DIR="$RUNNER_TEMP/results/$checkout/round-$round" \
-                php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/benchmark.php"
+          trap 'kill $( jobs -p ) 2> /dev/null || true' EXIT
+          rounds_at_once=$(( $( nproc ) / 2 ))
+          (( rounds_at_once > 0 )) || rounds_at_once=1
+          for (( first = 1; first <= HTML_API_BENCH_ROUNDS; first += rounds_at_once )); do
+            last=$(( first + rounds_at_once - 1 ))
+            (( last <= HTML_API_BENCH_ROUNDS )) || last=$HTML_API_BENCH_ROUNDS
+            echo "Rounds ${first} to ${last}: base and merge, $(( 2 * ( last - first + 1 ) )) processes at once"
+            pids=()
+            for round in $( seq "$first" "$last" ); do
+              for checkout in base merge; do
+                HTML_API_BENCH_WP_SRC="$GITHUB_WORKSPACE/$checkout/src" \
+                CC_ANALYZER_OUTPUT_DIR="$RUNNER_TEMP/results/$checkout/round-$round" \
+                  php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/benchmark.php" &
+                pids+=( "$!" )
+              done
+            done
+            for pid in "${pids[@]}"; do
+              wait "$pid"
             done
           done
 
+      # Nothing is timed here, so both checkouts run at once.
       - name: Record support with both checkouts
         run: |
+          trap 'kill $( jobs -p ) 2> /dev/null || true' EXIT
+          pids=()
           for checkout in base merge; do
             HTML_API_BENCH_WP_SRC="$GITHUB_WORKSPACE/$checkout/src" \
             CC_ANALYZER_OUTPUT_DIR="$RUNNER_TEMP/results/$checkout/analysis" \
-              php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/analysis.php"
+              php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/analysis.php" &
+            pids+=( "$!" )
+          done
+          for pid in "${pids[@]}"; do
+            wait "$pid"
           done
 
       - name: Write the report

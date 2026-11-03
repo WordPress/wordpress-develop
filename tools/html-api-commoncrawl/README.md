@@ -47,6 +47,8 @@ php tools/html-api-commoncrawl/report.php /tmp/results/base /tmp/results/merge >
 
 A batch can be replayed as many times as needed without fetching it again.
 
+The workflow runs these replays at the same time, one process for each round of each checkout, as many rounds at once as there are pairs of vCPUs. On the standard 4-vCPU runner, both rounds of both checkouts run together, so timing takes about as long as one round. Both checkouts are timed under the same load, as on a busy server. A vCPU may be one of a core's two hardware threads, so each process can run slower than it would alone, and the times are best compared with each other rather than read on their own. Recording support for both checkouts also runs at once.
+
 ## Settings
 
 The workflow reads these environment variables. When it is run manually, each one can be set from an input of the same name.
@@ -55,7 +57,7 @@ The workflow reads these environment variables. When it is run manually, each on
 | --- | --- | --- |
 | `HTML_API_BENCH_WARCS` | `1` | How many WARC files to download. Every HTML document in them is analyzed; each file holds around 20,000. |
 | `HTML_API_BENCH_FETCH_DURATION` | `30m` | Longest time to spend fetching. Fetching stops at whichever limit is reached first. |
-| `HTML_API_BENCH_ROUNDS` | `3` | How many times to time each document with each checkout. Each document's time is its median. |
+| `HTML_API_BENCH_ROUNDS` | `2` | How many times to time each document with each checkout. Each document's time is its median. |
 | `HTML_API_BENCH_SMALL_MAX_BYTES` | `32768` | Documents smaller than this are small. |
 | `HTML_API_BENCH_LARGE_MIN_BYTES` | `262144` | Documents at least this large are large. Everything between is medium. |
 

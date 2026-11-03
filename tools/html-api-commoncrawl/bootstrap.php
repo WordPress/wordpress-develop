@@ -125,15 +125,22 @@ add_filter(
  * Reports progress through a batch every 1,000 documents, so that a long run does not look stuck.
  *
  * Call it once for each document, after the document's measurements. It writes
- * to STDERR, which shows in the workflow log between the analysis script's runs.
+ * to STDERR, which shows in the workflow log. Several processes run at once in
+ * the workflow, so each line names its results directory, such as `base/round-2`.
  *
  * @param string $label What is being done, such as `timing`.
  */
 function html_api_bench_progress( $label ) {
 	static $count      = 0;
 	static $started_at = null;
+	static $name       = null;
 
 	$started_at ??= hrtime( true );
+	if ( null === $name ) {
+		$output_dir = rtrim( (string) getenv( 'CC_ANALYZER_OUTPUT_DIR' ), '/' );
+		$name       = '' === $output_dir ? '' : ' ' . basename( dirname( $output_dir ) ) . '/' . basename( $output_dir );
+	}
+
 	if ( 0 !== ++$count % 1000 ) {
 		return;
 	}
@@ -141,6 +148,6 @@ function html_api_bench_progress( $label ) {
 	$seconds = max( 1, intdiv( hrtime( true ) - $started_at, 1000000000 ) );
 	fwrite(
 		STDERR,
-		sprintf( "  %s: %s documents after %dm %02ds (%.0f per second)\n", $label, number_format( $count ), intdiv( $seconds, 60 ), $seconds % 60, $count / $seconds )
+		sprintf( "  %s%s: %s documents after %dm %02ds (%.0f per second)\n", $label, $name, number_format( $count ), intdiv( $seconds, 60 ), $seconds % 60, $count / $seconds )
 	);
 }
