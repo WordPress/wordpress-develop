@@ -10,24 +10,6 @@
 class Tests_Admin_Includes_Update_FindCoreUpdate extends WP_UnitTestCase {
 
 	/**
-	 * Loads the tested file.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		require_once ABSPATH . 'wp-admin/includes/update.php';
-	}
-
-	/**
-	 * Clears the core update transient.
-	 */
-	public function tear_down() {
-		delete_site_transient( 'update_core' );
-
-		parent::tear_down();
-	}
-
-	/**
 	 * @ticket 65819
 	 */
 	public function test_returns_false_without_updates() {
