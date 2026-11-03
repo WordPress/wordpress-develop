@@ -1159,8 +1159,24 @@ final class WP_Interactivity_API {
 	 */
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
 		if ( 'enter' === $mode ) {
-			$entries = $this->get_directive_entries( $p, 'bind' );
+			$event_handler_prefix = 'data-wp-bind--on';
+			$entries              = $this->get_directive_entries( $p, 'bind' );
 			foreach ( $entries as $entry ) {
+				// Binding event handler attributes is not supported.
+				if ( str_starts_with( $entry['attribute_name'], $event_handler_prefix ) ) {
+					$p->remove_attribute( $entry['attribute_name'] );
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The directive, e.g. data-wp-on--click. */
+							__( 'Binding event handler attributes is not supported. Please use "%s" instead.' ),
+							esc_attr( 'data-wp-on--' . substr( $entry['attribute_name'], strlen( $event_handler_prefix ) ) )
+						),
+						'6.9.2'
+					);
+					continue;
+				}
+
 				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
 					continue;
 				}
@@ -1179,20 +1195,6 @@ final class WP_Interactivity_API {
 							esc_html( $entry['suffix'] )
 						),
 						'7.1.4'
-					);
-					continue;
-				}
-
-				// Skip if the suffix is an event handler.
-				if ( str_starts_with( $entry['suffix'], 'on' ) ) {
-					_doing_it_wrong(
-						__METHOD__,
-						sprintf(
-							/* translators: %s: The directive, e.g. data-wp-on--click. */
-							__( 'Binding event handler attributes is not supported. Please use "%s" instead.' ),
-							esc_attr( 'data-wp-on--' . substr( $entry['suffix'], 2 ) )
-						),
-						'6.9.2'
 					);
 					continue;
 				}
