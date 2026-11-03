@@ -56,12 +56,13 @@ while ( have_posts() ) {
 		<footer class="entry-footer default-max-width">
 			<?php
 			// Check if there is a parent, then add the published in link.
-			if ( wp_get_post_parent_id( $post ) ) {
+			$parent_id = wp_get_post_parent_id( $post );
+			if ( $parent_id ) {
 				echo '<span class="posted-on">';
 				printf(
 					/* translators: %s: Parent post. */
 					esc_html__( 'Published in %s', 'twentytwentyone' ),
-					'<a href="' . esc_url( get_the_permalink( wp_get_post_parent_id( $post ) ) ) . '">' . esc_html( get_the_title( wp_get_post_parent_id( $post ) ) ) . '</a>'
+					'<a href="' . esc_url( get_the_permalink( $parent_id ) ) . '">' . esc_html( get_the_title( $parent_id ) ) . '</a>'
 				);
 				echo '</span>';
 			} else {
