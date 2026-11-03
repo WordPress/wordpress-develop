@@ -806,7 +806,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			$entry->type = $element instanceof UnionTypeNode
 				? implode( '|', array_map( 'strval', $element->types ) )
 				: (string) $element;
-			$entries     = array( $entry );
+			$entries     = array( $entry, ...array_slice( $entries, 1 ) );
 		}
 		$is_array   = 'array' === $normalized || null !== $element;
 		$named      = ! $is_array && 'object' !== $normalized;
