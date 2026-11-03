@@ -800,6 +800,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 *
 	 * @return WP_Theme|false Parent theme, or false if the active theme is not a child theme.
+	 *
+	 * @phpstan-pure
 	 */
 	public function parent() {
 		return $this->parent ?? false;
