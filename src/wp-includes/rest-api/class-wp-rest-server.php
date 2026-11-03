@@ -419,7 +419,7 @@ class WP_REST_Server {
 
 		/*
 		 * The `_method` query parameter overrides the request method below. Accept only ASCII
-		 * letters, underscores, and hyphens. The pattern ends with `\z` because `$` also 
+		 * letters, underscores, and hyphens. The pattern ends with `\z` because `$` also
 		 * matches before a trailing newline.
 		 */
 		$method = null;
