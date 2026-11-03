@@ -1212,8 +1212,9 @@ final class WP_Customize_Manager {
 			$starter_content = get_theme_starter_content();
 		}
 
-		$changeset_data = array();
-		if ( $this->changeset_post_id() ) {
+		$changeset_data    = array();
+		$changeset_post_id = $this->changeset_post_id();
+		if ( $changeset_post_id ) {
 			/*
 			 * Don't re-import starter content into a changeset saved persistently.
 			 * This will need to be revisited in the future once theme switching
@@ -1224,11 +1225,11 @@ final class WP_Customize_Manager {
 			 * flags, thus resulting in duplicates being created since they fail
 			 * to get re-used. See #40146.
 			 */
-			if ( 'auto-draft' !== get_post_status( $this->changeset_post_id() ) ) {
+			if ( 'auto-draft' !== get_post_status( $changeset_post_id ) ) {
 				return;
 			}
 
-			$changeset_data = $this->get_changeset_post_data( $this->changeset_post_id() );
+			$changeset_data = $this->get_changeset_post_data( $changeset_post_id );
 		}
 
 		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : array();
@@ -4887,8 +4888,8 @@ final class WP_Customize_Manager {
 		}
 
 		$lock_user_id = false;
-		if ( $this->changeset_post_id() ) {
-			$lock_user_id = wp_check_post_lock( $this->changeset_post_id() );
+		if ( $changeset_post_id ) {
+			$lock_user_id = wp_check_post_lock( $changeset_post_id );
 		}
 
 		$settings = array(
