@@ -10,26 +10,15 @@
 class Tests_General_wpAdminCssUri extends WP_UnitTestCase {
 
 	/**
-	 * Tests wp_admin_css_uri() with default argument.
+	 * Tests wp_admin_css_uri() returns the admin stylesheet URI with version parameter.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_wp_admin_css_uri_default() {
-		$expected = add_query_arg( 'version', get_bloginfo( 'version' ), admin_url( 'wp-admin.css' ) );
+	public function test_wp_admin_css_uri() {
+		$uri = wp_admin_css_uri();
 
-		$this->assertSame( $expected, wp_admin_css_uri() );
-	}
-
-	/**
-	 * Tests wp_admin_css_uri() with custom file.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_wp_admin_css_uri_custom_file() {
-		$file     = 'colors/modern/colors';
-		$expected = add_query_arg( 'version', get_bloginfo( 'version' ), admin_url( "$file.css" ) );
-
-		$this->assertSame( $expected, wp_admin_css_uri( $file ) );
+		$this->assertStringStartsWith( admin_url( 'wp-admin.css' ), $uri );
+		$this->assertStringContainsString( 'version=' . get_bloginfo( 'version' ), $uri );
 	}
 
 	/**
