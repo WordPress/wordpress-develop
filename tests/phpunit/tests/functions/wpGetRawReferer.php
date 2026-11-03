@@ -1,47 +1,71 @@
 <?php
 
 /**
- * Tests for the wp_referer_field() function.
+ * Tests for the wp_get_raw_referer() function.
  *
- * @since 6.0.0
+ * @group functions
  *
- * @group functions.php
  * @covers ::wp_get_raw_referer
  */
-class Tests_Functions_wpGetRawReferer extends WP_UnitTestCase {
+class Tests_Functions_WpGetRawReferer extends WP_UnitTestCase {
 
-	/**
-	 * @ticket 55729
-	 */
-	public function test_wp_get_original__wp_http_referer_referer() {
-		$_REQUEST['_wp_http_referer'] = 'http://_wp_http_referer.com';
-		$this->assertSame( 'http://_wp_http_referer.com', wp_get_raw_referer(), '$_REQUEST["_wp_http_referer"] set' );
+	public function tear_down() {
+		unset( $_REQUEST['_wp_http_referer'], $_SERVER['HTTP_REFERER'] );
+
+		parent::tear_down();
 	}
 
 	/**
+	 * Tests that wp_get_raw_referer() returns the value of $_REQUEST['_wp_http_referer'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_original_HTTP_REFERER_referer() {
+	public function test_wp_get_raw_referer_from_request(): void {
+		$_REQUEST['_wp_http_referer'] = 'http://example.com/request';
 
-		$_SERVER['HTTP_REFERER'] = 'http://referer.com';
-		$this->assertSame( 'http://referer.com', wp_get_raw_referer(), '$_REQUEST["HTTP_REFERER"] set' );
+		$this->assertSame( 'http://example.com/request', wp_get_raw_referer() );
 	}
 
 	/**
+	 * Tests that wp_get_raw_referer() returns the value of $_SERVER['HTTP_REFERER'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_original_both_set_referer() {
+	public function test_wp_get_raw_referer_from_server(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/server';
 
-		$_REQUEST['_wp_http_referer'] = 'http://_wp_http_referer.com';
-		$_SERVER['HTTP_REFERER']      = 'http://NotUSED.com';
-		$this->assertSame( 'http://_wp_http_referer.com', wp_get_raw_referer(), 'Both set should use _wp_http_referer' );
+		$this->assertSame( 'http://example.com/server', wp_get_raw_referer() );
 	}
 
 	/**
+	 * Tests that wp_get_raw_referer() prioritizes $_REQUEST['_wp_http_referer'] over $_SERVER['HTTP_REFERER'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_original_no_referer() {
+	public function test_wp_get_raw_referer_prefers_request_over_server(): void {
+		$_REQUEST['_wp_http_referer'] = 'http://example.com/request';
+		$_SERVER['HTTP_REFERER']      = 'http://example.com/server';
 
-		$this->assertFalse( wp_get_raw_referer(), 'no referer set' );
+		$this->assertSame( 'http://example.com/request', wp_get_raw_referer() );
+	}
+
+	/**
+	 * Tests that wp_get_raw_referer() returns false when no referer is set.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_get_raw_referer_not_set(): void {
+		$this->assertFalse( wp_get_raw_referer() );
+	}
+
+	/**
+	 * Tests that wp_get_raw_referer() returns false when $_REQUEST['_wp_http_referer'] is not a string.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_get_raw_referer_invalid_request_parameter(): void {
+		$_REQUEST['_wp_http_referer'] = array( 'invalid' );
+
+		$this->assertFalse( wp_get_raw_referer() );
 	}
 }

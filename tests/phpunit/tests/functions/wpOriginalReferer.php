@@ -1,37 +1,58 @@
 <?php
 
 /**
- * Tests for the wp_referer_field() function.
+ * Tests for the wp_get_original_referer() function.
  *
- * @since 6.0.0
+ * @group functions
  *
- * @group functions.php
  * @covers ::wp_get_original_referer
  */
-class Tests_Functions_wpOriginalReferer extends WP_UnitTestCase {
+class Tests_Functions_WpOriginalReferer extends WP_UnitTestCase {
+
 	public function set_up() {
 		parent::set_up();
-		add_filter( 'home_url', array( $this, 'home_url' ) );
+
+		add_filter( 'home_url', array( $this, 'filter_home_url' ) );
 	}
 
-	public function home_url() {
+	public function tear_down() {
+		unset( $_REQUEST['_wp_original_http_referer'] );
 
-		return 'http://example.com/';
+		parent::tear_down();
 	}
+
+	public function filter_home_url(): string {
+		return 'http://example.com';
+	}
+
 	/**
+	 * Tests that wp_get_original_referer() returns false when $_REQUEST['_wp_original_http_referer'] is not set.
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_original_referer_not_set() {
-
-		$this->assertSame( false, wp_get_original_referer(), '_wp_original_http_referer not set' );
+	public function test_wp_get_original_referer_not_set(): void {
+		$this->assertFalse( wp_get_original_referer() );
 	}
 
 	/**
+	 * Tests that wp_get_original_referer() returns the original referer when set.
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_original_referer() {
+	public function test_wp_get_original_referer(): void {
+		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/original';
 
-		$_REQUEST['_wp_original_http_referer'] = 'http://example.com';
-		$this->assertSame( 'http://example.com', wp_get_original_referer(), '_wp_original_http_referer set' );
+		$this->assertSame( 'http://example.com/original', wp_get_original_referer() );
+	}
+
+	/**
+	 * Tests that wp_get_original_referer() rejects an external host.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_get_original_referer_rejects_external_host(): void {
+		$_REQUEST['_wp_original_http_referer'] = 'http://external.com/original';
+
+		$this->assertFalse( wp_get_original_referer() );
 	}
 }

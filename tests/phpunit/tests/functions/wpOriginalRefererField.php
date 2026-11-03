@@ -1,50 +1,81 @@
 <?php
 
 /**
- * Tests for the wp_referer_field() function.
+ * Tests for the wp_original_referer_field() function.
  *
- * @since 6.0.0
+ * @group functions
  *
- * @group functions.php
  * @covers ::wp_original_referer_field
  */
-class Tests_Functions_wpOriginalRefererField extends WP_UnitTestCase {
+class Tests_Functions_WpOriginalRefererField extends WP_UnitTestCase {
+
 	public function set_up() {
 		parent::set_up();
-		add_filter( 'home_url', array( $this, 'home_url' ) );
+
+		add_filter( 'home_url', array( $this, 'filter_home_url' ) );
 	}
 
-	public function home_url() {
-		return 'http://example.com/';
+	public function tear_down() {
+		unset( $_REQUEST['_wp_original_http_referer'], $_REQUEST['_wp_http_referer'], $_SERVER['HTTP_REFERER'], $_SERVER['REQUEST_URI'] );
+
+		parent::tear_down();
+	}
+
+	public function filter_home_url(): string {
+		return 'http://example.com';
 	}
 
 	/**
-	 * @ticket 55578
+	 * Tests that wp_original_referer_field() echoes the hidden input field when display is true.
+	 *
+	 * @ticket 55729
 	 */
-	public function test_wp_referer_field() {
-
+	public function test_wp_original_referer_field(): void {
 		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/test/';
+
+		$expected = '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />';
+		$this->expectOutputString( $expected );
+
 		wp_original_referer_field();
-		$this->expectOutputString( '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />' );
 	}
 
 	/**
-	 * @ticket 55578
+	 * Tests that wp_original_referer_field() returns the hidden input field when display is false.
+	 *
+	 * @ticket 55729
 	 */
-	public function test_wp_referer_field_return() {
-
+	public function test_wp_original_referer_field_return(): void {
 		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/test/';
 
-		$this->assertSame( '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false ) );
+		$expected = '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />';
+
+		$this->assertSame( $expected, wp_original_referer_field( false ) );
 	}
 
 	/**
-	 * @ticket 55578
+	 * Tests that wp_original_referer_field() falls back to the previous referer when original referer is unset.
+	 *
+	 * @ticket 55729
 	 */
-	public function test_wp_referer_field_return_previous() {
+	public function test_wp_original_referer_field_return_previous(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/previous/';
+		$_SERVER['REQUEST_URI']  = '/current/';
 
-		$_REQUEST['_wp_original_http_referer'] = 'http://example.com/test/';
+		$expected = '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/previous/" />';
 
-		$this->assertSame( '<input type="hidden" name="_wp_original_http_referer" value="http://example.com/test/" />', wp_original_referer_field( false, 'previous' ) );
+		$this->assertSame( $expected, wp_original_referer_field( false, 'previous' ) );
+	}
+
+	/**
+	 * Tests that wp_original_referer_field() falls back to current REQUEST_URI when original referer is unset.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_original_referer_field_return_current(): void {
+		$_SERVER['REQUEST_URI'] = '/current/';
+
+		$expected = '<input type="hidden" name="_wp_original_http_referer" value="/current/" />';
+
+		$this->assertSame( $expected, wp_original_referer_field( false, 'current' ) );
 	}
 }

@@ -1,64 +1,97 @@
 <?php
 
 /**
- * Tests for the wp_referer_field() function.
+ * Tests for the wp_get_referer() function.
  *
- * @since 6.0.0
+ * @group functions
  *
- * @group functions.php
  * @covers ::wp_get_referer
  */
-class Tests_Functions_wpGetReferer extends WP_UnitTestCase {
+class Tests_Functions_WpGetReferer extends WP_UnitTestCase {
+
 	public function set_up() {
 		parent::set_up();
-		add_filter( 'home_url', array( $this, 'home_url' ) );
+
+		add_filter( 'home_url', array( $this, 'filter_home_url' ) );
 	}
 
-	public function home_url() {
+	public function tear_down() {
+		unset( $_REQUEST['_wp_http_referer'], $_SERVER['HTTP_REFERER'], $_SERVER['REQUEST_URI'] );
 
-		return 'http://example.com/';
+		parent::tear_down();
 	}
 
-	/**
-	 * @ticket 55729
-	 */
-	public function test_wp_get_referer__wp_http_referer_referer() {
-
-		$_REQUEST['_wp_http_referer'] = 'http://example.com';
-		$this->assertSame( 'http://example.com', wp_get_referer(), '$_REQUEST["_wp_http_referer"] set but no $_REQUEST["REQUEST_URI"] set' );
+	public function filter_home_url(): string {
+		return 'http://example.com';
 	}
 
 	/**
+	 * Tests that wp_get_referer() returns the referer from $_REQUEST['_wp_http_referer'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_referer_HTTP_REFERER_referer() {
+	public function test_wp_get_referer_from_request(): void {
+		$_REQUEST['_wp_http_referer'] = 'http://example.com/other';
+		$_SERVER['REQUEST_URI']       = '/current';
 
-		$_SERVER['HTTP_REFERER'] = 'http://example.com';
-		$this->assertSame( 'http://example.com', wp_get_referer(), '$_REQUEST["HTTP_REFERER"] set but no $_REQUEST["REQUEST_URI"] set' );
+		$this->assertSame( 'http://example.com/other', wp_get_referer() );
 	}
 
 	/**
+	 * Tests that wp_get_referer() returns the referer from $_SERVER['HTTP_REFERER'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_referer_HTTP_REFERER_referer_set_to_XX() {
+	public function test_wp_get_referer_from_server(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/other';
+		$_SERVER['REQUEST_URI']  = '/current';
 
-		$_SERVER['HTTP_REFERER'] = 'http://xxxx.com';
-		$this->assertFalse( wp_get_referer(), '$_REQUEST["HTTP_REFERER"] set but not $_REQUEST["HTTP_REFERER"] set to the current home_url' );
+		$this->assertSame( 'http://example.com/other', wp_get_referer() );
 	}
+
 	/**
+	 * Tests that wp_get_referer() prioritizes $_REQUEST['_wp_http_referer'] over $_SERVER['HTTP_REFERER'].
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_referer_both_set_referer() {
+	public function test_wp_get_referer_prefers_request_over_server(): void {
+		$_REQUEST['_wp_http_referer'] = 'http://example.com/from-request';
+		$_SERVER['HTTP_REFERER']      = 'http://example.com/from-server';
+		$_SERVER['REQUEST_URI']       = '/current';
 
-		$_REQUEST['_wp_http_referer'] = 'http://example.com';
-		$_SERVER['HTTP_REFERER']      = 'http://NotUSED.com';
-		$this->assertSame( 'http://example.com', wp_get_referer(), 'Both set should use _wp_http_referer but no $_REQUEST["REQUEST_URI"] set' );
+		$this->assertSame( 'http://example.com/from-request', wp_get_referer() );
 	}
+
 	/**
+	 * Tests that wp_get_referer() rejects an external host.
+	 *
 	 * @ticket 55729
 	 */
-	public function test_wp_get_referer_no_referer() {
+	public function test_wp_get_referer_rejects_external_host(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://external.com/other';
+		$_SERVER['REQUEST_URI']  = '/current';
 
-		$this->assertFalse( wp_get_referer(), 'no referer set' );
+		$this->assertFalse( wp_get_referer() );
+	}
+
+	/**
+	 * Tests that wp_get_referer() rejects a referer matching the current request URI.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_get_referer_rejects_same_request_uri(): void {
+		$_SERVER['HTTP_REFERER'] = 'http://example.com/current';
+		$_SERVER['REQUEST_URI']  = '/current';
+
+		$this->assertFalse( wp_get_referer() );
+	}
+
+	/**
+	 * Tests that wp_get_referer() returns false when no referer is set.
+	 *
+	 * @ticket 55729
+	 */
+	public function test_wp_get_referer_not_set(): void {
+		$this->assertFalse( wp_get_referer() );
 	}
 }
