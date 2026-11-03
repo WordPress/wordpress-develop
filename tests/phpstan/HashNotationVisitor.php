@@ -475,7 +475,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * it opens indented below it.
 	 *
 	 * @param string $text Raw docblock text including the `/**` markers.
-	 * @return list<array{name: string, header: string, body: list<string>}>
+	 * @return list<array{name: lowercase-string&non-falsy-string, header: string, body: list<string>}>
 	 */
 	private function split_tags( string $text ): array {
 		$body = preg_replace( '#^\s*/\*\*#', '', $text, 1 );
@@ -522,7 +522,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * the next, and a conditional `@phpstan-return` naming a parameter is not a
 	 * shape for it.
 	 *
-	 * @param list<array{name: string, header: string, body: list<string>}> $tags Tags of the docblock.
+	 * @param list<array{name: lowercase-string&non-falsy-string, header: string, body: list<string>}> $tags Tags of the docblock.
 	 * @return array<string, true> Set keyed as `param $name`, or `return`.
 	 */
 	private function phpstan_counterparts( array $tags ): array {
