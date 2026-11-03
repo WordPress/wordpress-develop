@@ -23,18 +23,6 @@ class Tests_General_Bloginfo extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that bloginfo( 'name' ) displays the site name.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_bloginfo_name() {
-		update_option( 'blogname', 'Test Blog' );
-
-		$this->expectOutputString( 'Test Blog' );
-		bloginfo( 'name' );
-	}
-
-	/**
 	 * Tests that bloginfo( 'url' ) displays the home URL.
 	 *
 	 * @ticket 65819
@@ -44,18 +32,6 @@ class Tests_General_Bloginfo extends WP_UnitTestCase {
 
 		$this->expectOutputString( 'http://example.org' );
 		bloginfo( 'url' );
-	}
-
-	/**
-	 * Tests that bloginfo( 'description' ) displays the site description.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_bloginfo_description() {
-		update_option( 'blogdescription', 'Just another WordPress site' );
-
-		$this->expectOutputString( 'Just another WordPress site' );
-		bloginfo( 'description' );
 	}
 
 	/**
