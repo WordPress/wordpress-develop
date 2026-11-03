@@ -995,7 +995,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
 	 */
-	public function data_event_handler_bindings(): array {
+	public static function data_event_handler_bindings(): array {
 		return array(
 			'event handler'                         => array( 'attribute' => 'data-wp-bind--onclick' ),
 			'event handler with an empty unique ID' => array( 'attribute' => 'data-wp-bind--onclick---' ),
@@ -1012,9 +1012,9 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
-	 * @param string $attribute Directive attribute name.
+	 * @param non-empty-string $attribute Directive attribute name.
 	 */
-	public function test_wp_bind_removes_event_handler_bindings( string $attribute ) {
+	public function test_wp_bind_removes_event_handler_bindings( string $attribute ): void {
 		$html     = "<button att-before {$attribute}=\"myPlugin::state.id\" att-after>Text</button>";
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertEqualHTML( '<button att-before att-after>Text</button>', $new_html );
@@ -1028,7 +1028,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 */
-	public function test_wp_bind_removes_event_handler_binding_but_processes_valid_binds() {
+	public function test_wp_bind_removes_event_handler_binding_but_processes_valid_binds(): void {
 		$html     = '<button data-wp-bind--onclick="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</button>';
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertEqualHTML( '<button data-wp-bind--id="myPlugin::state.id" id="some-id">Text</button>', $new_html );
@@ -1042,7 +1042,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 */
-	public function test_wp_bind_event_handler_notice_suggests_data_wp_on() {
+	public function test_wp_bind_event_handler_notice_suggests_data_wp_on(): void {
 		$this->interactivity->process_directives( '<button data-wp-bind--onclick---unique-id="myPlugin::state.id">Text</button>' );
 		$this->assertSame(
 			array(
