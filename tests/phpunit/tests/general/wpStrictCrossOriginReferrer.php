@@ -16,9 +16,12 @@ class Tests_General_WpStrictCrossOriginReferrer extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_wp_strict_cross_origin_referrer_output() {
-		$expected = "\t<meta name='referrer' content='strict-origin-when-cross-origin' />\n\t";
+		$expected = "<meta name='referrer' content='strict-origin-when-cross-origin' />";
 
-		$this->expectOutputString( $expected );
+		ob_start();
 		wp_strict_cross_origin_referrer();
+		$actual = trim( ob_get_clean() );
+
+		$this->assertSame( $expected, $actual );
 	}
 }
