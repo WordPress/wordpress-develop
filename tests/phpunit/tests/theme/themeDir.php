@@ -280,8 +280,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	 * @ticket 28662
 	 */
 	public function test_theme_dir_slashes() {
-		$size = count( $GLOBALS['wp_theme_directories'] );
 
+		$size = count( $GLOBALS['wp_theme_directories'] );
 		@mkdir( WP_CONTENT_DIR . '/themes/foo' );
 		@mkdir( WP_CONTENT_DIR . '/themes/foo-themes' );
 
@@ -318,5 +318,35 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 		rmdir( WP_CONTENT_DIR . '/themes/foo' );
 		rmdir( WP_CONTENT_DIR . '/themes/foo-themes' );
+	}
+
+	public function test_wp_register_default_theme_directories_registers_bundled_and_filtered_roots() {
+		$GLOBALS['wp_theme_directories'] = array();
+
+		wp_register_default_theme_directories();
+
+		$this->assertSame(
+			array(
+				untrailingslashit( ABSPATH . 'wp-content/themes' ),
+				self::THEME_ROOT,
+			),
+			$GLOBALS['wp_theme_directories']
+		);
+	}
+
+	public function test_wp_register_default_theme_directories_does_not_duplicate_bundled_root() {
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		$GLOBALS['wp_theme_directories'] = array();
+
+		wp_register_default_theme_directories();
+
+		$this->assertSame(
+			array(
+				untrailingslashit( ABSPATH . 'wp-content/themes' ),
+			),
+			$GLOBALS['wp_theme_directories']
+		);
+
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 	}
 }
