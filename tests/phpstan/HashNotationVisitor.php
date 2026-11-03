@@ -207,7 +207,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * alias of its class is skipped too, as is a hook's hash on a template of the
 	 * function calling it.
 	 *
-	 * @var array<string, true>
+	 * @var array<lowercase-string, true>
 	 */
 	private array $local_types = array();
 
@@ -215,7 +215,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Template types and type aliases each enclosing class, interface, trait,
 	 * function, or closure declares, from the outermost in.
 	 *
-	 * @var list<array<string, true>>
+	 * @var list<array<lowercase-string, true>>
 	 */
 	private array $scope_local_types = array();
 
@@ -354,7 +354,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * imported as, which only ever leaves more hashes untranslated.
 	 *
 	 * @param string $text Docblock text.
-	 * @return array<string, true> Template types and type aliases, keyed by lowercased name.
+	 * @return array<lowercase-string, true> Template types and type aliases, keyed by lowercased name.
 	 */
 	private function declared_local_types( string $text ): array {
 		$names = array();
@@ -962,7 +962,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			/**
 			 * Template types and type aliases in scope, keyed by lowercased name.
 			 *
-			 * @var array<string, true>
+			 * @var array<lowercase-string, true>
 			 */
 			private array $local_types;
 
@@ -977,8 +977,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			public bool $names_local_type = false;
 
 			/**
-			 * @param array<string, true> $local_types    Template types and type aliases in scope, keyed by lowercased name.
-			 * @param bool                $resolves_names Whether names are resolved against a namespace or imports.
+			 * @param array<lowercase-string, true> $local_types    Template types and type aliases in scope, keyed by lowercased name.
+			 * @param bool                          $resolves_names Whether names are resolved against a namespace or imports.
 			 */
 			public function __construct( array $local_types, bool $resolves_names ) {
 				$this->local_types    = $local_types;
