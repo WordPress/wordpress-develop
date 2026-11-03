@@ -138,4 +138,18 @@ class Tests_Multisite_wpMsUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( mysql2date( __( 'Y/m/d g:i:s a' ), $user->user_registered ), $output );
 	}
+
+	/**
+	 * @ticket 54102
+	 * @covers WP_MS_Users_List_Table::column_email
+	 */
+	public function test_email_column_escapes_ampersand() {
+		$user = get_userdata( self::factory()->user->create( array( 'user_email' => 'test&123@example.org' ) ) );
+
+		ob_start();
+		$this->table->column_email( $user );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '>test&amp;123@example.org</a>', $output );
+	}
 }
