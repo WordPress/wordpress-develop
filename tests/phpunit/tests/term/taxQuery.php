@@ -506,6 +506,100 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 16706
+	 */
+	public function test_get_sql_operator_and_uses_joins_for_three_or_fewer_terms() {
+		$tq = new WP_Tax_Query(
+			array(
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'AND',
+					'terms'    => range( 1, 3 ),
+				),
+			)
+		);
+
+		global $wpdb;
+		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
+
+		$this->assertSame( 3, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertStringNotContainsString( 'SELECT COUNT(1)', $sql['where'] );
+	}
+
+	/**
+	 * @ticket 16706
+	 */
+	public function test_get_sql_operator_and_uses_subquery_for_more_than_three_terms() {
+		$tq = new WP_Tax_Query(
+			array(
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'AND',
+					'terms'    => range( 1, 4 ),
+				),
+			)
+		);
+
+		global $wpdb;
+		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
+
+		$this->assertSame( '', $sql['join'] );
+		$this->assertStringContainsString( 'SELECT COUNT(1)', $sql['where'] );
+	}
+
+	/**
+	 * @ticket 16706
+	 */
+	public function test_get_sql_operator_and_limits_total_joins_across_clauses() {
+		$tq = new WP_Tax_Query(
+			array(
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'AND',
+					'terms'    => range( 1, 2 ),
+				),
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'AND',
+					'terms'    => range( 3, 4 ),
+				),
+			)
+		);
+
+		global $wpdb;
+		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
+
+		$this->assertSame( 2, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertStringContainsString( 'SELECT COUNT(1)', $sql['where'] );
+	}
+
+	/**
+	 * @ticket 16706
+	 */
+	public function test_get_sql_operator_and_counts_existing_in_join_toward_limit() {
+		$tq = new WP_Tax_Query(
+			array(
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'IN',
+					'terms'    => 1,
+				),
+				array(
+					'field'    => 'term_taxonomy_id',
+					'operator' => 'AND',
+					'terms'    => range( 2, 4 ),
+				),
+			)
+		);
+
+		global $wpdb;
+		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
+
+		$this->assertSame( 1, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertStringContainsString( 'SELECT COUNT(1)', $sql['where'] );
+	}
+
+	/**
 	 * @ticket 18105
 	 * @covers WP_Tax_Query::get_sql
 	 */
