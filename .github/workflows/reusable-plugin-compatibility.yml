@@ -34,7 +34,7 @@ on:
         description: 'The version of PHP to use. Expected format: X.Y.'
         required: false
         type: 'string'
-        default: '8.3'
+        default: '8.5'
       plugin-slugs:
         description: 'A JSON array of WordPress.org plugin slugs to test in this shard. Ignored when fixtures is true.'
         required: false
