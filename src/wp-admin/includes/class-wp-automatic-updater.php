@@ -935,6 +935,7 @@ class WP_Automatic_Updater {
 		}
 
 		$error_code = $result->get_error_code();
+		$error_data = $result->get_error_data();
 
 		/*
 		 * Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
@@ -943,10 +944,10 @@ class WP_Automatic_Updater {
 		$critical = false;
 		if ( 'disk_full' === $error_code || str_contains( $error_code, '__copy_dir' ) ) {
 			$critical = true;
-		} elseif ( 'rollback_was_required' === $error_code && is_wp_error( $result->get_error_data()->rollback ) ) {
+		} elseif ( 'rollback_was_required' === $error_code && is_wp_error( $error_data->rollback ) ) {
 			// A rollback is only critical if it failed too.
 			$critical        = true;
-			$rollback_result = $result->get_error_data()->rollback;
+			$rollback_result = $error_data->rollback;
 		} elseif ( str_contains( $error_code, 'do_rollback' ) ) {
 			$critical = true;
 		}
@@ -956,7 +957,7 @@ class WP_Automatic_Updater {
 				'attempted'  => $core_update->current,
 				'current'    => $wp_version,
 				'error_code' => $error_code,
-				'error_data' => $result->get_error_data(),
+				'error_data' => $error_data,
 				'timestamp'  => time(),
 				'critical'   => true,
 			);
@@ -1004,7 +1005,7 @@ class WP_Automatic_Updater {
 				'attempted'  => $core_update->current,
 				'current'    => $wp_version,
 				'error_code' => $error_code,
-				'error_data' => $result->get_error_data(),
+				'error_data' => $error_data,
 				'timestamp'  => time(),
 				'retry'      => in_array( $error_code, $transient_failures, true ),
 			)
