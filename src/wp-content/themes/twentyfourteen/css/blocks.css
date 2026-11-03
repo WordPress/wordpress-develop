@@ -235,12 +235,27 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-table {
 	overflow-x: visible;
+	font-size: 14px;
+}
+
+.wp-block-table table {
+	font-size: inherit;
 }
 
 .wp-block-table:where(:not(.is-style-stripes)) th,
 .wp-block-table:where(:not(.is-style-stripes)) td {
 	border-color: rgba(0, 0, 0, 0.1);
 	border-width: 0 1px 1px 0;
+}
+
+/* Calendar */
+
+.wp-block-calendar {
+	font-size: 14px;
+}
+
+.wp-block-calendar table {
+	font-size: inherit;
 }
 
 /*--------------------------------------------------------------
