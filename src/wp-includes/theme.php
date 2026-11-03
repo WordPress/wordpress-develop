@@ -962,9 +962,11 @@ function validate_current_theme() {
 function validate_theme_requirements( $stylesheet ) {
 	$theme = wp_get_theme( $stylesheet );
 
+	$requires_wp  = $theme->get( 'RequiresWP' );
+	$requires_php = $theme->get( 'RequiresPHP' );
 	$requirements = array(
-		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
-		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
+		'requires'     => ! empty( $requires_wp ) ? $requires_wp : '',
+		'requires_php' => ! empty( $requires_php ) ? $requires_php : '',
 	);
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
