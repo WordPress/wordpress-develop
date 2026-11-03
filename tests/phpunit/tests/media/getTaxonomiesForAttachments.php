@@ -15,7 +15,11 @@ class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 	public function test_returns_taxonomy_registered_for_attachment() {
 		register_taxonomy( 'wptests_tax', 'attachment' );
 
-		$this->assertContains( 'wptests_tax', get_taxonomies_for_attachments( 'names' ) );
+		$found = get_taxonomies_for_attachments( 'names' );
+
+		$this->assertContains( 'wptests_tax', $found );
+		$this->assertNotContains( 'category', $found );
+		$this->assertNotContains( 'post_tag', $found );
 	}
 
 	/**
@@ -24,7 +28,11 @@ class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 	public function test_returns_taxonomy_registered_for_attachment_subtype() {
 		register_taxonomy( 'wptests_tax', 'attachment:image' );
 
-		$this->assertContains( 'wptests_tax', get_taxonomies_for_attachments( 'names' ) );
+		$found = get_taxonomies_for_attachments( 'names' );
+
+		$this->assertContains( 'wptests_tax', $found );
+		$this->assertNotContains( 'category', $found );
+		$this->assertNotContains( 'post_tag', $found );
 	}
 
 	/**
@@ -37,5 +45,7 @@ class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'wptests_tax', $found );
 		$this->assertInstanceOf( 'WP_Taxonomy', $found['wptests_tax'] );
+		$this->assertArrayNotHasKey( 'category', $found );
+		$this->assertArrayNotHasKey( 'post_tag', $found );
 	}
 }
