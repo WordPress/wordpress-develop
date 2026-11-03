@@ -689,11 +689,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		};
 		add_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
 
-		try {
-			$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
-		} finally {
-			remove_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
-		}
+		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
