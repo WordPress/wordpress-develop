@@ -154,9 +154,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					$status = get_post_meta( $post->ID, '_wp_trash_meta_status', true );
 					if ( in_array( $status, array( 'publish', 'future' ), true ) ) {
 						$caps[] = $post_type->cap->delete_published_posts;
+					} elseif ( 'private' === $status ) {
+						$caps[] = $post_type->cap->delete_private_posts;
 					} else {
 						$caps[] = $post_type->cap->delete_posts;
 					}
+				} elseif ( 'private' === $post->post_status ) {
+					$caps[] = $post_type->cap->delete_private_posts;
 				} else {
 					// If the post is draft...
 					$caps[] = $post_type->cap->delete_posts;
@@ -260,6 +264,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					} else {
 						$caps[] = $post_type->cap->edit_posts;
 					}
+				} elseif ( 'private' === $post->post_status ) {
+					$caps[] = $post_type->cap->edit_private_posts;
 				} else {
 					// If the post is draft...
 					$caps[] = $post_type->cap->edit_posts;
