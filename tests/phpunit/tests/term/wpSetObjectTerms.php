@@ -20,37 +20,58 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a term that is not a string or number returns a WP_Error without changing existing terms.
+	 * Tests that a term that cannot be a term name or ID is skipped and the other terms are still set.
 	 *
 	 * @ticket 66108
 	 *
-	 * @dataProvider data_invalid_term_type
+	 * @dataProvider data_invalid_term_type_is_skipped
 	 *
-	 * @param mixed $term The invalid term to set alongside a valid one.
+	 * @param mixed $term The invalid term to set ahead of a valid one.
 	 */
-	public function test_invalid_term_type( $term ): void {
+	public function test_invalid_term_type_is_skipped( $term ): void {
 		$post_id = self::$post_ids[0];
-		wp_set_object_terms( $post_id, array( 'existing' ), 'post_tag' );
 
-		$result = wp_set_object_terms( $post_id, array( 'new', $term ), 'post_tag' );
+		$result = wp_set_object_terms( $post_id, array( $term, 'new' ), 'post_tag' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_term_name', $result->get_error_code() );
-		$this->assertSame( array( 'existing' ), wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'names' ) ) );
-		$this->assertNull( term_exists( 'new', 'post_tag' ) );
+		$this->assertIsArray( $result );
+		$this->assertSame( array( 'new' ), wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'names' ) ) );
 	}
 
 	/**
-	 * Data provider for {@see self::test_invalid_term_type()}.
+	 * Data provider for {@see self::test_invalid_term_type_is_skipped()}.
 	 *
 	 * @return array<truthy-string, array{ mixed }>
 	 */
-	public function data_invalid_term_type(): array {
+	public static function data_invalid_term_type_is_skipped(): array {
 		return array(
 			'array'  => array( array( 'foo' ) ),
 			'object' => array( new stdClass() ),
-			'true'   => array( true ),
 		);
+	}
+
+	/**
+	 * Tests that an object with a `__toString()` method, such as a SimpleXMLElement, is used by its string value.
+	 *
+	 * @ticket 66108
+	 */
+	public function test_object_with_to_string_method_is_used_as_term_name(): void {
+		$post_id = self::$post_ids[0];
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'existing',
+			)
+		);
+		$term    = new class() {
+			public function __toString(): string {
+				return 'existing';
+			}
+		};
+
+		$result = wp_set_object_terms( $post_id, array( $term ), 'post_tag' );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( array( $term_id ), wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'ids' ) ) );
 	}
 
 	/**

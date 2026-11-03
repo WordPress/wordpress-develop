@@ -22,7 +22,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a keyword that is not a string or number does not cause a fatal error.
+	 * Tests that a keyword that is not a string or number is skipped and the other keywords are kept.
 	 *
 	 * @ticket 66108
 	 */
@@ -36,7 +36,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
 
 		$this->assertNotIXRError( $result );
-		$this->assertSame( array(), wp_get_post_tags( (int) $result, array( 'fields' => 'names' ) ) );
+		$this->assertSame( array( 'foo' ), wp_get_post_tags( (int) $result, array( 'fields' => 'names' ) ) );
 	}
 
 	public function test_no_content() {

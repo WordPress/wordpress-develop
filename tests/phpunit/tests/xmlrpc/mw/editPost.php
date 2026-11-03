@@ -31,14 +31,14 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a keyword that is not a string or number does not cause a fatal error.
+	 * Tests that a keyword that is not a string or number is skipped and the other keywords replace the existing tags.
 	 *
 	 * @ticket 66108
 	 */
 	public function test_invalid_keyword(): void {
 		$author_id = $this->make_user_by_role( 'author' );
 		$post_id   = self::factory()->post->create( array( 'post_author' => $author_id ) );
-		wp_set_post_tags( $post_id, array( 'existing' ) );
+		$this->assertIsArray( wp_set_post_tags( $post_id, array( 'existing' ) ) );
 
 		$post   = array(
 			'title'       => 'Test',
@@ -47,7 +47,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post ) );
 
 		$this->assertNotIXRError( $result );
-		$this->assertSame( array( 'existing' ), wp_get_post_tags( $post_id, array( 'fields' => 'names' ) ) );
+		$this->assertSame( array( 'foo' ), wp_get_post_tags( $post_id, array( 'fields' => 'names' ) ) );
 	}
 
 	public function test_capable_edit_others_post() {

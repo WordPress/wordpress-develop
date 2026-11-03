@@ -1715,8 +1715,7 @@ class wp_xmlrpc_server extends IXR_Server {
 						// Filter out non-ambiguous term names.
 						$ambiguous_tax_term_counts = array_filter( $tax_term_names_count, array( $this, '_is_greater_than_one' ) );
 
-						// Cast back to strings, since array keys turn numeric names into integers.
-						$ambiguous_terms = array_map( 'strval', array_keys( $ambiguous_tax_term_counts ) );
+						$ambiguous_terms = array_keys( $ambiguous_tax_term_counts );
 					}
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
@@ -1726,9 +1725,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					foreach ( $term_names as $term_name ) {
 						// Numeric names may arrive as <int> or <double> values.
-						if ( is_int( $term_name ) || is_float( $term_name ) ) {
-							$term_name = (string) $term_name;
-						} elseif ( ! is_string( $term_name ) ) {
+						if ( ! ( is_string( $term_name ) || is_int( $term_name ) || is_float( $term_name ) ) ) {
 							return new IXR_Error( 401, __( 'Invalid term name.' ) );
 						}
 
@@ -1736,7 +1733,7 @@ class wp_xmlrpc_server extends IXR_Server {
 							return new IXR_Error( 401, __( 'Ambiguous term name used in a hierarchical taxonomy. Please use term ID instead.' ) );
 						}
 
-						$term = get_term_by( 'name', $term_name, $taxonomy );
+						$term = get_term_by( 'name', (string) $term_name, $taxonomy );
 
 						if ( ! $term ) {
 							// Term doesn't exist, so check that the user is allowed to create new terms.
