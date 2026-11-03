@@ -43,6 +43,12 @@ class Tests_Admin_Includes_Misc_WpRefreshMetaboxLoaderNonces extends WP_UnitTest
 		$result = wp_refresh_metabox_loader_nonces( $response, $data );
 
 		$this->assertSame( $response, $result, 'Response should remain unchanged if wp-refresh-metabox-loader-nonces is missing.' );
+
+		$data = array( 'wp-refresh-metabox-loader-nonces' => array() );
+
+		$result = wp_refresh_metabox_loader_nonces( $response, $data );
+
+		$this->assertSame( $response, $result, 'Response should remain unchanged if wp-refresh-metabox-loader-nonces is empty.' );
 	}
 
 	/**
