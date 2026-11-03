@@ -184,6 +184,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 		}
 
+		$show_network_active = false;
 		if ( ! $screen->in_admin( 'network' ) ) {
 			$show = current_user_can( 'manage_network_plugins' );
 			/**

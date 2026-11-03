@@ -184,16 +184,6 @@ parameters:
 			count: 5
 			path: ../../../src/wp-admin/includes/class-wp-plugins-list-table.php
 		-
-			message: '#^Variable \$show_network_active might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-plugins-list-table.php
-		-
-			message: '#^Variable \$authors_dropdown might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-posts-list-table.php
-		-
 			message: '#^Variable \$badge_class might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -293,11 +283,6 @@ parameters:
 			identifier: variable.undefined
 			count: 9
 			path: ../../../src/wp-admin/maint/repair.php
-		-
-			message: '#^Variable \$update_data might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/menu.php
 		-
 			message: '#^Variable \$current_user might not be defined\.$#'
 			identifier: variable.undefined
@@ -493,11 +478,6 @@ parameters:
 			identifier: variable.undefined
 			count: 6
 			path: ../../../src/wp-content/themes/twentyeleven/image.php
-		-
-			message: '#^Variable \$image might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/showcase.php
 		-
 			message: '#^Variable \$post might not be defined\.$#'
 			identifier: variable.undefined
@@ -709,11 +689,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Variable \$post_type_object might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/general-template.php
-		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -733,11 +708,6 @@ parameters:
 			identifier: variable.undefined
 			count: 3
 			path: ../../../src/wp-includes/ms-settings.php
-		-
-			message: '#^Variable \$children might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Variable \$wp_template_path might not be defined\.$#'
 			identifier: variable.undefined
@@ -763,8 +733,3 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-settings.php
-		-
-			message: '#^Variable \$site_domain might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-signup.php

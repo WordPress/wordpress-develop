@@ -40,6 +40,10 @@ if ( ! is_multisite() || current_user_can( 'update_core' ) ) {
 }
 
 if ( ! is_multisite() ) {
+	if ( ! isset( $update_data ) ) {
+		$update_data = wp_get_update_data();
+	}
+
 	if ( current_user_can( 'update_core' ) ) {
 		$capability = 'update_core';
 	} elseif ( current_user_can( 'update_plugins' ) ) {

@@ -4085,6 +4085,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	$parent_data  = array( 'post_parent' => $post->post_parent );
 	$parent_where = array( 'post_parent' => $post_id );
 
+	$children = array();
 	if ( is_post_type_hierarchical( $post->post_type ) ) {
 		// Point children of this page to its parent, also clean the cache of affected children.
 		$children_query = $wpdb->prepare(
@@ -4188,7 +4189,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 
 	clean_post_cache( $post );
 
-	if ( is_post_type_hierarchical( $post->post_type ) && $children ) {
+	if ( $children ) {
 		foreach ( $children as $child ) {
 			clean_post_cache( $child );
 		}

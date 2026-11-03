@@ -105,7 +105,8 @@ get_header(); ?>
 							*/
 							$feature_class = 'feature-text';
 
-							if ( has_post_thumbnail() ) {
+							$has_post_thumbnail = has_post_thumbnail();
+							if ( $has_post_thumbnail ) {
 								// ...but if it has a featured image let's add some class.
 								$feature_class = 'feature-image small';
 
@@ -127,7 +128,7 @@ get_header(); ?>
 								 * If the thumbnail is as big as the header image
 								 * make it a large featured post, otherwise render it small
 								 */
-							if ( has_post_thumbnail() ) {
+							if ( $has_post_thumbnail ) {
 								if ( $image[1] >= $header_image_width ) {
 									$thumbnail_size = 'large-feature';
 								} else {
