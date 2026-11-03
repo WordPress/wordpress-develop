@@ -37,7 +37,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ expected: mixed, value: mixed, min: mixed, max: mixed }>
 	 */
-	public function data_clamp(): array {
+	public static function data_clamp(): array {
 		return array(
 			'integer within range'           => array(
 				'expected' => 5,
@@ -201,7 +201,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ expected: DateTimeImmutable, value: DateTimeImmutable, min: DateTimeImmutable, max: DateTimeImmutable }>
 	 */
-	public function data_clamp_datetime(): array {
+	public static function data_clamp_datetime(): array {
 		$min = new DateTimeImmutable( '2025-01-01' );
 		$max = new DateTimeImmutable( '2025-01-31' );
 
@@ -256,7 +256,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ expected: mixed, value: mixed, min: mixed, max: mixed }>
 	 */
-	public function data_clamp_with_null_bound(): array {
+	public static function data_clamp_with_null_bound(): array {
 		return array(
 			// The upper bound is checked before the lower bound, so $max wins when both compare as exceeded.
 			'null max, both bounds exceeded'  => array(
@@ -329,7 +329,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ value: mixed, min: mixed }>
 	 */
-	public function data_clamp_throws_for_null_max(): array {
+	public static function data_clamp_throws_for_null_max(): array {
 		return array(
 			'value below min' => array(
 				'value' => -9999,

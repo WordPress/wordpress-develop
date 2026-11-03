@@ -62,9 +62,16 @@ class Test_WP_Debug_Mode extends WP_UnitTestCase {
 	/**
 	 * Test: `wp_debug_mode()` should log, but not display, errors for `ms-files.php`.
 	 *
+	 * Runs in a separate process because it defines `MS_FILES_REQUEST`, which cannot be
+	 * undone by teardown and can affect later `wp_debug_mode()` calls.
+	 *
 	 * @ticket 53493
+	 * @ticket 65893
 	 *
 	 * @since 5.9.0
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_ms_files_logs_but_doesnt_display_errors() {
 		/*

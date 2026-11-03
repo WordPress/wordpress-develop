@@ -26,7 +26,7 @@ class Tests_Formatting_AutopNewlinePreservationHelper extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_replace_newlines_with_placeholders() {
+	public static function data_should_replace_newlines_with_placeholders() {
 		return array(
 			'an empty string'                => array(
 				'matches'  => array( '' ),
@@ -89,7 +89,7 @@ class Tests_Formatting_AutopNewlinePreservationHelper extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_only_replace_line_feeds() {
+	public static function data_should_only_replace_line_feeds() {
 		return array(
 			'a carriage return'             => array(
 				'matches'  => array( "a\rb" ),
@@ -151,7 +151,7 @@ class Tests_Formatting_AutopNewlinePreservationHelper extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_preserve_newlines_as_a_preg_replace_callback() {
+	public static function data_should_preserve_newlines_as_a_preg_replace_callback() {
 		return array(
 			'a script element'               => array(
 				'text'     => "<script>\nvar a = 1;\n</script>",

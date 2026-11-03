@@ -88,7 +88,7 @@ EXPECTED;
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_format() {
+	public static function data_format() {
 		return array(
 			'pretty permalinks'                => array( 'page/%#%/', home_url( '/page/2/' ), home_url( '/page/3/' ), home_url( '/page/50/' ) ),
 			'plain permalinks'                 => array( '?page=%#%', home_url( '/?page=2' ), home_url( '/?page=3' ), home_url( '/?page=50' ) ),
@@ -557,7 +557,7 @@ EXPECTED;
 	 *
 	 * @return array<string, array{ 0: string }> Data provider.
 	 */
-	public function data_query_strings(): array {
+	public static function data_query_strings(): array {
 		return array(
 			'single query var' => array( 'foo=bar' ),
 			'multi query vars' => array( 'foo=bar&pen=pencil' ),

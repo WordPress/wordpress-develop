@@ -126,7 +126,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_init_should_initialize_strings() {
+	public static function data_init_should_initialize_strings() {
 		return self::text_array_to_dataprovider(
 			array(
 				'bad_request',
@@ -186,7 +186,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_flatten_dirlist() {
+	public static function data_should_flatten_dirlist() {
 		return array(
 			'empty array, default path'       => array(
 				'expected'     => array(),
@@ -780,7 +780,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_install_package_invalid_paths() {
+	public static function data_install_package_invalid_paths() {
 		return array(
 			'empty string'                   => array( 'path' => '' ),
 
@@ -1272,7 +1272,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory() {
+	public static function data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory() {
 		return array(
 			'ABSPATH'               => array(
 				'protected_directory' => ABSPATH,
