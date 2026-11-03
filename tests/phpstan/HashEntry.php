@@ -42,8 +42,9 @@ final class HashEntry {
 	/**
 	 * Description of the entry.
 	 *
-	 * For an entry that opens a hash, any text before its `{` and the intro of the
-	 * hash are on lines of their own, since the markers are matched per line.
+	 * Once `HashNotationVisitor::parse_entries()` has read the hash an entry opens,
+	 * any text before the entry's `{` and the intro of that hash are on lines of
+	 * their own, since the markers are matched per line.
 	 *
 	 * @var string
 	 */
