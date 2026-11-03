@@ -93,8 +93,3 @@ parameters:
 			identifier: return.unusedType
 			count: 1
 			path: ../../../src/wp-includes/user.php
-		-
-			message: '#^Function validate_another_blog_signup\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-signup.php
