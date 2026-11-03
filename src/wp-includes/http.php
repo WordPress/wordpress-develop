@@ -143,13 +143,106 @@ function wp_safe_remote_head( $url, $args = array() ) {
 }
 
 /**
+ * Retrieves the raw response from a safe HTTP request using the PUT method.
+ *
+ * This function is ideal when the HTTP request is being made to an arbitrary
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
+ *
+ * The only supported protocols are `http` and `https`.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_safe_remote_put( $url, $args = array() ) {
+	$args['reject_unsafe_urls'] = true;
+	$defaults                   = array( 'method' => 'PUT' );
+	$parsed_args                = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
+}
+
+/**
+ * Retrieves the raw response from a safe HTTP request using the DELETE method.
+ *
+ * This function is ideal when the HTTP request is being made to an arbitrary
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
+ *
+ * The only supported protocols are `http` and `https`.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_safe_remote_delete( $url, $args = array() ) {
+	$args['reject_unsafe_urls'] = true;
+	$defaults                   = array( 'method' => 'DELETE' );
+	$parsed_args                = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
+}
+
+/**
+ * Retrieves the raw response from a safe HTTP request using the PATCH method.
+ *
+ * This function is ideal when the HTTP request is being made to an arbitrary
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
+ *
+ * The only supported protocols are `http` and `https`.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_safe_remote_patch( $url, $args = array() ) {
+	$args['reject_unsafe_urls'] = true;
+	$defaults                   = array( 'method' => 'PATCH' );
+	$parsed_args                = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
+}
+
+/**
  * Performs an HTTP request and returns its response.
  *
  * There are other API functions available which abstract away the HTTP method:
  *
- *  - Default 'GET'  for wp_remote_get()
- *  - Default 'POST' for wp_remote_post()
- *  - Default 'HEAD' for wp_remote_head()
+ *  - Default 'GET'    for wp_remote_get()
+ *  - Default 'POST'   for wp_remote_post()
+ *  - Default 'HEAD'   for wp_remote_head()
+ *  - Default 'PUT'    for wp_remote_put()
+ *  - Default 'DELETE' for wp_remote_delete()
+ *  - Default 'PATCH'  for wp_remote_patch()
  *
  * Important: If the URL is user-controlled, use `wp_safe_remote_request()` instead.
  *
@@ -229,6 +322,72 @@ function wp_remote_post( $url, $args = array() ) {
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
 	return $http->head( $url, $args );
+}
+
+/**
+ * Performs an HTTP request using the PUT method and returns its response.
+ *
+ * Important: If the URL is user-controlled, use `wp_safe_remote_put()` instead.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_remote_put( $url, $args = array() ) {
+	$defaults    = array( 'method' => 'PUT' );
+	$parsed_args = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
+}
+
+/**
+ * Performs an HTTP request using the DELETE method and returns its response.
+ *
+ * Important: If the URL is user-controlled, use `wp_safe_remote_delete()` instead.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_remote_delete( $url, $args = array() ) {
+	$defaults    = array( 'method' => 'DELETE' );
+	$parsed_args = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
+}
+
+/**
+ * Performs an HTTP request using the PATCH method and returns its response.
+ *
+ * Important: If the URL is user-controlled, use `wp_safe_remote_patch()` instead.
+ *
+ * @since 7.1.0
+ *
+ * @see wp_remote_request() For more information on the response array format.
+ * @see WP_Http::request() For default arguments information.
+ *
+ * @param string $url  URL to send the request to.
+ * @param array  $args Optional. Request arguments. Default empty array.
+ *                     See WP_Http::request() for information on accepted arguments.
+ * @return array|WP_Error The response or WP_Error on failure.
+ *                        See WP_Http::request() for information on return value.
+ */
+function wp_remote_patch( $url, $args = array() ) {
+	$defaults    = array( 'method' => 'PATCH' );
+	$parsed_args = wp_parse_args( $args, $defaults );
+	return wp_remote_request( $url, $parsed_args );
 }
 
 /**
