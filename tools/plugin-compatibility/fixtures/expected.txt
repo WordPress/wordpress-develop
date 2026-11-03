@@ -11,6 +11,7 @@ fixture-healthy                    PASS
 fixture-fatal-on-load              FAIL     The plugin could not be activated
 fixture-fatal-on-activation        FAIL     The plugin could not be activated
 fixture-exit-on-activation         SKIPPED  the plugin was not active afterwards
+fixture-breaks-site-on-activation  FAIL     The request to / returned HTTP 500
 fixture-requires-newer-php         SKIPPED  declared requirements are not met
 fixture-requires-newer-wordpress   SKIPPED  declared requirements are not met
 fixture-requires-newer-both        SKIPPED  declared requirements are not met

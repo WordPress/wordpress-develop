@@ -867,9 +867,23 @@ test_plugins() {
 						;;
 				esac
 			elif ! is_active "${SLUG}"; then
-				# Checking the site now would be checking it without the plugin, and passing it for that.
-				STATUS="SKIPPED"
-				REASON="WP-CLI reported success, but the plugin was not active afterwards, so its activation stopped early"
+				# Checking the site now would be checking it without the plugin, and passing it for that. The
+				# check can also fail because activation broke the site itself, for example by writing a
+				# must-use plugin that fatals, so the site is checked before the plugin is let off.
+				HTTP_REASON="$( check_url "/" )"
+				wait_for_requests || true
+
+				if [ -n "${HTTP_REASON}" ]; then
+					STATUS="FAIL"
+					REASON="${HTTP_REASON}"
+				elif LOGGED_FATALS="$( logged_fatals )"; then
+					printf '%s\n' "${LOGGED_FATALS}"
+					STATUS="FAIL"
+					REASON="A fatal error was logged: $( printf '%s\n' "${LOGGED_FATALS}" | head -n 1 | cut -c 1-200 )"
+				else
+					STATUS="SKIPPED"
+					REASON="WP-CLI reported success, but the plugin was not active afterwards, so its activation stopped early"
+				fi
 			fi
 		fi
 
