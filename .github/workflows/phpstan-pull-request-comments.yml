@@ -1,0 +1,370 @@
+# Keeps a comment on a pull request up to date with the errors reported by PHPStan.
+#
+# The analysis runs in the PHPStan Static Analysis workflow, which has no permission to comment when the pull request
+# comes from a fork. It uploads its results as an artifact instead, and this workflow picks them up once that run
+# completes.
+#
+# A `workflow_run` workflow runs with write permissions even for a pull request from a fork, so nothing from the pull
+# request is checked out or executed here. The results it uploaded are treated as untrusted data, and are only
+# accepted for the pull request whose current head is the commit that was analyzed.
+name: PHPStan Pull Request Comments
+
+on: # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows: [ 'PHPStan Static Analysis' ]
+    types:
+      - completed
+
+# Runs for the same pull request are queued rather than run at the same time, so that two of them do not each create
+# a comment. A queued run that is superseded by a newer one is cancelled, which is fine: only the newest results matter.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Creates, updates, or resolves the comment listing PHPStan errors.
+  #
+  # Performs the following steps:
+  # - Downloads the analysis results from the completed run.
+  # - Creates or updates the comment while there are errors, and marks it as resolved once there are none.
+  phpstan-results:
+    name: Comment on a pull request with PHPStan results
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
+    timeout-minutes: 5
+    # A run that found errors concludes in failure only when some of them cannot be reported as warnings, and those
+    # are the errors this comment matters most for, so both conclusions are handled.
+    if: >
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      ( github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' )
+    steps:
+      # The artifact is missing when the analysis did not complete, in which case there is nothing to report and the
+      # comment is left as it is.
+      - name: Download the analysis results
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          name: phpstan-results
+          path: ${{ runner.temp }}/phpstan-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Create, update, or resolve the PHPStan comment
+        if: ${{ steps.download.outcome == 'success' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+            const marker = '<!-- phpstan-results -->';
+            const maxRows = 50;
+            const readmeUrl = `https://github.com/${ owner }/${ repo }/blob/trunk/tests/phpstan/README.md`;
+
+            // The results were written by a run on the pull request, whose code may have been changed to write
+            // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
+            // current head is the commit that the run analyzed. That also discards the results of a run that was
+            // overtaken by a newer push.
+            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
+            const issue_number = results.pull_request;
+            if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! Array.isArray( results.errors ) ) {
+              core.setFailed( 'The analysis results are malformed.' );
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get( { owner, repo, pull_number: issue_number } );
+            if ( pr.head.sha !== run.head_sha ) {
+              core.info( `The results are not for the current head of pull request #${ issue_number }, so they are not reported.` );
+              return;
+            }
+            if ( pr.state !== 'open' ) {
+              core.info( `Pull request #${ issue_number } is not open, so the results are not reported.` );
+              return;
+            }
+
+            const asString = ( value ) => ( typeof value === 'string' ? value : null );
+            const asSha = ( value ) => ( typeof value === 'string' && /^[0-9a-f]{40}$/.test( value ) ? value : null );
+            const normalize = ( error ) => ( {
+              file: asString( error.file ),
+              line: Number.isSafeInteger( error.line ) && error.line > 0 ? error.line : null,
+              message: ( asString( error.message ) ?? '' ).slice( 0, 1000 ),
+              identifier: /^[A-Za-z0-9.]+$/.test( error.identifier ) ? error.identifier : null,
+              ignorable: error.ignorable === true,
+            } );
+
+            // An error is recognized from one run to the next by its file, identifier and message, but not its line,
+            // which moves whenever lines above it are added or removed. The same error can occur more than once in a
+            // file, so each occurrence is told apart by its position among the others, in line order. When one of them
+            // is fixed or added, those after it shift to the history of the one before or after, so their first reports
+            // can be off, and the one shown as resolved or new is the last rather than the one that was. That is rarer
+            // than lines being added or removed above them, which would throw off matching them by line.
+            const errors = results.errors.map( normalize );
+            const occurrences = new Map();
+            for ( const error of [ ...errors ].sort( ( a, b ) => ( a.line ?? 0 ) - ( b.line ?? 0 ) ) ) {
+              const key = JSON.stringify( [ error.file, error.identifier, error.message ] );
+              const occurrence = occurrences.get( key ) ?? 0;
+              occurrences.set( key, occurrence + 1 );
+              error.key = `${ key }#${ occurrence }`;
+            }
+
+            const comments = await github.paginate( github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 } );
+            const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
+
+            // The history of the errors is kept in the comment itself, compressed into a hidden HTML comment: each
+            // error, the commit it was first reported for, the last commit it was reported for, and the commit that
+            // resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
+            const zlib = require( 'zlib' );
+            const historyPattern = /<!-- phpstan-history:([A-Za-z0-9+\/=]+) -->/;
+            let history = [];
+            const historyMatch = comment?.body?.match( historyPattern );
+            if ( historyMatch ) {
+              try {
+                const parsed = JSON.parse( zlib.inflateRawSync( Buffer.from( historyMatch[ 1 ], 'base64' ) ).toString( 'utf8' ) );
+                history = ( Array.isArray( parsed ) ? parsed : [] )
+                  .map( ( entry ) => ( {
+                    ...normalize( entry ),
+                    key: asString( entry.key ),
+                    introduced: asSha( entry.introduced ),
+                    seen: asSha( entry.seen ),
+                    fixed: asSha( entry.fixed ),
+                  } ) )
+                  .filter( ( entry ) => entry.key && entry.introduced && entry.seen );
+              } catch ( error ) {
+                core.warning( `The error history in the PHPStan comment could not be read, so it starts over: ${ error.message }` );
+              }
+            }
+
+            // An error that was already being reported keeps the commit it was first reported for. One that is new,
+            // or that comes back after being resolved, is attributed to this commit. One that is no longer reported
+            // is attributed as resolved by this commit, unless an earlier commit already resolved it.
+            const historyByKey = new Map( history.map( ( entry ) => [ entry.key, entry ] ) );
+            const active = errors.map( ( error ) => {
+              const before = historyByKey.get( error.key );
+              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, seen: run.head_sha, fixed: null };
+            } );
+            const activeKeys = new Set( active.map( ( error ) => error.key ) );
+            let resolved = [
+              ...history.filter( ( entry ) => entry.fixed && ! activeKeys.has( entry.key ) ),
+              ...history.filter( ( entry ) => ! entry.fixed && ! activeKeys.has( entry.key ) ).map( ( entry ) => ( { ...entry, fixed: run.head_sha } ) ),
+            ].slice( -maxRows );
+
+            if ( ! comment && active.length === 0 ) {
+              core.info( 'PHPStan reported no errors, and there is no comment to update.' );
+              return;
+            }
+
+            // Files the base branch has changed since the pull request branched from it, in which the line numbers
+            // reported can be off in the head commit, since the analysis ran on the head commit merged into the base.
+            const changedInBase = new Set( Array.isArray( results.changed_in_base ) ? results.changed_in_base.filter( ( file ) => typeof file === 'string' ) : [] );
+            const lineMayBeOff = ( error ) => ! error.fixed && Boolean( error.line ) && changedInBase.has( error.file );
+            const filesWithLinesOff = new Set( active.filter( lineMayBeOff ).map( ( error ) => error.file ) );
+
+            // Every message is rendered as a code span. Within one, Markdown is not interpreted, and neither are
+            // mentions nor references to issues, both of which PHPStan messages can resemble, as in `Parameter #1`.
+            // In a table, a pipe still ends the cell even within a code span, unless it is escaped.
+            const code = ( text ) => {
+              let content = text.replace( /\s+/g, ' ' ).trim();
+              if ( content.length > 500 ) {
+                content = `${ content.slice( 0, 500 ) }…`;
+              }
+              content = content.replace( /\|/g, '\\|' );
+              const longestBackticks = Math.max( 0, ...( content.match( /`+/g ) ?? [] ).map( ( backticks ) => backticks.length ) );
+              const fence = '`'.repeat( longestBackticks + 1 );
+              const padding = content.startsWith( '`' ) || content.endsWith( '`' ) ? ' ' : '';
+              return `${ fence }${ padding }${ content }${ padding }${ fence }`;
+            };
+
+            // A bare URL to a commit is shortened by GitHub to its abbreviated hash, with a hovercard for the commit.
+            const commit = ( sha ) => `https://github.com/${ owner }/${ repo }/commit/${ sha }`;
+
+            // A location links to its line in the last commit the error was reported for, rather than to the merge
+            // commit that was analyzed, which is replaced whenever either side changes, so links to it would not last.
+            // Where the base branch has changed the file, the line may be off, so only the file is linked. A resolved
+            // error is linked to its line as the place it was last reported, unless that line was off, in which case
+            // its line is not kept in the history.
+            const location = ( error ) => {
+              if ( ! error.file ) {
+                return '_Not specific to a file_';
+              }
+              const label = code( error.line ? `${ error.file }:${ error.line }` : error.file );
+              if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
+                return label;
+              }
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.seen }/${ error.file }${ error.line && ! lineMayBeOff( error ) ? `#L${ error.line }` : '' })`;
+            };
+
+            const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
+
+            // GitHub shows only the first few annotations of each kind from a step on the page of the workflow run, so
+            // errors left out of a table are pointed to in the log of the step that reported them, which has them all.
+            const where = `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
+            const table = ( rows, rowLimit, { withResolution = false } = {} ) => {
+              const shown = rows.slice( 0, rowLimit );
+              if ( shown.length === 0 ) {
+                return rows.length === 1
+                  ? `The error is not listed here, to keep this comment short. It is listed in ${ where }.`
+                  : `The ${ rows.length } errors are not listed here, to keep this comment short. They are listed in ${ where }.`;
+              }
+              const more = `…and ${ rows.length - shown.length } more, which are listed in ${ where }.`;
+              const lines = [
+                `| Location | Error | Identifier | First reported |${ withResolution ? ' Resolved |' : '' }`,
+                `| --- | --- | --- | --- |${ withResolution ? ' --- |' : '' }`,
+                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } | ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
+              ];
+              if ( shown.length < rows.length ) {
+                lines.push( '', more );
+              }
+              return lines.join( '\n' );
+            };
+
+            const unignorable = active.filter( ( error ) => ! error.ignorable );
+            const ignorable = active.filter( ( error ) => error.ignorable );
+            const hasIgnoreErrors = unignorable.some( ( error ) => error.identifier?.startsWith( 'ignore.' ) );
+
+            const render = ( trackedLimit ) => {
+              // The heading shows at a glance whether the check fails, has only warnings, or has nothing left to report.
+              let status = '✅';
+              if ( unignorable.length > 0 ) {
+                status = '❌';
+              } else if ( active.length > 0 ) {
+                status = '⚠️';
+              }
+              const sections = [ marker, `## ${ status } PHPStan Static Analysis` ];
+
+              if ( active.length > 0 ) {
+                sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
+                if ( filesWithLinesOff.size > 0 ) {
+                  sections.push( [
+                    '> [!NOTE]',
+                    `> ${ filesWithLinesOff.size === 1 ? 'A file with errors has' : `${ filesWithLinesOff.size } files with errors have` } changed in ${ code( pr.base.ref ) } since this branch was last updated, so the line numbers reported in ${ filesWithLinesOff.size === 1 ? 'it' : 'them' } may be off and are not linked. Merge the latest ${ code( pr.base.ref ) } into this branch for accurate links.`,
+                  ].join( '\n' ) );
+                }
+              } else {
+                // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
+                const resolvedBy = resolved.at( -1 )?.fixed ?? run.head_sha;
+                sections.push( `All errors reported by PHPStan were resolved as of ${ commit( resolvedBy ) }.` );
+              }
+
+              let rowsLeft = Math.min( maxRows, trackedLimit );
+              if ( unignorable.length > 0 ) {
+                if ( hasIgnoreErrors ) {
+                  sections.push( [
+                    '> [!IMPORTANT]',
+                    '> **The PHPStan baselines are out of date, so the PHPStan check fails.**',
+                    '>',
+                    '> An error recorded in a baseline no longer occurs, or occurs a different number of times. If this pull request fixed it, that is expected: nothing needs to change in the code, but each baseline entry records an exact count for a specific file, and the baselines need to catch up. Regenerate them and commit the result:',
+                    '>',
+                    '> ```bash',
+                    '> npm run typecheck:php:baselines',
+                    '> ```',
+                    '>',
+                    '> or, outside the Docker environment:',
+                    '>',
+                    '> ```bash',
+                    '> composer phpstan:baselines',
+                    '> ```',
+                    '>',
+                    '> Where an error below names an `@phpstan-ignore` comment in the code rather than a baseline entry, remove that comment instead; regenerating will not clear it.',
+                    '>',
+                    `> See [Regenerating the baselines](${ readmeUrl }#regenerating-the-baselines) for details.`,
+                  ].join( '\n' ) );
+                } else {
+                  sections.push( [
+                    '> [!IMPORTANT]',
+                    '> **PHPStan reported errors that cannot be ignored, so the PHPStan check fails.**',
+                  ].join( '\n' ) );
+                }
+                sections.push( '### Errors that fail the check', table( unignorable, rowsLeft ) );
+                rowsLeft = Math.max( 0, rowsLeft - unignorable.length );
+              }
+
+              if ( ignorable.length > 0 ) {
+                sections.push(
+                  '### Errors',
+                  `These are also shown as annotations on the changed files. They do not fail the check, but they should still be fixed before the pull request is committed. An error that is a false positive may instead warrant being [added to a baseline](${ readmeUrl }#ignoring-and-baselining-errors).`,
+                  table( ignorable, rowsLeft )
+                );
+              }
+
+              // Most recently resolved first.
+              if ( resolved.length > 0 ) {
+                sections.push( [
+                  '<details>',
+                  `<summary>Resolved errors (${ resolved.length })</summary>`,
+                  '',
+                  table( [ ...resolved ].reverse(), maxRows, { withResolution: true } ),
+                  '',
+                  '</details>',
+                ].join( '\n' ) );
+              }
+
+              if ( active.length > 0 ) {
+                sections.push(
+                  '### Running PHPStan locally',
+                  `To [run the analysis](${ readmeUrl }#running-the-tests) on your own machine, use \`npm run typecheck:php\`, or \`composer phpstan\` outside the Docker environment.`
+                );
+              }
+
+              // The errors tracked are taken in the order they are listed, so that each one listed keeps its history.
+              const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( error ) => {
+                const { key, file, line, message, identifier, ignorable, introduced, seen, fixed } = error;
+                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, introduced, seen, fixed };
+              } );
+              sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
+
+              return sections.join( '\n\n' ) + '\n';
+            };
+
+            // A comment is limited to 65,536 characters. Should the body exceed that, give up the oldest resolved
+            // errors first, and then list and track fewer of the current errors. The history of current errors is
+            // given up last, even for errors that are not listed: an error whose history is lost is taken to be
+            // introduced by whichever later commit it is reported for, which would then be shown as its first report.
+            const maxLength = 65000;
+            let trackedLimit = 200;
+            let body = render( trackedLimit );
+            while ( body.length > maxLength && resolved.length > 0 ) {
+              resolved = resolved.slice( 1 );
+              body = render( trackedLimit );
+            }
+            while ( body.length > maxLength && trackedLimit > 0 ) {
+              trackedLimit = Math.floor( trackedLimit / 2 );
+              body = render( trackedLimit );
+            }
+
+            if ( ! comment ) {
+              await github.rest.issues.createComment( { owner, repo, issue_number, body } );
+              core.notice( `Created PHPStan comment for pull request: ${ pr.html_url }` );
+              return;
+            }
+
+            if ( comment.body !== body ) {
+              await github.rest.issues.updateComment( { owner, repo, comment_id: comment.id, body } );
+              core.notice( `Updated PHPStan comment for pull request: ${ pr.html_url }` );
+            }
+
+            // The comment is collapsed as resolved while there are no errors, and expanded again if errors return.
+            const { node } = await github.graphql(
+              'query( $id: ID! ) { node( id: $id ) { ... on IssueComment { isMinimized } } }',
+              { id: comment.node_id }
+            );
+            if ( active.length === 0 && ! node.isMinimized ) {
+              await github.graphql(
+                'mutation( $id: ID! ) { minimizeComment( input: { subjectId: $id, classifier: RESOLVED } ) { clientMutationId } }',
+                { id: comment.node_id }
+              );
+              core.notice( `Resolved PHPStan comment for pull request: ${ pr.html_url }` );
+            } else if ( active.length > 0 && node.isMinimized ) {
+              await github.graphql(
+                'mutation( $id: ID! ) { unminimizeComment( input: { subjectId: $id } ) { clientMutationId } }',
+                { id: comment.node_id }
+              );
+            }
