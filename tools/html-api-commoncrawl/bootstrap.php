@@ -9,6 +9,10 @@
  * read are answered here, presenting a UTF-8 site at example.com. Reading any
  * other option fails, which points to whatever new dependency needs it.
  *
+ * `default-filters.php` is not loaded either. `wp_kses()` is set up to use its
+ * HTML API implementation, as that file sets it up for WordPress; its other
+ * hooks for `wp_kses()` do nothing for that implementation with `'post'`.
+ *
  * When a change adds a file to the HTML API, add it to the list below.
  *
  * @package WordPress
@@ -62,6 +66,22 @@ require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-stack-event.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
+
+/*
+ * The HTML API implementation of wp_kses() reads block delimiters in HTML comments
+ * and filters their attributes with filter_block_kses_value(). blocks.php only
+ * defines functions. Before 6.9 there is no block processor.
+ */
+require ABSPATH . WPINC . '/blocks.php';
+if ( is_file( ABSPATH . WPINC . '/class-wp-block-processor.php' ) ) {
+	require ABSPATH . WPINC . '/class-wp-block-processor.php';
+}
+
+/*
+ * Use the HTML API implementation of wp_kses(), as default-filters.php does.
+ * Without this filter wp_kses() falls back to its legacy implementation.
+ */
+add_filter( 'wp_kses_force_legacy_parser', '__return_false' );
 
 // l10n.php is not loaded, so messages are left untranslated.
 function __( $text ) {
