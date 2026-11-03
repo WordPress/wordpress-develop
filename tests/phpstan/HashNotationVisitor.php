@@ -471,8 +471,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Splits a docblock into its tags.
 	 *
 	 * The docblock furniture is removed first, so a line reads as it would in a
-	 * plain text file: `@param array $args {` for a tag, and the hash body
-	 * indented below it.
+	 * plain text file, with a tag at the start of its line and the body of a hash
+	 * it opens indented below it.
 	 *
 	 * @param string $text Raw docblock text including the `/**` markers.
 	 * @return list<array{name: string, header: string, body: list<string>}>
