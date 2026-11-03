@@ -13,6 +13,19 @@ namespace WordPress\PHPStan;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use PHPStan\PhpDocParser\Ast\AbstractNodeVisitor;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprStringNode;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
+use PHPStan\PhpDocParser\Ast\Node as DocNode;
+use PHPStan\PhpDocParser\Ast\NodeTraverser;
+use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
+use PHPStan\PhpDocParser\Ast\Type\ArrayShapeItemNode;
+use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\ObjectShapeItemNode;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\ParserException;
@@ -57,10 +70,15 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   or `object`, or a class, on its own or as one member of a union such as
  *   `string|array` or `array|WP_Error`, where the bare member is the one the
  *   hash is about. A type that is already more specific than the hash, such as
- *   `array<string, string|bool>`, is left as written. A shape derived for a
+ *   `array<string, string|bool>`, is left as written, except for a `T[]` whose
+ *   hash is a single `...$0` entry typed as that `T`, which describes the
+ *   elements the way a hash on a bare `array` would. A shape derived for a
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
- *   would not be assignable to a property declared `stdClass`.
+ *   would not be assignable to a property declared `stdClass`. A template type
+ *   or type alias in scope is not taken for a class, and neither a `T[]` nor its
+ *   entry may name one, because whether the shape would be an array or an object
+ *   one depends on the template's bound or the alias's declared type.
  * - The hash has to be well formed: every `{` closed by a `}` on a line of its
  *   own, and every `@type` carrying a `$name` and a type PHPStan's own type
  *   parser reads as one. Anything else, and the whole tag is skipped.
@@ -79,8 +97,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  * they describe a value core itself builds. Numbered keys such as `$0`, `$1`
  * used for positional arguments are required in either case, because they are
  * passed in order. A description opening with `Optional.` overrides all of
- * that, and is the only thing that does; the word elsewhere in a description is
- * prose, not a marker.
+ * that, and a `Required.` sentence opening or closing it makes a `@param` key
+ * required, for a value such as a parsed block whose keys are always set. Those
+ * are the only markers; either word elsewhere in a description is prose.
  *
  * The shape of a `@param` hash is left open, with a trailing `...`, because the
  * hash lists the keys core reads rather than the only keys a caller may pass.
@@ -157,14 +176,88 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	private ?TypeParser $type_parser = null;
 
 	/**
-	 * Answers `parses_as_type()` has already given, keyed by the type.
+	 * Types `parse_type()` has already parsed, keyed by the type as written.
 	 *
 	 * Core writes a small vocabulary of types across a great many hashes, so the
-	 * same handful of strings is asked about over and over.
+	 * same handful of strings is asked about over and over. A string that is not a
+	 * type is kept as null. The nodes are shared, so nothing may change them.
 	 *
-	 * @var array<string, bool>
+	 * @var array<string, TypeNode|null>
 	 */
 	private array $parsed = array();
+
+	/**
+	 * Types `normalize_type()` has already normalized, keyed by whether names are
+	 * resolved, the local types in scope, and the type as printed. A type naming
+	 * a local type is kept as null.
+	 *
+	 * @var array<string, string|null>
+	 */
+	private array $normalized = array();
+
+	/**
+	 * Template types and type aliases in scope for the docblock being translated,
+	 * keyed by lowercased name.
+	 *
+	 * A hash on either is left untranslated, since the shape it takes depends on
+	 * what the name stands for: a template's bound, or the type an alias is
+	 * declared as, which the visitor does not resolve. The names in scope are
+	 * those the docblock declares and those of every class, interface, trait,
+	 * function, or closure it is nested in, so a method's hash on a template or
+	 * alias of its class is skipped too, as is a hook's hash on a template of the
+	 * function calling it.
+	 *
+	 * @var array<lowercase-string, true>
+	 */
+	private array $local_types = array();
+
+	/**
+	 * Template types and type aliases each enclosing class, interface, trait,
+	 * function, or closure declares, from the outermost in.
+	 *
+	 * @var list<array<lowercase-string, true>>
+	 */
+	private array $scope_local_types = array();
+
+	/**
+	 * Whether a name in the docblock being translated is resolved against a
+	 * namespace or imports, so that one with a leading backslash may be another
+	 * class than the same name without.
+	 *
+	 * That is the case inside a named namespace, and after a `use` import even in
+	 * the global namespace, where `use Example\Block;` makes `Block` another class
+	 * than `\Block`.
+	 */
+	private bool $resolves_names = false;
+
+	/**
+	 * Forgets the scopes of the previous file.
+	 *
+	 * @param Node[] $nodes The nodes of the file.
+	 * @return null Always null, leaving the nodes as they are.
+	 */
+	public function beforeTraverse( array $nodes ) {
+		$this->scope_local_types = array();
+		$this->resolves_names  = false;
+
+		return null;
+	}
+
+	/**
+	 * Leaves the scope of a class's or function's templates, or of a namespace.
+	 *
+	 * @param Node $node The node being left.
+	 * @return null Always null, leaving the node as it is.
+	 */
+	public function leaveNode( Node $node ) {
+		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
+			array_pop( $this->scope_local_types );
+		} elseif ( $node instanceof Node\Stmt\Namespace_ ) {
+			$this->resolves_names = false;
+		}
+
+		return null;
+	}
 
 	/**
 	 * Translates the hashes in a node's docblock into `@phpstan-*` shapes.
@@ -180,7 +273,24 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return null
 	 */
 	public function enterNode( Node $node ): ?Node {
+		// Each namespace has imports of its own, so entering one starts afresh.
+		if ( $node instanceof Node\Stmt\Namespace_ ) {
+			$this->resolves_names = null !== $node->name;
+		} elseif ( $node instanceof Node\Stmt\GroupUse || ( $node instanceof Node\Stmt\Use_ && Node\Stmt\Use_::TYPE_NORMAL === $node->type ) ) {
+			$this->resolves_names = true;
+		}
+
 		$doc = $node->getDocComment();
+
+		/*
+		 * A class's templates and type aliases are in scope for its members'
+		 * docblocks, and a function's templates for the hooks it calls, whether
+		 * or not the scope's own docblock has a hash.
+		 */
+		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
+			$this->scope_local_types[] = null === $doc ? array() : $this->declared_local_types( $doc->getText() );
+		}
+
 		if ( null === $doc ) {
 			return null;
 		}
@@ -238,6 +348,30 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
+	 * Collects the template types and type aliases a docblock declares.
+	 *
+	 * An imported alias counts under both its own name and the name it is
+	 * imported as, which only ever leaves more hashes untranslated.
+	 *
+	 * @param string $text Docblock text.
+	 * @return array<lowercase-string, true> Template types and type aliases, keyed by lowercased name.
+	 */
+	private function declared_local_types( string $text ): array {
+		$names = array();
+
+		preg_match_all( '#@(?:phpstan-|psalm-)?template(?:-covariant|-contravariant)?[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+		array_push( $names, ...$matches[1] );
+
+		preg_match_all( '#@(?:phpstan|psalm)-type[ \t]+([A-Za-z_][A-Za-z0-9_]*)#', $text, $matches );
+		array_push( $names, ...$matches[1] );
+
+		preg_match_all( '#@(?:phpstan|psalm)-import-type[ \t]+([A-Za-z_][A-Za-z0-9_]*)(?:[ \t]+from[ \t]+\S+[ \t]+as[ \t]+([A-Za-z_][A-Za-z0-9_]*))?#', $text, $matches );
+		array_push( $names, ...$matches[1], ...array_filter( $matches[2] ) );
+
+		return array_fill_keys( array_map( 'strtolower', $names ), true );
+	}
+
+	/**
 	 * Collects the parameters a function takes by reference.
 	 *
 	 * @param Node\FunctionLike $node Node the docblock is attached to.
@@ -265,6 +399,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$additions = array();
 		$tags      = $this->split_tags( $text );
 		$covered   = $this->phpstan_counterparts( $tags );
+
+		$this->local_types = array_merge( $this->declared_local_types( $text ), ...$this->scope_local_types );
 
 		foreach ( $tags as $tag ) {
 			if ( ! in_array( $tag['name'], self::HASH_TAGS, true ) ) {
@@ -461,12 +597,14 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					$entry['children'] = $children;
 
 					/*
-					 * An entry that opens a hash carries no description beside its
-					 * `@type`, because the `{` ends the line. What describes it is the
-					 * hash's own intro, which is where a marker such as `Optional.`
-					 * for the whole block is written.
+					 * An entry that opens a hash usually carries no description beside
+					 * its `@type`, because the `{` ends the line. What describes it is
+					 * the hash's own intro, which is where a marker such as `Optional.`
+					 * for the whole block is written. Any text that does come before
+					 * the `{` is kept on a line of its own, so the intro still opens
+					 * a line for the markers, which are matched per line.
 					 */
-					$entry['description'] = trim( $entry['description'] . ' ' . $nested );
+					$entry['description'] = trim( $entry['description'] . "\n" . $nested );
 				}
 
 				unset( $entry['opens'] );
@@ -600,8 +738,20 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$bare      = array();
 		$shapeable = array();
+		$elements  = array();
 
 		foreach ( $members as $position => $member ) {
+			/*
+			 * A `T[]` member describes its elements, so it takes a hash that does the
+			 * same: a single `...$0` entry documenting the repeated value as a `T`, as
+			 * the blocks `parse_blocks()` returns are.
+			 */
+			$element = $this->described_element( $member, $entries );
+			if ( null !== $element ) {
+				$elements[ $position ] = $element;
+				continue;
+			}
+
 			if ( ! $this->is_shapeable( $member ) ) {
 				continue;
 			}
@@ -620,10 +770,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * `WP_Error` carries no keys. So the bare member takes the shape whenever
 		 * there is exactly one. Two of them, or two classes and no bare member,
 		 * would leave it a guess which one the hash is about.
+		 *
+		 * A `T[]` member comes next, so a bare `array` beside it keeps the shape it
+		 * had before `T[]` members could take one, as in `array|array[]`.
 		 */
 		if ( 1 === count( $bare ) ) {
 			$target = $bare[0];
-		} elseif ( array() === $bare && 1 === count( $shapeable ) ) {
+		} elseif ( array() === $bare && 1 === count( $elements ) ) {
+			$target = array_key_first( $elements );
+		} elseif ( array() === $bare && array() === $elements && 1 === count( $shapeable ) ) {
 			$target = $shapeable[0];
 		} else {
 			return null;
@@ -631,8 +786,25 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$member     = $members[ $target ];
 		$normalized = strtolower( $member );
-		$named      = 'array' !== $normalized && 'object' !== $normalized;
-		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized, $named );
+
+		/*
+		 * The entry only had to match the declared element type, which it may do in
+		 * another spelling, as `wp_post` matches `WP_Post`. The type derived from it
+		 * keeps the spelling of the declaration, which is the one to be checked.
+		 *
+		 * A union is written back without the parentheses `(string|array)[]` needs
+		 * around it, since `substitute()` looks for the bare `array` to shape among
+		 * the members of the entry's type.
+		 */
+		$element = $elements[ $target ] ?? null;
+		if ( null !== $element && is_array( $entries[0] ) ) {
+			$entries[0]['type'] = $element instanceof UnionTypeNode
+				? implode( '|', array_map( 'strval', $element->types ) )
+				: (string) $element;
+		}
+		$is_array   = 'array' === $normalized || null !== $element;
+		$named      = ! $is_array && 'object' !== $normalized;
+		$shape      = $this->resolve_container( $entries, $for_param, $is_array, $named );
 		if ( null === $shape ) {
 			return null;
 		}
@@ -680,7 +852,200 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return false;
 		}
 
+		/*
+		 * Nor is a template type or type alias, whose bound or declared type decides
+		 * whether a shape would have to be an array or an object one, as
+		 * `normalize_type()` explains.
+		 */
+		if ( isset( $this->local_types[ ltrim( $normalized, '\\' ) ] ) ) {
+			return false;
+		}
+
 		return preg_match( '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#', $member ) === 1;
+	}
+
+	/**
+	 * Finds the element type a hash documents for a `T[]` member of a union type.
+	 *
+	 * Only a single `...$0` entry whose own type is that `T` qualifies, and only
+	 * when the entry has a hash of its own: without one, the derived type would
+	 * just restate the declared one, as `array<array-key, string>` does for a
+	 * `string[]`. Named keys beside a `T[]` describe the array itself, as the
+	 * `string[]` of a list of labels keyed by name does, and an entry of any other
+	 * type would contradict the declared element type rather than narrow it. The
+	 * one exception is a bare `array` entry for an `array[]` element, which is how
+	 * the `array[][]` of `wp_print_font_faces()` is written. Its own hash must then
+	 * describe the elements of that `array[]` in turn, so the inner arrays are
+	 * still only narrowed: named keys there, or no hash at all, would type an
+	 * array of arrays as a single shape, or drop a level of it.
+	 *
+	 * @param string      $member  One member of a union type.
+	 * @param list<mixed> $entries Entries of the hash describing it.
+	 * @return TypeNode|null The declared element type, or null if the hash does not describe the elements.
+	 */
+	private function described_element( string $member, array $entries ): ?TypeNode {
+		if ( 1 !== count( $entries ) ) {
+			return null;
+		}
+
+		$entry = $entries[0];
+		if ( ! is_array( $entry ) || true !== ( $entry['variadic'] ?? null ) || ! is_string( $entry['type'] ?? null ) ) {
+			return null;
+		}
+
+		$children = $entry['children'] ?? null;
+		if ( ! is_array( $children ) || array() === $children ) {
+			return null;
+		}
+
+		$array = $this->parse_type( $member );
+		$type  = $this->parse_type( $entry['type'] );
+		if ( ! $array instanceof ArrayTypeNode || null === $type ) {
+			return null;
+		}
+
+		$element = $this->normalize_type( $array->type );
+		$type    = $this->normalize_type( $type );
+		if ( null === $element || null === $type ) {
+			return null;
+		}
+
+		if ( $element === $type ) {
+			return $array->type;
+		}
+
+		if ( 'array' !== $type || preg_match( '#^array(?:\[])+$#', $element ) !== 1 ) {
+			return null;
+		}
+
+		return null === $this->described_element( (string) $array->type, array_values( $children ) ) ? null : $array->type;
+	}
+
+	/**
+	 * Prints a type in a form that compares equal to every other spelling of it.
+	 *
+	 * This only decides whether a hash's element type is the declared one; the type
+	 * derived from it is always spelled as declared. Parsing does away with
+	 * differences of spacing and of redundant parentheses, as between
+	 * `(int|string)` and `int|string`, and the members of a union or intersection
+	 * are sorted, so `string|int` is the same type too. Names are then lowercased,
+	 * because PHP type and class names are case-insensitive, so `wp_post` is the
+	 * same type as `WP_Post`. The keys of a shape and the content of a string
+	 * literal are case-sensitive, so they are left as they are: `array{id: int}`
+	 * is not `array{ID: int}`.
+	 *
+	 * Where names are not resolved against a namespace or imports, a name is also
+	 * stripped of a leading backslash, since `\WP_Post` is then the same class as
+	 * `WP_Post`. Where they are, the two may name different classes, as `\Block`
+	 * and the `Example\Block` that `Block` means in `namespace Example` or after
+	 * `use Example\Block;`, so the backslash is kept and a hash spelling the class
+	 * the other way is left untranslated rather than resolved.
+	 *
+	 * A type naming a template type or type alias has no form to print. Whether a
+	 * hash narrows a template depends on its bound, which a `T of array` would
+	 * need shaped as an array and a `T of WP_Post` as an object, and the same goes
+	 * for the type an alias is declared as, so such a hash is left untranslated
+	 * rather than guessed at. A name matching one in another case counts too,
+	 * since lowercasing would otherwise make the class `T` the template `t`.
+	 *
+	 * @param TypeNode $type Parsed type, which is left unchanged.
+	 * @return string|null The normalized type, or null if it names a template type or type alias.
+	 */
+	private function normalize_type( TypeNode $type ): ?string {
+		$key = ( $this->resolves_names ? 'resolved' : '' ) . ';' . implode( ',', array_keys( $this->local_types ) ) . ';' . $type;
+		if ( array_key_exists( $key, $this->normalized ) ) {
+			return $this->normalized[ $key ];
+		}
+
+		$visitor = new class( $this->local_types, $this->resolves_names ) extends AbstractNodeVisitor {
+
+			/**
+			 * Template types and type aliases in scope, keyed by lowercased name.
+			 *
+			 * @var array<lowercase-string, true>
+			 */
+			private array $local_types;
+
+			/**
+			 * Whether names are resolved against a namespace or imports.
+			 */
+			private bool $resolves_names;
+
+			/**
+			 * Whether the type names a template type or type alias.
+			 */
+			public bool $names_local_type = false;
+
+			/**
+			 * @param array<lowercase-string, true> $local_types    Template types and type aliases in scope, keyed by lowercased name.
+			 * @param bool                          $resolves_names Whether names are resolved against a namespace or imports.
+			 */
+			public function __construct( array $local_types, bool $resolves_names ) {
+				$this->local_types    = $local_types;
+				$this->resolves_names = $resolves_names;
+			}
+
+			public function enterNode( DocNode $node ): DocNode {
+				if ( ( $node instanceof ArrayShapeItemNode || $node instanceof ObjectShapeItemNode ) && $node->keyName instanceof IdentifierTypeNode ) {
+					// A key written bare is a string, not a name, so it keeps its case.
+					$node->keyName = new ConstExprStringNode( $node->keyName->name, ConstExprStringNode::SINGLE_QUOTED );
+				} elseif ( $node instanceof ConstExprStringNode ) {
+					$node->quoteType = ConstExprStringNode::SINGLE_QUOTED;
+				} elseif ( $node instanceof IdentifierTypeNode ) {
+					$node->name = $this->normalize_name( $node->name );
+				} elseif ( $node instanceof ConstFetchNode && '' !== $node->className ) {
+					// The class of `WP_Foo::BAR` is a name, but the constant is case-sensitive.
+					$node->className = $this->normalize_name( $node->className );
+				}
+
+				return $node;
+			}
+
+			/**
+			 * Normalizes a type or class name, noting whether it names a local type.
+			 *
+			 * @param string $name Name as written.
+			 * @return string The name lowercased, and stripped of a leading backslash where
+			 *                names are not resolved against a namespace or imports.
+			 */
+			private function normalize_name( string $name ): string {
+				$name = strtolower( $name );
+				$bare = ltrim( $name, '\\' );
+
+				// Conservatively, `\T` counts as naming the template or alias `T` too.
+				if ( isset( $this->local_types[ $bare ] ) ) {
+					$this->names_local_type = true;
+				}
+
+				return $this->resolves_names ? $name : $bare;
+			}
+
+			public function leaveNode( DocNode $node ): DocNode {
+				/*
+				 * The order of a union or intersection says nothing, so `string|array`
+				 * is `array|string`. Its members are normalized by now, so sorting
+				 * them as printed puts every spelling in the same order.
+				 */
+				if ( $node instanceof UnionTypeNode || $node instanceof IntersectionTypeNode ) {
+					usort(
+						$node->types,
+						static function ( TypeNode $a, TypeNode $b ): int {
+							return strcmp( (string) $a, (string) $b );
+						}
+					);
+				}
+
+				return $node;
+			}
+		};
+
+		// The cloning visitor runs first, so the changes land on a copy.
+		$traverser = new NodeTraverser( array( new CloningVisitor(), $visitor ) );
+		$nodes     = $traverser->traverse( array( $type ) );
+
+		$this->normalized[ $key ] = $visitor->names_local_type ? null : (string) $nodes[0];
+
+		return $this->normalized[ $key ];
 	}
 
 	/**
@@ -790,8 +1155,17 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * "receives optional mixed input", or from the "Optional self closing
 		 * slash" of a match array whose every group is always set.
 		 */
-		if ( preg_match( '#^\s*Optional\.#i', $entry['description'] ) === 1 ) {
+		if ( preg_match( '#^\s*Optional\.#im', $entry['description'] ) === 1 ) {
 			return true;
+		}
+
+		/*
+		 * Core marks the keys a caller must pass with a `Required.` sentence. It is
+		 * redundant in a `@return` hash, whose keys are required already, but says
+		 * what the default cannot in a `@param` hash.
+		 */
+		if ( $this->is_required( $entry['description'] ) ) {
+			return false;
 		}
 
 		/*
@@ -809,6 +1183,28 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Reports whether a description marks its key as required.
+	 *
+	 * The marker is a `Required.` sentence, written either first, as `Optional.`
+	 * is, or last, as some of core's hashes have it, in any line of the
+	 * description, as `parse_entries()` splits it. Only the whole sentence
+	 * counts: the word inside one is prose, as in a "Capability required for the
+	 * panel", or the "Required for multi-widgets" of a key that is not.
+	 *
+	 * Unlike `Optional.`, the marker is matched case-sensitively. Prose taken for
+	 * it, such as a description ending "i.e. required.", would make every call
+	 * leaving the key out an error, while a marker written in lowercase and missed
+	 * only leaves the key optional, as it was before the marker existed. Taking
+	 * prose for `Optional.` merely loosens the type, so that one may match broadly.
+	 *
+	 * @param string $description Description of the entry.
+	 * @return bool Whether a `Required.` sentence opens or closes a line of the description.
+	 */
+	private function is_required( string $description ): bool {
+		return preg_match( '#^\s*Required\.(?:\s|$)|[.!?]\s+Required\.\s*$#m', $description ) === 1;
 	}
 
 	/**
@@ -840,10 +1236,30 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function parses_as_type( string $type ): bool {
-		if ( isset( $this->parsed[ $type ] ) ) {
-			return $this->parsed[ $type ];
+		return null !== $this->parse_type( $type );
+	}
+
+	/**
+	 * Parses a type with PHPStan's own PHPDoc type parser.
+	 *
+	 * @param string $type Type as written in the docblock.
+	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 */
+	private function parse_type( string $type ): ?TypeNode {
+		if ( ! array_key_exists( $type, $this->parsed ) ) {
+			$this->parsed[ $type ] = $this->parse_uncached( $type );
 		}
 
+		return $this->parsed[ $type ];
+	}
+
+	/**
+	 * Parses a type for `parse_type()`, which caches the result.
+	 *
+	 * @param string $type Type as written in the docblock.
+	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 */
+	private function parse_uncached( string $type ): ?TypeNode {
 		if ( null === $this->lexer || null === $this->type_parser ) {
 			$config            = new ParserConfig( array() );
 			$this->lexer       = new Lexer( $config );
@@ -852,15 +1268,13 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		try {
 			$tokens = new TokenIterator( $this->lexer->tokenize( $type ) );
-			$this->type_parser->parse( $tokens );
-
-			// Prose whose first word happens to parse leaves the rest of itself behind.
-			$this->parsed[ $type ] = $tokens->isCurrentTokenType( Lexer::TOKEN_END );
+			$node   = $this->type_parser->parse( $tokens );
 		} catch ( ParserException $exception ) {
-			$this->parsed[ $type ] = false;
+			return null;
 		}
 
-		return $this->parsed[ $type ];
+		// Prose whose first word happens to parse leaves the rest of itself behind.
+		return $tokens->isCurrentTokenType( Lexer::TOKEN_END ) ? $node : null;
 	}
 
 	/**
