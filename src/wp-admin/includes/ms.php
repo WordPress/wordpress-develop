@@ -700,7 +700,7 @@ function site_admin_notice() {
 			$upgrade_network_message,
 			array(
 				'type'               => 'warning',
-				'additional_classes' => array( 'update-nag', 'inline' ),
+				'additional_classes' => array( 'update-nag' ),
 				'paragraph_wrap'     => false,
 			)
 		);
