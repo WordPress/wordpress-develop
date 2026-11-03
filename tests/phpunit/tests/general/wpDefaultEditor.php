@@ -28,11 +28,22 @@ class Tests_General_WpDefaultEditor extends WP_UnitTestCase {
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
+		$orig_updated_user_settings = isset( $GLOBALS['_updated_user_settings'] ) ? $GLOBALS['_updated_user_settings'] : null;
+		unset( $GLOBALS['_updated_user_settings'] );
+
 		$_COOKIE[ 'wp-settings-' . $user_id ] = 'editor=html';
 
-		$this->assertSame( 'html', wp_default_editor() );
+		try {
+			$this->assertSame( 'html', wp_default_editor() );
+		} finally {
+			unset( $_COOKIE[ 'wp-settings-' . $user_id ] );
 
-		unset( $_COOKIE[ 'wp-settings-' . $user_id ] );
+			if ( null !== $orig_updated_user_settings ) {
+				$GLOBALS['_updated_user_settings'] = $orig_updated_user_settings;
+			} else {
+				unset( $GLOBALS['_updated_user_settings'] );
+			}
+		}
 	}
 
 	/**
