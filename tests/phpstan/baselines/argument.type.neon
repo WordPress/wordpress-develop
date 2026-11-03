@@ -261,7 +261,7 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$allowed_html of function wp_kses expects array\<array\>\|string, array\<string, array\<string, bool\>\|true\> given\.$#'
 			identifier: argument.type
-			count: 4
+			count: 5
 			path: ../../../src/wp-admin/includes/plugin.php
 		-
 			message: '#^Parameter \#2 \$fallback_title of function sanitize_title expects string, int\<0, max\> given\.$#'
