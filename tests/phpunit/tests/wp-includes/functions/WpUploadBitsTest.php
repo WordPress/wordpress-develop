@@ -15,6 +15,8 @@ use WP_UnitTestCase;
 class WpUploadBitsTest extends WP_UnitTestCase {
 
 	public function tear_down() {
+		$this->remove_added_uploads();
+		
 		$upload_dir = wp_upload_dir();
 		if ( is_dir( $upload_dir['basedir'] . '/9999/12' ) ) {
 			rmdir( $upload_dir['basedir'] . '/9999/12' );
