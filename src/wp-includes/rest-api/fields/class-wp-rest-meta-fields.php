@@ -16,6 +16,14 @@
 abstract class WP_REST_Meta_Fields {
 
 	/**
+	 * Cache invalidation callback for the object type's last_changed key.
+	 *
+	 * @since TBD
+	 * @var string
+	 */
+	protected $cache_callback = '';
+
+	/**
 	 * Retrieves the object meta type.
 	 *
 	 * @since 4.7.0
@@ -143,6 +151,20 @@ abstract class WP_REST_Meta_Fields {
 		$fields = $this->get_registered_fields();
 		$error  = new WP_Error();
 
+		/*
+		 * Temporarily unhook the last_changed cache invalidation to avoid
+		 * firing it once per meta key during a batch update.
+		 */
+		$meta_type          = $this->get_meta_type();
+		$has_cache_callback = ! empty( $this->cache_callback )
+			&& function_exists( $this->cache_callback );
+
+		if ( $has_cache_callback ) {
+			remove_action( "added_{$meta_type}_meta", $this->cache_callback );
+			remove_action( "updated_{$meta_type}_meta", $this->cache_callback );
+			remove_action( "deleted_{$meta_type}_meta", $this->cache_callback );
+		}
+
 		foreach ( $fields as $meta_key => $args ) {
 			$name = $args['name'];
 			if ( ! array_key_exists( $name, $meta ) ) {
@@ -210,6 +232,17 @@ abstract class WP_REST_Meta_Fields {
 				$error->merge_from( $result );
 				continue;
 			}
+		}
+
+		/*
+		 * Re-hook the callback and call it once to invalidate the cache
+		 * for the entire batch, rather than once per meta key.
+		 */
+		if ( $has_cache_callback ) {
+			add_action( "added_{$meta_type}_meta", $this->cache_callback );
+			add_action( "updated_{$meta_type}_meta", $this->cache_callback );
+			add_action( "deleted_{$meta_type}_meta", $this->cache_callback );
+			call_user_func( $this->cache_callback );
 		}
 
 		if ( $error->has_errors() ) {
