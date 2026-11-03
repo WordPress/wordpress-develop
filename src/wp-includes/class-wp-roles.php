@@ -165,17 +165,17 @@ class WP_Roles {
 	 *     ) );
 	 *
 	 * @since 2.0.0
-	 * @since x.y.z Support was added for a numerically indexed array of strings for the capabilities array.
+	 * @since 6.9.0 Support was added for a numerically indexed array of strings for the capabilities array.
 	 *
 	 * @param string                               $role         Role name.
 	 * @param string                               $display_name Role display name.
 	 * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
 	 *                                                           Default empty array.
-	 * @return WP_Role|void WP_Role object, if the role is added.
+	 * @return WP_Role|null WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
-			return;
+			return null;
 		}
 
 		if ( wp_is_numeric_array( $capabilities ) ) {
@@ -268,11 +268,7 @@ class WP_Roles {
 	 * @return WP_Role|null WP_Role object if found, null if the role does not exist.
 	 */
 	public function get_role( $role ) {
-		if ( isset( $this->role_objects[ $role ] ) ) {
-			return $this->role_objects[ $role ];
-		} else {
-			return null;
-		}
+		return $this->role_objects[ $role ] ?? null;
 	}
 
 	/**

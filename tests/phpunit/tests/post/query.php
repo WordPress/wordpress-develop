@@ -734,7 +734,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $q->found_posts );
 	}
 
-	public function data_set_found_posts_not_posts_as_an_array() {
+	public static function data_set_found_posts_not_posts_as_an_array() {
 		// Count return 0 for null, but 1 for other data you may not expect.
 		return array(
 			array( null, 0 ),
@@ -776,6 +776,23 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'found_posts', '__return_empty_string' );
 
 		$this->assertIsInt( $q->found_posts );
+	}
+
+	/**
+	 * @ticket 47719
+	 */
+	public function test_post__in_should_return_no_posts_when_0() {
+		self::factory()->post->create_many( 4 );
+
+		$query = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'post__in'  => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->found_posts );
 	}
 
 	/**

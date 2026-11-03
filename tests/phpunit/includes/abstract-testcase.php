@@ -18,10 +18,48 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected $expected_deprecated     = array();
 	protected $caught_deprecated       = array();
 	protected $expected_doing_it_wrong = array();
-	protected $caught_doing_it_wrong   = array();
+
+	/** @var non-empty-string[] */
+	protected $caught_doing_it_wrong = array();
+
+	/**
+	 * URLs of blocked external HTTP requests made during the current test.
+	 *
+	 * @var list<non-falsy-string>
+	 */
+	protected array $blocked_http_requests = array();
 
 	protected static $hooks_saved = array();
 	protected static $ignore_files;
+
+	/**
+	 * Metadata state before each class's fixtures are created, keyed by class.
+	 *
+	 * @var array[]
+	 */
+	private static $meta_before_class = array();
+
+	/**
+	 * Metadata state before the current test, or null when setup was bypassed.
+	 *
+	 * @var array|null
+	 */
+	private $original_meta_state;
+
+	/**
+	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
+	 *
+	 * @var string|null
+	 */
+	protected $original_locale;
+
+	/**
+	 * The translation controller's locale before each test, or null if
+	 * set_up() did not capture it.
+	 *
+	 * @var string|null
+	 */
+	protected $original_translation_locale;
 
 	/**
 	 * Fixture factory.
@@ -58,6 +96,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before setting up all tests.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function set_up_before_class() {
 		global $wpdb;
@@ -69,7 +109,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		$class = get_called_class();
+		$class                             = get_called_class();
+		self::$meta_before_class[ $class ] = self::backup_meta_state();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
 			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
@@ -88,6 +129,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		if ( isset( self::$meta_before_class[ $class ] ) ) {
+			self::restore_meta_state( self::$meta_before_class[ $class ] );
+			unset( self::$meta_before_class[ $class ] );
+		}
+
 		_delete_all_data();
 		self::flush_cache();
 
@@ -98,13 +144,17 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Runs the routine before each test is executed.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 */
 	public function set_up() {
+		global $wp_rewrite;
+
 		set_time_limit( 0 );
 
 		$this->factory = static::factory();
 
-		if ( ! self::$ignore_files ) {
+		if ( null === self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
 		}
 
@@ -112,9 +162,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->_backup_hooks();
 		}
 
-		global $wp_rewrite;
+		$this->original_meta_state = self::backup_meta_state();
 
 		$this->clean_up_global_scope();
+
+		$this->original_locale             = $GLOBALS['locale'] ?? null;
+		$this->original_translation_locale = WP_Translation_Controller::get_instance()->get_locale();
 
 		/*
 		 * When running core tests, ensure that post types and taxonomies
@@ -137,15 +190,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS
+			&& ! in_array( 'external-http', $this->getGroups(), true )
+		) {
+			add_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX, 3 );
+		}
 	}
 
 	/**
 	 * Sets the bcrypt cost option for password hashing during tests.
 	 *
-	 * @param array      $options   The options for password hashing.
-	 * @param string|int $algorithm The algorithm to use for hashing. This is a string in PHP 7.4+ and an integer in PHP 7.3 and earlier.
+	 * @param array  $options   The options for password hashing.
+	 * @param string $algorithm The algorithm to use for hashing.
 	 */
-	public function wp_hash_password_options( array $options, $algorithm ): array {
+	public function wp_hash_password_options( array $options, string $algorithm ): array {
 		if ( PASSWORD_BCRYPT === $algorithm ) {
 			$options['cost'] = 5;
 		}
@@ -155,10 +214,26 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
+	 *
+	 * @global wpdb       $wpdb         WordPress database abstraction object.
+	 * @global WP_Query   $wp_the_query Main WordPress query object.
+	 * @global WP_Query   $wp_query     WordPress query object.
+	 * @global WP         $wp           WordPress environment object.
+	 * @global WP_Rewrite $wp_rewrite   WordPress rewrite rules object.
 	 */
 	public function tear_down() {
-		global $wpdb, $wp_the_query, $wp_query, $wp;
+		global $wpdb, $wp_the_query, $wp_query, $wp, $wp_rewrite;
+
+		/*
+		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
+		 * remains synchronized with the restored database option for subsequent class fixtures.
+		 */
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( '' );
+		}
+
 		$wpdb->query( 'ROLLBACK' );
+
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
@@ -194,7 +269,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		// Reset comment globals.
-		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt' );
+		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt', 'in_comment_loop' );
 		foreach ( $comment_globals as $global ) {
 			$GLOBALS[ $global ] = null;
 		}
@@ -215,9 +290,24 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
+		if ( null !== $this->original_meta_state ) {
+			self::restore_meta_state( $this->original_meta_state );
+		}
 		wp_set_current_user( 0 );
 
+		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
+		if ( null !== $this->original_translation_locale ) {
+			if ( null === $this->original_locale ) {
+				unset( $GLOBALS['locale'] );
+			} else {
+				$GLOBALS['locale'] = $this->original_locale;
+			}
+			WP_Translation_Controller::get_instance()->set_locale( $this->original_translation_locale );
+		}
+
 		$this->reset_lazyload_queue();
+
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	/**
@@ -357,10 +447,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Stores $wp_filter, $wp_actions, $wp_filters, and $wp_current_filter
 	 * on a class variable so they can be restored on tear_down() using _restore_hooks().
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _backup_hooks() {
 		self::$hooks_saved['wp_filter'] = array();
@@ -380,10 +470,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $wp_filter
-	 * @global array $wp_actions
-	 * @global array $wp_filters
-	 * @global array $wp_current_filter
+	 * @global array $wp_filter         All of the filters and actions.
+	 * @global array $wp_actions        The number of times each action was triggered.
+	 * @global array $wp_filters        The number of times each filter was triggered.
+	 * @global array $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
@@ -405,6 +495,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Flushes the WordPress object cache.
+	 *
+	 * @global WP_Object_Cache $wp_object_cache WordPress Object Cache object.
 	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
@@ -446,17 +538,70 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Captures registrations and their hooks without re-registering metadata.
+	 *
+	 * The hooks also include legacy registrations without a registry entry and
+	 * callbacks added independently of register_meta().
+	 *
+	 * @return array Metadata registry and cloned metadata hooks.
+	 */
+	private static function backup_meta_state() {
+		$state = array(
+			'keys'  => $GLOBALS['wp_meta_keys'] ?? array(),
+			'hooks' => array(),
+		);
+
+		foreach ( $GLOBALS['wp_filter'] as $name => $hook ) {
+			if ( self::is_meta_hook( $name ) ) {
+				$state['hooks'][ $name ] = clone $hook;
+			}
+		}
+
+		return $state;
+	}
+
+	/**
+	 * Restores metadata hooks after the ordinary hook baseline has been restored.
+	 *
+	 * @param array $state Metadata state captured before the test or class.
+	 */
+	private static function restore_meta_state( $state ) {
+		$GLOBALS['wp_meta_keys'] = $state['keys'];
+
+		foreach ( array_keys( $GLOBALS['wp_filter'] ) as $name ) {
+			if ( self::is_meta_hook( $name ) ) {
+				unset( $GLOBALS['wp_filter'][ $name ] );
+			}
+		}
+		foreach ( $state['hooks'] as $name => $hook ) {
+			$GLOBALS['wp_filter'][ $name ] = clone $hook;
+		}
+	}
+
+	/**
+	 * Identifies the dynamic hooks used by metadata registrations and defaults.
+	 *
+	 * @param string $name Hook name.
+	 * @return bool Whether the hook belongs to the metadata state.
+	 */
+	private static function is_meta_hook( $name ) {
+		return (bool) preg_match( '/^(?:sanitize|auth)_.+_meta_|^default_.+_metadata$/', $name );
+	}
+
+	/**
 	 * Cleans up any registered meta keys.
 	 *
 	 * @since 5.1.0
 	 *
-	 * @global array $wp_meta_keys
+	 * @global array $wp_meta_keys Global registry for meta keys.
 	 */
 	public function unregister_all_meta_keys() {
 		global $wp_meta_keys;
+
 		if ( ! is_array( $wp_meta_keys ) ) {
 			return;
 		}
+
 		foreach ( $wp_meta_keys as $object_type => $type_keys ) {
 			foreach ( $type_keys as $object_subtype => $subtype_keys ) {
 				foreach ( $subtype_keys as $key => $value ) {
@@ -468,11 +613,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 	/**
 	 * Starts a database transaction.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function start_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'SET autocommit = 0;' );
 		$wpdb->query( 'START TRANSACTION;' );
+
 		add_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		add_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
@@ -481,9 +630,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Commits the queries in a transaction.
 	 *
 	 * @since 4.1.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public static function commit_transaction() {
 		global $wpdb;
+
 		$wpdb->query( 'COMMIT;' );
 	}
 
@@ -660,6 +812,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Blocks an external HTTP request that no other filter has answered.
+	 *
+	 * Added by set_up() for tests that are not in the `external-http` group, and
+	 * runs last on the filter so any mock set up by the test itself gets the
+	 * first say. Requests reaching this point are recorded and fail the test in
+	 * assert_post_conditions().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param false|array|WP_Error $response A preemptive response, or false when none was given.
+	 * @param array                $args     Request arguments.
+	 * @param string               $url      The request URL.
+	 * @return array|WP_Error The preemptive response, or an error for a blocked request.
+	 */
+	public function block_external_http_request( $response, array $args, string $url ) {
+		if ( false !== $response ) {
+			return $response;
+		}
+
+		$this->blocked_http_requests[] = $url;
+
+		return new WP_Error(
+			'test_external_http_blocked',
+			'External HTTP requests are blocked in tests that are not in the `external-http` group.'
+		);
+	}
+
+	/**
 	 * Detects post-test failure conditions.
 	 *
 	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
@@ -668,6 +848,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	protected function assert_post_conditions() {
 		$this->expectedDeprecated();
+
+		if ( $this->blocked_http_requests ) {
+			$this->fail(
+				"This test made an external HTTP request but is not in the `external-http` group.\n"
+				. "Add `@group external-http` to it, or mock the request with the `pre_http_request` filter.\n"
+				. '- ' . implode( "\n- ", array_unique( $this->blocked_http_requests ) )
+			);
+		}
 	}
 
 	/**
@@ -848,6 +1036,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert WP_Error $actual
 	 */
 	public function assertWPError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'WP_Error', $actual, $message );
@@ -858,6 +1048,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert !WP_Error $actual
 	 */
 	public function assertNotWPError( $actual, $message = '' ) {
 		if ( is_wp_error( $actual ) ) {
@@ -872,6 +1064,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert IXR_Error $actual
 	 */
 	public function assertIXRError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'IXR_Error', $actual, $message );
@@ -882,6 +1076,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @param mixed  $actual  The value to check.
 	 * @param string $message Optional. Message to display when the assertion fails.
+	 *
+	 * @phpstan-assert !IXR_Error $actual
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
 		if ( $actual instanceof IXR_Error ) {
@@ -931,6 +1127,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$actual = preg_replace( '/\s*/', '', $actual );
 		}
 
+		/*
+		 * Keep assertEquals() because this helper accepts mixed types and only
+		 * normalizes whitespace for strings.
+		 */
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1025,6 +1225,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		sort( $expected );
 		sort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSets().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1063,6 +1264,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		ksort( $expected );
 		ksort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSetsWithIndex().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1131,6 +1333,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
 	 *              to the function signature.
 	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
 	public function assertQueryTrue( ...$prop ) {
@@ -1159,6 +1363,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			'is_preview',
 			'is_robots',
 			'is_favicon',
+			'is_sitemap',
 			'is_search',
 			'is_single',
 			'is_singular',
@@ -1311,7 +1516,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 		$parts = parse_url( $url );
 		if ( isset( $parts['scheme'] ) ) {
-			$req = isset( $parts['path'] ) ? $parts['path'] : '';
+			$req = $parts['path'] ?? '';
 			if ( isset( $parts['query'] ) ) {
 				$req .= '?' . $parts['query'];
 				// Parse the URL query vars into $_GET.
@@ -1320,9 +1525,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		} else {
 			$req = $url;
 		}
-		if ( ! isset( $parts['query'] ) ) {
-			$parts['query'] = '';
-		}
+		$parts['query'] ??= '';
 
 		$_SERVER['REQUEST_URI'] = $req;
 		unset( $_SERVER['PATH_INFO'] );
@@ -1342,21 +1545,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		_cleanup_query_vars();
 
 		$GLOBALS['wp']->main( $parts['query'] );
-	}
-
-	/**
-	 * Allows tests to be skipped on single or multisite installs by using @group annotations.
-	 *
-	 * This is a custom extension of the PHPUnit requirements handling.
-	 *
-	 * @since 3.5.0
-	 * @deprecated 5.9.0 This method has not been functional since PHPUnit 7.0.
-	 */
-	protected function checkRequirements() {
-		// For PHPUnit 5/6, as we're overloading a public PHPUnit native method in those versions.
-		if ( is_callable( 'PHPUnit\Framework\TestCase', 'checkRequirements' ) ) {
-			parent::checkRequirements();
-		}
 	}
 
 	/**
@@ -1498,11 +1686,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Deletes files added to the `uploads` directory during tests.
 	 *
 	 * This method works in tandem with the `set_up()` and `rmdir()` methods:
-	 * - `set_up()` scans the `uploads` directory before every test, and stores
-	 *   its contents inside of the `$ignore_files` property.
+	 * - `set_up()` stores the initial `uploads` directory snapshot in the
+	 *   `$ignore_files` property, including when the directory is empty.
 	 * - `rmdir()` and its helper methods only delete files that are not listed
 	 *   in the `$ignore_files` property. If called during `tear_down()` in tests,
-	 *   this will only delete files added during the previously run test.
+	 *   this deletes files added after the initial snapshot.
 	 */
 	public function remove_added_uploads() {
 		$uploads = wp_upload_dir();
@@ -1539,8 +1727,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string[] List of file paths.
 	 */
 	public function scan_user_uploads() {
-		static $files = array();
-		if ( ! empty( $files ) ) {
+		static $files = null;
+		if ( null !== $files ) {
 			return $files;
 		}
 
@@ -1593,14 +1781,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			}
 		}
 
-		/*
-		 * Compatibility check for PHP < 7.4, where array_merge() expects at least one array.
-		 * See: https://3v4l.org/BIQMA
-		 */
-		if ( array() === $matched_dirs ) {
-			return array();
-		}
-
 		return array_merge( ...$matched_dirs );
 	}
 
@@ -1638,7 +1818,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global WP_Rewrite $wp_rewrite
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite rules object.
 	 *
 	 * @param string $structure Optional. Permalink structure to set. Default empty.
 	 */

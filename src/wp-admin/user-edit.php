@@ -12,6 +12,13 @@ require_once __DIR__ . '/admin.php';
 /** WordPress Translation Installation API */
 require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
+/**
+ * @global wpdb    $wpdb                  WordPress database abstraction object.
+ * @global array   $_wp_admin_css_colors  Registered admin color schemes.
+ * @global WP_Roles $wp_roles             The roles object.
+ */
+global $wpdb, $_wp_admin_css_colors, $wp_roles;
+
 $action          = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 $user_id         = ! empty( $_REQUEST['user_id'] ) ? absint( $_REQUEST['user_id'] ) : 0;
 $wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_url( $_REQUEST['wp_http_referer'] ) : '';
@@ -103,6 +110,11 @@ if ( is_multisite()
 ) {
 	wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
 }
+
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
 
 // Execute confirmed email change. See send_confirmation_on_profile_email().
 if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
@@ -261,8 +273,14 @@ switch ( $action ) {
 
 		<div class="wrap" id="profile-page">
 			<h1 class="wp-heading-inline">
-					<?php echo esc_html( $title ); ?>
+				<?php echo esc_html( $title ); ?>
 			</h1>
+
+			<?php
+			if ( IS_PROFILE_PAGE ) {
+				new_user_email_admin_notice();
+			}
+			?>
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
@@ -376,6 +394,17 @@ switch ( $action ) {
 						</td>
 					</tr>
 
+					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
+					<tr class="user-infinite-scrolling-wrap">
+						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
+						<td>
+							<label for="infinite_scrolling"><input name="infinite_scrolling" type="checkbox" id="infinite_scrolling" value="false" <?php checked( 'false', $profile_user->infinite_scrolling ); ?> />
+								<?php _e( 'Disable infinite scrolling in the Media Library grid view' ); ?>
+							</label>
+						</td>
+					</tr>
+					<?php endif; ?>
+
 					<?php
 					$languages                = get_available_languages();
 					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
@@ -443,7 +472,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" aria-describedby="user-login-description" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text ltr" /> <span class="description" id="user-login-description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -471,15 +500,11 @@ switch ( $action ) {
 						</tr>
 					<?php endif; // End if ! IS_PROFILE_PAGE. ?>
 
-					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) : ?>
+					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && ! isset( $super_admins ) ) : ?>
 						<tr class="user-super-admin-wrap">
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
-								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
-									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
-								<?php else : ?>
-									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
-								<?php endif; ?>
+								<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -550,7 +575,7 @@ switch ( $action ) {
 
 								?>
 								<?php foreach ( $public_display as $id => $item ) : ?>
-									<option <?php selected( $profile_user->display_name, $item ); ?>><?php echo $item; ?></option>
+									<option <?php selected( $profile_user->display_name, $item ); ?>><?php echo esc_html( $item ); ?></option>
 								<?php endforeach; ?>
 							</select>
 						</td>
@@ -584,12 +609,13 @@ switch ( $action ) {
 								$pending_change_message .= sprintf(
 									' <a href="%1$s">%2$s</a>',
 									esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
-									__( 'Cancel' )
+									_x( 'Cancel request', 'user email change' )
 								);
 								wp_admin_notice(
 									$pending_change_message,
 									array(
-										'additional_classes' => array( 'updated', 'inline' ),
+										'type' => 'info',
+										'additional_classes' => array( 'inline' ),
 									)
 								);
 							endif;
@@ -633,8 +659,8 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-description-wrap">
 						<th><label for="description"><?php _e( 'Biographical Info' ); ?></label></th>
-						<td><textarea name="description" id="description" rows="5" cols="30"><?php echo $profile_user->description; // textarea_escaped ?></textarea>
-						<p class="description"><?php _e( 'Share a little biographical information to fill out your profile. This may be shown publicly.' ); ?></p></td>
+						<td><textarea name="description" id="description" rows="5" cols="30" aria-describedby="description-description"><?php echo $profile_user->description; // textarea_escaped ?></textarea>
+						<p class="description" id="description-description"><?php _e( 'Share a little biographical information to fill out your profile. This may be shown publicly.' ); ?></p></td>
 					</tr>
 
 					<?php if ( get_option( 'show_avatars' ) ) : ?>
@@ -696,10 +722,10 @@ switch ( $action ) {
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<div class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text ltr" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 										</div>
-										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+										<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
 										</button>
@@ -738,11 +764,11 @@ switch ( $action ) {
 									<th><?php _e( 'Password Reset' ); ?></th>
 									<td>
 										<div class="generate-reset-link">
-											<button type="button" class="button button-secondary" id="generate-reset-link">
+											<button type="button" class="button button-secondary" id="generate-reset-link" aria-describedby="generate-reset-link-description">
 												<?php _e( 'Send Reset Link' ); ?>
 											</button>
 										</div>
-										<p class="description">
+										<p class="description" id="generate-reset-link-description">
 											<?php
 											printf(
 												/* translators: %s: User's display name. */
@@ -759,8 +785,8 @@ switch ( $action ) {
 								<tr class="user-sessions-wrap hide-if-no-js">
 									<th><?php _e( 'Sessions' ); ?></th>
 									<td aria-live="assertive">
-										<div class="destroy-sessions"><button type="button" disabled class="button"><?php _e( 'Log Out Everywhere Else' ); ?></button></div>
-										<p class="description">
+										<div class="destroy-sessions"><button type="button" disabled class="button" aria-describedby="sessions-description"><?php _e( 'Log Out Everywhere Else' ); ?></button></div>
+										<p class="description" id="sessions-description">
 											<?php _e( 'You are only logged in at this location.' ); ?>
 										</p>
 									</td>
@@ -769,8 +795,8 @@ switch ( $action ) {
 								<tr class="user-sessions-wrap hide-if-no-js">
 									<th><?php _e( 'Sessions' ); ?></th>
 									<td aria-live="assertive">
-										<div class="destroy-sessions"><button type="button" class="button" id="destroy-sessions"><?php _e( 'Log Out Everywhere Else' ); ?></button></div>
-										<p class="description">
+										<div class="destroy-sessions"><button type="button" class="button" id="destroy-sessions" aria-describedby="sessions-description"><?php _e( 'Log Out Everywhere Else' ); ?></button></div>
+										<p class="description" id="sessions-description">
 											<?php _e( 'Did you lose your phone or leave your account logged in at a public computer? You can log out everywhere else, and stay logged in here.' ); ?>
 										</p>
 									</td>
@@ -779,11 +805,11 @@ switch ( $action ) {
 								<tr class="user-sessions-wrap hide-if-no-js">
 									<th><?php _e( 'Sessions' ); ?></th>
 									<td>
-										<p><button type="button" class="button" id="destroy-sessions"><?php _e( 'Log Out Everywhere' ); ?></button></p>
-										<p class="description">
+										<p><button type="button" class="button" id="destroy-sessions" aria-describedby="sessions-description"><?php _e( 'Log Out Everywhere' ); ?></button></p>
+										<p class="description" id="sessions-description">
 											<?php
 											/* translators: %s: User's display name. */
-											printf( __( 'Log %s out of all locations.' ), $profile_user->display_name );
+											printf( __( 'Log %s out of all locations.' ), esc_html( $profile_user->display_name ) );
 											?>
 										</p>
 									</td>
@@ -837,7 +863,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input ltr" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
@@ -878,9 +904,10 @@ switch ( $action ) {
 								<p>
 									<?php
 									printf(
-										/* translators: %s: Documentation URL. */
-										__( 'If this is a development website, you can <a href="%s">set the environment type accordingly</a> to enable application passwords.' ),
-										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
+										/* translators: 1: Documentation URL, 2: local */
+										__( 'If this is a local website, you can <a href="%1$s">set the environment type</a> as %2$s to enable application passwords.' ),
+										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' ),
+										'<code>local</code>'
 									);
 									?>
 								</p>
@@ -924,7 +951,7 @@ switch ( $action ) {
 					 *
 					 * @since 2.8.0
 					 *
-					 * @param bool    $enable      Whether to display the capabilities. Default true.
+					 * @param bool    $enable       Whether to display the capabilities. Default true.
 					 * @param WP_User $profile_user The current WP_User object.
 					 */
 					$display_additional_caps = apply_filters( 'additional_capabilities_display', true, $profile_user );
@@ -971,13 +998,13 @@ switch ( $action ) {
 		break;
 }
 ?>
-<script type="text/javascript">
+<script>
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
 </script>
 
-<script type="text/javascript">
+<script>
 	jQuery( function( $ ) {
 		var languageSelect = $( '#locale' );
 		$( 'form' ).on( 'submit', function() {
