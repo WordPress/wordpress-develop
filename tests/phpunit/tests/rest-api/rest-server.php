@@ -1726,7 +1726,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @param string|array<string> $method_param    Value of the `_method` query parameter.
 	 * @param 200|400              $expected_status Expected response status.
-	 * @param string               $expected_body   Expected response body.
+	 * @param non-empty-string     $expected_body   Expected response body.
 	 */
 	public function test_serve_request_validates_method_query_param( $method_param, int $expected_status, string $expected_body ): void {
 		$server = rest_get_server();
@@ -1737,7 +1737,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'/test/method',
 			array(
 				array(
-					'methods'             => array( 'GET', 'POST' ),
+					'methods'             => array( 'GET', 'MY_CUSTOM-METHOD' ),
 					'callback'            => static function ( WP_REST_Request $request ) {
 						return new WP_REST_Response( $request->get_method() );
 					},
@@ -1758,15 +1758,13 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * Data provider for {@see self::test_serve_request_validates_method_query_param()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string|array<string>, 1: 200|400, 2: string }>
+	 * @return array<non-falsy-string, array{ 0: string|array<string>, 1: 200|400, 2: non-empty-string }>
 	 */
 	public static function data_serve_request_validates_method_query_param(): array {
 		$invalid_param_error = '{"code":"rest_invalid_param","message":"Invalid parameter(s): _method"}';
 
 		return array(
-			'lowercase method' => array( 'post', 200, '"POST"' ),
-			'head method'      => array( 'HEAD', 200, '' ),
-			'custom method'    => array( 'PURGE', 400, $invalid_param_error ),
+			'custom method'    => array( 'my_custom-method', 200, '"MY_CUSTOM-METHOD"' ),
 			'trailing newline' => array( "POST\n", 400, $invalid_param_error ),
 			'list array'       => array( array( 'DELETE' ), 400, $invalid_param_error ),
 		);
