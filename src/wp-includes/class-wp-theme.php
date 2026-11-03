@@ -790,7 +790,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool Whether the theme exists.
 	 */
 	public function exists() {
-		return ! ( $this->errors() && in_array( 'theme_not_found', $this->errors()->get_error_codes(), true ) );
+		$errors = $this->errors();
+		return ! ( $errors && in_array( 'theme_not_found', $errors->get_error_codes(), true ) );
 	}
 
 	/**
@@ -1199,7 +1200,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @return string Absolute path of the stylesheet directory.
 	 */
 	public function get_stylesheet_directory() {
-		if ( $this->errors() && in_array( 'theme_root_missing', $this->errors()->get_error_codes(), true ) ) {
+		$errors = $this->errors();
+		if ( $errors && in_array( 'theme_root_missing', $errors->get_error_codes(), true ) ) {
 			return '';
 		}
 
@@ -1363,7 +1365,8 @@ final class WP_Theme implements ArrayAccess {
 	 */
 	public function get_post_templates() {
 		// If you screw up your active theme and we invalidate your parent, most things still work. Let it slide.
-		if ( $this->errors() && $this->errors()->get_error_codes() !== array( 'theme_parent_invalid' ) ) {
+		$errors = $this->errors();
+		if ( $errors && $errors->get_error_codes() !== array( 'theme_parent_invalid' ) ) {
 			return array();
 		}
 

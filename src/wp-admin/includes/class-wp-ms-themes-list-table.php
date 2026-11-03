@@ -731,10 +731,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	public function column_description( $theme ) {
 		global $status, $totals;
 
-		if ( $theme->errors() ) {
+		$theme_errors = $theme->errors();
+		if ( $theme_errors ) {
 			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
 			wp_admin_notice(
-				$pre . $theme->errors()->get_error_message(),
+				$pre . $theme_errors->get_error_message(),
 				array(
 					'type'               => 'error',
 					'additional_classes' => array( 'inline' ),

@@ -584,8 +584,9 @@ final class WP_Customize_Manager {
 			}
 
 			// If the theme has errors while loading, bail.
-			if ( $this->theme()->errors() ) {
-				$this->wp_die( -1, $this->theme()->errors()->get_error_message() );
+			$theme_errors = $this->theme()->errors();
+			if ( $theme_errors ) {
+				$this->wp_die( -1, $theme_errors->get_error_message() );
 			}
 
 			// If the theme isn't allowed per multisite settings, bail.
