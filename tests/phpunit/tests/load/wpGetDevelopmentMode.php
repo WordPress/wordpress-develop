@@ -6,11 +6,17 @@
  * @subpackage UnitTests
  * @since 6.3.0
  *
- * @group load.php
+ * @group load
+ *
  * @covers ::wp_get_development_mode
  * @covers ::wp_is_development_mode
  */
 class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
+
+	public function tear_down() {
+		unset( $GLOBALS['_wp_tests_development_mode'] );
+		parent::tear_down();
+	}
 
 	/**
 	 * Tests that `wp_get_development_mode()` returns the value of the `WP_DEVELOPMENT_MODE` constant.
@@ -68,7 +74,7 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_is_development_mode() {
+	public static function data_wp_is_development_mode(): array {
 		return array(
 			'core mode, testing for core'              => array(
 				'core',

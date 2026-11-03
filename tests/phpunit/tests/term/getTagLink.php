@@ -42,12 +42,28 @@ class Tests_Term_GetTagLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after the test class finishes.
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
 	 * Set up the test fixture.
 	 */
 	public function set_up() {
 		parent::set_up();
 		// Required as taxonomies are reset between tests.
 		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
 	}
 
 	public function test_success() {
