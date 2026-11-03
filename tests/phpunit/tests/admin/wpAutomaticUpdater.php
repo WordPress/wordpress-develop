@@ -23,17 +23,19 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	private static $send_plugin_theme_email;
 
 	/**
-	 * Files and directories to remove after each test, in creation order.
+	 * The temporary directory created by `::create_vcs_fixture()`, if any.
 	 *
-	 * @var string[]
+	 * @var string
 	 */
-	private $vcs_fixture_paths = array();
+	private $vcs_fixture_root = '';
 
 	/**
 	 * Sets up shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 		self::$updater = new WP_Automatic_Updater();
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
@@ -50,15 +52,9 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function tear_down() {
 		delete_site_option( 'deferred_translation_updates' );
 
-		foreach ( array_reverse( $this->vcs_fixture_paths ) as $path ) {
-			if ( is_dir( $path ) ) {
-				rmdir( $path );
-			} else {
-				unlink( $path );
-			}
+		if ( $this->vcs_fixture_root ) {
+			( new WP_Filesystem_Direct( null ) )->delete( $this->vcs_fixture_root, true );
 		}
-
-		$this->vcs_fixture_paths = array();
 
 		parent::tear_down();
 	}
@@ -823,15 +819,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 * @param string $type  The type of entry to create. Accepts 'file' or 'dir'.
 	 */
 	public function test_is_vcs_checkout_should_detect_vcs_entries( $entry, $type ) {
-		$root = $this->create_vcs_fixture();
-
-		if ( 'file' === $type ) {
-			// As in a worktree inside a container, the path in a `.git` file does not have to exist.
-			file_put_contents( "$root/$entry", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
-		} else {
-			mkdir( "$root/$entry" );
-		}
-		$this->vcs_fixture_paths[] = "$root/$entry";
+		$root = $this->create_vcs_fixture( $entry, $type );
 
 		$this->assertTrue( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
 	}
@@ -839,9 +827,9 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{entry: string, type: string}>
+	 * @return array[]
 	 */
-	public function data_is_vcs_checkout_should_detect_vcs_entries() {
+	public static function data_is_vcs_checkout_should_detect_vcs_entries() {
 		return array(
 			'.git file in the checked directory'         => array(
 				'entry' => 'wordpress/.git',
@@ -897,10 +885,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 * @covers WP_Automatic_Updater::is_vcs_checkout
 	 */
 	public function test_is_vcs_checkout_should_allow_filter_to_override_git_file() {
-		$root = $this->create_vcs_fixture();
-
-		file_put_contents( "$root/wordpress/.git", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
-		$this->vcs_fixture_paths[] = "$root/wordpress/.git";
+		$root = $this->create_vcs_fixture( 'wordpress/.git', 'file' );
 
 		$filter = new MockAction();
 		add_filter( 'automatic_updates_is_vcs_checkout', array( $filter, 'filter' ), 10, 2 );
@@ -911,16 +896,27 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Creates a temporary directory with a `wordpress` directory inside it.
+	 * Creates a temporary directory with a `wordpress` directory inside it,
+	 * which is removed after the test.
 	 *
+	 * @param string $entry Optional. A VCS entry to create, relative to the temporary directory.
+	 *                      Default empty.
+	 * @param string $type  Optional. The type of entry to create. Accepts 'file' or 'dir'.
+	 *                      Default 'dir'.
 	 * @return string The path to the temporary directory.
 	 */
-	private function create_vcs_fixture() {
-		$root = untrailingslashit( get_temp_dir() ) . '/' . uniqid( 'wp-vcs-checkout-' );
+	private function create_vcs_fixture( $entry = '', $type = 'dir' ) {
+		$root                   = get_temp_dir() . uniqid( 'wp-vcs-checkout-' );
+		$this->vcs_fixture_root = $root;
 
 		mkdir( "$root/wordpress", 0777, true );
-		$this->vcs_fixture_paths[] = $root;
-		$this->vcs_fixture_paths[] = "$root/wordpress";
+
+		if ( 'file' === $type ) {
+			// As in a worktree inside a container, the path in a `.git` file does not have to exist.
+			file_put_contents( "$root/$entry", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
+		} elseif ( $entry ) {
+			mkdir( "$root/$entry" );
+		}
 
 		return $root;
 	}
