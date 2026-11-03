@@ -914,7 +914,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return $array->type;
 		}
 
-		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
+		if ( 'array' !== $type || preg_match( '#^array(?:\[])+$#', $element ) !== 1 ) {
 			return null;
 		}
 
