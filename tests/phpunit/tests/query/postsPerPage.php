@@ -2,146 +2,117 @@
 
 /**
  * @group query
+ * @covers WP_Query::get_posts
  */
 class Tests_Query_PostsPerPage extends WP_UnitTestCase {
-	public $q;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		// More than posts_per_page default of 10
-		// This number is verified in the 'test_posts_per_page_all' method.
-		self::factory()->post->create_many( 11 );
+	/**
+	 * @ticket 24142
+	 * @dataProvider data_zero_posts_per_page
+	 *
+	 * @param int|string|bool $posts_per_page Page size.
+	 * @param string          $fields         Fields to return.
+	 */
+	public function test_zero_posts_per_page_returns_no_posts_with_stickies( $posts_per_page, $fields ) {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		stick_post( $post_id );
+
+		// Check the initial query and a repeat query using cached results.
+		for ( $i = 0; $i < 2; $i++ ) {
+			$query = new WP_Query(
+				array(
+					'posts_per_page' => $posts_per_page,
+					'fields'         => $fields,
+				)
+			);
+
+			$this->assertTrue( $query->is_home() );
+			$this->assertSame( array(), $query->posts, 'Zero-sized queries should not include sticky posts.' );
+			$this->assertSame( 0, $query->post_count );
+			$this->assertSame( 0, $query->found_posts );
+			$this->assertSame( 0, $query->max_num_pages );
+		}
 	}
 
-	public function set_up() {
-		parent::set_up();
-		unset( $this->q );
-		$this->q = new WP_Query();
-	}
-
-	public function _get_post_count( $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'fields' => 'ids',
-			)
+	/**
+	 * @return array
+	 */
+	public static function data_zero_posts_per_page() {
+		return array(
+			'zero with post objects'        => array( 0, '' ),
+			'false with post objects'       => array( false, '' ),
+			'string zero with post objects' => array( '0', '' ),
+			'zero with post IDs'            => array( 0, 'ids' ),
+			'false with post IDs'           => array( false, 'ids' ),
+			'string zero with post IDs'     => array( '0', 'ids' ),
 		);
-
-		return count( $this->q->query( $args ) );
-	}
-
-	public function test_posts_per_page_integer_positive() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => 2,
-			)
-		);
-
-		$this->assertSame( 2, $count );
 	}
 
 	/**
 	 * @ticket 24142
+	 * @dataProvider data_zero_posts_per_archive_page
+	 *
+	 * @param array           $query_args             Archive or search query arguments.
+	 * @param int|string|bool $posts_per_archive_page Page size override.
 	 */
-	public function test_posts_per_page_integer_zero() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => 0,
-			)
-		);
+	public function test_zero_posts_per_archive_page_returns_no_posts( $query_args, $posts_per_archive_page ) {
+		self::factory()->post->create( array( 'post_title' => 'Zero page size test' ) );
 
-		$this->assertSame( 0, $count );
+		$query_args['posts_per_page']         = 1;
+		$query_args['posts_per_archive_page'] = $posts_per_archive_page;
+		$query                                = new WP_Query( $query_args );
+
+		$this->assertTrue( $query->is_archive() || $query->is_search() );
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->post_count );
+		$this->assertSame( 0, $query->found_posts );
+		$this->assertSame( 0, $query->max_num_pages );
 	}
 
-	public function test_posts_per_page_string_numeric() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => '2',
-			)
+	/**
+	 * @return array
+	 */
+	public static function data_zero_posts_per_archive_page() {
+		return array(
+			'archive with zero'        => array( array( 'year' => gmdate( 'Y' ) ), 0 ),
+			'archive with false'       => array( array( 'year' => gmdate( 'Y' ) ), false ),
+			'archive with string zero' => array( array( 'year' => gmdate( 'Y' ) ), '0' ),
+			'search with zero'         => array( array( 's' => 'Zero page size test' ), 0 ),
+			'search with false'        => array( array( 's' => 'Zero page size test' ), false ),
+			'search with string zero'  => array( array( 's' => 'Zero page size test' ), '0' ),
 		);
-
-		$this->assertSame( 2, $count );
-	}
-
-	public function test_posts_per_page_string_non_numeric() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => 'foo',
-			)
-		);
-
-		$this->assertSame( 10, $count );
-	}
-
-	public function test_posts_per_page_boolean_true() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => true,
-			)
-		);
-
-		$this->assertSame( 1, $count );
 	}
 
 	/**
 	 * @ticket 24142
+	 * @dataProvider data_invalid_posts_per_page
+	 *
+	 * @param mixed $posts_per_page Invalid page size.
 	 */
-	public function test_posts_per_page_boolean_false() {
-		$count = $this->_get_post_count(
+	public function test_invalid_posts_per_page_uses_configured_default( $posts_per_page ) {
+		update_option( 'posts_per_page', 2 );
+		self::factory()->post->create_many( 3 );
+
+		$query = new WP_Query(
 			array(
-				'posts_per_page' => false,
+				'posts_per_page' => $posts_per_page,
+				'fields'         => 'ids',
 			)
 		);
 
-		$this->assertSame( 0, $count );
+		$this->assertCount( 2, $query->posts );
+		$this->assertSame( 2, $query->get( 'posts_per_page' ) );
 	}
 
-	public function test_posts_per_page_null() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => null,
-			)
+	/**
+	 * @return array
+	 */
+	public static function data_invalid_posts_per_page() {
+		return array(
+			'non-numeric string' => array( 'foo' ),
+			'null'               => array( null ),
+			'empty string'       => array( '' ),
+			'array'              => array( array() ),
 		);
-
-		$this->assertSame( 10, $count );
-	}
-
-	public function test_posts_per_page_empty_string() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => '',
-			)
-		);
-
-		$this->assertSame( 10, $count );
-	}
-
-	public function test_posts_per_page_array() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => array(),
-			)
-		);
-
-		$this->assertSame( 10, $count );
-	}
-
-	public function test_posts_per_page_negative() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => -2,
-			)
-		);
-
-		$this->assertSame( 2, $count );
-	}
-
-	public function test_posts_per_page_all() {
-		$count = $this->_get_post_count(
-			array(
-				'posts_per_page' => -1,
-			)
-		);
-
-		$this->assertSame( 11, $count );
 	}
 }
