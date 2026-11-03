@@ -10,14 +10,6 @@
 class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 
 	/**
-	 * Tear down after each test.
-	 */
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-		parent::tear_down();
-	}
-
-	/**
 	 * @ticket 65819
 	 */
 	public function test_returns_taxonomy_registered_for_attachment() {
