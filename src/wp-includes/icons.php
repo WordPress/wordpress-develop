@@ -199,6 +199,18 @@ function wp_is_valid_icon_name( $icon_name ) {
 }
 
 /**
+ * Checks whether an icon is registered.
+ *
+ * @since 7.2.0
+ *
+ * @param mixed $icon_name Namespaced icon name, e.g. 'core-admin/pin'.
+ * @return bool True if the icon is registered, else false.
+ */
+function wp_is_registered_icon_name( $icon_name ) {
+	return is_string( $icon_name ) && WP_Icons_Registry::get_instance()->is_registered( $icon_name );
+}
+
+/**
  * Returns the SVG markup for a registered icon.
  *
  * @since 7.1.0

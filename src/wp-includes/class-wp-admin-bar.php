@@ -663,7 +663,7 @@ class WP_Admin_Bar {
 		if ( wp_is_valid_icon_name( $icon_name ) ) {
 			$icon = _wp_admin_bar_icon( $icon_name );
 
-			if ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+			if ( ! wp_is_registered_icon_name( $icon_name ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
