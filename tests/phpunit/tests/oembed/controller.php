@@ -514,8 +514,6 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_get_oembed_endpoint_url_pretty_permalinks() {
-		update_option( 'permalink_structure', '/%postname%' );
-
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
