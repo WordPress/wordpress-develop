@@ -61,11 +61,11 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 403, $response->get_status(), 'Response should indicate user does not have permission.' );
+		$this->assertSame( 403, $response->get_status(), 'Response should indicate user does not have permission.' );
 
-		$this->assertEquals( 'rest_cannot_create', $data['code'], 'Response should indicate user cannot create.' );
+		$this->assertSame( 'rest_cannot_create', $data['code'], 'Response should indicate user cannot create.' );
 
-		$this->assertEquals( 'Sorry, you are not allowed to create Navigation Menus as this user.', $data['message'], 'Response should indicate failed request status.' );
+		$this->assertSame( 'Sorry, you are not allowed to create Navigation Menus as this user.', $data['message'], 'Response should indicate failed request status.' );
 	}
 
 	/**
@@ -80,13 +80,13 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status(), 'Status should indicate successful request.' );
+		$this->assertSame( 200, $response->get_status(), 'Status should indicate successful request.' );
 
 		$this->assertIsArray( $data, 'Response should be of correct type.' );
 
 		$this->assertArrayHasKey( 'id', $data, 'Response should contain expected fields.' );
 
-		$this->assertEquals( 'wp_navigation', get_post_type( $data['id'] ), '"id" field should represent a post of type "wp_navigation"' );
+		$this->assertSame( 'wp_navigation', get_post_type( $data['id'] ), '"id" field should represent a post of type "wp_navigation"' );
 
 		// Check that only a single Navigation fallback was created.
 		$navs_in_db = $this->get_navigations_in_database();
@@ -105,16 +105,16 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status(), 'Status should indicate successful request.' );
+		$this->assertSame( 200, $response->get_status(), 'Status should indicate successful request.' );
 
 		$this->assertArrayHasKey( 'schema', $data, '"schema" key should exist in response.' );
 
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'object', $schema['type'], 'The schema type should match the expected type.' );
+		$this->assertSame( 'object', $schema['type'], 'The schema type should match the expected type.' );
 
 		$this->assertArrayHasKey( 'id', $schema['properties'], 'Schema should have an "id" property.' );
-		$this->assertEquals( 'integer', $schema['properties']['id']['type'], 'Schema "id" property should be an integer.' );
+		$this->assertSame( 'integer', $schema['properties']['id']['type'], 'Schema "id" property should be an integer.' );
 		$this->assertTrue( $schema['properties']['id']['readonly'], 'Schema "id" property should be readonly.' );
 	}
 
@@ -160,30 +160,20 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		// First we'll use the navigation fallback to get a link to the navigation endpoint.
 		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
 		$response = rest_get_server()->dispatch( $request );
-		$links    = $response->get_links();
-
-		// Extract the navigation endpoint URL from the response.
-		$embedded_navigation_href = $links['self'][0]['href'];
-		preg_match( '/\?rest_route=(.*)/', $embedded_navigation_href, $matches );
-		$navigation_endpoint = $matches[1];
-
-		// Fetch the "linked" navigation post from the endpoint, with the context parameter set to 'embed' to simulate fetching embedded links.
-		$request = new WP_REST_Request( 'GET', $navigation_endpoint );
-		$request->set_param( 'context', 'embed' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		$data     = rest_get_server()->response_to_data( $response, true );
+		$embedded = $data['_embedded']['self'][0];
 
 		// Verify that the additional status field is present.
-		$this->assertArrayHasKey( 'status', $data, 'Response title should contain a "status" field.' );
+		$this->assertArrayHasKey( 'status', $embedded, 'Response title should contain a "status" field.' );
 
 		// Verify that the additional content fields are present.
-		$this->assertArrayHasKey( 'content', $data, 'Response should contain a "content" field.' );
-		$this->assertArrayHasKey( 'raw', $data['content'], 'Response content should contain a "raw" field.' );
-		$this->assertArrayHasKey( 'rendered', $data['content'], 'Response content should contain a "rendered" field.' );
-		$this->assertArrayHasKey( 'block_version', $data['content'], 'Response should contain a "block_version" field.' );
+		$this->assertArrayHasKey( 'content', $embedded, 'Response should contain a "content" field.' );
+		$this->assertArrayHasKey( 'raw', $embedded['content'], 'Response content should contain a "raw" field.' );
+		$this->assertArrayHasKey( 'rendered', $embedded['content'], 'Response content should contain a "rendered" field.' );
+		$this->assertArrayHasKey( 'block_version', $embedded['content'], 'Response should contain a "block_version" field.' );
 
 		// Verify that the additional title.raw field is present.
-		$this->assertArrayHasKey( 'raw', $data['title'], 'Response title should contain a "raw" key.' );
+		$this->assertArrayHasKey( 'raw', $embedded['title'], 'Response title should contain a "raw" key.' );
 	}
 
 	private function get_navigations_in_database() {
@@ -201,44 +191,133 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Covered by the core test.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( rest_get_route_for_post( $post_id ) ), $links['self'][0]['href'] );
+		$this->assertTrue( $links['self'][0]['attributes']['embeddable'] );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
+	}
+
+	/**
+	 * Navigation fallback does not register a context request parameter via get_context_param().
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Covered by the core test.
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
+	 * Navigation fallback has no collection route; singular GET is covered by test_get_item().
+	 *
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		// Covered by the core test.
+		// Controller has no collection operation.
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_user );
+
+		$request  = new WP_REST_Request( 'POST', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 }

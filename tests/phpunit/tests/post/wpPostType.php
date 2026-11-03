@@ -7,9 +7,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_post_types;
 
-		foreach ( $wp_post_types as $post_type ) {
-			$this->assertInstanceOf( 'WP_Post_Type', $post_type );
-		}
+		$this->assertNotEmpty( $wp_post_types );
+
+		$this->assertContainsOnlyInstancesOf( 'WP_Post_Type', $wp_post_types );
 	}
 
 	public function test_add_supports_defaults() {
@@ -24,8 +24,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'title'  => true,
-				'editor' => true,
+				'title'    => true,
+				'editor'   => true,
+				'autosave' => true,
 			),
 			$post_type_supports
 		);
@@ -56,6 +57,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 				'editor'    => true,
 				'comments'  => true,
 				'revisions' => true,
+				'autosave'  => true,
 			),
 			$post_type_supports
 		);
@@ -169,8 +171,8 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_rewrite_rules();
 		$rewrite_tags_after = $wp_rewrite->rewritecode;
 
-		$this->assertNotFalse( array_search( "%$post_type%", $rewrite_tags, true ) );
-		$this->assertFalse( array_search( "%$post_type%", $rewrite_tags_after, true ) );
+		$this->assertContains( "%$post_type%", $rewrite_tags );
+		$this->assertNotContains( "%$post_type%", $rewrite_tags_after );
 	}
 
 	public function test_register_meta_boxes() {
@@ -263,7 +265,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|bool $expected_property_value Expected property value.
 	 * }
 	 */
-	public function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {
+	public static function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {
 		return array(
 			'autosave_rest_controller_class property'  => array(
 				'autosave_rest_controller_class',
@@ -330,7 +332,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|null      $expected_value                  Expected value.
 	 * }
 	 */
-	public function data_get_revisions_rest_controller_should_return_correct_values() {
+	public static function data_get_revisions_rest_controller_should_return_correct_values() {
 		return array(
 			'disable show_in_rest'                => array(
 				false,
@@ -367,6 +369,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56922
+	 * @ticket 41172
 	 *
 	 * @covers WP_Post_Type::get_autosave_rest_controller
 	 *
@@ -405,17 +408,11 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|null $expected_value                 Expected value.
 	 * }
 	 */
-	public function data_get_autosave_rest_controller_should_return_correct_values() {
+	public static function data_get_autosave_rest_controller_should_return_correct_values() {
 		return array(
 			'disable show_in_rest'               => array(
 				false,
-				'attachment',
-				false,
-				null,
-			),
-			'invalid post type'                  => array(
-				true,
-				'attachment',
+				'test_post_type',
 				false,
 				null,
 			),
