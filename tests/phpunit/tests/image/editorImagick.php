@@ -682,6 +682,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			'WordPress should support PDFs when native Imagick can render the fixture.'
 		);
 
+		// A fallback size is required to generate the full PDF preview.
+		// Keep the thumbnail, but omit unused medium and large images.
+		$preview_sizes = static function () {
+			return array( 'thumbnail' );
+		};
+		add_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
+
 		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
