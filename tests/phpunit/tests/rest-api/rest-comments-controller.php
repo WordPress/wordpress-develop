@@ -6000,7 +6000,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A reaction speaks for its author, so being able to edit the post is not
 	 * enough to remove someone else's.
 	 *
-	 * @ticket 64638
+	 * @ticket 66447
 	 *
 	 * @dataProvider data_users_who_cannot_delete_another_users_reaction
 	 *
@@ -6054,7 +6054,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Reactions on a resolved thread are frozen, like adding new ones, on the
 	 * root note and on its replies.
 	 *
-	 * @ticket 64638
+	 * @ticket 66447
 	 *
 	 * @dataProvider data_resolved_thread_targets
 	 *
