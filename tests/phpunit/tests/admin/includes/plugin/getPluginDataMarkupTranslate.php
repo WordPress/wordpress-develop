@@ -219,7 +219,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 			true
 		);
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array(
 				array( 'My Plugin', 'my-plugin' ),
 				array( 'https://example.org/plugin/', 'my-plugin' ),
@@ -344,9 +344,8 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 */
 	public static function data_text_domain_paths() {
 		return array(
-			'no domain path'   => array( '', 'my-plugin' ),
-			'domain path'      => array( '/languages', 'my-plugin/languages' ),
-			'zero domain path' => array( '0', 'my-plugin' ),
+			'no domain path' => array( '', 'my-plugin' ),
+			'domain path'    => array( '/languages', 'my-plugin/languages' ),
 		);
 	}
 

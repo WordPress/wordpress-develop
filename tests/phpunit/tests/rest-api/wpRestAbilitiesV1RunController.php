@@ -443,6 +443,118 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an object result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-object-output',
+			array(
+				'label'               => 'Nested Empty Object In Object Output',
+				'description'         => 'Returns an object result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return (object) array( 'settings' => array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a JsonSerializable result with an empty object property.
+		$this->register_test_ability(
+			'test/nested-empty-object-in-json-serializable-output',
+			array(
+				'label'               => 'Nested Empty Object In JsonSerializable Output',
+				'description'         => 'Returns a JsonSerializable result with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return new class() implements JsonSerializable {
+						public function jsonSerialize(): array {
+							return array( 'settings' => array() );
+						}
+					};
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns an empty list.
+		$this->register_test_ability(
+			'test/empty-list-output',
+			array(
+				'label'               => 'Empty List Output',
+				'description'         => 'Returns an empty list.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a list of strings.
+		$this->register_test_ability(
+			'test/string-list-output',
+			array(
+				'label'               => 'String List Output',
+				'description'         => 'Returns a list of strings.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'string' ),
+				),
+				'execute_callback'    => static function () {
+					return array( 'a', 'b' );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a string.
+		$this->register_test_ability(
+			'test/string-output',
+			array(
+				'label'               => 'String Output',
+				'description'         => 'Returns a string.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'string',
+				),
+				'execute_callback'    => static function () {
+					return 'value';
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -637,15 +749,19 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 */
 	public static function data_output_is_prepared_for_json_clients(): array {
 		return array(
-			'root empty object stays unchanged'  => array( 'test/empty-object-output', '[]' ),
-			'nested empty object'                => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
-			'numeric collection stays unchanged' => array( 'test/empty-object-list-output', '[[]]' ),
+			'root empty object'       => array( 'test/empty-object-output', '{}' ),
+			'nested empty object'     => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
+			'numeric collection'      => array( 'test/empty-object-list-output', '[{}]' ),
+			'object result'           => array( 'test/nested-empty-object-in-object-output', '{"settings":{}}' ),
+			'JsonSerializable result' => array( 'test/nested-empty-object-in-json-serializable-output', '{"settings":{}}' ),
+			'root empty list'         => array( 'test/empty-list-output', '[]' ),
+			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
+			'string'                  => array( 'test/string-output', '"value"' ),
 		);
 	}
 
 	/**
-	 * Tests that ability results are prepared for JSON clients without breaking
-	 * the global `_fields` and `_embed` parameters.
+	 * Tests that ability results are prepared for JSON clients.
 	 *
 	 * @ticket 66267
 	 * @dataProvider data_output_is_prepared_for_json_clients
@@ -657,15 +773,132 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected, wp_json_encode( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
+	}
 
-		$request->set_param( '_fields', 'settings' );
+	/**
+	 * Tests that the global `_fields` and `_embed` parameters and response links leave
+	 * ability results unchanged.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_global_parameters_and_response_links_leave_output_unchanged(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/nested-empty-object-output/run' );
+
+		// The result has no `other` field, so filtering would leave none of the result.
+		$request->set_query_params(
+			array(
+				'_fields' => 'other',
+				'_embed'  => '1',
+			)
+		);
+
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->add_link( 'alternate', rest_url( '/wp-abilities/v1/abilities' ), array( 'embeddable' => true ) );
+				return $response;
+			}
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
 
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+		$data     = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
 
-		$this->assertSame( $expected, wp_json_encode( $this->server->response_to_data( $response, true ) ) );
+		$this->assertSame( '{"settings":{}}', wp_json_encode( $data ), 'The result should be left unchanged.' );
+	}
+
+	/**
+	 * Tests that the global `_embed` parameter leaves the `_links` returned by an ability
+	 * unchanged, without requesting the linked resources.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_links_in_the_result_are_not_embedded(): void {
+		$result = array(
+			'id'     => 1,
+			'_links' => array(
+				'author' => array(
+					array(
+						'href'       => rest_url( '/wp-abilities/v1/abilities' ),
+						'embeddable' => true,
+					),
+				),
+			),
+		);
+		$this->register_test_ability(
+			'test/links-output',
+			array(
+				'label'               => 'Links Output',
+				'description'         => 'Returns an object with its own embeddable link.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () use ( $result ) {
+					return $result;
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/links-output/run' );
+		$request->set_query_params( array( '_embed' => '1' ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+
+		$dispatch = new MockAction();
+		add_filter( 'rest_pre_dispatch', array( $dispatch, 'filter' ) );
+		$data = $this->server->response_to_data( $response, rest_parse_embed_param( $request['_embed'] ) );
+
+		$this->assertSame( $result, $data, 'The links returned by the ability should be left unchanged.' );
+		$this->assertSame( 0, $dispatch->get_call_count(), 'No linked resource should be requested.' );
+	}
+
+	/**
+	 * Tests that preloading a read-only ability run keeps the result prepared for
+	 * JSON clients, also with the global `_fields` and `_embed` parameters.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_preloaded_output_is_prepared_for_json_clients(): void {
+		$this->register_test_ability(
+			'test/readonly-output',
+			array(
+				'label'               => 'Read-only Output',
+				'description'         => 'Returns an empty object from a read-only ability.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$path    = '/wp-abilities/v1/abilities/test/readonly-output/run?_fields=other&_embed=1';
+		$preload = rest_preload_api_request( array(), $path );
+
+		$this->assertArrayHasKey( $path, $preload, 'The ability run should be preloaded.' );
+		$this->assertSame( '{}', wp_json_encode( $preload[ $path ]['body'] ), 'The preloaded result should be encoded as an empty object.' );
 	}
 
 	/**
@@ -1320,7 +1553,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_malformed_json_provider(): array {
+	public static function data_malformed_json_provider(): array {
 		return array(
 			'Missing value'              => array( '{"input": }' ),
 			'Trailing comma in array'    => array( '{"input": [1, 2, }' ),
@@ -1458,7 +1691,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_http_methods_provider(): array {
+	public static function data_invalid_http_methods_provider(): array {
 		return array(
 			'PATCH'  => array( 'PATCH' ),
 			'PUT'    => array( 'PUT' ),
@@ -1575,206 +1808,141 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for input coerced to the ability input schema over a GET request.
+	 * Provides query-string and JSON-body transports for the run endpoint.
 	 *
-	 * Covers fields nested inside an object as well as a top-level scalar or array input.
-	 *
-	 * @return array<string, array{0: array, 1: mixed, 2: mixed}> Schema, raw input, and the
-	 *                                                            expected coerced value.
+	 * @return array
 	 */
-	public function data_input_is_coerced(): array {
-		$object_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'count' => array( 'type' => 'integer' ),
-				'flag'  => array( 'type' => 'boolean' ),
-				'tags'  => array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'string' ),
-				),
-			),
-		);
-
-		$tags_object_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'tags' => array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'string' ),
-				),
-			),
-		);
-
-		// Two-mode schema mirroring real read abilities: select by id, or return a collection.
-		$one_of_schema = array(
-			'type'  => 'object',
-			'oneOf' => array(
-				array(
-					'title'                => 'by_id',
-					'type'                 => 'object',
-					'properties'           => array(
-						'id' => array( 'type' => 'integer' ),
-					),
-					'required'             => array( 'id' ),
-					'additionalProperties' => false,
-				),
-				array(
-					'title'                => 'collection',
-					'type'                 => 'object',
-					'properties'           => array(
-						'per_page' => array( 'type' => 'integer' ),
-						'fields'   => array(
-							'type'  => 'array',
-							'items' => array( 'type' => 'string' ),
-						),
-					),
-					'required'             => array( 'per_page' ),
-					'additionalProperties' => false,
-				),
-			),
-		);
-
-		// Object nested two levels deep, to confirm coercion walks `properties` recursively.
-		$deep_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'a' => array(
-					'type'       => 'object',
-					'properties' => array(
-						'b' => array(
-							'type'       => 'object',
-							'properties' => array(
-								'id'    => array( 'type' => 'integer' ),
-								'is_ok' => array( 'type' => 'boolean' ),
-								'parts' => array(
-									'type'  => 'array',
-									'items' => array( 'type' => 'string' ),
-								),
-							),
-						),
-					),
-				),
-			),
-		);
-
+	public static function data_coercion_transports(): array {
 		return array(
-			// Fields nested inside an object.
-			'object integer field'           => array(
-				$object_schema,
-				array( 'count' => '10' ),
-				array( 'count' => 10 ),
-			),
-			'object boolean true'            => array(
-				$object_schema,
-				array( 'flag' => 'true' ),
-				array( 'flag' => true ),
-			),
-			'object boolean false'           => array(
-				$object_schema,
-				array( 'flag' => 'false' ),
-				array( 'flag' => false ),
-			),
-			'object comma-separated array'   => array(
-				$object_schema,
-				array( 'tags' => 'a,b' ),
-				array( 'tags' => array( 'a', 'b' ) ),
-			),
-			'object all fields at once'      => array(
-				$object_schema,
+			'GET'    => array( 'GET', array( 'readonly' => true ) ),
+			'POST'   => array( 'POST', array() ),
+			'DELETE' => array(
+				'DELETE',
 				array(
-					'count' => '10',
-					'flag'  => 'true',
-					'tags'  => 'a,b',
+					'destructive' => true,
+					'idempotent'  => true,
 				),
-				array(
-					'count' => 10,
-					'flag'  => true,
-					'tags'  => array( 'a', 'b' ),
-				),
-			),
-			'object bracket array preserved' => array(
-				$tags_object_schema,
-				array( 'tags' => array( 'a', 'b' ) ),
-				array( 'tags' => array( 'a', 'b' ) ),
-			),
-			'oneOf id mode'                  => array(
-				$one_of_schema,
-				array( 'id' => '5' ),
-				array( 'id' => 5 ),
-			),
-			'oneOf collection mode'          => array(
-				$one_of_schema,
-				array(
-					'per_page' => '2',
-					'fields'   => 'id,name',
-				),
-				array(
-					'per_page' => 2,
-					'fields'   => array( 'id', 'name' ),
-				),
-			),
-			'deeply nested object'           => array(
-				$deep_schema,
-				array(
-					'a' => array(
-						'b' => array(
-							'id'    => '22',
-							'is_ok' => 'true',
-							'parts' => 'x,y',
-						),
-					),
-				),
-				array(
-					'a' => array(
-						'b' => array(
-							'id'    => 22,
-							'is_ok' => true,
-							'parts' => array( 'x', 'y' ),
-						),
-					),
-				),
-			),
-
-			// Top-level (non-object) input.
-			'top-level integer'              => array( array( 'type' => 'integer' ), '10', 10 ),
-			'top-level number'               => array( array( 'type' => 'number' ), '3.5', 3.5 ),
-			'top-level boolean true'         => array( array( 'type' => 'boolean' ), 'true', true ),
-			'top-level boolean false'        => array( array( 'type' => 'boolean' ), 'false', false ),
-			'top-level string unchanged'     => array( array( 'type' => 'string' ), 'hello', 'hello' ),
-			// A numeric string against a `string` schema must stay a string, not become an integer.
-			'numeric string stays string'    => array( array( 'type' => 'string' ), '10', '10' ),
-			'top-level array of integers'    => array(
-				array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'integer' ),
-				),
-				'1,2,3',
-				array( 1, 2, 3 ),
 			),
 		);
 	}
 
 	/**
-	 * Tests that GET input is coerced to the types declared in the ability input schema.
-	 *
-	 * PHP delivers every scalar in a GET query string as a string ("10", "true") and a
-	 * comma-separated list as a single string, so the whole input must arrive natively typed,
-	 * whether it is a field nested in an object or a top-level scalar or array.
+	 * Tests that REST transports deliver schema-coerced input to the ability.
 	 *
 	 * @ticket 65594
 	 *
-	 * @dataProvider data_input_is_coerced
+	 * @dataProvider data_coercion_transports
 	 *
-	 * @param array $schema   Ability input schema.
-	 * @param mixed $input    Raw input as delivered over a GET query string.
-	 * @param mixed $expected Expected input value after coercion.
+	 * @param string $method      HTTP method.
+	 * @param array  $annotations Ability annotations selecting the method.
 	 */
-	public function test_get_input_is_coerced( array $schema, $input, $expected ): void {
-		$this->register_reflecting_ability( 'test/coerced-input', $schema );
+	public function test_input_is_coerced_for_transport( string $method, array $annotations ): void {
+		$this->register_reflecting_ability(
+			'test/coerced-input',
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'count' => array( 'type' => 'integer' ),
+					'flag'  => array( 'type' => 'boolean' ),
+					'ids'   => array(
+						'type'  => 'array',
+						'items' => array( 'type' => 'integer' ),
+					),
+				),
+			),
+			$annotations
+		);
 
-		$response = $this->dispatch_run( 'GET', 'test/coerced-input', $input );
+		$response = $this->dispatch_run(
+			$method,
+			'test/coerced-input',
+			array(
+				'count' => '10',
+				'flag'  => 'false',
+				'ids'   => '1,2',
+			)
+		);
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected, $response->get_data()['value'] );
+		$this->assertSame(
+			array(
+				'count' => 10,
+				'flag'  => false,
+				'ids'   => array( 1, 2 ),
+			),
+			$response->get_data()['value']
+		);
+	}
+
+	/**
+	 * Provides transports and input sources for input that fails coercion.
+	 *
+	 * @return array
+	 */
+	public static function data_coercion_error_inputs(): array {
+		return array(
+			'query input'      => array( 'GET', 'request' ),
+			'JSON input'       => array( 'POST', 'request' ),
+			'schema default'   => array( 'POST', 'default' ),
+			'normalizer input' => array( 'POST', 'filter' ),
+		);
+	}
+
+	/**
+	 * Tests that coercion failures use existing REST error handling before permission checks.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_coercion_error_inputs
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $source Source of the input that fails coercion.
+	 */
+	public function test_coercion_error_returns_400( string $method, string $source ): void {
+		$input  = array( '1', '01' );
+		$schema = array(
+			'type'        => 'array',
+			'items'       => array( 'type' => 'integer' ),
+			'uniqueItems' => true,
+		);
+		if ( 'default' === $source ) {
+			$schema['default'] = $input;
+		}
+		if ( 'filter' === $source ) {
+			add_filter(
+				'wp_ability_normalize_input',
+				static function () use ( $input ) {
+					return $input;
+				}
+			);
+		}
+
+		$unexpected_callback = function () {
+			$this->fail( 'Coercion errors must stop permission checks and execution.' );
+		};
+		$this->register_test_ability(
+			'test/coercion-error',
+			array(
+				'label'               => 'Coercion Error',
+				'description'         => 'Rejects inputs that cannot be coerced.',
+				'category'            => 'general',
+				'input_schema'        => $schema,
+				'permission_callback' => $unexpected_callback,
+				'execute_callback'    => $unexpected_callback,
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => 'GET' === $method ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( $method, 'test/coercion-error', 'request' === $source ? $input : null );
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		if ( 'request' === $source ) {
+			$this->assertSame( 'rest_invalid_param', $data['code'] );
+			$this->assertSame( 'ability_invalid_input', $data['data']['details']['input']['code'] );
+		} else {
+			$this->assertSame( 'ability_invalid_input', $data['code'] );
+		}
 	}
 
 	/**
@@ -1782,7 +1950,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: array}> Schema and the invalid raw input.
 	 */
-	public function data_invalid_input_returns_400(): array {
+	public static function data_invalid_input_returns_400(): array {
 		$schema = array(
 			'type'                 => 'object',
 			'properties'           => array(
@@ -1944,6 +2112,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Provides explicit input and an omitted input using the schema default.
+	 *
+	 * @return array
+	 */
+	public static function data_permission_callback_input(): array {
+		return array(
+			'explicit input' => array( array( 'count' => '10' ) ),
+			'default input'  => array( null ),
+		);
+	}
+
+	/**
 	 * Tests that the permission callback receives natively typed input.
 	 *
 	 * Coercion runs before `check_ability_permissions()`, so an ability that inspects its input
@@ -1951,8 +2131,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * string delivered. The gate runs first, so the first recorded type is the one it acted on.
 	 *
 	 * @ticket 65594
+	 * @dataProvider data_permission_callback_input
+	 *
+	 * @param array|null $input Request input, or null to use the schema default.
 	 */
-	public function test_permission_callback_receives_typed_input(): void {
+	public function test_permission_callback_receives_typed_input( $input ): void {
 		$seen        = new stdClass();
 		$seen->types = array();
 
@@ -1964,6 +2147,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
+					'default'    => array( 'count' => '10' ),
 					'properties' => array(
 						'count' => array( 'type' => 'integer' ),
 					),
@@ -1982,42 +2166,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$response = $this->dispatch_run( 'GET', 'test/permission-typed-input', array( 'count' => '10' ) );
+		$response = $this->dispatch_run( 'GET', 'test/permission-typed-input', $input );
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertNotEmpty( $seen->types, 'The permission callback should have run.' );
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
 		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
-	}
-
-	/**
-	 * Tests that a value which only fails validation once coerced falls back to the raw input.
-	 *
-	 * `["1", "01"]` is unique as strings but collides once cast to integers, so it cannot be
-	 * coerced without producing a `uniqueItems` error. The raw input is kept instead, so
-	 * validation still accepts it and no `WP_Error` reaches the ability.
-	 *
-	 * @ticket 65594
-	 */
-	public function test_nested_sanitize_error_falls_back_to_raw_input(): void {
-		$this->register_reflecting_ability(
-			'test/unique-items-input',
-			array(
-				'type'       => 'object',
-				'properties' => array(
-					'include' => array(
-						'type'        => 'array',
-						'items'       => array( 'type' => 'integer' ),
-						'uniqueItems' => true,
-					),
-				),
-			)
-		);
-
-		$response = $this->dispatch_run( 'GET', 'test/unique-items-input', array( 'include' => array( '1', '01' ) ) );
-
-		// Accepted (unique as strings) and the ability received the raw values, not a WP_Error.
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( array( 'include' => array( '1', '01' ) ), $response->get_data()['value'] );
 	}
 }

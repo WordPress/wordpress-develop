@@ -10,6 +10,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	protected static $user_id;
 	protected static $blog_id;
 
+	public function set_up() {
+		parent::set_up();
+
+		// These tests inspect the complete registry, independently of bootstrap registrations.
+		$this->unregister_all_meta_keys();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id    = $factory->post->create( array( 'post_type' => 'page' ) );
 		self::$term_id    = $factory->term->create( array( 'taxonomy' => 'category' ) );
@@ -19,6 +26,14 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		if ( is_multisite() ) {
 			self::$blog_id = $factory->blog->create();
 		}
+	}
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'test_post_type' );
+		parent::tear_down();
 	}
 
 	public static function wpTearDownAfterClass() {
