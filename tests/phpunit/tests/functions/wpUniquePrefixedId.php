@@ -38,7 +38,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_create_unique_prefixed_ids() {
+	public static function data_should_create_unique_prefixed_ids() {
 		return array(
 			'prefix as empty string'       => array(
 				'prefix'   => '',
@@ -103,7 +103,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given() {
+	public static function data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given() {
 		$message = 'wp_unique_prefixed_id(): The prefix must be a string. "%s" data type given.';
 		return array(
 			'prefix as null'          => array(
@@ -177,7 +177,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_same_prefixes_should_generate_unique_ids() {
+	public static function data_same_prefixes_should_generate_unique_ids() {
 		return array(
 			'prefixes = empty string' => array(
 				'prefixes' => array( null, true, '' ),

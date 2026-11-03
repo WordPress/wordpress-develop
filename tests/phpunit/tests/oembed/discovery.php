@@ -4,6 +4,14 @@
  * @group oembed
  */
 class Tests_oEmbed_Discovery extends WP_UnitTestCase {
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_post_type( 'not_embeddable' );
+		parent::tear_down();
+	}
+
 	public function test_add_oembed_discovery_links_non_singular() {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
 	}

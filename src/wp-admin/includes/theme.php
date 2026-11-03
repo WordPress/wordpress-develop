@@ -157,7 +157,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @since 2.9.0
  * @access private
  *
- * @param string $fullpath Full path to the theme file
+ * @param string $fullpath         Full path to the theme file
  * @param string $containingfolder Path of the theme parent folder
  * @return string
  */
@@ -828,13 +828,13 @@ function customize_themes_print_templates() {
 				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
-					_e( 'Show previous theme' );
+					_ex( 'Previous', 'theme' );
 					?>
 				</span></button>
 				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
-					_e( 'Show next theme' );
+					_ex( 'Next', 'theme' );
 					?>
 				</span></button>
 				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text">

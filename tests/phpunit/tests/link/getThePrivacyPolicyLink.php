@@ -79,6 +79,42 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The function should allow only supported formatting in the privacy policy page title.
+	 *
+	 * Supported tags may include a class attribute; other tags and attributes are stripped.
+	 *
+	 * @ticket 64748
+	 */
+	public function test_get_the_privacy_policy_link_should_allow_supported_title_markup() {
+		$privacy_policy_page_id = self::$privacy_policy_page_id;
+
+		/*
+		 * Run after core `the_title` formatting filters (e.g. wptexturize).
+		 *
+		 * A filter is used rather than updating the post to ensure that the script tag is
+		 * stripped from the output by KSES as intended.
+		 */
+		$filter = static function ( $title, $post_id ) use ( $privacy_policy_page_id ) {
+			if ( (int) $privacy_policy_page_id === (int) $post_id ) {
+				return '<strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>';
+			}
+
+			return $title;
+		};
+
+		add_filter( 'the_title', $filter, 20, 2 );
+
+		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
+
+		$actual_link = get_the_privacy_policy_link();
+
+		$this->assertStringEndsWith(
+			'><strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> </a>',
+			$actual_link
+		);
+	}
+
+	/**
 	 * The function should prepend the supplied `$before` markup and append the
 	 * supplied `$after` markup when the `wp_page_for_privacy_policy` is configured.
 	 */
