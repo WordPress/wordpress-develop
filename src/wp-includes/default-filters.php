@@ -64,6 +64,8 @@ foreach ( array( 'pre_comment_author_email', 'pre_user_email' ) as $filter ) {
 	add_filter( $filter, 'sanitize_email' );
 }
 add_filter( 'pre_comment_author_email', 'wp_filter_kses' );
+// Keep user emails slashed for wp_insert_user() without encoding HTML entities.
+add_filter( 'pre_user_email', 'wp_slash' );
 
 // Email admin display.
 foreach ( array( 'comment_author_email', 'user_email' ) as $filter ) {
