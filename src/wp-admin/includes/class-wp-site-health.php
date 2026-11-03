@@ -1679,7 +1679,8 @@ class WP_Site_Health {
 
 		$this->wp_schedule_test_init();
 
-		if ( is_wp_error( $this->has_missed_cron() ) ) {
+		$has_missed_cron = $this->has_missed_cron();
+		if ( is_wp_error( $has_missed_cron ) ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'It was not possible to check your scheduled events' );
@@ -1689,10 +1690,10 @@ class WP_Site_Health {
 				sprintf(
 					/* translators: %s: The error message returned while from the cron scheduler. */
 					__( 'While trying to test your site&#8217;s scheduled events, the following error was returned: %s' ),
-					$this->has_missed_cron()->get_error_message()
+					$has_missed_cron->get_error_message()
 				)
 			);
-		} elseif ( $this->has_missed_cron() ) {
+		} elseif ( $has_missed_cron ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'A scheduled event has failed' );
