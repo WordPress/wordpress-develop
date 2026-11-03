@@ -197,7 +197,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_state_styles_that_paint_their_own_background() {
+	public static function data_state_styles_that_paint_their_own_background() {
 		$color = array( 'text' => '#ff0000' );
 
 		return array(
@@ -258,7 +258,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_base_clips_that_are_not_text() {
+	public static function data_base_clips_that_are_not_text() {
 		return array(
 			'no base clip' => array( '' ),
 			'border-box'   => array( 'border-box' ),
@@ -295,7 +295,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_state_clips() {
+	public static function data_empty_state_clips() {
 		return array(
 			'false'        => array( false ),
 			'zero'         => array( 0 ),
@@ -672,7 +672,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public function data_build_state_selector_with_block_name() {
+	public static function data_build_state_selector_with_block_name() {
 		return array(
 			'own class'                              => array(
 				'block_name'     => 'core/paragraph',
@@ -771,7 +771,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public function data_registered_block_selectors_scope_to_their_own_element() {
+	public static function data_registered_block_selectors_scope_to_their_own_element() {
 		// Only selectors that target the block's own element belong here. A
 		// feature selector for a descendant, such as a link inside the block,
 		// ends on that descendant by design.

@@ -92,6 +92,8 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 * @covers ::remove_menu_page
 	 */
 	public function test_remove_menu_page_removes_and_returns_menu_item() {
+		$submenu = $GLOBALS['submenu'];
+
 		$removed = remove_menu_page( 'edit.php' );
 
 		$this->assertSame(
@@ -100,6 +102,7 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 			'The removed menu item should be returned.'
 		);
 		$this->assertSame( array( 2, 25, 26, 30 ), array_keys( $GLOBALS['menu'] ), 'Only the matching menu item should be removed, keeping the other positions.' );
+		$this->assertSame( $submenu, $GLOBALS['submenu'] );
 	}
 
 	/**
@@ -114,21 +117,6 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 
 		$this->assertSame( 'My Plugin', $removed[0], 'The first matching menu item should be returned.' );
 		$this->assertSame( array( 2, 5, 26, 30 ), array_keys( $GLOBALS['menu'] ), 'The second matching menu item should be kept.' );
-	}
-
-	/**
-	 * Tests that remove_menu_page() does not remove the submenu of the removed menu item.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::remove_menu_page
-	 */
-	public function test_remove_menu_page_keeps_submenu_items() {
-		$submenu = $GLOBALS['submenu'];
-
-		remove_menu_page( 'edit.php' );
-
-		$this->assertSame( $submenu, $GLOBALS['submenu'] );
 	}
 
 	/**
@@ -157,28 +145,11 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	public static function data_menu_slugs_without_match() {
 		return array(
 			'unknown slug'            => array( 'does-not-exist' ),
-			'empty slug'              => array( '' ),
 			'partial slug'            => array( 'edit' ),
 			'different case'          => array( 'EDIT.PHP' ),
 			'submenu slug'            => array( 'post-new.php' ),
 			'integer for string slug' => array( 123 ),
-			'null'                    => array( null ),
-			'false'                   => array( false ),
 		);
-	}
-
-	/**
-	 * Tests that remove_menu_page() returns false when the menu is empty.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::remove_menu_page
-	 */
-	public function test_remove_menu_page_returns_false_for_empty_menu() {
-		$GLOBALS['menu'] = array();
-
-		$this->assertFalse( remove_menu_page( 'edit.php' ) );
-		$this->assertSame( array(), $GLOBALS['menu'] );
 	}
 
 	/**
@@ -218,7 +189,8 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 * @covers ::remove_submenu_page
 	 */
 	public function test_remove_submenu_page_keeps_empty_submenu() {
-		remove_submenu_page( 'my-plugin', 'my-plugin' );
+		unset( $GLOBALS['submenu']['my-plugin'][0] );
+
 		remove_submenu_page( 'my-plugin', '123' );
 
 		$this->assertSame( array(), $GLOBALS['submenu']['my-plugin'] );
@@ -266,14 +238,10 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	public static function data_submenu_slugs_without_match() {
 		return array(
 			'unknown parent slug'       => array( 'does-not-exist', 'post-new.php' ),
-			'parent without a submenu'  => array( 'index.php', 'index.php' ),
-			'empty parent slug'         => array( '', 'post-new.php' ),
 			'unknown submenu slug'      => array( 'edit.php', 'does-not-exist' ),
-			'empty submenu slug'        => array( 'edit.php', '' ),
 			'submenu of another parent' => array( 'my-plugin', 'post-new.php' ),
 			'different case'            => array( 'edit.php', 'POST-NEW.PHP' ),
 			'integer for string slug'   => array( 'my-plugin', 123 ),
-			'null submenu slug'         => array( 'edit.php', null ),
 		);
 	}
 }

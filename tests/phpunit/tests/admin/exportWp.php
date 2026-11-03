@@ -94,6 +94,12 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'wpexport_excluded' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @dataProvider data_should_include_attachments
 	 *

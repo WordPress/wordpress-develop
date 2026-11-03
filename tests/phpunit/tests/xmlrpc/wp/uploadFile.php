@@ -119,7 +119,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{args: list<mixed>}>
 	 */
-	public function data_insufficient_arguments(): array {
+	public static function data_insufficient_arguments(): array {
 		return array(
 			'no arguments'     => array(
 				'args' => array(),
@@ -162,7 +162,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
 	 */
-	public function data_attachment_data_without_name(): array {
+	public static function data_attachment_data_without_name(): array {
 		return array(
 			'empty struct'       => array(
 				'data' => array(),
@@ -221,7 +221,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{name: string}>
 	 */
-	public function data_attachment_data_with_unusable_name(): array {
+	public static function data_attachment_data_with_unusable_name(): array {
 		return array(
 			'empty name'           => array(
 				'name' => '',
@@ -277,7 +277,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
 	 */
-	public function data_attachment_data_with_invalid_members(): array {
+	public static function data_attachment_data_with_invalid_members(): array {
 		return array(
 			'non-string bits' => array(
 				'data' => array(
@@ -324,7 +324,7 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{data: array<string, mixed>}>
 	 */
-	public function data_attachment_data_with_optional_members_omitted(): array {
+	public static function data_attachment_data_with_optional_members_omitted(): array {
 		return array(
 			'missing type' => array(
 				'data' => array(

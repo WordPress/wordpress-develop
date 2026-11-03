@@ -1644,7 +1644,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @return array[]
 	 */
-	public function data_pattern_sync_statuses() {
+	public static function data_pattern_sync_statuses() {
 		return array(
 			'synced pattern'           => array( '' ),
 			'unsynced pattern'         => array( 'unsynced' ),
