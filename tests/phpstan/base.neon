@@ -1,6 +1,12 @@
 # Base PHPStan configuration for WordPress Core.
 #
-# This is kept separate from the main PHPStan configuration file to allow for easy overloading while baseline errors are being fixed.
+# This holds what PHPStan needs to know to analyze the WordPress codebase: the extensions for
+# WordPress-specific conventions, the paths analyzed and excluded, the supported PHP versions,
+# and the constants whose values vary. It rarely changes.
+#
+# The standards the code is held to, which are the rule level, the baselines, the errors
+# ignored as not actionable, and the strict rules enabled, are in phpstan.neon.dist instead,
+# so they can be read and reviewed apart from all of this.
 #
 # https://phpstan.org/config-reference
 
