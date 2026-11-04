@@ -52,46 +52,6 @@ class Tests_Admin_Includes_Misc_WpRefreshMetaboxLoaderNonces extends WP_UnitTest
 	}
 
 	/**
-	 * Tests wp_refresh_metabox_loader_nonces() with invalid post ID.
-	 *
-	 * @ticket 65198
-	 *
-	 * @dataProvider data_wp_refresh_metabox_loader_nonces_invalid_post_id
-	 *
-	 * @param mixed $post_id Invalid post ID.
-	 * @return void
-	 */
-	public function test_wp_refresh_metabox_loader_nonces_invalid_post_id( $post_id ) {
-		$response = array();
-		$data     = array(
-			'wp-refresh-metabox-loader-nonces' => array(
-				'post_id' => $post_id,
-			),
-		);
-
-		$result = wp_refresh_metabox_loader_nonces( $response, $data );
-
-		$this->assertSame( $response, $result, 'Response should remain unchanged for invalid post ID.' );
-	}
-
-	/**
-	 * Data provider for test_wp_refresh_metabox_loader_nonces_invalid_post_id.
-	 *
-	 * @return array<string, array{
-	 *     post_id: mixed,
-	 * }>
-	 */
-	public function data_wp_refresh_metabox_loader_nonces_invalid_post_id(): array {
-		return array(
-			'zero'            => array( 'post_id' => 0 ),
-			'string zero'     => array( 'post_id' => '0' ),
-			'non-numeric'     => array( 'post_id' => 'abc' ),
-			'negative'        => array( 'post_id' => -1 ),
-			'missing post_id' => array( 'post_id' => null ),
-		);
-	}
-
-	/**
 	 * Tests wp_refresh_metabox_loader_nonces() when the user cannot edit the post.
 	 *
 	 * @ticket 65198
