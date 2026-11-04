@@ -959,6 +959,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 39800
 	 */
 	public function test_parent_ancestor_for_post_archive() {
+		$this->set_permalink_structure( '' );
 
 		register_post_type(
 			'books',

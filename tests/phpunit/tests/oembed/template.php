@@ -8,6 +8,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		$this->set_permalink_structure( '' );
+
 		global $wp_scripts;
 		$wp_scripts = null;
 

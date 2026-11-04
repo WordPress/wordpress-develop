@@ -4391,6 +4391,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	public function test_update_post_with_categories() {
+		$this->set_permalink_structure( '' );
+
 		wp_set_current_user( self::$editor_id );
 
 		$category = wp_insert_term( 'Test Category', 'category' );

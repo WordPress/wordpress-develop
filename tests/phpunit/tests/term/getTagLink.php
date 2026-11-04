@@ -53,6 +53,9 @@ class Tests_Term_GetTagLink extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+
 		// Required as taxonomies are reset between tests.
 		register_taxonomy( 'wptests_tax', 'post' );
 	}

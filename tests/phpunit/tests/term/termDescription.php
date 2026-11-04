@@ -46,6 +46,12 @@ class Tests_Term_TermDescription extends WP_UnitTestCase {
 		);
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	public function tear_down() {
 		unregister_taxonomy( 'wptests_tax' );
 

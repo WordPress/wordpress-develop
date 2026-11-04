@@ -1151,8 +1151,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @ticket 62163
 	 */
 	public function test_get_params_with_pretty_permalinks() {
-		update_option( 'permalink_structure', '/%postname%/' );
-
 		$request = new WP_REST_Request();
 
 		$request->set_param( 'rest_route', '/wp/v2/posts' );

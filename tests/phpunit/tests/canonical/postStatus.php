@@ -50,7 +50,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 
 			// Add fake attachment to the post (file upload not needed).
-			self::$posts[ "$post_status-attachment" ] = $factory->post->create_and_get(
+			$att = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'attachment',
 					'post_title'   => "$post_status inherited attachment",
@@ -62,6 +62,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_date'    => $post_date,
 				)
 			);
+
+			self::$posts[ "$post_status-attachment" ] = self::use_plain_attachment_guid( $att );
 
 			// Set up a page with same.
 			self::$posts[ "$post_status-page" ] = $factory->post->create_and_get(
@@ -90,7 +92,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the public cpt (file upload not needed).
-		self::$posts['a-public-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-public-cpt post inherited attachment',
@@ -101,6 +103,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-public-cpt']->ID,
 			)
 		);
+
+		self::$posts['a-public-cpt-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Create a private CPT with a public status.
 		self::$posts['a-private-cpt'] = $factory->post->create_and_get(
@@ -115,7 +119,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the private cpt (file upload not needed).
-		self::$posts['a-private-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-private-cpt post inherited attachment',
@@ -126,6 +130,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-private-cpt']->ID,
 			)
 		);
+
+		self::$posts['a-private-cpt-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Post for trashing.
 		self::$posts['trash'] = $factory->post->create_and_get(
@@ -139,7 +145,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		self::$posts['trash-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'trash post inherited attachment',
@@ -150,6 +156,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['trash']->ID,
 			)
 		);
+
+		self::$posts['trash-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Page for trashing.
 		self::$posts['trash-page'] = $factory->post->create_and_get(
@@ -183,6 +191,30 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		_unregister_post_status( 'a-private-status' );
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Gives a fake attachment the GUID it would get on a site with plain permalinks.
+	 *
+	 * The attachments created in the class setup have no attached file, so
+	 * wp_get_attachment_url() falls back to the GUID. The expected redirects
+	 * use the plain `?attachment_id=` form, which pretty permalinks would
+	 * otherwise replace.
+	 *
+	 * @param WP_Post $attachment Attachment object.
+	 * @return WP_Post Attachment object with the updated GUID.
+	 */
+	private static function use_plain_attachment_guid( $attachment ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->posts,
+			array( 'guid' => home_url( "/?attachment_id={$attachment->ID}" ) ),
+			array( 'ID' => $attachment->ID )
+		);
+		clean_post_cache( $attachment->ID );
+
+		return get_post( $attachment->ID );
 	}
 
 	/**
