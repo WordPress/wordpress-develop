@@ -3727,7 +3727,8 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
- * @since 7.3.0 Added support for `rotate`, limited to a single angle.
+ * @since 7.3.0 Added support for `rotate`, limited to a single angle, and `translate`,
+ *              limited to one or two lengths or percentages.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3978,6 +3979,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'transform',
 			'transform-origin',
 			'rotate',
+			'translate',
 
 			'pointer-events',
 			'visibility',
@@ -4050,6 +4052,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$url_attr        = false;
 		$gradient_attr   = false;
 		$angle_attr      = false;
+		$translate_attr  = false;
 		$is_custom_var   = false;
 
 		if ( ! str_contains( $css_item, ':' ) ) {
@@ -4065,10 +4068,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 
 			if ( in_array( $css_selector, $allowed_attr, true ) ) {
-				$found         = true;
-				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
-				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
-				$angle_attr    = 'rotate' === $css_selector;
+				$found          = true;
+				$url_attr       = in_array( $css_selector, $css_url_data_types, true );
+				$gradient_attr  = in_array( $css_selector, $css_gradient_data_types, true );
+				$angle_attr     = 'rotate' === $css_selector;
+				$translate_attr = 'translate' === $css_selector;
 			}
 
 			if ( $is_custom_var ) {
@@ -4153,6 +4157,17 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			// Only allow a single angle for `rotate`, mirroring the style engine.
 			if ( $allow_css && $angle_attr ) {
 				$allow_css = 1 === preg_match( WP_Style_Engine::VALID_ANGLE_PATTERN, trim( $parts[1] ) );
+			}
+
+			// Only allow one or two lengths or percentages for `translate`, mirroring the style engine.
+			if ( $allow_css && $translate_attr ) {
+				$axes      = preg_split( '/\s+/', trim( $parts[1] ) );
+				$allow_css = count( $axes ) <= 2;
+				foreach ( $axes as $axis ) {
+					if ( $allow_css && 1 !== preg_match( WP_Style_Engine::VALID_LENGTH_PERCENTAGE_PATTERN, $axis ) ) {
+						$allow_css = false;
+					}
+				}
 			}
 
 			/**
