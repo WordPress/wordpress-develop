@@ -2,10 +2,15 @@
 /**
  * Tests for wp_import_option_as_secret().
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_imports_an_existing_option_value(): void {
 		update_option( 'my_plugin_api_key', 'sk_live_from_an_option' );
 
@@ -17,6 +22,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertSame( 'sk_live_from_an_option', $secret->reveal() );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_leaves_the_source_option_untouched(): void {
 		update_option( 'my_plugin_api_key', 'sk_live_from_an_option' );
 
@@ -25,6 +33,10 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertSame( 'sk_live_from_an_option', get_option( 'my_plugin_api_key' ) );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
+	 */
 	public function test_flags_the_imported_secret_for_rotation(): void {
 		update_option( 'my_plugin_api_key', 'value' );
 		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
@@ -37,6 +49,10 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertTrue( $record['current']['needs_rotation'] );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
+	 */
 	public function test_an_ordinary_write_does_not_flag_needs_rotation(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -48,6 +64,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertFalse( $record['current']['needs_rotation'] );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_rejects_a_nonexistent_option(): void {
 		$result = wp_import_option_as_secret( 'this_option_was_never_set', 'myplugin/api-key' );
 
@@ -55,6 +74,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_rejects_a_non_string_option_value(): void {
 		update_option( 'my_plugin_settings', array( 'not' => 'a string' ) );
 
@@ -64,6 +86,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_rejects_an_invalid_destination_name(): void {
 		update_option( 'my_plugin_api_key', 'value' );
 
@@ -73,6 +98,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_import_option_as_secret
+	 */
 	public function test_fires_the_change_hook_with_the_imported_action(): void {
 		update_option( 'my_plugin_api_key', 'value' );
 
@@ -99,6 +127,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	 * An import onto an existing secret behaves like any other write, including
 	 * demotion – there is nothing special about the destination just because the
 	 * new value's source happens to be an option.
+	 *
+	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_importing_over_an_existing_secret_demotes_it_like_any_write(): void {
 		wp_set_secret( 'myplugin/api-key', 'original-value' );

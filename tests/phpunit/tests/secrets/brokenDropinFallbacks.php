@@ -4,14 +4,22 @@
  * sentinels _wp_secrets_get_store()/_wp_secrets_get_key_manager() fall back to when
  * a secrets.php drop-in exists but left an invalid override.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_broken_store_implements_the_interface(): void {
 		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Broken_Store() ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Store::get
+	 */
 	public function test_broken_store_get_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->get( 'myplugin/api-key' );
 
@@ -19,28 +27,43 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Store::set
+	 */
 	public function test_broken_store_set_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->set( 'myplugin/api-key', array() );
 
 		$this->assertWPError( $result );
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Store::delete
+	 */
 	public function test_broken_store_delete_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->delete( 'myplugin/api-key' );
 
 		$this->assertWPError( $result );
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Store::list_names
+	 */
 	public function test_broken_store_list_names_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->list_names();
 
 		$this->assertWPError( $result );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_broken_keyring_implements_the_interface(): void {
 		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring() ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Keyring::wrap
+	 */
 	public function test_broken_keyring_wrap_fails(): void {
 		$result = ( new WP_Secrets_Broken_Keyring() )->wrap( 'material' );
 
@@ -48,21 +71,32 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Keyring::unwrap
+	 */
 	public function test_broken_keyring_unwrap_fails(): void {
 		$result = ( new WP_Secrets_Broken_Keyring() )->unwrap( 'wrapped' );
 
 		$this->assertWPError( $result );
 	}
 
+	/**
+	 * @covers WP_Secrets_Broken_Keyring::get_key_source
+	 */
 	public function test_broken_keyring_reports_a_key_source(): void {
 		$this->assertIsString( ( new WP_Secrets_Broken_Keyring() )->get_key_source() );
 	}
 
+	/**
+	 * @covers ::wp_using_secrets_dropin
+	 */
 	public function test_wp_using_secrets_dropin_is_false_by_default(): void {
 		$this->assertFalse( wp_using_secrets_dropin() );
 	}
 
 	/**
+	 * @covers ::wp_using_secrets_dropin
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */

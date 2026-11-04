@@ -9,6 +9,8 @@
  * process including an isolated one, so the salt-fallback path is exercised against
  * whatever the ambient harness defines them as rather than a value this suite picks.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
@@ -30,10 +32,17 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		return $reflection->invokeArgs( $instance, $args );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_implements_the_keyring_interface(): void {
 		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider() ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::wrap
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
+	 */
 	public function test_wrap_then_unwrap_round_trips(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$material = random_bytes( 32 );
@@ -45,6 +54,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( $material, $unwrapped );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::wrap
+	 */
 	public function test_wrap_rejects_an_empty_string(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
@@ -54,6 +66,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::wrap
+	 */
 	public function test_two_wraps_of_the_same_material_produce_different_output(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$material = random_bytes( 32 );
@@ -61,6 +76,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertNotSame( $provider->wrap( $material ), $provider->wrap( $material ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
+	 */
 	public function test_unwrap_rejects_an_empty_string(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
@@ -70,6 +88,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
+	 */
 	public function test_unwrap_rejects_garbage_base64(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
@@ -79,6 +100,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
+	 */
 	public function test_unwrap_rejects_data_too_short_to_contain_a_nonce(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
@@ -88,6 +112,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
+	 */
 	public function test_unwrap_rejects_a_tampered_ciphertext(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$wrapped  = $provider->wrap( random_bytes( 32 ) );
@@ -106,6 +133,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 */
 	public function test_get_key_source_reports_the_salt_fallback_when_wp_secrets_key_is_unset(): void {
 		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
 			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
@@ -117,6 +147,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::is_canonical_base64_32
+	 *
 	 * @dataProvider data_canonical_base64_32
 	 *
 	 * @param string|int $value    Candidate value.
@@ -144,6 +176,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::are_usable_salt_values
+	 *
 	 * @dataProvider data_usable_salt_values
 	 *
 	 * @param string|int|null $key      Candidate LOGGED_IN_KEY value.
@@ -171,6 +205,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -188,6 +224,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 * computed independently and pinned here so an accidental change to the
 	 * algorithm, its output length, or its inputs is caught rather than silently
 	 * changing what key every existing secret is wrapped under.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -210,6 +248,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 * the legacy (hashed) interpretation rather than being treated as raw key
 	 * material of the wrong length.
 	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -227,6 +267,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -241,6 +283,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -253,6 +297,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -265,6 +311,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::__construct
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -279,6 +328,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	/**
 	 * Defining only the previous-key constant must not affect the current-key
 	 * provider: it should still fall through to the salt fallback.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -298,6 +349,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -312,6 +365,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	/**
 	 * A key rotation unwraps under the outgoing key and wraps under the incoming
 	 * one. This proves the two providers actually disagree when they should.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::wrap
+	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled

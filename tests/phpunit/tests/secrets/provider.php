@@ -3,6 +3,8 @@
  * Tests for the provider seam: the outermost extension point, and what replaced
  * the store's old supports() flag.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_Provider extends WP_UnitTestCase {
@@ -94,10 +96,16 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 
 	// – the shipped provider -------------------------------------------------
 
+	/**
+	 * @covers ::_wp_secrets_get_provider
+	 */
 	public function test_the_default_provider_is_the_libsodium_one(): void {
 		$this->assertInstanceOf( 'WP_Secrets_Libsodium_Provider', _wp_secrets_get_provider() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Libsodium_Provider::get_protection_boundary
+	 */
 	public function test_the_default_provider_protects_inside_wordpress(): void {
 		$this->assertSame(
 			WP_Secrets_Provider::BOUNDARY_WORDPRESS,
@@ -105,6 +113,9 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::wp_secrets_provider_is_writable
+	 */
 	public function test_the_default_provider_accepts_writes(): void {
 		$this->assertTrue( wp_secrets_provider_is_writable() );
 	}
@@ -113,6 +124,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * The label is what Site Health shows an operator. It must name the key source,
 	 * because "libsodium" alone does not tell anyone whether their root key is
 	 * derived from wp-config.php salts or held in a KMS.
+	 *
+	 * @covers ::wp_secrets_provider_label
 	 */
 	public function test_the_default_provider_label_names_the_key_source(): void {
 		$label = wp_secrets_provider_label();
@@ -127,6 +140,9 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	// – a platform provider, which is what the seam exists for ----------------
 
 	/**
+	 * @covers ::_wp_secrets_get_provider
+	 * @covers ::wp_secrets_provider_label
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -144,6 +160,9 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * The case Pantheon and Altis both asked for: a provider that serves reads and
 	 * refuses writes, declaring it up front so a settings screen can disable its
 	 * save control rather than discovering the refusal after the fact.
+	 *
+	 * @covers ::wp_secrets_provider_is_writable
+	 * @covers ::wp_set_secret
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -163,6 +182,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * Reads still work on a read-only provider – "read-only" is about writes, not
 	 * about being broken. Absence is still absence.
 	 *
+	 * @covers ::wp_get_secret
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -178,6 +199,9 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * A broken drop-in must not quietly revert to the default provider: that would
 	 * downgrade a site's protection at the exact moment nobody is watching.
 	 *
+	 * @covers ::_wp_secrets_get_provider
+	 * @covers WP_Secrets_Broken_Provider::is_writable
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -192,6 +216,12 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 * @covers ::wp_delete_secret
+	 * @covers ::wp_list_secrets
+	 * @covers ::wp_retire_secret_version
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -208,6 +238,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	/**
 	 * Specifically not null: a misconfigured credential backend must never look
 	 * like a working site that happens to have no secrets in it yet.
+	 *
+	 * @covers ::wp_get_secret
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -229,6 +261,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * served from wp_options, find nothing there, and report a site's credentials
 	 * absent when they are merely unreachable.
 	 *
+	 * @covers ::_wp_secrets_get_provider
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -241,6 +275,9 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	/**
 	 * And it is an error rather than an absence, which is the property that
 	 * actually protects the operator.
+	 *
+	 * @covers ::_wp_secrets_get_provider
+	 * @covers ::wp_get_secret
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -259,6 +296,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * that overrides only the keyring registers no provider at all, and that is a
 	 * supported arrangement rather than a broken one. It gets the shipped libsodium
 	 * provider, composed with the keyring it did supply.
+	 *
+	 * @covers ::_wp_secrets_get_provider
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled

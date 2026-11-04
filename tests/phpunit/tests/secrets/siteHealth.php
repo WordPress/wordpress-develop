@@ -2,6 +2,8 @@
 /**
  * Tests for the Site Health integration in src/wp-admin/includes/secrets-site-health.php.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
@@ -30,6 +32,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		return $fields;
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_tests
+	 */
 	public function test_registers_three_tests_under_direct(): void {
 		$tests = wp_secrets_site_health_tests( array() );
 
@@ -44,12 +49,18 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_tests
+	 */
 	public function test_preserves_existing_tests(): void {
 		$tests = wp_secrets_site_health_tests( array( 'direct' => array( 'existing_test' => array( 'label' => 'x' ) ) ) );
 
 		$this->assertArrayHasKey( 'existing_test', $tests['direct'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 */
 	public function test_key_source_test_recommends_a_dedicated_key_by_default(): void {
 		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
 			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
@@ -62,6 +73,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -75,6 +88,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -87,6 +102,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -98,6 +115,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'critical', $result['status'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_undecryptable
+	 */
 	public function test_undecryptable_test_is_good_when_nothing_is_broken(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -106,12 +126,18 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'good', $result['status'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_undecryptable
+	 */
 	public function test_undecryptable_test_is_good_with_no_secrets_at_all(): void {
 		$result = wp_secrets_site_health_test_undecryptable();
 
 		$this->assertSame( 'good', $result['status'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_undecryptable
+	 */
 	public function test_undecryptable_test_is_critical_and_lists_the_broken_secret(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
@@ -135,6 +161,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertStringContainsString( $fingerprint, $result['description'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_undecryptable
+	 */
 	public function test_undecryptable_test_never_contains_a_plaintext(): void {
 		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
 
@@ -152,6 +181,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $result['description'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_needs_rotation
+	 */
 	public function test_needs_rotation_test_is_good_by_default(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -160,6 +192,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'good', $result['status'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_test_needs_rotation
+	 */
 	public function test_needs_rotation_test_is_recommended_after_an_import(): void {
 		update_option( 'my_plugin_api_key', 'value' );
 		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
@@ -170,6 +205,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertStringContainsString( '1', $result['description'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_debug_info
+	 */
 	public function test_debug_info_reports_expected_fields(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -191,6 +229,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( '1', $fields['site_secret_count']['value'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_debug_info
+	 */
 	public function test_debug_info_reports_no_dropin_by_default(): void {
 		$info = wp_secrets_site_health_debug_info( array() );
 
@@ -200,6 +241,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'No', $fields['dropin_active']['value'] );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_debug_info
+	 */
 	public function test_debug_info_never_contains_a_plaintext(): void {
 		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
 
@@ -211,6 +255,9 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $dump );
 	}
 
+	/**
+	 * @covers ::wp_secrets_site_health_debug_info
+	 */
 	public function test_debug_info_omits_network_fields_on_single_site(): void {
 		$info = wp_secrets_site_health_debug_info( array() );
 
@@ -220,6 +267,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	/**
 	 * Network secret counts appear only for a super admin on a multisite install –
 	 * never for a site administrator who is not one.
+	 *
+	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_includes_network_fields_only_for_a_super_admin(): void {
 		if ( ! is_multisite() ) {

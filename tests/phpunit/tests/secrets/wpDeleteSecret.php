@@ -2,10 +2,15 @@
 /**
  * Tests for wp_delete_secret().
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_deletes_an_existing_secret(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -13,10 +18,16 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		$this->assertNull( wp_get_secret( 'myplugin/api-key' ) );
 	}
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_deleting_an_absent_secret_is_not_an_error(): void {
 		$this->assertTrue( wp_delete_secret( 'myplugin/never-set' ) );
 	}
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_rejects_an_invalid_name(): void {
 		$result = wp_delete_secret( 'Not A Valid Name' );
 
@@ -24,6 +35,9 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_change_hook_fires_with_deleted_action(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
@@ -54,6 +68,9 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		$this->assertSame( '', $new_fingerprint );
 	}
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_change_hook_does_not_fire_when_nothing_was_deleted(): void {
 		$fired = false;
 		add_action(
@@ -72,6 +89,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	 * A corrupted record must still be removable. Refusing here would leave a secret
 	 * permanently stuck – unreadable, unrepairable, and undeletable without editing
 	 * the database by hand.
+	 *
+	 * @covers ::wp_delete_secret
 	 */
 	public function test_a_corrupt_record_is_still_deletable(): void {
 		update_option( '_wp_secret_myplugin/corrupt', 'not a record at all', false );
@@ -80,6 +99,9 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		$this->assertNull( wp_get_secret( 'myplugin/corrupt' ) );
 	}
 
+	/**
+	 * @covers ::wp_delete_secret
+	 */
 	public function test_no_capability_check_is_applied(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		wp_set_current_user( 0 );

@@ -2,6 +2,8 @@
 /**
  * Tests for WP_Secrets_Cipher.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
@@ -35,6 +37,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		return str_repeat( chr( $byte ), 32 );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 */
 	public function test_round_trips_a_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'sk_live_secret' );
@@ -46,6 +52,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( 'sk_live_secret', $plaintext );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 */
 	public function test_round_trips_an_empty_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, '' );
@@ -55,6 +65,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( '', $plaintext );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 */
 	public function test_round_trips_under_network_scope(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'network', 0, self::NAME, WP_Secret_Version::CURRENT, 'network-secret' );
@@ -64,6 +78,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( 'network-secret', $plaintext );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_encrypt_rejects_a_non_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -74,6 +91,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 *
 	 * @dataProvider data_bad_master_keys
 	 *
 	 * @param string $bad_key Master key the cipher must refuse.
@@ -98,6 +117,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_encrypt_propagates_an_invalid_name(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -107,6 +129,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_encrypt_reports_an_invalid_scope_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -118,6 +143,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_encrypt_reports_a_negative_site_id_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -129,6 +157,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_encrypt_reports_an_invalid_slot_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -143,6 +174,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * AAD binding: a record encrypted under one context must not decrypt under a
 	 * different one, for any single component of that context.
+	 *
+	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
 	 * @dataProvider data_mismatched_context
 	 *
@@ -176,6 +209,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 */
 	public function test_decrypt_fails_under_a_different_master_key(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key( 0x11 ), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
@@ -187,6 +223,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 *
 	 * @dataProvider data_tamperable_fields
 	 *
 	 * @param string $field Record field to corrupt.
@@ -224,6 +262,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Cipher::decrypt_value
+	 *
 	 * @dataProvider data_malformed_records
 	 *
 	 * @param mixed $record Stored record the cipher must refuse.
@@ -269,6 +309,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_data_key_independence(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -282,6 +325,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertNotSame( $a['ct'], $b['ct'] );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::encrypt_value
+	 */
 	public function test_nonce_uniqueness_across_many_writes(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$nonces = array();
@@ -298,6 +344,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( count( $nonces ), count( array_unique( $nonces ) ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::fingerprint
+	 */
 	public function test_fingerprint_is_stable_for_the_same_inputs(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -307,6 +356,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::fingerprint
+	 */
 	public function test_fingerprint_differs_across_master_keys(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -316,6 +368,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::fingerprint
+	 */
 	public function test_fingerprint_differs_across_plaintexts(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -325,6 +380,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::fingerprint
+	 */
 	public function test_fingerprint_rejects_a_bad_master_key(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -334,6 +392,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Cipher::fingerprint
+	 */
 	public function test_fingerprint_rejects_a_non_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 
@@ -349,6 +410,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * both PHP 7.4 and 8.5 and pinned here so an accidental change to either
 	 * primitive, the KDF subkey id, the context string, or the output length is
 	 * caught rather than silently changing every existing fingerprint.
+	 *
+	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_known_answer_vector(): void {
 		$cipher = new WP_Secrets_Cipher();
@@ -362,6 +425,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * Pins the exact AAD format. A reviewer reordering these fields, or a future
 	 * commit accidentally dropping the site id or slot, silently weakens the binding
 	 * this whole design leans on – this test makes that change loud instead.
+	 *
+	 * @covers WP_Secrets_Cipher::build_aad
 	 */
 	public function test_aad_format_known_answer(): void {
 		$cipher = new WP_Secrets_Cipher();
@@ -383,6 +448,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * exists purely to catch a libsodium/sodium_compat behavior change or version
 	 * mismatch that our own round-trip tests, which always encrypt and decrypt with
 	 * the same implementation, would never surface.
+	 *
+	 * @coversNothing
 	 */
 	public function test_raw_aead_primitive_known_answer(): void {
 		$key    = str_repeat( chr( 0x22 ), 32 );

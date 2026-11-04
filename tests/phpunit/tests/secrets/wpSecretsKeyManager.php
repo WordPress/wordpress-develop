@@ -2,10 +2,15 @@
 /**
  * Tests for WP_Secrets_Key_Manager.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_get_root_key_generates_and_persists_one(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -18,12 +23,18 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertNotFalse( get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_get_root_key_is_stable_on_the_same_instance(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
 		$this->assertSame( $manager->get_root_key(), $manager->get_root_key() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_get_root_key_persists_across_instances(): void {
 		$first  = new WP_Secrets_Key_Manager();
 		$root_a = $first->get_root_key();
@@ -34,6 +45,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $root_a, $root_b );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_get_root_key_uses_an_existing_value_rather_than_regenerating(): void {
 		$keyring = new WP_Secrets_Config_Key_Provider();
 		$known   = str_repeat( 'R', 32 );
@@ -45,6 +59,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $known, $manager->get_root_key() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_matches_manual_derivation(): void {
 		$manager  = new WP_Secrets_Key_Manager();
 		$root_key = $manager->get_root_key();
@@ -55,6 +72,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $expected, $manager->get_master_key( 'site' ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_differs_per_site_id(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -64,6 +84,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_site_and_network_scope_differ(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -73,6 +96,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_network_scope_is_stable(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -82,6 +108,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_defaults_site_id_to_the_current_blog(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -91,6 +120,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
 	public function test_get_master_key_reports_an_invalid_scope_as_a_wp_error(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
@@ -103,6 +135,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 *
 	 * @dataProvider data_invalid_site_ids
 	 *
 	 * @param int $site_id A value that is not a usable blog id.
@@ -134,6 +168,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * this is the entire reason network secrets can be read from any blog. Requires
 	 * the multisite suite; skips under single-site since there is only one blog to
 	 * compare against.
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_network_scope_master_key_is_identical_across_blogs(): void {
 		if ( ! is_multisite() ) {
@@ -155,6 +191,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	/**
 	 * Site-scope master keys, by contrast, must differ per blog even though every
 	 * blog derives from the same shared root key.
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_site_scope_master_key_differs_across_blogs(): void {
 		if ( ! is_multisite() ) {
@@ -180,6 +218,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 *
 	 * Requires the multisite suite; skips under single-site since sitemeta and
 	 * the main site's options are the same table there.
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_adopts_a_pre_conversion_root_key(): void {
 		if ( ! is_multisite() ) {
@@ -208,6 +248,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	/**
 	 * Requires the multisite suite; skips under single-site for the same reason
 	 * as the adoption test above.
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers ::wp_get_secret
 	 */
 	public function test_secret_written_before_conversion_still_decrypts(): void {
 		if ( ! is_multisite() ) {
@@ -232,6 +275,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	/**
 	 * Requires the multisite suite; skips under single-site for the same reason
 	 * as the adoption test above.
+	 *
+	 * @covers WP_Secrets_Key_Manager::rotate_site_key
 	 */
 	public function test_rotate_site_key_works_after_conversion_before_any_read(): void {
 		if ( ! is_multisite() ) {
@@ -260,6 +305,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $master_before, $master_after );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::rotate_site_key
+	 */
 	public function test_rotate_fails_when_no_root_key_exists(): void {
 		$manager = new WP_Secrets_Key_Manager();
 		$keyring = new WP_Secrets_Config_Key_Provider();
@@ -270,6 +318,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::rotate_site_key
+	 */
 	public function test_rotate_fails_when_the_old_keyring_is_wrong(): void {
 		$right_keyring = new WP_Secrets_Config_Key_Provider();
 		$manager       = new WP_Secrets_Key_Manager( $right_keyring );
@@ -311,6 +362,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * This is the whole point of the envelope design, so it gets an end-to-end proof
 	 * rather than just testing rotate_site_key() in isolation.
 	 *
+	 * @covers WP_Secrets_Key_Manager::rotate_site_key
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -342,6 +396,10 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertWPError( $fresh_manager_under_old_key->get_root_key() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_unwrap_is_called_once_across_repeated_master_key_derivations(): void {
 		$mock = new Mock_Keyring();
 		$root = random_bytes( 32 );
@@ -363,6 +421,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -384,6 +444,10 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( 1, $mock->unwrap_call_count() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::rotate_site_key
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_rotate_site_key_updates_the_cache_without_another_unwrap(): void {
 		$mock        = new Mock_Keyring();
 		$second_mock = new Mock_Keyring();
@@ -400,6 +464,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( 0, $second_mock->unwrap_call_count() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_a_changed_wrapped_value_is_unwrapped_again_rather_than_served_from_cache(): void {
 		$mock       = new Mock_Keyring();
 		$root       = random_bytes( 32 );
@@ -415,6 +482,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( 2, $mock->unwrap_call_count() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_an_unwrap_error_is_not_cached(): void {
 		$mock = new Mock_Keyring();
 		$root = random_bytes( 32 );
@@ -438,6 +508,10 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( 2, $mock->unwrap_call_count() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::generate_root_key
+	 */
 	public function test_generate_root_key_primes_the_cache(): void {
 		$mock = new Mock_Keyring();
 
@@ -449,6 +523,9 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( 1, $mock->wrap_call_count() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
 	public function test_the_returned_root_key_is_a_copy_the_caller_can_zero(): void {
 		$mock = new Mock_Keyring();
 		$root = random_bytes( 32 );

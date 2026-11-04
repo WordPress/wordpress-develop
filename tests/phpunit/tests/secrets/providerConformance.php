@@ -6,6 +6,8 @@
  * kit nobody has run against a working implementation is a wish list. It also
  * means a host can compare their own failures against a known-good subject.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_LibsodiumProviderConformance extends WP_Secrets_Provider_Conformance {

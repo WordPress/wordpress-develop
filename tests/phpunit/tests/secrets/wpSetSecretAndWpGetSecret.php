@@ -2,12 +2,18 @@
 /**
  * Tests for wp_set_secret() and wp_get_secret().
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 	use WP_Secrets_Assertions;
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
 	public function test_set_then_get_round_trips(): void {
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'sk_live_secret' ) );
 
@@ -19,10 +25,16 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNotSame( '', $secret->fingerprint() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
 		$this->assertNull( wp_get_secret( 'myplugin/never-set' ) );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_get_defaults_to_the_current_version(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -34,6 +46,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( $default->reveal(), $current->reveal() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_get_previous_on_a_never_rotated_secret_is_null_not_error(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -45,6 +60,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * WP_Error plus a _doing_it_wrong() notice rather than by throwing. The
 	 * WP_Error branch of the three-state contract already covers it, so this adds
 	 * no fourth state.
+	 *
+	 * @covers ::wp_get_secret
 	 */
 	public function test_an_invalid_version_is_a_wp_error_not_an_exception(): void {
 		$this->setExpectedIncorrectUsage( '_wp_secrets_get' );
@@ -55,6 +72,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_set_rejects_an_invalid_name(): void {
 		$result = wp_set_secret( 'Not A Valid Name', 'value' );
 
@@ -62,6 +82,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_get_rejects_an_invalid_name(): void {
 		$result = wp_get_secret( 'Not A Valid Name' );
 
@@ -69,6 +92,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_set_rejects_a_non_string_value(): void {
 		$result = wp_set_secret( 'myplugin/api-key', array( 'not', 'a', 'string' ) ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
@@ -76,6 +102,10 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
 	public function test_set_accepts_an_empty_string_value(): void {
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', '' ) );
 
@@ -88,6 +118,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	/**
 	 * Overwriting is the only repair path an operator has through this API, so a
 	 * corrupted existing record must not block a write.
+	 *
+	 * @covers ::wp_set_secret
 	 */
 	public function test_a_corrupt_record_can_be_overwritten(): void {
 		update_option( '_wp_secret_myplugin/corrupt', 'not a record at all', false );
@@ -104,6 +136,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * Nothing plaintext reaches the database. Scans every option row rather than just
 	 * the secret's own, since the failure this guards against is a plaintext landing
 	 * somewhere unexpected.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_the_options_table_contains_no_plaintext_after_a_write(): void {
 		global $wpdb;
@@ -125,6 +160,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * The retrieval path clears its own local copy once the WP_Secret owns the value;
 	 * that only leaves the vault intact because PHP's copy-on-write splits the two
 	 * references first.
+	 *
+	 * @covers ::wp_get_secret
 	 */
 	public function test_reveal_still_works_after_the_internal_memzero(): void {
 		wp_set_secret( 'myplugin/api-key', 'must-survive-memzero' );
@@ -135,6 +172,10 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( 'must-survive-memzero', $secret->reveal() );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
 	public function test_no_capability_check_is_applied(): void {
 		wp_set_current_user( 0 ); // No logged-in user, no capabilities at all.
 
@@ -142,6 +183,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Secret::class, wp_get_secret( 'myplugin/api-key' ) );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_change_hook_fires_on_create_with_created_action(): void {
 		$captured = null;
 		add_action(
@@ -165,6 +209,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertFalse( $network );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_change_hook_fires_on_overwrite_with_updated_action(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$first = wp_get_secret( 'myplugin/api-key' );
@@ -192,6 +239,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNotSame( $old_fingerprint, $new_fingerprint );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_change_hook_reports_the_current_user_as_actor(): void {
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
@@ -211,6 +261,9 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( $user_id, $captured_actor );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 */
 	public function test_change_hook_never_receives_a_value(): void {
 		$captured_args = null;
 		add_action(

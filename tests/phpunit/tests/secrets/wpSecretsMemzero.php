@@ -1,9 +1,14 @@
 <?php
 /**
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_secrets_memzero
+	 */
 	public function test_clears_a_plaintext_string(): void {
 		$value = 'a plaintext value';
 
@@ -13,6 +18,9 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 		$this->assertSame( '', $value );
 	}
 
+	/**
+	 * @covers ::wp_secrets_memzero
+	 */
 	public function test_leaves_non_string_values_untouched(): void {
 		$value = 42;
 
@@ -21,6 +29,9 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 		$this->assertSame( 42, $value );
 	}
 
+	/**
+	 * @covers ::wp_secrets_memzero
+	 */
 	public function test_leaves_an_empty_string_untouched(): void {
 		$value = '';
 
@@ -29,6 +40,9 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 		$this->assertSame( '', $value );
 	}
 
+	/**
+	 * @covers ::wp_secrets_memzero
+	 */
 	public function test_does_not_throw_when_the_value_is_shared(): void {
 		$value = 'shared plaintext';
 		$copy  = $value;

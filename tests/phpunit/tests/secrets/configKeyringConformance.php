@@ -7,6 +7,8 @@
  * known-good subject a host writing a KMS- or HSM-backed keyring can compare
  * their own failures against.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_ConfigKeyringConformance extends WP_Secrets_Keyring_Conformance {

@@ -4,6 +4,8 @@
  * administrators by populate_roles() and upgrade_720(), and manage_network_secrets,
  * held only by super admins.
  *
+ * @ticket 66187
+ *
  * @group secrets
  * @group capabilities
  */
@@ -40,21 +42,33 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 		return $role_object;
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_capability_constant_values(): void {
 		$this->assertSame( 'manage_secrets', WP_SECRETS_CAP_MANAGE ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
 		$this->assertSame( 'manage_network_secrets', WP_SECRETS_CAP_MANAGE_NETWORK ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
 	}
 
+	/**
+	 * @covers ::populate_roles_720
+	 */
 	public function test_a_fresh_install_grants_manage_secrets_to_administrator(): void {
 		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ) );
 	}
 
+	/**
+	 * @covers ::populate_roles_720
+	 */
 	public function test_no_other_role_is_granted_manage_secrets(): void {
 		foreach ( array( 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
 			$this->assertFalse( $this->role( $role )->has_cap( WP_SECRETS_CAP_MANAGE ), $role );
 		}
 	}
 
+	/**
+	 * @covers ::populate_roles_720
+	 */
 	public function test_populate_roles_720_grants_manage_secrets_to_administrator(): void {
 		$this->role( 'administrator' )->remove_cap( WP_SECRETS_CAP_MANAGE );
 
@@ -64,6 +78,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::upgrade_720
+	 *
 	 * @dataProvider data_upgrade_720_gate
 	 *
 	 * @param int  $db_version     The database version being upgraded from.
@@ -98,12 +114,18 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::populate_roles_720
+	 */
 	public function test_administrator_user_has_manage_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
 		$this->assertTrue( user_can( $user_id, WP_SECRETS_CAP_MANAGE ) );
 	}
 
+	/**
+	 * @covers ::populate_roles_720
+	 */
 	public function test_subscriber_does_not_have_manage_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 
@@ -112,6 +134,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 *
+	 * @covers ::map_meta_cap
 	 */
 	public function test_single_site_administrator_does_not_have_manage_network_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -121,6 +145,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::map_meta_cap
 	 */
 	public function test_only_super_admins_have_manage_network_secrets(): void {
 		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );

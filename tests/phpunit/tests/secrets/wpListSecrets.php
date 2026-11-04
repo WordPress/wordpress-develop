@@ -2,14 +2,22 @@
 /**
  * Tests for wp_list_secrets().
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_returns_an_empty_array_when_nothing_is_set(): void {
 		$this->assertSame( array(), wp_list_secrets() );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_lists_every_secret_with_the_expected_keys(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -27,6 +35,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	/**
 	 * Never a value, under any circumstance – the entire justification for this
 	 * function existing depends on it.
+	 *
+	 * @covers ::wp_list_secrets
 	 */
 	public function test_never_returns_a_value(): void {
 		wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );
@@ -37,6 +47,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'a-plaintext-value-that-must-not-leak', $dump );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_fingerprint_matches_the_secrets_own_fingerprint(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -48,6 +61,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertSame( $secret->fingerprint(), $entries[0]['fingerprint'] );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_has_previous_is_false_before_a_rotation_and_true_after(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 
@@ -64,6 +80,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertTrue( $after[0]['has_previous'] );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_needs_rotation_reflects_the_current_slots_flag(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -82,6 +101,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertTrue( $entries[0]['needs_rotation'] );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_filters_by_namespace(): void {
 		wp_set_secret( 'pluginone/key', 'value' );
 		wp_set_secret( 'plugintwo/key', 'value' );
@@ -92,6 +114,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertSame( array( 'pluginone/key' ), wp_list_pluck( $entries, 'name' ) );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_empty_namespace_returns_everything(): void {
 		wp_set_secret( 'pluginone/key', 'value' );
 		wp_set_secret( 'plugintwo/key', 'value' );
@@ -102,6 +127,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertCount( 2, $entries );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_namespace_does_not_match_a_prefix_of_a_different_namespace(): void {
 		// 'plugin' must not match 'pluginone/key' – only a full "namespace/" prefix.
 		wp_set_secret( 'pluginone/key', 'value' );
@@ -112,6 +140,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	/**
 	 * A corrupted record must still appear in the list – Site Health's
 	 * undecryptable-secrets check depends on being able to see it exists.
+	 *
+	 * @covers ::wp_list_secrets
 	 */
 	public function test_a_corrupt_record_is_still_listed_with_blank_metadata(): void {
 		update_option( '_wp_secret_myplugin/corrupt', 'not a record at all', false );
@@ -125,6 +155,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertFalse( $entries[0]['has_previous'] );
 	}
 
+	/**
+	 * @covers ::wp_list_secrets
+	 */
 	public function test_does_not_list_network_scope_secrets(): void {
 		wp_set_secret( 'myplugin/site-only', 'value' );
 		_wp_secrets_set( 'myplugin/network-only', 'value', true );

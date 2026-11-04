@@ -102,6 +102,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 	// – declarations must be coherent ----------------------------------------
 
+	/**
+	 * @covers WP_Secrets_Provider::get_label
+	 */
 	public function test_reports_a_non_empty_label(): void {
 		$label = $this->provider()->get_label();
 
@@ -109,6 +112,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNotSame( '', trim( $label ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::get_protection_boundary
+	 */
 	public function test_reports_a_known_protection_boundary(): void {
 		$this->assertContains(
 			$this->provider()->get_protection_boundary(),
@@ -117,6 +123,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::is_writable
+	 */
 	public function test_is_writable_returns_a_bool(): void {
 		$this->assertIsBool( $this->provider()->is_writable() );
 	}
@@ -124,6 +133,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	/**
 	 * The declaration has to match the behaviour, or a settings screen that trusts
 	 * is_writable() will offer a save control that cannot work.
+	 *
+	 * @covers WP_Secrets_Provider::is_writable
+	 * @covers WP_Secrets_Provider::set
 	 */
 	public function test_a_read_only_provider_actually_refuses_writes(): void {
 		$provider = $this->provider();
@@ -149,6 +161,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * set is null – not false, not an empty WP_Secret, not a WP_Error. Reporting
 	 * absence as an error makes every caller treat a missing optional credential
 	 * as an outage; reporting an outage as absence makes them treat it as deleted.
+	 *
+	 * @covers WP_Secrets_Provider::get
 	 */
 	public function test_a_name_that_was_never_set_is_null(): void {
 		$result = $this->provider()->get( 'conformance/never-set-' . uniqid(), WP_Secret_Version::CURRENT );
@@ -160,6 +174,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * A provider with no version history reports absence for PREVIOUS, because
 	 * that is what it is: there is no previous value. It is not an error, and it
 	 * is not an excuse to return the current one.
+	 *
+	 * @covers WP_Secrets_Provider::get
 	 */
 	public function test_previous_on_a_provider_or_secret_without_history_is_null_not_error(): void {
 		$provider = $this->provider();
@@ -174,6 +190,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNull( $previous );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::delete
+	 */
 	public function test_deleting_something_absent_is_success(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -184,6 +203,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::retire_previous
+	 */
 	public function test_retiring_with_no_previous_version_is_success(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -196,6 +218,10 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 	// – the round trip --------------------------------------------------------
 
+	/**
+	 * @covers WP_Secrets_Provider::set
+	 * @covers WP_Secrets_Provider::get
+	 */
 	public function test_a_stored_value_comes_back_intact(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -214,6 +240,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * Fingerprints are how callers compare secrets without revealing them, so the
 	 * same value must fingerprint the same way twice. A provider that returns a
 	 * random or timestamped fingerprint breaks every comparison built on it.
+	 *
+	 * @covers WP_Secrets_Provider::get
 	 */
 	public function test_a_fingerprint_is_stable_for_the_same_value(): void {
 		$provider = $this->provider();
@@ -246,6 +274,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * version; one with no history has nothing to lose.
 	 *
 	 * @ticket 66353
+	 *
+	 * @covers WP_Secrets_Provider::set
 	 */
 	public function test_writing_an_unchanged_value_keeps_the_previous_version(): void {
 		$provider = $this->provider();
@@ -269,6 +299,10 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value must not replace the previous version.' );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::delete
+	 * @covers WP_Secrets_Provider::get
+	 */
 	public function test_a_deleted_secret_reads_as_absent(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -286,6 +320,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * The API does not fire `wp_secret_changed` on a provider's behalf, so a
 	 * provider that forgets to is a site whose audit log went quiet the day the
 	 * host installed it. Nothing else would notice.
+	 *
+	 * @covers WP_Secrets_Provider::set
 	 */
 	public function test_a_successful_write_reports_a_change(): void {
 		$provider = $this->provider();
@@ -311,6 +347,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed must never be passed a value.' );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::set
+	 */
 	public function test_an_action_override_is_reported_as_given(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -326,6 +365,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	/**
 	 * A listener cannot otherwise tell a network secret from a site secret of the
 	 * same name, and on a network those are different credentials.
+	 *
+	 * @covers WP_Secrets_Provider::set
+	 * @covers WP_Secrets_Provider::delete
 	 */
 	public function test_a_network_scope_change_reports_its_scope(): void {
 		$provider = $this->provider();
@@ -342,6 +384,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete must report $network as true.' );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::delete
+	 */
 	public function test_deleting_a_secret_reports_a_change(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -362,6 +407,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * Only asked of a provider that keeps a previous version and clears it on
 	 * request. One with no history, or whose backend manages its own, has nothing
 	 * to report.
+	 *
+	 * @covers WP_Secrets_Provider::retire_previous
 	 */
 	public function test_retiring_a_previous_version_reports_a_change(): void {
 		$provider = $this->provider();
@@ -388,6 +435,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertSame( 'retired', $this->recorded_changes[0][1] );
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::set
+	 */
 	public function test_a_refused_write_reports_no_change(): void {
 		$provider = $this->provider();
 
@@ -403,6 +453,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 	// – listing never leaks ---------------------------------------------------
 
+	/**
+	 * @covers WP_Secrets_Provider::list_secrets
+	 */
 	public function test_listing_returns_an_array_or_an_error_and_never_a_value(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -424,6 +477,9 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secrets_Provider::list_secrets
+	 */
 	public function test_listing_includes_a_stored_secret(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -441,6 +497,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 * A prefix filter that matched loosely would hand a caller names it did not
 	 * ask about, which for a listing keyed by owner is exactly the wrong direction
 	 * to be wrong in.
+	 *
+	 * @covers WP_Secrets_Provider::list_secrets
 	 */
 	public function test_listing_respects_a_name_prefix(): void {
 		$provider = $this->provider();

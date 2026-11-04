@@ -5,6 +5,8 @@
  * "the single most important new test in the suite" – the prior proof-of-concept
  * could not do this at all.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
@@ -28,6 +30,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		return $record[ $slot ];
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
 	public function test_first_write_leaves_no_previous_slot(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 
@@ -36,6 +42,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 	/**
 	 * The headline case: PREVIOUS must actually decrypt back to the prior value.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
 	 */
 	public function test_previous_returns_the_actual_prior_value(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
@@ -45,6 +54,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
+	 */
 	public function test_third_write_discards_the_oldest_value(): void {
 		wp_set_secret( 'myplugin/api-key', 'value-a' );
 		wp_set_secret( 'myplugin/api-key', 'value-b' );
@@ -62,6 +75,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * the previous value a rotation still depends on.
 	 *
 	 * @ticket 66353
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
 	 */
 	public function test_rewriting_the_current_value_keeps_the_previous_slot(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
@@ -74,6 +90,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66353
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_rewriting_the_current_value_leaves_the_stored_record_untouched(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
@@ -87,6 +106,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66353
+	 *
+	 * @covers ::wp_set_secret
 	 */
 	public function test_rewriting_the_current_value_does_not_fire_the_change_hook(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
@@ -108,6 +129,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * Re-saving an imported value through a settings form has not rotated it.
 	 *
 	 * @ticket 66353
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_rewriting_the_current_value_keeps_its_needs_rotation_flag(): void {
 		update_option( 'my_plugin_api_key', 'imported-value' );
@@ -124,6 +148,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * version.
 	 *
 	 * @ticket 66353
+	 *
+	 * @covers ::wp_import_option_as_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_importing_the_current_value_flags_it_and_keeps_the_previous_slot(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
@@ -137,6 +164,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
 	public function test_previous_preserves_its_original_fingerprint(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
@@ -150,6 +181,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( $original_fingerprint, $previous->fingerprint() );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
+	 */
 	public function test_previous_preserves_its_original_created_timestamp(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original_created = $this->stored_slot( WP_Secret_Version::CURRENT )['created'];
@@ -161,6 +196,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( $original_created, $demoted_created );
 	}
 
+	/**
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
+	 */
 	public function test_previous_preserves_its_needs_rotation_flag(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 
@@ -184,6 +223,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * slot's stored bytes into 'previous' would leave it permanently undecryptable
 	 * there. Demoting must re-encrypt, which means the stored ciphertext actually
 	 * changes even though the plaintext does not.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_demotion_actually_reencrypts_rather_than_copying_ciphertext(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
@@ -200,6 +242,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( 'first-value', $previous->reveal() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_previous_on_a_secret_with_no_previous_slot_is_null(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -211,6 +256,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * orphaned by a botched rotation), the write must still succeed rather than
 	 * inheriting the old corruption – refusing here would be the exact
 	 * corrupted-record-blocks-everything failure this API is built to avoid.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
 	 */
 	public function test_a_write_succeeds_even_if_the_outgoing_current_slot_cannot_be_decrypted(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
@@ -230,6 +278,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_clears_previous_and_leaves_current_intact(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
@@ -242,16 +293,25 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( 'second-value', $current->reveal() );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_on_a_secret_with_no_previous_slot_is_a_successful_noop(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
 		$this->assertTrue( wp_retire_secret_version( 'myplugin/api-key' ) );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_on_a_never_set_secret_is_a_successful_noop(): void {
 		$this->assertTrue( wp_retire_secret_version( 'myplugin/never-set' ) );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_rejects_an_invalid_name(): void {
 		$result = wp_retire_secret_version( 'Not A Valid Name' );
 
@@ -259,6 +319,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_fires_the_change_hook_with_the_retired_action(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
@@ -289,6 +352,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertSame( '', $new_fingerprint );
 	}
 
+	/**
+	 * @covers ::wp_retire_secret_version
+	 */
 	public function test_retire_does_not_fire_the_change_hook_on_a_noop(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 

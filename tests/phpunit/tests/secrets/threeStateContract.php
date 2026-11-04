@@ -5,16 +5,24 @@
  * could not be retrieved. The whole design rests on never collapsing these, so every
  * broken case here explicitly asserts `null !== $result` as well as WP_Error.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_absent_is_null(): void {
 		$result = wp_get_secret( 'myplugin/never-set' );
 
 		$this->assertNull( $result );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_previous_slot_absent_on_an_existing_secret_is_also_null(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
@@ -23,6 +31,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_malformed_record_is_wp_error_not_null(): void {
 		update_option( '_wp_secret_myplugin/api-key', 'this is a string, not a record array', false );
 
@@ -33,6 +44,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_record_missing_the_current_slot_is_wp_error_not_null(): void {
 		update_option( '_wp_secret_myplugin/api-key', array( 'v' => 1 ), false );
 
@@ -43,6 +57,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_unsupported_record_version_is_wp_error_not_null(): void {
 		update_option(
 			'_wp_secret_myplugin/api-key',
@@ -71,6 +88,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * legitimately-encrypted record under a different name's option row – as if it
 	 * had been copied or corrupted – must fail decryption, not silently succeed
 	 * under the wrong context or crash.
+	 *
+	 * @covers ::wp_get_secret
 	 */
 	public function test_aad_mismatch_from_a_copied_record_is_wp_error_not_null(): void {
 		wp_set_secret( 'myplugin/original-name', 'value' );
@@ -95,6 +114,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * wp_set_secret() so it bypasses the static _wp_secrets_get_key_manager(), whose
 	 * request-scoped root-key cache (ADR 0009) would otherwise keep serving the
 	 * already-unwrapped key and mask the misconfiguration this test defines below.
+	 *
+	 * @covers ::wp_get_secret
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -124,6 +145,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * wrapped root key has been corrupted – simulating the option row being
 	 * damaged after secrets already exist. get_master_key() must fail before
 	 * decryption is ever attempted, since a usable root key was never obtained.
+	 *
+	 * @covers ::wp_get_secret
+	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_a_corrupted_wrapped_root_key_is_wp_error_not_null(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
@@ -144,6 +168,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * empty fingerprint to WP_Secret's constructor, which rejects one, producing an
 	 * uncaught InvalidArgumentException – a fatal, and a fourth state the contract
 	 * does not allow.
+	 *
+	 * @covers ::wp_get_secret
 	 */
 	public function test_record_missing_its_fingerprint_field_still_returns_a_secret(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
@@ -168,6 +194,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * The 'fingerprint' field is outside the AAD, so anyone who can write to the
 	 * store can change it freely. WP_Secret::fingerprint() must report the value
 	 * recomputed from the decrypted plaintext, not whatever the record claims.
+	 *
+	 * @covers ::wp_get_secret
 	 */
 	public function test_fingerprint_is_recomputed_not_read_from_the_record(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
@@ -191,6 +219,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		$this->assertSame( $genuine, $after->fingerprint() );
 	}
 
+	/**
+	 * @covers ::wp_get_secret
+	 */
 	public function test_exists_and_decrypts_is_a_wp_secret(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 

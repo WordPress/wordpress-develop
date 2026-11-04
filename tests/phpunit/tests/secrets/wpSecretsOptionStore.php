@@ -2,6 +2,8 @@
 /**
  * Tests for WP_Secrets_Option_Store.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
@@ -25,16 +27,26 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_implements_the_store_interface(): void {
 		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Option_Store() ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::get
+	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
 		$store = new WP_Secrets_Option_Store();
 
 		$this->assertNull( $store->get( 'myplugin/absent' ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::set
+	 * @covers WP_Secrets_Option_Store::get
+	 */
 	public function test_set_then_get_round_trips_a_record_site_scope(): void {
 		$store  = new WP_Secrets_Option_Store();
 		$record = $this->sample_record();
@@ -43,6 +55,10 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertSame( $record, $store->get( 'myplugin/key' ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::set
+	 * @covers WP_Secrets_Option_Store::get
+	 */
 	public function test_set_then_get_round_trips_a_record_network_scope(): void {
 		$store  = new WP_Secrets_Option_Store();
 		$record = $this->sample_record();
@@ -51,6 +67,10 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertSame( $record, $store->get( 'myplugin/key', true ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::set
+	 * @covers WP_Secrets_Option_Store::get
+	 */
 	public function test_site_and_network_scope_do_not_collide(): void {
 		$store          = new WP_Secrets_Option_Store();
 		$site_record    = $this->sample_record();
@@ -63,6 +83,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertSame( $network_record, $store->get( 'myplugin/key', true ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::get
+	 */
 	public function test_get_returns_an_error_when_the_stored_value_is_not_an_array(): void {
 		update_option( '_wp_secret_myplugin/key', 'not an array', false );
 
@@ -74,6 +97,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::delete
+	 */
 	public function test_delete_removes_an_existing_record(): void {
 		$store = new WP_Secrets_Option_Store();
 		$store->set( 'myplugin/key', $this->sample_record() );
@@ -82,6 +108,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertNull( $store->get( 'myplugin/key' ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::delete
+	 */
 	public function test_delete_on_an_absent_record_is_not_an_error(): void {
 		$store = new WP_Secrets_Option_Store();
 
@@ -89,6 +118,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Secrets_Option_Store::set
+	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_site_scope_records_are_not_autoloaded(): void {
@@ -107,6 +138,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertContains( $autoload, array( 'no', 'off' ) );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::list_names
+	 */
 	public function test_list_names_returns_stored_names_without_the_prefix(): void {
 		$store = new WP_Secrets_Option_Store();
 		$store->set( 'myplugin/one', $this->sample_record() );
@@ -119,6 +153,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertContains( 'myplugin/two', $names );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::list_names
+	 */
 	public function test_list_names_does_not_include_unrelated_options(): void {
 		update_option( 'completely_unrelated_option', 'value' );
 
@@ -131,6 +168,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertNotContains( 'completely_unrelated_option', $names );
 	}
 
+	/**
+	 * @covers WP_Secrets_Option_Store::list_names
+	 */
 	public function test_list_names_does_not_include_network_scope_names(): void {
 		$store = new WP_Secrets_Option_Store();
 		$store->set( 'myplugin/site-only', $this->sample_record(), false );
@@ -151,6 +191,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 * '_' is a single-character wildcard in SQL LIKE. An option name with any other
 	 * character where the prefix's underscore falls must not match unless the prefix
 	 * is properly escaped before the query is built.
+	 *
+	 * @covers WP_Secrets_Option_Store::list_names
 	 */
 	public function test_list_names_escapes_the_underscore_wildcard(): void {
 		// Would match "_wp_secret_%" under an *unescaped* LIKE, since '_' matches

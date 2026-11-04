@@ -8,6 +8,8 @@
 /**
  * Masking, serialization refusal, and vault lifecycle for WP_Secret.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecret extends WP_UnitTestCase {
@@ -25,46 +27,70 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		return new WP_Secret( self::NAME, self::PLAINTEXT, self::FINGERPRINT );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_class_is_final(): void {
 		$reflection = new ReflectionClass( WP_Secret::class );
 
 		$this->assertTrue( $reflection->isFinal() );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_implements_json_serializable(): void {
 		$this->assertInstanceOf( JsonSerializable::class, $this->make_secret() );
 	}
 
+	/**
+	 * @covers WP_Secret::reveal
+	 */
 	public function test_reveal_returns_the_exact_plaintext(): void {
 		$secret = $this->make_secret();
 
 		$this->assertSame( self::PLAINTEXT, $secret->reveal() );
 	}
 
+	/**
+	 * @covers WP_Secret::fingerprint
+	 */
 	public function test_fingerprint_returns_the_exact_fingerprint(): void {
 		$secret = $this->make_secret();
 
 		$this->assertSame( self::FINGERPRINT, $secret->fingerprint() );
 	}
 
+	/**
+	 * @covers WP_Secret::get_name
+	 */
 	public function test_get_name_returns_the_exact_name(): void {
 		$secret = $this->make_secret();
 
 		$this->assertSame( self::NAME, $secret->get_name() );
 	}
 
+	/**
+	 * @covers WP_Secret::__construct
+	 */
 	public function test_constructor_rejects_a_non_string_value(): void {
 		$this->expectException( InvalidArgumentException::class );
 
 		new WP_Secret( self::NAME, 12345, self::FINGERPRINT ); // @phpstan-ignore argument.type (Intentionally passing a non-string value.)
 	}
 
+	/**
+	 * @covers WP_Secret::__construct
+	 */
 	public function test_constructor_rejects_an_empty_name(): void {
 		$this->expectException( InvalidArgumentException::class );
 
 		new WP_Secret( '', self::PLAINTEXT, self::FINGERPRINT );
 	}
 
+	/**
+	 * @covers WP_Secret::__construct
+	 */
 	public function test_constructor_rejects_an_empty_fingerprint(): void {
 		$this->expectException( InvalidArgumentException::class );
 
@@ -73,6 +99,10 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 	/**
 	 * Every representation short of reveal() must exclude the plaintext.
+	 *
+	 * @covers WP_Secret::__toString
+	 * @covers WP_Secret::jsonSerialize
+	 * @covers WP_Secret::__debugInfo
 	 *
 	 * @dataProvider data_masking_surfaces
 	 *
@@ -138,12 +168,18 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secret::__toString
+	 */
 	public function test_to_string_yields_the_masked_placeholder(): void {
 		$secret = $this->make_secret();
 
 		$this->assertSame( '[secret:' . self::NAME . ']', (string) $secret );
 	}
 
+	/**
+	 * @covers WP_Secret::jsonSerialize
+	 */
 	public function test_json_encode_yields_the_masked_placeholder(): void {
 		$secret = $this->make_secret();
 
@@ -154,6 +190,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertSame( '[secret:' . self::NAME . ']', json_decode( $json ) );
 	}
 
+	/**
+	 * @covers WP_Secret::__debugInfo
+	 */
 	public function test_var_dump_yields_the_masked_placeholder(): void {
 		$secret = $this->make_secret();
 
@@ -164,6 +203,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertStringContainsString( '[secret:' . self::NAME . ']', $output );
 	}
 
+	/**
+	 * @covers WP_Secret::__serialize
+	 */
 	public function test_serialize_throws(): void {
 		$secret = $this->make_secret();
 
@@ -172,6 +214,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		serialize( $secret );
 	}
 
+	/**
+	 * @covers WP_Secret::__clone
+	 */
 	public function test_clone_throws(): void {
 		$secret = $this->make_secret();
 
@@ -184,6 +229,11 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * Invoked directly via reflection, rather than through serialize()/unserialize(),
 	 * because __serialize() alone shadows __sleep() and vice versa depending on which
 	 * pair PHP's engine prefers – this proves each of the four refuses independently.
+	 *
+	 * @covers WP_Secret::__sleep
+	 * @covers WP_Secret::__wakeup
+	 * @covers WP_Secret::__serialize
+	 * @covers WP_Secret::__unserialize
 	 *
 	 * @dataProvider data_refusing_magic_methods
 	 *
@@ -214,6 +264,10 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Secret::__construct
+	 * @covers WP_Secret::__destruct
+	 */
 	public function test_destructing_the_last_reference_removes_it_from_the_vault(): void {
 		$secret = $this->make_secret();
 		$id     = spl_object_id( $secret );
@@ -244,6 +298,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * while a persistent backend (Redis, Memcached) serializes instead, which
 	 * __serialize() refuses. Both are LogicException, so both are covered here
 	 * without the test having to know which cache is installed.
+	 *
+	 * @covers WP_Secret::__clone
+	 * @covers WP_Secret::__serialize
 	 */
 	public function test_wp_cache_set_of_a_secret_is_refused(): void {
 		$secret = $this->make_secret();
@@ -263,6 +320,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * regression guard against a future change that moves the plaintext back into a
 	 * declared property, which would defeat the masking design without breaking any
 	 * of the magic-method tests.
+	 *
+	 * @covers WP_Secret::__construct
 	 */
 	public function test_nothing_plaintext_survives_a_refused_cache_write(): void {
 		$secret = $this->make_secret();
@@ -278,6 +337,11 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertNeverContainsPlaintext( self::PLAINTEXT, $cached );
 	}
 
+	/**
+	 * @covers WP_Secret::__construct
+	 * @covers WP_Secret::reveal
+	 * @covers WP_Secret::__destruct
+	 */
 	public function test_two_instances_do_not_share_a_vault_slot(): void {
 		$a = new WP_Secret( 'plugin/a', 'value-a', 'fp-a' );
 		$b = new WP_Secret( 'plugin/b', 'value-b', 'fp-b' );
@@ -297,6 +361,9 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * HSM signing key, a brokered credential. Everything except reveal() behaves
 	 * normally, which is the point – it still lists, still fingerprints, and
 	 * still masks itself everywhere.
+	 *
+	 * @covers WP_Secret::withheld
+	 * @covers WP_Secret::reveal
 	 */
 	public function test_withheld_reveal_returns_the_providers_reason(): void {
 		$reason = new WP_Error( 'provider_withholds_value', 'This key never leaves the HSM.' );
@@ -308,6 +375,11 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertSame( 'provider_withholds_value', $revealed->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Secret::withheld
+	 * @covers WP_Secret::get_name
+	 * @covers WP_Secret::fingerprint
+	 */
 	public function test_withheld_still_reports_name_and_fingerprint(): void {
 		$secret = WP_Secret::withheld(
 			'myplugin/signing-key',
@@ -322,6 +394,10 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * The masking guarantees are not weakened by the withheld path: there is no
 	 * plaintext to leak, and the error reason must not leak either.
+	 *
+	 * @covers WP_Secret::withheld
+	 * @covers WP_Secret::__debugInfo
+	 * @covers WP_Secret::__toString
 	 */
 	public function test_withheld_masks_like_any_other_secret(): void {
 		$secret = WP_Secret::withheld(
@@ -339,6 +415,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * An ordinary secret is unaffected: reveal() still returns the plaintext, and
 	 * the widened return type is not a behaviour change for the shipped provider.
+	 *
+	 * @covers WP_Secret::reveal
 	 */
 	public function test_an_ordinary_secret_still_reveals_a_plain_string(): void {
 		$secret = new WP_Secret( 'myplugin/api-key', 'sk_live_value', 'fingerprint' );

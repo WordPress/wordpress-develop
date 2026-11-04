@@ -1,27 +1,41 @@
 <?php
 /**
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WPSecretVersion extends WP_UnitTestCase {
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_current_and_previous_are_distinct_strings(): void {
 		$this->assertIsString( WP_Secret_Version::CURRENT );
 		$this->assertIsString( WP_Secret_Version::PREVIOUS );
 		$this->assertNotSame( WP_Secret_Version::CURRENT, WP_Secret_Version::PREVIOUS );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_class_is_final(): void {
 		$reflection = new ReflectionClass( WP_Secret_Version::class );
 
 		$this->assertTrue( $reflection->isFinal() );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_class_declares_no_constructor(): void {
 		$reflection = new ReflectionClass( WP_Secret_Version::class );
 
 		$this->assertNull( $reflection->getConstructor() );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_class_declares_exactly_two_constants(): void {
 		$reflection = new ReflectionClass( WP_Secret_Version::class );
 

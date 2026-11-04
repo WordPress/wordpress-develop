@@ -7,6 +7,8 @@
  * substitutes for, so a test that passes with Mock_Keyring in place is a test
  * that would also have to reckon with a conforming real keyring.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_MockKeyringConformance extends WP_Secrets_Keyring_Conformance {

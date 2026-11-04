@@ -1,10 +1,14 @@
 <?php
 /**
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
+	 * @covers ::wp_secrets_validate_name
+	 *
 	 * @dataProvider data_valid_names
 	 *
 	 * @param string $name A name that must be accepted.
@@ -30,6 +34,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_secrets_validate_name
+	 *
 	 * @dataProvider data_invalid_names
 	 *
 	 * @param string $name A name that must be rejected.
@@ -46,6 +52,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * It exists so code written against the Displace prototype – whose keyspace
 	 * was flat – can be ported one call site at a time rather than all at once.
 	 * See docs/decisions/0005-namespaces-are-not-access-control.md for the consequence.
+	 *
+	 * @covers ::wp_secrets_validate_name
 	 *
 	 * @dataProvider data_unnamespaced_names
 	 *
@@ -73,6 +81,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * The unnamespaced form relaxes the "exactly one slash" rule, not the
 	 * character rules – an unnamespaced name is still held to the same segment
 	 * pattern as a namespaced one.
+	 *
+	 * @covers ::wp_secrets_validate_name
 	 */
 	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {
 		$result = wp_secrets_validate_name( 'Not_A_Valid_Name' );

@@ -3,11 +3,15 @@
  * Pins the exact error-code strings so a later commit can't accidentally rename
  * one – these are part of the API's public error contract.
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 
 	/**
+	 * @coversNothing
+	 *
 	 * @dataProvider data_published_error_codes
 	 *
 	 * @param string $constant Name of the error-code constant.
@@ -32,6 +36,9 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_all_error_codes_are_distinct(): void {
 		$codes = array(
 			WP_SECRETS_ERROR_DECRYPTION_FAILED,
@@ -46,6 +53,9 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 		$this->assertSame( count( $codes ), count( array_unique( $codes ) ) );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function test_max_name_length_matches_the_options_column_budget(): void {
 		// wp_options.option_name is VARCHAR(191); '_wp_network_secret_' (19
 		// characters) is the longest prefix any store here uses.

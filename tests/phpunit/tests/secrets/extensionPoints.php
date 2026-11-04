@@ -18,6 +18,8 @@
  * see docs/journal/test-coverage-gaps.md for what this does not cover (the drop-in's own file
  * loading, which cannot be driven the same way).
  *
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
@@ -25,6 +27,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	use WP_Secrets_Assertions;
 
 	/**
+	 * @covers ::_wp_secrets_get_store
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -43,6 +47,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::_wp_secrets_get_key_manager
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -58,6 +64,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::_wp_secrets_get_store
+	 * @covers ::_wp_secrets_get_key_manager
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -76,6 +85,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	/**
 	 * A store that can read but not write: an existing value seeded before write
 	 * support is turned off must remain readable, while a new write is rejected.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -104,6 +116,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * a capability flag that nothing consulted, so it passed regardless of behavior.
 	 * It now makes set() actually fail, and checks both halves.
 	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -126,6 +141,10 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::_wp_secrets_get_store
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -145,6 +164,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::_wp_secrets_get_key_manager
+	 * @covers ::wp_set_secret
+	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
@@ -161,6 +183,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * The store must never be handed a plaintext, under any circumstance – this is
 	 * the whole point of the envelope. Mock_Store records every record it is
 	 * given; this asserts the plaintext appears nowhere in any of them.
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers WP_Secrets_Libsodium_Provider::set
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -185,6 +210,14 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * loading cannot be driven the same way this simulates its aftermath) and
 	 * confirms every operation fails closed with WP_Error rather than a fatal error
 	 * or a silent fallback to local storage.
+	 *
+	 * @covers ::_wp_secrets_get_provider
+	 * @covers WP_Secrets_Broken_Provider::set
+	 * @covers WP_Secrets_Broken_Provider::get
+	 * @covers WP_Secrets_Broken_Provider::delete
+	 * @covers WP_Secrets_Broken_Provider::list_secrets
+	 * @covers WP_Secrets_Broken_Provider::retire_previous
+	 * @covers WP_Secrets_Broken_Provider::is_writable
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
