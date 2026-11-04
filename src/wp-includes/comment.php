@@ -1214,8 +1214,8 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		 *                                      (trackbacks and pingbacks), or 'all'. Default 'all'.
 		 *     @type int    $post_id            ID of the post.
 		 *     @type string $fields             Comment fields to return.
-		 *     @type bool   $count              Whether to return a comment count (true) or array
-		 *                                      of comment objects (false).
+		 *     @type true   $count              Required. Whether to return a comment count. Must be
+		 *                                      true, because the page number is calculated from it.
 		 *     @type string $status             Comment status.
 		 *     @type int    $parent             Parent ID of comment to retrieve children of.
 		 *     @type array  $date_query         Date query clauses to limit comments by. See WP_Date_Query.
