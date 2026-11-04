@@ -2054,9 +2054,9 @@ function sanitize_file_name( $filename ) {
 		 * The “Zs” in the pattern selects characters in the `Space_Separator`
 		 * category, which is what Unicode considers space characters.
 		 *
-		 * @see https://www.unicode.org/reports/tr44/#General_Category_Values
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
-		 * @see https://www.php.net/manual/en/regexp.reference.unicode.php
+		 * @link https://www.unicode.org/reports/tr44/#General_Category_Values
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
+		 * @link https://www.php.net/manual/en/regexp.reference.unicode.php
 		 */
 		$filename = preg_replace( '#\p{Zs}#siu', ' ', $filename );
 	}
@@ -2187,7 +2187,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key.
+ * @param mixed $key String key. Other scalars are cast to a string; any other type yields an empty string.
  * @return string Sanitized key.
  * @phpstan-return lowercase-string
  */
@@ -2195,7 +2195,7 @@ function sanitize_key( $key ) {
 	$sanitized_key = '';
 
 	if ( is_scalar( $key ) ) {
-		$sanitized_key = strtolower( $key );
+		$sanitized_key = strtolower( (string) $key );
 		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
 	}
 
@@ -2205,7 +2205,8 @@ function sanitize_key( $key ) {
 	 * @since 3.0.0
 	 *
 	 * @param string $sanitized_key Sanitized key.
-	 * @param string $key           The key prior to sanitization.
+	 * @param mixed  $key           The key prior to sanitization.
+	 * @phpstan-param lowercase-string $sanitized_key
 	 */
 	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
@@ -2655,8 +2656,8 @@ function force_balance_tags( $text ) {
 	 * To get the pattern as a string without the comments paste into a PHP
 	 * REPL like `php -a`.
 	 *
-	 * @see https://html.spec.whatwg.org/#elements-2
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @link https://html.spec.whatwg.org/#elements-2
+	 * @link https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 *
 	 * @example
 	 * ~# php -a
@@ -5184,6 +5185,7 @@ function sanitize_option( $option, $value ) {
 		case 'permalink_structure':
 		case 'category_base':
 		case 'tag_base':
+		case 'wp_random_base':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
