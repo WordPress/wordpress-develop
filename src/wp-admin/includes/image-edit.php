@@ -578,6 +578,15 @@ function _rotate_image_resource( $img, $angle ) {
 function _flip_image_resource( $img, $horz, $vert ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Image_Editor::flip()' );
 
+	if ( ! is_gd_image( $img ) ) {
+		return $img;
+	}
+
+	// Keep returning a truecolor image, like the previous implementation did. imagewebp() rejects palette images.
+	if ( ! imageistruecolor( $img ) && ! imagepalettetotruecolor( $img ) ) {
+		return $img;
+	}
+
 	if ( ! $horz && ! $vert ) {
 		return $img;
 	}
@@ -590,8 +599,9 @@ function _flip_image_resource( $img, $horz, $vert ) {
 		$mode = IMG_FLIP_HORIZONTAL;
 	}
 
-	if ( is_gd_image( $img ) ) {
-		imageflip( $img, $mode );
+	if ( imageflip( $img, $mode ) ) {
+		imagealphablending( $img, false );
+		imagesavealpha( $img, true );
 	}
 
 	return $img;

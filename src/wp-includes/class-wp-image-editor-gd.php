@@ -443,6 +443,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
 		}
 
+		/*
+		 * imageflip() works in place and keeps palette images as palette images.
+		 * The previous implementation always copied into a new truecolor image,
+		 * and saving or streaming as WebP relies on that, since imagewebp()
+		 * rejects palette images. Convert first to keep that behavior.
+		 */
+		if ( ! imageistruecolor( $this->image ) && ! imagepalettetotruecolor( $this->image ) ) {
+			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+		}
+
 		if ( ! $horz && ! $vert ) {
 			return true;
 		}
@@ -456,6 +466,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		if ( imageflip( $this->image, $mode ) ) {
+			/*
+			 * imageflip() works in place and keeps the current alpha settings, which
+			 * rotate() leaves with blending enabled. Reset them to what the previous
+			 * implementation always produced.
+			 */
+			imagealphablending( $this->image, false );
+			imagesavealpha( $this->image, true );
+
 			return true;
 		}
 

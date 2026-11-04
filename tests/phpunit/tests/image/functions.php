@@ -1212,6 +1212,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
+	 * @requires extension gd
+	 *
 	 * @expectedDeprecated _flip_image_resource
 	 *
 	 * @dataProvider data_flip_image_resource
@@ -1269,6 +1271,52 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'horizontal flip' => array( false, true ),
 			'both'            => array( true, true ),
 		);
+	}
+
+	/**
+	 * Tests that _flip_image_resource() returns a truecolor image for a palette image.
+	 *
+	 * The previous implementation always copied into a new truecolor image.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_converts_palette_image_to_truecolor( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$image = imagecreatefromgif( DIR_TESTDATA . '/images/test-image.gif' );
+		$w     = imagesx( $image );
+		$h     = imagesy( $image );
+
+		$this->assertFalse( imageistruecolor( $image ), 'The fixture should be a palette image.' );
+
+		$top_left    = imagecolorsforindex( $image, imagecolorat( $image, 0, 0 ) );
+		$bottom_left = imagecolorsforindex( $image, imagecolorat( $image, 0, $h - 1 ) );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
+
+		$target_x = $vert ? $w - 1 : 0;
+		$target_y = $horz ? $h - 1 : 0;
+		$expected = ( $top_left['alpha'] << 24 ) | ( $top_left['red'] << 16 ) | ( $top_left['green'] << 8 ) | $top_left['blue'];
+
+		$this->assertSame( $expected, imagecolorat( $flipped, $target_x, $target_y ), 'The top-left pixel did not move to its mirrored position.' );
+
+		$target_y = $horz ? 0 : $h - 1;
+		$expected = ( $bottom_left['alpha'] << 24 ) | ( $bottom_left['red'] << 16 ) | ( $bottom_left['green'] << 8 ) | $bottom_left['blue'];
+
+		$this->assertSame( $expected, imagecolorat( $flipped, $target_x, $target_y ), 'The bottom-left pixel did not move to its mirrored position.' );
 	}
 }
 
