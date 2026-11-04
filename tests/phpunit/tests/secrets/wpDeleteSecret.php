@@ -14,7 +14,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_deletes_an_existing_secret(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting an existing secret should return true.' );
 		$this->assertNull( wp_get_secret( 'myplugin/api-key' ), 'A deleted secret should no longer be retrievable.' );
@@ -47,7 +47,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_change_hook_fires_with_deleted_action(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
 		$this->assertInstanceOf( WP_Secret::class, $secret, 'The stored secret should be retrievable as a WP_Secret.' );
@@ -64,7 +64,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 			7
 		);
 
-		wp_delete_secret( 'myplugin/api-key' );
+		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting myplugin/api-key should succeed.' );
 
 		$this->assertIsArray( $captured, 'The wp_secret_changed hook should fire.' );
 
@@ -90,7 +90,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 			}
 		);
 
-		wp_delete_secret( 'myplugin/never-set' );
+		$this->assertTrue( wp_delete_secret( 'myplugin/never-set' ), 'Deleting myplugin/never-set should succeed.' );
 
 		$this->assertFalse( $fired, 'The hook should not fire when nothing was deleted.' );
 	}
@@ -118,7 +118,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_no_capability_check_is_applied(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 		wp_set_current_user( 0 );
 
 		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting a secret without a logged-in user should succeed.' );

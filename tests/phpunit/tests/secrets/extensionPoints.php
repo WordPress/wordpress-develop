@@ -105,7 +105,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store;
 
-		wp_set_secret( 'myplugin/api-key', 'seeded-before-write-broke' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'seeded-before-write-broke' ), 'Setting myplugin/api-key to seeded-before-write-broke should succeed.' );
 
 		$store->configure_fail( 'set', true );
 
@@ -128,6 +128,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_unreachable_store_fails_closed_with_no_local_fallback(): void {
+		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store->configure_fail( 'get', true )->configure_fail( 'set', true );
 
@@ -135,7 +138,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$get_result = wp_get_secret( 'myplugin/api-key' );
 
 		$this->assertWPError( $set_result, 'A write to an unreachable store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $set_result->get_error_code(), 'A write to an unreachable store should report the store as unavailable.' );
 		$this->assertWPError( $get_result, 'A read from an unreachable store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $get_result->get_error_code(), 'A read from an unreachable store should report the store as unavailable.' );
 
 		/*
 		 * Fails closed, not merely differently: nothing was written to the real
@@ -162,7 +167,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store;
 
-		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-5c1e' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-5c1e' ), 'Setting myplugin/api-key to UNIQUE-PLAINTEXT-CANARY-5c1e should succeed.' );
 		$store->configure_fail( 'list', true );
 
 		$result = wp_list_secrets();
@@ -202,11 +207,15 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_the_store_is_never_handed_a_plaintext(): void {
+		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store;
 
-		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' ), 'Setting myplugin/api-key to UNIQUE-PLAINTEXT-CANARY-9f3a should succeed.' );
 
+		$this->assertNotEmpty( $store->get_received_records(), 'The store should have been handed the encrypted record.' );
 		$this->assertNeverContainsPlaintext(
 			'UNIQUE-PLAINTEXT-CANARY-9f3a',
 			$store->get_received_records(),

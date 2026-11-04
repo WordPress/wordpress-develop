@@ -142,7 +142,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_is_good_when_nothing_is_broken(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$result = wp_secrets_site_health_test_undecryptable();
 
@@ -168,7 +168,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_is_critical_and_lists_the_broken_secret(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
 		$this->assertInstanceOf( WP_Secret::class, $secret, 'The stored secret should be retrievable as a WP_Secret.' );
@@ -196,7 +196,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_never_contains_a_plaintext(): void {
-		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' ), 'Setting myplugin/api-key to UNIQUE-PLAINTEXT-CANARY-9f3a should succeed.' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
@@ -218,7 +218,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_test_needs_rotation
 	 */
 	public function test_needs_rotation_test_is_good_by_default(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$result = wp_secrets_site_health_test_needs_rotation();
 
@@ -232,7 +232,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 */
 	public function test_needs_rotation_test_is_recommended_after_an_import(): void {
 		update_option( 'my_plugin_api_key', 'value' );
-		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing my_plugin_api_key as myplugin/api-key should succeed.' );
 
 		$result = wp_secrets_site_health_test_needs_rotation();
 
@@ -246,7 +246,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_reports_expected_fields(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$info   = wp_secrets_site_health_debug_info( array() );
 		$fields = $this->debug_fields( $info );
@@ -286,7 +286,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_never_contains_a_plaintext(): void {
-		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' ), 'Setting myplugin/api-key to UNIQUE-PLAINTEXT-CANARY-9f3a should succeed.' );
 
 		$info = wp_secrets_site_health_debug_info( array() );
 

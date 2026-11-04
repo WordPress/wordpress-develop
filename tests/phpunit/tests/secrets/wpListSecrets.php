@@ -23,7 +23,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_lists_every_secret_with_the_expected_keys(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$entries = wp_list_secrets();
 
@@ -44,7 +44,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_never_returns_a_value(): void {
-		wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' ), 'Setting myplugin/api-key to a-plaintext-value-that-must-not-leak should succeed.' );
 
 		$dump = wp_json_encode( wp_list_secrets() );
 
@@ -58,7 +58,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_fingerprint_matches_the_secrets_own_fingerprint(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$secret  = wp_get_secret( 'myplugin/api-key' );
 		$entries = wp_list_secrets();
@@ -74,14 +74,14 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_has_previous_is_false_before_a_rotation_and_true_after(): void {
-		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'first-value' ), 'Setting myplugin/api-key to first-value should succeed.' );
 
 		$before = wp_list_secrets();
 
 		$this->assertIsArray( $before, 'wp_list_secrets() should return an array before the overwrite.' );
 		$this->assertFalse( $before[0]['has_previous'], 'has_previous should be false before the secret is overwritten.' );
 
-		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'second-value' ), 'Setting myplugin/api-key to second-value should succeed.' );
 
 		$after = wp_list_secrets();
 
@@ -98,7 +98,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_needs_rotation_reflects_the_current_slots_flag(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
@@ -121,8 +121,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_filters_by_namespace(): void {
-		wp_set_secret( 'pluginone/key', 'value' );
-		wp_set_secret( 'plugintwo/key', 'value' );
+		$this->assertTrue( wp_set_secret( 'pluginone/key', 'value' ), 'Setting pluginone/key to value should succeed.' );
+		$this->assertTrue( wp_set_secret( 'plugintwo/key', 'value' ), 'Setting plugintwo/key to value should succeed.' );
 
 		$entries = wp_list_secrets( 'pluginone' );
 
@@ -136,8 +136,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_empty_namespace_returns_everything(): void {
-		wp_set_secret( 'pluginone/key', 'value' );
-		wp_set_secret( 'plugintwo/key', 'value' );
+		$this->assertTrue( wp_set_secret( 'pluginone/key', 'value' ), 'Setting pluginone/key to value should succeed.' );
+		$this->assertTrue( wp_set_secret( 'plugintwo/key', 'value' ), 'Setting plugintwo/key to value should succeed.' );
 
 		$entries = wp_list_secrets( '' );
 
@@ -152,7 +152,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 */
 	public function test_namespace_does_not_match_a_prefix_of_a_different_namespace(): void {
 		// 'plugin' must not match 'pluginone/key' – only a full "namespace/" prefix.
-		wp_set_secret( 'pluginone/key', 'value' );
+		$this->assertTrue( wp_set_secret( 'pluginone/key', 'value' ), 'Setting pluginone/key to value should succeed.' );
 
 		$this->assertSame( array(), wp_list_secrets( 'plugin' ), 'A namespace should not match a prefix of a different namespace.' );
 	}
@@ -181,8 +181,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_does_not_list_network_scope_secrets(): void {
-		wp_set_secret( 'myplugin/site-only', 'value' );
-		wp_set_network_secret( 'myplugin/network-only', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/site-only', 'value' ), 'Setting myplugin/site-only to value should succeed.' );
+		$this->assertTrue( wp_set_network_secret( 'myplugin/network-only', 'value' ), 'Setting network secret myplugin/network-only to value should succeed.' );
 
 		$entries = wp_list_secrets();
 

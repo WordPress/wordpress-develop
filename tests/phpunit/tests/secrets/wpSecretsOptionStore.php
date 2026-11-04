@@ -86,8 +86,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$site_record    = $this->sample_record();
 		$network_record = array_merge( $this->sample_record(), array( 'marker' => 'network' ) );
 
-		$store->set( 'myplugin/key', $site_record, false );
-		$store->set( 'myplugin/key', $network_record, true );
+		$this->assertTrue( $store->set( 'myplugin/key', $site_record, false ), 'Storing the record for myplugin/key in site scope should succeed.' );
+		$this->assertTrue( $store->set( 'myplugin/key', $network_record, true ), 'Storing the record for myplugin/key in network scope should succeed.' );
 
 		$this->assertSame( $site_record, $store->get( 'myplugin/key', false ), 'The site-scope record should not be overwritten by the network-scope record.' );
 		$this->assertSame( $network_record, $store->get( 'myplugin/key', true ), 'The network-scope record should be stored separately from the site-scope record.' );
@@ -116,7 +116,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 */
 	public function test_delete_removes_an_existing_record(): void {
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/key', $this->sample_record() );
+		$this->assertTrue( $store->set( 'myplugin/key', $this->sample_record() ), 'Storing the record for myplugin/key should succeed.' );
 
 		$this->assertTrue( $store->delete( 'myplugin/key' ), 'Deleting an existing record should succeed.' );
 		$this->assertNull( $store->get( 'myplugin/key' ), 'A deleted record should no longer be returned.' );
@@ -147,7 +147,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		global $wpdb;
 
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/key', $this->sample_record() );
+		$this->assertTrue( $store->set( 'myplugin/key', $this->sample_record() ), 'Storing the record for myplugin/key should succeed.' );
 
 		$autoload = $wpdb->get_var(
 			$wpdb->prepare(
@@ -166,8 +166,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 */
 	public function test_list_names_returns_stored_names_without_the_prefix(): void {
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/one', $this->sample_record() );
-		$store->set( 'myplugin/two', $this->sample_record() );
+		$this->assertTrue( $store->set( 'myplugin/one', $this->sample_record() ), 'Storing the record for myplugin/one should succeed.' );
+		$this->assertTrue( $store->set( 'myplugin/two', $this->sample_record() ), 'Storing the record for myplugin/two should succeed.' );
 
 		$names = $store->list_names();
 
@@ -185,7 +185,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		update_option( 'completely_unrelated_option', 'value' );
 
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/one', $this->sample_record() );
+		$this->assertTrue( $store->set( 'myplugin/one', $this->sample_record() ), 'Storing the record for myplugin/one should succeed.' );
 
 		$names = $store->list_names();
 
@@ -200,8 +200,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 */
 	public function test_list_names_returns_only_the_requested_scope(): void {
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/site-only', $this->sample_record(), false );
-		$store->set( 'myplugin/network-only', $this->sample_record(), true );
+		$this->assertTrue( $store->set( 'myplugin/site-only', $this->sample_record(), false ), 'Storing the record for myplugin/site-only in site scope should succeed.' );
+		$this->assertTrue( $store->set( 'myplugin/network-only', $this->sample_record(), true ), 'Storing the record for myplugin/network-only in network scope should succeed.' );
 
 		$site_names    = $store->list_names( false );
 		$network_names = $store->list_names( true );
@@ -229,7 +229,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		update_option( '_wpXsecret_decoy/name', 'irrelevant value', false );
 
 		$store = new WP_Secrets_Option_Store();
-		$store->set( 'myplugin/real', $this->sample_record() );
+		$this->assertTrue( $store->set( 'myplugin/real', $this->sample_record() ), 'Storing the record for myplugin/real should succeed.' );
 
 		$names = $store->list_names();
 

@@ -28,7 +28,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_previous_slot_absent_on_an_existing_secret_is_also_null(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$result = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
 
@@ -102,7 +102,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_aad_mismatch_from_a_copied_record_is_wp_error_not_null(): void {
-		wp_set_secret( 'myplugin/original-name', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/original-name', 'value' ), 'Setting myplugin/original-name to value should succeed.' );
 		$copied_record = get_option( '_wp_secret_myplugin/original-name' );
 
 		update_option( '_wp_secret_myplugin/different-name', $copied_record, false );
@@ -139,7 +139,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 			new WP_Secrets_Option_Store(),
 			new WP_Secrets_Key_Manager( new WP_Secrets_Config_Key_Provider() )
 		);
-		$provider->set( 'myplugin/api-key', 'value' );
+		$this->assertTrue( $provider->set( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		define( 'WP_SECRETS_KEY', 424242 );
 
@@ -160,7 +160,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_a_corrupted_wrapped_root_key_is_wp_error_not_null(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'not-a-valid-wrapped-value' );
 
@@ -182,7 +182,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_record_missing_its_fingerprint_field_still_returns_a_secret(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
@@ -208,7 +208,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_fingerprint_is_recomputed_not_read_from_the_record(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 		$before = wp_get_secret( 'myplugin/api-key' );
 
 		$this->assertInstanceOf( WP_Secret::class, $before, 'The secret should be a WP_Secret before the fingerprint is tampered with.' );
@@ -235,7 +235,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_exists_and_decrypts_is_a_wp_secret(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 

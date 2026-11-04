@@ -33,7 +33,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_get_defaults_to_the_current_version(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$default = wp_get_secret( 'myplugin/api-key' );
 		$current = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::CURRENT );
@@ -141,7 +141,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( wpdb::class, $wpdb, 'The global $wpdb should be a wpdb instance.' );
 
-		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' ), 'Setting myplugin/api-key to UNIQUE-PLAINTEXT-CANARY-9f3a should succeed.' );
 
 		$this->assertNeverContainsPlaintext(
 			'UNIQUE-PLAINTEXT-CANARY-9f3a',
@@ -160,7 +160,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_reveal_still_works_after_the_internal_memzero(): void {
-		wp_set_secret( 'myplugin/api-key', 'must-survive-memzero' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'must-survive-memzero' ), 'Setting myplugin/api-key to must-survive-memzero should succeed.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
@@ -201,7 +201,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		);
 
 		$before = time();
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 		$after = time();
 
 		$this->assertNotNull( $captured, 'The wp_secret_changed hook should fire.' );
@@ -223,7 +223,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_fires_on_overwrite_with_updated_action(): void {
-		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'first-value' ), 'Setting myplugin/api-key to first-value should succeed.' );
 		$first = wp_get_secret( 'myplugin/api-key' );
 
 		$this->assertInstanceOf( WP_Secret::class, $first, 'The first secret should be retrievable as a WP_Secret.' );
@@ -239,7 +239,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			7
 		);
 
-		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'second-value' ), 'Setting myplugin/api-key to second-value should succeed.' );
 
 		$this->assertIsArray( $captured, 'The wp_secret_changed hook should fire.' );
 		list( , $action, , , $old_fingerprint, $new_fingerprint ) = $captured;
@@ -268,7 +268,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			3
 		);
 
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$this->assertSame( $user_id, $captured_actor, 'The hook should report the current user as the actor.' );
 	}
@@ -292,7 +292,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			7
 		);
 
-		wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' ), 'Setting myplugin/api-key to a-plaintext-value-that-must-not-leak should succeed.' );
 
 		$this->assertIsArray( $captured_args, 'The wp_secret_changed hook should fire.' );
 

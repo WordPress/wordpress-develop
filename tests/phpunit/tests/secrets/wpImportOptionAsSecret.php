@@ -32,7 +32,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	public function test_leaves_the_source_option_untouched(): void {
 		update_option( 'my_plugin_api_key', 'sk_live_from_an_option' );
 
-		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing my_plugin_api_key as myplugin/api-key should succeed.' );
 
 		$this->assertSame( 'sk_live_from_an_option', get_option( 'my_plugin_api_key' ), 'The source option should be left unchanged.' );
 	}
@@ -45,7 +45,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	 */
 	public function test_flags_the_imported_secret_for_rotation(): void {
 		update_option( 'my_plugin_api_key', 'value' );
-		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing my_plugin_api_key as myplugin/api-key should succeed.' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
@@ -65,7 +65,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
 	public function test_an_ordinary_write_does_not_flag_needs_rotation(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
@@ -133,7 +133,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 			7
 		);
 
-		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing my_plugin_api_key as myplugin/api-key should succeed.' );
 
 		$this->assertIsArray( $captured, 'The wp_secret_changed action should have fired.' );
 		list( $name, $action ) = $captured;
@@ -150,10 +150,10 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_importing_over_an_existing_secret_demotes_it_like_any_write(): void {
-		wp_set_secret( 'myplugin/api-key', 'original-value' );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'original-value' ), 'Setting myplugin/api-key to original-value should succeed.' );
 		update_option( 'my_plugin_api_key', 'imported-value' );
 
-		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing my_plugin_api_key as myplugin/api-key should succeed.' );
 
 		$current  = wp_get_secret( 'myplugin/api-key' );
 		$previous = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );

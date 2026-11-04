@@ -222,7 +222,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'value' );
+		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
 
 		$this->assertNotWPError( $provider->retire_previous( $name ), 'The provider should treat retiring with no previous version as success.' );
 	}
@@ -261,7 +261,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'stable-value' );
+		$this->assertTrue( $provider->set( $name, 'stable-value' ), 'Setting the secret to stable-value should succeed.' );
 
 		$first_read  = $provider->get( $name, WP_Secret_Version::CURRENT );
 		$second_read = $provider->get( $name, WP_Secret_Version::CURRENT );
@@ -295,8 +295,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'first-value' );
-		$provider->set( $name, 'second-value' );
+		$this->assertTrue( $provider->set( $name, 'first-value' ), 'Setting the secret to first-value should succeed.' );
+		$this->assertTrue( $provider->set( $name, 'second-value' ), 'Setting the secret to second-value should succeed.' );
 
 		$previous = $provider->get( $name, WP_Secret_Version::PREVIOUS );
 
@@ -323,7 +323,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'value' );
+		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
 		$this->assertNotWPError( $provider->delete( $name ), 'The provider should accept the delete.' );
 
 		$this->assertNull( $provider->get( $name, WP_Secret_Version::CURRENT ), 'The provider should report a deleted secret as null.' );
@@ -411,7 +411,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'value' );
+		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
 
 		$this->record_changes();
 
@@ -434,8 +434,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'first-value' );
-		$provider->set( $name, 'second-value' );
+		$this->assertTrue( $provider->set( $name, 'first-value' ), 'Setting the secret to first-value should succeed.' );
+		$this->assertTrue( $provider->set( $name, 'second-value' ), 'Setting the secret to second-value should succeed.' );
 
 		if ( ! $this->has_previous_version( $provider, $name ) ) {
 			$this->markTestSkipped( 'Provider keeps no previous version; there is nothing to retire.' );
@@ -487,7 +487,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-3f9b' );
+		$this->assertTrue( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-3f9b' ), 'Setting the secret to UNIQUE-CONFORMANCE-CANARY-3f9b should succeed.' );
 
 		$entries = $provider->list_secrets();
 
@@ -513,7 +513,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$provider->set( $name, 'value' );
+		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
 
 		$entries = $provider->list_secrets();
 
@@ -532,8 +532,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
-		$provider->set( 'conformance-a/one', 'value' );
-		$provider->set( 'conformance-b/two', 'value' );
+		$this->assertTrue( $provider->set( 'conformance-a/one', 'value' ), 'Setting conformance-a/one to value should succeed.' );
+		$this->assertTrue( $provider->set( 'conformance-b/two', 'value' ), 'Setting conformance-b/two to value should succeed.' );
 
 		$entries = $provider->list_secrets( 'conformance-a' );
 
