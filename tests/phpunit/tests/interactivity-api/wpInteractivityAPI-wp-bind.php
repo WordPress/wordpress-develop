@@ -494,7 +494,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ value: float }> Data provider.
 	 */
-	public function data_non_finite_values(): array {
+	public static function data_non_finite_values(): array {
 		return array(
 			'INF'  => array( 'value' => INF ),
 			'-INF' => array( 'value' => -INF ),
@@ -539,7 +539,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ value: mixed, expected: string }> Data provider.
 	 */
-	public function data_json_serializable_values(): array {
+	public static function data_json_serializable_values(): array {
 		return array(
 			'string'  => array(
 				'value'    => 'serialized-form',
@@ -558,7 +558,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 			 * value bound on the server has to follow it all the way down to match what the client receives.
 			 */
 			'nested'  => array(
-				'value'    => $this->get_json_serializable( 'serialized-form' ),
+				'value'    => self::get_json_serializable( 'serialized-form' ),
 				'expected' => 'serialized-form',
 			),
 		);
@@ -814,7 +814,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * @param mixed $value Value the object serializes to.
 	 * @return JsonSerializable Object serializing to `$value`.
 	 */
-	private function get_json_serializable( $value ): JsonSerializable {
+	private static function get_json_serializable( $value ): JsonSerializable {
 		return new class( $value ) implements JsonSerializable {
 			/**
 			 * Value the object serializes to.
@@ -855,7 +855,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ value: mixed, tag_name: non-empty-string, attribute: non-empty-string, existing_value: non-empty-string }> Data provider.
 	 */
-	public function data_non_scalar_values(): array {
+	public static function data_non_scalar_values(): array {
 		$values = array(
 			'list'                                      => array( 'a', 'b' ),
 			'associative array'                         => array( 'a' => 'b' ),
@@ -891,7 +891,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 					return array( 'not' => 'the string representation' );
 				}
 			},
-			'object serializing to an array'            => $this->get_json_serializable( array( 'a', 'b' ) ),
+			'object serializing to an array'            => self::get_json_serializable( array( 'a', 'b' ) ),
 		);
 
 		$attributes = array(
@@ -988,5 +988,53 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 			$this->caught_doing_it_wrong,
 			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
 		);
+	}
+
+	/**
+	 * Data provider for event handler bindings.
+	 *
+	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
+	 */
+	public static function data_event_handler_bindings(): array {
+		return array(
+			'event handler'                         => array( 'attribute' => 'data-wp-bind--onclick' ),
+			'event handler with an empty unique ID' => array( 'attribute' => 'data-wp-bind--onclick---' ),
+			'event handler with a unique ID'        => array( 'attribute' => 'data-wp-bind--onclick---unique-id' ),
+		);
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes event handler bindings.
+	 *
+	 * @ticket 66452
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_event_handler_bindings
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param non-empty-string $attribute Directive attribute name.
+	 */
+	public function test_wp_bind_removes_event_handler_bindings( string $attribute ): void {
+		$html     = "<button att-before {$attribute}=\"myPlugin::state.id\" att-after>Text</button>";
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertEqualHTML( '<button att-before att-after>Text</button>', $new_html );
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes an event handler binding but still
+	 * processes valid bind directives on the same element.
+	 *
+	 * @ticket 66452
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 */
+	public function test_wp_bind_removes_event_handler_binding_but_processes_valid_binds(): void {
+		$html     = '<button data-wp-bind--onclick="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</button>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertEqualHTML( '<button data-wp-bind--id="myPlugin::state.id" id="some-id">Text</button>', $new_html );
 	}
 }

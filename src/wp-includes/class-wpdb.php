@@ -50,6 +50,15 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * @link https://developer.wordpress.org/reference/classes/wpdb/
  *
  * @since 0.71
+ *
+ * @property      mysqli_result|bool|null         $result              Result of the last query.
+ * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
+ * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
+ * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                          $dbuser              Database username.
+ * @property      string                          $dbname              Database name.
+ * @property      string                          $dbhost              Database host.
+ * @property      mysqli|false|null               $dbh                 Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {
@@ -193,9 +202,15 @@ class wpdb {
 	/**
 	 * Saved info on the table column.
 	 *
+	 * Each value is populated by mysqli_fetch_field() in {@see wpdb::load_col_info()}, which is
+	 * typed as returning false when there are no more fields. A false value cannot actually occur,
+	 * however, since the loop only runs for the number of fields returned by mysqli_num_fields().
+	 * Populating the array with mysqli_fetch_fields() instead would allow this type to be narrowed
+	 * to a list of stdClass objects.
+	 *
 	 * @since 0.71
 	 *
-	 * @var array
+	 * @var array<int, stdClass|false>|null
 	 */
 	protected $col_info;
 
@@ -638,6 +653,7 @@ class wpdb {
 	 * A list of incompatible SQL modes.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Added `NO_BACKSLASH_ESCAPES`.
 	 *
 	 * @var string[]
 	 */
@@ -648,6 +664,7 @@ class wpdb {
 		'STRICT_ALL_TABLES',
 		'TRADITIONAL',
 		'ANSI',
+		'NO_BACKSLASH_ESCAPES',
 	);
 
 	/**
@@ -963,7 +980,7 @@ class wpdb {
 			$modes = explode( ',', $modes_array[0] );
 		}
 
-		$modes = array_change_key_case( $modes, CASE_UPPER );
+		$modes = array_map( 'strtoupper', $modes );
 
 		/**
 		 * Filters the list of incompatible SQL modes to exclude.
@@ -1957,7 +1974,8 @@ class wpdb {
 	 * If `$allow_bail` is false, the lack of database connection will need to be handled manually.
 	 *
 	 * @since 3.0.0
-	 * @since 3.9.0 $allow_bail parameter added.
+	 * @since 3.9.0 Added `$allow_bail` parameter.
+	 * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool True with a successful connection, false on failure.
@@ -1989,7 +2007,7 @@ class wpdb {
 		/*
 		 * If using the `mysqlnd` library, the IPv6 address needs to be enclosed
 		 * in square brackets, whereas it doesn't while using the `libmysqlclient` library.
-		 * @see https://bugs.php.net/bug.php?id=67563
+		 * @link https://bugs.php.net/bug.php?id=67563
 		 */
 		if ( $is_ipv6 && extension_loaded( 'mysqlnd' ) ) {
 			$host = "[$host]";
@@ -2009,8 +2027,13 @@ class wpdb {
 		if ( ! $this->dbh && $allow_bail ) {
 			wp_load_translations_early();
 
-			// Load custom DB error template, if present.
+			/*
+			 * Load custom DB error template, if present.
+			 * A 500 status header and no-cache headers are now sent before loading a custom db-error.php drop-in.
+			 */
 			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+				status_header( 500 );
+				nocache_headers();
 				require_once WP_CONTENT_DIR . '/db-error.php';
 				die();
 			}
@@ -3943,7 +3966,7 @@ class wpdb {
 	 * @since 3.5.0
 	 */
 	protected function load_col_info() {
-		if ( $this->col_info ) {
+		if ( $this->col_info || ! $this->result instanceof mysqli_result ) {
 			return;
 		}
 

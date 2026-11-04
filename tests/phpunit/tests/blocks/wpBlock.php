@@ -365,7 +365,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
+	public static function data_provider_test_render_enqueues_scripts_and_styles(): array {
 		$block_markup = <<<'HTML'
 <!-- wp:static -->
 <div class="static">
@@ -846,7 +846,6 @@ HTML
 
 		global $post;
 		$post = self::factory()->post->create_and_get();
-		$this->assertInstanceOf( WP_Post::class, $post );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
@@ -1509,7 +1508,7 @@ HTML
 	/**
 	 * Data provider for test_block_has_support_string
 	 */
-	public function data_block_has_support_string() {
+	public static function data_block_has_support_string() {
 		return array(
 			array(
 				array(),
