@@ -23,7 +23,7 @@ class WpDieTest extends WP_UnitTestCase {
 	 */
 	public function test_wp_die_handler_selection() {
 		$filter = new MockAction();
-		add_filter( 'wp_die_handler', array( $filter, 'filter' ) );
+		add_filter( 'wp_die_handler', array( $filter, 'filter' ), 9 );
 
 		try {
 			wp_die( 'Message', 'Title', array( 'exit' => false ) );
@@ -32,6 +32,7 @@ class WpDieTest extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 1, $filter->get_call_count(), 'The wp_die_handler filter should have been called once.' );
+		$this->assertSame( array( array( '_default_wp_die_handler' ) ), $filter->get_args(), 'The standard handler should be supplied to the filter.' );
 	}
 
 	/**
@@ -55,9 +56,11 @@ class WpDieTest extends WP_UnitTestCase {
 			wp_die( 'Ajax Message', 'Ajax Title', array( 'exit' => false ) );
 		} catch ( WPDieException $e ) {
 		}
-		ob_end_clean();
+		$output = ob_get_clean();
 
 		$this->assertSame( 1, $filter->get_call_count(), 'The wp_die_ajax_handler filter should have been called once.' );
+		$this->assertSame( array( array( '_ajax_wp_die_handler' ) ), $filter->get_args(), 'The Ajax handler should be supplied to the filter.' );
+		$this->assertSame( 'Ajax Message', $output, 'The Ajax handler should output only the message.' );
 	}
 
 	/**
