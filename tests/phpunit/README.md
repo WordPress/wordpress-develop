@@ -6,6 +6,23 @@ For more information, please review the relevant Core Handbook pages:
 - [PHP: PHPUnit](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/)
 - [Writing PHP Tests](https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/)
 
+## Configuration Files
+
+WordPress core maintains separate configuration files to support both PHPUnit 9 and PHPUnit 10.1+:
+
+- `phpunit.xml.dist` and `tests/phpunit/multisite.xml`: Used for PHPUnit 9 and earlier.
+- `phpunit10.xml.dist` and `tests/phpunit/multisite10.xml`: Used for PHPUnit 10.1 and later.
+
+### Running Tests Locally
+
+When running tests via Composer:
+- `composer test`: Runs tests using the default configuration (PHPUnit &lt; 10).
+- `composer test10`: Runs tests using `phpunit10.xml.dist` (PHPUnit 10+).
+
+When running tests via npm and Docker:
+- `npm run test:php`: Runs tests using the default configuration.
+- `npm run test:php10`: Runs tests using `phpunit10.xml.dist`.
+
 ## Run the full matrix on a pull request
 
 Add the `Full PHPUnit Matrix` label to a pull request in `WordPress/wordpress-develop` to run the same PHP and database combinations as the weekly scheduled run. The label-triggered workflow uses the same path filters as normal PHPUnit runs.

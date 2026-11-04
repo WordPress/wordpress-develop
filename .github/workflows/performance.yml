@@ -32,6 +32,7 @@ on:
       - '!phpcs.xml.dist'
       - '!phpstan.neon.dist'
       - '!phpunit.xml.dist'
+      - '!phpunit10.xml.dist'
       - '!tsconfig.json'
       # Other test suites, tools, and workflows do not affect these tests.
       - '!tests/**'
