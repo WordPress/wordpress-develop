@@ -817,8 +817,8 @@ class WP_Date_Query {
 	 * @param string|int|array<int|string>|null $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
 	 *
-	 * @phpstan-param Date_Query_Compare     $compare
-	 * @phpstan-param numeric|numeric[]|null $value
+	 * @phpstan-param Date_Query_Compare                                $compare
+	 * @phpstan-param int|numeric-string|array<int|numeric-string>|null $value
 	 */
 	public function build_value( $compare, $value ) {
 		if ( ! isset( $value ) ) {
