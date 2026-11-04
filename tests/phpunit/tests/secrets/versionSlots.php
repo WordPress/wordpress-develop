@@ -1,9 +1,7 @@
 <?php
 /**
- * Version slot behaviour: demotion on overwrite, PREVIOUS retrieval, and
- * wp_retire_secret_version(). PREVIOUS retrieval is
- * "the single most important new test in the suite" – the prior proof-of-concept
- * could not do this at all.
+ * Tests for version slots: demotion on overwrite, retrieval of the previous
+ * version, and wp_retire_secret_version().
  *
  * @ticket 66187
  *
@@ -205,8 +203,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	public function test_previous_preserves_its_needs_rotation_flag(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 
-		// No public API sets this flag yet (that lands with wp_import_option_as_secret()
-		// in a later commit); set it directly to prove demotion carries it forward.
+		/*
+		 * Set the flag directly rather than through wp_import_option_as_secret(), so
+		 * this test depends only on demotion carrying the flag forward.
+		 */
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 		$this->assertIsArray( $record );
 		$this->assertArrayHasKey( 'current', $record );

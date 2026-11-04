@@ -4,7 +4,7 @@
  *
  * Constants (WP_SECRETS_KEY, WP_SECRETS_KEY_PREVIOUS) that this class reads can only
  * be defined once per PHP process, so any test that needs a specific value for them
- * runs @runInSeparateProcess. LOGGED_IN_KEY/LOGGED_IN_SALT are already defined by the
+ * runs in a separate process. LOGGED_IN_KEY/LOGGED_IN_SALT are already defined by the
  * WordPress test suite's own bootstrap before any test of ours can run, in every
  * process including an isolated one, so the salt-fallback path is exercised against
  * whatever the ambient harness defines them as rather than a value this suite picks.
@@ -157,6 +157,10 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	public function test_get_key_source_reports_the_salt_fallback_when_wp_secrets_key_is_unset(): void {
 		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
 			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
+		}
+
+		if ( defined( 'WP_SECRETS_KEY' ) ) {
+			$this->markTestSkipped( 'Needs WP_SECRETS_KEY to be undefined; it is defined in this process.' );
 		}
 
 		$provider = new WP_Secrets_Config_Key_Provider();

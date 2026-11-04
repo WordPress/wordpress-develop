@@ -137,7 +137,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The declaration has to match the behaviour, or a settings screen that trusts
+	 * The declaration has to match the behavior, or a settings screen that trusts
 	 * is_writable() will offer a save control that cannot work.
 	 *
 	 * @covers WP_Secrets_Provider::is_writable

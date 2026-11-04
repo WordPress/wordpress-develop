@@ -185,7 +185,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that storing a new secret fires wp_secret_changed with the created action.
+	 * Ensure that storing a new secret fires wp_secret_changed as created, with its actor and time.
 	 *
 	 * @covers ::wp_set_secret
 	 */
@@ -200,13 +200,18 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			7
 		);
 
+		$before = time();
 		wp_set_secret( 'myplugin/api-key', 'value' );
+		$after = time();
 
 		$this->assertNotNull( $captured );
 		list( $name, $action, $actor_id, $timestamp, $old_fingerprint, $new_fingerprint, $network ) = $captured;
 
 		$this->assertSame( 'myplugin/api-key', $name );
 		$this->assertSame( 'created', $action );
+		$this->assertSame( 0, $actor_id, 'With no user logged in, the actor should be reported as 0.' );
+		$this->assertGreaterThanOrEqual( $before, $timestamp, 'The timestamp should not predate the write.' );
+		$this->assertLessThanOrEqual( $after, $timestamp, 'The timestamp should not postdate the write.' );
 		$this->assertSame( '', $old_fingerprint );
 		$this->assertNotSame( '', $new_fingerprint );
 		$this->assertFalse( $network );

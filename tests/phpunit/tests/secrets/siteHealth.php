@@ -237,7 +237,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_needs_rotation();
 
 		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( '1', $result['description'] );
+		$this->assertStringContainsString( '1 secret was imported', $result['description'], 'The description should report the number of secrets flagged for rotation.' );
 	}
 
 	/**
@@ -248,9 +248,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	public function test_debug_info_reports_expected_fields(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$info = wp_secrets_site_health_debug_info( array() );
-
-		$this->assertArrayHasKey( 'secrets-api', $info );
+		$info   = wp_secrets_site_health_debug_info( array() );
 		$fields = $this->debug_fields( $info );
 
 		$this->assertArrayHasKey( 'dropin_active', $fields );
@@ -260,8 +258,10 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'record_version', $fields );
 		$this->assertArrayHasKey( 'site_secret_count', $fields );
 
+		$this->assertSame( 'No', $fields['dropin_active']['value'], 'No drop-in is installed in the test environment.' );
 		$this->assertSame( 'WP_Secrets_Libsodium_Provider', $fields['provider_class']['value'] );
 		$this->assertSame( 'WP_Secrets_Config_Key_Provider', $fields['keyring_class']['value'] );
+		$this->assertSame( ( new WP_Secrets_Config_Key_Provider() )->get_key_source(), $fields['key_source']['value'], 'The key source should be reported from the keyring in use.' );
 		$this->assertSame( '1', $fields['record_version']['value'] );
 		$this->assertSame( '1', $fields['site_secret_count']['value'] );
 	}

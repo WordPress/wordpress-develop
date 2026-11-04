@@ -28,13 +28,16 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	 */
 	public static function data_published_error_codes() {
 		return array(
-			'decryption failed'  => array( 'WP_SECRETS_ERROR_DECRYPTION_FAILED', 'secret_decryption_failed' ),
-			'key unavailable'    => array( 'WP_SECRETS_ERROR_KEY_UNAVAILABLE', 'secret_key_unavailable' ),
-			'store unavailable'  => array( 'WP_SECRETS_ERROR_STORE_UNAVAILABLE', 'secret_store_unavailable' ),
-			'invalid name'       => array( 'WP_SECRETS_ERROR_INVALID_NAME', 'secret_invalid_name' ),
-			'invalid value'      => array( 'WP_SECRETS_ERROR_INVALID_VALUE', 'secret_invalid_value' ),
-			'crypto unavailable' => array( 'WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE', 'secret_crypto_unavailable' ),
-			'record malformed'   => array( 'WP_SECRETS_ERROR_RECORD_MALFORMED', 'secret_record_malformed' ),
+			'decryption failed'          => array( 'WP_SECRETS_ERROR_DECRYPTION_FAILED', 'secret_decryption_failed' ),
+			'key unavailable'            => array( 'WP_SECRETS_ERROR_KEY_UNAVAILABLE', 'secret_key_unavailable' ),
+			'store unavailable'          => array( 'WP_SECRETS_ERROR_STORE_UNAVAILABLE', 'secret_store_unavailable' ),
+			'invalid name'               => array( 'WP_SECRETS_ERROR_INVALID_NAME', 'secret_invalid_name' ),
+			'invalid value'              => array( 'WP_SECRETS_ERROR_INVALID_VALUE', 'secret_invalid_value' ),
+			'invalid argument'           => array( 'WP_SECRETS_ERROR_INVALID_ARGUMENT', 'secret_invalid_argument' ),
+			'crypto unavailable'         => array( 'WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE', 'secret_crypto_unavailable' ),
+			'record malformed'           => array( 'WP_SECRETS_ERROR_RECORD_MALFORMED', 'secret_record_malformed' ),
+			'record unsupported version' => array( 'WP_SECRETS_ERROR_RECORD_UNSUPPORTED_VERSION', 'secret_record_unsupported_version' ),
+			'provider read only'         => array( 'WP_SECRETS_ERROR_PROVIDER_READ_ONLY', 'secret_provider_read_only' ),
 		);
 	}
 
@@ -44,17 +47,28 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_all_error_codes_are_distinct(): void {
-		$codes = array(
-			WP_SECRETS_ERROR_DECRYPTION_FAILED,
-			WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-			WP_SECRETS_ERROR_INVALID_NAME,
-			WP_SECRETS_ERROR_INVALID_VALUE,
-			WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-			WP_SECRETS_ERROR_RECORD_MALFORMED,
-		);
+		$codes = array_map( 'constant', array_column( self::data_published_error_codes(), 0 ) );
 
 		$this->assertSame( count( $codes ), count( array_unique( $codes ) ) );
+	}
+
+	/**
+	 * Ensure that every WP_SECRETS_ERROR_* constant is pinned by the published contract.
+	 *
+	 * Fails when a new error code is added without being added to the data provider
+	 * above, so the contract cannot silently fall behind the codes the API returns.
+	 *
+	 * @coversNothing
+	 */
+	public function test_every_error_code_constant_is_pinned(): void {
+		$defined = array_filter(
+			array_keys( get_defined_constants() ),
+			static function ( $name ) {
+				return str_starts_with( $name, 'WP_SECRETS_ERROR_' );
+			}
+		);
+
+		$this->assertSameSets( array_column( self::data_published_error_codes(), 0 ), $defined );
 	}
 
 	/**

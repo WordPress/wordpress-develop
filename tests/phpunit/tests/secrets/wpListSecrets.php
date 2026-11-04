@@ -181,7 +181,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 */
 	public function test_does_not_list_network_scope_secrets(): void {
 		wp_set_secret( 'myplugin/site-only', 'value' );
-		_wp_secrets_set( 'myplugin/network-only', 'value', true );
+		wp_set_network_secret( 'myplugin/network-only', 'value' );
 
 		$entries = wp_list_secrets();
 

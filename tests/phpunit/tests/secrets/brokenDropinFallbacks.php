@@ -32,7 +32,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Store::set() returns a WP_Error rather than storing a record.
+	 * Ensure that WP_Secrets_Broken_Store::set() fails with a store-unavailable error.
 	 *
 	 * @covers WP_Secrets_Broken_Store::set
 	 */
@@ -40,10 +40,11 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$result = ( new WP_Secrets_Broken_Store() )->set( 'myplugin/api-key', array() );
 
 		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Store::delete() returns a WP_Error.
+	 * Ensure that WP_Secrets_Broken_Store::delete() fails with a store-unavailable error.
 	 *
 	 * @covers WP_Secrets_Broken_Store::delete
 	 */
@@ -51,10 +52,11 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$result = ( new WP_Secrets_Broken_Store() )->delete( 'myplugin/api-key' );
 
 		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Store::list_names() returns a WP_Error rather than a list.
+	 * Ensure that WP_Secrets_Broken_Store::list_names() fails with a store-unavailable error.
 	 *
 	 * @covers WP_Secrets_Broken_Store::list_names
 	 */
@@ -62,6 +64,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$result = ( new WP_Secrets_Broken_Store() )->list_names();
 
 		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
 	}
 
 	/**
@@ -86,7 +89,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Keyring::unwrap() returns a WP_Error.
+	 * Ensure that WP_Secrets_Broken_Keyring::unwrap() fails with a key-unavailable error.
 	 *
 	 * @covers WP_Secrets_Broken_Keyring::unwrap
 	 */
@@ -94,6 +97,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$result = ( new WP_Secrets_Broken_Keyring() )->unwrap( 'wrapped' );
 
 		$this->assertWPError( $result );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
 	/**
@@ -123,9 +127,11 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_wp_using_secrets_dropin_reports_true_once_the_loader_flag_is_set(): void {
-		// Simulates what wp_load_secrets_dropin() sets when a drop-in file is
-		// found, without depending on an actual file on disk – see
-		// tests/phpunit/test-secrets-extension-points.php for why.
+		/*
+		 * Simulates what wp_load_secrets_dropin() sets when a drop-in file is found.
+		 * The loader runs once per request, before any test, so it cannot be driven
+		 * against a real file here.
+		 */
 		$GLOBALS['wp_secrets_dropin_loaded'] = true;
 
 		$this->assertTrue( wp_using_secrets_dropin() );

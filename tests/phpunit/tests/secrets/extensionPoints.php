@@ -12,11 +12,11 @@
  * first time either is called in a process, and by the time any test method runs,
  * dozens of earlier tests have already triggered that caching with the defaults.
  *
- * @runInSeparateProcess gives each test a fresh process with nothing cached yet, so
- * setting the global before the first call actually takes effect. This tests the
- * real consumption logic in _wp_secrets_get_store()/_wp_secrets_get_key_manager();
- * see docs/journal/test-coverage-gaps.md for what this does not cover (the drop-in's own file
- * loading, which cannot be driven the same way).
+ * Running each test in a separate process gives it a fresh process with nothing
+ * cached yet, so setting the global before the first call actually takes effect.
+ * This tests the real consumption logic in _wp_secrets_get_store() and
+ * _wp_secrets_get_key_manager(). It does not cover wp_load_secrets_dropin() loading
+ * a drop-in file from disk, which cannot be driven the same way.
  *
  * @ticket 66187
  *
@@ -214,9 +214,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 	/**
 	 * Simulates the state a broken secrets.php drop-in leaves behind
-	 * ($GLOBALS['wp_secrets_dropin_broken'] set by wp_load_secrets_dropin() –
-	 * see that function's docblock in secrets-api.php for why the drop-in's own file
-	 * loading cannot be driven the same way this simulates its aftermath) and
+	 * ($GLOBALS['wp_secrets_dropin_broken'], set by wp_load_secrets_dropin(), which
+	 * runs once per request before any test and so cannot be driven directly) and
 	 * confirms every operation fails closed with WP_Error rather than a fatal error
 	 * or a silent fallback to local storage.
 	 *
