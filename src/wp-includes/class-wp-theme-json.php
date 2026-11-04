@@ -393,7 +393,7 @@ class WP_Theme_JSON {
 	 *              added the `customTemplates` and `templateParts` values.
 	 * @since 6.3.0 Added the `description` value.
 	 * @since 6.6.0 Added `blockTypes` to support block style variation theme.json partials.
-	 * @since 7.3.0 Added the `templates` value.
+	 * @since 7.2.0 Added the `templates` value.
 	 * @var string[]
 	 */
 	const VALID_TOP_LEVEL_KEYS = array(
@@ -2320,7 +2320,7 @@ class WP_Theme_JSON {
 	 * block is where it renders, so that a header and a footer live in one
 	 * template instead of being repeated in every one.
 	 *
-	 * @since 7.3.0
+	 * @since 7.2.0
 	 *
 	 * @return array The data of each template, keyed by the name of its file.
 	 */
