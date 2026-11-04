@@ -4,128 +4,21 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 /**
- * External dependencies
+ * Internal dependencies
  */
-import fs from 'fs';
-import path from 'path';
-
-// A 640x480 image: it must be larger than at least one registered sub-size
-// (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
-const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
-
-// A short WAV file: audio stays on the classic upload path so it keeps the
-// ID3-derived title and description that media_handle_upload() sets.
-const TEST_AUDIO_PATH = path.join( __dirname, '../assets/test-audio.wav' );
+import {
+	TEST_IMAGE_PATH,
+	TEST_AUDIO_PATH,
+	SIMULATED_ERROR,
+	UNDECODABLE_HEIC,
+	failMediaCreate,
+	stubClassicUpload,
+	withoutHeicDecoder,
+} from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
 // "Select Files" browse button; setting files on it triggers FilesAdded.
 const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
-
-// A REST error the pipeline surfaces as-is: its message matches none of the
-// transient patterns @wordpress/upload-media retries on.
-const SIMULATED_ERROR = {
-	code: 'rest_upload_simulated_failure',
-	message: 'Simulated server failure for testing',
-	data: { status: 500 },
-};
-
-/**
- * Fails every REST media create request (not sideload/finalize).
- *
- * @param {import('@playwright/test').Page} page
- */
-async function failMediaCreate( page ) {
-	await page.route(
-		( url ) => {
-			const decoded = decodeURIComponent( url.href );
-			return (
-				/\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) &&
-				! /\/(sideload|finalize)/.test( decoded )
-			);
-		},
-		async ( route ) => {
-			if ( route.request().method() !== 'POST' ) {
-				await route.continue();
-				return;
-			}
-			await route.fulfill( {
-				status: 500,
-				contentType: 'application/json',
-				body: JSON.stringify( SIMULATED_ERROR ),
-			} );
-		}
-	);
-}
-
-// A well-formed HEIC, which the tests pair with withoutHeicDecoder() so the
-// browser cannot decode it: whether the server can convert it is what
-// decides its path. The container has to parse, otherwise the pipeline
-// reports a damaged file rather than a missing codec.
-const UNDECODABLE_HEIC = {
-	name: 'undecodable.heic',
-	mimeType: 'image/heic',
-	buffer: fs.readFileSync(
-		path.join( __dirname, '../../phpunit/data/images/test-image.heic' )
-	),
-};
-
-/**
- * Answers the classic upload with async-upload.php's error markup instead of
- * running it.
- *
- * The hand-off is what is under test, not whether this server's image editor
- * can convert HEIC, so the request is answered once it has been made.
- *
- * @param {import('@playwright/test').Page} page
- */
-async function stubClassicUpload( page ) {
-	await page.route( '**/wp-admin/async-upload.php', ( route ) =>
-		route.fulfill( {
-			status: 200,
-			contentType: 'text/html',
-			body: '<div class="error-div error">Upload stubbed by the test.</div>',
-		} )
-	);
-}
-
-/**
- * Takes away every HEIC decoder the browser offers, as on Linux or on
- * Windows without the HEVC extension, whatever the machine running the test.
- *
- * @param {import('@playwright/test').Page} page
- */
-async function withoutHeicDecoder( page ) {
-	await page.addInitScript( () => {
-		const isHeic = ( source ) =>
-			source instanceof Blob && /^image\/hei[cf]/i.test( source.type );
-
-		const createImageBitmap = window.createImageBitmap;
-		window.createImageBitmap = function ( source, ...args ) {
-			if ( isHeic( source ) ) {
-				return Promise.reject(
-					new DOMException( 'Unsupported image', 'InvalidStateError' )
-				);
-			}
-			return createImageBitmap.call( this, source, ...args );
-		};
-
-		if ( window.ImageDecoder ) {
-			const isTypeSupported = window.ImageDecoder.isTypeSupported;
-			window.ImageDecoder.isTypeSupported = ( type ) =>
-				/^image\/hei[cf]/i.test( type )
-					? Promise.resolve( false )
-					: isTypeSupported.call( window.ImageDecoder, type );
-		}
-
-		if ( window.VideoDecoder ) {
-			const isConfigSupported = window.VideoDecoder.isConfigSupported;
-			window.VideoDecoder.isConfigSupported = ( config ) =>
-				/^(hev1|hvc1)/.test( ( config && config.codec ) || '' )
-					? Promise.resolve( { supported: false, config } )
-					: isConfigSupported.call( window.VideoDecoder, config );
-		}
-	} );
-}
 
 /**
  * Adjusts the settings plupload-handlers.js builds the uploader from.
@@ -235,7 +128,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The finished attachment row renders with the Edit link fetched
@@ -306,7 +199,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await sideloadRequested;
 
@@ -329,12 +222,17 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			page.locator( '#media-items .media-item .edit-attachment' ).first()
 		).toBeVisible( { timeout: 60_000 } );
 
-		const preventedAfterUpload = await page.evaluate( () => {
-			const event = new Event( 'beforeunload', { cancelable: true } );
-			window.dispatchEvent( event );
-			return event.defaultPrevented;
-		} );
-		expect( preventedAfterUpload ).toBe( false );
+		await expect
+			.poll( () =>
+				page.evaluate( () => {
+					const event = new Event( 'beforeunload', {
+						cancelable: true,
+					} );
+					window.dispatchEvent( event );
+					return event.defaultPrevented;
+				} )
+			)
+			.toBe( false );
 	} );
 
 	test( 'shows an error for a disallowed file type', async ( {
@@ -352,7 +250,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( {
 			name: 'disallowed.xyz',
 			mimeType: 'application/octet-stream',
@@ -370,8 +268,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		// The reason has to be readable: getErrorMessage() returns an object,
 		// so handing it straight to the UI renders "[object Object]".
-		const errorText = await errorItem.innerText();
-		expect( errorText ).not.toContain( '[object Object]' );
+		await expect( errorItem ).not.toContainText( '[object Object]' );
 	} );
 
 	test( 'attaches the upload to the post named by post_id', async ( {
@@ -397,7 +294,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -456,7 +353,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -494,7 +391,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
 
 		// Each finished row carries the Edit link (the markup may repeat
@@ -535,7 +432,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await sideloadRequested;
 
@@ -574,7 +471,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await failMediaCreate( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// itemAjaxError() renders the message inside the item, alongside
@@ -610,7 +507,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -671,7 +568,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -720,7 +617,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_AUDIO_PATH );
 
 		await expect(
@@ -762,7 +659,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
 		await expect(
@@ -809,7 +706,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -837,7 +734,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await failMediaCreate( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// Same markup as a server-side failure from async-upload.php: a
@@ -899,7 +796,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( UNDECODABLE_HEIC );
 
 		// The pipeline's decode failure is not shown; the file is re-queued
@@ -950,7 +847,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 
 		await expect
 			.poll( () => page.evaluate( () => window.__pluginPostInitCalls ) )
@@ -1010,7 +907,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
 		await expect(
