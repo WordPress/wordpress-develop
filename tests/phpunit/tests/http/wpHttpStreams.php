@@ -75,6 +75,11 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			'incomplete headers'          => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
 			'normal response'             => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello' ),
 			'empty body'                  => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '' ),
+			/*
+			 * The buffered branch always runs WP_Http::processResponse(), so an empty response or incomplete headers
+			 * yield a response rather than a WP_Error. These cases characterize that pre-existing behavior to guard
+			 * against regressions; they do not endorse it as correct.
+			 */
 			'buffered empty response'     => array( '', 0, '', false ),
 			'buffered incomplete headers' => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", 200, '', false ),
 			'buffered response'           => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello', false ),
