@@ -697,7 +697,7 @@ class WP_Date_Query {
 	 * }
 	 */
 	protected function get_sql_for_subquery( $query ) {
-		return $this->get_sql_for_clause( $query, '' );
+		return $this->get_sql_for_clause( $query, array() );
 	}
 
 	/**
@@ -808,8 +808,8 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string       $compare The compare operator to use.
-	 * @param string|array $value   The value.
+	 * @param string                $compare The compare operator to use.
+	 * @param string|int|array|null $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
 	 */
 	public function build_value( $compare, $value ) {
@@ -922,7 +922,7 @@ class WP_Date_Query {
 				$dt = date_create( $datetime, $wp_timezone );
 
 				if ( false === $dt ) {
-					return gmdate( 'Y-m-d H:i:s', false );
+					return gmdate( 'Y-m-d H:i:s', 0 );
 				}
 
 				return $dt->setTimezone( $wp_timezone )->format( 'Y-m-d H:i:s' );
