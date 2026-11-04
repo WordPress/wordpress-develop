@@ -119,7 +119,7 @@ class StatusHeaderTest extends WP_UnitTestCase {
 	 */
 	public function test_status_header_respects_protocol() {
 		$old_protocol               = $_SERVER['SERVER_PROTOCOL'] ?? null;
-		$_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
+		$_SERVER['SERVER_PROTOCOL'] = 'HTTP/2';
 
 		$filter = new MockAction();
 		add_filter( 'status_header', array( $filter, 'filter' ), 10, 4 );
@@ -127,7 +127,8 @@ class StatusHeaderTest extends WP_UnitTestCase {
 		status_header( 200 );
 
 		$args = $filter->get_args();
-		$this->assertStringStartsWith( 'HTTP/1.1 200 OK', $args[0][0] );
+		$this->assertSame( 'HTTP/2 200 OK', $args[0][0] );
+		$this->assertSame( 'HTTP/2', $args[0][3] );
 
 		// Reset protocol.
 		if ( null === $old_protocol ) {
