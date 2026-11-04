@@ -34,13 +34,14 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 	public function test_wp_widgets_add_menu_if__widget_support_should_add_submenu() {
 		global $submenu;
 		$current_submenu = $submenu;
+		$submenu         = array();
 		$widget_support  = current_theme_supports( 'widgets' );
 
 		add_theme_support( 'widgets' );
 		wp_widgets_add_menu();
 		$update_submenu = $submenu;
 		if ( ! $widget_support ) {
-			remove_theme_support( 'widgets' );
+			_remove_theme_support( 'widgets' );
 		}
 		// Reset the global variable.
 		$submenu                   = $current_submenu;
