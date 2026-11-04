@@ -246,7 +246,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string}> Role test cases.
 	 */
-	public function data_roles_without_edit_access_to_other_users_posts(): array {
+	public static function data_roles_without_edit_access_to_other_users_posts(): array {
 		return array(
 			'subscriber'  => array(
 				'role' => 'subscriber',
@@ -384,10 +384,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'type',
 				'status',
 				'date',
-				'date.local',
+				'date.site',
 				'date.gmt',
 				'modified',
-				'modified.local',
+				'modified.site',
 				'modified.gmt',
 				'slug',
 				'link',
@@ -487,7 +487,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{input: array<string, mixed>}> Input test cases.
 	 */
-	public function data_inputs_without_a_post_type(): array {
+	public static function data_inputs_without_a_post_type(): array {
 		return array(
 			'missing where'              => array(
 				'input' => array( 'fields' => array( 'id' ) ),
@@ -519,7 +519,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{input: mixed}> Input test cases.
 	 */
-	public function data_invalid_inputs(): array {
+	public static function data_invalid_inputs(): array {
 		return array(
 			'no input'               => array(
 				'input' => null,
@@ -678,7 +678,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( (int) ceil( $result['pagination']['total'] / 10 ), $result['pagination']['total_pages'], 'The page count should follow the default page size.' );
 		$this->assertSameSets( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result['items'][0] ), 'An empty fields list should select the default fields.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The default fields should hold only the rendered title.' );
-		$this->assertSameSets( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both dates.' );
+		$this->assertSame( array( 'site', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both the site and the GMT date, in that order.' );
 
 		$explicit = $ability->execute(
 			array(
@@ -740,12 +740,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$nullable_string = array( 'string', 'null' );
 		$object_types    = array(
 			'date'     => array(
-				'local' => $nullable_string,
-				'gmt'   => $nullable_string,
+				'site' => $nullable_string,
+				'gmt'  => $nullable_string,
 			),
 			'modified' => array(
-				'local' => $nullable_string,
-				'gmt'   => $nullable_string,
+				'site' => $nullable_string,
+				'gmt'  => $nullable_string,
 			),
 			'title'    => array(
 				'raw'      => 'string',
@@ -775,9 +775,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$this->assertSame( $types, wp_list_pluck( $object['properties'], 'type' ), sprintf( 'The %s object should describe each key with its type, in order.', $name ) );
 		}
 		foreach ( array( 'date', 'modified' ) as $name ) {
-			foreach ( array( 'local', 'gmt' ) as $key ) {
+			foreach ( array( 'site', 'gmt' ) as $key ) {
 				$this->assertSame( 'date-time', $post_schema['properties'][ $name ]['properties'][ $key ]['format'], sprintf( 'The %s.%s value should use the date-time format.', $name, $key ) );
 			}
+			$this->assertStringContainsString( "in ISO 8601 format using the site's timezone.", $post_schema['properties'][ $name ]['properties']['site']['description'], sprintf( 'The %s.site description should say the date uses the site timezone.', $name ) );
 		}
 
 		$this->assertSame( 'object', $pagination['type'], 'The pagination should describe an object.' );
@@ -863,7 +864,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
 	 */
-	public function data_show_in_abilities_values_other_than_true(): array {
+	public static function data_show_in_abilities_values_other_than_true(): array {
 		return array(
 			'false'               => array(
 				'value' => false,
@@ -1143,7 +1144,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{where: array<string, mixed>}> The `where` values.
 	 */
-	public function data_where_values_that_match_no_post(): array {
+	public static function data_where_values_that_match_no_post(): array {
 		return array(
 			'missing ID'            => array(
 				'where' => array(
@@ -1236,7 +1237,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{where: array<string, mixed>}> Filter test cases.
 	 */
-	public function data_filters_naming_a_post_in_a_viewable_custom_status(): array {
+	public static function data_filters_naming_a_post_in_a_viewable_custom_status(): array {
 		return array(
 			'ids'    => array(
 				'where' => array(
@@ -1891,7 +1892,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string, expected: list<string>}> Role test cases.
 	 */
-	public function data_roles_with_and_without_access_to_others_drafts(): array {
+	public static function data_roles_with_and_without_access_to_others_drafts(): array {
 		return array(
 			'subscriber' => array(
 				'role'     => 'subscriber',
@@ -1998,7 +1999,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string}> Field path test cases.
 	 */
-	public function data_sub_field_paths(): array {
+	public static function data_sub_field_paths(): array {
 		return array(
 			'title.rendered'    => array(
 				'field' => 'title.rendered',
@@ -2009,11 +2010,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'content.rendered'  => array(
 				'field' => 'content.rendered',
 			),
+			'date.site'         => array(
+				'field' => 'date.site',
+			),
 			'date.gmt'          => array(
 				'field' => 'date.gmt',
 			),
-			'modified.local'    => array(
-				'field' => 'modified.local',
+			'modified.site'     => array(
+				'field' => 'modified.site',
 			),
 			'author.name'       => array(
 				'field' => 'author.name',
@@ -2059,7 +2063,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string, keys: list<string>}> Object field test cases.
 	 */
-	public function data_object_fields(): array {
+	public static function data_object_fields(): array {
 		return array(
 			'title'    => array(
 				'field' => 'title',
@@ -2075,11 +2079,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			),
 			'date'     => array(
 				'field' => 'date',
-				'keys'  => array( 'local', 'gmt' ),
+				'keys'  => array( 'site', 'gmt' ),
 			),
 			'modified' => array(
 				'field' => 'modified',
-				'keys'  => array( 'local', 'gmt' ),
+				'keys'  => array( 'site', 'gmt' ),
 			),
 			'author'   => array(
 				'field' => 'author',
@@ -2480,7 +2484,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string, post_status: string, expected_visible: bool}>
 	 */
-	public function data_author_visibility(): array {
+	public static function data_author_visibility(): array {
 		return array(
 			'editor, pending post'         => array(
 				'role'             => 'editor',
@@ -2579,7 +2583,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An author is visible once they have a published post in a post type exposed to
+	 * An author is visible once they have a published post in a viewable post type exposed to
 	 * abilities, whether or not that post type is exposed to the REST API, and not for a
 	 * published post in a post type exposed to the REST API only.
 	 *
@@ -2599,10 +2603,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		register_post_type(
 			'abilities_cpt',
 			array(
-				'public'            => false,
-				'show_in_rest'      => false,
-				'show_in_abilities' => true,
-				'supports'          => array( 'title', 'author' ),
+				'public'             => false,
+				'publicly_queryable' => true,
+				'show_in_rest'       => false,
+				'show_in_abilities'  => true,
+				'supports'           => array( 'title', 'author' ),
 			)
 		);
 
@@ -2654,7 +2659,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				$post_ids['abilities_cpt'] => 'abilities_cpt-author',
 			),
 			$slugs,
-			'Only the author with a published post in a post type exposed to abilities should be named.'
+			'Only the author with a published post in a viewable post type exposed to abilities should be named.'
 		);
 
 		$filter = static function ( string $slug ) use ( $ability, $post_ids ) {
@@ -2672,6 +2677,47 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		};
 		$this->assertSame( self::EMPTY_RESULT, $filter( 'rest_only_cpt-author' ), 'The slug of an author published only in a post type exposed to the REST API should match no post.' );
 		$this->assertSame( array( $post_ids['abilities_cpt'] ), wp_list_pluck( $filter( 'abilities_cpt-author' )['items'], 'id' ), 'The slug of an author published in a post type exposed to abilities should match their post.' );
+	}
+
+	/**
+	 * Published posts in a non-viewable post type must not make an author's slug visible.
+	 *
+	 * @since 7.2.0
+	 */
+	public function test_author_slug_is_not_exposed_by_posts_in_a_non_viewable_post_type(): void {
+		register_post_type(
+			'hidden_author_cpt',
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+				'show_in_abilities'  => true,
+				'supports'           => array( 'title', 'author' ),
+			)
+		);
+		$author = self::factory()->user->create_and_get( array( 'role' => 'author' ) );
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'hidden_author_cpt',
+				'post_author' => $author->ID,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+		$ability = wp_get_ability( 'core/content-query' );
+
+		foreach ( array( $author->user_nicename, 'no-such-user' ) as $slug ) {
+			$result = $ability->execute(
+				array(
+					'where' => array(
+						'type'   => 'hidden_author_cpt',
+						'author' => array( 'slug' => $slug ),
+					),
+				)
+			);
+			$this->assertSame( self::EMPTY_RESULT, $result, 'A hidden author slug should return zero totals, just like an unknown slug.' );
+		}
 	}
 
 	/**
@@ -2872,7 +2918,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{status: string}> Status test cases.
 	 */
-	public function data_statuses_that_require_edit_access(): array {
+	public static function data_statuses_that_require_edit_access(): array {
 		return array(
 			'draft'                         => array(
 				'status' => 'draft',
@@ -3263,7 +3309,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string, expected: list<string>, total: int}> Role test cases.
 	 */
-	public function data_default_statuses_with_ids_by_role(): array {
+	public static function data_default_statuses_with_ids_by_role(): array {
 		return array(
 			'subscriber' => array(
 				'role'     => 'subscriber',
@@ -3428,7 +3474,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string}> Role test cases.
 	 */
-	public function data_roles_with_edit_access_to_other_users_posts(): array {
+	public static function data_roles_with_edit_access_to_other_users_posts(): array {
 		return array(
 			'administrator' => array(
 				'role' => 'administrator',
@@ -4431,7 +4477,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{throwing_post: string}> Throwing post test cases.
 	 */
-	public function data_posts_whose_the_post_callbacks_throw(): array {
+	public static function data_posts_whose_the_post_callbacks_throw(): array {
 		return array(
 			'requested post'   => array(
 				'throwing_post' => 'limited_role_content',
@@ -4641,7 +4687,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: float|string, 1: float|string, 2: float|string}> The values to send.
 	 */
-	public function data_whole_numbers_that_are_not_integers(): array {
+	public static function data_whole_numbers_that_are_not_integers(): array {
 		return array(
 			'floats'               => array( 2.0, 2.0, 99.0 ),
 			'decimal strings'      => array( '2.0', '2.0', '99.0' ),
@@ -4698,7 +4744,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{id: float|string}> The values to send for the post ID.
 	 */
-	public function data_post_ids_that_are_not_integers(): array {
+	public static function data_post_ids_that_are_not_integers(): array {
 		return array(
 			'float'               => array(
 				'id' => (float) self::IMPORTED_POST_ID,
@@ -4834,7 +4880,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{posts_per_page: int, total_pages: int, last_page_count: int}> Page size test cases.
 	 */
-	public function data_page_sizes_set_by_a_query_filter(): array {
+	public static function data_page_sizes_set_by_a_query_filter(): array {
 		return array(
 			'smaller page size' => array(
 				'posts_per_page'  => 2,
@@ -4947,7 +4993,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string}> Post meta priming test cases.
 	 */
-	public function data_fields_that_prime_post_meta(): array {
+	public static function data_fields_that_prime_post_meta(): array {
 		return array(
 			'content.rendered' => array(
 				'field' => 'content.rendered',
@@ -5252,7 +5298,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Local and GMT date fields report the correct instant and offset on non-UTC sites.
+	 * Site and GMT date fields report the correct instant and offset on non-UTC sites.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -5289,13 +5335,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type' => 'post',
 					'ids'  => array( $post_id ),
 				),
-				'fields' => array( 'id', 'date.local', 'date.gmt', 'modified.local', 'modified.gmt' ),
+				'fields' => array( 'id', 'date.site', 'date.gmt', 'modified.site', 'modified.gmt' ),
 			)
 		);
 
-		$this->assertSame( '2026-01-15T10:00:00-05:00', $result['items'][0]['date']['local'], 'The local date should carry the site timezone offset.' );
+		$this->assertSame( '2026-01-15T10:00:00-05:00', $result['items'][0]['date']['site'], 'The site date should carry the site timezone offset.' );
 		$this->assertSame( '2026-01-15T15:00:00+00:00', $result['items'][0]['date']['gmt'], 'The GMT date should be the UTC instant with a UTC offset.' );
-		$this->assertSame( '2026-01-16T11:00:00-05:00', $result['items'][0]['modified']['local'], 'The local modified date should carry the site timezone offset.' );
+		$this->assertSame( '2026-01-16T11:00:00-05:00', $result['items'][0]['modified']['site'], 'The site modified date should carry the site timezone offset.' );
 		$this->assertSame( '2026-01-16T16:00:00+00:00', $result['items'][0]['modified']['gmt'], 'The GMT modified date should be the UTC instant with a UTC offset.' );
 	}
 
@@ -5378,7 +5424,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string, gmt_column: string, local_column: string, local_date: string, expected: string}>
 	 */
-	public function data_gmt_date_fields(): array {
+	public static function data_gmt_date_fields(): array {
 		return array(
 			'date.gmt'     => array(
 				'field'        => 'date.gmt',
@@ -5506,21 +5552,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string, column: string}>
 	 */
-	public function data_date_fields(): array {
+	public static function data_date_fields(): array {
 		return array(
-			'date.local'     => array(
-				'field'  => 'date.local',
+			'date.site'     => array(
+				'field'  => 'date.site',
 				'column' => 'post_date',
 			),
-			'date.gmt'       => array(
+			'date.gmt'      => array(
 				'field'  => 'date.gmt',
 				'column' => 'post_date_gmt',
 			),
-			'modified.local' => array(
-				'field'  => 'modified.local',
+			'modified.site' => array(
+				'field'  => 'modified.site',
 				'column' => 'post_modified',
 			),
-			'modified.gmt'   => array(
+			'modified.gmt'  => array(
 				'field'  => 'modified.gmt',
 				'column' => 'post_modified_gmt',
 			),
@@ -5538,7 +5584,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_date_fields
 	 *
-	 * @param string $field  The field path to request, such as `date.local`.
+	 * @param string $field  The field path to request, such as `date.site`.
 	 * @param string $column The cached post column to corrupt.
 	 */
 	public function test_malformed_date_is_null( string $field, string $column ): void {
@@ -5574,7 +5620,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{author: mixed}> The `where.author` values.
 	 */
-	public function data_author_filters_without_an_id_or_a_slug(): array {
+	public static function data_author_filters_without_an_id_or_a_slug(): array {
 		return array(
 			'string'                          => array(
 				'author' => 'author-slug',
@@ -5652,7 +5698,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{id: mixed}> The `where.author.id` values.
 	 */
-	public function data_author_ids_that_are_not_positive_integers(): array {
+	public static function data_author_ids_that_are_not_positive_integers(): array {
 		return array(
 			'zero'             => array(
 				'id' => 0,
@@ -5716,7 +5762,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{type: string}> The type names, as `settype()` takes them.
 	 */
-	public function data_author_id_whole_number_types(): array {
+	public static function data_author_id_whole_number_types(): array {
 		return array(
 			'string of digits' => array(
 				'type' => 'string',
@@ -5777,7 +5823,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{author: array<string, mixed>, param: string}> The filters and parameters.
 	 */
-	public function data_author_filters_with_several_problems(): array {
+	public static function data_author_filters_with_several_problems(): array {
 		return array(
 			'unknown property next to a bad id' => array(
 				'author' => array(
@@ -5850,7 +5896,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{slug: mixed}> The `where.author.slug` values.
 	 */
-	public function data_author_slugs_that_are_not_non_empty_strings(): array {
+	public static function data_author_slugs_that_are_not_non_empty_strings(): array {
 		return array(
 			'integer'      => array(
 				'slug' => 5,
@@ -6065,7 +6111,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ids: mixed}> The `where.ids` values.
 	 */
-	public function data_ids_with_no_valid_ids(): array {
+	public static function data_ids_with_no_valid_ids(): array {
 		return array(
 			'zero'                     => array(
 				'ids' => array( 0 ),
@@ -6186,7 +6232,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{slugs: mixed}> The `where.slugs` values.
 	 */
-	public function data_slugs_with_no_slug_left(): array {
+	public static function data_slugs_with_no_slug_left(): array {
 		return array(
 			'empty slug'         => array(
 				'slugs' => array( '' ),
@@ -6241,7 +6287,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{where: array<string, mixed>}> The `where` filters.
 	 */
-	public function data_where_filters_with_statuses_that_cannot_be_queried(): array {
+	public static function data_where_filters_with_statuses_that_cannot_be_queried(): array {
 		return array(
 			'empty status list'                   => array(
 				'where' => array(
@@ -6444,7 +6490,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{value: mixed}> The values to send.
 	 */
-	public function data_values_that_are_not_objects(): array {
+	public static function data_values_that_are_not_objects(): array {
 		return array(
 			'query string' => array(
 				'value' => 'id=5&page=2',

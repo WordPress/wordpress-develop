@@ -5,6 +5,16 @@
  * @group taxonomy
  */
 class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax2' );
+		parent::tear_down();
+	}
+
 	public function test_should_return_attachment_taxonomy() {
 		register_taxonomy( 'wptests_tax', 'attachment' );
 

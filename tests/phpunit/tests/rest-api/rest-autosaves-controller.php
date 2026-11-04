@@ -401,6 +401,26 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->check_get_autosave_response( $response, $this->post_autosave );
 	}
 
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$editor_id );
+		$endpoint = new WP_REST_Autosaves_Controller( 'post' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,slug' );
+		$response = $endpoint->prepare_item_for_response( $this->post_autosave, $request );
+		$this->assertSame(
+			array(
+				'id',
+				'slug',
+			),
+			array_keys( $response->get_data() )
+		);
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when not requested in _fields.' );
+	}
+
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response   = rest_get_server()->dispatch( $request );

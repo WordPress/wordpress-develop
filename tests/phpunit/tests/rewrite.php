@@ -371,7 +371,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		);
 
 		$this->go_to( $not_a_home_url . 'page' );
-		$this->assertNotEquals(
+		$this->assertNotSame(
 			array(
 				'page'     => '',
 				'pagename' => 'page',

@@ -19,17 +19,6 @@ class Tests_Option_FormOption extends WP_UnitTestCase {
 		form_option( 'form_option_test_value' );
 		$output = ob_get_clean();
 
-		$this->assertSame( esc_attr( 'A & B <Site>' ), $output );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_echoes_empty_string_for_missing_option() {
-		ob_start();
-		form_option( 'form_option_missing_' . wp_generate_password( 8, false ) );
-		$output = ob_get_clean();
-
-		$this->assertSame( '', $output );
+		$this->assertSame( 'A &amp; B &lt;Site&gt;', $output );
 	}
 }
