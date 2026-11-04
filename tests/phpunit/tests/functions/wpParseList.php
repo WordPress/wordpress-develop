@@ -37,7 +37,7 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<scalar> }>
 	 */
-	public function data_wp_parse_list(): array {
+	public static function data_wp_parse_list(): array {
 		return array(
 			'ids only'            => array(
 				'input_list' => '1,2,3,4',

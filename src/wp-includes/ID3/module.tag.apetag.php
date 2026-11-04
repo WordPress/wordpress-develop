@@ -53,21 +53,21 @@ class getid3_apetag extends getid3_handler
 
 		if ($this->overrideendoffset == 0) {
 
-			$this->fseek(0 - $id3v1tagsize - $apetagheadersize - $lyrics3tagsize, SEEK_END);
-			$APEfooterID3v1 = $this->fread($id3v1tagsize + $apetagheadersize + $lyrics3tagsize);
+			// don't seek before the start of the file on tiny files
+			$scanlength = min($id3v1tagsize + $apetagheadersize + $lyrics3tagsize, $info['filesize']);
+			$this->fseek(0 - $scanlength, SEEK_END);
+			$APEfooterID3v1 = $this->fread($scanlength);
+			$buffersize     = strlen($APEfooterID3v1);
 
-			//if (preg_match('/APETAGEX.{24}TAG.{125}$/i', $APEfooterID3v1)) {
-			if (substr($APEfooterID3v1, strlen($APEfooterID3v1) - $id3v1tagsize - $apetagheadersize, 8) == 'APETAGEX') {
+			// APE footer immediately before a trailing ID3v1 tag: /APETAGEX.{24}TAG.{125}$/i
+			$APEbeforeID3v1 = ($buffersize >= ($id3v1tagsize + $apetagheadersize)) && (substr($APEfooterID3v1, $buffersize - $id3v1tagsize - $apetagheadersize, 8) == 'APETAGEX');
+			// APE footer at the very end of the file: /APETAGEX.{24}$/i
+			$APEatEndOfFile = ($buffersize >= $apetagheadersize) && (substr($APEfooterID3v1, $buffersize - $apetagheadersize, 8) == 'APETAGEX');
 
-				// APE tag found before ID3v1
+			if ($APEbeforeID3v1) {
 				$info['ape']['tag_offset_end'] = $info['filesize'] - $id3v1tagsize;
-
-			//} elseif (preg_match('/APETAGEX.{24}$/i', $APEfooterID3v1)) {
-			} elseif (substr($APEfooterID3v1, strlen($APEfooterID3v1) - $apetagheadersize, 8) == 'APETAGEX') {
-
-				// APE tag found, no ID3v1
+			} elseif ($APEatEndOfFile) {
 				$info['ape']['tag_offset_end'] = $info['filesize'];
-
 			}
 
 		} else {
@@ -276,7 +276,7 @@ class getid3_apetag extends getid3_handler
 						$this->warning('APEtag "'.$item_key.'" should be flagged as Binary data, but was incorrectly flagged as UTF-8');
 						$thisfile_ape_items_current['data'] = implode("\x00", $thisfile_ape_items_current['data']);
 					}
-					list($thisfile_ape_items_current['filename'], $thisfile_ape_items_current['data']) = explode("\x00", $thisfile_ape_items_current['data'], 2);
+					list($thisfile_ape_items_current['filename'], $thisfile_ape_items_current['data']) = array_pad(explode("\x00", $thisfile_ape_items_current['data'], 2), 2, '');
 					$thisfile_ape_items_current['data_offset'] = $thisfile_ape_items_current['offset'] + strlen($thisfile_ape_items_current['filename']."\x00");
 					$thisfile_ape_items_current['data_length'] = strlen($thisfile_ape_items_current['data']);
 

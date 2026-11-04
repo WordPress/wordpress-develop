@@ -8,6 +8,7 @@ on:
       - '[7-9].[0-9]'
     paths:
       # Only run when changes are made to workflow files.
+      - '.github/actions/**'
       - '.github/workflows/**'
   pull_request:
     branches:
@@ -15,14 +16,15 @@ on:
       - '[0-9].[0-9]'
     paths:
       # Only run when changes are made to workflow files.
+      - '.github/actions/**'
       - '.github/workflows/**'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

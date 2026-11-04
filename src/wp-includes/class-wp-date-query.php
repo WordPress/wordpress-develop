@@ -13,6 +13,8 @@
  * @link https://developer.wordpress.org/reference/classes/wp_query/
  *
  * @since 3.7.0
+ *
+ * @phpstan-type Date_Query_Compare '='|'!='|'>'|'>='|'<'|'<='|'IN'|'NOT IN'|'BETWEEN'|'NOT BETWEEN'
  */
 #[AllowDynamicProperties]
 class WP_Date_Query {
@@ -47,6 +49,7 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 * @var string
+	 * @phpstan-var Date_Query_Compare
 	 */
 	public $compare = '=';
 
@@ -252,6 +255,8 @@ class WP_Date_Query {
 	 *
 	 * @param array $query A date query or a date subquery.
 	 * @return string The comparison operator.
+	 *
+	 * @phpstan-return Date_Query_Compare
 	 */
 	public function get_compare( $query ) {
 		if ( ! empty( $query['compare'] )
@@ -697,7 +702,7 @@ class WP_Date_Query {
 	 * }
 	 */
 	protected function get_sql_for_subquery( $query ) {
-		return $this->get_sql_for_clause( $query, '' );
+		return $this->get_sql_for_clause( $query, array() );
 	}
 
 	/**
@@ -784,9 +789,7 @@ class WP_Date_Query {
 		if ( isset( $query['hour'] ) || isset( $query['minute'] ) || isset( $query['second'] ) ) {
 			// Avoid notices.
 			foreach ( array( 'hour', 'minute', 'second' ) as $unit ) {
-				if ( ! isset( $query[ $unit ] ) ) {
-					$query[ $unit ] = null;
-				}
+				$query[ $unit ] ??= null;
 			}
 
 			$time_query = $this->build_time_query( $column, $compare, $query['hour'], $query['minute'], $query['second'] );
@@ -810,9 +813,12 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string       $compare The compare operator to use.
-	 * @param string|array $value   The value.
+	 * @param string                            $compare The compare operator to use.
+	 * @param string|int|array<int|string>|null $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
+	 *
+	 * @phpstan-param Date_Query_Compare                                $compare
+	 * @phpstan-param int|numeric-string|array<int|numeric-string>|null $value
 	 */
 	public function build_value( $compare, $value ) {
 		if ( ! isset( $value ) ) {
@@ -875,7 +881,17 @@ class WP_Date_Query {
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
 	 *                                     Default: false.
-	 * @return string|false A MySQL format date/time or false on failure.
+	 * @return string A MySQL format date/time. An unparseable string results in the Unix epoch
+	 *                (`1970-01-01 00:00:00`).
+	 *
+	 * @phpstan-param string|array{
+	 *     year?: int<0, max>|numeric-string,
+	 *     month?: int<0, max>|numeric-string,
+	 *     day?: int<0, max>|numeric-string,
+	 *     hour?: int<0, max>|numeric-string,
+	 *     minute?: int<0, max>|numeric-string,
+	 *     second?: int<0, max>|numeric-string,
+	 * } $datetime
 	 */
 	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
 		if ( ! is_array( $datetime ) ) {
@@ -924,7 +940,7 @@ class WP_Date_Query {
 				$dt = date_create( $datetime, $wp_timezone );
 
 				if ( false === $dt ) {
-					return gmdate( 'Y-m-d H:i:s', false );
+					return gmdate( 'Y-m-d H:i:s', 0 );
 				}
 
 				return $dt->setTimezone( $wp_timezone )->format( 'Y-m-d H:i:s' );
@@ -933,29 +949,12 @@ class WP_Date_Query {
 
 		$datetime = array_map( 'absint', $datetime );
 
-		if ( ! isset( $datetime['year'] ) ) {
-			$datetime['year'] = current_time( 'Y' );
-		}
-
-		if ( ! isset( $datetime['month'] ) ) {
-			$datetime['month'] = ( $default_to_max ) ? 12 : 1;
-		}
-
-		if ( ! isset( $datetime['day'] ) ) {
-			$datetime['day'] = ( $default_to_max ) ? (int) gmdate( 't', mktime( 0, 0, 0, $datetime['month'], 1, $datetime['year'] ) ) : 1;
-		}
-
-		if ( ! isset( $datetime['hour'] ) ) {
-			$datetime['hour'] = ( $default_to_max ) ? 23 : 0;
-		}
-
-		if ( ! isset( $datetime['minute'] ) ) {
-			$datetime['minute'] = ( $default_to_max ) ? 59 : 0;
-		}
-
-		if ( ! isset( $datetime['second'] ) ) {
-			$datetime['second'] = ( $default_to_max ) ? 59 : 0;
-		}
+		$datetime['year']   ??= (int) current_time( 'Y' );
+		$datetime['month']  ??= ( $default_to_max ) ? 12 : 1;
+		$datetime['day']    ??= ( $default_to_max ) ? (int) gmdate( 't', mktime( 0, 0, 0, $datetime['month'], 1, $datetime['year'] ) ) : 1;
+		$datetime['hour']   ??= ( $default_to_max ) ? 23 : 0;
+		$datetime['minute'] ??= ( $default_to_max ) ? 59 : 0;
+		$datetime['second'] ??= ( $default_to_max ) ? 59 : 0;
 
 		return sprintf( '%04d-%02d-%02d %02d:%02d:%02d', $datetime['year'], $datetime['month'], $datetime['day'], $datetime['hour'], $datetime['minute'], $datetime['second'] );
 	}
@@ -977,6 +976,8 @@ class WP_Date_Query {
 	 * @param int|null $minute  Optional. A minute value (0-59).
 	 * @param int|null $second  Optional. A second value (0-59).
 	 * @return string|false A query part or false on failure.
+	 *
+	 * @phpstan-param Date_Query_Compare $compare
 	 */
 	public function build_time_query( $column, $compare, $hour = null, $minute = null, $second = null ) {
 		global $wpdb;
