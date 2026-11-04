@@ -318,6 +318,9 @@ function wp_secrets_validate_name( string $name ) {
  *
  * @since 7.2.0
  *
+ * @global bool             $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
+ * @global WP_Secrets_Store $wp_secrets_store         Optional. Store override set by the drop-in.
+ *
  * @return WP_Secrets_Store
  */
 function _wp_secrets_get_store(): WP_Secrets_Store {
@@ -354,6 +357,9 @@ function _wp_secrets_get_store(): WP_Secrets_Store {
  *
  * @since 7.2.0
  *
+ * @global bool               $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
+ * @global WP_Secrets_Keyring $wp_secrets_keyring       Optional. Keyring override set by the drop-in.
+ *
  * @return WP_Secrets_Key_Manager
  */
 function _wp_secrets_get_key_manager(): WP_Secrets_Key_Manager {
@@ -388,6 +394,8 @@ function _wp_secrets_get_key_manager(): WP_Secrets_Key_Manager {
  * on whether a loaded drop-in is actually working.
  *
  * @since 7.2.0
+ *
+ * @global bool $wp_secrets_dropin_loaded Whether a secrets.php drop-in file was found.
  *
  * @return bool
  */
@@ -624,6 +632,9 @@ function wp_list_network_secrets( string $namespace = '' ) { // phpcs:ignore Uni
  * to be empty.
  *
  * @since 7.2.0
+ *
+ * @global bool                $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
+ * @global WP_Secrets_Provider $wp_secrets_provider      Optional. Provider override set by the drop-in.
  *
  * @return WP_Secrets_Provider
  */
