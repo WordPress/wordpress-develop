@@ -927,6 +927,8 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
  * @param string       $meta_value Metadata value. Must be serializable if non-scalar.
  * @param string|false $meta_key   Optional. You can provide a meta key to update it. Default false.
  * @return bool True on successful update, false on failure.
+ *
+ * @phpstan-param int|numeric-string $meta_id
  */
 function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = false ) {
 	global $wpdb;
@@ -1052,6 +1054,8 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
  *                              'user', or any other object type with an associated meta table.
  * @param int|string $meta_id   ID for a specific meta row.
  * @return bool True on successful delete, false on failure.
+ *
+ * @phpstan-param int|numeric-string $meta_id
  */
 function delete_metadata_by_mid( $meta_type, $meta_id ) {
 	global $wpdb;

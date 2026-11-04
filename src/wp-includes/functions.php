@@ -7635,6 +7635,11 @@ function wp_is_stream( $path ) {
  * @param int|string $day         Day number.
  * @param int|string $year        Year number.
  * @param string     $source_date The date to filter.
+ *
+ * @phpstan-param int<1, 12>|numeric-string    $month
+ * @phpstan-param int<1, 31>|numeric-string    $day
+ * @phpstan-param int<1, 32767>|numeric-string $year
+ *
  * @return bool True if valid date, false if not valid date.
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
