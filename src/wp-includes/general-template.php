@@ -4073,7 +4073,8 @@ function wp_preload_resources() {
 	 *     @type array ...$0 {
 	 *         Array of resource attributes.
 	 *
-	 *         @type string $href          URL to include in resource preloads. Required.
+	 *         @type string $href          URL to include in resource preloads. May be omitted
+	 *                                     for an image preloaded by its `$imagesrcset`.
 	 *         @type string $as            How the browser should treat the resource
 	 *                                     (`script`, `style`, `image`, `document`, etc).
 	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
@@ -5243,7 +5244,7 @@ function register_admin_color_schemes() {
 		false,
 		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
-			'base'    => '#a7aaad',
+			'base'    => '#c3c4c7',
 			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)

@@ -39,7 +39,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 				'url'         => 'fresh.css',
 				'colors'      => array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 				'icon_colors' => array(
-					'base'    => '#a7aaad',
+					'base'    => '#c3c4c7',
 					'focus'   => '#72aee6',
 					'current' => '#fff',
 				),
@@ -84,7 +84,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 				'name'        => 'Default',
 				'url'         => 'fresh.css',
 				'colors'      => array( '#1d2327' ),
-				'icon_colors' => array( 'base' => '#a7aaad' ),
+				'icon_colors' => array( 'base' => '#c3c4c7' ),
 			),
 			'blue'   => (object) array(
 				'name'        => 'Blue',
@@ -130,7 +130,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 				'name'        => 'Default',
 				'url'         => 'fresh.css',
 				'colors'      => array( '#1d2327' ),
-				'icon_colors' => array( 'base' => '#a7aaad' ),
+				'icon_colors' => array( 'base' => '#c3c4c7' ),
 			),
 			'modern' => (object) array(
 				'name'        => 'Modern',
