@@ -121,7 +121,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 
 		$request_params = $request->get_query_params();
 		$collection_url = rest_url( $this->namespace . '/' . $this->rest_base );
-		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
+		$base           = add_query_arg( rest_urlencode_query_params( $request_params ), $collection_url );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
