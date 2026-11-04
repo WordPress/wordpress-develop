@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function get_the_tag_list\(\) never returns WP_Error so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/category-template.php
-		-
-			message: '#^Function get_the_tag_list\(\) never returns false so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/category-template.php
-		-
 			message: '#^Function get_category\(\) never returns null so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
