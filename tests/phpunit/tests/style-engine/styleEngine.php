@@ -389,6 +389,16 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				'expected_output' => array(),
 			),
 
+			'inline_newline_transform_rotate_style'        => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => "45deg\n",
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
 			'valid_classnames_deduped'                     => array(
 				'block_styles'    => array(
 					'color'      => array(
