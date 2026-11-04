@@ -191,7 +191,6 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		return $names;
 	}
 
-
 	/**
 	 * Builds the option name a secret is stored under.
 	 *

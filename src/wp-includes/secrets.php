@@ -391,24 +391,6 @@ function wp_using_secrets_dropin(): bool {
 	return ! empty( $GLOBALS['wp_secrets_dropin_loaded'] );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Encrypts and stores a secret.
  *
@@ -473,8 +455,6 @@ function wp_import_option_as_secret( string $option, string $name ) {
 
 	return _wp_secrets_set( $name, $value, false, true, 'imported' );
 }
-
-
 
 /**
  * Retrieves a secret.

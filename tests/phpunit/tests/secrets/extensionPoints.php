@@ -99,7 +99,6 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$this->assertSame( 'seeded-before-write-broke', $read_result->reveal() );
 	}
 
-
 	/**
 	 * A store that refuses writes must still serve reads. This previously configured
 	 * a capability flag that nothing consulted, so it passed regardless of behavior.

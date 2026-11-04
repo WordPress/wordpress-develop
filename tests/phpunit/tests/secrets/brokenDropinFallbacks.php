@@ -37,7 +37,6 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 	}
 
-
 	public function test_broken_keyring_implements_the_interface(): void {
 		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring() ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
 	}
