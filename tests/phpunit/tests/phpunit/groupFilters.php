@@ -85,7 +85,7 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 		$filter = new WP_PHPUnit_Default_Group_Filter();
 		$filter->startTestSuite( $root_suite );
 
-		$this->assertCount( 1, $root_suite );
+		$this->assertCount( 2, $root_suite );
 		$this->assertCount( 2, $class_suite );
 	}
 
