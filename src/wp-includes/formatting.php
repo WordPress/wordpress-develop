@@ -547,6 +547,9 @@ function wpautop( $text, $br = true ) {
 		$text .= '<p>' . trim( $paragraph, "\n" ) . "</p>\n";
 	}
 
+	// Remove empty paragraphs from the original text, which are now wrapped in another P.
+	$text = preg_replace( '|<p>\s*<p>\s*</p>\s*</p>\n|', '', $text );
+
 	// Under certain strange conditions it could create a P of entirely whitespace.
 	$text = preg_replace( '|<p>\s*</p>|', '', $text );
 
