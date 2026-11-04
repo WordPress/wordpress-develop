@@ -21,8 +21,6 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			$this->markTestSkipped( 'proc_open() and stream_socket_server() are required.' );
 		}
 
-		require_once ABSPATH . WPINC . '/class-wp-http-streams.php';
-
 		$command = array( PHP_BINARY, DIR_TESTDATA . '/http/raw-response.php', wp_json_encode( $raw_response ) );
 		$process = proc_open(
 			$command,
