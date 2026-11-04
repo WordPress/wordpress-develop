@@ -939,7 +939,7 @@ class WP_Date_Query {
 
 		$datetime = array_map( 'absint', $datetime );
 
-		$datetime['year']   ??= current_time( 'Y' );
+		$datetime['year']   ??= (int) current_time( 'Y' );
 		$datetime['month']  ??= ( $default_to_max ) ? 12 : 1;
 		$datetime['day']    ??= ( $default_to_max ) ? (int) gmdate( 't', mktime( 0, 0, 0, $datetime['month'], 1, $datetime['year'] ) ) : 1;
 		$datetime['hour']   ??= ( $default_to_max ) ? 23 : 0;
