@@ -724,8 +724,9 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 			array(
 				'id'     => 'description',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(

@@ -218,6 +218,27 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The `description` row of templates shows the field's placeholder when
+	 * the description is empty, like the excerpt of posts and patterns.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_template
+	 */
+	public function test_wp_template_description_layout_shows_placeholder_if_empty() {
+		$config = wp_get_entity_view_config( 'postType', 'wp_template' );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'description' )['layout']
+		);
+	}
+
+	/**
 	 * The `attachment` post type provides the form of the media editor: the
 	 * editable fields in a regular layout, then the rest in panels.
 	 *
