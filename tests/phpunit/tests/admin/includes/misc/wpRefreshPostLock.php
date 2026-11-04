@@ -86,10 +86,33 @@ class Tests_Admin_Includes_Misc_WpRefreshPostLock extends WP_UnitTestCase {
 	 */
 	public function data_wp_refresh_post_lock_invalid_post_id(): array {
 		return array(
-			'zero'     => array( 0 ),
-			'string'   => array( 'abc' ),
-			'negative' => array( -1 ),
+			'zero'   => array( 0 ),
+			'string' => array( 'abc' ),
 		);
+	}
+
+	/**
+	 * Tests that a negative post ID is converted to its absolute value.
+	 *
+	 * @ticket 65196
+	 */
+	public function test_wp_refresh_post_lock_negative_post_id() {
+		wp_set_current_user( self::$user_id );
+		delete_post_meta( self::$post_id, '_edit_lock' );
+
+		$data = array(
+			'wp-refresh-post-lock' => array(
+				'post_id' => -self::$post_id,
+			),
+		);
+
+		$result = wp_refresh_post_lock( array(), $data, 'edit-post' );
+
+		$this->assertArrayHasKey( 'wp-refresh-post-lock', $result );
+		$this->assertArrayHasKey( 'new_lock', $result['wp-refresh-post-lock'] );
+		$new_lock = $result['wp-refresh-post-lock']['new_lock'];
+		$this->assertMatchesRegularExpression( '/^\d+:' . self::$user_id . '$/', $new_lock );
+		$this->assertSame( $new_lock, get_post_meta( self::$post_id, '_edit_lock', true ) );
 	}
 
 	/**
@@ -199,10 +222,27 @@ class Tests_Admin_Includes_Misc_WpRefreshPostLock extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'new_lock', $result['wp-refresh-post-lock'] );
 
 		$new_lock = $result['wp-refresh-post-lock']['new_lock'];
-		$this->assertStringContainsString( (string) self::$user_id, $new_lock );
+		$lock_parts = explode( ':', $new_lock );
+		$this->assertCount( 2, $lock_parts );
+		$this->assertSame( (string) self::$user_id, $lock_parts[1] );
 
 		// Verify meta was updated.
 		$meta_lock = get_post_meta( self::$post_id, '_edit_lock', true );
 		$this->assertSame( $new_lock, $meta_lock );
+
+		// Verify that an active lock owned by the current user is refreshed.
+		$old_time = time() - 30;
+		update_post_meta( self::$post_id, '_edit_lock', $old_time . ':' . self::$user_id );
+
+		$result = wp_refresh_post_lock( $response, $data, 'edit-post' );
+
+		$this->assertArrayHasKey( 'wp-refresh-post-lock', $result );
+		$this->assertArrayHasKey( 'new_lock', $result['wp-refresh-post-lock'] );
+		$new_lock   = $result['wp-refresh-post-lock']['new_lock'];
+		$lock_parts = explode( ':', $new_lock );
+		$this->assertCount( 2, $lock_parts );
+		$this->assertSame( (string) self::$user_id, $lock_parts[1] );
+		$this->assertGreaterThan( $old_time, (int) $lock_parts[0] );
+		$this->assertSame( $new_lock, get_post_meta( self::$post_id, '_edit_lock', true ) );
 	}
 }
