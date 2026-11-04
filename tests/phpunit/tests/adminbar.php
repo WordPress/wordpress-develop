@@ -36,6 +36,12 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		self::$user_ids[] = self::$no_role_id;
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'content' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 21117
 	 */
@@ -51,8 +57,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$nodes = $admin_bar->get_nodes();
 		$this->assertFalse( $nodes['new-content']->parent );
 		$this->assertSame( 'new-content', $nodes['add-new-content']->parent );
-
-		_unregister_post_type( 'content' );
 	}
 
 	/**
