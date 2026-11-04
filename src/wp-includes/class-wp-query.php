@@ -186,6 +186,7 @@ class WP_Query {
 	 *
 	 * @since 2.1.0
 	 * @var int
+	 * @phpstan-var int<0, max>
 	 */
 	public $max_num_pages = 0;
 
