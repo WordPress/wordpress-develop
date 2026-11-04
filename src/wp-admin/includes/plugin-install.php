@@ -218,6 +218,17 @@ function plugins_api( $action, $args = array() ) {
 		$res->external = true;
 	}
 
+	// Check if the outer fields property is set and is an array.
+	if ( isset( $args->fields['fields'] ) && is_array( $args->fields['fields'] ) ) {
+		// Loop through the inner fields array.
+		foreach ( $args->fields['fields'] as $field => $include ) {
+			// Unset the field in the response if it's not included.
+			if ( ! $include && isset( $res->$field ) ) {
+				unset( $res->$field );
+			}
+		}
+	}
+
 	/**
 	 * Filters the Plugin Installation API response results.
 	 *
@@ -229,6 +240,45 @@ function plugins_api( $action, $args = array() ) {
 	 */
 	return apply_filters( 'plugins_api_result', $res, $action, $args );
 }
+
+/**
+ * Sets default false values for specific fields in the $args object.
+ *
+ * This function ensures that the $args->fields array is an array and loops through the fields
+ * with default false values. If a field is not already set in $args->fields, it is set to false.
+ *
+ * @param object $args The arguments object.
+ * @return object The modified $args object with default false values for specific fields.
+ */
+function _set_default_false_fields( $args ) {
+	$fields_with_default_false = array(
+		'description',
+		'sections',
+		'versions',
+		'reviews',
+		'banners',
+		'icons',
+		'active_installs',
+		'group',
+		'contributors',
+	);
+
+	// Ensure $args->fields is an array.
+	if ( ! isset( $args->fields ) || ! is_array( $args->fields ) ) {
+		$args->fields = array();
+	}
+
+	// Loop through the fields with default false values.
+	foreach ( $fields_with_default_false as $field ) {
+		// Set the field to false in args if not already set.
+		if ( ! isset( $args->fields[ $field ] ) ) {
+			$args->fields[ $field ] = false;
+		}
+	}
+
+	return $args;
+}
+add_filter( 'plugins_api_args', '_set_default_false_fields', 10, 2 );
 
 /**
  * Retrieves popular WordPress plugin tags.
