@@ -2008,6 +2008,55 @@ EOF;
 				'css'      => 'rotate: var(--angle)',
 				'expected' => '',
 			),
+			// `translate` introduced in 7.3, limited to one or two lengths or percentages.
+			array(
+				'css'      => 'translate: 10px -50%',
+				'expected' => 'translate: 10px -50%',
+			),
+			array(
+				'css'      => 'translate: 1.5rem',
+				'expected' => 'translate: 1.5rem',
+			),
+			array(
+				'css'      => 'translate: 0 0',
+				'expected' => 'translate: 0 0',
+			),
+			array(
+				'css'      => 'translate: 10dvw 5svh',
+				'expected' => 'translate: 10dvw 5svh',
+			),
+			array(
+				'css'      => 'translate: 2cqi 0',
+				'expected' => 'translate: 2cqi 0',
+			),
+			array(
+				'css'      => 'translate: -1em 2ch',
+				'expected' => 'translate: -1em 2ch',
+			),
+			array(
+				'css'      => 'translate: 1px 2px 3px',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'translate: 10 20',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'translate: 5deg',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'translate: none',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'translate: calc(1px + 2px)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'translate: var(--offset)',
+				'expected' => '',
+			),
 		);
 	}
 
