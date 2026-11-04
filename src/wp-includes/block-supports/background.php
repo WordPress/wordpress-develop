@@ -149,7 +149,7 @@ function wp_render_background_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	// The helper ignores a non-array background, so only an array needs filtering.
+	// unset() fatals on a string, and the helper ignores one anyway.
 	if ( is_array( $block_attributes['style']['background'] ) ) {
 		if ( $skip_background_image ) {
 			unset(
