@@ -74,7 +74,7 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 }
 
 /**
- * Site Health test: is the site key a dedicated constant, or a weaker fallback?
+ * Tests whether the site key comes from a dedicated constant or a weaker fallback.
  *
  * @since 7.2.0
  *
@@ -130,7 +130,7 @@ function wp_secrets_site_health_test_key_source(): array {
 }
 
 /**
- * Site Health test: does every stored secret still decrypt?
+ * Tests whether every stored secret still decrypts.
  *
  * Network secrets are included only for a super admin on a multisite install –
  * never shown to a site administrator who is not one.
@@ -218,7 +218,7 @@ function wp_secrets_site_health_find_undecryptable( bool $network ): array {
 }
 
 /**
- * Site Health test: are any secrets flagged as needing rotation?
+ * Tests whether any secrets are flagged as needing rotation.
  *
  * @since 7.2.0
  *
