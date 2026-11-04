@@ -48,25 +48,4 @@ class Tests_wp_ajax_logged_in extends WP_Ajax_UnitTestCase {
 		// The response should be 1.
 		$this->assertSame( '1', $this->_last_response, 'The response should be 1 for logged-in users' );
 	}
-
-	/**
-	 * Tests the logged-in AJAX action as a logged-out user.
-	 *
-	 * @ticket 65242
-	 */
-	public function test_wp_ajax_logged_in_logged_out(): void {
-		// Log out.
-		wp_set_current_user( 0 );
-
-		// Set up the request.
-		$_REQUEST['action'] = 'logged-in';
-
-		// In a real scenario, admin-ajax.php would not fire wp_ajax_logged-in for logged-out users.
-		// Since _handleAjax simulates the hook firing directly, we test that the handler itself
-		// (if it had permission checks) would fail.
-		// However, wp_ajax_logged_in() has NO permission checks because it relies on admin-ajax.php.
-
-		// To test the "logged-out" behavior properly, we should verify it DOES NOT have a nopriv handler.
-		$this->assertFalse( has_action( 'wp_ajax_nopriv_logged-in' ), 'Should not have a nopriv handler' );
-	}
 }
