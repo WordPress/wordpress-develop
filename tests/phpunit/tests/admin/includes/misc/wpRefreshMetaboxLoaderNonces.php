@@ -52,6 +52,29 @@ class Tests_Admin_Includes_Misc_WpRefreshMetaboxLoaderNonces extends WP_UnitTest
 	}
 
 	/**
+	 * Tests wp_refresh_metabox_loader_nonces() with invalid post IDs.
+	 *
+	 * @ticket 65198
+	 */
+	public function test_wp_refresh_metabox_loader_nonces_invalid_post_id() {
+		wp_set_current_user( self::$user_id );
+
+		$response = array( 'existing' => 'data' );
+
+		foreach ( array( 0, '0', 'not-a-number' ) as $post_id ) {
+			$data = array(
+				'wp-refresh-metabox-loader-nonces' => array(
+					'post_id' => $post_id,
+				),
+			);
+
+			$result = wp_refresh_metabox_loader_nonces( $response, $data );
+
+			$this->assertSame( $response, $result, 'Response should remain unchanged for post_id ' . var_export( $post_id, true ) );
+		}
+	}
+
+	/**
 	 * Tests wp_refresh_metabox_loader_nonces() when the user cannot edit the post.
 	 *
 	 * @ticket 65198
