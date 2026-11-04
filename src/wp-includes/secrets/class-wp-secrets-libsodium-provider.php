@@ -233,7 +233,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param WP_Secrets_Cipher $cipher       A cipher instance.
 	 * @param string            $master_key   32-byte master key.
 	 * @param string            $scope        'site' or 'network'.
-	 * @param int               $site_id      Blog id for site scope, 0 for network scope.
+	 * @param int               $site_id      Blog ID for site scope, 0 for network scope.
 	 * @param string            $name         The secret's namespaced name.
 	 * @param array<mixed>      $current_slot The outgoing current slot, as stored.
 	 * @return array|WP_Error The same value, re-encrypted and bound to
@@ -427,7 +427,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 		 * @param string $name            The secret's namespaced name.
 		 * @param string $action          One of 'created', 'updated', 'deleted',
 		 *                                'imported', 'retired'.
-		 * @param int    $actor_id        The current user id, or 0.
+		 * @param int    $actor_id        The current user ID, or 0.
 		 * @param int    $timestamp       Unix timestamp of the change.
 		 * @param string $old_fingerprint The previous fingerprint, or '' if none.
 		 * @param string $new_fingerprint The new fingerprint, or '' if the secret was deleted.

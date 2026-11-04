@@ -50,7 +50,7 @@ define( 'WP_SECRETS_ERROR_INVALID_VALUE', 'secret_invalid_value' );
 /**
  * A caller passed an argument this API cannot act on.
  *
- * An unrecognized version constant, or an invalid scope, slot, or site id.
+ * An unrecognized version constant, or an invalid scope, slot, or site ID.
  *
  * Distinct from the codes above in cause rather than in severity: those describe
  * a runtime condition a correct caller can still hit (a name that failed

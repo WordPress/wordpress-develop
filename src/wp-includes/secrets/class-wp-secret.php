@@ -31,7 +31,7 @@ final class WP_Secret implements JsonSerializable {
 	 * Deliberately not an SplObjectStorage keyed by the instance itself: that holds a
 	 * strong reference to its keys, which would keep every WP_Secret ever constructed
 	 * alive – and its plaintext un-zeroed – for the life of the request. Keying by
-	 * the integer id instead leaves an instance's own reference count to govern its
+	 * the integer ID instead leaves an instance's own reference count to govern its
 	 * lifetime normally, so __destruct() fires and zeroes the value the moment nothing
 	 * else references the instance.
 	 *
@@ -312,7 +312,7 @@ final class WP_Secret implements JsonSerializable {
 	 * Refuses cloning outright.
 	 *
 	 * A clone would be a second, unaudited reference to the same plaintext with an
-	 * independent lifetime – and, since the vault is keyed by object id rather than
+	 * independent lifetime – and, since the vault is keyed by object ID rather than
 	 * copied, a bare `clone` would otherwise leave the clone's reveal() silently
 	 * reading nothing.
 	 *
