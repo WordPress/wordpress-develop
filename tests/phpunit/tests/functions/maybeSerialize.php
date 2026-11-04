@@ -27,6 +27,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	 * @dataProvider data_is_serialized
 	 */
 	public function test_maybe_serialize_with_double_serialization( $value ) {
+		$this->setExpectedIncorrectUsage( 'maybe_serialize' );
 		$expected = serialize( $value );
 
 		$this->assertSame( $expected, maybe_serialize( $value ) );
