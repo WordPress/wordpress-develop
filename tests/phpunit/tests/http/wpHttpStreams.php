@@ -34,7 +34,11 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			fclose( $pipes[0] );
 			stream_set_timeout( $pipes[1], 5 );
 			$address = trim( (string) fgets( $pipes[1] ) );
-			$this->assertNotEmpty( $address, 'The local fixture server should publish its address.' );
+			if ( '' === $address ) {
+				// Avoid blocking on a fixture server that is still running, while reporting why one that exited failed.
+				stream_set_blocking( $pipes[2], false );
+				$this->fail( 'The local fixture server should publish its address. Server error output: ' . stream_get_contents( $pipes[2] ) );
+			}
 
 			$transport = new WP_Http_Streams();
 			$response  = $transport->request(
