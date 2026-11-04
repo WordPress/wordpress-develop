@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function get_category\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/category.php
-		-
 			message: '#^Method WP_Recovery_Mode_Cookie_Service\:\:recovery_mode_hash\(\) never returns false so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
