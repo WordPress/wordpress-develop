@@ -273,7 +273,7 @@ class MockAction {
 	}
 
 	/**
-	 * Returns a count of the number of times the action was called since the last reset.
+	 * Returns a count of the number of times the hook was called since the last reset.
 	 *
 	 * @since UT (3.7.0)
 	 *
@@ -285,10 +285,7 @@ class MockAction {
 			$count = 0;
 
 			foreach ( $this->events as $e ) {
-				if (
-					( isset( $e['action'] ) && $e['action'] === $hook_name ) ||
-					( isset( $e['filter'] ) && $e['filter'] === $hook_name )
-				) {
+				if ( $e['hook_name'] === $hook_name ) {
 					++$count;
 				}
 			}
