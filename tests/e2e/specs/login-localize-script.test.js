@@ -44,10 +44,17 @@ test.describe( 'Localize Script on wp-login.php', () => {
 
 	test( 'should localize script', async ( { page } ) => {
 		await page.goto( '/wp-login.php' );
-		await page.waitForSelector( '#login' );
-		const testData = await page.evaluate( () => window.testData );
-		expect(
-			testData.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything
-		).toBe( '42' );
+		await expect(
+			page.getByRole( 'button', { name: 'Log In', exact: true } )
+		).toBeVisible();
+		await expect
+			.poll( () =>
+				page.evaluate(
+					() =>
+						window.testData
+							?.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything
+				)
+			)
+			.toBe( '42' );
 	} );
 } );
