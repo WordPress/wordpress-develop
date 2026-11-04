@@ -809,7 +809,7 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 *
 	 * @param string                $compare The compare operator to use.
-	 * @param string|int|array|null $value   The value.
+	 * @param string|int|int[]|null $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
 	 */
 	public function build_value( $compare, $value ) {
