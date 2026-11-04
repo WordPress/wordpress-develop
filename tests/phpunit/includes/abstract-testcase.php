@@ -289,6 +289,31 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Returns the default-excluded groups that apply to a test and were not explicitly requested.
+	 *
+	 * @param string[] $groups Test groups.
+	 * @return string[] Matching excluded groups.
+	 */
+	public static function get_default_excluded_groups_for_test( array $groups ) {
+		$default_excluded_groups = WP_PHPUnit_Util_Getopt::get_skipped_groups();
+
+		foreach ( $groups as $group ) {
+			if ( WP_PHPUnit_Util_Getopt::is_group_requested( $group ) ) {
+				return array();
+			}
+		}
+
+		return array_values(
+			array_filter(
+				$groups,
+				static function ( $group ) use ( $default_excluded_groups ) {
+					return in_array( $group, $default_excluded_groups, true );
+				}
+			)
+		);
+	}
+
+	/**
 	 * Sets the bcrypt cost option for password hashing during tests.
 	 *
 	 * @param array  $options   The options for password hashing.
