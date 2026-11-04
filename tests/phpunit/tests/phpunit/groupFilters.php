@@ -74,10 +74,10 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 	}
 
 	public function test_default_group_filter_removes_tests_from_nested_suites() {
-		$test = clone $this;
-
-		$class_suite = new PHPUnit\Framework\TestSuite();
-		$class_suite->addTest( $test, array( 'ajax' ) );
+		$class_suite = class_exists( 'PHPUnit_Framework_TestSuite' ) ? new PHPUnit_Framework_TestSuite() : new PHPUnit\Framework\TestSuite();
+		$class_suite->addTest( clone $this, array( 'phpunit' ) );
+		$class_suite->addTest( clone $this, array( 'ajax' ) );
+		$class_suite->addTest( clone $this, array( 'phpunit' ) );
 
 		$root_suite = new PHPUnit\Framework\TestSuite();
 		$root_suite->addTest( $class_suite );
@@ -85,7 +85,8 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 		$filter = new WP_PHPUnit_Default_Group_Filter();
 		$filter->startTestSuite( $root_suite );
 
-		$this->assertCount( 0, $root_suite );
+		$this->assertCount( 1, $root_suite );
+		$this->assertCount( 2, $class_suite );
 	}
 
 	/**

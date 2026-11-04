@@ -483,7 +483,7 @@ trait WP_PHPUnit_Default_Group_Filter_Methods {
 		$tests = array();
 
 		foreach ( $suite->tests() as $test ) {
-			if ( $test instanceof PHPUnit\Framework\TestSuite ) {
+			if ( $test instanceof PHPUnit\Framework\TestSuite || $test instanceof PHPUnit_Framework_TestSuite ) {
 				$this->filter_suite( $test );
 
 				if ( count( $test ) ) {
