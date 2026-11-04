@@ -8,6 +8,7 @@
  * @group wp-image-editor-gd
  */
 require_once __DIR__ . '/base.php';
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
@@ -673,5 +674,87 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$loaded = $gd_image_editor->load();
 
 		$this->assertTrue( $loaded );
+	}
+
+	/**
+	 * Tests that images can be saved to a stream.
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream() {
+		$saved = $this->save_to_stream( 'wptestgd', 'WP_Test_Stream' );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( 'wptestgd://Tests_Image_Editor_GD/write.jpg', $saved['path'] );
+		$this->assertNotEmpty( WP_Test_Stream::$data['Tests_Image_Editor_GD']['/write.jpg'], 'The image should have been written to the stream.' );
+	}
+
+	/**
+	 * Tests that saving fails when the image cannot be fully written to the stream.
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream_fails_when_write_fails() {
+		$saved = $this->save_to_stream( 'wptestgdwritefail', 'WP_Test_Stream_GD_Write_Failure' );
+
+		$this->assertWPError( $saved );
+		$this->assertSame( 'image_save_error', $saved->get_error_code() );
+	}
+
+	/**
+	 * Tests that saving fails when the stream cannot be flushed.
+	 *
+	 * PHP 8.6 is the first version where fclose() reports flush and close failures.
+	 *
+	 * @requires PHP >= 8.6
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream_fails_when_flush_fails() {
+		$saved = $this->save_to_stream( 'wptestgdflushfail', 'WP_Test_Stream_GD_Flush_Failure' );
+
+		$this->assertWPError( $saved );
+		$this->assertSame( 'image_save_error', $saved->get_error_code() );
+	}
+
+	/**
+	 * Loads a JPEG image with the GD editor and saves it to a stream.
+	 *
+	 * @param string $protocol      The stream protocol to register.
+	 * @param string $wrapper_class The stream wrapper class to register for the protocol.
+	 * @return array|WP_Error The result of WP_Image_Editor_GD::save().
+	 */
+	private function save_to_stream( $protocol, $wrapper_class ) {
+		stream_wrapper_register( $protocol, $wrapper_class );
+		WP_Test_Stream::$data = array();
+
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/waffles.jpg' );
+		$loaded          = $gd_image_editor->load();
+
+		$saved = $gd_image_editor->save( $protocol . '://Tests_Image_Editor_GD/write.jpg', 'image/jpeg' );
+
+		stream_wrapper_unregister( $protocol );
+
+		$this->assertTrue( $loaded );
+
+		return $saved;
+	}
+}
+
+/**
+ * A stream wrapper that fails to write any data.
+ */
+class WP_Test_Stream_GD_Write_Failure extends WP_Test_Stream {
+	public function stream_write( $data ) {
+		return 0;
+	}
+}
+
+/**
+ * A stream wrapper that fails to flush, like a remote storage wrapper whose upload fails.
+ */
+class WP_Test_Stream_GD_Flush_Failure extends WP_Test_Stream {
+	public function stream_flush() {
+		return false;
 	}
 }
