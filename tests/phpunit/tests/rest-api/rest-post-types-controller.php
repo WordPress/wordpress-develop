@@ -12,6 +12,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	public function tear_down() {
 		unregister_post_type( 'cpt' );
 		unregister_post_type( 'cpt_template' );
+		unregister_post_type( 'cpt_template_null' );
 
 		parent::tear_down();
 	}
