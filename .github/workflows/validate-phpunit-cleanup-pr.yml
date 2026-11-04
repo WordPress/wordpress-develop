@@ -126,6 +126,9 @@ jobs:
             function findLinkedSourceFiles( rootDir, declaredNs, targetClass ) {
               const nsClean = declaredNs.replace( /^WordPress\\(?:Tests\\)?/i, '' );
               const segments = nsClean.split( '\\' ).filter( Boolean );
+              if ( targetClass && ! normalizeSegment( targetClass ).some( ( v ) => v.toLowerCase() === ( segments[ segments.length - 1 ] || '' ).toLowerCase() ) ) {
+                return [];
+              }
               const srcRoot = path.join( rootDir, 'src' );
               const found = new Set();
 
@@ -147,8 +150,8 @@ jobs:
                   return;
                 }
 
-                const seg = segments[ segIndex ];
                 const isLast = ( segIndex === segments.length - 1 );
+                const seg = isLast && ! targetClass ? segments[ segIndex ].replace( /^Functions_/, '' ) : segments[ segIndex ];
                 const variations = getSegmentVariations( seg );
 
                 for ( const v of variations ) {
@@ -285,8 +288,8 @@ jobs:
               }
 
               // 2. Validate directory depth (must have a parent directory for Class_Under_Test or Functions_FileName)
-              if ( pathParts.length < 1 ) {
-                errors.push( `[${filename}] Test file must reside in a directory representing Class_Under_Test or Functions_FileName.` );
+              if ( pathParts.length < 2 || ! [ 'wp-includes', 'wp-admin' ].includes( pathParts[0] ) ) {
+                errors.push( `[${filename}] Test file must reside under wp-includes/ or wp-admin/ in a directory representing Class_Under_Test or Functions_FileName.` );
               }
 
               // Read file content from checked out workspace
@@ -316,7 +319,7 @@ jobs:
                     for ( let i = 0; i < pathParts.length; i++ ) {
                       const expectedVariants = normalizeSegment( pathParts[i] );
                       const actualSegment = nsParts[i];
-                      const matched = expectedVariants.some( ( v ) => v.toLowerCase() === actualSegment.toLowerCase() );
+                      const matched = expectedVariants.includes( actualSegment );
                       if ( ! matched ) {
                         errors.push( `[${filename}] Namespace segment "${actualSegment}" in "${declaredNs}" does not match directory segment "${pathParts[i]}" (expected one of: ${expectedVariants.join( ', ' )}).` );
                         nsMatchFailed = true;
@@ -407,10 +410,8 @@ jobs:
                 const cleanBaseName = expectedClassName.replace( /_?[tT]est$/, '' );
                 const cleanClassName = declaredClass.replace( /_?[tT]est$/, '' );
 
-                const baseMatches = cleanBaseName.toLowerCase().includes( expectedPascal.toLowerCase() ) ||
-                                    expectedPascal.toLowerCase().includes( cleanBaseName.toLowerCase() );
-                const classMatchesTarget = cleanClassName.toLowerCase().includes( expectedPascal.toLowerCase() ) ||
-                                           expectedPascal.toLowerCase().includes( cleanClassName.toLowerCase() );
+                const baseMatches = cleanBaseName.toLowerCase().startsWith( expectedPascal.toLowerCase() );
+                const classMatchesTarget = cleanClassName.toLowerCase().startsWith( expectedPascal.toLowerCase() );
 
                 if ( ! baseMatches || ! classMatchesTarget ) {
                   errors.push( `[${filename}] Filename "${baseName}" and class name "${declaredClass}" do not match @covers target "${coversParsed.raw}" in CamelCase (expected to contain "${expectedPascal}").` );
