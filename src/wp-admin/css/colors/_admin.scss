@@ -418,6 +418,13 @@ ul#adminmenu > li.current > a.current::after {
 	color: variables.$menu-submenu-focus-text;
 }
 
+#wpadminbar:not(.mobile) .ab-top-menu > li:hover,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li:has(> .ab-item:focus),
+#wpadminbar.nojs .ab-top-menu > li.menupop:hover,
+#wpadminbar .ab-top-menu > li.menupop.hover {
+	background: variables.$menu-submenu-background;
+}
+
 #wpadminbar > #wp-toolbar li:hover span.ab-label,
 #wpadminbar > #wp-toolbar li.hover span.ab-label,
 /* The adminbar menu may output either links or focusable div elements. */
