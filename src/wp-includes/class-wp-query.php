@@ -2904,7 +2904,6 @@ class WP_Query {
 			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
 			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 
@@ -3310,7 +3309,6 @@ class WP_Query {
 						return $post_parents;
 					} else {
 						_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
-						/** @var WP_Post[] */
 						$this->posts = array_map( 'get_post', $post_ids );
 					}
 				}
@@ -3320,7 +3318,6 @@ class WP_Query {
 		if ( 'ids' === $query_vars['fields'] ) {
 			$this->posts ??= $wpdb->get_col( $this->request );
 
-			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
@@ -3451,7 +3448,6 @@ class WP_Query {
 
 		// Convert to WP_Post objects.
 		if ( $this->posts ) {
-			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
@@ -3571,7 +3567,6 @@ class WP_Query {
 			_prime_comment_caches( $comment_ids );
 
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
 			$this->comments      = array_map( 'get_comment', $comment_ids );
 			$this->comment_count = count( $this->comments );
 		}
@@ -3645,7 +3640,6 @@ class WP_Query {
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
 
-			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $query_vars['cache_results'] ) {
@@ -3657,7 +3651,6 @@ class WP_Query {
 				}
 			}
 
-			/** @var WP_Post */
 			$this->post = reset( $this->posts );
 		} else {
 			$this->post_count = 0;
@@ -3747,7 +3740,6 @@ class WP_Query {
 
 		++$this->current_post;
 
-		/** @var WP_Post */
 		$this->post = $this->posts[ $this->current_post ];
 		return $this->post;
 	}
@@ -3894,7 +3886,6 @@ class WP_Query {
 	public function next_comment() {
 		++$this->current_comment;
 
-		/** @var WP_Comment */
 		$this->comment = $this->comments[ $this->current_comment ];
 		return $this->comment;
 	}
