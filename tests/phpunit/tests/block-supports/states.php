@@ -1759,7 +1759,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_block_states_support
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66467
 	 *
 	 * @dataProvider data_translation_state_generates_translate_css
 	 *

@@ -3327,7 +3327,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * `0` for a missing axis, for block styles, states and style variations, and
 	 * combine with a rotation.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66467
 	 */
 	public function test_get_stylesheet_outputs_translate_for_block_styles_states_and_variations() {
 		register_block_type(
@@ -3407,7 +3407,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Tests that an offset with an axis that is not a single length or percentage is not output.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66467
 	 *
 	 * @dataProvider data_get_stylesheet_skips_invalid_translate_values
 	 *
@@ -3453,7 +3453,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that sanitizing keeps the `x` and `y` offset axes only, and drops an
 	 * offset that is not an object.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66467
 	 */
 	public function test_sanitize_keeps_translate_axes_only() {
 		$theme_json = new WP_Theme_JSON(
