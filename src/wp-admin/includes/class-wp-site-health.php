@@ -1178,6 +1178,18 @@ class WP_Site_Health {
 					'<code>date_default_timezone_set()</code>'
 				)
 			);
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'A plugin or theme may be changing the PHP default timezone. Identify the code that calls this function and ask its author to remove the call. If you cannot identify it, contact your hosting provider for help.' )
+			);
+			$result['actions']      = sprintf(
+				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				/* translators: Documentation explaining why plugins should not change the PHP default timezone. */
+				esc_url( __( 'https://developer.wordpress.org/plugins/wordpress-org/common-issues/#php-setting-a-default-timezone' ) ),
+				__( 'Learn more about the PHP default timezone.' ),
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			);
 		}
 
 		return $result;

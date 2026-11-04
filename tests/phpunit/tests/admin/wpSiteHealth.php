@@ -32,6 +32,32 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50055
+	 * @covers ::get_test_php_default_timezone()
+	 */
+	public function test_php_default_timezone_health_check_provides_guidance_only_when_invalid() {
+		$original_timezone = date_default_timezone_get();
+
+		try {
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
+			date_default_timezone_set( 'UTC' );
+			$valid_result = $this->instance->get_test_php_default_timezone();
+			$this->assertSame( 'good', $valid_result['status'] );
+			$this->assertSame( '', $valid_result['actions'] );
+
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
+			date_default_timezone_set( 'America/New_York' );
+			$invalid_result = $this->instance->get_test_php_default_timezone();
+			$this->assertSame( 'critical', $invalid_result['status'] );
+			$this->assertStringContainsString( 'A plugin or theme may be changing', $invalid_result['description'] );
+			$this->assertStringContainsString( 'php-setting-a-default-timezone', $invalid_result['actions'] );
+		} finally {
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
+			date_default_timezone_set( $original_timezone );
+		}
+	}
+
+	/**
 	 * @ticket 55791
 	 * @covers ::__construct()
 	 */
