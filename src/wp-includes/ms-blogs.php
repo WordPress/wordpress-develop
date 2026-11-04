@@ -39,11 +39,15 @@ function wpmu_update_blogs_date() {
  * Gets a full site URL, given a site ID.
  *
  * @since MU (3.0.0)
+ * @deprecated 6.9.0 Use get_home_url() instead when possible.
+ * @see get_home_url()
  *
  * @param int $blog_id Site ID.
  * @return string Full site URL if found. Empty string if not.
  */
 function get_blogaddress_by_id( $blog_id ) {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'get_home_url()' );
+
 	$bloginfo = get_site( (int) $blog_id );
 
 	if ( empty( $bloginfo ) ) {
