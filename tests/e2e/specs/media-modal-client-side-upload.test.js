@@ -125,7 +125,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 
 		// A settled tile is not on its own proof that this upload finished:
 		// the modal leaves the upload tab for the library grid as soon as the
@@ -190,7 +190,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The modal's uploader status lists the error the same way it lists
@@ -235,7 +235,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 		const classicUpload = page.waitForRequest(
 			( request ) =>
 				request.method() === 'POST' &&
@@ -276,7 +276,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect( modal.locator( 'li.attachment.uploading' ) ).toHaveCount(

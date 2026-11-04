@@ -181,7 +181,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The finalized attachment resolves to a normal (non-uploading) tile.
@@ -251,7 +251,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await sideloadRequested;
 
@@ -274,12 +274,17 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			page.locator( 'li.attachment:not(.uploading)' ).first()
 		).toBeVisible( { timeout: 60_000 } );
 
-		const preventedAfterUpload = await page.evaluate( () => {
-			const event = new Event( 'beforeunload', { cancelable: true } );
-			window.dispatchEvent( event );
-			return event.defaultPrevented;
-		} );
-		expect( preventedAfterUpload ).toBe( false );
+		await expect
+			.poll( () =>
+				page.evaluate( () => {
+					const event = new Event( 'beforeunload', {
+						cancelable: true,
+					} );
+					window.dispatchEvent( event );
+					return event.defaultPrevented;
+				} )
+			)
+			.toBe( false );
 	} );
 
 	test( 'shows an error for a disallowed file type', async ( {
@@ -297,7 +302,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( {
 			name: 'disallowed.xyz',
 			mimeType: 'application/octet-stream',
@@ -316,11 +321,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect(
 			errorNotice.locator( '.upload-error-filename' )
 		).toHaveText( 'disallowed.xyz' );
-		const message = await errorNotice
-			.locator( '.upload-error-message' )
-			.innerText();
-		expect( message ).not.toContain( '[object Object]' );
-		expect( message.trim() ).not.toBe( '' );
+		const message = errorNotice.locator( '.upload-error-message' );
+		await expect( message ).toHaveText( /\S/ );
+		await expect( message ).not.toContainText( '[object Object]' );
 	} );
 	test( 'falls back to the classic uploader when the page is not isolated', async ( {
 		page,
@@ -362,7 +365,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -403,7 +406,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		// The same file twice exercises the shared-identity path: both
 		// tiles must track progress and resolve independently.
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
 
 		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
@@ -460,7 +463,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await sideloadRequested;
 
@@ -504,7 +507,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await failMediaCreate( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The error lands in the grid's error sidebar exactly like a classic
@@ -553,7 +556,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_AUDIO_PATH );
 
 		await expect(
@@ -593,7 +596,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
 		await expect(
@@ -644,7 +647,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -683,7 +686,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		const counts = countUploadRequests( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect(
@@ -716,7 +719,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		const counts = countUploadRequests( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( UNDECODABLE_HEIC );
 
 		// The pipeline's decode failure is not shown; the file is re-queued
@@ -754,7 +757,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		const counts = countUploadRequests( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( UNDECODABLE_HEIC );
 
 		// Nothing can convert the file, so the pipeline's message (which
@@ -803,7 +806,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		);
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		await expect( page.locator( '.upload-error' ).first() ).toBeVisible( {
