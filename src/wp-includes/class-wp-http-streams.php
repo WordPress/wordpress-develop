@@ -369,7 +369,7 @@ class WP_Http_Streams {
 		fclose( $handle );
 
 		if ( ! isset( $processed_response ) ) {
-			return new WP_Error( 'http_request_failed', __( 'The server returned an invalid HTTP response.' ) );
+			return new WP_Error( 'http_request_failed', 'Missing header/body separator' );
 		}
 
 		$processed_headers = WP_Http::processHeaders( $processed_response['headers'], $url );
