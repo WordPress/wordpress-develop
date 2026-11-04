@@ -45,9 +45,9 @@ class GetTempDirTest extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_get_temp_dir_respects_constant() {
-		$custom_temp = '/tmp/wp-custom-temp/';
+		$custom_temp = '/tmp/wp-custom-temp';
 		if ( 'Windows' === PHP_OS_FAMILY ) {
-			$custom_temp = 'C:\\Windows\\Temp\\wp-custom-temp\\';
+			$custom_temp = 'C:\\Windows\\Temp\\wp-custom-temp';
 		}
 
 		define( 'WP_TEMP_DIR', $custom_temp );
