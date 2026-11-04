@@ -31,7 +31,6 @@ class Tests_Trackback_trackbackResponse extends WP_UnitTestCase {
 
 		$_GET  = array( 'tb_id' => $this->post_id );
 		$_POST = array(
-			'url'       => 'https://example.com/trackback',
 			'title'     => 'Trackback title',
 			'blog_name' => 'Trackback blog',
 		);
