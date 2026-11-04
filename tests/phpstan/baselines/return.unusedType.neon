@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function wp_get_code_editor_settings\(\) never returns false so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/general-template.php
-		-
 			message: '#^Function get_post_gallery\(\) never returns string so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
