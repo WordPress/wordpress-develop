@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function get_post_gallery\(\) never returns string so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/media.php
-		-
 			message: '#^Function wp_imagecreatetruecolor\(\) never returns GdImage so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
