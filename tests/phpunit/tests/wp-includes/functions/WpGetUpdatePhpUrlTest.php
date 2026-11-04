@@ -14,6 +14,35 @@ use WP_UnitTestCase;
 class WpGetUpdatePhpUrlTest extends WP_UnitTestCase {
 
 	/**
+	 * Original PHP update URL environment value.
+	 *
+	 * @var string|false
+	 */
+	private $original_update_php_url;
+
+	/**
+	 * Saves and clears the PHP update URL environment variable.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->original_update_php_url = getenv( 'WP_UPDATE_PHP_URL' );
+		putenv( 'WP_UPDATE_PHP_URL' );
+	}
+
+	/**
+	 * Restores the PHP update URL environment variable.
+	 */
+	public function tear_down() {
+		if ( false === $this->original_update_php_url ) {
+			putenv( 'WP_UPDATE_PHP_URL' );
+		} else {
+			putenv( 'WP_UPDATE_PHP_URL=' . $this->original_update_php_url );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests that wp_get_update_php_url() returns the default URL.
 	 *
 	 * @ticket 65653
