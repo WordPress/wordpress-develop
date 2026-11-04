@@ -7,6 +7,11 @@
 
 // phpcs:disable WordPress.WP.AlternativeFunctions -- This standalone socket fixture does not load WordPress.
 
+if ( ! isset( $argv[1] ) ) {
+	fwrite( STDERR, 'Usage: php raw-response.php <json-encoded-response>' );
+	exit( 1 );
+}
+
 $server = stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
 if ( false === $server ) {
 	fwrite( STDERR, (string) $errstr );
