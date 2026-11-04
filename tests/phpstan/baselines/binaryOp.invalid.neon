@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Binary operation "/" between string and 2 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: ../../../src/wp-content/themes/twentytwenty/functions.php
-		-
 			message: '#^Binary operation "\+" between array\<int\<0, max\>\|WP_Comment\>\|int\<1, max\> and 1 results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
