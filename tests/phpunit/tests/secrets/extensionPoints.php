@@ -137,8 +137,10 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$this->assertWPError( $set_result, 'A write to an unreachable store should return a WP_Error.' );
 		$this->assertWPError( $get_result, 'A read from an unreachable store should return a WP_Error.' );
 
-		// Fails closed, not merely differently: nothing was written to the real
-		// default store either, which a silent fallback would have done.
+		/*
+		 * Fails closed, not merely differently: nothing was written to the real
+		 * default store either, which a silent fallback would have done.
+		 */
 		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ), 'Nothing should be written to the default options store as a fallback.' );
 	}
 

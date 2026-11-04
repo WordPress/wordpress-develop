@@ -485,8 +485,10 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 		}
 
 		if ( ! isset( $record[ $version ] ) || ! is_array( $record[ $version ] ) ) {
-			// The secret exists, but this slot does not. Absence, not an error –
-			// this matters most for PREVIOUS on a secret that has never been rotated.
+			/*
+			 * The secret exists, but this slot does not. Absence, not an error –
+			 * this matters most for PREVIOUS on a secret that has never been rotated.
+			 */
 			return null;
 		}
 

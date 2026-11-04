@@ -58,8 +58,10 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 		wp_secrets_memzero( $value );
 
 		$this->assertSame( '', $value, 'The zeroed variable should be an empty string.' );
-		// The shared copy is unaffected – see the docblock on wp_secrets_memzero():
-		// this is hygiene, not a guarantee, for exactly this reason.
+		/*
+		 * The shared copy is unaffected – see the docblock on wp_secrets_memzero():
+		 * this is hygiene, not a guarantee, for exactly this reason.
+		 */
 		$this->assertSame( 'shared plaintext', $copy, 'The shared copy should keep its original value.' ); // @phpstan-ignore method.alreadyNarrowedType (Whether the copy survives the scrub is decided by the engine at runtime, not by the types.)
 	}
 }

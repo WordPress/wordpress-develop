@@ -77,8 +77,10 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_max_name_length_matches_the_options_column_budget(): void {
-		// wp_options.option_name is VARCHAR(191); '_wp_network_secret_' (19
-		// characters) is the longest prefix any store here uses.
+		/*
+		 * wp_options.option_name is VARCHAR(191); '_wp_network_secret_' (19
+		 * characters) is the longest prefix any store here uses.
+		 */
 		$this->assertSame( 191 - strlen( '_wp_network_secret_' ), WP_SECRETS_MAX_NAME_LENGTH, 'WP_SECRETS_MAX_NAME_LENGTH should fit the longest prefixed name in option_name.' );
 	}
 }

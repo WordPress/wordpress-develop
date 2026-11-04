@@ -222,8 +222,10 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Option_Store::list_names
 	 */
 	public function test_list_names_escapes_the_underscore_wildcard(): void {
-		// Would match "_wp_secret_%" under an *unescaped* LIKE, since '_' matches
-		// any single character – proving esc_like() is actually applied.
+		/*
+		 * Would match "_wp_secret_%" under an *unescaped* LIKE, since '_' matches
+		 * any single character – proving esc_like() is actually applied.
+		 */
 		update_option( '_wpXsecret_decoy/name', 'irrelevant value', false );
 
 		$store = new WP_Secrets_Option_Store();

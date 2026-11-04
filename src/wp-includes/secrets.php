@@ -184,15 +184,19 @@ function wp_secrets_memzero( &$value ): void {
 			$alias =& $value;
 			sodium_memzero( $alias );
 		} catch ( \Throwable $e ) {
-			// A value this function doesn't exclusively own (a shared,
-			// copy-on-write buffer) can legitimately refuse. The unconditional
-			// reassignment below still runs regardless of what happened here.
+			/*
+			 * A value this function doesn't exclusively own (a shared,
+			 * copy-on-write buffer) can legitimately refuse. The unconditional
+			 * reassignment below still runs regardless of what happened here.
+			 */
 			unset( $e );
 		}
 	}
 
-	// Reached on every path, including sodium_memzero() success (it leaves the
-	// variable null, not an empty string) so callers see one consistent contract.
+	/*
+	 * Reached on every path, including sodium_memzero() success (it leaves the
+	 * variable null, not an empty string) so callers see one consistent contract.
+	 */
 	$value = '';
 }
 

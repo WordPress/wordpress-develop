@@ -55,8 +55,10 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'value-b', false, 'The previous slot should decrypt to the second of three values.' );
 
-		// value-a is gone from the stored record entirely, not merely unreachable
-		// through the two named slots.
+		/*
+		 * value-a is gone from the stored record entirely, not merely unreachable
+		 * through the two named slots.
+		 */
 		$this->assertNeverContainsPlaintext( 'value-a', get_option( '_wp_secret_myplugin/api-key' ), 'The stored record should no longer contain the oldest value.' );
 	}
 

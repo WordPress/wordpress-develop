@@ -418,10 +418,12 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 		$this->assertSame( $master_before, $master_after, 'The derived master key should be unchanged by rotation.' );
 
-		// The old keyring alone is no longer sufficient: the stored root key is now
-		// wrapped under the new key. Checked with a fresh manager instance, since
-		// $manager_under_old_key's own cache was correctly primed by the rotation
-		// it just performed and is not the thing under test here.
+		/*
+		 * The old keyring alone is no longer sufficient: the stored root key is now
+		 * wrapped under the new key. Checked with a fresh manager instance, since
+		 * $manager_under_old_key's own cache was correctly primed by the rotation
+		 * it just performed and is not the thing under test here.
+		 */
 		$fresh_manager_under_old_key = new WP_Secrets_Key_Manager( $old_keyring );
 		$this->assertWPError( $fresh_manager_under_old_key->get_root_key(), 'The old keyring alone should no longer unwrap the rotated root key.' );
 	}
@@ -541,9 +543,11 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 		$manager = new WP_Secrets_Key_Manager( $mock );
 
-		// Each call is assigned before it is asserted on: get_root_key() answers
-		// differently as the keyring's state changes, so no two calls are the
-		// same expression as far as a reader (or an analyzer) should assume.
+		/*
+		 * Each call is assigned before it is asserted on: get_root_key() answers
+		 * differently as the keyring's state changes, so no two calls are the
+		 * same expression as far as a reader (or an analyzer) should assume.
+		 */
 		$mock->configure_fail_unwrap( true );
 		$while_failing = $manager->get_root_key();
 		$this->assertWPError( $while_failing, 'get_root_key() should return a WP_Error while unwrap fails.' );
