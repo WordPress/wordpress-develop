@@ -149,7 +149,7 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'foo', $actual );
 	}
 
-	public function data_allowed_post_statuses_should_not_be_forced_to_be_unique() {
+	public static function data_allowed_post_statuses_should_not_be_forced_to_be_unique() {
 		return array(
 			array( 'draft' ),
 			array( 'pending' ),

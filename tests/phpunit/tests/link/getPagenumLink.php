@@ -89,7 +89,7 @@ class Tests_Link_GetPagenumLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_pagenum_link_plain_permalinks() {
+	public static function data_get_pagenum_link_plain_permalinks() {
 		return array(
 			'page 1 and plain permalinks' => array(
 				'permalink_structure' => '',
@@ -144,7 +144,7 @@ class Tests_Link_GetPagenumLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_pagenum_link() {
+	public static function data_get_pagenum_link() {
 		return array(
 			'page 1 and index.php'                  => array(
 				'permalink_structure' => '/index.php/%year%/%monthnum%/%day%/%postname%',

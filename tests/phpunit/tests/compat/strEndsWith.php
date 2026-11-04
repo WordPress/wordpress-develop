@@ -34,7 +34,7 @@ class Tests_Compat_StrEndsWith extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_str_ends_with() {
+	public static function data_str_ends_with() {
 		return array(
 			'empty needle'              => array(
 				'expected' => true,
