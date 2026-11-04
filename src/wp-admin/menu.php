@@ -370,21 +370,10 @@ if ( current_user_can( 'list_users' ) ) {
 
 $site_health_count = '';
 if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
-	$get_issues = get_transient( 'health-check-site-status-result' );
-
-	$issue_counts = array();
-
-	if ( false !== $get_issues ) {
-		$issue_counts = json_decode( $get_issues, true );
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
-
-	if ( ! is_array( $issue_counts ) || ! $issue_counts ) {
-		$issue_counts = array(
-			'good'        => 0,
-			'recommended' => 0,
-			'critical'    => 0,
-		);
-	}
+	$issue_counts = WP_Site_Health::get_site_status_counts();
 
 	$site_health_count = sprintf(
 		'<span class="menu-counter site-health-counter count-%s"><span class="count">%s</span></span>',
