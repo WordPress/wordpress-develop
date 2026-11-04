@@ -53,7 +53,7 @@ final class WP_Abilities_Registry {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              Required. The registered ability category slug this ability belongs to.
+	 *     @type string               $category              The registered ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -124,7 +124,7 @@ final class WP_Abilities_Registry {
 		 *
 		 *     @type string               $label                 The human-readable label for the ability.
 		 *     @type string               $description           A detailed description of what the ability does.
-		 *     @type string               $category              Required. The registered ability category slug this ability belongs to.
+		 *     @type string               $category              The registered ability category slug this ability belongs to.
 		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
