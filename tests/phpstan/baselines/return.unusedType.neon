@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function plugins_api\(\) never returns array so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-admin/includes/plugin-install.php
-		-
 			message: '#^Function _fix_attachment_links\(\) never returns WP_Error so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
