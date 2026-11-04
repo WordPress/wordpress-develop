@@ -877,12 +877,12 @@ class WP_Date_Query {
 	 *                (`1970-01-01 00:00:00`).
 	 *
 	 * @phpstan-param string|array{
-	 *     year?: int<0, max>,
-	 *     month?: int<0, max>,
-	 *     day?: int<0, max>,
-	 *     hour?: int<0, max>,
-	 *     minute?: int<0, max>,
-	 *     second?: int<0, max>,
+	 *     year?: int<0, max>|numeric-string,
+	 *     month?: int<0, max>|numeric-string,
+	 *     day?: int<0, max>|numeric-string,
+	 *     hour?: int<0, max>|numeric-string,
+	 *     minute?: int<0, max>|numeric-string,
+	 *     second?: int<0, max>|numeric-string,
 	 * } $datetime
 	 */
 	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
