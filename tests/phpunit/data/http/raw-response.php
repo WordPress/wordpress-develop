@@ -9,7 +9,7 @@
 
 $server = stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
 if ( false === $server ) {
-	fwrite( STDERR, $errstr );
+	fwrite( STDERR, (string) $errstr );
 	exit( 1 );
 }
 
