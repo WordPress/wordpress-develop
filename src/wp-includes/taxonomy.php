@@ -1273,7 +1273,8 @@ function get_term_field( $field, $term, $taxonomy = '', $context = 'display' ) {
  *
  * @param int|object $id       Term ID or object.
  * @param string     $taxonomy Taxonomy name.
- * @return string|int|null|WP_Error Will return empty string if $term is not an object.
+ * @return WP_Term|string|WP_Error The term sanitized for editing, WP_Error if the taxonomy does not exist,
+ *                                or an empty string if the term does not exist.
  */
 function get_term_to_edit( $id, $taxonomy ) {
 	$term = get_term( $id, $taxonomy );
