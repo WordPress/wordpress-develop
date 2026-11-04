@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Function get_preferred_from_update_core\(\) never returns array so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-admin/includes/update.php
-		-
 			message: '#^Function get_the_tag_list\(\) never returns WP_Error so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
