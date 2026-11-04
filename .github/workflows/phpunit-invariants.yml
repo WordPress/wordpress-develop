@@ -1,0 +1,199 @@
+# Runs the PHPUnit test suite with the gameshark PHP extension checking the invariants in tests/invariants/specs/.
+#
+# The invariants only report: a violation never fails this workflow. Their report is shown in the run's summary and
+# uploaded as an artifact. The workflow fails when the extension cannot be built or loaded, when the self-tests of the
+# invariant support code fail, or when the test suite itself fails. See tests/invariants/README.md.
+#
+# Besides pushes and pull requests, adding the `invariant-tests` label to a pull request runs it again.
+name: PHPUnit Invariants
+
+on:
+  push:
+    branches:
+      - trunk
+    paths:
+      - 'src/**'
+      - 'tests/phpunit/**'
+      - 'tests/invariants/**'
+      - 'phpunit.xml.dist'
+      - 'composer.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'docker-compose.yml'
+      - 'tools/local-env/**'
+      - '.github/workflows/phpunit-invariants.yml'
+  pull_request:
+    types: [ 'opened', 'synchronize', 'reopened', 'labeled' ]
+    branches:
+      - trunk
+    paths:
+      - 'src/**'
+      - 'tests/phpunit/**'
+      - 'tests/invariants/**'
+      - 'phpunit.xml.dist'
+      - 'composer.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'docker-compose.yml'
+      - 'tools/local-env/**'
+      - '.github/workflows/phpunit-invariants.yml'
+  workflow_dispatch:
+
+# Cancels earlier runs for the same pull request. Adding any other label starts a run of its own, which is skipped, so
+# that it does not cancel a run in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}${{ github.event.action == 'labeled' && github.event.label.name != 'invariant-tests' && format( '-{0}', github.run_id ) || '' }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  prepare-gutenberg:
+    name: Prepare Gutenberg Assets
+    uses: ./.github/workflows/reusable-prepare-gutenberg.yml
+    permissions:
+      contents: read
+    if: ${{ github.event.action != 'labeled' || github.event.label.name == 'invariant-tests' }}
+
+  # Runs the test suite with the invariants, on the latest PHP only.
+  #
+  # Performs the following steps:
+  # - Checks out the repository, and the gameshark extension at the commit in tests/invariants/GAMESHARK_REF.
+  # - Sets up Node.js, PHP and Composer, and builds WordPress.
+  # - Starts the Docker environment and installs WordPress.
+  # - Builds the extension inside the PHP container and enables it there.
+  # - Runs the self-tests of the invariant support code.
+  # - Runs the test suite with the invariants.
+  # - Adds the invariant report to the run's summary, and uploads it.
+  invariants:
+    name: PHP 8.5 with MySQL 8.4
+    runs-on: ubuntu-24.04
+    needs: [ prepare-gutenberg ]
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    env:
+      LOCAL_PHP: '8.5-fpm'
+      LOCAL_PHP_XDEBUG: false
+      LOCAL_DB_TYPE: 'mysql'
+      LOCAL_DB_VERSION: '8.4'
+      LOCAL_PHP_MEMCACHED: false
+      LOCAL_WP_TESTS_DOMAIN: 'example.org'
+      PUPPETEER_SKIP_DOWNLOAD: true
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Read the gameshark commit
+        id: gameshark
+        run: echo "ref=$( tr -d '[:space:]' < tests/invariants/GAMESHARK_REF )" >> "$GITHUB_OUTPUT"
+
+      # Inside the repository, so that it is mounted in the PHP container at /var/www/.gameshark/src.
+      - name: Checkout the gameshark extension
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: dmsnell/php-ext-gameshark-extension
+          ref: ${{ steps.gameshark.outputs.ref }}
+          path: .gameshark/src
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Download prepared Gutenberg build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gutenberg-build
+          path: gutenberg
+          digest-mismatch: error
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+
+      - name: Set up npm
+        uses: ./.github/actions/setup-npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        timeout-minutes: 5
+        run: npm run build:dev
+        env:
+          GUTENBERG_EXPECTED_SHA: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
+      - name: Start Docker environment
+        run: |
+          npm run env:pull
+          npm run env:start
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      # Rust and the extension's build are kept between runs, for the same extension commit and PHP image.
+      - name: Get the PHP image
+        id: php-image
+        run: echo "id=$( docker image inspect --format '{{.Id}}' "wordpressdevelop/php:${LOCAL_PHP}" )" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the gameshark build
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            .gameshark/cargo
+            .gameshark/rustup
+            .gameshark/src/rust/target
+          key: gameshark-${{ steps.gameshark.outputs.ref }}-${{ steps.php-image.outputs.id }}
+
+      - name: Build and enable the gameshark extension
+        run: docker compose exec -T -u 0 php bash /var/www/tests/invariants/bin/install-gameshark.sh
+
+      - name: Run the self-tests of the invariant support code
+        run: npm run test:php:invariants:self-tests
+
+      - name: Run PHPUnit tests with the invariants
+        run: npm run test:php:invariants -- --verbose
+
+      - name: Add the invariant report to the summary
+        if: ${{ always() }}
+        run: |
+          if [[ -f tests/phpunit/build/logs/invariants.md ]]; then
+            cat tests/phpunit/build/logs/invariants.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'No invariant report was written.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the invariant report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: invariant-report
+          path: |
+            tests/phpunit/build/logs/invariants*.json
+            tests/phpunit/build/logs/invariants*.md
+            tests/phpunit/build/logs/invariants-junit.xml
+          if-no-files-found: warn
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

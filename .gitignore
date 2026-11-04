@@ -22,6 +22,8 @@ wp-tests-config.php
 /build
 /gutenberg
 /tests/phpunit/build
+# The gameshark PHP extension and its build, for tests/invariants.
+/.gameshark
 /wp-cli.local.yml
 /phpstan.neon
 /*.tsbuildinfo
