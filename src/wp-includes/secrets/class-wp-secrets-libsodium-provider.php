@@ -419,8 +419,8 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 		/**
 		 * Fires whenever a secret is created, updated, deleted, imported, or retired.
 		 *
-		 * The only hook in the core-bound Secrets API code, and it does not fire on the
-		 * retrieval path. Fingerprints are readable; values are never passed.
+		 * This hook does not fire on the retrieval path. Fingerprints are passed;
+		 * values never are.
 		 *
 		 * @since 7.2.0
 		 *
