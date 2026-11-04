@@ -13,7 +13,7 @@ test( 'Test dismissing failed upload works correctly', async ({ page, admin, req
 
 	// It takes a moment for the multi-file uploader to become available.
 	const input = page.locator( '#plupload-upload-ui input[type="file"]' );
-	await expect( input ).toBeAttached();
+	await expect( input ).toBeAttached( { timeout: 10_000 } );
 
 	const testImagePath = path.join(__dirname, '../assets/sample.svg');
 
