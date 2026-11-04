@@ -4108,23 +4108,28 @@ function wp_preload_resources() {
 	 *
 	 * @since 6.1.0
 	 * @since 6.6.0 Added the `$fetchpriority` attribute.
+	 * @since 7.3.0 The `crossorigin` attribute may be `true` to print it without a value.
+	 *              List items other than `crossorigin` are no longer printed.
 	 *
 	 * @param array  $preload_resources {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
 	 *
 	 *     @type array ...$0 {
-	 *         Array of resource attributes.
+	 *         Array of resource attributes. A valueless attribute may also be supplied
+	 *         as a list item, as in `array( 'crossorigin' )`.
 	 *
-	 *         @type string $href          URL to include in resource preloads. May be omitted
-	 *                                     for an image preloaded by its `$imagesrcset`.
-	 *         @type string $as            How the browser should treat the resource
-	 *                                     (`script`, `style`, `image`, `document`, etc).
-	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
-	 *         @type string $type          Type of the resource (`text/html`, `text/css`, etc).
-	 *         @type string $media         Accepts media types or media queries. Allows responsive preloading.
-	 *         @type string $imagesizes    Responsive source size to the source Set.
-	 *         @type string $imagesrcset   Responsive image sources to the source set.
-	 *         @type string $fetchpriority Fetchpriority value for the resource.
+	 *         @type string      $href          URL to include in resource preloads. May be omitted
+	 *                                          for an image preloaded by its `$imagesrcset`.
+	 *         @type string      $as            How the browser should treat the resource
+	 *                                          (`script`, `style`, `image`, `document`, etc).
+	 *         @type string|bool $crossorigin   Indicates the CORS policy of the specified resource.
+	 *                                          When `true`, it is printed without a value, which
+	 *                                          is equivalent to `anonymous`.
+	 *         @type string      $type          Type of the resource (`text/html`, `text/css`, etc).
+	 *         @type string      $media         Accepts media types or media queries. Allows responsive preloading.
+	 *         @type string      $imagesizes    Responsive source size to the source Set.
+	 *         @type string      $imagesrcset   Responsive image sources to the source set.
+	 *         @type string      $fetchpriority Fetchpriority value for the resource.
 	 *     }
 	 * }
 	 */
@@ -4160,18 +4165,49 @@ function wp_preload_resources() {
 		}
 	}
 
+	/*
+	 * Attributes which may be printed on a preload, mapped to whether the
+	 * attribute may be printed without a value when it is supplied as `true`.
+	 */
+	$allowed_attributes = array(
+		'as'            => false,
+		'crossorigin'   => true,
+		'fetchpriority' => false,
+		'href'          => false,
+		'imagesizes'    => false,
+		'imagesrcset'   => false,
+		'media'         => false,
+		'type'          => false,
+	);
+
 	// Build and output the HTML for each unique resource.
 	foreach ( $unique_resources as $unique_resource ) {
-		$html = '';
+		$processor = new WP_HTML_Tag_Processor( '<link>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'rel', 'preload' );
 
 		foreach ( $unique_resource as $resource_key => $resource_value ) {
-			if ( ! is_scalar( $resource_value ) ) {
-				continue;
+			// A list item supplies a valueless attribute, as in `array( 'crossorigin', 'href' => … )`.
+			if ( is_int( $resource_key ) ) {
+				if ( ! is_string( $resource_value ) ) {
+					continue;
+				}
+				$resource_key   = $resource_value;
+				$resource_value = true;
 			}
 
 			// Ignore non-supported attributes.
-			$non_supported_attributes = array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media', 'fetchpriority' );
-			if ( ! in_array( $resource_key, $non_supported_attributes, true ) && ! is_numeric( $resource_key ) ) {
+			if ( ! isset( $allowed_attributes[ $resource_key ] ) ) {
+				continue;
+			}
+
+			if ( is_bool( $resource_value ) ) {
+				if ( ! $allowed_attributes[ $resource_key ] ) {
+					continue;
+				}
+			} elseif ( is_scalar( $resource_value ) ) {
+				$resource_value = (string) $resource_value;
+			} else {
 				continue;
 			}
 
@@ -4187,17 +4223,14 @@ function wp_preload_resources() {
 				continue;
 			}
 
-			$resource_value = ( 'href' === $resource_key ) ? esc_url( $resource_value, array( 'http', 'https' ) ) : esc_attr( $resource_value );
-
-			if ( ! is_string( $resource_key ) ) {
-				$html .= " $resource_value";
-			} else {
-				$html .= " $resource_key='$resource_value'";
+			if ( 'href' === $resource_key && is_string( $resource_value ) ) {
+				$resource_value = sanitize_url( $resource_value, array( 'http', 'https' ) );
 			}
-		}
-		$html = trim( $html );
 
-		printf( "<link rel='preload' %s />\n", $html );
+			$processor->set_attribute( $resource_key, $resource_value );
+		}
+
+		echo $processor->get_updated_html() . "\n";
 	}
 }
 

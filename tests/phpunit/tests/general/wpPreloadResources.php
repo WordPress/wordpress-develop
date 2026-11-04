@@ -12,8 +12,11 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 * @dataProvider data_preload_resources
 	 *
 	 * @ticket 42438
+	 *
+	 * @param string                               $expected          Expected markup.
+	 * @param array<int, array<int|string, mixed>> $preload_resources Resources to preload.
 	 */
-	public function test_preload_resources( $expected, $preload_resources ) {
+	public function test_preload_resources( string $expected, array $preload_resources ) {
 		$callback = static function () use ( $preload_resources ) {
 			return $preload_resources;
 		};
@@ -22,11 +25,11 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 		$actual = get_echo( 'wp_preload_resources' );
 		remove_filter( 'wp_preload_resources', $callback );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
-	 * Test provider for all preload link possible combinations.
+	 * Data provider for {@see self::test_preload_resources()}.
 	 *
 	 * @return array[]
 	 */
@@ -282,6 +285,92 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					array(
 						'imagesrcset' => '640.png 640w, 800.png 800w',
 					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that boolean attribute values and list items are only printed when valueless.
+	 *
+	 * @ticket 66435
+	 *
+	 * @dataProvider data_boolean_attributes
+	 *
+	 * @param string                   $expected         Expected markup.
+	 * @param array<int|string, mixed> $preload_resource Resource to preload.
+	 */
+	public function test_boolean_attributes( string $expected, array $preload_resource ) {
+		add_filter(
+			'wp_preload_resources',
+			static function () use ( $preload_resource ): array {
+				return array( $preload_resource );
+			}
+		);
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_preload_resources' ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_boolean_attributes()}.
+	 *
+	 * @return array<non-falsy-string, array{ expected: string, preload_resource: array<int|string, mixed> }>
+	 */
+	public static function data_boolean_attributes(): array {
+		return array(
+			'crossorigin true'             => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => true,
+				),
+			),
+			'crossorigin false'            => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => false,
+				),
+			),
+			'non-boolean attribute true'   => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					'type' => true,
+				),
+			),
+			'unsupported list item'        => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					'async',
+				),
+			),
+			'non-string list item'         => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					true,
+				),
+			),
+			'escaped attribute value'      => array(
+				'expected'         => "<link rel='preload' href='https://example.com/style.css' as='style' media='screen and (min-width: 600px)&quot; onload=&quot;alert(1)' />\n",
+				'preload_resource' => array(
+					'href'  => 'https://example.com/style.css',
+					'as'    => 'style',
+					'media' => 'screen and (min-width: 600px)" onload="alert(1)',
+				),
+			),
+			'unsafe href protocol removed' => array(
+				'expected'         => "<link rel='preload' href='' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'javascript:alert(1)',
+					'as'   => 'script',
 				),
 			),
 		);
