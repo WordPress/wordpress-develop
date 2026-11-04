@@ -142,7 +142,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_non_stdclass_values(): array {
+	public static function data_non_stdclass_values(): array {
 		return array(
 			'array'       => array( array( 'image/jpeg' => 42 ) ),
 			'false'       => array( false ),
@@ -195,6 +195,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 
 		$args = $filter->get_args();
 		$this->assertSame( 1, $filter->get_call_count(), 'Expected the wp_count_attachments filter to run once.' );
+		// Keep assertEquals() because the filtered counts object in the array is compared by value.
 		$this->assertEquals(
 			array(
 				(object) array(
@@ -223,6 +224,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		$counts = wp_count_attachments();
 
 		$this->assertSame( 0, $counts->trash, 'Expected trash to be set to zero.' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) array( 'image/jpeg' => 5 ), $stored_counts, 'The object returned by the filter should not be modified.' );
 	}
 

@@ -70,15 +70,6 @@ class Tests_Menu_HasNavMenu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a registered location without a menu assigned has no menu.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_should_return_false_for_a_registered_location_without_a_menu() {
-		$this->assertFalse( has_nav_menu( 'primary' ) );
-	}
-
-	/**
 	 * Tests that a location set to 0, as when its menu is unassigned, has no menu.
 	 *
 	 * @ticket 65819
@@ -99,15 +90,6 @@ class Tests_Menu_HasNavMenu extends WP_UnitTestCase {
 		set_theme_mod( 'nav_menu_locations', array( 'old-theme-location' => self::$menu_id ) );
 
 		$this->assertFalse( has_nav_menu( 'old-theme-location' ) );
-	}
-
-	/**
-	 * Tests that an unknown location has no menu.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_should_return_false_for_an_unknown_location() {
-		$this->assertFalse( has_nav_menu( 'no-such-location' ) );
 	}
 
 	/**

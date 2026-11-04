@@ -200,7 +200,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 		$time2       = wp_cache_get( 'last_changed', 'terms' );
-		$this->assertNotEquals( $time1, $time2 );
+		$this->assertNotSame( $time1, $time2 );
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
@@ -3091,7 +3091,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		remove_filter( 'get_terms', array( __CLASS__, 'maybe_filter_count' ) );
 
-		$this->assertNotEquals( 'foo', $found );
+		$this->assertNotSame( 'foo', $found );
 	}
 
 	public static function maybe_filter_count() {

@@ -10,29 +10,13 @@
 class Tests_Comment_SeparateComments extends WP_UnitTestCase {
 
 	/**
-	 * Post the comments belong to.
-	 *
-	 * @var int
-	 */
-	protected static $post_id;
-
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create();
-	}
-
-	/**
-	 * Creates a comment of the given type and returns it.
+	 * Creates an in-memory comment of the given type.
 	 *
 	 * @param string $type Comment type.
 	 * @return WP_Comment The created comment.
 	 */
 	private function create_comment( $type ) {
-		return self::factory()->comment->create_and_get(
-			array(
-				'comment_post_ID' => self::$post_id,
-				'comment_type'    => $type,
-			)
-		);
+		return new WP_Comment( (object) array( 'comment_type' => $type ) );
 	}
 
 	/**

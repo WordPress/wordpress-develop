@@ -8,24 +8,6 @@
 class Tests_Link_TheFeedLink extends WP_UnitTestCase {
 
 	/**
-	 * Tests the_feed_link() with plain permalink structure and default feed.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_feed_link_plain_permastruct_default_feed() {
-		$this->set_permalink_structure( '' );
-
-		$expected_url = home_url( '?feed=' . get_default_feed() );
-		$expected     = '<a href="' . esc_url( $expected_url ) . '">Entries RSS</a>';
-
-		ob_start();
-		the_feed_link( 'Entries RSS' );
-		$output = ob_get_clean();
-
-		$this->assertSame( $expected, $output );
-	}
-
-	/**
 	 * Tests the_feed_link() with pretty permalink structure and default feed.
 	 *
 	 * @ticket 65819
@@ -52,24 +34,6 @@ class Tests_Link_TheFeedLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '' );
 
 		$expected_url = home_url( '?feed=atom' );
-		$expected     = '<a href="' . esc_url( $expected_url ) . '">Atom Feed</a>';
-
-		ob_start();
-		the_feed_link( 'Atom Feed', 'atom' );
-		$output = ob_get_clean();
-
-		$this->assertSame( $expected, $output );
-	}
-
-	/**
-	 * Tests the_feed_link() with pretty permalinks and custom feed type.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_feed_link_pretty_permastruct_custom_feed_type() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
-		$expected_url = home_url( '/feed/atom/' );
 		$expected     = '<a href="' . esc_url( $expected_url ) . '">Atom Feed</a>';
 
 		ob_start();

@@ -131,7 +131,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_default_form_post_types() {
+	public static function data_default_form_post_types() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
@@ -160,7 +160,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_post_types_with_own_form() {
+	public static function data_post_types_with_own_form() {
 		return array(
 			'attachment'       => array( 'attachment' ),
 			'wp_block'         => array( 'wp_block' ),
