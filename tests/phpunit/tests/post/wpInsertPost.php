@@ -72,6 +72,16 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'mapped_meta_caps' );
+		unregister_post_type( 'unmapped_meta_caps' );
+		unregister_post_type( 'no_admin_caps' );
+		unregister_post_type( 'cpt' );
+		unregister_taxonomy( 'ctax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
 	 */
@@ -701,8 +711,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 		$post    = get_post( $post_id );
 
-		_unregister_post_type( 'cpt' );
-
 		$this->assertSame( 'open', $post->comment_status );
 		$this->assertSame( 'open', $post->ping_status );
 	}
@@ -720,8 +728,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-
-		_unregister_post_type( 'cpt' );
 
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
