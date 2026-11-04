@@ -155,7 +155,7 @@ final class WP_Abilities_Registry {
 		if ( ! isset( $args['category'] ) || ! is_string( $args['category'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Ability category must be a string.' ),
+				__( 'The ability properties must contain a `category` string.' ),
 				'6.9.0'
 			);
 			return null;

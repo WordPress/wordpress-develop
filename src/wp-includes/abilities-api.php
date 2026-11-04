@@ -298,8 +298,8 @@ declare( strict_types = 1 );
  *     @type string               $description           Required. A detailed description of what the ability does
  *                                                       and when it should be used.
  *     @type string               $category              Required. The registered ability category slug this ability belongs to.
- *                                                       Custom categories must be registered
- *                                                       via `wp_register_ability_category()` before registering the ability.
+ *                                                       Custom categories must be registered via
+ *                                                       `wp_register_ability_category()` before registering the ability.
  *     @type callable             $execute_callback      Required. A callback function to execute when the ability is invoked.
  *                                                       Receives optional mixed input data and must return either a result
  *                                                       value (any type) or a `WP_Error` object on failure.

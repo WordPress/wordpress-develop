@@ -245,7 +245,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$this->assertNull( $result );
 		$this->assertStringContainsString(
-			'Ability category must be a string.',
+			'The ability properties must contain a `category` string.',
 			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
 		);
 	}
