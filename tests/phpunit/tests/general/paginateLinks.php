@@ -569,6 +569,8 @@ EXPECTED;
 	 * zero total pages, matching its behavior for a single total page.
 	 *
 	 * @ticket 65817
+	 *
+	 * @global WP_Query $wp_query Global query.
 	 */
 	public function test_paginate_links_falls_back_to_global_query_with_zero_max_num_pages() {
 		global $wp_query;
