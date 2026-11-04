@@ -265,7 +265,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an empty category is rejected rather than replaced by the default.
+	 * Tests that an empty category is rejected.
 	 *
 	 * @ticket 65569
 	 *
