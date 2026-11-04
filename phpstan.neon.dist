@@ -1,6 +1,8 @@
 # PHPStan configuration for WordPress Core.
 #
-# To overload this configuration, copy this file to phpstan.neon and adjust as needed.
+# To override this configuration, create a phpstan.neon which includes this file and adjusts
+# its parameters as needed, rather than copying it, so that the copy does not go stale. See
+# tests/phpstan/README.md for examples.
 #
 # https://phpstan.org/config-reference
 

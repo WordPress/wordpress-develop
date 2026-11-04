@@ -54,9 +54,30 @@ Some errors cannot be ignored, and so cannot be reported as warnings either. The
 
 ## The PHPStan configuration
 
-The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist).
+The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist). It sets the standards the code is held to: the rule level, the baselines, the errors ignored as not actionable, and the [strict rules](https://github.com/phpstan/phpstan-strict-rules) enabled. It includes [`base.neon`](base.neon), which configures what PHPStan needs to know to analyze the codebase at all, such as the [WordPress-specific extensions](#wordpress-specific-extensions), the paths analyzed, and the supported PHP versions.
 
-You can create a local copy at `phpstan.neon` to override the default configuration.
+To override the default configuration, create a `phpstan.neon` file in the repository root, which PHPStan reads in place of `phpstan.neon.dist`. Include `phpstan.neon.dist` in it rather than copying it, so the override only states what it changes and keeps up with changes to the default configuration. For example, to analyze at a stricter rule level and enable more of the strict rules:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	level: 10
+	strictRules:
+		disallowedLooseComparison: true
+		overwriteVariablesWithLoop: true
+```
+
+The baselines and other ignored errors cannot be removed by leaving out an include, but a key ending in `!` replaces the value it would otherwise be merged with. So to see every error, including those the baselines suppress:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	ignoreErrors!: []
+```
 
 For more information about configuring PHPStan, see the [PHPStan documentation's Config reference](https://phpstan.org/config-reference).
 
