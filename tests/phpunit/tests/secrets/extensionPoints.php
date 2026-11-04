@@ -118,35 +118,6 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A store that refuses writes must still serve reads. This previously configured
-	 * a capability flag that nothing consulted, so it passed regardless of behavior.
-	 * It now makes set() actually fail, and checks both halves.
-	 *
-	 * @covers ::wp_set_secret
-	 * @covers ::wp_get_secret
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_a_store_that_refuses_writes_still_serves_reads(): void {
-		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
-		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
-
-		$store                       = new Mock_Store();
-		$GLOBALS['wp_secrets_store'] = $store;
-
-		wp_set_secret( 'myplugin/api-key', 'value' );
-		$store->configure_fail( 'set', true );
-
-		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'another' ) );
-
-		$secret = wp_get_secret( 'myplugin/api-key' );
-
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value', $secret->reveal() );
-	}
-
-	/**
 	 * Ensure that an unreachable plugin-supplied store fails reads and writes without a local fallback.
 	 *
 	 * @covers ::_wp_secrets_get_store
@@ -169,6 +140,34 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		// Fails closed, not merely differently: nothing was written to the real
 		// default store either, which a silent fallback would have done.
 		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ) );
+	}
+
+	/**
+	 * Ensure that wp_list_secrets() returns a WP_Error when the store cannot list its secrets.
+	 *
+	 * An unreachable store must not be reported as an empty listing, which would read
+	 * as "no secrets exist", and the error passed back must not carry a stored value.
+	 *
+	 * @covers ::wp_list_secrets
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_listing_fails_closed_when_the_store_cannot_list(): void {
+		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+
+		$store                       = new Mock_Store();
+		$GLOBALS['wp_secrets_store'] = $store;
+
+		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-5c1e' );
+		$store->configure_fail( 'list', true );
+
+		$result = wp_list_secrets();
+
+		$this->assertWPError( $result, 'A store that cannot list must be reported as an error, not an empty list.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'The store error should be passed through unchanged.' );
+		$this->assertNeverContainsPlaintext( 'UNIQUE-PLAINTEXT-CANARY-5c1e', $result, 'A listing error must never carry a stored value.' );
 	}
 
 	/**

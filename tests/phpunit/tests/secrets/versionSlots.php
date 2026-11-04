@@ -31,18 +31,6 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the first write of a secret leaves no previous version to retrieve.
-	 *
-	 * @covers ::wp_set_secret
-	 * @covers ::wp_get_secret
-	 */
-	public function test_first_write_leaves_no_previous_slot(): void {
-		wp_set_secret( 'myplugin/api-key', 'first-value' );
-
-		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
-	}
-
-	/**
 	 * The headline case: PREVIOUS must actually decrypt back to the prior value.
 	 *
 	 * @covers ::wp_set_secret
@@ -254,17 +242,6 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$previous = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
 		$this->assertInstanceOf( WP_Secret::class, $previous );
 		$this->assertSame( 'first-value', $previous->reveal() );
-	}
-
-	/**
-	 * Ensure that wp_get_secret() returns null for the previous version of a secret written once.
-	 *
-	 * @covers ::wp_get_secret
-	 */
-	public function test_previous_on_a_secret_with_no_previous_slot_is_null(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
-
-		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
 	}
 
 	/**

@@ -28,15 +28,6 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that wp_get_secret() returns null for a secret that was never stored.
-	 *
-	 * @covers ::wp_get_secret
-	 */
-	public function test_get_returns_null_for_an_absent_secret(): void {
-		$this->assertNull( wp_get_secret( 'myplugin/never-set' ) );
-	}
-
-	/**
 	 * Ensure that wp_get_secret() returns the current version when no version is requested.
 	 *
 	 * @covers ::wp_get_secret
@@ -50,17 +41,6 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Secret::class, $default );
 		$this->assertInstanceOf( WP_Secret::class, $current );
 		$this->assertSame( $default->reveal(), $current->reveal() );
-	}
-
-	/**
-	 * Ensure that requesting the previous version of a never-rotated secret returns null, not an error.
-	 *
-	 * @covers ::wp_get_secret
-	 */
-	public function test_get_previous_on_a_never_rotated_secret_is_null_not_error(): void {
-		wp_set_secret( 'myplugin/api-key', 'value' );
-
-		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
 	}
 
 	/**

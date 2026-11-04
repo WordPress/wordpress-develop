@@ -198,7 +198,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Option_Store::list_names
 	 */
-	public function test_list_names_does_not_include_network_scope_names(): void {
+	public function test_list_names_returns_only_the_requested_scope(): void {
 		$store = new WP_Secrets_Option_Store();
 		$store->set( 'myplugin/site-only', $this->sample_record(), false );
 		$store->set( 'myplugin/network-only', $this->sample_record(), true );

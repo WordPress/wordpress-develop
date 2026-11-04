@@ -47,11 +47,11 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that wp_secrets_memzero() clears a copy-on-write string without throwing.
+	 * Ensure that wp_secrets_memzero() clears the variable passed and leaves a shared copy untouched.
 	 *
 	 * @covers ::wp_secrets_memzero
 	 */
-	public function test_does_not_throw_when_the_value_is_shared(): void {
+	public function test_clears_the_variable_and_leaves_a_shared_copy_untouched(): void {
 		$value = 'shared plaintext';
 		$copy  = $value;
 

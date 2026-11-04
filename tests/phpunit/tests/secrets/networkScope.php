@@ -87,7 +87,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_set_network_secret
 	 */
-	public function test_previous_version_and_demotion_work_the_same_as_site_scope(): void {
+	public function test_overwriting_a_network_secret_demotes_the_old_value(): void {
 		wp_set_network_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_network_secret( 'myplugin/api-key', 'second-value' );
 

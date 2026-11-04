@@ -481,7 +481,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Provider::list_secrets
 	 */
-	public function test_listing_returns_an_array_or_an_error_and_never_a_value(): void {
+	public function test_listing_never_contains_a_stored_value(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 

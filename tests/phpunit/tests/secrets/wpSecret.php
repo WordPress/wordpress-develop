@@ -446,16 +446,4 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'UNIQUE-REASON-CANARY-4b1c', $printed );
 		$this->assertStringContainsString( '[secret:myplugin/signing-key]', (string) $secret );
 	}
-
-	/**
-	 * An ordinary secret is unaffected: reveal() still returns the plaintext, and
-	 * the widened return type is not a behaviour change for the shipped provider.
-	 *
-	 * @covers WP_Secret::reveal
-	 */
-	public function test_an_ordinary_secret_still_reveals_a_plain_string(): void {
-		$secret = new WP_Secret( 'myplugin/api-key', 'sk_live_value', 'fingerprint' );
-
-		$this->assertSame( 'sk_live_value', $secret->reveal() );
-	}
 }

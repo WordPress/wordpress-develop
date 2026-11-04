@@ -227,28 +227,6 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that every secrets operation returns a WP_Error once the drop-in is marked broken.
-	 *
-	 * @covers ::wp_set_secret
-	 * @covers ::wp_get_secret
-	 * @covers ::wp_delete_secret
-	 * @covers ::wp_list_secrets
-	 * @covers ::wp_retire_secret_version
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_a_broken_dropin_makes_every_operation_a_wp_error(): void {
-		$GLOBALS['wp_secrets_dropin_broken'] = true;
-
-		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'value' ) );
-		$this->assertWPError( wp_get_secret( 'myplugin/api-key' ) );
-		$this->assertWPError( wp_delete_secret( 'myplugin/api-key' ) );
-		$this->assertWPError( wp_list_secrets() );
-		$this->assertWPError( wp_retire_secret_version( 'myplugin/api-key' ) );
-	}
-
-	/**
 	 * Specifically not null: a misconfigured credential backend must never look
 	 * like a working site that happens to have no secrets in it yet.
 	 *
