@@ -276,6 +276,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$result = $cipher->decrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, $record );
 
 		$this->assertWPError( $result, 'Decrypting a tampered record should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_DECRYPTION_FAILED, $result->get_error_code(), 'A tampered field should be reported as a decryption failure.' );
 	}
 
 	/**

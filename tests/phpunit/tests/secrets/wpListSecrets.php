@@ -65,6 +65,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( WP_Secret::class, $secret, 'The secret should be a WP_Secret.' );
 		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertCount( 1, $entries, 'Exactly one secret should be listed.' );
 		$this->assertSame( $secret->fingerprint(), $entries[0]['fingerprint'], 'The listed fingerprint should match the fingerprint of the secret.' );
 	}
 
@@ -112,6 +113,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$entries = wp_list_secrets();
 
 		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertCount( 1, $entries, 'Exactly one secret should be listed.' );
 		$this->assertTrue( $entries[0]['needs_rotation'], 'needs_rotation should reflect the flag stored on the current slot.' );
 	}
 

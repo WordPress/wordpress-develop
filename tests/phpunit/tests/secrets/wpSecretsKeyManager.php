@@ -384,6 +384,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$result = $manager->rotate_site_key( $wrong_keyring, $right_keyring );
 
 		$this->assertWPError( $result, 'Rotating with an old keyring that cannot unwrap should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'The old keyring\'s unwrap error should be passed through.' );
 	}
 
 	/**
@@ -475,7 +476,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 		$GLOBALS['wp_secrets_keyring'] = $mock;
 
-		$this->assertNotWPError( wp_set_secret( 'conformance/root-key-cache', 'the-value' ), 'Storing the secret should not return a WP_Error.' );
+		$this->assertTrue( wp_set_secret( 'conformance/root-key-cache', 'the-value' ), 'Storing the secret should succeed.' );
 
 		for ( $i = 0; $i < 10; $i++ ) {
 			$secret = wp_get_secret( 'conformance/root-key-cache' );

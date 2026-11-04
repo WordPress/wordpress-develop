@@ -384,6 +384,11 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $key, 'The current-key provider should derive a site key from the salts.' );
 		$this->assertNotSame( str_repeat( 'C', 32 ), $key, 'The current-key provider should not use WP_SECRETS_KEY_PREVIOUS.' );
+		$this->assertSame(
+			sodium_crypto_generichash( LOGGED_IN_KEY . LOGGED_IN_SALT, '', SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES ),
+			$key,
+			'The current-key provider should use the key derived from LOGGED_IN_KEY and LOGGED_IN_SALT.'
+		);
 	}
 
 	/**

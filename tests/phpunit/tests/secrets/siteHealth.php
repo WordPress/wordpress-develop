@@ -41,6 +41,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$tests = wp_secrets_site_health_tests( array() );
 
 		$this->assertArrayHasKey( 'direct', $tests, 'The registered tests should include a direct group.' );
+		$this->assertCount( 3, $tests['direct'], 'Exactly three Secrets API tests should be registered as direct tests.' );
 		$this->assertArrayHasKey( 'secrets_api_key_source', $tests['direct'], 'The key source test should be registered as a direct test.' );
 		$this->assertArrayHasKey( 'secrets_api_undecryptable', $tests['direct'], 'The undecryptable test should be registered as a direct test.' );
 		$this->assertArrayHasKey( 'secrets_api_needs_rotation', $tests['direct'], 'The needs rotation test should be registered as a direct test.' );

@@ -147,6 +147,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		 * default store either, which a silent fallback would have done.
 		 */
 		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ), 'Nothing should be written to the default options store as a fallback.' );
+		$this->assertFalse( get_site_option( '_wp_network_secret_myplugin/api-key' ), 'Nothing should be written to the default network store as a fallback.' );
 	}
 
 	/**
@@ -193,6 +194,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'A write through a keyring that cannot wrap should return a WP_Error.' );
 		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ), 'Nothing should be written to the default options store as a fallback.' );
+		$this->assertFalse( get_site_option( '_wp_network_secret_myplugin/api-key' ), 'Nothing should be written to the default network store as a fallback.' );
 	}
 
 	/**
