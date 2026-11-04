@@ -1815,7 +1815,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66464
 	 */
 	public function test_breakpoint_pseudo_state_reads_the_default_pseudo_state_clip() {
 		$theme_json = new WP_Theme_JSON(
@@ -1849,7 +1849,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66464
 	 */
 	public function test_variation_breakpoint_pseudo_state_reads_the_variation_pseudo_state_clip() {
 		register_block_style(

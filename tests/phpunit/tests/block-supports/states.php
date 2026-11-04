@@ -493,7 +493,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that a block instance state escapes a text clip set for its block
 	 * type in Global Styles.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66464
 	 * @covers ::wp_render_block_states_support
 	 */
 	public function test_instance_state_escapes_a_global_styles_text_clip() {
@@ -513,7 +513,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that a block instance state escapes a text clip set by the block
 	 * style variation applied to it.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66464
 	 * @covers ::wp_render_block_states_support
 	 */
 	public function test_instance_state_escapes_a_block_style_variation_text_clip() {
@@ -550,7 +550,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that a responsive pseudo-state escapes a text clip set by the
 	 * default pseudo-state.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66464
 	 * @covers ::wp_render_block_states_support
 	 */
 	public function test_responsive_pseudo_state_escapes_the_default_pseudo_state_text_clip() {
