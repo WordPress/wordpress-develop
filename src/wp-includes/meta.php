@@ -856,6 +856,8 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
  *     @type string $term_id    Optional. The object ID when the meta type is 'term'.
  *     @type string $user_id    Optional. The object ID when the meta type is 'user'.
  * }
+ *
+ * @phpstan-param int|numeric-string $meta_id
  */
 function get_metadata_by_mid( $meta_type, $meta_id ) {
 	global $wpdb;
