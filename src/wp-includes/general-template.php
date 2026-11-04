@@ -4051,7 +4051,8 @@ function wp_resource_hints() {
 		}
 
 		foreach ( $unique_urls as $atts ) {
-			$html = '';
+			$processor = new WP_HTML_Tag_Processor( '<link>' );
+			$processor->next_tag();
 
 			foreach ( $atts as $attr => $value ) {
 				// A list item supplies a valueless attribute, as in `array( 'crossorigin', 'href' => … )`.
@@ -4068,24 +4069,19 @@ function wp_resource_hints() {
 				}
 
 				if ( is_bool( $value ) ) {
-					if ( $value && $allowed_attributes[ $attr ] ) {
-						$html .= " $attr";
+					if ( ! $allowed_attributes[ $attr ] ) {
+						continue;
 					}
+				} elseif ( is_scalar( $value ) ) {
+					$value = (string) $value;
+				} else {
 					continue;
 				}
 
-				if ( ! is_scalar( $value ) ) {
-					continue;
-				}
-
-				$value = ( 'href' === $attr ) ? esc_url( (string) $value ) : esc_attr( (string) $value );
-
-				$html .= " $attr='$value'";
+				$processor->set_attribute( $attr, $value );
 			}
 
-			$html = trim( $html );
-
-			echo "<link $html />\n";
+			echo $processor->get_updated_html() . "\n";
 		}
 	}
 }
