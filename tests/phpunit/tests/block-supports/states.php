@@ -1686,7 +1686,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_block_states_support
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66468
 	 *
 	 * @dataProvider data_rotation_state_generates_rotate_css
 	 *
