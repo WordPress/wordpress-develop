@@ -119,6 +119,45 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$diff = wp_text_diff( $content_from, $content_to, $args );
 
+		// Build the post meta revisions diff.
+		if ( 'post_meta' === $field ) {
+			$post_revision_meta_keys = wp_post_revision_meta_keys( $post->post_type );
+			// Remove footnotes because it has its own panel.
+			$footnotes_key = array_search( 'footnotes', $post_revision_meta_keys, true );
+			if ( ! empty( $footnotes_key ) ) {
+				unset( $post_revision_meta_keys[ $footnotes_key ] );
+			}
+
+			// For each meta key, compare the value of the revions.
+			$modified_meta_fields = array();
+			foreach ( $post_revision_meta_keys as $meta_key ) {
+				/** This filter is documented in wp-admin/includes/revision.php */
+				$content_from = $compare_from ? apply_filters( "_wp_post_revision_field_{$meta_key}", $compare_from->$meta_key, $meta_key, $compare_from, 'from' ) : '';
+				/** This filter is documented in wp-admin/includes/revision.php */
+				$content_to = apply_filters( "_wp_post_revision_field_{$meta_key}", $compare_to->$meta_key, $meta_key, $compare_to, 'to' );
+				if ( $content_from !== $content_to ) {
+					$modified_meta_fields[ $meta_key ] = array(
+						'content_from' => json_encode( $content_from ),
+						'content_to'   => json_encode( $content_to ),
+					);
+				}
+			}
+
+			// Create Post Meta diff.
+			if ( empty( $modified_meta_fields ) ) {
+				$diff = null;
+			} else {
+				$diff = '';
+				foreach ( $modified_meta_fields as $key => $values ) {
+					$diff = $diff . $key . wp_text_diff(
+						$values['content_from'],
+						$values['content_to'],
+						$args
+					);
+				}
+			}
+		}
+
 		if ( ! $diff && 'post_title' === $field ) {
 			/*
 			 * It's a better user experience to still show the Title, even if it didn't change.
