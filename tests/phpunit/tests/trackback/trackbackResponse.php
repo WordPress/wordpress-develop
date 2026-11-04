@@ -9,33 +9,21 @@
 class Tests_Trackback_trackbackResponse extends WP_UnitTestCase {
 
 	/**
-	 * Post used to load wp-trackback.php and define trackback_response().
-	 *
-	 * @var int
+	 * Loads wp-trackback.php with a non-processing request so its function definitions are available.
 	 */
-	private $post_id;
-
-	/**
-	 * Loads wp-trackback.php with a valid request so its function definitions are available.
-	 */
-	public function set_up() {
-		parent::set_up();
-
-		global $wp, $wpdb;
-
-		$this->post_id = $this->factory()->post->create();
-		$wp            = new stdClass();
-		$post_id       = $this->post_id;
-		$old_get       = $_GET;
-		$old_post      = $_POST;
-
-		$_GET  = array( 'tb_id' => $this->post_id );
-		$_POST = array(
-			'title'     => 'Trackback title',
-			'blog_name' => 'Trackback blog',
-		);
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
 		if ( ! function_exists( 'trackback_response' ) ) {
+			$old_get  = $_GET;
+			$old_post = $_POST;
+
+			$_GET  = array( 'tb_id' => 1 );
+			$_POST = array(
+				'title'     => 'Trackback title',
+				'blog_name' => 'Trackback blog',
+			);
+
 			set_error_handler(
 				static function ( $severity, $message ) {
 					return E_WARNING === $severity && str_contains( $message, 'Cannot modify header information' );
@@ -45,10 +33,10 @@ class Tests_Trackback_trackbackResponse extends WP_UnitTestCase {
 			require ABSPATH . 'wp-trackback.php';
 			ob_end_clean();
 			restore_error_handler();
-		}
 
-		$_GET  = $old_get;
-		$_POST = $old_post;
+			$_GET  = $old_get;
+			$_POST = $old_post;
+		}
 	}
 
 	/**
