@@ -16,10 +16,6 @@ includes:
 	# new strict rules.
 	- vendor/phpstan/phpstan-phpunit/extension.neon
 
-	# Stricter rules, of which only a subset are enabled by default. See the strictRules
-	# parameter below.
-	- vendor/phpstan/phpstan-strict-rules/rules.neon
-
 	# Preexisting errors that should be ignored, one baseline per error identifier
 	# so that the remaining work on each is visible as a single shrinking file.
 	# Each is meant to reach zero and be deleted, taking its line below with it.
@@ -64,39 +60,26 @@ includes:
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
 
+# Rules from phpstan-strict-rules which core already complies with, or which enforce the
+# WordPress Coding Standards. The others are not enabled until the code complies with them,
+# but they can be enabled in a local phpstan.neon to work toward that. See
+# tests/phpstan/README.md.
+#
+# These are registered individually, rather than by including phpstan-strict-rules' rules.neon
+# with only these enabled, because that file also makes several PHPStan parameters stricter
+# even when its rules are disabled.
+# https://github.com/phpstan/phpstan-strict-rules
+rules:
+	- PHPStan\Rules\DisallowedConstructs\DisallowedBacktickRule
+	- PHPStan\Rules\DisallowedConstructs\DisallowedShortTernaryRule
+	- PHPStan\Rules\Functions\ClosureUsesThisRule
+	- PHPStan\Rules\Methods\WrongCaseOfInheritedMethodRule
+
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
 	level: 5
 	reportUnmatchedIgnoredErrors: true
 
-	# Rules from phpstan-strict-rules which core already complies with, or which enforce the
-	# WordPress Coding Standards. All others are disabled until the code complies with them.
-	# They can be enabled in a local phpstan.neon to work toward that.
-	# https://github.com/phpstan/phpstan-strict-rules#enabling-rules-one-by-one
-	strictRules:
-		allRules: false
-		disallowedBacktick: true
-		disallowedShortTernary: true
-		closureUsesThis: true
-		matchingInheritedMethodNames: true
-		numericOperandsInArithmeticOperators: true
-
-	# Restore the PHPStan defaults of the parameters which phpstan-strict-rules makes stricter,
-	# since including its rules.neon changes them even when its rules are disabled. The exception
-	# is checkFunctionNameCase, which tests/phpstan/base.neon already enables.
-	# https://phpstan.org/config-reference#stricter-analysis
-	polluteScopeWithLoopInitialAssignments: true
-	polluteScopeWithAlwaysIterableForeach: true
-	polluteScopeWithBlock: true
-	checkDynamicProperties: false
-	checkExplicitMixedMissingReturn: false
-	checkInternalClassCaseSensitivity: false
-	reportMaybesInMethodSignatures: false
-	reportStaticMethodSignatures: false
-	reportMaybesInPropertyPhpDocTypes: false
-	reportWrongPhpDocTypeInVarTag: false
-	checkStrictPrintfPlaceholderTypes: false
-	reportNonIntStringArrayKey: false
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
 	# included above.
