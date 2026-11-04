@@ -105,7 +105,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 	<div class="imgedit-panel-content wp-clearfix">
 		<div class="imgedit-tools">
 			<input type="hidden" id="imgedit-nonce-<?php echo $post_id; ?>" value="<?php echo $nonce; ?>" />
-			<input type="hidden" id="imgedit-sizer-<?php echo $post_id; ?>" value="<?php echo $sizer; ?>" />
+			<input type="hidden" id="imgedit-sizer-<?php echo $post_id; ?>" value="<?php echo esc_attr( wp_json_encode( $sizer ) ); ?>" />
 			<input type="hidden" id="imgedit-history-<?php echo $post_id; ?>" value="" />
 			<input type="hidden" id="imgedit-undone-<?php echo $post_id; ?>" value="0" />
 			<input type="hidden" id="imgedit-selection-<?php echo $post_id; ?>" value="" />
