@@ -167,6 +167,7 @@
 	 * @since 4.6.0 Added `available` property to indicate whether credentials have been provided.
 	 *
 	 * @type {Object}
+	 * @property {Object}  filesystemCredentials                    Holds all filesystem credentials.
 	 * @property {Object}  filesystemCredentials.ftp                Holds FTP credentials.
 	 * @property {string}  filesystemCredentials.ftp.host           FTP host. Default empty string.
 	 * @property {string}  filesystemCredentials.ftp.username       FTP user name. Default empty string.
@@ -252,7 +253,7 @@
 	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
-		var $notice = $( data.selector ),
+		var $notice = $( document ).find( data.selector ),
 			$headerEnd = $( '.wp-header-end' ),
 			$adminNotice;
 
@@ -1125,7 +1126,7 @@
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
-				'%s activated successfully.',
+				__( '%s activated successfully.' ),
 				response.pluginName
 			);
 
@@ -1164,7 +1165,7 @@
 						text: _x( 'Active', 'plugin' ),
 						ariaLabel: sprintf(
 							/* translators: %s: The plugin name. */
-							'%s is active.',
+							__( '%s is active.' ),
 							response.pluginName
 						)
 					}
@@ -3304,7 +3305,10 @@
 
 				// Called from `wp-admin/includes/class-wp-upgrader-skins.php`.
 				case 'decrementUpdateCount':
-					/** @property {string} message.upgradeType */
+					/**
+					 * @property {string} message             The message associated with the update.
+					 * @property {string} message.upgradeType The type of upgrade being performed.
+					 */
 					wp.updates.decrementCount( message.upgradeType );
 					break;
 

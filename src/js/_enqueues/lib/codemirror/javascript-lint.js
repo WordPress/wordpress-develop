@@ -9,7 +9,7 @@ import CodeMirror from 'codemirror';
 /**
  * CodeMirror Lint Error.
  *
- * @see https://codemirror.net/5/doc/manual.html#addon_lint
+ * @link https://codemirror.net/5/doc/manual.html#addon_lint
  *
  * @typedef {Object} CodeMirrorLintError
  * @property {string}              message  Error message.
@@ -21,8 +21,8 @@ import CodeMirror from 'codemirror';
 /**
  * JSHint options supported by Espree.
  *
- * @see https://jshint.com/docs/options/
- * @see https://www.npmjs.com/package/espree#options
+ * @link https://jshint.com/docs/options/
+ * @link https://www.npmjs.com/package/espree#options
  *
  * @typedef {Object} SupportedJSHintOptions
  * @property {import('espree').Options['ecmaVersion']} [esversion]       "This option is used to specify the ECMAScript version to which the code must adhere."
