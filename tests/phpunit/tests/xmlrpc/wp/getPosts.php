@@ -5,6 +5,12 @@
  */
 class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'test_wp_getposts_cpt' );
+
+		parent::tear_down();
+	}
+
 	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPosts( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
@@ -121,8 +127,6 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results3 );
 		$this->assertCount( 1, $results3 );
 		$this->assertSame( (string) $post->ID, $results3[0]['post_id'] );
-
-		_unregister_post_type( $cpt_name );
 	}
 
 	public function test_fields() {
