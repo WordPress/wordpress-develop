@@ -16,6 +16,15 @@
  */
 class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
+	 * IDs of users on the current page whose email address is also used by another
+	 * user, ignoring letter case.
+	 *
+	 * @since 7.3.0
+	 * @var list<int>
+	 */
+	protected $duplicate_email_user_ids = array();
+
+	/**
 	 * Checks if the current user has permissions to perform an Ajax action.
 	 *
 	 * @since 3.1.0
@@ -363,6 +372,13 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function column_email( $user ) {
 		echo "<a href='" . esc_url( "mailto:$user->user_email" ) . "'>$user->user_email</a>";
+
+		if ( in_array( (int) $user->ID, $this->duplicate_email_user_ids, true ) ) {
+			printf(
+				'<p class="duplicate-email"><span class="dashicons dashicons-warning" aria-hidden="true"></span> %s</p>',
+				__( 'Another user has this email address, possibly with different letter case.' )
+			);
+		}
 	}
 
 	/**
@@ -525,6 +541,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @since 3.1.0
 	 */
 	public function display_rows() {
+		$this->duplicate_email_user_ids = _wp_get_duplicate_email_user_ids( $this->items );
+
 		foreach ( $this->items as $user ) {
 			$class = '';
 

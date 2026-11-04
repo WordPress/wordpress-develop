@@ -1051,7 +1051,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_email_case_sensitivity() {
+	public static function data_email_case_sensitivity() {
 		return array(
 			'case-insensitive collation' => array( false ),
 			'case-sensitive collation'   => array( true ),

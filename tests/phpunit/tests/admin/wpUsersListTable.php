@@ -55,7 +55,7 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 66238
 	 *
-	 * @covers WP_Users_List_Table::get_duplicate_email_user_ids
+	 * @covers ::_wp_get_duplicate_email_user_ids
 	 *
 	 * @dataProvider data_email_case_sensitivity
 	 *
@@ -63,6 +63,8 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_duplicate_email_user_ids_flags_case_variants( $is_case_sensitive ) {
 		global $wpdb;
+
+		require_once ABSPATH . 'wp-admin/includes/user.php';
 
 		$original = self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
 		$variant  = self::factory()->user->create( array( 'user_email' => 'placeholder@example.com' ) );
@@ -74,11 +76,6 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 
 		add_filter( 'wp_is_user_email_case_sensitive', $is_case_sensitive ? '__return_true' : '__return_false' );
 
-		$method = new ReflectionMethod( $this->table, 'get_duplicate_email_user_ids' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$method->setAccessible( true );
-		}
-
 		$queries = array();
 		$collect = static function ( $query ) use ( &$queries ) {
 			$queries[] = $query;
@@ -86,8 +83,7 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 		};
 		add_filter( 'query', $collect );
 
-		$flagged = $method->invoke(
-			$this->table,
+		$flagged = _wp_get_duplicate_email_user_ids(
 			array(
 				$original => get_userdata( $original ),
 				$unique   => get_userdata( $unique ),
@@ -121,6 +117,8 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 66238
 	 *
+	 * @group ms-excluded
+	 *
 	 * @covers WP_Users_List_Table::display_rows
 	 */
 	public function test_display_rows_highlights_duplicate_email() {
@@ -144,5 +142,31 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $output, 'class="duplicate-email"' ), 'Exactly one row should be highlighted.' );
 		$this->assertMatchesRegularExpression( "#<tr id='user-{$original}'.*?class=\"duplicate-email\".*?</tr>#s", $output, 'The duplicate user row should be highlighted.' );
+	}
+
+	/**
+	 * On multisite a site admin may not be able to see or manage the other account,
+	 * so the site Users screen does not warn about it.
+	 *
+	 * @ticket 66238
+	 *
+	 * @group ms-required
+	 *
+	 * @covers WP_Users_List_Table::display_rows
+	 */
+	public function test_display_rows_does_not_highlight_duplicate_email_on_multisite() {
+		global $wpdb;
+
+		$original = self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
+		$variant  = self::factory()->user->create( array( 'user_email' => 'placeholder@example.com' ) );
+
+		$wpdb->update( $wpdb->users, array( 'user_email' => 'ABc@example.com' ), array( 'ID' => $variant ) );
+		clean_user_cache( $variant );
+
+		$this->table->items = array( $original => get_userdata( $original ) );
+
+		$output = get_echo( array( $this->table, 'display_rows' ) );
+
+		$this->assertStringNotContainsString( 'class="duplicate-email"', $output );
 	}
 }

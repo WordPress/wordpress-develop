@@ -2134,7 +2134,7 @@ function username_exists( $username ) {
  * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 2.1.0
- * @since 7.2.0 The comparison is case-insensitive regardless of the database collation.
+ * @since 7.3.0 The comparison is case-insensitive regardless of the database collation.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2195,7 +2195,7 @@ function email_exists( $email ) {
  * When the collation cannot be determined, for example on a non-MySQL database,
  * the comparison is assumed to be case-sensitive.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -2211,7 +2211,6 @@ function _wp_is_user_email_case_sensitive(): bool {
 		$is_case_sensitive = true;
 
 		if ( $wpdb->is_mysql ) {
-			/** @var object{ Collation: string } $column */
 			$column = $wpdb->get_row( "SHOW FULL COLUMNS FROM $wpdb->users LIKE 'user_email'" );
 
 			if ( $column && ! empty( $column->Collation ) ) {
@@ -2226,7 +2225,7 @@ function _wp_is_user_email_case_sensitive(): bool {
 	 * When true, email lookups that need to ignore letter case use LOWER(), which
 	 * cannot use the user_email index.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param bool $is_case_sensitive Whether the user_email column compares case-sensitively.
 	 */
