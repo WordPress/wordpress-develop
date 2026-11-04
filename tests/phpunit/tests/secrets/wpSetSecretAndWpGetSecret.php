@@ -146,7 +146,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNeverContainsPlaintext(
 			'UNIQUE-PLAINTEXT-CANARY-9f3a',
 			$wpdb->get_results( "SELECT option_name, option_value FROM {$wpdb->options}", ARRAY_A ),
-			'The options table must never contain a plaintext secret.'
+			'The options table should never contain a plaintext secret.'
 		);
 	}
 

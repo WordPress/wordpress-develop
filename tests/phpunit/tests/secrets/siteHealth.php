@@ -322,7 +322,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		$info = wp_secrets_site_health_debug_info( array() );
-		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ), 'A non-super-admin must not see network secret counts.' );
+		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ), 'A non-super-admin should not see network secret counts.' );
 
 		grant_super_admin( $user_id );
 

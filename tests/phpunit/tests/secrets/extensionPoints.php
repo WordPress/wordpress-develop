@@ -167,9 +167,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 		$result = wp_list_secrets();
 
-		$this->assertWPError( $result, 'A store that cannot list must be reported as an error, not an empty list.' );
+		$this->assertWPError( $result, 'A store that cannot list should be reported as an error, not an empty list.' );
 		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'The store error should be passed through unchanged.' );
-		$this->assertNeverContainsPlaintext( 'UNIQUE-PLAINTEXT-CANARY-5c1e', $result, 'A listing error must never carry a stored value.' );
+		$this->assertNeverContainsPlaintext( 'UNIQUE-PLAINTEXT-CANARY-5c1e', $result, 'A listing error should never carry a stored value.' );
 	}
 
 	/**

@@ -82,7 +82,7 @@ trait WP_Secrets_Assertions {
 		$this->assertStringNotContainsString(
 			$plaintext,
 			$flattened,
-			'' !== $message ? $message : 'Plaintext leaked into a structure that must never contain it.'
+			'' !== $message ? $message : 'Plaintext leaked into a structure that should never contain it.'
 		);
 	}
 }

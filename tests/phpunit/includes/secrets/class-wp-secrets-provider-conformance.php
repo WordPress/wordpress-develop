@@ -124,7 +124,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertContains(
 			$this->provider()->get_protection_boundary(),
 			array( WP_Secrets_Provider::BOUNDARY_WORDPRESS, WP_Secrets_Provider::BOUNDARY_PROVIDER ),
-			'get_protection_boundary() must return one of the BOUNDARY_* constants.'
+			'get_protection_boundary() should return one of the BOUNDARY_* constants.'
 		);
 	}
 
@@ -157,7 +157,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertSame(
 			WP_SECRETS_ERROR_PROVIDER_READ_ONLY,
 			$result->get_error_code(),
-			'A provider that declares itself read-only must refuse with secret_provider_read_only.'
+			'A provider that declares itself read-only should refuse with secret_provider_read_only.'
 		);
 	}
 
@@ -308,8 +308,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$kept = $provider->get( $name, WP_Secret_Version::PREVIOUS );
 
-		$this->assertInstanceOf( 'WP_Secret', $kept, 'Writing an unchanged value must not discard the previous version.' );
-		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value must not replace the previous version.' );
+		$this->assertInstanceOf( 'WP_Secret', $kept, 'Writing an unchanged value should not discard the previous version.' );
+		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value should not replace the previous version.' );
 	}
 
 	/**
@@ -347,7 +347,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-7c1d' ), 'The provider should accept the write.' );
 
-		$this->assertCount( 1, $this->recorded_changes, 'set() must fire wp_secret_changed exactly once.' );
+		$this->assertCount( 1, $this->recorded_changes, 'set() should fire wp_secret_changed exactly once.' );
 
 		$change = $this->recorded_changes[0];
 
@@ -358,8 +358,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertIsInt( $change[3], 'The timestamp is a Unix timestamp.' );
 		$this->assertIsString( $change[4], "The old fingerprint is a string, '' when there is none." );
 		$this->assertIsString( $change[5], "The new fingerprint is a string, '' when there is none." );
-		$this->assertFalse( $change[6], 'A site-scope write must report $network as false.' );
-		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed must never be passed a value.' );
+		$this->assertFalse( $change[6], 'A site-scope write should report $network as false.' );
+		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed should never be passed a value.' );
 	}
 
 	/**
@@ -397,8 +397,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNotWPError( $provider->delete( $name, true ), 'The provider should accept a network-scope delete.' );
 
 		$this->assertCount( 2, $this->recorded_changes, 'The provider should fire wp_secret_changed once for each network-scope change.' );
-		$this->assertTrue( $this->recorded_changes[0][6], 'A network-scope write must report $network as true.' );
-		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete must report $network as true.' );
+		$this->assertTrue( $this->recorded_changes[0][6], 'A network-scope write should report $network as true.' );
+		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete should report $network as true.' );
 	}
 
 	/**
@@ -417,7 +417,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $provider->delete( $name ), 'The provider should accept the delete.' );
 
-		$this->assertCount( 1, $this->recorded_changes, 'delete() must fire wp_secret_changed exactly once.' );
+		$this->assertCount( 1, $this->recorded_changes, 'delete() should fire wp_secret_changed exactly once.' );
 		$this->assertSame( $name, $this->recorded_changes[0][0], 'The provider should report the name of the deleted secret.' );
 		$this->assertSame( 'deleted', $this->recorded_changes[0][1], 'The provider should report a delete as deleted.' );
 	}
@@ -449,7 +449,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Provider leaves version history to its backend; nothing was cleared.' );
 		}
 
-		$this->assertCount( 1, $this->recorded_changes, 'retire_previous() must fire wp_secret_changed exactly once.' );
+		$this->assertCount( 1, $this->recorded_changes, 'retire_previous() should fire wp_secret_changed exactly once.' );
 		$this->assertSame( $name, $this->recorded_changes[0][0], 'The provider should report the name of the retired secret.' );
 		$this->assertSame( 'retired', $this->recorded_changes[0][1], 'The provider should report a retire as retired.' );
 	}
@@ -469,7 +469,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->record_changes();
 
 		$this->assertWPError( $provider->set( $this->conformance_name(), 'value' ), 'The provider should refuse a write with a WP_Error when read-only.' );
-		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen must not be reported as a change.' );
+		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen should not be reported as a change.' );
 	}
 
 	// – listing never leaks ---------------------------------------------------
@@ -495,11 +495,11 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$dump = wp_json_encode( $entries );
 
-		$this->assertIsString( $dump, 'list_secrets() must return something that can be encoded and inspected.' );
+		$this->assertIsString( $dump, 'list_secrets() should return something that can be encoded and inspected.' );
 		$this->assertStringNotContainsString(
 			'UNIQUE-CONFORMANCE-CANARY-3f9b',
 			$dump,
-			'list_secrets() must never expose a plaintext.'
+			'list_secrets() should never expose a plaintext.'
 		);
 	}
 
