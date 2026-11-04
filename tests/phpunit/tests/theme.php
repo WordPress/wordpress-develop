@@ -877,7 +877,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_theme_has_default_support() {
+	public static function data_block_theme_has_default_support() {
 		return array(
 			'post-thumbnails'      => array(
 				'support' => array(
@@ -1103,7 +1103,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_stylesheet_directory_with_filter() {
+	public static function data_get_stylesheet_directory_with_filter() {
 		return array(
 			'with stylesheet_directory filter' => array(
 				'block-theme',
@@ -1163,7 +1163,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_template_directory_with_filter() {
+	public static function data_get_template_directory_with_filter() {
 		return array(
 			'with template_directory filter' => array(
 				'block-theme',
