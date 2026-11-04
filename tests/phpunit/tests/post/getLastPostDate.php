@@ -61,4 +61,51 @@ class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 		$this->assertSame( $post_post_date_last, get_lastpostdate( 'blog', 'post' ) );
 		$this->assertSame( $book_post_date_last, get_lastpostdate( 'blog', 'book' ) );
 	}
+
+	/**
+	 * @ticket 63614
+	 */
+	public function test_pre_get_lastpostdate_filter_short_circuits_query() {
+		global $wpdb;
+
+		self::factory()->post->create(
+			array(
+				'post_date' => '2020-02-28 16:09:28',
+			)
+		);
+
+		$filter = new MockAction();
+		add_filter( 'pre_get_lastpostdate', array( $filter, 'filter' ), 10, 3 );
+		add_filter(
+			'pre_get_lastpostdate',
+			static function () {
+				return '2001-01-01 00:00:00';
+			}
+		);
+
+		$num_queries = $wpdb->num_queries;
+		$result      = get_lastpostdate( 'blog', 'post' );
+
+		$this->assertSame( '2001-01-01 00:00:00', $result, 'The filtered value should be returned.' );
+		$this->assertSame( $num_queries, $wpdb->num_queries, 'No database queries should be run.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The filter should be called once.' );
+		$this->assertSame( array( false, 'blog', 'post' ), $filter->get_args()[0], 'The filter should receive the default value, timezone, and post type.' );
+	}
+
+	/**
+	 * @ticket 63614
+	 */
+	public function test_pre_get_lastpostdate_filter_returning_false_does_not_short_circuit() {
+		$post_date = '2020-02-28 16:09:28';
+
+		self::factory()->post->create(
+			array(
+				'post_date' => $post_date,
+			)
+		);
+
+		add_filter( 'pre_get_lastpostdate', '__return_false' );
+
+		$this->assertSame( $post_date, get_lastpostdate( 'blog', 'post' ) );
+	}
 }
