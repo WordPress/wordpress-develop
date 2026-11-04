@@ -844,16 +844,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/embed.php
 		-
-			message: '#^Parameter \#1 \$post_id of function get_post_comments_feed_link expects int, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/feed-atom-comments.php
-		-
-			message: '#^Parameter \#1 \$post_id of function get_post_comments_feed_link expects int, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/feed-rss2.php
-		-
 			message: '#^Parameter \#2 \$message of class WP_Error constructor expects string, list\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
