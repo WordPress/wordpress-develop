@@ -1,6 +1,8 @@
 /**
  * External dependencies
  */
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { request } from '@playwright/test';
 
 /**
@@ -17,6 +19,13 @@ async function globalSetup( config ) {
 	const { storageState, baseURL } = config.projects[ 0 ].use;
 	const storageStatePath =
 		typeof storageState === 'string' ? storageState : undefined;
+
+	// An interrupted run can leave these behind, and each one breaks the whole site.
+	const documentRoot = join( process.cwd(), process.env.LOCAL_DIR ?? 'src' );
+	rmSync( join( documentRoot, '.maintenance' ), { force: true } );
+	rmSync( join( documentRoot, 'wp-content/mu-plugins/fatal-error.php' ), {
+		force: true,
+	} );
 
 	const requestContext = await request.newContext( {
 		baseURL,
