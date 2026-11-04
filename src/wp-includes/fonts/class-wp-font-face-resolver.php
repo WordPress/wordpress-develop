@@ -87,19 +87,20 @@ class WP_Font_Face_Resolver {
 					continue;
 				}
 
-				// Skip if "fontFamily" is not defined.
-				if ( empty( $definition['fontFamily'] ) ) {
+				// The preset's "fontFamily" is the fallback for variations that do not define their own.
+				$font_family_name = '';
+				if ( ! empty( $definition['fontFamily'] ) ) {
+					$font_family_name = self::maybe_parse_name_from_comma_separated_list( $definition['fontFamily'] );
+				}
+
+				$font_faces = self::convert_font_face_properties( $definition['fontFace'], $font_family_name );
+
+				// Skip if no variation has a font family.
+				if ( empty( $font_faces ) ) {
 					continue;
 				}
 
-				$font_family_name = self::maybe_parse_name_from_comma_separated_list( $definition['fontFamily'] );
-
-				// Skip if no font family is defined.
-				if ( empty( $font_family_name ) ) {
-					continue;
-				}
-
-				$fonts[] = self::convert_font_face_properties( $definition['fontFace'], $font_family_name );
+				$fonts[] = $font_faces;
 			}
 		}
 
@@ -129,17 +130,29 @@ class WP_Font_Face_Resolver {
 	 * Converts font-face properties from theme.json format.
 	 *
 	 * @since 6.4.0
+	 * @since 7.2.0 Each font-face uses its own `fontFamily`, falling back to `$font_family_property`.
 	 *
 	 * @param array  $font_face_definition The font-face definitions to convert.
-	 * @param string $font_family_property The value to store in the font-face font-family property.
+	 * @param string $font_family_property The font-face font-family property to use when
+	 *                                     a font-face does not define its own `fontFamily`.
 	 * @return array Converted font-face properties.
 	 */
 	private static function convert_font_face_properties( array $font_face_definition, $font_family_property ) {
 		$converted_font_faces = array();
 
 		foreach ( $font_face_definition as $font_face ) {
+			$font_family = $font_family_property;
+			if ( ! empty( $font_face['fontFamily'] ) ) {
+				$font_family = self::maybe_parse_name_from_comma_separated_list( $font_face['fontFamily'] );
+			}
+
+			// Skip if no font family is defined.
+			if ( empty( $font_family ) ) {
+				continue;
+			}
+
 			// Add the font-family property to the font-face.
-			$font_face['font-family'] = $font_family_property;
+			$font_face['font-family'] = $font_family;
 
 			// Converts the "file:./" src placeholder into a theme font file URI.
 			if ( ! empty( $font_face['src'] ) ) {
