@@ -874,6 +874,7 @@ class WP_Date_Query {
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
 	 *                                     Default: false.
 	 * @return string A MySQL format date/time.
+	 *
 	 * @phpstan-param string|array{
 	 *     year?: int<0, max>,
 	 *     month?: int<0, max>,
