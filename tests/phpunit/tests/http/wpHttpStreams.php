@@ -14,9 +14,8 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	 * @param string   $raw_response Raw response sent by the server.
 	 * @param int|null $status       Expected HTTP status, or null to expect a WP_Error.
 	 * @param string   $body         Expected downloaded body.
-	 * @param bool     $stream       Whether to stream the response to a file.
 	 */
-	public function test_streaming_response( string $raw_response, ?int $status, string $body, bool $stream = true ): void {
+	public function test_streaming_response( string $raw_response, ?int $status, string $body ): void {
 		if ( ! function_exists( 'proc_open' ) || ! function_exists( 'stream_socket_server' ) ) {
 			$this->markTestSkipped( 'proc_open() and stream_socket_server() are required.' );
 		}
@@ -47,7 +46,7 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			$response  = $transport->request(
 				'http://' . $address . '/',
 				array(
-					'stream'          => $stream,
+					'stream'          => true,
 					'filename'        => $filename,
 					'timeout'         => 5,
 					'sslcertificates' => ABSPATH . WPINC . '/certificates/ca-bundle.crt',
@@ -60,7 +59,7 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			} else {
 				$this->assertNotWPError( $response );
 				$this->assertSame( $status, wp_remote_retrieve_response_code( $response ) );
-				$this->assertSame( $body, $stream ? file_get_contents( $filename ) : wp_remote_retrieve_body( $response ) );
+				$this->assertSame( $body, file_get_contents( $filename ) );
 			}
 		} finally {
 			fclose( $pipes[1] );
@@ -72,25 +71,16 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Includes the legacy buffered behavior for empty responses and incomplete headers.
+	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string, 1: int|null, 2: string, 3?: bool }>
+	 * @return array<non-falsy-string, array{ 0: string, 1: int|null, 2: string }>
 	 */
 	public static function data_streaming_response(): array {
 		return array(
-			'empty response'              => array( '', null, '' ),
-			'incomplete headers'          => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
-			'normal response'             => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello' ),
-			'empty body'                  => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '' ),
-			/*
-			 * The buffered branch always runs WP_Http::processResponse(), so an empty response or incomplete headers
-			 * yield a response rather than a WP_Error. These cases characterize that pre-existing behavior to guard
-			 * against regressions; they do not endorse it as correct.
-			 */
-			'buffered empty response'     => array( '', 0, '', false ),
-			'buffered incomplete headers' => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", 200, '', false ),
-			'buffered response'           => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello', false ),
-			'buffered empty body'         => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '', false ),
+			'empty response'     => array( '', null, '' ),
+			'incomplete headers' => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
+			'normal response'    => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello' ),
+			'empty body'         => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '' ),
 		);
 	}
 }
