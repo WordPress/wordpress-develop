@@ -82,7 +82,8 @@ parameters:
 		numericOperandsInArithmeticOperators: true
 
 	# Restore the PHPStan defaults of the parameters which phpstan-strict-rules makes stricter,
-	# since including its rules.neon changes them even when its rules are disabled.
+	# since including its rules.neon changes them even when its rules are disabled. The exception
+	# is checkFunctionNameCase, which tests/phpstan/base.neon already enables.
 	# https://phpstan.org/config-reference#stricter-analysis
 	polluteScopeWithLoopInitialAssignments: true
 	polluteScopeWithAlwaysIterableForeach: true
