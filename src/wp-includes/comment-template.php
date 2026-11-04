@@ -609,7 +609,8 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
  * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
- * @return string|int|false The comment's date.
+ * @return string|int|false The comment's date. Integer if `$format` is 'U' or 'G', string otherwise.
+ *                          False on failure.
  *
  * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
@@ -1108,7 +1109,8 @@ function comment_text( $comment_id = 0, $args = array() ) {
  *                                   Default true.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the time.
  *                                   Default current comment.
- * @return string|int|false The formatted time, or an empty string if the comment does not exist.
+ * @return string|int|false The formatted time. Integer if `$format` is 'U' or 'G', string otherwise.
+ *                          False on failure, or an empty string if the comment does not exist.
  *
  * @phpstan-return ( $format is 'U'|'G' ? int|false|'' : string|false )
  */
