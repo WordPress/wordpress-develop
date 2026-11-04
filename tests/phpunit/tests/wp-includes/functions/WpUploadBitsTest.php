@@ -70,7 +70,10 @@ class WpUploadBitsTest extends WP_UnitTestCase {
 			'subdir'  => '/.././/1',
 			'basedir' => $upload_dir['basedir'],
 			'baseurl' => $upload_dir['baseurl'],
-			'error'   => 'Unable to create directory wp-content/uploads/.././/1. Is its parent directory writable by the server?',
+			'error'   => sprintf(
+				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+				esc_html( ( str_starts_with( $upload_dir['basedir'], ABSPATH ) ? str_replace( ABSPATH, '', $upload_dir['basedir'] ) : wp_basename( $upload_dir['basedir'] ) ) . '/.././/1' )
+			),
 		);
 
 		$this->assertSame(
