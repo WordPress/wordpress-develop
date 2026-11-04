@@ -187,7 +187,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$this->start_transaction();
-		$this->set_up_deprecation_expectations();
+		// Call through the legacy method so that subclass overrides of it keep running.
+		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
 
@@ -755,6 +756,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Sets up the expectations for testing a deprecated call.
 	 *
+	 * Still called by set_up() so that subclass overrides keep running. Do not remove
+	 * it without a replacement for those overrides.
+	 *
 	 * @since 3.7.0
 	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::set_up_deprecation_expectations() instead.
 	 */
@@ -858,6 +862,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Handles a deprecated expectation.
 	 *
+	 * Still called by assert_post_conditions() so that subclass overrides keep running.
+	 * Do not remove it without a replacement for those overrides.
+	 *
 	 * @since 3.7.0
 	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::assert_expected_deprecations() instead.
 	 */
@@ -901,7 +908,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 4.2.0
 	 */
 	protected function assert_post_conditions() {
-		$this->assert_expected_deprecations();
+		// Call through the legacy method so that subclass overrides of it keep running.
+		$this->expectedDeprecated();
 
 		if ( $this->blocked_http_requests ) {
 			$this->fail(
