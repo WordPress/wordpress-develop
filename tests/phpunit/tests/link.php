@@ -4,6 +4,13 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		unregister_post_type( 'not_a_post_type' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
