@@ -76,7 +76,7 @@ class Tests_Functions_wpSuspendCacheAddition extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_boolean_values() {
+	public static function data_non_boolean_values() {
 		return array(
 			'string "true"'  => array( 'true' ),
 			'string "false"' => array( 'false' ),
