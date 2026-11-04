@@ -1,5 +1,5 @@
 <?php
-/**
+
 /**
  * Test WP_Theme class.
  *
@@ -113,6 +113,20 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Theme::__construct() handles a numeric theme directory as a string.
+	 *
+	 * @ticket 54645
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_numeric_theme_directory() {
+		$theme = new WP_Theme( 1234, $this->theme_root );
+
+		$this->assertSame( '1234', $theme->get_stylesheet(), 'The stylesheet property should be a string.' );
+		$this->assertSame( '1234', $theme->get_template(), 'The template property should be a string.' );
+	}
+
+	/**
 	 * @ticket 21749
 	 */
 	public function test_wp_theme_uris_with_spaces() {
@@ -169,6 +183,54 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$this->assertSame( 'theme_child_invalid', $errors->get_error_code() );
 	}
 
+	/**
+	 * Tests that a theme declaring itself as its own parent still has a template.
+	 *
+	 * The `theme_child_invalid` error must not leave `WP_Theme::$template` unset, as
+	 * that makes `get_template()` return `null` and makes the template directory and
+	 * its URI resolve to the theme root instead of the theme's own directory.
+	 *
+	 * @ticket 64582
+	 *
+	 * @covers WP_Theme::get_template
+	 * @covers WP_Theme::get_template_directory
+	 * @covers WP_Theme::get_template_directory_uri
+	 */
+	public function test_child_theme_with_itself_as_parent_should_have_template_set() {
+		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not set to the stylesheet.' );
+		$this->assertSame(
+			$this->theme_root . '/child-parent-itself',
+			$theme->get_template_directory(),
+			'The template directory did not resolve to the theme directory.'
+		);
+		$this->assertSame(
+			$theme->get_theme_root_uri() . '/child-parent-itself',
+			$theme->get_template_directory_uri(),
+			'The template directory URI did not resolve to the theme directory.'
+		);
+	}
+
+	/**
+	 * Tests that the template of a theme declaring itself as its own parent is cached.
+	 *
+	 * @ticket 64582
+	 *
+	 * @covers WP_Theme::__construct
+	 * @covers WP_Theme::get_template
+	 */
+	public function test_child_theme_with_itself_as_parent_should_have_template_set_when_read_from_cache() {
+		// Prime the theme cache.
+		new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$theme = new WP_Theme( 'child-parent-itself', $this->theme_root );
+
+		$errors = $theme->errors();
+		$this->assertWPError( $errors, 'The theme was not read back from the cache in an error state.' );
+		$this->assertSame( 'theme_child_invalid', $errors->get_error_code(), 'The theme was not read back from the cache with the expected error.' );
+		$this->assertSame( 'child-parent-itself', $theme->get_template(), 'The template was not restored from the cache.' );
+	}
 
 	/**
 	 * Enable a single theme on a network.
@@ -276,6 +338,65 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 *
+	 * @dataProvider data_is_block_theme
+	 */
+	public function test_is_block_theme_property( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$theme->is_block_theme();
+		$reflection          = new ReflectionClass( $theme );
+		$reflection_property = $reflection->getProperty( 'block_theme' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
+
+		$this->assertSame( $expected, $reflection_property->getValue( $theme ) );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_get
+	 */
+	public function test_is_block_theme_check_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme1 = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme1->is_block_theme(), 'is_block_theme should return true on first run' );
+
+		$theme2 = new WP_Theme( 'block-theme', $this->theme_root );
+		// Second run.
+		$this->assertTrue( $theme2->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 0, $filter->get_events(), 'Should only be 0, as second run should be cached' );
+	}
+
+	/**
+	 * @ticket 57114
+	 *
+	 * @covers WP_Theme::is_block_theme
+	 * @covers WP_Theme::cache_delete
+	 */
+	public function test_is_block_theme_delete_cache() {
+		$filter = new MockAction();
+		add_filter( 'theme_file_path', array( $filter, 'filter' ) );
+
+		$theme = new WP_Theme( 'block-theme', $this->theme_root );
+		// First run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on first run' );
+		// Clear cache.
+		$theme->cache_delete();
+		// Second run.
+		$this->assertTrue( $theme->is_block_theme(), 'is_block_theme should return true on second run' );
+		$this->assertCount( 2, $filter->get_events(), 'Should only be 4, as second run should not be cached' );
+	}
+
+	/**
 	 * Test get_files for an existing theme.
 	 *
 	 * @ticket 53599
@@ -305,11 +426,106 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_customize_url with no $stylesheet argument.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_no_stylesheet() {
+		$this->assertSame( esc_url( admin_url( 'customize.php' ) ), wp_customize_url() );
+	}
+
+	/**
+	 * Test wp_customize_url with no query args.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_without_query_args() {
+		$this->assertSame( esc_url( admin_url( 'customize.php?theme=foo' ) ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with existing query args.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_existing_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the existing query arg is present in the URL.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( 'existing_arg', 'value', $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with existing theme query arg.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_existing_theme_query_arg() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( 'theme', 'to-be-replaced', $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with multiple theme query args in array syntax.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_multiple_theme_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter(
+			'admin_url',
+			static function ( $url ) {
+				return add_query_arg( array( 'theme' => array( 'to-be-replaced-1', 'to-be-replaced-2' ) ), $url );
+			}
+		);
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with special characters in the theme name.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_special_chars() {
+		$stylesheet = 'foo!@-_ +';
+		$expected   = admin_url( 'customize.php?theme=' . urlencode( $stylesheet ) );
+		$this->assertSame( esc_url( $expected ), wp_customize_url( $stylesheet ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
 	 */
-	public function data_is_block_theme() {
+	public static function data_is_block_theme() {
 		return array(
 			'default - non-block theme' => array(
 				'theme_dir' => 'default',
@@ -351,7 +567,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_file_path() {
+	public static function data_get_file_path() {
 		return array(
 			'no theme: no file given'              => array(
 				'theme_dir' => 'nonexistent',
@@ -445,7 +661,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	public function test_should_strip_tags_from_update_uri_header() {
 		$theme           = new WP_Theme( 'twentytwentytwo', $this->theme_root );
 		$sanitize_header = new ReflectionMethod( $theme, 'sanitize_header' );
-		$sanitize_header->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$sanitize_header->setAccessible( true );
+		}
 
 		$actual = $sanitize_header->invoke( $theme, 'UpdateURI', '<?php?><a href="http://example.org">http://example.org</a>' );
 

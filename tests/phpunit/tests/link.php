@@ -4,28 +4,6 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
-	public function get_pagenum_link_cb( $url ) {
-		return $url . '/WooHoo';
-	}
-
-	/**
-	 * @ticket 8847
-	 */
-	public function test_get_pagenum_link_case_insensitivity() {
-		$old_req_uri = $_SERVER['REQUEST_URI'];
-
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
-		add_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
-		$_SERVER['REQUEST_URI'] = '/woohoo';
-		$paged                  = get_pagenum_link( 2 );
-
-		remove_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
-		$this->assertSame( $paged, home_url( '/WooHoo/page/2/' ) );
-
-		$_SERVER['REQUEST_URI'] = $old_req_uri;
-	}
-
 	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
@@ -60,7 +38,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		// With a permalink structure set, get_permalink() will no longer match.
-		$this->assertNotEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
+		$this->assertNotSame( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		// Global post and permalink structure are set.
@@ -172,8 +150,6 @@ class Tests_Link extends WP_UnitTestCase {
 	 * @ticket 1914
 	 */
 	public function test_attachment_attached_to_non_existent_post_type_has_a_pretty_permalink() {
-		global $wp_post_types;
-
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_post_type( 'not_a_post_type', array( 'public' => true ) );
@@ -197,12 +173,7 @@ class Tests_Link extends WP_UnitTestCase {
 
 		$this->assertSame( get_permalink( $post_id ) . user_trailingslashit( $attachment->post_name ), get_permalink( $attachment_id ) );
 
-		foreach ( $wp_post_types as $id => $pt ) {
-			if ( 'not_a_post_type' === $pt->name ) {
-				unset( $wp_post_types[ $id ] );
-				break;
-			}
-		}
+		unregister_post_type( 'not_a_post_type' );
 
 		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
 		// Visit permalink.

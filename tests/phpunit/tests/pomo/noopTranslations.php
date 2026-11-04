@@ -28,7 +28,7 @@ class Tests_POMO_NOOPTranslations extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->noop         = new NOOP_Translations;
+		$this->noop         = new NOOP_Translations();
 		$this->entry        = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$this->plural_entry = new Translation_Entry(
 			array(

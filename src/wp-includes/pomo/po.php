@@ -13,16 +13,6 @@ if ( ! defined( 'PO_MAX_LINE_LEN' ) ) {
 	define( 'PO_MAX_LINE_LEN', 79 );
 }
 
-/*
- * The `auto_detect_line_endings` setting has been deprecated in PHP 8.1,
- * but will continue to work until PHP 9.0.
- * For now, we're silencing the deprecation notice as there may still be
- * translation files around which haven't been updated in a long time and
- * which still use the old MacOS standalone `\r` as a line ending.
- * This fix should be revisited when PHP 9.0 is in alpha/beta.
- */
-@ini_set( 'auto_detect_line_endings', 1 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-
 /**
  * Routines for working with PO files
  */
@@ -53,7 +43,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Exports all entries to PO format
 		 *
-		 * @return string sequence of mgsgid/msgstr PO strings, doesn't containt newline at the end
+		 * @return string sequence of msgid/msgstr PO strings, doesn't contain a newline at the end
 		 */
 		public function export_entries() {
 			// TODO: Sorting.
@@ -64,7 +54,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * Exports the whole PO file as a string
 		 *
 		 * @param bool $include_headers whether to include the headers in the export
-		 * @return string ready for inclusion in PO file string for headers and all the enrtries
+		 * @return string ready for inclusion in PO file string for headers and all the entries
 		 */
 		public function export( $include_headers = true ) {
 			$res = '';
@@ -110,10 +100,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Formats a string in PO-style
 		 *
-		 * @param string $string the string to format
+		 * @param string $input_string the string to format
 		 * @return string the poified string
 		 */
-		public static function poify( $string ) {
+		public static function poify( $input_string ) {
 			$quote   = '"';
 			$slash   = '\\';
 			$newline = "\n";
@@ -124,12 +114,12 @@ if ( ! class_exists( 'PO', false ) ) :
 				"\t"     => '\t',
 			);
 
-			$string = str_replace( array_keys( $replaces ), array_values( $replaces ), $string );
+			$input_string = str_replace( array_keys( $replaces ), array_values( $replaces ), $input_string );
 
-			$po = $quote . implode( "{$slash}n{$quote}{$newline}{$quote}", explode( $newline, $string ) ) . $quote;
-			// Add empty string on first line for readbility.
-			if ( false !== strpos( $string, $newline ) &&
-				( substr_count( $string, $newline ) > 1 || substr( $string, -strlen( $newline ) ) !== $newline ) ) {
+			$po = $quote . implode( "{$slash}n{$quote}{$newline}{$quote}", explode( $newline, $input_string ) ) . $quote;
+			// Add empty string on first line for readability.
+			if ( str_contains( $input_string, $newline ) &&
+				( substr_count( $input_string, $newline ) > 1 || substr( $input_string, -strlen( $newline ) ) !== $newline ) ) {
 				$po = "$quote$quote$newline$po";
 			}
 			// Remove empty strings.
@@ -140,17 +130,17 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Gives back the original string from a PO-formatted string
 		 *
-		 * @param string $string PO-formatted string
-		 * @return string enascaped string
+		 * @param string $input_string PO-formatted string
+		 * @return string unescaped string
 		 */
-		public static function unpoify( $string ) {
+		public static function unpoify( $input_string ) {
 			$escapes               = array(
 				't'  => "\t",
 				'n'  => "\n",
 				'r'  => "\r",
 				'\\' => '\\',
 			);
-			$lines                 = array_map( 'trim', explode( "\n", $string ) );
+			$lines                 = array_map( 'trim', explode( "\n", $input_string ) );
 			$lines                 = array_map( array( 'PO', 'trim_quotes' ), $lines );
 			$unpoified             = '';
 			$previous_is_backslash = false;
@@ -166,7 +156,7 @@ if ( ! class_exists( 'PO', false ) ) :
 						}
 					} else {
 						$previous_is_backslash = false;
-						$unpoified            .= isset( $escapes[ $char ] ) ? $escapes[ $char ] : $char;
+						$unpoified            .= $escapes[ $char ] ?? $char;
 					}
 				}
 			}
@@ -178,18 +168,18 @@ if ( ! class_exists( 'PO', false ) ) :
 		}
 
 		/**
-		 * Inserts $with in the beginning of every new line of $string and
+		 * Inserts $with in the beginning of every new line of $input_string and
 		 * returns the modified string
 		 *
-		 * @param string $string prepend lines in this string
-		 * @param string $with prepend lines with this string
+		 * @param string $input_string prepend lines in this string
+		 * @param string $with         prepend lines with this string
 		 */
-		public static function prepend_each_line( $string, $with ) {
-			$lines  = explode( "\n", $string );
+		public static function prepend_each_line( $input_string, $with ) {
+			$lines  = explode( "\n", $input_string );
 			$append = '';
-			if ( "\n" === substr( $string, -1 ) && '' === end( $lines ) ) {
+			if ( "\n" === substr( $input_string, -1 ) && '' === end( $lines ) ) {
 				/*
-				 * Last line might be empty because $string was terminated
+				 * Last line might be empty because $input_string was terminated
 				 * with a newline, remove it from the $lines array,
 				 * we'll restore state by re-terminating the string at the end.
 				 */
@@ -342,7 +332,7 @@ if ( ! class_exists( 'PO', false ) ) :
 			$context      = '';
 			$msgstr_index = 0;
 			while ( true ) {
-				$lineno++;
+				++$lineno;
 				$line = PO::read_line( $f );
 				if ( ! $line ) {
 					if ( feof( $f ) ) {
@@ -365,7 +355,7 @@ if ( ! class_exists( 'PO', false ) ) :
 					// The comment is the start of a new entry.
 					if ( self::is_final( $context ) ) {
 						PO::read_line( $f, 'put-back' );
-						$lineno--;
+						--$lineno;
 						break;
 					}
 					// Comments have to be at the beginning.
@@ -377,7 +367,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				} elseif ( preg_match( '/^msgctxt\s+(".*")/', $line, $m ) ) {
 					if ( self::is_final( $context ) ) {
 						PO::read_line( $f, 'put-back' );
-						$lineno--;
+						--$lineno;
 						break;
 					}
 					if ( $context && 'comment' !== $context ) {
@@ -388,7 +378,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				} elseif ( preg_match( '/^msgid\s+(".*")/', $line, $m ) ) {
 					if ( self::is_final( $context ) ) {
 						PO::read_line( $f, 'put-back' );
-						$lineno--;
+						--$lineno;
 						break;
 					}
 					if ( $context && 'msgctxt' !== $context && 'comment' !== $context ) {
@@ -475,8 +465,31 @@ if ( ! class_exists( 'PO', false ) ) :
 				$use_last_line = true;
 				return true;
 			}
-			$line          = $use_last_line ? $last_line : fgets( $f );
-			$line          = ( "\r\n" === substr( $line, -2 ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
+
+			if ( $use_last_line ) {
+				$line = $last_line;
+			} else {
+				$line = fgets( $f );
+				if ( false === $line ) {
+					return $line;
+				}
+
+				// Handle \r-only terminated lines after the deprecation of auto_detect_line_endings in PHP 8.1.
+				$r = strpos( $line, "\r" );
+				if ( false !== $r ) {
+					if ( strlen( $line ) === $r + 1
+						&& "\r\n" === substr( $line, $r )
+					) {
+						$line = rtrim( $line, "\r\n" ) . "\n";
+					} else {
+						// The lines are terminated by just \r, so we end the line there and rewind.
+						$rewind = strlen( $line ) - $r - 1;
+						$line   = substr( $line, 0, $r ) . "\n";
+						fseek( $f, - $rewind, SEEK_CUR );
+					}
+				}
+			}
+
 			$last_line     = $line;
 			$use_last_line = false;
 			return $line;
@@ -505,10 +518,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @return string
 		 */
 		public static function trim_quotes( $s ) {
-			if ( '"' === substr( $s, 0, 1 ) ) {
+			if ( str_starts_with( $s, '"' ) ) {
 				$s = substr( $s, 1 );
 			}
-			if ( '"' === substr( $s, -1, 1 ) ) {
+			if ( str_ends_with( $s, '"' ) ) {
 				$s = substr( $s, 0, -1 );
 			}
 			return $s;

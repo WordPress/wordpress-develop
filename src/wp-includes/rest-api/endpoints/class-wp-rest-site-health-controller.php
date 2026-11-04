@@ -152,8 +152,8 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_directory_sizes' ),
-				'permission_callback' => function() {
-					return $this->validate_request_permission( 'debug_enabled' ) && ! is_multisite();
+				'permission_callback' => function () {
+					return $this->validate_request_permission( 'directory_sizes' ) && ! is_multisite();
 				},
 			)
 		);
@@ -170,7 +170,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'test_page_cache' ),
 					'permission_callback' => function () {
-						return $this->validate_request_permission( 'view_site_health_checks' );
+						return $this->validate_request_permission( 'page_cache' );
 					},
 				),
 			)

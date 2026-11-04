@@ -5,6 +5,7 @@
  * @group slashes
  *
  * @covers ::stripslashes_deep
+ * @covers ::stripslashes_from_strings_only
  */
 class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	/**
@@ -26,7 +27,7 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$this->assertSame( $arr, stripslashes_deep( $arr ) ); // Keyed array.
 		$this->assertSame( array_values( $arr ), stripslashes_deep( array_values( $arr ) ) ); // Non-keyed.
 
-		$obj = new stdClass;
+		$obj = new stdClass();
 		foreach ( $arr as $k => $v ) {
 			$obj->$k = $v;
 		}
@@ -41,10 +42,12 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$this->assertSame( array( 'a' => $new ), stripslashes_deep( array( 'a' => $old ) ) ); // Keyed array.
 		$this->assertSame( array( $new ), stripslashes_deep( array( $old ) ) ); // Non-keyed.
 
-		$obj_old    = new stdClass;
+		$obj_old    = new stdClass();
 		$obj_old->a = $old;
-		$obj_new    = new stdClass;
+		$obj_new    = new stdClass();
 		$obj_new->a = $new;
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $obj_new, stripslashes_deep( $obj_old ) );
 	}
 
@@ -52,5 +55,18 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$txt = "I can't see, isn\'t that it?";
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\'t that it?" ) );
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\\\'t that it?" ) );
+	}
+
+	/**
+	 * Tests that stripslashes_from_strings_only() does not strip slashes from array elements.
+	 *
+	 * Unlike stripslashes_deep(), stripslashes_from_strings_only() does not recurse into arrays.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_stripslashes_from_strings_only_does_not_strip_array() {
+		$slashed_array = array( "I can\'t see", 'b' );
+
+		$this->assertSame( $slashed_array, stripslashes_from_strings_only( $slashed_array ) );
 	}
 }

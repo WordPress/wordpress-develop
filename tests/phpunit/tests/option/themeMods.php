@@ -69,11 +69,11 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_theme_mod
 	 */
-	public function test_theme_mod_default_value_with_percent_symbols( $default, $expected ) {
-		$this->assertSame( $expected, get_theme_mod( 'test_name', $default ) );
+	public function test_theme_mod_default_value_with_percent_symbols( $default_value, $expected ) {
+		$this->assertSame( $expected, get_theme_mod( 'test_name', $default_value ) );
 	}
 
-	public function data_theme_mod_default_value_with_percent_symbols() {
+	public static function data_theme_mod_default_value_with_percent_symbols() {
 		return array(
 			array(
 				'100%',
@@ -129,5 +129,4 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
