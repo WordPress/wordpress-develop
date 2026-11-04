@@ -44,6 +44,7 @@ on:
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.github/actions/setup-npm/**'
+      - '.github/actions/download-with-retry/**'
       - '.github/workflows/end-to-end-tests.yml'
       - '.github/workflows/reusable-end-to-end-tests*.yml'
   workflow_dispatch:

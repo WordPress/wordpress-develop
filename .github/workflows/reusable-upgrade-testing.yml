@@ -95,7 +95,11 @@ jobs:
         uses: $/.github/actions/setup-wp-cli
 
       - name: Download WordPress ${{ inputs.wp }}
-        run: wp core download --version="${WP_VERSION}"
+        # WP-CLI requests the release from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, so a retry starts from an empty directory.
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: wp core download --version="${WP_VERSION}"
         env:
           WP_VERSION: ${{ inputs.wp }}
 

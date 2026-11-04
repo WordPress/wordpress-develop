@@ -44,7 +44,9 @@ on:
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.github/actions/setup-npm/**'
+      - '.github/actions/download-with-retry/**'
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/workflows/performance.yml'
       - '.github/workflows/reusable-performance-*.yml'
   workflow_dispatch:

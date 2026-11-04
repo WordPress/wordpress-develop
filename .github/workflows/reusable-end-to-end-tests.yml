@@ -136,14 +136,22 @@ jobs:
           LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
 
+      - name: Download Gutenberg
+        if: ${{ inputs.install-gutenberg }}
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/download-with-retry
+        with:
+          url: https://downloads.wordpress.org/plugin/gutenberg.${{ inputs.gutenberg-version || 'latest-stable' }}.zip
+          output: gutenberg.zip
+
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}
         run: |
-          npm run env:cli -- plugin install gutenberg \
-          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
-          --path="/var/www/${LOCAL_DIR}"
-        env:
-          GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
+          npm run env:cli -- plugin install gutenberg.zip --path="/var/www/${LOCAL_DIR}"
+          rm gutenberg.zip
+          # Installing from a zip doesn't log the version; unpinned branches get the latest.
+          npm run env:cli -- plugin get gutenberg --field=version --path="/var/www/${LOCAL_DIR}"
 
       - name: Install additional languages
         run: |

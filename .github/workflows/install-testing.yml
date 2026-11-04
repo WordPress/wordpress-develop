@@ -13,6 +13,7 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
@@ -21,6 +22,7 @@ on:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
@@ -143,11 +145,15 @@ jobs:
       # WP-CLI 2.x extracts tarballs with PharData, which truncates paths longer than 100 characters.
       # Zip archives are not affected, so download the zip for every version.
       - name: Download WordPress
-        run: |
-          case "${WP_VERSION}" in
-            nightly|trunk) wp core download --version=nightly ;;
-            *) wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" ;;
-          esac
+        # WP-CLI requests WordPress from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, so a retry starts from an empty directory.
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: |
+            case "${WP_VERSION}" in
+              nightly|trunk) wp core download --version=nightly ;;
+              *) wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" ;;
+            esac
         env:
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 

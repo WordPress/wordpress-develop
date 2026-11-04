@@ -10,6 +10,7 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
@@ -20,6 +21,7 @@ on:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
