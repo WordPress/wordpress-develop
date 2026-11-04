@@ -873,7 +873,8 @@ class WP_Date_Query {
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
 	 *                                     Default: false.
-	 * @return string A MySQL format date/time.
+	 * @return string A MySQL format date/time. An unparseable string results in the Unix epoch
+	 *                (`1970-01-01 00:00:00`).
 	 *
 	 * @phpstan-param string|array{
 	 *     year?: int<0, max>,
