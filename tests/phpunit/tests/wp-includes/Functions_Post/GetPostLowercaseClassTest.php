@@ -7,5 +7,5 @@ use WP_UnitTestCase;
 /**
  * @covers ::get_post
  */
-class getPostLowercaseClassTest extends WP_UnitTestCase {
+class GetPostLowercaseClassTest extends WP_UnitTestCase {
 }
