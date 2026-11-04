@@ -233,7 +233,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	/**
 	 * @ticket 21593
 	 *
-	 * @expectedIncorrectUsage register_taxonomy
+	 * @expectedWPIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_too_long_name() {
 		$this->assertWPError( register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
@@ -242,7 +242,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	/**
 	 * @ticket 31135
 	 *
-	 * @expectedIncorrectUsage register_taxonomy
+	 * @expectedWPIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_empty_name() {
 		$this->assertWPError( register_taxonomy( '', 'post', array() ) );

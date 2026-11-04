@@ -59,7 +59,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 * @requires PHP < 8.1
 	 */
 	public function test_readonly_with_equal_values() {
-		$this->setExpectedDeprecated( 'readonly' );
+		$this->expectWPDeprecated( 'readonly' );
 
 		// Call the function via a variable to prevent a parse error for this file on PHP 8.1.
 		$fn = 'readonly';

@@ -1132,7 +1132,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Admin_Bar::_render_item
 	 *
-	 * @expectedIncorrectUsage WP_Admin_Bar::_render_item
+	 * @expectedWPIncorrectUsage WP_Admin_Bar::_render_item
 	 */
 	public function test_unregistered_icon_renders_no_icon_element(): void {
 		$admin_bar = new WP_Admin_Bar();

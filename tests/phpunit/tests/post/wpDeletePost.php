@@ -83,7 +83,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	 * @ticket 63975
 	 */
 	public function test_wp_delete_post_short_circuit_on_post_id_zero() {
-		$this->setExpectedIncorrectUsage( 'wp_delete_post' );
+		$this->expectWPIncorrectUsage( 'wp_delete_post' );
 		$this->assertFalse( wp_delete_post( 0, true ) );
 	}
 

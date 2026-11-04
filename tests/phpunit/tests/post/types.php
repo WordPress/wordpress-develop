@@ -77,7 +77,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 31134
 	 *
-	 * @expectedIncorrectUsage register_post_type
+	 * @expectedWPIncorrectUsage register_post_type
 	 */
 	public function test_register_post_type_with_too_long_name() {
 		// Post type too long.
@@ -87,7 +87,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 31134
 	 *
-	 * @expectedIncorrectUsage register_post_type
+	 * @expectedWPIncorrectUsage register_post_type
 	 */
 	public function test_register_post_type_with_empty_name() {
 		// Post type too short.

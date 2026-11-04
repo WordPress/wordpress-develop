@@ -207,7 +207,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	 * @param array $config Font collection config.
 	 */
 	public function test_should_error_when_missing_properties( $config ) {
-		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::sanitize_and_validate_data' );
+		$this->expectWPIncorrectUsage( 'WP_Font_Collection::sanitize_and_validate_data' );
 
 		$collection = new WP_Font_Collection( 'my-collection', $config );
 		$data       = $collection->get_data();
@@ -253,7 +253,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	}
 
 	public function test_should_error_with_invalid_json_file_path() {
-		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
+		$this->expectWPIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		$collection = new WP_Font_Collection(
 			'my-collection',
@@ -296,7 +296,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	}
 
 	public function test_should_error_with_invalid_url() {
-		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
+		$this->expectWPIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		$collection = new WP_Font_Collection(
 			'my-collection',

@@ -545,7 +545,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	 * @covers ::_register_block_bindings_post_data_source
 	 */
 	public function test_register_source_already_registered_triggers_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage( 'WP_Block_Bindings_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Bindings_Registry::register' );
 
 		_register_block_bindings_post_data_source();
 	}

@@ -23,7 +23,7 @@ class Tests_Speculative_Loading_wpSpeculationRules extends WP_UnitTestCase {
 		$speculation_rules = new WP_Speculation_Rules();
 
 		if ( ! $expected ) {
-			$this->setExpectedIncorrectUsage( 'WP_Speculation_Rules::add_rule' );
+			$this->expectWPIncorrectUsage( 'WP_Speculation_Rules::add_rule' );
 		}
 
 		$result = $speculation_rules->add_rule( $mode, $id, $rule );
@@ -49,7 +49,7 @@ class Tests_Speculative_Loading_wpSpeculationRules extends WP_UnitTestCase {
 		$this->assertTrue( $speculation_rules->add_rule( 'prefetch', 'my-custom-rule', array( 'where' => array( 'href_matches' => '/*' ) ) ) );
 
 		// But it should not be possible to add a rule of the same ID to a mode where it's already present.
-		$this->setExpectedIncorrectUsage( 'WP_Speculation_Rules::add_rule' );
+		$this->expectWPIncorrectUsage( 'WP_Speculation_Rules::add_rule' );
 		$this->assertFalse( $speculation_rules->add_rule( 'prerender', 'my-custom-rule', array( 'urls' => array( 'https://important-url.com/' ) ) ) );
 	}
 

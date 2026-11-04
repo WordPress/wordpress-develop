@@ -15,7 +15,7 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_truncate_post_slug_should_truncate
 	 *
-	 * @expectedDeprecated _truncate_post_slug
+	 * @expectedWPDeprecated _truncate_post_slug
 	 *
 	 * @param string $slug     The slug to truncate.
 	 * @param int    $length   Max length of the slug.

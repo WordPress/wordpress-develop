@@ -67,7 +67,7 @@ class Tests_Dependencies_wpRemoveSurroundingEmptyScriptTags extends WP_UnitTestC
 	 */
 	public function test_wp_remove_surrounding_empty_script_tags( $input, $expected, $expect_doing_it_wrong ) {
 		if ( $expect_doing_it_wrong ) {
-			$this->setExpectedIncorrectUsage( 'wp_remove_surrounding_empty_script_tags' );
+			$this->expectWPIncorrectUsage( 'wp_remove_surrounding_empty_script_tags' );
 		}
 
 		$this->assertSame(

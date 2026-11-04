@@ -1000,7 +1000,7 @@ https://w.org</a>',
 
 	/**
 	 * @ticket 19067
-	 * @expectedDeprecated wp_convert_bytes_to_hr
+	 * @expectedWPDeprecated wp_convert_bytes_to_hr
 	 */
 	public function test_wp_convert_bytes_to_hr() {
 		$kb = 1024;
@@ -3918,8 +3918,8 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50367
 	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_img_tag_add_loading_attr
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr() {
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
@@ -3932,8 +3932,8 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50367
 	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_img_tag_add_loading_attr
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_without_src() {
 		$img = '<img alt=" width="300" height="225" />';
@@ -3946,8 +3946,8 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50367
 	 *
-	 * @expectedDeprecated wp_img_tag_add_loading_attr
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_img_tag_add_loading_attr
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
@@ -3976,7 +3976,7 @@ EOF;
 	 *
 	 * @ticket 56969
 	 *
-	 * @expectedDeprecated wp_img_tag_add_decoding_attr
+	 * @expectedWPDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt='' width='300' height='225' />";
@@ -4449,7 +4449,7 @@ EOF;
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default
 	 *
@@ -4628,7 +4628,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4652,7 +4652,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4675,7 +4675,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4698,7 +4698,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -4725,7 +4725,7 @@ EOF;
 	 *
 	 * @dataProvider data_wp_get_loading_attr_default_before_and_no_loop
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @param string $context Context for the element for which the `loading` attribute value is requested.
 	 */
@@ -5003,7 +5003,7 @@ EOF;
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
@@ -5020,7 +5020,7 @@ EOF;
 	 *
 	 * @covers ::wp_get_loading_attr_default
 	 *
-	 * @expectedDeprecated wp_get_loading_attr_default
+	 * @expectedWPDeprecated wp_get_loading_attr_default
 	 *
 	 * @dataProvider data_special_contexts_for_the_content_wp_get_loading_attr_default
 	 *
@@ -6597,7 +6597,7 @@ EOF;
 	 * @ticket 58892
 	 *
 	 * @covers ::wp_get_loading_optimization_attributes
-	 * @expectedIncorrectUsage wp_get_loading_optimization_attributes
+	 * @expectedWPIncorrectUsage wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_get_loading_optimization_attributes_incorrect_loading_attrs() {
 		$attr                  = self::get_width_height_for_high_priority();
@@ -7516,7 +7516,7 @@ EOF;
 			$set_up();
 		}
 		if ( isset( $expected_deprecated ) ) {
-			$this->setExpectedDeprecated( $expected_deprecated );
+			$this->expectWPDeprecated( $expected_deprecated );
 		}
 
 		$this->assertCount( 0, wp_styles()->queue );

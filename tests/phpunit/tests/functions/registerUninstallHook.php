@@ -61,7 +61,7 @@ class Tests_Functions_RegisterUninstallHook extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @expectedIncorrectUsage register_uninstall_hook
+	 * @expectedWPIncorrectUsage register_uninstall_hook
 	 */
 	public function test_should_reject_object_method() {
 		register_uninstall_hook( WP_PLUGIN_DIR . '/my-plugin/my-plugin.php', array( new stdClass(), 'uninstall' ) );

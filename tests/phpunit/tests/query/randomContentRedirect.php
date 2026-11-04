@@ -1836,7 +1836,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_random
 	 *
-	 * @expectedIncorrectUsage is_random
+	 * @expectedWPIncorrectUsage is_random
 	 */
 	public function test_is_random_before_the_query_is_run(): void {
 		unset( $GLOBALS['wp_query'] );

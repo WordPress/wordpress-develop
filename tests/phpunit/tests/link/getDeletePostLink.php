@@ -274,7 +274,7 @@ class Tests_Link_GetDeletePostLink extends WP_UnitTestCase {
 	 * Tests that get_delete_post_link() triggers deprecation notice when deprecated second argument is passed.
 	 *
 	 * @ticket 65819
-	 * @expectedDeprecated get_delete_post_link
+	 * @expectedWPDeprecated get_delete_post_link
 	 */
 	public function test_get_delete_post_link_triggers_deprecation_for_deprecated_argument() {
 		$link = get_delete_post_link( self::$post_id, 'deprecated_argument_value' );

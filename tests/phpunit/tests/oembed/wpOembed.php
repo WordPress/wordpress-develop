@@ -291,7 +291,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 		};
 
 		add_filter( 'oembed_providers', $filter );
-		$this->setExpectedIncorrectUsage( 'WP_oEmbed::__construct' );
+		$this->expectWPIncorrectUsage( 'WP_oEmbed::__construct' );
 		$oembed = new WP_oEmbed();
 
 		$this->assertArrayNotHasKey( 'bad_provider', $oembed->providers );

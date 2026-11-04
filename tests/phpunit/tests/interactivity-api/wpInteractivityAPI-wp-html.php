@@ -195,7 +195,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string   $printed    How `state.html` is expected to print in the client data.
 	 */
 	public function test_token_reaches_the_output_only_as_host_content( callable $make_state, string $printed ) {
-		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
+		$this->expectWPIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
 		$this->set_state( $make_state() );
 
 		$output = wp_interactivity_process_directives(
@@ -367,7 +367,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param mixed $value The value of `state.html`.
 	 */
 	public function test_value_that_is_not_a_token_declines_with_one_notice( $value ) {
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
+		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
 		$this->set_state( array( 'html' => $value ) );
 
 		$output = wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.html">' . self::CHILDREN . '</div>' ) );
@@ -465,7 +465,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string $reason   Text the notice contains to name the reason.
 	 */
 	public function test_structural_decline_names_its_reason_without_resolving_the_reference( string $host, string $expected, string $reason ) {
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
+		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
 		$token = $this->token();
 		$this->set_state(
 			array(
@@ -529,7 +529,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string $literal The attribute value.
 	 */
 	public function test_authored_non_string_literal_declines_with_one_notice( string $literal ) {
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
+		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
 
 		$output = wp_interactivity_process_directives(
 			$this->page( '<div data-wp-html=\'' . $literal . '\'>Fallback</div>' )
@@ -748,8 +748,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers WP_Interactivity_Dangerous_HTML::__wakeup
 	 */
 	public function test_unserialized_token_declines_as_not_a_token() {
-		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
+		$this->expectWPIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
+		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
 
 		$original = $this->token();
 		$value    = unserialize( serialize( $original ) );
@@ -797,8 +797,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_token_in_context_helper_reaches_no_output_or_client_data() {
-		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
+		$this->expectWPIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
+		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
 
 		$wrapper = '<div data-wp-interactive="test" ' . wp_interactivity_data_wp_context( array( 'h' => $this->token() ) ) . '>';
 		$output  = wp_interactivity_process_directives(

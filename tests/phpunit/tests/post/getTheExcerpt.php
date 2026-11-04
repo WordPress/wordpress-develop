@@ -16,7 +16,7 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27246
-	 * @expectedDeprecated get_the_excerpt
+	 * @expectedWPDeprecated get_the_excerpt
 	 */
 	public function test_the_excerpt_deprecated() {
 		$this->assertSame( '', get_the_excerpt( true ) );

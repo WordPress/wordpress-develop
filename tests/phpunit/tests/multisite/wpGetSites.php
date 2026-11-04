@@ -48,7 +48,7 @@ class Tests_Multisite_wpGetSites extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_get_sites
+	 * @expectedWPDeprecated wp_get_sites
 	 */
 	public function test_wp_get_sites_site_is_expected_array() {
 
@@ -74,7 +74,7 @@ class Tests_Multisite_wpGetSites extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_get_sites
+	 * @expectedWPDeprecated wp_get_sites
 	 * @dataProvider data_wp_get_sites
 	 *
 	 * @param $expected

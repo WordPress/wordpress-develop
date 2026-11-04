@@ -157,7 +157,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_returns_error_when_ability_not_found() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
 		$call     = new FunctionCall(
@@ -185,7 +185,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_ability_handles_missing_id() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
 		$call     = new FunctionCall(
@@ -336,7 +336,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_handles_errors_gracefully() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
 		$call     = new FunctionCall(
@@ -369,7 +369,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_returns_user_message() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
 		$call     = new FunctionCall(
@@ -395,7 +395,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_processes_multiple_calls() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability1', 'nonexistent/ability2' );
 
@@ -431,7 +431,7 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	 * @ticket 64591
 	 */
 	public function test_execute_abilities_only_processes_function_calls() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'nonexistent/ability' );
 		$call     = new FunctionCall(

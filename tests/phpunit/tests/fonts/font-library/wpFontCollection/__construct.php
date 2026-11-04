@@ -13,7 +13,7 @@
 class Tests_Fonts_WpFontCollection_Construct extends WP_UnitTestCase {
 
 	public function test_should_do_it_wrong_with_invalid_slug() {
-		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::__construct' );
+		$this->expectWPIncorrectUsage( 'WP_Font_Collection::__construct' );
 		$mock_collection_data = array(
 			'name'          => 'Test Collection',
 			'font_families' => array( 'mock ' ),

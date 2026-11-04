@@ -721,7 +721,7 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Recent_Comments::flush_widget_cache
 	 *
-	 * @expectedDeprecated WP_Widget_Recent_Comments::flush_widget_cache
+	 * @expectedWPDeprecated WP_Widget_Recent_Comments::flush_widget_cache
 	 */
 	public function test_flush_widget_cache_is_deprecated() {
 		$widget = new WP_Widget_Recent_Comments();

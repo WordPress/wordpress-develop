@@ -75,7 +75,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_invalid_plugin_path() {
 		$invalid_plugin_path = WP_PLUGIN_DIR;
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $invalid_plugin_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid plugin path should not be registered' );
@@ -96,7 +96,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_invalid_muplugin_path() {
 		$invalid_plugin_path = WPMU_PLUGIN_DIR;
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $invalid_plugin_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid must-use plugin path should not be registered' );
@@ -117,7 +117,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_invalid_theme_path() {
 		$invalid_theme_path = WP_CONTENT_DIR . '/themes';
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $invalid_theme_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid theme path should not be registered' );
@@ -145,7 +145,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 			}
 		);
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $arbitrary_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Arbitrary path should not be registered if it matches a collection root' );
@@ -163,7 +163,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_wp_content_parent_directory_path() {
 		$invalid_path = dirname( WP_CONTENT_DIR );
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $invalid_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid path (parent directory of "wp-content") should not be registered' );
@@ -175,7 +175,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_wp_includes_parent_directory_path() {
 		$invalid_path = ABSPATH;
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $invalid_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Invalid path (parent directory of "wp-includes") should not be registered' );
@@ -184,7 +184,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 	public function test_register_collection_with_non_existent_manifest() {
 		$non_existent_manifest = '/path/that/does/not/exist/block-manifest.php';
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( '/var/arbitrary/path', $non_existent_manifest );
 		$this->assertFalse( $result, 'Non-existent manifest should not be registered' );
@@ -277,7 +277,7 @@ class Tests_Blocks_WpBlockMetadataRegistry extends WP_UnitTestCase {
 			}
 		);
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Metadata_Registry::register_collection' );
 
 		$result = WP_Block_Metadata_Registry::register_collection( $plugins_path, $this->temp_manifest_file );
 		$this->assertFalse( $result, 'Arbitrary Windows path should not be registered if it matches a collection root' );

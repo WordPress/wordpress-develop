@@ -316,8 +316,8 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 *
 	 * @requires function imagecreatetruecolor
 	 *
-	 * @expectedDeprecated image_edit_apply_changes
-	 * @expectedDeprecated _rotate_image_resource
+	 * @expectedWPDeprecated image_edit_apply_changes
+	 * @expectedWPDeprecated _rotate_image_resource
 	 */
 	public function test_applies_changes_to_gd_image() {
 		$image = imagecreatetruecolor( 40, 20 );

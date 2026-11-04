@@ -51,7 +51,7 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_block_names
 	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Type_Registry::register
 	 */
 	public function test_invalid_block_names( $name ) {
 		$result = $this->registry->register( $name, array() );
@@ -99,7 +99,7 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Type_Registry::register
 	 */
 	public function test_register_block_type_twice() {
 		$name     = 'core/paragraph';
@@ -134,7 +134,7 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::unregister
 	 *
-	 * @expectedIncorrectUsage WP_Block_Type_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Block_Type_Registry::unregister
 	 */
 	public function test_unregister_not_registered_block() {
 		$result = $this->registry->unregister( 'core/unregistered' );

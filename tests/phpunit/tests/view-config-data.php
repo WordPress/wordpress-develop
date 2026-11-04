@@ -149,7 +149,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::set
 	 */
 	public function test_set_rejects_unknown_key() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::set' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::set' );
 
 		$data   = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$before = self::read_config( $data );
@@ -165,7 +165,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::set
 	 */
 	public function test_set_rejects_updates_with_invalid_version() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::set' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::set' );
 
 		$data   = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$before = self::read_config( $data );
@@ -446,7 +446,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::replace
 	 */
 	public function test_replace_rejects_unknown_key() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::replace' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::replace' );
 
 		$data   = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$before = self::read_config( $data );
@@ -462,7 +462,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::replace
 	 */
 	public function test_replace_rejects_updates_with_invalid_version() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::replace' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::replace' );
 
 		$data   = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$before = self::read_config( $data );
@@ -1694,7 +1694,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_updates_with_invalid_version() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::merge' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::merge' );
 
 		$data   = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$before = self::read_config( $data );
@@ -1713,7 +1713,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_unknown_key() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::merge' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::merge' );
 
 		$data = new WP_View_Config_Data( array( 'default_view' => array( 'type' => 'table' ) ) );
 		$data->merge( array( 'not_a_real_key' => 'nope' ), 1 );
@@ -1731,7 +1731,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_associative_patch_over_a_list() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
 
 		$data   = new WP_View_Config_Data(
 			array(
@@ -1768,7 +1768,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::merge
 	 */
 	public function test_merge_rejects_list_patch_over_an_associative_value() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
 
 		$data   = new WP_View_Config_Data(
 			array(
@@ -1897,7 +1897,7 @@ class Tests_View_Config_Data extends WP_UnitTestCase {
 	 * @covers ::replace
 	 */
 	public function test_replace_rejects_list_patch_over_an_associative_value() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::merge_properties' );
 
 		$data   = new WP_View_Config_Data(
 			array(

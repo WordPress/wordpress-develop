@@ -45,7 +45,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		// Try to register a template with invalid name (non-string).
 		$template_name = array( 'invalid-template-name' );
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
 		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
@@ -65,7 +65,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		// Try to register a template with uppercase characters in the name.
 		$template_name = 'test-plugin//Invalid-Template-Name';
 
-		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
 		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
@@ -82,7 +82,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_template_no_prefix() {
 		// Try to register a template without a namespace.
-		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( 'template-no-plugin', array() );
 
 		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );
@@ -103,7 +103,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		self::$registry->register( $template_name );
 
 		// Try to register the same template again.
-		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Templates_Registry::register' );
 		$result = self::$registry->register( $template_name );
 
 		$this->assertWPError( $result, 'Template registration is expected to trigger an error.' );

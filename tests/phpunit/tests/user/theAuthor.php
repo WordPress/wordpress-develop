@@ -74,7 +74,7 @@ class Tests_User_TheAuthor extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @expectedDeprecated the_author
+	 * @expectedWPDeprecated the_author
 	 */
 	public function test_triggers_deprecated_argument_for_first_parameter() {
 		$output = get_echo( 'the_author', array( 'deprecated_value' ) );
@@ -88,7 +88,7 @@ class Tests_User_TheAuthor extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @expectedDeprecated the_author
+	 * @expectedWPDeprecated the_author
 	 */
 	public function test_returns_without_echoing_when_deprecated_echo_is_false() {
 		ob_start();

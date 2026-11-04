@@ -177,7 +177,7 @@ class Tests_Link_GetCommentsLink extends WP_UnitTestCase {
 	 * @param string $deprecated_2 Second deprecated argument.
 	 */
 	public function test_comments_link_deprecated_arguments( $deprecated, $deprecated_2 ) {
-		$this->setExpectedDeprecated( 'comments_link' );
+		$this->expectWPDeprecated( 'comments_link' );
 
 		$GLOBALS['post'] = get_post( self::$post_without_comments );
 

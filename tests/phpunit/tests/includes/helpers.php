@@ -232,17 +232,51 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28486
+	 * @ticket 54029
 	 */
-	public function test_setExpectedDeprecated() {
+	public function test_expectWPDeprecated() {
+		$this->expectWPDeprecated( 'Tests_TestHelpers::mock_deprecated' );
+		$this->assertTrue( $this->mock_deprecated() );
+	}
+
+	/**
+	 * @ticket 54029
+	 */
+	public function test_setExpectedDeprecated_back_compat() {
 		$this->setExpectedDeprecated( 'Tests_TestHelpers::mock_deprecated' );
 		$this->assertTrue( $this->mock_deprecated() );
 	}
 
 	/**
-	 * @ticket 28486
+	 * @ticket 54029
+	 * @expectedDeprecated Tests_TestHelpers::mock_deprecated
 	 */
-	public function test_setExpectedIncorrectUsage() {
+	public function test_expected_deprecated_annotation_back_compat() {
+		$this->assertTrue( $this->mock_deprecated() );
+	}
+
+	/**
+	 * @ticket 28486
+	 * @ticket 54029
+	 */
+	public function test_expectWPIncorrectUsage() {
+		$this->expectWPIncorrectUsage( 'Tests_TestHelpers::mock_incorrect_usage' );
+		$this->assertTrue( $this->mock_incorrect_usage() );
+	}
+
+	/**
+	 * @ticket 54029
+	 */
+	public function test_setExpectedIncorrectUsage_back_compat() {
 		$this->setExpectedIncorrectUsage( 'Tests_TestHelpers::mock_incorrect_usage' );
+		$this->assertTrue( $this->mock_incorrect_usage() );
+	}
+
+	/**
+	 * @ticket 54029
+	 * @expectedIncorrectUsage Tests_TestHelpers::mock_incorrect_usage
+	 */
+	public function test_expected_incorrect_usage_annotation_back_compat() {
 		$this->assertTrue( $this->mock_incorrect_usage() );
 	}
 

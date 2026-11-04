@@ -91,7 +91,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * Note that when a means of adding elements in extension namespaces is settled on,
 	 * this test will need to be updated accordingly.
 	 *
-	 * @expectedIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 * @expectedWPIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_index_xml
 	 */
 	public function test_get_sitemap_index_xml_extra_elements() {
 		$url_list = array(
@@ -162,7 +162,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * Note that when a means of adding elements in extension namespaces is settled on,
 	 * this test will need to be updated accordingly.
 	 *
-	 * @expectedIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_xml
+	 * @expectedWPIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_xml
 	 */
 	public function test_get_sitemap_xml_extra_elements() {
 		$url_list = array(
@@ -197,7 +197,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
 	 */
 	public function test_get_sitemap_stylesheet_url_filter() {
-		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_url' );
+		$this->expectWPDeprecated( 'wp_sitemaps_stylesheet_url' );
 
 		$custom_url = 'https://example.com/custom-sitemap.xsl';
 
@@ -225,7 +225,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
 	 */
 	public function test_get_sitemap_index_stylesheet_url_filter() {
-		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_index_url' );
+		$this->expectWPDeprecated( 'wp_sitemaps_stylesheet_index_url' );
 
 		$custom_url = 'https://example.com/custom-sitemap-index.xsl';
 
@@ -261,7 +261,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @param string $method    Renderer method that generates the XML.
 	 */
 	public function test_deprecated_stylesheet_filters( string $hook_name, string $method ): void {
-		$this->setExpectedDeprecated( $hook_name );
+		$this->expectWPDeprecated( $hook_name );
 
 		add_filter( $hook_name, '__return_empty_string' );
 
@@ -285,8 +285,8 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
 	 *
-	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
-	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 * @expectedWPDeprecated WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @expectedWPDeprecated WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
 	 */
 	public function test_stylesheet_url_methods_are_deprecated(): void {
 		$sitemap_renderer = new WP_Sitemaps_Renderer();

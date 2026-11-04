@@ -110,7 +110,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	public function test_encrypt_reports_an_invalid_scope_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
+		$this->expectWPIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
 
 		$result = $cipher->encrypt_value( $this->master_key(), 'bogus-scope', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
@@ -121,7 +121,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	public function test_encrypt_reports_a_negative_site_id_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
+		$this->expectWPIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
 
 		$result = $cipher->encrypt_value( $this->master_key(), 'site', -1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
 
@@ -132,7 +132,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	public function test_encrypt_reports_an_invalid_slot_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
+		$this->expectWPIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
 
 		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, 'not-a-real-slot', 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 

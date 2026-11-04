@@ -118,7 +118,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_category_invalid_slug_format(): void {
 		// Uppercase characters not allowed.
@@ -139,7 +139,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_category_invalid_slug_underscore(): void {
 		$result = $this->registry->register(
@@ -159,7 +159,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_category_missing_label(): void {
 		$result = $this->registry->register(
@@ -178,7 +178,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_category_missing_description(): void {
 		$result = $this->registry->register(
@@ -197,7 +197,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_duplicate_category(): void {
 		$result = $this->registry->register(
@@ -247,7 +247,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::unregister
 	 */
 	public function test_unregister_nonexistent_category(): void {
 		$result = $this->registry->unregister( 'test-nonexistent' );
@@ -281,7 +281,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_nonexistent_category(): void {
 		$result = $this->registry->get_registered( 'test-nonexistent' );
@@ -449,7 +449,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 * @ticket 64098
 	 *
 	 * @dataProvider data_invalid_slug_provider
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 *
 	 * @param string $slug The category slug to test.
 	 */
@@ -471,7 +471,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_category_constructor_non_string_label(): void {
 		$result = $this->registry->register(
@@ -491,7 +491,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_category_constructor_empty_label(): void {
 		$result = $this->registry->register(
@@ -511,7 +511,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_category_constructor_non_string_description(): void {
 		$result = $this->registry->register(
@@ -531,7 +531,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_category_constructor_empty_description(): void {
 		$result = $this->registry->register(
@@ -665,7 +665,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::register
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::register
 	 */
 	public function test_register_category_with_invalid_meta(): void {
 		$result = $this->registry->register(
@@ -686,7 +686,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Category::__construct
+	 * @expectedWPIncorrectUsage WP_Ability_Category::__construct
 	 */
 	public function test_register_category_with_unknown_property(): void {
 		$result = $this->registry->register(

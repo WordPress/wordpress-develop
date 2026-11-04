@@ -6113,7 +6113,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61704
-	 * @expectedIncorrectUsage get_property_value
+	 * @expectedWPIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_loop() {
 		$theme_json = new WP_Theme_JSON(
@@ -6150,7 +6150,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61704
-	 * @expectedIncorrectUsage get_property_value
+	 * @expectedWPIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_recursion() {
 		$theme_json = new WP_Theme_JSON(
@@ -6186,7 +6186,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60936
 	 * @ticket 61165
 	 * @ticket 61704
-	 * @expectedIncorrectUsage get_property_value
+	 * @expectedWPIncorrectUsage get_property_value
 	 */
 	public function test_get_property_value_self() {
 		$theme_json = new WP_Theme_JSON(
