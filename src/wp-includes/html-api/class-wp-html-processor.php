@@ -271,6 +271,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $context_node = null;
 
+	/**
+	 * Node to process on the next pass of {@see WP_HTML_Processor::step()},
+	 * or null when the insertion mode handler's return value is final.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_HTML_Processor::continue_stepping()
+	 *
+	 * @var string|null One of PROCESS_NEXT_NODE or REPROCESS_CURRENT_NODE.
+	 */
+	private $pending_step = null;
+
 	/*
 	 * Public Interface Functions
 	 */
@@ -805,10 +817,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * semantic rules for text nodes. For access to the raw tokens consider using
 	 * WP_HTML_Tag_Processor instead.
 	 *
-	 * Note that this method may call itself recursively. This is why it is not
-	 * implemented as {@see WP_HTML_Processor::next_token()}, which instead calls
-	 * this method similarly to how {@see WP_HTML_Tag_Processor::next_token()}
-	 * calls the {@see WP_HTML_Tag_Processor::base_class_next_token()} method.
+	 * This method holds the implementation of {@see WP_HTML_Processor::next_token()}
+	 * so that subclasses may extend that method, similarly to how
+	 * {@see WP_HTML_Tag_Processor::next_token()} calls the
+	 * {@see WP_HTML_Tag_Processor::base_class_next_token()} method.
+	 *
+	 * Each pass of the loop takes one event from the element queue and returns
+	 * when that event is a visitable token. Events that are not visitable, and
+	 * passes that only fill the queue, continue with the next pass.
 	 *
 	 * @since 6.7.2 Added for internal support.
 	 * @ignore
@@ -816,67 +832,73 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool
 	 */
 	private function next_visitable_token(): bool {
-		$this->current_element = null;
-
-		if ( isset( $this->last_error ) ) {
-			return false;
-		}
-
-		/*
-		 * Prime the events if there are none.
-		 *
-		 * @todo In some cases, probably related to the adoption agency
-		 *       algorithm, this call to step() doesn't create any new
-		 *       events. Calling it again creates them. Figure out why
-		 *       this is and if it's inherent or if it's a bug. Looping
-		 *       until there are events or until there are no more
-		 *       tokens works in the meantime and isn't obviously wrong.
-		 */
-		if ( empty( $this->element_queue ) ) {
-			if ( $this->step() ) {
-				return $this->next_visitable_token();
-			}
+		while ( true ) {
+			$this->current_element = null;
 
 			if ( isset( $this->last_error ) ) {
 				return false;
 			}
-		}
 
-		// Process the next event on the queue.
-		$this->current_element = array_shift( $this->element_queue );
-		if ( ! isset( $this->current_element ) ) {
-			// There are no tokens left, so close all remaining open elements.
-			while ( $this->state->stack_of_open_elements->pop() ) {
+			/*
+			 * Prime the events if there are none.
+			 *
+			 * @todo In some cases, probably related to the adoption agency
+			 *       algorithm, this call to step() doesn't create any new
+			 *       events. Calling it again creates them. Figure out why
+			 *       this is and if it's inherent or if it's a bug. Looping
+			 *       until there are events or until there are no more
+			 *       tokens works in the meantime and isn't obviously wrong.
+			 */
+			if ( empty( $this->element_queue ) ) {
+				if ( $this->step() ) {
+					continue;
+				}
+
+				if ( isset( $this->last_error ) ) {
+					return false;
+				}
+			}
+
+			// Process the next event on the queue.
+			$this->current_element = array_shift( $this->element_queue );
+			if ( ! isset( $this->current_element ) ) {
+				// There are no tokens left, so close all remaining open elements.
+				while ( $this->state->stack_of_open_elements->pop() ) {
+					continue;
+				}
+
+				if ( empty( $this->element_queue ) ) {
+					return false;
+				}
+
 				continue;
 			}
 
-			return empty( $this->element_queue ) ? false : $this->next_visitable_token();
+			$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
+
+			/*
+			 * The root node only exists in the fragment parser, and closing it
+			 * indicates that the parse is complete. Stop before popping it from
+			 * the breadcrumbs.
+			 */
+			if ( 'root-node' === $this->current_element->token->bookmark_name ) {
+				continue;
+			}
+
+			// Adjust the breadcrumbs for this event.
+			if ( $is_pop ) {
+				array_pop( $this->breadcrumbs );
+			} else {
+				$this->breadcrumbs[] = $this->current_element->token->node_name;
+			}
+
+			// Avoid sending close events for elements which don't expect a closing.
+			if ( $is_pop && ! $this->expects_closer( $this->current_element->token ) ) {
+				continue;
+			}
+
+			return true;
 		}
-
-		$is_pop = WP_HTML_Stack_Event::POP === $this->current_element->operation;
-
-		/*
-		 * The root node only exists in the fragment parser, and closing it
-		 * indicates that the parse is complete. Stop before popping it from
-		 * the breadcrumbs.
-		 */
-		if ( 'root-node' === $this->current_element->token->bookmark_name ) {
-			return $this->next_visitable_token();
-		}
-
-		// Adjust the breadcrumbs for this event.
-		if ( $is_pop ) {
-			array_pop( $this->breadcrumbs );
-		} else {
-			$this->breadcrumbs[] = $this->current_element->token->node_name;
-		}
-
-		// Avoid sending close events for elements which don't expect a closing.
-		if ( $is_pop && ! $this->expects_closer( $this->current_element->token ) ) {
-			return $this->next_visitable_token();
-		}
-
-		return true;
 	}
 
 	/**
@@ -1021,6 +1043,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This is an internal method. The relevant public methods are
 	 * {@see WP_HTML_Processor::next_tag()} and {@see WP_HTML_Processor::next_token()}.
 	 *
+	 * Each pass processes one node in the current insertion mode:
+	 *
+	 *  - `$node_to_process` selects the node for the pass.
+	 *  - `$found_token` is the handler's result for the pass.
+	 *  - `$this->pending_step` is set by {@see WP_HTML_Processor::continue_stepping()}
+	 *    when the handler has no result for its token: it ignored the token, or it
+	 *    changed the insertion mode and the same token must be processed there.
+	 *
+	 *     step()                step_once()            handler
+	 *       │                       │                     │
+	 *       ├── pass ──────────────►├── dispatch ────────►│ no result for the token:
+	 *       │                       │◄─ false ────────────┤ continue_stepping()
+	 *       │◄─ false ──────────────┤                     │ sets pending_step
+	 *       │ pending_step set      │                     │
+	 *       ├── pass ──────────────►├── dispatch ────────►│ token matched
+	 *       │◄─ true ───────────────┤◄─ true ─────────────┤
+	 *       │ pending_step null
+	 *       ▼
+	 *     return true
+	 *
 	 * @since 6.4.0
 	 *
 	 * @access private
@@ -1034,6 +1076,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether a tag was matched.
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
+		do {
+			$this->pending_step = null;
+			$found_token        = $this->step_once( $node_to_process );
+			$node_to_process    = $this->pending_step;
+		} while ( null !== $node_to_process );
+
+		return $found_token;
+	}
+
+	/**
+	 * Processes one node in the current insertion mode.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @throws Exception When unable to allocate a bookmark for the next token in the input HTML document.
+	 *
+	 * @see WP_HTML_Processor::step()
+	 *
+	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
+	 * @return bool Whether a tag was matched. Also false when the handler requested another pass.
+	 *
+	 * @phpstan-impure
+	 */
+	private function step_once( $node_to_process ): bool {
 		// Refuse to proceed if there was a previous error.
 		if ( null !== $this->last_error ) {
 			return false;
@@ -1197,6 +1263,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// Rethrow any other exceptions for higher-level handling.
 			throw $e;
 		}
+	}
+
+	/**
+	 * Requests another pass of {@see WP_HTML_Processor::step()} because the
+	 * current pass has no result for its token.
+	 *
+	 * An insertion mode handler returns this method's value when it ignores
+	 * its token, or when it changes the insertion mode and the same token
+	 * must be processed there.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see self::PROCESS_NEXT_NODE
+	 * @see self::REPROCESS_CURRENT_NODE
+	 *
+	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
+	 * @return bool Always false: the handler has no match to report.
+	 */
+	private function continue_stepping( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
+		$this->pending_step = $node_to_process;
+		return false;
 	}
 
 	/**
@@ -1599,7 +1686,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				goto initial_anything_else;
 
@@ -1637,7 +1724,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		initial_anything_else:
 		$this->compat_mode           = WP_HTML_Tag_Processor::QUIRKS_MODE;
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1670,7 +1757,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A comment token
@@ -1692,7 +1779,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				goto before_html_anything_else;
 
@@ -1723,7 +1810,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -1736,7 +1823,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		before_html_anything_else:
 		$this->insert_virtual_node( 'HTML' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1773,7 +1860,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '#text':
 				if ( parent::TEXT_IS_WHITESPACE === $this->text_node_classification ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				goto before_head_anything_else;
 
@@ -1793,7 +1880,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -1824,7 +1911,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -1835,7 +1922,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		before_head_anything_else:
 		$this->state->head_element   = $this->insert_virtual_node( 'HEAD' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -1892,7 +1979,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -2028,7 +2115,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TEMPLATE':
 				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
 					// @todo Indicate a parse error once it's possible.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags_thoroughly();
@@ -2049,7 +2136,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( '+HEAD' === $op || $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -2058,7 +2145,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		in_head_anything_else:
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -2104,7 +2191,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -2151,7 +2238,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( '+HEAD' === $op || '+NOSCRIPT' === $op || $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -2162,7 +2249,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		in_head_noscript_anything_else:
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -2219,7 +2306,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -2298,7 +2385,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( '+HEAD' === $op || $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -2308,7 +2395,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		after_head_anything_else:
 		$this->insert_virtual_node( 'BODY' );
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -2346,7 +2433,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->reconstruct_active_formatting_elements();
@@ -2375,7 +2462,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > Parse error. Ignore the token.
 			 */
 			case 'html':
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -2392,7 +2479,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				// Ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is one of: "base", "basefont", "bgsound", "link",
@@ -2425,7 +2512,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->contains( 'TEMPLATE' )
 				) {
 					// Ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -2437,7 +2524,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * This parser does not currently support this behavior: ignore the token.
 				 */
 				$this->state->frameset_ok = false;
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "frameset"
@@ -2451,7 +2538,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					false === $this->state->frameset_ok
 				) {
 					// Ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -2466,7 +2553,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -2487,7 +2574,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * Nothing has been pushed or popped.
 				 * Proceed to parse the next item.
 				 */
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > An end tag whose tag name is "html"
@@ -2495,7 +2582,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-HTML':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'BODY' ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -2509,7 +2596,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is one of: "address", "article", "aside",
@@ -2605,7 +2692,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 				if ( isset( $this->state->form_element ) && ! $stack_contains_template ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
@@ -2743,7 +2830,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
 					// @todo Report parse error.
 					// Ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags();
@@ -2780,7 +2867,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 						 * that serialization cannot represent, allowing a later FORM opener
 						 * to appear in the first normalization pass and disappear on the second.
 						 */
-						return $this->step();
+						return $this->continue_stepping();
 					}
 
 					$this->state->form_element = null;
@@ -2802,7 +2889,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 */
 					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
 						// Parse error: ignore the token.
-						return $this->step();
+						return $this->continue_stepping();
 					}
 
 					$this->generate_implied_end_tags();
@@ -2860,7 +2947,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @todo Indicate a parse error once it's possible.
 					 */
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags( $token_name );
@@ -2887,7 +2974,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 *
 					 * @todo Indicate a parse error once it's possible.
 					 */
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags();
@@ -2999,7 +3086,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-OBJECT':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags();
@@ -3065,7 +3152,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >   3. Return.
 				 */
 				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -3215,7 +3302,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				if ( isset( $this->context_node ) && 'SELECT' === $this->context_node->node_name ) {
 					// @todo Indicate a parse error once it's possible.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				/*
 				 * > Otherwise, if the stack of open elements has a select element in scope:
@@ -3227,7 +3314,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
 					// @todo Indicate a parse error once it's possible.
 					$this->state->stack_of_open_elements->pop_until( 'SELECT' );
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->reconstruct_active_formatting_elements();
@@ -3360,7 +3447,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+THEAD':
 			case '+TR':
 				// Parse error. Ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 		}
 
 		if ( ! parent::is_tag_closer() ) {
@@ -3410,7 +3497,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			if ( self::is_special( $node ) ) {
 				// This is a parse error, ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 			}
 		}
 
@@ -3475,7 +3562,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					 * U+0000 NULL bytes then ignore the token.
 					 */
 					if ( parent::TEXT_IS_NULL_SEQUENCE === $this->text_node_classification ) {
-						return $this->step();
+						return $this->continue_stepping();
 					}
 
 					/*
@@ -3523,7 +3610,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "caption"
@@ -3556,7 +3643,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				$this->insert_virtual_node( 'COLGROUP' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is one of: "tbody", "tfoot", "thead"
@@ -3582,7 +3669,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 				$this->insert_virtual_node( 'TBODY' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is "table"
@@ -3591,12 +3678,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TABLE' ) ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
 				$this->reset_insertion_mode_appropriately();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is "table"
@@ -3604,7 +3691,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TABLE' ) ) {
 					// @todo Indicate a parse error once it's possible.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->pop_until( 'TABLE' );
@@ -3626,7 +3713,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-THEAD':
 			case '-TR':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is one of: "style", "script", "template"
@@ -3667,7 +3754,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->state->stack_of_open_elements->has_element_in_scope( 'TEMPLATE' ) ||
 					isset( $this->state->form_element )
 				) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				// This FORM is special because it immediately closes and cannot have other children.
@@ -3751,7 +3838,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'CAPTION' ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags();
@@ -3767,7 +3854,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( '-CAPTION' === $op ) {
 					return true;
 				}
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/**
 			 * > An end tag whose tag name is one of: "body", "col", "colgroup", "html", "tbody", "td", "tfoot", "th", "thead", "tr"
@@ -3783,7 +3870,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-THEAD':
 			case '-TR':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 		}
 
 		/**
@@ -3845,7 +3932,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// @todo Indicate a parse error once it's possible.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -3867,7 +3954,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-COLGROUP':
 				if ( ! $this->state->stack_of_open_elements->current_node_is( 'COLGROUP' ) ) {
 					// @todo Indicate a parse error once it's possible.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
@@ -3878,7 +3965,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-COL':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "template"
@@ -3895,11 +3982,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( ! $this->state->stack_of_open_elements->current_node_is( 'COLGROUP' ) ) {
 			// @todo Indicate a parse error once it's possible.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 		$this->state->stack_of_open_elements->pop();
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -3943,7 +4030,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->clear_to_table_body_context();
 				$this->insert_virtual_node( 'TR' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is one of: "tbody", "tfoot", "thead"
@@ -3953,7 +4040,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-THEAD':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->clear_to_table_body_context();
@@ -3978,12 +4065,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TFOOT' )
 				) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				$this->state->stack_of_open_elements->clear_to_table_body_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is one of: "body", "caption", "col", "colgroup", "html", "td", "th", "tr"
@@ -3997,7 +4084,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TH':
 			case '-TR':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 		}
 
 		/*
@@ -4046,7 +4133,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TR':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->clear_to_table_row_context();
@@ -4068,13 +4155,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TABLE':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is one of: "tbody", "tfoot", "thead"
@@ -4084,18 +4171,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-THEAD':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( 'TR' ) ) {
 					// Ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->stack_of_open_elements->clear_to_table_row_context();
 				$this->state->stack_of_open_elements->pop();
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is one of: "body", "caption", "col", "colgroup", "html", "td", "th"
@@ -4108,7 +4195,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TD':
 			case '-TH':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 		}
 
 		/*
@@ -4147,7 +4234,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TH':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->generate_implied_end_tags();
@@ -4187,7 +4274,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->close_cell();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > An end tag whose tag name is one of: "body", "caption", "col", "colgroup", "html"
@@ -4198,7 +4285,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-COLGROUP':
 			case '-HTML':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > An end tag whose tag name is one of: "table", "tbody", "tfoot", "thead", "tr"
@@ -4210,10 +4297,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-TR':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_table_scope( $tag_name ) ) {
 					// Parse error: ignore the token.
-					return $this->step();
+					return $this->continue_stepping();
 				}
 				$this->close_cell();
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 		}
 
 		/*
@@ -4290,7 +4377,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				array_pop( $this->state->stack_of_template_insertion_modes );
 				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
 				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is "col"
@@ -4299,7 +4386,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				array_pop( $this->state->stack_of_template_insertion_modes );
 				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
 				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is "tr"
@@ -4308,7 +4395,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				array_pop( $this->state->stack_of_template_insertion_modes );
 				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 
 			/*
 			 * > A start tag whose tag name is one of: "td", "th"
@@ -4318,7 +4405,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				array_pop( $this->state->stack_of_template_insertion_modes );
 				$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 				$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
-				return $this->step( self::REPROCESS_CURRENT_NODE );
+				return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 		}
 
 		/*
@@ -4328,7 +4415,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			array_pop( $this->state->stack_of_template_insertion_modes );
 			$this->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
 			$this->state->insertion_mode                      = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
-			return $this->step( self::REPROCESS_CURRENT_NODE );
+			return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 		}
 
 		/*
@@ -4336,7 +4423,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		if ( $is_closer ) {
 			// Parse error: ignore the token.
-			return $this->step();
+			return $this->continue_stepping();
 		}
 
 		/*
@@ -4352,7 +4439,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->active_formatting_elements->clear_up_to_last_marker();
 		array_pop( $this->state->stack_of_template_insertion_modes );
 		$this->reset_insertion_mode_appropriately();
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4406,7 +4493,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -4424,7 +4511,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-HTML':
 				if ( isset( $this->context_node ) ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY;
@@ -4435,7 +4522,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * Nothing has been pushed or popped.
 				 * Proceed to parse the next item.
 				 */
-				return $this->step();
+				return $this->continue_stepping();
 		}
 
 		/*
@@ -4443,7 +4530,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		after_body_anything_else:
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4501,7 +4588,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -4525,7 +4612,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > ignore the token. (fragment case)
 				 */
 				if ( $this->state->stack_of_open_elements->current_node_is( 'HTML' ) ) {
-					return $this->step();
+					return $this->continue_stepping();
 				}
 
 				/*
@@ -4565,7 +4652,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		// Parse error: ignore the token.
-		return $this->step();
+		return $this->continue_stepping();
 	}
 
 	/**
@@ -4623,7 +4710,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -4643,7 +4730,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * Nothing has been pushed or popped.
 				 * Proceed to parse the next item.
 				 */
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "noframes"
@@ -4653,7 +4740,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		// Parse error: ignore the token.
-		return $this->step();
+		return $this->continue_stepping();
 	}
 
 	/**
@@ -4718,7 +4805,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 */
 		after_after_body_anything_else:
 		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
-		return $this->step( self::REPROCESS_CURRENT_NODE );
+		return $this->continue_stepping( self::REPROCESS_CURRENT_NODE );
 	}
 
 	/**
@@ -4789,7 +4876,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		// Parse error: ignore the token.
-		return $this->step();
+		return $this->continue_stepping();
 	}
 
 	/**
@@ -4885,7 +4972,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				// Parse error: ignore the token.
-				return $this->step();
+				return $this->continue_stepping();
 
 			/*
 			 * > A start tag whose tag name is "b", "big", "blockquote", "body", "br", "center",
