@@ -255,8 +255,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 
 		// Mock WP_Plugins_List_Table
 		$list_table_mock = $this->getMockBuilder( 'WP_Plugins_List_Table' )
-			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-			->setMethods( array( 'get_column_info' ) )
+			->onlyMethods( array( 'get_column_info' ) )
 			->getMock();
 
 		// Force the return value of the get_column_info() method.

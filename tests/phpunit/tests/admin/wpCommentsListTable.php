@@ -138,7 +138,7 @@ OPTIONS;
 		// Stub the get_sortable_columns() method.
 		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
 			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
-			->setMethods( array( 'get_sortable_columns' ) )
+			->onlyMethods( array( 'get_sortable_columns' ) )
 			->getMock();
 
 		// Change the null return value of the stubbed get_sortable_columns() method.
@@ -176,7 +176,7 @@ OPTIONS;
 		// Stub the get_sortable_columns() method.
 		$object = $this->getMockBuilder( 'WP_Comments_List_Table' )
 			->setConstructorArgs( array( array( 'screen' => 'edit-comments' ) ) )
-			->setMethods( array( 'get_sortable_columns' ) )
+			->onlyMethods( array( 'get_sortable_columns' ) )
 			->getMock();
 
 		// Change the null return value of the stubbed get_sortable_columns() method.
