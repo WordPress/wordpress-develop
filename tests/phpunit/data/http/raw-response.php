@@ -33,7 +33,7 @@ do {
 } while ( false !== $line && "\r\n" !== $line );
 
 $response = json_decode( $argv[1], true );
-if ( '' !== $response ) {
+if ( is_string( $response ) && '' !== $response ) {
 	fwrite( $connection, $response );
 }
 fclose( $connection );
