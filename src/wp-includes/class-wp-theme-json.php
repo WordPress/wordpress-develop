@@ -261,7 +261,7 @@ class WP_Theme_JSON {
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @since 7.2.0 Added `background-clip`.
-	 * @since 7.3.0 Added `rotate`.
+	 * @since 7.3.0 Added `rotate` and `translate`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -320,6 +320,7 @@ class WP_Theme_JSON {
 		'padding-bottom'                    => array( 'spacing', 'padding', 'bottom' ),
 		'padding-left'                      => array( 'spacing', 'padding', 'left' ),
 		'rotate'                            => array( 'transform', 'rotate' ),
+		'translate'                         => array( 'transform', 'translate' ),
 		'--wp--style--root--padding'        => array( 'spacing', 'padding' ),
 		'--wp--style--root--padding-top'    => array( 'spacing', 'padding', 'top' ),
 		'--wp--style--root--padding-right'  => array( 'spacing', 'padding', 'right' ),
@@ -437,7 +438,7 @@ class WP_Theme_JSON {
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
 	 *              and `typography.defaultTextShadowPresets`.
-	 * @since 7.3.0 Added support for `transform.rotate`.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -516,7 +517,8 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'transform'                     => array(
-			'rotate' => null,
+			'rotate'    => null,
+			'translate' => null,
 		),
 		'typography'                    => array(
 			'fluid'                    => null,
@@ -594,7 +596,7 @@ class WP_Theme_JSON {
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
 	 * @since 7.2.0 Added support for `background.backgroundClip`.
-	 * @since 7.3.0 Added support for `transform.rotate`, for blocks and block style variations only.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`, for blocks and block style variations only.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -645,7 +647,11 @@ class WP_Theme_JSON {
 			'blockGap' => null,
 		),
 		'transform'  => array(
-			'rotate' => null,
+			'rotate'    => null,
+			'translate' => array(
+				'x' => null,
+				'y' => null,
+			),
 		),
 		'typography' => array(
 			'fontFamily'     => null,
@@ -3270,6 +3276,11 @@ class WP_Theme_JSON {
 					$background_size = $styles['background']['backgroundSize'] ?? null;
 					$value           = 'contain' === $background_size ? '50% 50%' : null;
 				}
+			}
+
+			// The style engine validates the axes and joins them into one value.
+			if ( 'translate' === $css_property ) {
+				$value = wp_style_engine_get_styles( array( 'transform' => array( 'translate' => $value ) ) )['declarations']['translate'] ?? null;
 			}
 
 			// Skip if empty and not "0" or value represents array of longhand values.
