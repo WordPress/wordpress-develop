@@ -5342,7 +5342,7 @@ function wp_is_password_reset_allowed_for_user( $user ) {
 	 * @since 2.7.0
 	 *
 	 * @param bool|WP_Error $allow   Whether to allow the password to be reset, or a WP_Error to explain
-	 *                              why it is not allowed. Default true.
+	 *                               why it is not allowed. Default true.
 	 * @param int           $user_id The ID of the user attempting to reset a password.
 	 */
 	return apply_filters( 'allow_password_reset', $allow, $user->ID );
