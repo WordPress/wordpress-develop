@@ -24,7 +24,7 @@ class Tests_Block_Supports_WpGetColorClassesAndStyles extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_color_classes_and_styles() {
+	public static function data_get_color_classes_and_styles() {
 		return array(
 			'custom'                        => array(
 				'block_attributes' => array(

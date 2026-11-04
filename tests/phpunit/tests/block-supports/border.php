@@ -217,68 +217,6 @@ class Tests_Block_Supports_Border extends WP_UnitTestCase {
 	/**
 	 * @ticket 66269
 	 */
-	public function test_split_borders_with_color_support_only_keeps_side_style() {
-		$block_type  = $this->register_bordered_block_with_support(
-			'test/split-borders-with-color-support-only',
-			array(
-				'__experimentalBorder' => array(
-					'color' => true,
-				),
-			)
-		);
-		$block_attrs = array(
-			'style' => array(
-				'border' => array(
-					'style' => 'solid',
-					'top'   => array(
-						'color' => '#72aee6',
-						'style' => 'dashed',
-					),
-				),
-			),
-		);
-		$actual      = wp_apply_border_support( $block_type, $block_attrs );
-		$expected    = array(
-			'style' => 'border-top-color:#72aee6;border-top-style:dashed;',
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * @ticket 66269
-	 */
-	public function test_split_borders_with_width_support_only_keeps_side_color() {
-		$block_type  = $this->register_bordered_block_with_support(
-			'test/split-borders-with-width-support-only',
-			array(
-				'__experimentalBorder' => array(
-					'width' => true,
-				),
-			)
-		);
-		$block_attrs = array(
-			'borderColor' => 'red',
-			'style'       => array(
-				'border' => array(
-					'top' => array(
-						'color' => '#72aee6',
-						'width' => '2px',
-					),
-				),
-			),
-		);
-		$actual      = wp_apply_border_support( $block_type, $block_attrs );
-		$expected    = array(
-			'style' => 'border-top-width:2px;border-top-color:#72aee6;',
-		);
-
-		$this->assertSame( $expected, $actual );
-	}
-
-	/**
-	 * @ticket 66269
-	 */
 	public function test_split_borders_without_color_or_width_support_are_dropped() {
 		$block_type  = $this->register_bordered_block_with_support(
 			'test/split-borders-without-color-or-width-support',

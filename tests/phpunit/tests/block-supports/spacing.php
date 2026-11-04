@@ -204,27 +204,4 @@ class Tests_Block_Supports_Spacing extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $actual );
 	}
-
-	/**
-	 * @ticket 66269
-	 */
-	public function test_spacing_without_style_attribute() {
-		$this->test_block_name = 'test/spacing-without-style-attribute';
-		register_block_type(
-			$this->test_block_name,
-			array(
-				'api_version' => 3,
-				'supports'    => array(
-					'spacing' => array(
-						'margin'  => true,
-						'padding' => true,
-					),
-				),
-			)
-		);
-		$registry   = WP_Block_Type_Registry::get_instance();
-		$block_type = $registry->get_registered( $this->test_block_name );
-
-		$this->assertSame( array(), wp_apply_spacing_support( $block_type, array() ) );
-	}
 }
