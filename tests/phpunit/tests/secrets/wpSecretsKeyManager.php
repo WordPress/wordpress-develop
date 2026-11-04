@@ -463,4 +463,176 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $root, $manager->get_root_key() );
 		$this->assertSame( 1, $mock->unwrap_call_count() );
 	}
+
+	/**
+	 * @ticket 66413
+	 */
+	public function test_a_failed_root_key_read_does_not_replace_the_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ) );
+
+		$stored = $this->get_stored_root_key();
+
+		$this->fail_root_key_selects( 1 );
+
+		$secret = $this->without_db_errors( 'wp_get_secret', 'test/key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value-one', $secret->reveal() );
+		$this->assertSame( $stored, $this->get_stored_root_key() );
+	}
+
+	/**
+	 * @ticket 66413
+	 */
+	public function test_a_failed_root_key_read_during_a_write_does_not_replace_the_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ) );
+
+		$stored = $this->get_stored_root_key();
+
+		$this->fail_root_key_selects( 1 );
+
+		$this->assertTrue( $this->without_db_errors( 'wp_set_secret', 'test/other', 'value-two' ) );
+		$this->assertSame( $stored, $this->get_stored_root_key() );
+		$this->assertSame( 'value-one', wp_get_secret( 'test/key' )->reveal() );
+		$this->assertSame( 'value-two', wp_get_secret( 'test/other' )->reveal() );
+	}
+
+	/**
+	 * @ticket 66413
+	 */
+	public function test_an_unreadable_root_key_is_reported_and_not_replaced(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ) );
+
+		$stored = $this->get_stored_root_key();
+
+		$filter = $this->fail_root_key_selects( 10 );
+
+		$read  = $this->without_db_errors( 'wp_get_secret', 'test/key' );
+		$write = $this->without_db_errors( 'wp_set_secret', 'test/other', 'value-two' );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $read );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code() );
+		$this->assertWPError( $write );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code() );
+		$this->assertSame( $stored, $this->get_stored_root_key() );
+	}
+
+	/**
+	 * @ticket 66413
+	 */
+	public function test_reading_a_secret_does_not_create_a_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ) );
+
+		delete_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+
+		$secret = wp_get_secret( 'test/key' );
+
+		$this->assertWPError( $secret );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $secret->get_error_code() );
+		$this->assertNull( $this->get_stored_root_key() );
+	}
+
+	/**
+	 * Another request can store the root key after this one cached it as missing.
+	 *
+	 * @ticket 66413
+	 */
+	public function test_a_root_key_stored_after_it_was_cached_as_missing_is_used_not_replaced(): void {
+		global $wpdb;
+
+		$keyring = new WP_Secrets_Config_Key_Provider();
+		$known   = str_repeat( 'R', 32 );
+		$wrapped = $keyring->wrap( $known );
+
+		$this->assertFalse( get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+
+		if ( is_multisite() ) {
+			$wpdb->insert(
+				$wpdb->sitemeta,
+				array(
+					'site_id'    => get_current_network_id(),
+					'meta_key'   => WP_Secrets_Key_Manager::ROOT_KEY_OPTION,
+					'meta_value' => $wrapped,
+				)
+			);
+		} else {
+			$wpdb->insert(
+				$wpdb->options,
+				array(
+					'option_name'  => WP_Secrets_Key_Manager::ROOT_KEY_OPTION,
+					'option_value' => $wrapped,
+					'autoload'     => 'off',
+				)
+			);
+		}
+
+		$manager = new WP_Secrets_Key_Manager( $keyring );
+
+		$this->assertSame( $known, $manager->get_root_key() );
+		$this->assertSame( $wrapped, $this->get_stored_root_key() );
+		$this->assertSame( $wrapped, get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+	}
+
+	/**
+	 * Returns the stored wrapped root key, read straight from the database.
+	 *
+	 * @return string|null
+	 */
+	private function get_stored_root_key(): ?string {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			return $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s ORDER BY meta_id ASC LIMIT 1", WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+		}
+
+		return $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+	}
+
+	/**
+	 * Makes the next database reads of the root key fail, as a killed query or a lost
+	 * connection would, after removing it from the object cache so it is read again.
+	 *
+	 * @param int $count Number of reads to fail.
+	 * @return callable The 'query' filter that was added.
+	 */
+	private function fail_root_key_selects( int $count ): callable {
+		if ( is_multisite() ) {
+			wp_cache_delete( get_current_network_id() . ':' . WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'site-options' );
+		} else {
+			wp_cache_delete( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'options' );
+		}
+
+		$filter = static function ( $query ) use ( &$count ) {
+			if ( $count > 0 && str_starts_with( ltrim( $query ), 'SELECT' ) && str_contains( $query, "'" . WP_Secrets_Key_Manager::ROOT_KEY_OPTION . "'" ) ) {
+				--$count;
+
+				return 'SELECT * FROM wptests_table_that_does_not_exist';
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+
+		return $filter;
+	}
+
+	/**
+	 * Calls a function with database errors suppressed.
+	 *
+	 * @param callable $callback Function to call.
+	 * @param mixed    ...$args  Arguments to pass.
+	 * @return mixed The function's return value.
+	 */
+	private function without_db_errors( callable $callback, ...$args ) {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors( true );
+		$result   = $callback( ...$args );
+		$wpdb->suppress_errors( $suppress );
+
+		return $result;
+	}
 }
