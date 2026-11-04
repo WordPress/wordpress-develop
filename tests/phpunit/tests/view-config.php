@@ -239,6 +239,53 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The `author` row shows the field's placeholder when the post has no
+	 * author, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_attachment
+	 *
+	 * @dataProvider data_post_types_with_author_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_author_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'author' )['layout']
+		);
+
+		if ( ! in_array( $post_type, array( 'page', 'post', 'attachment' ), true ) ) {
+			unregister_post_type( $post_type );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_post_types_with_author_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'attachment'       => array( 'attachment' ),
+			'custom post type' => array( 'author_cpt' ),
+		);
+	}
+
+	/**
 	 * The `attachment` post type provides the form of the media editor: the
 	 * editable fields in a regular layout, then the rest in panels.
 	 *
@@ -274,7 +321,13 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 					'layout' => $regular_layout,
 				),
 				'date',
-				'author',
+				array(
+					'id'     => 'author',
+					'layout' => array(
+						'type'                   => 'panel',
+						'showPlaceholderIfEmpty' => true,
+					),
+				),
 				'filename',
 				'mime_type',
 				'filesize',

@@ -96,7 +96,13 @@ function _wp_get_default_posttype_form() {
 			),
 			'date',
 			'slug',
-			'author',
+			array(
+				'id'     => 'author',
+				'layout' => array(
+					'type'                   => 'panel',
+					'showPlaceholderIfEmpty' => true,
+				),
+			),
 			'template',
 			array(
 				'id'       => 'discussion',
@@ -816,7 +822,13 @@ function _wp_get_entity_view_config_posttype_attachment( $data ) {
 						'layout' => $regular_layout,
 					),
 					'date',
-					'author',
+					array(
+						'id'     => 'author',
+						'layout' => array(
+							'type'                   => 'panel',
+							'showPlaceholderIfEmpty' => true,
+						),
+					),
 					'filename',
 					'mime_type',
 					'filesize',
