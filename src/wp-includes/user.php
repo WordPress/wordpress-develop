@@ -3236,7 +3236,7 @@ function check_password_reset_key(
 
 	if ( str_contains( $user->user_activation_key, ':' ) ) {
 		list( $pass_request_time, $pass_key ) = explode( ':', $user->user_activation_key, 2 );
-		$expiration_time                      = $pass_request_time + $expiration_duration;
+		$expiration_time                      = (int) $pass_request_time + $expiration_duration;
 	} else {
 		$pass_key        = $user->user_activation_key;
 		$expiration_time = false;
