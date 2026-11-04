@@ -59,8 +59,8 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 				$this->assertSame( 'http_request_failed', $response->get_error_code() );
 			} else {
 				$this->assertNotWPError( $response );
-				$this->assertSame( $status, $response['response']['code'] );
-				$this->assertSame( $body, $stream ? file_get_contents( $filename ) : $response['body'] );
+				$this->assertSame( $status, wp_remote_retrieve_response_code( $response ) );
+				$this->assertSame( $body, $stream ? file_get_contents( $filename ) : wp_remote_retrieve_body( $response ) );
 			}
 		} finally {
 			fclose( $pipes[1] );
