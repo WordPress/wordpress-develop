@@ -563,4 +563,19 @@ EXPECTED;
 			'multi query vars' => array( 'foo=bar&pen=pencil' ),
 		);
 	}
+
+	/**
+	 * Ensures `paginate_links()` returns null when the global query reports
+	 * zero total pages, matching its behavior for a single total page.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_paginate_links_falls_back_to_global_query_with_zero_max_num_pages() {
+		global $wp_query;
+
+		// `WP_Query::$max_num_pages` defaults to, and can be left at, `0` -- never `null`.
+		$wp_query->max_num_pages = 0;
+
+		$this->assertNull( paginate_links() );
+	}
 }
