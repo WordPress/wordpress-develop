@@ -266,4 +266,136 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+	/**
+	 * Tests that set_transient() rejects names that are not non-empty strings.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_invalid_transient_names
+	 * @expectedIncorrectUsage set_transient
+	 *
+	 * @covers ::set_transient
+	 * @covers ::_wp_is_valid_transient_name
+	 *
+	 * @param mixed $transient Transient name.
+	 */
+	public function test_set_transient_should_reject_invalid_name( $transient ) {
+		$this->assertFalse( set_transient( $transient, 'value' ), 'set_transient() should return false.' );
+		$this->assertFalse( get_option( '_transient_' ), 'No option should be added for an empty transient name.' );
+	}
+
+	/**
+	 * Tests that get_transient() rejects names that are not non-empty strings.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_invalid_transient_names
+	 * @expectedIncorrectUsage get_transient
+	 *
+	 * @covers ::get_transient
+	 * @covers ::_wp_is_valid_transient_name
+	 *
+	 * @param mixed $transient Transient name.
+	 */
+	public function test_get_transient_should_reject_invalid_name( $transient ) {
+		$this->assertFalse( get_transient( $transient ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_transient_names() {
+		return array(
+			'empty string'    => array( '' ),
+			'whitespace only' => array( '   ' ),
+			'null'            => array( null ),
+			'boolean false'   => array( false ),
+			'boolean true'    => array( true ),
+			'integer zero'    => array( 0 ),
+			'integer one'     => array( 1 ),
+			'empty array'     => array( array() ),
+			'object'          => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * Tests that set_transient() accepts a name at the 172 character limit.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_transient_names_at_length_limit
+	 *
+	 * @covers ::set_transient
+	 * @covers ::get_transient
+	 * @covers ::delete_transient
+	 * @covers ::_wp_is_valid_transient_name_length
+	 *
+	 * @param string $transient Transient name.
+	 */
+	public function test_set_transient_should_accept_name_at_length_limit( $transient ) {
+		$this->assertTrue( set_transient( $transient, 'value', HOUR_IN_SECONDS ), 'set_transient() should return true.' );
+		$this->assertNotFalse( get_option( '_transient_timeout_' . $transient ), 'The timeout option should be stored.' );
+		$this->assertSame( 'value', get_transient( $transient ), 'get_transient() should return the stored value.' );
+		$this->assertTrue( delete_transient( $transient ), 'delete_transient() should return true.' );
+		$this->assertFalse( get_transient( $transient ), 'get_transient() should return false after deletion.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_transient_names_at_length_limit() {
+		return array(
+			'172 single-byte characters' => array( str_repeat( 'a', 172 ) ),
+			'172 multibyte characters'   => array( str_repeat( 'é', 172 ) ),
+		);
+	}
+
+	/**
+	 * Tests that set_transient() rejects a name over the 172 character limit.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_transient_names_over_length_limit
+	 * @expectedIncorrectUsage set_transient
+	 *
+	 * @covers ::set_transient
+	 * @covers ::_wp_is_valid_transient_name_length
+	 *
+	 * @param string $transient Transient name.
+	 */
+	public function test_set_transient_should_reject_name_over_length_limit( $transient ) {
+		$this->assertFalse( set_transient( $transient, 'value' ), 'set_transient() should return false.' );
+		$this->assertFalse( get_option( '_transient_' . $transient ), 'No option should be added.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_transient_names_over_length_limit() {
+		return array(
+			'173 single-byte characters' => array( str_repeat( 'a', 173 ) ),
+			'173 multibyte characters'   => array( str_repeat( 'é', 173 ) ),
+		);
+	}
+
+	/**
+	 * Tests that delete_transient() can still remove a transient stored with an empty name.
+	 *
+	 * @ticket 58903
+	 *
+	 * @covers ::delete_transient
+	 */
+	public function test_delete_transient_should_delete_transient_with_empty_name() {
+		add_option( '_transient_', 'value' );
+
+		$this->assertTrue( delete_transient( '' ), 'delete_transient() should return true.' );
+		$this->assertFalse( get_option( '_transient_' ), 'The option should be deleted.' );
+	}
 }
