@@ -34,7 +34,7 @@ class Test_Compat_arrayAll extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_all(): array {
+	public static function data_array_all(): array {
 		return array(
 			'empty array'   => array(
 				'expected' => true,

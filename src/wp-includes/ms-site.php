@@ -441,6 +441,12 @@ function update_sitemeta_cache( $site_ids ) {
  *                           for information on accepted arguments. Default empty array.
  * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
  *                             or the number of sites when 'count' is passed as a query var.
+ *
+ * @phpstan-return (
+ *     $args is array{ count: true, ... } ? int : (
+ *         $args is array{ fields: 'ids', ... } ? int[] : array<int, WP_Site>
+ *     )
+ * )
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -640,7 +646,9 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
  * @param array       $args    {
  *     Optional. Arguments to modify the initialization behavior.
  *
- *     @type int    $user_id Required. User ID for the site administrator.
+ *     @type int    $user_id User ID for the site administrator. Default 0, in which
+ *                           case the site is created without an administrator
+ *                           and with an empty admin email address.
  *     @type string $title   Site title. Default is 'Site %d' where %d is the
  *                           site ID.
  *     @type array  $options Custom option $key => $value pairs to use. Default
