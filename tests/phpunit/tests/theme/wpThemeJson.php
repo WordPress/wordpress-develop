@@ -1815,7 +1815,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66465
 	 */
 	public function test_breakpoint_text_color_gets_its_fill_back_on_the_color_feature_selector() {
 		$theme_json = new WP_Theme_JSON(
@@ -1845,7 +1845,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66465
 	 */
 	public function test_variation_text_color_gets_its_fill_back_on_the_color_feature_selector() {
 		register_block_style(
@@ -1893,7 +1893,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 66465
 	 */
 	public function test_variation_text_clip_check_keeps_the_variation_gradient() {
 		register_block_style(
