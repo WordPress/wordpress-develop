@@ -618,12 +618,13 @@ function get_comment_date( $format = '', $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
 	if ( null === $comment ) {
-		return false;
+		// For backward compatibility, failures go through the filter below.
+		$comment_date = false;
+	} else {
+		$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
+
+		$comment_date = mysql2date( $_format, $comment->comment_date );
 	}
-
-	$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
-
-	$comment_date = mysql2date( $_format, $comment->comment_date );
 
 	/**
 	 * Filters the returned comment date.
@@ -632,7 +633,7 @@ function get_comment_date( $format = '', $comment_id = 0 ) {
 	 *
 	 * @param string|int|false $comment_date Formatted date string or Unix timestamp. False on failure.
 	 * @param string           $format       PHP date format.
-	 * @param WP_Comment       $comment      The comment object.
+	 * @param WP_Comment|null  $comment      The comment object, or null if it does not exist.
 	 */
 	return apply_filters( 'get_comment_date', $comment_date, $format, $comment );
 }
