@@ -66,7 +66,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
@@ -82,7 +82,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$sizes = array();
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
-				'width ' => $size,
+				'width'  => $size,
 				'height' => $size,
 				'crop'   => true,
 			);
@@ -98,26 +98,49 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
 	}
 
-	public function test_create_attachment_object() {
-		$attachment_id = $this->insert_attachment();
-		$parent_url    = get_post( $attachment_id )->guid;
-		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
+	/**
+	 * Tests that the registered sub-sizes are generated as square crops.
+	 *
+	 * @ticket 65345
+	 *
+	 * @covers WP_Site_Icon::additional_sizes
+	 */
+	public function test_additional_sizes_generate_square_subsizes() {
+		// A non-square source, large enough for every site icon size.
+		$filename = DIR_TESTDATA . '/images/waffles.jpg';
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, file_get_contents( $filename ) );
 
-		$object = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
+		$attachment_id = $this->_make_attachment( $upload );
+		$file          = get_attached_file( $attachment_id );
 
-		$this->assertSame( $object['post_title'], 'cropped-test-image.jpg' );
-		$this->assertSame( $object['context'], 'site-icon' );
-		$this->assertSame( $object['post_mime_type'], 'image/jpeg' );
-		$this->assertSame( $object['post_content'], $cropped );
-		$this->assertSame( $object['guid'], $cropped );
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		add_filter( 'intermediate_image_sizes_advanced', array( $this->wp_site_icon, 'additional_sizes' ) );
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
+			$size_name = 'site_icon-' . $size;
+
+			$this->assertArrayHasKey( $size_name, $metadata['sizes'], "The {$size_name} sub-size was not generated." );
+			$this->assertSame(
+				array( $size, $size ),
+				array( $metadata['sizes'][ $size_name ]['width'], $metadata['sizes'][ $size_name ]['height'] ),
+				"The {$size_name} sub-size is not a square crop."
+			);
+		}
 	}
 
 	public function test_insert_cropped_attachment() {
 		$attachment_id = $this->insert_attachment();
-		$parent_url    = get_post( $attachment_id )->guid;
-		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
+		$parent_file   = get_attached_file( $attachment_id );
+		$cropped       = str_replace( wp_basename( $parent_file ), 'cropped-test-image.jpg', $parent_file );
+		$this->assertTrue( copy( $parent_file, $cropped ), 'Failed to copy the image for the cropped attachment.' );
 
-		$object     = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
+		$object     = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'site-icon' );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );
 
 		$this->assertIsInt( $cropped_id );
