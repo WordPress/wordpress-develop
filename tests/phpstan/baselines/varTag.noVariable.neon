@@ -19,42 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/wp-admin/install.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/wp-admin/profile.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/wp-admin/upgrade.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/wp-cron.php
-		-
 			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
 			identifier: varTag.noVariable
 			count: 9
 			path: ../../../src/wp-includes/class-wp-query.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/wp-includes/kses.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 2
-			path: ../../../src/wp-includes/rest-api.php
-		-
-			message: '#^PHPDoc tag @var does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: ../../../src/xmlrpc.php
