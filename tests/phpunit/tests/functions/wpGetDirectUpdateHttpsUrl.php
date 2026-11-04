@@ -47,7 +47,7 @@ class Tests_Functions_wpGetDirectUpdateHttpsUrl extends WP_UnitTestCase {
 		// Test 1: Check that the function returns an empty string if no environment variable is set.
 		$result   = wp_get_direct_update_https_url();
 		$expected = '';
-		$this->assertEquals( $expected, $result );
+		$this->assertSame( $expected, $result );
 	}
 
 	/**
