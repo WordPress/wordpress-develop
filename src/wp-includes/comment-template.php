@@ -617,6 +617,10 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
 function get_comment_date( $format = '', $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
+	if ( null === $comment ) {
+		return false;
+	}
+
 	$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
 
 	$comment_date = mysql2date( $_format, $comment->comment_date );
