@@ -54,7 +54,6 @@ includes:
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/return.type.neon
 	- tests/phpstan/baselines/return.unusedType.neon
-	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
 
