@@ -1048,9 +1048,9 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
- *                          'user', or any other object type with an associated meta table.
- * @param int    $meta_id   ID for a specific meta row.
+ * @param string     $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
+ *                              'user', or any other object type with an associated meta table.
+ * @param int|string $meta_id   ID for a specific meta row.
  * @return bool True on successful delete, false on failure.
  */
 function delete_metadata_by_mid( $meta_type, $meta_id ) {
