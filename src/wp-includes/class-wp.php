@@ -844,7 +844,9 @@ class WP {
 				// Don't 404 for these queries if they matched an object.
 				|| ( is_tag() || is_category() || is_tax() || is_post_type_archive() ) && get_queried_object()
 				// Don't 404 for these queries either.
-				|| is_home() || is_search() || is_feed()
+				|| is_home() || is_search()
+				// Don't 404 for empty feeds, unless they are for an object that doesn't exist.
+				|| is_feed() && ! is_singular() && ! is_author() && ! is_tag() && ! is_category() && ! is_tax() && ! is_post_type_archive()
 			) {
 				$set_404 = false;
 			}
