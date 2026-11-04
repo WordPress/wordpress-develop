@@ -43,6 +43,88 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that implicitly closing a final open block does not repeat content parsed before it.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_documents_with_implicit_closings
+	 *
+	 * @param string[] $tokens List of block and HTML tokens comprising a document, where the first
+	 *                         is a partial document ending in open blocks, while the rest are the
+	 *                         explicit closers corresponding to those open blocks.
+	 */
+	public function test_implicitly_closed_blocks_is_equivalent_to_explicitly_closed( $tokens ) {
+		$parser        = new WP_Block_Parser();
+		$full_document = $parser->parse( implode( '', $tokens ) );
+		$document      = array_shift( $tokens );
+
+		foreach ( $tokens as $token ) {
+			$document .= $token;
+
+			$this->assertSame(
+				$full_document,
+				$parser->parse( $document ),
+				'Should have implicitly closed open blocks as if the closers had been there.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, list<non-empty-string>>
+	 */
+	public static function data_documents_with_implicit_closings() {
+		return array(
+			'After a closed block'                  => array(
+				array(
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'After leading HTML and a closed block' => array(
+				array(
+					'Hi<!-- wp:paragraph -->A<!-- /wp:paragraph --><!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'After a closed block and HTML'         => array(
+				array(
+					'<!-- wp:paragraph -->A<!-- /wp:paragraph -->Bye<!-- wp:latest-posts -->',
+					'<!-- /wp:latest-posts -->',
+				),
+			),
+			'Deeply-nested open blocks'             => array(
+				array(
+					'0<!-- wp:a -->1<!-- wp:b -->2<!-- wp:c -->3<!-- wp:d -->4',
+					'<!-- /wp:d -->',
+					'<!-- /wp:c -->',
+					'<!-- /wp:b -->',
+					'<!-- /wp:a -->',
+				),
+			),
+			'After a closed void block'             => array(
+				array(
+					'<!-- wp:separator /--><!-- wp:group -->A',
+					'<!-- /wp:group -->',
+				),
+			),
+			'With the wrong closer'                 => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:closer -->',
+				),
+			),
+			'With an invalid closer'                => array(
+				array(
+					'<!-- wp:opener -->A',
+					'<!-- /wp:opener /-->',
+				),
+			),
+		);
+	}
+
+	/**
 	 * @dataProvider data_parsing_test_filenames
 	 * @ticket 45109
 	 *
@@ -74,7 +156,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	/**
 	 * @ticket 45109
 	 */
-	public function data_parsing_test_filenames() {
+	public static function data_parsing_test_filenames() {
 		self::$fixtures_dir = DIR_TESTDATA . '/blocks/fixtures';
 
 		$fixture_filenames = array_merge(
@@ -85,14 +167,14 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 		$fixture_filenames = array_values(
 			array_unique(
 				array_map(
-					array( $this, 'clean_fixture_filename' ),
+					array( __CLASS__, 'clean_fixture_filename' ),
 					$fixture_filenames
 				)
 			)
 		);
 
 		return array_map(
-			array( $this, 'pass_parser_fixture_filenames' ),
+			array( __CLASS__, 'pass_parser_fixture_filenames' ),
 			$fixture_filenames
 		);
 	}
@@ -105,7 +187,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 * @param string $filename The filename to clean.
 	 * @return string The cleaned fixture name.
 	 */
-	protected function clean_fixture_filename( $filename ) {
+	protected static function clean_fixture_filename( $filename ) {
 		$filename = wp_basename( $filename );
 		$filename = preg_replace( '/\..+$/', '', $filename );
 		return $filename;
@@ -119,7 +201,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 * @param string $filename The cleaned fixture name.
 	 * @return array The input and expected output filenames for that fixture.
 	 */
-	protected function pass_parser_fixture_filenames( $filename ) {
+	protected static function pass_parser_fixture_filenames( $filename ) {
 		return array(
 			"$filename.html",
 			"$filename.parsed.json",
