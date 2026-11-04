@@ -4707,10 +4707,11 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  *
  * @see get_posts()
  *
- * @param array  $args   Optional. Arguments to retrieve posts. Default empty array.
- * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which
- *                       correspond to a WP_Post object or an associative array, respectively.
- *                       Default ARRAY_A.
+ * @param array|int $args   Optional. Arguments to retrieve posts. Passing an integer number
+ *                          of posts is deprecated since 3.1.0. Default empty array.
+ * @param string    $output Optional. The required return type. One of OBJECT or ARRAY_A, which
+ *                          correspond to a WP_Post object or an associative array, respectively.
+ *                          Default ARRAY_A.
  * @return array|false Array of recent posts, where the type of each element is determined
  *                     by the `$output` parameter. Empty array on failure.
  *
