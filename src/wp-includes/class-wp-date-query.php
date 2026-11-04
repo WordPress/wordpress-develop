@@ -873,7 +873,7 @@ class WP_Date_Query {
 	 *                                     of $datetime that are arrays, or string values that are a
 	 *                                     subset of MySQL date format ('Y', 'Y-m', 'Y-m-d', 'Y-m-d H:i').
 	 *                                     Default: false.
-	 * @return string|false A MySQL format date/time or false on failure.
+	 * @return string A MySQL format date/time.
 	 */
 	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
 		if ( ! is_array( $datetime ) ) {
