@@ -484,7 +484,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$tags    = array();
 		$current = null;
 
-		foreach ( preg_split( '#\R#', (string) $body ) ?: array() as $line ) {
+		$lines = preg_split( '#\R#', (string) $body );
+		if ( false === $lines ) {
+			$lines = array();
+		}
+
+		foreach ( $lines as $line ) {
 			$line = (string) preg_replace( '#^\s*\* ?#', '', $line, 1 );
 
 			if ( preg_match( '#^@([a-zA-Z][a-zA-Z0-9_-]*)[ \t]*(.*)$#', $line, $matches ) === 1 ) {
