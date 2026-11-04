@@ -9,6 +9,8 @@
 class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_delete_secret() removes a stored secret so it can no longer be retrieved.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_deletes_an_existing_secret(): void {
@@ -19,6 +21,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_delete_secret() returns true for a secret that was never stored.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_deleting_an_absent_secret_is_not_an_error(): void {
@@ -26,6 +30,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_delete_secret() returns an invalid name error for a malformed name.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_rejects_an_invalid_name(): void {
@@ -36,6 +42,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that deleting a secret fires wp_secret_changed with the deleted action and old fingerprint.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_change_hook_fires_with_deleted_action(): void {
@@ -69,6 +77,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secret_changed does not fire when deleting a secret that does not exist.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_change_hook_does_not_fire_when_nothing_was_deleted(): void {
@@ -100,6 +110,11 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_delete_secret() succeeds without a logged-in user.
+	 *
+	 * Capability checks belong at the operator boundary (CLI, admin screens), not in the
+	 * API itself, so plugins can manage their own secrets from any context.
+	 *
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_no_capability_check_is_applied(): void {

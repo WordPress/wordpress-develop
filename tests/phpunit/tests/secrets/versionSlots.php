@@ -31,6 +31,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the first write of a secret leaves no previous version to retrieve.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
@@ -55,6 +57,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a third write discards the oldest value from the stored record.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
@@ -89,6 +93,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that writing the value a secret already holds succeeds without changing the stored record.
+	 *
 	 * @ticket 66353
 	 *
 	 * @covers ::wp_set_secret
@@ -105,6 +111,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that writing the value a secret already holds does not fire wp_secret_changed.
+	 *
 	 * @ticket 66353
 	 *
 	 * @covers ::wp_set_secret
@@ -165,6 +173,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a demoted value keeps the fingerprint it had as the current version.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
@@ -182,6 +192,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a demoted value keeps the created timestamp from its original write.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
@@ -197,6 +209,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a demoted value carries its needs-rotation flag into the previous slot.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
@@ -243,6 +257,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns null for the previous version of a secret written once.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_previous_on_a_secret_with_no_previous_slot_is_null(): void {
@@ -279,6 +295,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() removes the previous version and keeps the current one.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_clears_previous_and_leaves_current_intact(): void {
@@ -294,6 +312,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() returns true for a secret with no previous version.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_on_a_secret_with_no_previous_slot_is_a_successful_noop(): void {
@@ -303,6 +323,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() returns true for a secret that was never set.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_on_a_never_set_secret_is_a_successful_noop(): void {
@@ -310,6 +332,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() rejects an invalid secret name.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_rejects_an_invalid_name(): void {
@@ -320,6 +344,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() fires wp_secret_changed as retired, with the old fingerprint.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_fires_the_change_hook_with_the_retired_action(): void {
@@ -353,6 +379,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_secret_version() does not fire wp_secret_changed when nothing is retired.
+	 *
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_does_not_fire_the_change_hook_on_a_noop(): void {

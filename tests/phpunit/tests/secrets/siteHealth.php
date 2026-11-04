@@ -33,6 +33,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the three Secrets API checks are registered as direct tests with existing callbacks.
+	 *
 	 * @covers ::wp_secrets_site_health_tests
 	 */
 	public function test_registers_three_tests_under_direct(): void {
@@ -50,6 +52,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_site_health_tests() keeps tests that were already registered.
+	 *
 	 * @covers ::wp_secrets_site_health_tests
 	 */
 	public function test_preserves_existing_tests(): void {
@@ -59,6 +63,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check recommends defining WP_SECRETS_KEY when it is not set.
+	 *
 	 * @covers ::wp_secrets_site_health_test_key_source
 	 */
 	public function test_key_source_test_recommends_a_dedicated_key_by_default(): void {
@@ -73,6 +79,11 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check recommends regenerating a WP_SECRETS_KEY not in base64 form.
+	 *
+	 * Runs in a separate process because WP_SECRETS_KEY is a constant and cannot be
+	 * undefined for later tests.
+	 *
 	 * @covers ::wp_secrets_site_health_test_key_source
 	 *
 	 * @runInSeparateProcess
@@ -88,6 +99,11 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check passes for a base64-encoded 32-byte WP_SECRETS_KEY.
+	 *
+	 * Runs in a separate process because WP_SECRETS_KEY is a constant and cannot be
+	 * undefined for later tests.
+	 *
 	 * @covers ::wp_secrets_site_health_test_key_source
 	 *
 	 * @runInSeparateProcess
@@ -102,6 +118,11 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check is critical when the secrets drop-in failed to load.
+	 *
+	 * Runs in a separate process because the key manager is cached in a static variable
+	 * the first time it is requested, so the broken flag must be set before then.
+	 *
 	 * @covers ::wp_secrets_site_health_test_key_source
 	 *
 	 * @runInSeparateProcess
@@ -116,6 +137,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the undecryptable check passes when every stored secret decrypts.
+	 *
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_is_good_when_nothing_is_broken(): void {
@@ -127,6 +150,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the undecryptable check passes when no secrets are stored.
+	 *
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_is_good_with_no_secrets_at_all(): void {
@@ -136,6 +161,10 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the undecryptable check is critical and names the failing secret and its fingerprint.
+	 *
+	 * The stored ciphertext is overwritten to simulate a record that no longer decrypts.
+	 *
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_is_critical_and_lists_the_broken_secret(): void {
@@ -162,6 +191,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the undecryptable check's description never includes a secret's plaintext value.
+	 *
 	 * @covers ::wp_secrets_site_health_test_undecryptable
 	 */
 	public function test_undecryptable_test_never_contains_a_plaintext(): void {
@@ -182,6 +213,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the rotation check passes for a secret stored directly with wp_set_secret().
+	 *
 	 * @covers ::wp_secrets_site_health_test_needs_rotation
 	 */
 	public function test_needs_rotation_test_is_good_by_default(): void {
@@ -193,6 +226,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the rotation check recommends rotating a secret imported from a plain option.
+	 *
 	 * @covers ::wp_secrets_site_health_test_needs_rotation
 	 */
 	public function test_needs_rotation_test_is_recommended_after_an_import(): void {
@@ -206,6 +241,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the debug information reports the provider, keyring, record version and secret count.
+	 *
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_reports_expected_fields(): void {
@@ -230,6 +267,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the debug information reports no active drop-in when none is installed.
+	 *
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_reports_no_dropin_by_default(): void {
@@ -242,6 +281,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the debug information never includes a secret's plaintext value.
+	 *
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_never_contains_a_plaintext(): void {
@@ -256,6 +297,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the debug information omits network secret counts on a single site install.
+	 *
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_omits_network_fields_on_single_site(): void {

@@ -38,6 +38,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a value encrypted by WP_Secrets_Cipher::encrypt_value() decrypts back unchanged.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 */
@@ -53,6 +55,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an empty string encrypts and decrypts back to an empty string.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 */
@@ -66,6 +70,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a value encrypted under network scope with site ID 0 decrypts back unchanged.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 */
@@ -79,6 +85,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Cipher::encrypt_value() refuses to encrypt a non-string plaintext.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_encrypt_rejects_a_non_string_value(): void {
@@ -91,6 +99,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Cipher::encrypt_value() refuses a master key that is not 32 bytes.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 *
 	 * @dataProvider data_bad_master_keys
@@ -118,6 +128,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Cipher::encrypt_value() returns the name validation error for a bad name.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_encrypt_propagates_an_invalid_name(): void {
@@ -130,6 +142,12 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an unknown scope triggers a _doing_it_wrong() notice and returns a WP_Error.
+	 *
+	 * Scope, site ID and slot are only ever supplied by core itself, so a bad value is a
+	 * programming error: it is flagged to the developer but still reported as a WP_Error
+	 * rather than thrown.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_encrypt_reports_an_invalid_scope_as_a_wp_error(): void {
@@ -144,6 +162,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a negative site ID triggers a _doing_it_wrong() notice and returns a WP_Error.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_encrypt_reports_a_negative_site_id_as_a_wp_error(): void {
@@ -158,6 +178,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a slot other than a WP_Secret_Version constant is reported as a caller error.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_encrypt_reports_an_invalid_slot_as_a_wp_error(): void {
@@ -210,6 +232,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a record cannot be decrypted with a master key other than the one that encrypted it.
+	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 */
 	public function test_decrypt_fails_under_a_different_master_key(): void {
@@ -223,6 +247,11 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that decryption fails when a single byte of any encrypted field is altered.
+	 *
+	 * Every field feeds an authenticated decryption, so corrupting one must be reported
+	 * as an error rather than yielding different plaintext.
+	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
 	 * @dataProvider data_tamperable_fields
@@ -262,6 +291,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a record with a missing, non-base64 or wrongly sized field is reported as malformed.
+	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
 	 * @dataProvider data_malformed_records
@@ -310,6 +341,11 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that encrypting the same value twice produces a different data key and ciphertext.
+	 *
+	 * Each write must generate a fresh data key, so identical plaintexts are never
+	 * recognizable from their stored records.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_data_key_independence(): void {
@@ -326,6 +362,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that no value or data key nonce is reused across repeated encryptions.
+	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 */
 	public function test_nonce_uniqueness_across_many_writes(): void {
@@ -345,6 +383,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the same master key and plaintext always produce the same fingerprint.
+	 *
 	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_is_stable_for_the_same_inputs(): void {
@@ -357,6 +397,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the same plaintext fingerprints differently under a different master key.
+	 *
+	 * Keying the fingerprint stops it acting as a cross-site lookup oracle for a known value.
+	 *
 	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_differs_across_master_keys(): void {
@@ -369,6 +413,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that different plaintexts produce different fingerprints under the same master key.
+	 *
 	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_differs_across_plaintexts(): void {
@@ -381,6 +427,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Cipher::fingerprint() refuses a master key that is not 32 bytes.
+	 *
 	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_rejects_a_bad_master_key(): void {
@@ -393,6 +441,8 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Cipher::fingerprint() refuses a non-string plaintext.
+	 *
 	 * @covers WP_Secrets_Cipher::fingerprint
 	 */
 	public function test_fingerprint_rejects_a_non_string_value(): void {

@@ -103,6 +103,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	// – declarations must be coherent ----------------------------------------
 
 	/**
+	 * Ensure that the provider reports a label that is neither empty nor only whitespace.
+	 *
 	 * @covers WP_Secrets_Provider::get_label
 	 */
 	public function test_reports_a_non_empty_label(): void {
@@ -113,6 +115,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider reports one of the BOUNDARY_* constants as its protection boundary.
+	 *
 	 * @covers WP_Secrets_Provider::get_protection_boundary
 	 */
 	public function test_reports_a_known_protection_boundary(): void {
@@ -124,6 +128,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider declares whether it accepts writes as a boolean.
+	 *
 	 * @covers WP_Secrets_Provider::is_writable
 	 */
 	public function test_is_writable_returns_a_bool(): void {
@@ -191,6 +197,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider treats deleting a secret that was never set as success.
+	 *
 	 * @covers WP_Secrets_Provider::delete
 	 */
 	public function test_deleting_something_absent_is_success(): void {
@@ -204,6 +212,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider treats retiring a secret that has no previous version as success.
+	 *
 	 * @covers WP_Secrets_Provider::retire_previous
 	 */
 	public function test_retiring_with_no_previous_version_is_success(): void {
@@ -219,6 +229,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	// – the round trip --------------------------------------------------------
 
 	/**
+	 * Ensure that the provider returns a stored value unchanged, under the name it was stored as.
+	 *
 	 * @covers WP_Secrets_Provider::set
 	 * @covers WP_Secrets_Provider::get
 	 */
@@ -300,6 +312,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider reports a deleted secret as absent.
+	 *
 	 * @covers WP_Secrets_Provider::delete
 	 * @covers WP_Secrets_Provider::get
 	 */
@@ -348,6 +362,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider reports an action override passed to set() to wp_secret_changed unchanged.
+	 *
 	 * @covers WP_Secrets_Provider::set
 	 */
 	public function test_an_action_override_is_reported_as_given(): void {
@@ -385,6 +401,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider fires wp_secret_changed once, as deleted, when a secret is deleted.
+	 *
 	 * @covers WP_Secrets_Provider::delete
 	 */
 	public function test_deleting_a_secret_reports_a_change(): void {
@@ -436,6 +454,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a read-only provider does not fire wp_secret_changed for a write it refused.
+	 *
 	 * @covers WP_Secrets_Provider::set
 	 */
 	public function test_a_refused_write_reports_no_change(): void {
@@ -454,6 +474,11 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	// – listing never leaks ---------------------------------------------------
 
 	/**
+	 * Ensure that the provider's listing of secrets never contains a stored plaintext value.
+	 *
+	 * The whole listing is encoded and searched rather than checked field by field, so a
+	 * value leaked under any key, including one the contract does not define, is caught.
+	 *
 	 * @covers WP_Secrets_Provider::list_secrets
 	 */
 	public function test_listing_returns_an_array_or_an_error_and_never_a_value(): void {
@@ -478,6 +503,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the provider includes the name of a stored secret in its listing.
+	 *
 	 * @covers WP_Secrets_Provider::list_secrets
 	 */
 	public function test_listing_includes_a_stored_secret(): void {

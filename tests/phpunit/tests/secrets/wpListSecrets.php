@@ -9,6 +9,8 @@
 class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_list_secrets() returns an empty array when no secrets are stored.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_returns_an_empty_array_when_nothing_is_set(): void {
@@ -16,6 +18,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that each wp_list_secrets() entry has exactly the documented metadata keys, in order.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_lists_every_secret_with_the_expected_keys(): void {
@@ -48,6 +52,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a listed fingerprint matches WP_Secret::fingerprint() for the same secret.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_fingerprint_matches_the_secrets_own_fingerprint(): void {
@@ -62,6 +68,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that has_previous is false for a new secret and true once it has been overwritten.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_has_previous_is_false_before_a_rotation_and_true_after(): void {
@@ -81,6 +89,11 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the needs_rotation entry reflects the flag stored on the current version.
+	 *
+	 * The stored record is edited directly to set the flag, so the test exercises
+	 * wp_list_secrets() without depending on wp_import_option_as_secret().
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_needs_rotation_reflects_the_current_slots_flag(): void {
@@ -102,6 +115,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_list_secrets() returns only the secrets in the requested namespace.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_filters_by_namespace(): void {
@@ -115,6 +130,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_list_secrets() with an empty namespace returns secrets from every namespace.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_empty_namespace_returns_everything(): void {
@@ -128,6 +145,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a namespace filter matches whole namespaces, not partial prefixes of them.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_namespace_does_not_match_a_prefix_of_a_different_namespace(): void {
@@ -156,6 +175,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_list_secrets() excludes network secrets.
+	 *
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_does_not_list_network_scope_secrets(): void {

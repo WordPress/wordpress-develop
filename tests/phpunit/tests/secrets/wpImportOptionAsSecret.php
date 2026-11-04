@@ -9,6 +9,8 @@
 class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_import_option_as_secret() stores the option's value as a secret.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_imports_an_existing_option_value(): void {
@@ -23,6 +25,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_import_option_as_secret() does not modify or delete the source option.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_leaves_the_source_option_untouched(): void {
@@ -34,6 +38,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secret imported from an option is flagged as needing rotation.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
@@ -50,6 +56,11 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secret written by wp_set_secret() is not flagged as needing rotation.
+	 *
+	 * The counterpart to the import test above: it proves the flag comes from the import,
+	 * not from a default applied to every write.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers WP_Secrets_Libsodium_Provider::set
 	 */
@@ -65,6 +76,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_import_option_as_secret() rejects an option that does not exist.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_rejects_a_nonexistent_option(): void {
@@ -75,6 +88,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_import_option_as_secret() rejects an option whose value is not a string.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_rejects_a_non_string_option_value(): void {
@@ -87,6 +102,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_import_option_as_secret() rejects an invalid destination secret name.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_rejects_an_invalid_destination_name(): void {
@@ -99,6 +116,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that importing an option fires wp_secret_changed with the imported action.
+	 *
 	 * @covers ::wp_import_option_as_secret
 	 */
 	public function test_fires_the_change_hook_with_the_imported_action(): void {

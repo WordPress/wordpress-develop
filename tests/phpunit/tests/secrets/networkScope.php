@@ -11,6 +11,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	use WP_Secrets_Assertions;
 
 	/**
+	 * Ensure that a value stored by wp_set_network_secret() is returned by wp_get_network_secret().
+	 *
 	 * @covers ::wp_set_network_secret
 	 * @covers ::wp_get_network_secret
 	 */
@@ -24,6 +26,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_network_secret() returns null for a network secret that was never set.
+	 *
 	 * @covers ::wp_get_network_secret
 	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
@@ -31,6 +35,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a site secret and a network secret with the same name hold separate values.
+	 *
 	 * @covers ::wp_set_network_secret
 	 * @covers ::wp_get_network_secret
 	 */
@@ -48,6 +54,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_delete_network_secret() removes a network secret so it can no longer be read.
+	 *
 	 * @covers ::wp_delete_network_secret
 	 */
 	public function test_delete_removes_a_network_secret(): void {
@@ -58,6 +66,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_delete_network_secret() leaves a site secret of the same name in place.
+	 *
 	 * @covers ::wp_delete_network_secret
 	 */
 	public function test_delete_does_not_touch_the_site_scope_secret_of_the_same_name(): void {
@@ -73,6 +83,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that overwriting a network secret demotes the old value to the previous slot.
+	 *
 	 * @covers ::wp_set_network_secret
 	 */
 	public function test_previous_version_and_demotion_work_the_same_as_site_scope(): void {
@@ -84,6 +96,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_retire_network_secret_version() clears the previous version of a network secret.
+	 *
 	 * @covers ::wp_retire_network_secret_version
 	 */
 	public function test_retire_clears_the_previous_slot(): void {
@@ -133,6 +147,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_list_network_secrets() lists network secrets and omits site secrets.
+	 *
 	 * @covers ::wp_list_network_secrets
 	 */
 	public function test_list_returns_network_secrets_only(): void {
@@ -146,6 +162,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_network_secret() returns a WP_Error for an unrecognized version.
+	 *
 	 * @covers ::wp_get_network_secret
 	 * @covers ::_wp_secrets_get
 	 */
@@ -159,6 +177,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_set_network_secret() rejects a name that fails validation.
+	 *
 	 * @covers ::wp_set_network_secret
 	 */
 	public function test_set_rejects_an_invalid_name(): void {

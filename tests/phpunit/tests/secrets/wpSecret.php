@@ -28,6 +28,11 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secret cannot be extended.
+	 *
+	 * A subclass could declare a property or magic method that exposes the plaintext,
+	 * bypassing the masking guarantees this class makes.
+	 *
 	 * @coversNothing
 	 */
 	public function test_class_is_final(): void {
@@ -37,6 +42,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secret implements JsonSerializable so json_encode() goes through the mask.
+	 *
 	 * @coversNothing
 	 */
 	public function test_implements_json_serializable(): void {
@@ -44,6 +51,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secret::reveal() returns the plaintext the secret was constructed with.
+	 *
 	 * @covers WP_Secret::reveal
 	 */
 	public function test_reveal_returns_the_exact_plaintext(): void {
@@ -53,6 +62,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secret::fingerprint() returns the fingerprint the secret was constructed with.
+	 *
 	 * @covers WP_Secret::fingerprint
 	 */
 	public function test_fingerprint_returns_the_exact_fingerprint(): void {
@@ -62,6 +73,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secret::get_name() returns the name the secret was constructed with.
+	 *
 	 * @covers WP_Secret::get_name
 	 */
 	public function test_get_name_returns_the_exact_name(): void {
@@ -71,6 +84,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that constructing a WP_Secret with a non-string value throws InvalidArgumentException.
+	 *
 	 * @covers WP_Secret::__construct
 	 */
 	public function test_constructor_rejects_a_non_string_value(): void {
@@ -80,6 +95,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that constructing a WP_Secret with an empty name throws InvalidArgumentException.
+	 *
 	 * @covers WP_Secret::__construct
 	 */
 	public function test_constructor_rejects_an_empty_name(): void {
@@ -89,6 +106,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that constructing a WP_Secret with an empty fingerprint throws InvalidArgumentException.
+	 *
 	 * @covers WP_Secret::__construct
 	 */
 	public function test_constructor_rejects_an_empty_fingerprint(): void {
@@ -169,6 +188,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that casting a WP_Secret to string yields the [secret:{name}] placeholder.
+	 *
 	 * @covers WP_Secret::__toString
 	 */
 	public function test_to_string_yields_the_masked_placeholder(): void {
@@ -178,6 +199,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that json_encode() renders a WP_Secret as the [secret:{name}] placeholder.
+	 *
 	 * @covers WP_Secret::jsonSerialize
 	 */
 	public function test_json_encode_yields_the_masked_placeholder(): void {
@@ -191,6 +214,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that var_dump() of a WP_Secret shows the [secret:{name}] placeholder.
+	 *
 	 * @covers WP_Secret::__debugInfo
 	 */
 	public function test_var_dump_yields_the_masked_placeholder(): void {
@@ -204,6 +229,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that serializing a WP_Secret throws LogicException.
+	 *
 	 * @covers WP_Secret::__serialize
 	 */
 	public function test_serialize_throws(): void {
@@ -215,6 +242,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that cloning a WP_Secret throws LogicException.
+	 *
 	 * @covers WP_Secret::__clone
 	 */
 	public function test_clone_throws(): void {
@@ -265,6 +294,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secret's plaintext is removed from the vault once its last reference is released.
+	 *
 	 * @covers WP_Secret::__construct
 	 * @covers WP_Secret::__destruct
 	 */
@@ -338,6 +369,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that each WP_Secret holds its own plaintext and destroying one leaves the other intact.
+	 *
 	 * @covers WP_Secret::__construct
 	 * @covers WP_Secret::reveal
 	 * @covers WP_Secret::__destruct
@@ -376,6 +409,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a withheld secret still reports its name and fingerprint.
+	 *
 	 * @covers WP_Secret::withheld
 	 * @covers WP_Secret::get_name
 	 * @covers WP_Secret::fingerprint

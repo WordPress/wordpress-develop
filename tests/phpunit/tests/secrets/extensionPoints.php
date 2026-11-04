@@ -27,6 +27,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	use WP_Secrets_Assertions;
 
 	/**
+	 * Ensure that a secret round-trips through a plugin-supplied store paired with the default keyring.
+	 *
 	 * @covers ::_wp_secrets_get_store
 	 *
 	 * @runInSeparateProcess
@@ -47,6 +49,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secret round-trips through a plugin-supplied keyring paired with the default store.
+	 *
 	 * @covers ::_wp_secrets_get_key_manager
 	 *
 	 * @runInSeparateProcess
@@ -64,6 +68,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a secret round-trips when both the store and the keyring are plugin-supplied.
+	 *
 	 * @covers ::_wp_secrets_get_store
 	 * @covers ::_wp_secrets_get_key_manager
 	 *
@@ -141,6 +147,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an unreachable plugin-supplied store fails reads and writes without a local fallback.
+	 *
 	 * @covers ::_wp_secrets_get_store
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
@@ -164,6 +172,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a keyring that cannot wrap keys fails the write and stores nothing locally.
+	 *
 	 * @covers ::_wp_secrets_get_key_manager
 	 * @covers ::wp_set_secret
 	 *

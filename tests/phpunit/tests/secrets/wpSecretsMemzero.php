@@ -7,6 +7,8 @@
 class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_secrets_memzero() replaces a string value with an empty string.
+	 *
 	 * @covers ::wp_secrets_memzero
 	 */
 	public function test_clears_a_plaintext_string(): void {
@@ -19,6 +21,8 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_memzero() does not modify a non-string value.
+	 *
 	 * @covers ::wp_secrets_memzero
 	 */
 	public function test_leaves_non_string_values_untouched(): void {
@@ -30,6 +34,8 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_memzero() leaves an empty string as an empty string.
+	 *
 	 * @covers ::wp_secrets_memzero
 	 */
 	public function test_leaves_an_empty_string_untouched(): void {
@@ -41,6 +47,8 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_memzero() clears a copy-on-write string without throwing.
+	 *
 	 * @covers ::wp_secrets_memzero
 	 */
 	public function test_does_not_throw_when_the_value_is_shared(): void {

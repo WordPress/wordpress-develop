@@ -97,6 +97,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	// – the shipped provider -------------------------------------------------
 
 	/**
+	 * Ensure that WP_Secrets_Libsodium_Provider is used when no drop-in supplies a provider.
+	 *
 	 * @covers ::_wp_secrets_get_provider
 	 */
 	public function test_the_default_provider_is_the_libsodium_one(): void {
@@ -104,6 +106,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the default provider declares BOUNDARY_WORDPRESS as its protection boundary.
+	 *
 	 * @covers WP_Secrets_Libsodium_Provider::get_protection_boundary
 	 */
 	public function test_the_default_provider_protects_inside_wordpress(): void {
@@ -114,6 +118,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_provider_is_writable() reports the default provider as writable.
+	 *
 	 * @covers ::wp_secrets_provider_is_writable
 	 */
 	public function test_the_default_provider_accepts_writes(): void {
@@ -140,6 +146,11 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	// – a platform provider, which is what the seam exists for ----------------
 
 	/**
+	 * Ensure that a provider set in the wp_secrets_provider global is used in place of the default.
+	 *
+	 * Runs in a separate process because _wp_secrets_get_provider() caches the provider it
+	 * resolves on first use, so the global has to be set before anything asks for one.
+	 *
 	 * @covers ::_wp_secrets_get_provider
 	 * @covers ::wp_secrets_provider_label
 	 *
@@ -216,6 +227,8 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that every secrets operation returns a WP_Error once the drop-in is marked broken.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 * @covers ::wp_delete_secret

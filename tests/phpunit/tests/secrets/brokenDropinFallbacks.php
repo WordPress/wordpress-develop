@@ -11,6 +11,8 @@
 class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Store implements the WP_Secrets_Store interface.
+	 *
 	 * @coversNothing
 	 */
 	public function test_broken_store_implements_the_interface(): void {
@@ -18,6 +20,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Store::get() fails with a store-unavailable error.
+	 *
 	 * @covers WP_Secrets_Broken_Store::get
 	 */
 	public function test_broken_store_get_fails(): void {
@@ -28,6 +32,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Store::set() returns a WP_Error rather than storing a record.
+	 *
 	 * @covers WP_Secrets_Broken_Store::set
 	 */
 	public function test_broken_store_set_fails(): void {
@@ -37,6 +43,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Store::delete() returns a WP_Error.
+	 *
 	 * @covers WP_Secrets_Broken_Store::delete
 	 */
 	public function test_broken_store_delete_fails(): void {
@@ -46,6 +54,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Store::list_names() returns a WP_Error rather than a list.
+	 *
 	 * @covers WP_Secrets_Broken_Store::list_names
 	 */
 	public function test_broken_store_list_names_fails(): void {
@@ -55,6 +65,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Keyring implements the WP_Secrets_Keyring interface.
+	 *
 	 * @coversNothing
 	 */
 	public function test_broken_keyring_implements_the_interface(): void {
@@ -62,6 +74,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Keyring::wrap() fails with a key-unavailable error.
+	 *
 	 * @covers WP_Secrets_Broken_Keyring::wrap
 	 */
 	public function test_broken_keyring_wrap_fails(): void {
@@ -72,6 +86,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Keyring::unwrap() returns a WP_Error.
+	 *
 	 * @covers WP_Secrets_Broken_Keyring::unwrap
 	 */
 	public function test_broken_keyring_unwrap_fails(): void {
@@ -81,6 +97,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Broken_Keyring::get_key_source() returns a description for Site Health.
+	 *
 	 * @covers WP_Secrets_Broken_Keyring::get_key_source
 	 */
 	public function test_broken_keyring_reports_a_key_source(): void {
@@ -88,6 +106,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_using_secrets_dropin() returns false when no drop-in has been loaded.
+	 *
 	 * @covers ::wp_using_secrets_dropin
 	 */
 	public function test_wp_using_secrets_dropin_is_false_by_default(): void {
@@ -95,6 +115,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_using_secrets_dropin() returns true once the drop-in loader flag is set.
+	 *
 	 * @covers ::wp_using_secrets_dropin
 	 *
 	 * @runInSeparateProcess

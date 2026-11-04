@@ -11,6 +11,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	use WP_Secrets_Assertions;
 
 	/**
+	 * Ensure that a stored secret is retrieved with its original value, name and a fingerprint.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
@@ -26,6 +28,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns null for a secret that was never stored.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
@@ -33,6 +37,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns the current version when no version is requested.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_get_defaults_to_the_current_version(): void {
@@ -47,6 +53,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that requesting the previous version of a never-rotated secret returns null, not an error.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_get_previous_on_a_never_rotated_secret_is_null_not_error(): void {
@@ -73,6 +81,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_set_secret() returns an invalid name error for a malformed name.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_set_rejects_an_invalid_name(): void {
@@ -83,6 +93,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns an invalid name error for a malformed name.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_get_rejects_an_invalid_name(): void {
@@ -93,6 +105,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_set_secret() returns an invalid value error for a non-string value.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_set_rejects_a_non_string_value(): void {
@@ -103,6 +117,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an empty string can be stored and retrieved as a secret value.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
@@ -173,6 +189,11 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_set_secret() and wp_get_secret() succeed without a logged-in user.
+	 *
+	 * Capability checks belong at the operator boundary (CLI, admin screens), not in the
+	 * API itself, so plugins can use their own secrets from any context, such as cron.
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
@@ -184,6 +205,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that storing a new secret fires wp_secret_changed with the created action.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_fires_on_create_with_created_action(): void {
@@ -210,6 +233,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that overwriting a secret fires wp_secret_changed as updated, with a new fingerprint.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_fires_on_overwrite_with_updated_action(): void {
@@ -240,6 +265,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secret_changed reports the current user's ID as the actor.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_reports_the_current_user_as_actor(): void {
@@ -262,6 +289,11 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secret_changed never receives the secret's plaintext value.
+	 *
+	 * Any callback can listen to this hook, including logging and auditing plugins, so
+	 * every argument passed to it must be safe to record.
+	 *
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_never_receives_a_value(): void {

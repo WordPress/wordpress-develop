@@ -12,6 +12,8 @@
 class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_get_secret() returns null for a secret that was never set.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_absent_is_null(): void {
@@ -21,6 +23,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns null, not an error, for a missing previous version.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_previous_slot_absent_on_an_existing_secret_is_also_null(): void {
@@ -32,6 +36,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns a WP_Error, not null, when the stored record is not an array.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_malformed_record_is_wp_error_not_null(): void {
@@ -45,6 +51,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns a WP_Error, not null, for a record with no current slot.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_record_missing_the_current_slot_is_wp_error_not_null(): void {
@@ -58,6 +66,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns a WP_Error, not null, for a record of an unknown format version.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_unsupported_record_version_is_wp_error_not_null(): void {
@@ -220,6 +230,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_get_secret() returns a WP_Secret for a secret that exists and decrypts.
+	 *
 	 * @covers ::wp_get_secret
 	 */
 	public function test_exists_and_decrypts_is_a_wp_secret(): void {

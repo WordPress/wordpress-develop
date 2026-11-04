@@ -28,6 +28,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store implements the WP_Secrets_Store interface.
+	 *
 	 * @coversNothing
 	 */
 	public function test_implements_the_store_interface(): void {
@@ -35,6 +37,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::get() returns null when no record is stored.
+	 *
 	 * @covers WP_Secrets_Option_Store::get
 	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
@@ -44,6 +48,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a site-scope record is returned unchanged after being stored.
+	 *
 	 * @covers WP_Secrets_Option_Store::set
 	 * @covers WP_Secrets_Option_Store::get
 	 */
@@ -56,6 +62,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a network-scope record is returned unchanged after being stored.
+	 *
 	 * @covers WP_Secrets_Option_Store::set
 	 * @covers WP_Secrets_Option_Store::get
 	 */
@@ -68,6 +76,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that site and network records with the same name are stored independently.
+	 *
 	 * @covers WP_Secrets_Option_Store::set
 	 * @covers WP_Secrets_Option_Store::get
 	 */
@@ -84,6 +94,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::get() returns a malformed record error for a non-array value.
+	 *
 	 * @covers WP_Secrets_Option_Store::get
 	 */
 	public function test_get_returns_an_error_when_the_stored_value_is_not_an_array(): void {
@@ -98,6 +110,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::delete() removes a stored record.
+	 *
 	 * @covers WP_Secrets_Option_Store::delete
 	 */
 	public function test_delete_removes_an_existing_record(): void {
@@ -109,6 +123,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::delete() returns true when no record is stored.
+	 *
 	 * @covers WP_Secrets_Option_Store::delete
 	 */
 	public function test_delete_on_an_absent_record_is_not_an_error(): void {
@@ -118,6 +134,11 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that site-scope secret records are stored with autoloading disabled.
+	 *
+	 * Autoloaded options are loaded into memory on every request, so keeping secrets
+	 * out of the autoload set limits where their ciphertext travels.
+	 *
 	 * @covers WP_Secrets_Option_Store::set
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -139,6 +160,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::list_names() returns names without the option prefix.
+	 *
 	 * @covers WP_Secrets_Option_Store::list_names
 	 */
 	public function test_list_names_returns_stored_names_without_the_prefix(): void {
@@ -154,6 +177,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::list_names() excludes options that are not secret records.
+	 *
 	 * @covers WP_Secrets_Option_Store::list_names
 	 */
 	public function test_list_names_does_not_include_unrelated_options(): void {
@@ -169,6 +194,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::list_names() returns only the names from the requested scope.
+	 *
 	 * @covers WP_Secrets_Option_Store::list_names
 	 */
 	public function test_list_names_does_not_include_network_scope_names(): void {

@@ -10,6 +10,8 @@
 class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that each error code constant holds its published string value.
+	 *
 	 * @coversNothing
 	 *
 	 * @dataProvider data_published_error_codes
@@ -37,6 +39,8 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that no two error code constants share a value.
+	 *
 	 * @coversNothing
 	 */
 	public function test_all_error_codes_are_distinct(): void {
@@ -54,6 +58,8 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_SECRETS_MAX_NAME_LENGTH fits the longest prefixed name in option_name.
+	 *
 	 * @coversNothing
 	 */
 	public function test_max_name_length_matches_the_options_column_budget(): void {

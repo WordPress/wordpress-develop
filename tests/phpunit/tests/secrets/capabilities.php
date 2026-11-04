@@ -43,6 +43,11 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the capability constants hold the manage_secrets and manage_network_secrets names.
+	 *
+	 * The capability names are a public contract: plugins and role editors check the
+	 * strings directly, so the constants must not drift from them.
+	 *
 	 * @coversNothing
 	 */
 	public function test_capability_constant_values(): void {
@@ -51,6 +56,11 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the administrator role has manage_secrets on a fresh install.
+	 *
+	 * The test suite's install runs populate_roles(), so no setup is needed to observe
+	 * the state a new site starts in.
+	 *
 	 * @covers ::populate_roles_720
 	 */
 	public function test_a_fresh_install_grants_manage_secrets_to_administrator(): void {
@@ -58,6 +68,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that no default role other than administrator is granted manage_secrets.
+	 *
 	 * @covers ::populate_roles_720
 	 */
 	public function test_no_other_role_is_granted_manage_secrets(): void {
@@ -67,6 +79,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that populate_roles_720() grants manage_secrets to the administrator role.
+	 *
 	 * @covers ::populate_roles_720
 	 */
 	public function test_populate_roles_720_grants_manage_secrets_to_administrator(): void {
@@ -78,6 +92,12 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that upgrade_720() grants manage_secrets only to sites below database version 64337.
+	 *
+	 * Simulates upgrades from several database versions by overriding $wp_current_db_version.
+	 * Sites already at or past the gate must not have the capability re-added, so an
+	 * administrator's deliberate removal of it survives later upgrades.
+	 *
 	 * @covers ::upgrade_720
 	 *
 	 * @dataProvider data_upgrade_720_gate
@@ -115,6 +135,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a user with the administrator role can manage secrets.
+	 *
 	 * @covers ::populate_roles_720
 	 */
 	public function test_administrator_user_has_manage_secrets(): void {
@@ -124,6 +146,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a user with the subscriber role cannot manage secrets.
+	 *
 	 * @covers ::populate_roles_720
 	 */
 	public function test_subscriber_does_not_have_manage_secrets(): void {
@@ -133,6 +157,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an administrator on a single site install does not have manage_network_secrets.
+	 *
 	 * @group ms-excluded
 	 *
 	 * @covers ::map_meta_cap
@@ -144,6 +170,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that only super admins have the manage_network_secrets capability.
+	 *
 	 * @group ms-required
 	 *
 	 * @covers ::map_meta_cap

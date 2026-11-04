@@ -9,6 +9,8 @@
 class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that the first call to get a root key generates 32 bytes and stores the wrapped value.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_generates_and_persists_one(): void {
@@ -24,6 +26,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that repeated root key reads on one key manager return the same bytes.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_is_stable_on_the_same_instance(): void {
@@ -33,6 +37,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a new key manager reads the stored root key rather than generating another.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_persists_across_instances(): void {
@@ -46,6 +52,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a pre-existing wrapped root key is unwrapped and returned as is.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_uses_an_existing_value_rather_than_regenerating(): void {
@@ -60,6 +68,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the site master key is the KDF subkey of the root key for the current blog.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_matches_manual_derivation(): void {
@@ -73,6 +83,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that site-scope master keys differ between site IDs.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_differs_per_site_id(): void {
@@ -85,6 +97,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the network master key differs from the master key for site ID 1.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_site_and_network_scope_differ(): void {
@@ -97,6 +111,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the network master key is identical across repeated derivations.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_network_scope_is_stable(): void {
@@ -109,6 +125,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a site-scope master key without a site ID is derived for the current blog.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_defaults_site_id_to_the_current_blog(): void {
@@ -121,6 +139,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that an unknown scope triggers _doing_it_wrong() and returns an invalid argument error.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_get_master_key_reports_an_invalid_scope_as_a_wp_error(): void {
@@ -135,6 +155,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a site ID below 1 triggers _doing_it_wrong() and returns an invalid argument error.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 *
 	 * @dataProvider data_invalid_site_ids
@@ -306,6 +328,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that rotating the site key before any root key exists returns a store error.
+	 *
 	 * @covers WP_Secrets_Key_Manager::rotate_site_key
 	 */
 	public function test_rotate_fails_when_no_root_key_exists(): void {
@@ -319,6 +343,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that rotation fails when the old keyring cannot unwrap the stored root key.
+	 *
 	 * @covers WP_Secrets_Key_Manager::rotate_site_key
 	 */
 	public function test_rotate_fails_when_the_old_keyring_is_wrong(): void {
@@ -397,6 +423,11 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that deriving many master keys unwraps the root key only once per key manager.
+	 *
+	 * Guards the per-request root key cache, which keeps a remote keyring such as a KMS
+	 * or HSM to a single call per request rather than one per derivation.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
@@ -421,6 +452,11 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that repeated wp_get_secret() calls unwrap the root key only once.
+	 *
+	 * Runs in a separate process because _wp_secrets_get_key_manager() memoizes the key
+	 * manager in a static, so the mock keyring global is only picked up on first use.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 *
 	 * @runInSeparateProcess
@@ -445,6 +481,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that rotation reuses the cached root key and leaves the cache valid afterward.
+	 *
 	 * @covers WP_Secrets_Key_Manager::rotate_site_key
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
@@ -465,6 +503,11 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the cached root key is discarded when the stored wrapped value changes.
+	 *
+	 * Overwrites the stored option directly to simulate another request restoring or
+	 * re-wrapping the root key mid-request.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_a_changed_wrapped_value_is_unwrapped_again_rather_than_served_from_cache(): void {
@@ -483,6 +526,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a failed unwrap is retried on the next call and a later success is cached.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_an_unwrap_error_is_not_cached(): void {
@@ -509,6 +554,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a newly generated root key is cached so deriving a master key needs no unwrap.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 * @covers WP_Secrets_Key_Manager::generate_root_key
 	 */
@@ -524,6 +571,11 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that zeroing the returned root key does not wipe the key manager's cached copy.
+	 *
+	 * Callers are required to zero the root key they receive, so the copy handed out must
+	 * never share storage with the cache.
+	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_the_returned_root_key_is_a_copy_the_caller_can_zero(): void {

@@ -33,6 +33,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring.
+	 *
 	 * @coversNothing
 	 */
 	public function test_implements_the_keyring_interface(): void {
@@ -40,6 +42,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that unwrapping a wrapped value returns the original key material.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::wrap
 	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 */
@@ -55,6 +59,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wrapping empty key material returns an invalid value error.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::wrap
 	 */
 	public function test_wrap_rejects_an_empty_string(): void {
@@ -67,6 +73,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wrapping the same key material twice uses a fresh nonce each time.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::wrap
 	 */
 	public function test_two_wraps_of_the_same_material_produce_different_output(): void {
@@ -77,6 +85,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that unwrapping an empty string returns a key unavailable error.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 */
 	public function test_unwrap_rejects_an_empty_string(): void {
@@ -89,6 +99,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that unwrapping a value that is not strict base64 returns a key unavailable error.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 */
 	public function test_unwrap_rejects_garbage_base64(): void {
@@ -101,6 +113,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that unwrapping data no longer than a nonce returns a key unavailable error.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 */
 	public function test_unwrap_rejects_data_too_short_to_contain_a_nonce(): void {
@@ -113,6 +127,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that unwrapping a ciphertext with a modified byte fails authentication.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::unwrap
 	 */
 	public function test_unwrap_rejects_a_tampered_ciphertext(): void {
@@ -134,6 +150,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source names LOGGED_IN_KEY when WP_SECRETS_KEY is not defined.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 */
 	public function test_get_key_source_reports_the_salt_fallback_when_wp_secrets_key_is_unset(): void {
@@ -147,6 +165,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that only the canonical base64 encoding of exactly 32 bytes is recognized.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::is_canonical_base64_32
 	 *
 	 * @dataProvider data_canonical_base64_32
@@ -176,6 +196,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that salt values are rejected when missing, empty, non-string or the sample placeholder.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::are_usable_salt_values
 	 *
 	 * @dataProvider data_usable_salt_values
@@ -205,6 +227,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a canonical base64 WP_SECRETS_KEY is used as the decoded raw bytes.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
 	 * @runInSeparateProcess
@@ -267,6 +291,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a non-string WP_SECRETS_KEY fails closed with a key unavailable error.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
 	 * @runInSeparateProcess
@@ -283,6 +309,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source identifies a canonical base64 WP_SECRETS_KEY.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
@@ -297,6 +325,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source identifies a WP_SECRETS_KEY using the legacy interpretation.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
@@ -311,6 +341,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a previous-key provider derives its site key from WP_SECRETS_KEY_PREVIOUS.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::__construct
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
@@ -349,6 +381,11 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a previous-key provider fails when WP_SECRETS_KEY_PREVIOUS is not defined.
+	 *
+	 * The previous-key provider must fail closed rather than fall back to the salts, or
+	 * a rotation could unwrap under a key the site never configured as the old one.
+	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
 	 * @runInSeparateProcess

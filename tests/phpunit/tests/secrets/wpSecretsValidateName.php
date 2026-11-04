@@ -7,6 +7,8 @@
 class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
+	 * Ensure that wp_secrets_validate_name() accepts well-formed namespaced names up to the max length.
+	 *
 	 * @covers ::wp_secrets_validate_name
 	 *
 	 * @dataProvider data_valid_names
@@ -34,6 +36,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that wp_secrets_validate_name() rejects malformed, overlong and wrongly cased names.
+	 *
 	 * @covers ::wp_secrets_validate_name
 	 *
 	 * @dataProvider data_invalid_names
