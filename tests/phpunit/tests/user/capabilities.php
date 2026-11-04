@@ -102,7 +102,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $meta_value;
 	}
 
-	private function _getSingleSitePrimitiveCaps() {
+	private static function _getSingleSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array( 'administrator', 'editor' ),
@@ -126,6 +126,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
+			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -183,7 +184,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSitePrimitiveCaps() {
+	private static function _getMultiSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array(),
@@ -209,6 +210,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
+			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -265,7 +267,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getSingleSiteMetaCaps() {
+	private static function _getSingleSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -275,6 +277,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
+			'manage_network_secrets'      => array(),
 			'delete_site'                 => array(),
 			'upgrade_network'             => array(),
 
@@ -304,7 +307,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSiteMetaCaps() {
+	private static function _getMultiSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -314,6 +317,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
+			'manage_network_secrets'      => array(),
 			'setup_network'               => array(),
 			'upload_plugins'              => array(),
 			'upload_themes'               => array(),
@@ -343,9 +347,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	public function dataAllCapsAndRoles() {
+	public static function dataAllCapsAndRoles() {
 		$data = array();
-		$caps = $this->getAllCapsAndRoles();
+		$caps = self::getAllCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			foreach ( $caps as $cap => $roles ) {
@@ -368,7 +372,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *     @type string $role The role to test for.
 	 * }
 	 */
-	public function data_single_site_roles_to_check() {
+	public static function data_single_site_roles_to_check() {
 		return array(
 			array( 'anonymous' ),
 			array( 'administrator' ),
@@ -379,23 +383,23 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	protected function getAllCapsAndRoles() {
-		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
+	protected static function getAllCapsAndRoles() {
+		return self::getPrimitiveCapsAndRoles() + self::getMetaCapsAndRoles();
 	}
 
-	protected function getPrimitiveCapsAndRoles() {
+	protected static function getPrimitiveCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSitePrimitiveCaps();
+			return self::_getMultiSitePrimitiveCaps();
 		} else {
-			return $this->_getSingleSitePrimitiveCaps();
+			return self::_getSingleSitePrimitiveCaps();
 		}
 	}
 
-	protected function getMetaCapsAndRoles() {
+	protected static function getMetaCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSiteMetaCaps();
+			return self::_getMultiSiteMetaCaps();
 		} else {
-			return $this->_getSingleSiteMetaCaps();
+			return self::_getSingleSiteMetaCaps();
 		}
 	}
 
@@ -403,14 +407,14 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_single_and_multisite_cap_tests_match() {
-		$single_primitive = array_keys( $this->_getSingleSitePrimitiveCaps() );
-		$multi_primitive  = array_keys( $this->_getMultiSitePrimitiveCaps() );
+		$single_primitive = array_keys( self::_getSingleSitePrimitiveCaps() );
+		$multi_primitive  = array_keys( self::_getMultiSitePrimitiveCaps() );
 		sort( $single_primitive );
 		sort( $multi_primitive );
 		$this->assertSame( $single_primitive, $multi_primitive );
 
-		$single_meta = array_keys( $this->_getSingleSiteMetaCaps() );
-		$multi_meta  = array_keys( $this->_getMultiSiteMetaCaps() );
+		$single_meta = array_keys( self::_getSingleSiteMetaCaps() );
+		$multi_meta  = array_keys( self::_getMultiSiteMetaCaps() );
 		sort( $single_meta );
 		sort( $multi_meta );
 		$this->assertSame( $single_meta, $multi_meta );
@@ -420,7 +424,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_all_caps_of_users_are_being_tested() {
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		// `manage_links` is a special case.
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
@@ -459,7 +463,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testPrimitiveCapsTestsAreCorrect() {
+	public function test_primitive_caps_tests_are_correct() {
 		$actual   = $this->getPrimitiveCapsAndRoles();
 		$admin    = get_role( 'administrator' );
 		$expected = $admin->capabilities;
@@ -500,7 +504,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testMetaCapsTestsAreCorrect() {
+	public function test_meta_caps_tests_are_correct() {
 		$actual = $this->getMetaCapsAndRoles();
 		$file   = file_get_contents( ABSPATH . WPINC . '/capabilities.php' );
 
@@ -810,9 +814,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( $can_edit_others_post, $user_can_edit );
 	}
 
-	public function data_user_with_role_can_edit_own_post() {
+	public static function data_user_with_role_can_edit_own_post() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -824,9 +828,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function data_user_with_role_can_edit_others_posts() {
+	public static function data_user_with_role_can_edit_others_posts() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -1357,7 +1361,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
 	}
 
-	public function data_authorless_post() {
+	public static function data_authorless_post() {
 		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
@@ -1562,7 +1566,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function dataTaxonomies() {
+	public static function dataTaxonomies() {
 		return array(
 			array(
 				'post_tag',
@@ -2134,6 +2138,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $role );
 		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
@@ -2431,7 +2436,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_block_caps() {
+	public static function data_block_caps() {
 		$post_caps = array(
 			'edit_block',
 			'read_block',

@@ -843,6 +843,7 @@ function register_block_type( $block_type, $args = array() ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
+	/** @var (lowercase-string&non-falsy-string)|WP_Block_Type $block_type A string that is not a path to block metadata should be a block type name. */
 	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
 }
 
@@ -1927,8 +1928,40 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @since 6.6.0
  * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
- * @param array $blocks An array blocks.
- * @return array An array of blocks with patterns replaced by their content.
+ * @param array[] $blocks {
+ *     An array of blocks.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Required. Name of block.
+ *         @type array       $attrs        Required. Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  Required. List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    Required. HTML from inside block comment delimiters.
+ *         @type array       $innerContent Required. List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *     }
+ * }
+ * @return array[] {
+ *     An array of blocks with patterns replaced by their content.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *         @type mixed       ...$key       Any other keys a block passed in carries, which
+ *                                         are kept, except where a `core/pattern` block is
+ *                                         replaced by its pattern's blocks, or removed as
+ *                                         recursive.
+ *     }
+ * }
  */
 function resolve_pattern_blocks( $blocks ) {
 	static $inner_content;
@@ -2842,7 +2875,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 				 * Logic should be used beforehand to determine if WP_Query should be used in the event that the array
 				 * being passed to post__in is empty.
 				 *
-				 * @see https://core.trac.wordpress.org/ticket/28099
+				 * @link https://core.trac.wordpress.org/ticket/28099
 				 */
 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
 				$query['ignore_sticky_posts'] = 1;
@@ -3084,6 +3117,8 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -3184,6 +3219,8 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Optional. Type of the arrow we will be rendering.
  *                                  Accepts 'next' or 'previous'. Default 'next'.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

@@ -12,6 +12,11 @@ on:
         description: 'The status of the calling workflow'
         type: string
         required: true
+      version:
+        description: 'The WordPress version being tested, added to the workflow name in the message.'
+        type: string
+        required: false
+        default: ''
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK:
         description: 'The Slack webhook URL for a successful build.'
@@ -148,9 +153,10 @@ jobs:
         id: create-payload
         run: |
           COMMIT_MSG="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
+          WORKFLOW_NAME="${GITHUB_WORKFLOW}${VERSION:+ (WordPress ${VERSION})}"
           PAYLOAD="$( jq \
             -n \
-            --arg workflow_name "${GITHUB_WORKFLOW}" \
+            --arg workflow_name "${WORKFLOW_NAME}" \
             --arg ref_name "${CURRENT_BRANCH}" \
             --arg run_url "https://github.com/WordPress/wordpress-develop/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}" \
             --arg commit_message "${COMMIT_MSG}" \
@@ -159,6 +165,7 @@ jobs:
           echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
         env:
           COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && steps.current-commit-message.outputs.result || github.event.head_commit.message }}
+          VERSION: ${{ inputs.version }}
 
   # Posts notifications when a workflow fails.
   failure:

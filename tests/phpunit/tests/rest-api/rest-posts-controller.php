@@ -110,10 +110,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		add_role( 'private_reader', 'Private Reader' );
-		$role = get_role( 'private_reader' );
-		$role->add_cap( 'read_private_posts' );
-
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
@@ -125,6 +121,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		}
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Sets up the role for tests that require access to private posts.
+	 */
+	private function set_up_private_reader_role() {
+		add_role( 'private_reader', 'Private Reader' );
+		$role = get_role( 'private_reader' );
+		$role->add_cap( 'read_private_posts' );
 	}
 
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
@@ -841,6 +846,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_multiple_statuses_custom_role_one_invalid_query() {
+		$this->set_up_private_reader_role();
+
 		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( self::$private_reader_id );
@@ -922,7 +929,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 *
 	 * @return array[]
 	 */
-	public function data_get_items_exact_search() {
+	public static function data_get_items_exact_search() {
 		return array(
 			'general search, one exact match and one partial match' => array(
 				'search_term'  => 'Rye',
@@ -1210,6 +1217,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'tags_exclude', array( $tag['term_id'] ) );
+		$request->set_param( 'orderby', 'id' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -2022,6 +2030,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_status_draft_permissions() {
+		$this->set_up_private_reader_role();
+
 		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
 		// Drafts status query var inaccessible to unauthorized users.
@@ -2052,6 +2062,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_status_private_permissions() {
+		$this->set_up_private_reader_role();
+
 		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( 0 );
@@ -2817,7 +2829,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_create_post_response( $response );
 	}
 
-	public function data_post_dates() {
+	public static function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -3335,7 +3347,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 *
 	 * @return array
 	 */
-	public function data_featured_media_link_permissions() {
+	public static function data_featured_media_link_permissions() {
 		return array(
 			'unauthenticated user with draft parent attachment' => array(
 				'attachment_parent_status' => 'draft',
@@ -4665,16 +4677,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				// Expected returned values.
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -4717,16 +4729,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				),
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);
@@ -5206,6 +5218,42 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertCount( 1, $publish, 'LDO found on schema.' );
 	}
 
+	/**
+	 * @ticket 66332
+	 *
+	 * @covers WP_REST_Posts_Controller::get_schema_links
+	 */
+	public function test_unfiltered_html_action_ldo_target_schema() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema, 'The schema should have links.' );
+		$unfiltered_html = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-unfiltered-html' ) );
+
+		$this->assertCount( 1, $unfiltered_html, 'The action-unfiltered-html LDO should be on the schema once.' );
+
+		$ldo = array_shift( $unfiltered_html );
+
+		$this->assertSame(
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'content' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'raw' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+			$ldo['targetSchema'],
+			'The target schema should describe content.raw as a string.'
+		);
+	}
+
 	public function test_sticky_action_ldo_registered_for_posts() {
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
 		$data     = $response->get_data();
@@ -5226,6 +5274,22 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-sticky' ) );
 
 		$this->assertCount( 0, $publish, 'LDO found on schema.' );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_schema_links
+	 */
+	public function test_trash_action_ldo_registered() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$trash = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-trash' ) );
+
+		$this->assertCount( 1, $trash, 'LDO found on schema.' );
 	}
 
 	public function test_author_action_ldo_registered_for_post_types_with_author_support() {
@@ -5370,6 +5434,104 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$links    = $response->get_links();
 
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-sticky', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_exists_for_author() {
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_when_not_trashable() {
+		add_filter( 'rest_post_trashable', '__return_false' );
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_for_trashed_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create( array( 'post_status' => 'trash' ) );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_in_view_context() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'view' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_when_user_cannot_delete() {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'delete_post' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
 	}
 
 

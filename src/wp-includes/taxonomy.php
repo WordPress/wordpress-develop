@@ -274,10 +274,13 @@ function create_initial_taxonomies() {
  *                         Default empty array.
  * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
- * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
- *                         one element from the array needs to match; 'and' means all elements must match.
+ * @param string $operator Optional. The logical operation to perform. Accepts 'and', 'or', or 'not'. 'or'
+ *                         means only one element from the array needs to match; 'and' means all elements
+ *                         must match; 'not' means no elements may match. The value is case-insensitive.
  *                         Default 'and'.
  * @return string[]|WP_Taxonomy[] An array of taxonomy names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -375,6 +378,7 @@ function get_taxonomy( $taxonomy ) {
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
  *
+ * @phpstan-assert-if-true =non-falsy-string $taxonomy
  * @phpstan-return ( $taxonomy is non-falsy-string ? bool : false )
  */
 function taxonomy_exists( $taxonomy ) {
@@ -518,6 +522,8 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *                                                Default false.
  * }
  * @return WP_Taxonomy|WP_Error The registered taxonomy object on success, WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $taxonomy
  */
 function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
 	global $wp_taxonomies;

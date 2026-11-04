@@ -47,7 +47,7 @@ class Tests_Term_SanitizeTerm extends WP_UnitTestCase {
 	 *     expected_description: string,
 	 * }>
 	 */
-	public function data_sanitize_term(): array {
+	public static function data_sanitize_term(): array {
 		$description = 'Test <script>console.log("Hello")</script> Description';
 
 		return array(
