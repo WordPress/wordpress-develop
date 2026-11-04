@@ -97,9 +97,6 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 
 		add_filter( 'author_link', '__return_empty_string' );
 		$link = get_the_author_posts_link();
-		remove_filter( 'author_link', '__return_empty_string' );
-
-		unset( $GLOBALS['authordata'] );
 
 		$this->assertSame( 'Test Author', $link );
 	}
@@ -117,9 +114,6 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 		};
 		add_filter( 'author_link', $author_link_filter );
 		$link = get_the_author_posts_link();
-		remove_filter( 'author_link', $author_link_filter );
-
-		unset( $GLOBALS['authordata'] );
 
 		$this->assertSame( 'Test Author', $link );
 	}
