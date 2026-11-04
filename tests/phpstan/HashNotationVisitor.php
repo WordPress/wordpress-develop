@@ -471,11 +471,11 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Splits a docblock into its tags.
 	 *
 	 * The docblock furniture is removed first, so a line reads as it would in a
-	 * plain text file: `@param array $args {` for a tag, and the hash body
-	 * indented below it.
+	 * plain text file, with a tag at the start of its line and the body of a hash
+	 * it opens indented below it.
 	 *
 	 * @param string $text Raw docblock text including the `/**` markers.
-	 * @return list<array{name: string, header: string, body: list<string>}>
+	 * @return list<array{name: lowercase-string&non-falsy-string, header: string, body: list<string>}>
 	 */
 	private function split_tags( string $text ): array {
 		$body = preg_replace( '#^\s*/\*\*#', '', $text, 1 );
@@ -485,21 +485,28 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$current = null;
 
 		foreach ( preg_split( '#\R#', (string) $body ) ?: array() as $line ) {
-			$line = (string) preg_replace( '#^\s*\*[ ]?#', '', $line, 1 );
+			$line = (string) preg_replace( '#^\s*\* ?#', '', $line, 1 );
 
 			if ( preg_match( '#^@([a-zA-Z][a-zA-Z0-9_-]*)[ \t]*(.*)$#', $line, $matches ) === 1 ) {
-				$tags[] = array(
+				if ( null !== $current ) {
+					$tags[] = $current;
+				}
+
+				$current = array(
 					'name'   => strtolower( $matches[1] ),
 					'header' => $matches[2],
 					'body'   => array(),
 				);
-				$current = count( $tags ) - 1;
 				continue;
 			}
 
 			if ( null !== $current ) {
-				$tags[ $current ]['body'][] = $line;
+				$current['body'][] = $line;
 			}
+		}
+
+		if ( null !== $current ) {
+			$tags[] = $current;
 		}
 
 		return $tags;
@@ -515,7 +522,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * the next, and a conditional `@phpstan-return` naming a parameter is not a
 	 * shape for it.
 	 *
-	 * @param list<array{name: string, header: string, body: list<string>}> $tags Tags of the docblock.
+	 * @param list<array{name: lowercase-string&non-falsy-string, header: string, body: list<string>}> $tags Tags of the docblock.
 	 * @return array<string, true> Set keyed as `param $name`, or `return`.
 	 */
 	private function phpstan_counterparts( array $tags ): array {
@@ -564,8 +571,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param list<string> $lines Body lines of the tag, with docblock furniture removed.
 	 * @param int          $index Current position in `$lines`, advanced as entries are read.
 	 * @param string       $intro Set to the prose written above this level's first entry.
-	 * @return list<array{type: string, name: string, variadic: bool, description: string, children: list<mixed>}>|null
-	 *         Entries of this level, or null if the hash is malformed.
+	 * @return list<HashEntry>|null Entries of this level, or null if the hash is malformed.
 	 */
 	private function parse_entries( array $lines, int &$index, string &$intro = '' ): ?array {
 		$entries = array();
@@ -582,19 +588,21 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			}
 
 			if ( preg_match( '#^@type[ \t]+(.*)$#', $line, $matches ) === 1 ) {
-				$entry = $this->parse_entry( $matches[1] );
-				if ( null === $entry ) {
+				$parsed = $this->parse_entry( $matches[1] );
+				if ( null === $parsed ) {
 					return null;
 				}
 
-				if ( $entry['opens'] ) {
+				list( $entry, $opens ) = $parsed;
+
+				if ( $opens ) {
 					$nested   = '';
 					$children = $this->parse_entries( $lines, $index, $nested );
 					if ( null === $children || array() === $children ) {
 						return null;
 					}
 
-					$entry['children'] = $children;
+					$entry->children = $children;
 
 					/*
 					 * An entry that opens a hash usually carries no description beside
@@ -604,10 +612,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 					 * the `{` is kept on a line of its own, so the intro still opens
 					 * a line for the markers, which are matched per line.
 					 */
-					$entry['description'] = trim( $entry['description'] . "\n" . $nested );
+					$entry->description = trim( $entry->description . "\n" . $nested );
 				}
 
-				unset( $entry['opens'] );
 				$entries[] = $entry;
 
 				/*
@@ -615,7 +622,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				 * rather than the entry that opened it, whose description was read
 				 * before its `{`. It belongs to no key, so nothing collects it.
 				 */
-				$last = array() === $entry['children'] ? count( $entries ) - 1 : null;
+				$last = array() === $entry->children ? $entry : null;
 				continue;
 			}
 
@@ -629,7 +636,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			}
 
 			if ( null !== $last ) {
-				$entries[ $last ]['description'] .= ' ' . $line;
+				$last->description .= ' ' . $line;
 			} elseif ( array() === $entries ) {
 				$intro = '' === $intro ? $line : $intro . ' ' . $line;
 			}
@@ -642,7 +649,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * Parses one `@type` entry.
 	 *
 	 * @param string $rest Everything after `@type `.
-	 * @return array{type: string, name: string, variadic: bool, description: string, children: list<mixed>, opens: bool}|null
+	 * @return array{0: HashEntry, 1: bool}|null The entry and whether it opens a hash, or null if it is malformed.
 	 */
 	private function parse_entry( string $rest ): ?array {
 		$rest  = rtrim( $rest );
@@ -666,12 +673,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return array(
-			'type'        => $type,
-			'name'        => $matches[2],
-			'variadic'    => '' !== $matches[1],
-			'description' => $matches[3],
-			'children'    => array(),
-			'opens'       => $opens,
+			new HashEntry( $type, $matches[2], '' !== $matches[1], $matches[3] ),
+			$opens,
 		);
 	}
 
@@ -682,7 +685,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * `$deps`, rather than at the space inside the angle brackets.
 	 *
 	 * @param string $text Text beginning with a type.
-	 * @return array{0: string, 1: string}|null Type and remainder, or null if there is no type.
+	 * @return array{0: non-empty-string, 1: string}|null Type and remainder, or null if there is no type.
 	 */
 	private function split_type( string $text ): ?array {
 		$text   = ltrim( $text );
@@ -721,9 +724,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Replaces the bare `array` member of a type with a shape.
 	 *
-	 * @param string      $declared  Type as written in the docblock.
-	 * @param list<mixed> $entries   Entries of the hash describing it.
-	 * @param bool        $for_param Whether the hash documents a `@param`.
+	 * @param string          $declared  Type as written in the docblock.
+	 * @param list<HashEntry> $entries   Entries of the hash describing it.
+	 * @param bool            $for_param Whether the hash documents a `@param`.
 	 * @return string|null The type with the shape substituted in, or null if it cannot be.
 	 */
 	private function substitute( string $declared, array $entries, bool $for_param ): ?string {
@@ -794,13 +797,22 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 *
 		 * A union is written back without the parentheses `(string|array)[]` needs
 		 * around it, since `substitute()` looks for the bare `array` to shape among
-		 * the members of the entry's type.
+		 * the members of the entry's type. The type is rewritten on a copy of the
+		 * entry, so the parsed hash is left as it was written. A type that prints as
+		 * nothing cannot be respelled, so the hash is then left untranslated.
 		 */
 		$element = $elements[ $target ] ?? null;
-		if ( null !== $element && is_array( $entries[0] ) ) {
-			$entries[0]['type'] = $element instanceof UnionTypeNode
+		if ( null !== $element ) {
+			$respelled = $element instanceof UnionTypeNode
 				? implode( '|', array_map( 'strval', $element->types ) )
 				: (string) $element;
+			if ( '' === $respelled ) {
+				return null;
+			}
+
+			$entry       = clone $entries[0];
+			$entry->type = $respelled;
+			$entries     = array( $entry, ...array_slice( $entries, 1 ) );
 		}
 		$is_array   = 'array' === $normalized || null !== $element;
 		$named      = ! $is_array && 'object' !== $normalized;
@@ -879,8 +891,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * still only narrowed: named keys there, or no hash at all, would type an
 	 * array of arrays as a single shape, or drop a level of it.
 	 *
-	 * @param string      $member  One member of a union type.
-	 * @param list<mixed> $entries Entries of the hash describing it.
+	 * @param string          $member  One member of a union type.
+	 * @param list<HashEntry> $entries Entries of the hash describing it.
 	 * @return TypeNode|null The declared element type, or null if the hash does not describe the elements.
 	 */
 	private function described_element( string $member, array $entries ): ?TypeNode {
@@ -889,17 +901,12 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		$entry = $entries[0];
-		if ( ! is_array( $entry ) || true !== ( $entry['variadic'] ?? null ) || ! is_string( $entry['type'] ?? null ) ) {
-			return null;
-		}
-
-		$children = $entry['children'] ?? null;
-		if ( ! is_array( $children ) || array() === $children ) {
+		if ( ! $entry->variadic || array() === $entry->children ) {
 			return null;
 		}
 
 		$array = $this->parse_type( $member );
-		$type  = $this->parse_type( $entry['type'] );
+		$type  = $this->parse_type( $entry->type );
 		if ( ! $array instanceof ArrayTypeNode || null === $type ) {
 			return null;
 		}
@@ -918,7 +925,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		return null === $this->described_element( (string) $array->type, array_values( $children ) ) ? null : $array->type;
+		return null === $this->described_element( (string) $array->type, $entry->children ) ? null : $array->type;
 	}
 
 	/**
@@ -1051,10 +1058,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Builds the shape for one hash level.
 	 *
-	 * @param list<mixed> $entries   Entries of this level.
-	 * @param bool        $for_param Whether the hash documents a `@param`.
-	 * @param bool        $is_array  Whether the hash describes an array rather than an object.
-	 * @param bool        $named     Whether the shape will be intersected with a named class.
+	 * @param list<HashEntry> $entries   Entries of this level.
+	 * @param bool            $for_param Whether the hash documents a `@param`.
+	 * @param bool            $is_array  Whether the hash describes an array rather than an object.
+	 * @param bool            $named     Whether the shape will be intersected with a named class.
 	 * @return string|null
 	 */
 	private function resolve_container( array $entries, bool $for_param, bool $is_array, bool $named = false ): ?string {
@@ -1063,7 +1070,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * The hash says nothing about the keys it repeats under, and core uses
 		 * both numbered and named ones, so the keys stay `array-key`.
 		 */
-		if ( 1 === count( $entries ) && $entries[0]['variadic'] ) {
+		if ( 1 === count( $entries ) && $entries[0]->variadic ) {
 			if ( ! $is_array ) {
 				return null;
 			}
@@ -1083,7 +1090,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			 * and `WP_Meta_Query` do. The named keys are kept and the shape is left
 			 * open, which says the same thing about the keys it does not name.
 			 */
-			if ( $entry['variadic'] ) {
+			if ( $entry->variadic ) {
 				$open = true;
 				continue;
 			}
@@ -1095,7 +1102,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 			$members[] = sprintf(
 				'%s%s: %s',
-				$this->format_key( $entry['name'] ),
+				$this->format_key( $entry->name ),
 				$this->is_optional( $entry, $for_param ) ? '?' : '',
 				$type
 			);
@@ -1128,26 +1135,26 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	/**
 	 * Resolves the type of one entry, descending into its own hash if it has one.
 	 *
-	 * @param array{type: string, children: list<mixed>} $entry     Entry to resolve.
-	 * @param bool                                       $for_param Whether the hash documents a `@param`.
+	 * @param HashEntry $entry     Entry to resolve.
+	 * @param bool      $for_param Whether the hash documents a `@param`.
 	 * @return string|null
 	 */
-	private function resolve_entry_type( array $entry, bool $for_param ): ?string {
-		if ( array() === $entry['children'] ) {
-			return $this->parses_as_type( $entry['type'] ) ? $entry['type'] : null;
+	private function resolve_entry_type( HashEntry $entry, bool $for_param ): ?string {
+		if ( array() === $entry->children ) {
+			return $this->parses_as_type( $entry->type ) ? $entry->type : null;
 		}
 
-		return $this->substitute( $entry['type'], $entry['children'], $for_param );
+		return $this->substitute( $entry->type, $entry->children, $for_param );
 	}
 
 	/**
 	 * Reports whether a key is optional.
 	 *
-	 * @param array{name: string, description: string} $entry Entry to inspect.
-	 * @param bool                                     $for_param Whether the hash documents a `@param`.
+	 * @param HashEntry $entry     Entry to inspect.
+	 * @param bool      $for_param Whether the hash documents a `@param`.
 	 * @return bool
 	 */
-	private function is_optional( array $entry, bool $for_param ): bool {
+	private function is_optional( HashEntry $entry, bool $for_param ): bool {
 		/*
 		 * The documentation standard opens the description of an optional value
 		 * with `Optional.`, so that sentence is the marker. Matching the bare word
@@ -1155,7 +1162,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * "receives optional mixed input", or from the "Optional self closing
 		 * slash" of a match array whose every group is always set.
 		 */
-		if ( preg_match( '#^\s*Optional\.#im', $entry['description'] ) === 1 ) {
+		if ( preg_match( '#^\s*Optional\.#im', $entry->description ) === 1 ) {
 			return true;
 		}
 
@@ -1164,7 +1171,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * redundant in a `@return` hash, whose keys are required already, but says
 		 * what the default cannot in a `@param` hash.
 		 */
-		if ( $this->is_required( $entry['description'] ) ) {
+		if ( $this->is_required( $entry->description ) ) {
 			return false;
 		}
 
@@ -1178,7 +1185,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		// Numbered keys document positional arguments, which are passed in order.
-		if ( preg_match( '#^[0-9]+$#', $entry['name'] ) === 1 ) {
+		if ( preg_match( '#^[0-9]+$#', $entry->name ) === 1 ) {
 			return false;
 		}
 

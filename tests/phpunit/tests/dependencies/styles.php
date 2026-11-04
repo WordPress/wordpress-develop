@@ -490,7 +490,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_style
 	 */
 	public function test_block_styles_for_editing_without_theme_support() {
-		// Confirm we are without theme support by default.
+		remove_theme_support( 'wp-block-styles' );
+
+		// Confirm we are without theme support.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
@@ -529,7 +531,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_style
 	 */
 	public function test_no_block_styles_for_viewing_without_theme_support() {
-		// Confirm we are without theme support by default.
+		remove_theme_support( 'wp-block-styles' );
+
+		// Confirm we are without theme support.
 		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );

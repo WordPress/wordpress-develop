@@ -989,4 +989,52 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 			'Expected _doing_it_wrong() to have been called once with the non-scalar value message.'
 		);
 	}
+
+	/**
+	 * Data provider for event handler bindings.
+	 *
+	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
+	 */
+	public static function data_event_handler_bindings(): array {
+		return array(
+			'event handler'                         => array( 'attribute' => 'data-wp-bind--onclick' ),
+			'event handler with an empty unique ID' => array( 'attribute' => 'data-wp-bind--onclick---' ),
+			'event handler with a unique ID'        => array( 'attribute' => 'data-wp-bind--onclick---unique-id' ),
+		);
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes event handler bindings.
+	 *
+	 * @ticket 66452
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_event_handler_bindings
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param non-empty-string $attribute Directive attribute name.
+	 */
+	public function test_wp_bind_removes_event_handler_bindings( string $attribute ): void {
+		$html     = "<button att-before {$attribute}=\"myPlugin::state.id\" att-after>Text</button>";
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertEqualHTML( '<button att-before att-after>Text</button>', $new_html );
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes an event handler binding but still
+	 * processes valid bind directives on the same element.
+	 *
+	 * @ticket 66452
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 */
+	public function test_wp_bind_removes_event_handler_binding_but_processes_valid_binds(): void {
+		$html     = '<button data-wp-bind--onclick="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</button>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertEqualHTML( '<button data-wp-bind--id="myPlugin::state.id" id="some-id">Text</button>', $new_html );
+	}
 }
