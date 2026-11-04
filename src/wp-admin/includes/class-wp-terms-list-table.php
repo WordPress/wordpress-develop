@@ -112,11 +112,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 		$search = ! empty( $_REQUEST['s'] ) ? trim( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 		$args = array(
-			'taxonomy'   => $taxonomy,
-			'search'     => $search,
-			'page'       => $this->get_pagenum(),
-			'number'     => $tags_per_page,
-			'hide_empty' => 0,
+			'taxonomy'       => $taxonomy,
+			'search'         => $search,
+			'search_columns' => array( 'name', 'slug', 'description' ),
+			'page'           => $this->get_pagenum(),
+			'number'         => $tags_per_page,
+			'hide_empty'     => 0,
 		);
 
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
@@ -144,8 +145,9 @@ class WP_Terms_List_Table extends WP_List_Table {
 			array(
 				'total_items' => wp_count_terms(
 					array(
-						'taxonomy' => $taxonomy,
-						'search'   => $search,
+						'taxonomy'       => $taxonomy,
+						'search'         => $search,
+						'search_columns' => array( 'name', 'slug', 'description' ),
 					)
 				),
 				'per_page'    => $tags_per_page,
