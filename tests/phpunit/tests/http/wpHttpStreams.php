@@ -21,7 +21,10 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 			$this->markTestSkipped( 'proc_open() and stream_socket_server() are required.' );
 		}
 
-		$command = array( PHP_BINARY, DIR_TESTDATA . '/http/raw-response.php', wp_json_encode( $raw_response ) );
+		$encoded_response = wp_json_encode( $raw_response );
+		$this->assertIsString( $encoded_response, 'The raw response should be JSON-encodable.' );
+
+		$command = array( PHP_BINARY, DIR_TESTDATA . '/http/raw-response.php', $encoded_response );
 		$process = proc_open(
 			$command,
 			array( array( 'pipe', 'r' ), array( 'pipe', 'w' ), array( 'pipe', 'w' ) ),
