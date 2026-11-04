@@ -609,7 +609,9 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
  * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
- * @return string The comment's date.
+ * @return string|int|false The comment's date.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_comment_date( $format = '', $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
@@ -623,9 +625,9 @@ function get_comment_date( $format = '', $comment_id = 0 ) {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int $comment_date Formatted date string or Unix timestamp.
-	 * @param string     $format       PHP date format.
-	 * @param WP_Comment $comment      The comment object.
+	 * @param string|int|false $comment_date Formatted date string or Unix timestamp. False on failure.
+	 * @param string           $format       PHP date format.
+	 * @param WP_Comment       $comment      The comment object.
 	 */
 	return apply_filters( 'get_comment_date', $comment_date, $format, $comment );
 }
@@ -1106,7 +1108,9 @@ function comment_text( $comment_id = 0, $args = array() ) {
  *                                   Default true.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the time.
  *                                   Default current comment.
- * @return string The formatted time.
+ * @return string|int|false The formatted time, or an empty string if the comment does not exist.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false|'' : string|false )
  */
 function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
@@ -1126,11 +1130,12 @@ function get_comment_time( $format = '', $gmt = false, $translate = true, $comme
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int $comment_time The comment time, formatted as a date string or Unix timestamp.
-	 * @param string     $format       PHP date format.
-	 * @param bool       $gmt          Whether the GMT date is in use.
-	 * @param bool       $translate    Whether the time is translated.
-	 * @param WP_Comment $comment      The comment object.
+	 * @param string|int|false $comment_time The comment time, formatted as a date string or Unix timestamp.
+	 *                                       False on failure.
+	 * @param string           $format       PHP date format.
+	 * @param bool             $gmt          Whether the GMT date is in use.
+	 * @param bool             $translate    Whether the time is translated.
+	 * @param WP_Comment       $comment      The comment object.
 	 */
 	return apply_filters( 'get_comment_time', $comment_time, $format, $gmt, $translate, $comment );
 }
