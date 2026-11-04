@@ -13,6 +13,8 @@
  * @link https://developer.wordpress.org/reference/classes/wp_query/
  *
  * @since 3.7.0
+ *
+ * @phpstan-type Date_Query_Compare '='|'!='|'>'|'>='|'<'|'<='|'IN'|'NOT IN'|'BETWEEN'|'NOT BETWEEN'
  */
 #[AllowDynamicProperties]
 class WP_Date_Query {
@@ -47,6 +49,7 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 * @var string
+	 * @phpstan-var Date_Query_Compare
 	 */
 	public $compare = '=';
 
@@ -252,6 +255,8 @@ class WP_Date_Query {
 	 *
 	 * @param array $query A date query or a date subquery.
 	 * @return string The comparison operator.
+	 *
+	 * @phpstan-return Date_Query_Compare
 	 */
 	public function get_compare( $query ) {
 		if ( ! empty( $query['compare'] )
@@ -812,6 +817,7 @@ class WP_Date_Query {
 	 * @param string|int|array<int|string>|null $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
 	 *
+	 * @phpstan-param Date_Query_Compare     $compare
 	 * @phpstan-param numeric|numeric[]|null $value
 	 */
 	public function build_value( $compare, $value ) {
@@ -970,6 +976,8 @@ class WP_Date_Query {
 	 * @param int|null $minute  Optional. A minute value (0-59).
 	 * @param int|null $second  Optional. A second value (0-59).
 	 * @return string|false A query part or false on failure.
+	 *
+	 * @phpstan-param Date_Query_Compare $compare
 	 */
 	public function build_time_query( $column, $compare, $hour = null, $minute = null, $second = null ) {
 		global $wpdb;
