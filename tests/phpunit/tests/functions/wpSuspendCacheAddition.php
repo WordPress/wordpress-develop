@@ -25,7 +25,7 @@ class Tests_Functions_wpSuspendCacheAddition extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_suspend_cache_addition( true ) ); // set to true.
 		$this->assertTrue( wp_suspend_cache_addition() );
-		$this->assertTrue( wp_suspend_cache_addition() ); // call again make it did get reset
+		$this->assertTrue( wp_suspend_cache_addition() ); // Call again to verify that the state remains unchanged.
 
 		$this->assertTrue( wp_suspend_cache_addition( 'true' ) ); // not bool so state not set
 		$this->assertTrue( wp_suspend_cache_addition() );
