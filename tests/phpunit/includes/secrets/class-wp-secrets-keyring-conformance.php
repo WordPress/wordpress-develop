@@ -10,7 +10,8 @@
  * rather than an exception or a falsy string. Those are the properties that
  * actually matter to WP_Secrets_Key_Manager, the only caller of a keyring.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 

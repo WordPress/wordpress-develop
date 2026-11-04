@@ -2,7 +2,8 @@
 /**
  * Tests for WP_Secret.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 
 /**

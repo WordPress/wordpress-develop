@@ -5,7 +5,8 @@
  * Kept in one place so a change to what "never contains plaintext" means is a single
  * edit rather than a search across the suite.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 
 /**

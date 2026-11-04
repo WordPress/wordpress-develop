@@ -19,7 +19,8 @@
  * version history is not asked to produce a previous one. What does not vary is
  * checked for everyone.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
