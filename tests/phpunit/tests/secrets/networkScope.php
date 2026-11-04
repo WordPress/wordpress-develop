@@ -17,12 +17,12 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * @covers ::wp_get_network_secret
 	 */
 	public function test_set_then_get_round_trips(): void {
-		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'value' ) );
+		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'value' ), 'Setting a network secret should succeed.' );
 
 		$secret = wp_get_network_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The network secret should be readable as a WP_Secret.' );
+		$this->assertSame( 'value', $secret->reveal(), 'The network secret should return the value it was set to.' );
 	}
 
 	/**
@@ -31,7 +31,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * @covers ::wp_get_network_secret
 	 */
 	public function test_get_returns_null_for_an_absent_secret(): void {
-		$this->assertNull( wp_get_network_secret( 'myplugin/never-set' ) );
+		$this->assertNull( wp_get_network_secret( 'myplugin/never-set' ), 'A network secret that was never set should be null.' );
 	}
 
 	/**
@@ -47,10 +47,10 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		$site_secret    = wp_get_secret( 'myplugin/api-key' );
 		$network_secret = wp_get_network_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $site_secret );
-		$this->assertInstanceOf( WP_Secret::class, $network_secret );
-		$this->assertSame( 'site-value', $site_secret->reveal() );
-		$this->assertSame( 'network-value', $network_secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $site_secret, 'The site secret should be readable as a WP_Secret.' );
+		$this->assertInstanceOf( WP_Secret::class, $network_secret, 'The network secret should be readable as a WP_Secret.' );
+		$this->assertSame( 'site-value', $site_secret->reveal(), 'The site secret should keep its own value.' );
+		$this->assertSame( 'network-value', $network_secret->reveal(), 'The network secret should keep its own value.' );
 	}
 
 	/**
@@ -61,8 +61,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	public function test_delete_removes_a_network_secret(): void {
 		wp_set_network_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertTrue( wp_delete_network_secret( 'myplugin/api-key' ) );
-		$this->assertNull( wp_get_network_secret( 'myplugin/api-key' ) );
+		$this->assertTrue( wp_delete_network_secret( 'myplugin/api-key' ), 'Deleting a network secret should succeed.' );
+		$this->assertNull( wp_get_network_secret( 'myplugin/api-key' ), 'A deleted network secret should be null.' );
 	}
 
 	/**
@@ -78,8 +78,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 
 		$site_secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $site_secret );
-		$this->assertSame( 'site-value', $site_secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $site_secret, 'The site secret should still be readable as a WP_Secret.' );
+		$this->assertSame( 'site-value', $site_secret->reveal(), 'The site secret should keep its value after the network secret is deleted.' );
 	}
 
 	/**
@@ -91,8 +91,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		wp_set_network_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_network_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value', true );
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value', true );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value', true, 'The previous slot should decrypt to the first network value.' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value', true, 'The current slot should decrypt to the second network value.' );
 	}
 
 	/**
@@ -104,8 +104,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		wp_set_network_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_network_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertTrue( wp_retire_network_secret_version( 'myplugin/api-key' ) );
-		$this->assertNull( wp_get_network_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
+		$this->assertTrue( wp_retire_network_secret_version( 'myplugin/api-key' ), 'Retiring the previous network version should succeed.' );
+		$this->assertNull( wp_get_network_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ), 'The previous network version should be gone after retiring it.' );
 	}
 
 	/**
@@ -142,7 +142,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 				array( 'deleted', true ),
 				array( 'created', false ),
 			),
-			$scopes
+			$scopes,
+			'wp_secret_changed should report each action with its network scope flag.'
 		);
 	}
 
@@ -157,8 +158,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 
 		$entries = wp_list_network_secrets();
 
-		$this->assertIsArray( $entries );
-		$this->assertSame( array( 'myplugin/network-only' ), wp_list_pluck( $entries, 'name' ) );
+		$this->assertIsArray( $entries, 'wp_list_network_secrets() should return an array.' );
+		$this->assertSame( array( 'myplugin/network-only' ), wp_list_pluck( $entries, 'name' ), 'The network listing should contain only the network secret.' );
 	}
 
 	/**
@@ -172,8 +173,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 
 		$result = wp_get_network_secret( 'myplugin/api-key', 'not-a-real-version' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid version should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code(), 'An invalid version should be rejected with WP_SECRETS_ERROR_INVALID_ARGUMENT.' );
 	}
 
 	/**
@@ -184,8 +185,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	public function test_set_rejects_an_invalid_name(): void {
 		$result = wp_set_network_secret( 'Not A Valid Name', 'value' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid name should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid name should be rejected with WP_SECRETS_ERROR_INVALID_NAME.' );
 	}
 
 	/**
@@ -230,6 +231,6 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		$result = wp_get_secret( 'myplugin/api-key' );
 		restore_current_blog();
 
-		$this->assertNull( $result );
+		$this->assertNull( $result, 'A site secret should not be readable from a different blog.' );
 	}
 }

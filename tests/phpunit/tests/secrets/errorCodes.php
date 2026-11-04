@@ -20,7 +20,7 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	 * @param string $expected Value the published contract assigns to it.
 	 */
 	public function test_error_code_values_match_the_published_contract( $constant, $expected ): void {
-		$this->assertSame( $expected, constant( $constant ) );
+		$this->assertSame( $expected, constant( $constant ), sprintf( '%s should hold its published error code string.', $constant ) );
 	}
 
 	/**
@@ -49,7 +49,7 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	public function test_all_error_codes_are_distinct(): void {
 		$codes = array_map( 'constant', array_column( self::data_published_error_codes(), 0 ) );
 
-		$this->assertSame( count( $codes ), count( array_unique( $codes ) ) );
+		$this->assertSame( count( $codes ), count( array_unique( $codes ) ), 'Every error code constant should have a distinct value.' );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSameSets( array_column( self::data_published_error_codes(), 0 ), $defined );
+		$this->assertSameSets( array_column( self::data_published_error_codes(), 0 ), $defined, 'Every WP_SECRETS_ERROR_* constant should be listed in the published contract.' );
 	}
 
 	/**
@@ -79,6 +79,6 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 	public function test_max_name_length_matches_the_options_column_budget(): void {
 		// wp_options.option_name is VARCHAR(191); '_wp_network_secret_' (19
 		// characters) is the longest prefix any store here uses.
-		$this->assertSame( 191 - strlen( '_wp_network_secret_' ), WP_SECRETS_MAX_NAME_LENGTH );
+		$this->assertSame( 191 - strlen( '_wp_network_secret_' ), WP_SECRETS_MAX_NAME_LENGTH, 'WP_SECRETS_MAX_NAME_LENGTH should fit the longest prefixed name in option_name.' );
 	}
 }

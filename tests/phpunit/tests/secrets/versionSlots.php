@@ -21,9 +21,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	private function stored_slot( string $slot ): array {
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( $slot, $record );
-		$this->assertIsArray( $record[ $slot ] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( $slot, $record, 'The stored record should contain the requested slot.' );
+		$this->assertIsArray( $record[ $slot ], 'The requested slot of the stored record should be an array.' );
 
 		return $record[ $slot ];
 	}
@@ -38,8 +38,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value', false, 'The previous slot should decrypt to the first value.' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value', false, 'The current slot should decrypt to the second value.' );
 	}
 
 	/**
@@ -53,11 +53,11 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value-b' );
 		wp_set_secret( 'myplugin/api-key', 'value-c' );
 
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'value-b' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'value-b', false, 'The previous slot should decrypt to the second of three values.' );
 
 		// value-a is gone from the stored record entirely, not merely unreachable
 		// through the two named slots.
-		$this->assertNeverContainsPlaintext( 'value-a', get_option( '_wp_secret_myplugin/api-key' ) );
+		$this->assertNeverContainsPlaintext( 'value-a', get_option( '_wp_secret_myplugin/api-key' ), 'The stored record should no longer contain the oldest value.' );
 	}
 
 	/**
@@ -74,8 +74,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value', false, 'Rewriting the current value should leave the previous slot holding the first value.' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value', false, 'The current slot should still decrypt to the rewritten value.' );
 	}
 
 	/**
@@ -91,9 +91,9 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 		$before = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'second-value' ) );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'second-value' ), 'Rewriting the current value should report success.' );
 
-		$this->assertSame( $before, get_option( '_wp_secret_myplugin/api-key' ) );
+		$this->assertSame( $before, get_option( '_wp_secret_myplugin/api-key' ), 'Rewriting the current value should leave the stored record unchanged.' );
 	}
 
 	/**
@@ -116,7 +116,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertFalse( $fired );
+		$this->assertFalse( $fired, 'Rewriting the current value should not fire wp_secret_changed.' );
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		wp_set_secret( 'myplugin/api-key', 'imported-value' );
 
-		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'] );
+		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'], 'Rewriting an imported value should keep its needs_rotation flag.' );
 	}
 
 	/**
@@ -151,11 +151,11 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 		update_option( 'my_plugin_api_key', 'second-value' );
 
-		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ) );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing an option holding the current value should succeed.' );
 
-		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'] );
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
-		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+		$this->assertTrue( $this->stored_slot( WP_Secret_Version::CURRENT )['needs_rotation'], 'The imported current value should be flagged as needing rotation.' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value', false, 'Importing the current value should leave the previous slot holding the first value.' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value', false, 'The current slot should still decrypt to the imported value.' );
 	}
 
 	/**
@@ -167,14 +167,14 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	public function test_previous_preserves_its_original_fingerprint(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
-		$this->assertInstanceOf( WP_Secret::class, $original );
+		$this->assertInstanceOf( WP_Secret::class, $original, 'The first value should be readable as a WP_Secret.' );
 		$original_fingerprint = $original->fingerprint();
 
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
 		$previous = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
-		$this->assertInstanceOf( WP_Secret::class, $previous );
-		$this->assertSame( $original_fingerprint, $previous->fingerprint() );
+		$this->assertInstanceOf( WP_Secret::class, $previous, 'The demoted value should be readable as a WP_Secret.' );
+		$this->assertSame( $original_fingerprint, $previous->fingerprint(), 'The demoted value should keep its original fingerprint.' );
 	}
 
 	/**
@@ -191,7 +191,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		$demoted_created = $this->stored_slot( WP_Secret_Version::PREVIOUS )['created'];
 
-		$this->assertSame( $original_created, $demoted_created );
+		$this->assertSame( $original_created, $demoted_created, 'The demoted value should keep its original created timestamp.' );
 	}
 
 	/**
@@ -208,15 +208,15 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		 * this test depends only on demotion carrying the flag forward.
 		 */
 		$record = get_option( '_wp_secret_myplugin/api-key' );
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot of the stored record should be an array.' );
 		$record['current']['needs_rotation'] = true;
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertTrue( $this->stored_slot( WP_Secret_Version::PREVIOUS )['needs_rotation'] );
+		$this->assertTrue( $this->stored_slot( WP_Secret_Version::PREVIOUS )['needs_rotation'], 'The demoted value should keep its needs_rotation flag.' );
 	}
 
 	/**
@@ -237,11 +237,11 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		$demoted_ciphertext = $this->stored_slot( WP_Secret_Version::PREVIOUS )['ct'];
 
-		$this->assertNotSame( $original_ciphertext, $demoted_ciphertext );
+		$this->assertNotSame( $original_ciphertext, $demoted_ciphertext, 'Demotion should re-encrypt the value rather than copy its ciphertext.' );
 		// And it must still actually decrypt to the original plaintext.
 		$previous = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
-		$this->assertInstanceOf( WP_Secret::class, $previous );
-		$this->assertSame( 'first-value', $previous->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $previous, 'The demoted value should be readable as a WP_Secret.' );
+		$this->assertSame( 'first-value', $previous->reveal(), 'The demoted value should decrypt to the original plaintext.' );
 	}
 
 	/**
@@ -257,18 +257,18 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot of the stored record should be an array.' );
 		$record['current']['ct'] = base64_encode( 'not decryptable under any key' );
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'new-value' ) );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'new-value' ), 'A write over an undecryptable current slot should succeed.' );
 		$current = wp_get_secret( 'myplugin/api-key' );
-		$this->assertInstanceOf( WP_Secret::class, $current );
-		$this->assertSame( 'new-value', $current->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $current, 'The new current value should be readable as a WP_Secret.' );
+		$this->assertSame( 'new-value', $current->reveal(), 'The new current value should decrypt to the value just written.' );
 		// The undecryptable slot could not be demoted, so it is simply gone.
-		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
+		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ), 'An undecryptable current slot should not be demoted to the previous slot.' );
 	}
 
 	/**
@@ -280,12 +280,12 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
-		$this->assertTrue( wp_retire_secret_version( 'myplugin/api-key' ) );
+		$this->assertTrue( wp_retire_secret_version( 'myplugin/api-key' ), 'Retiring the previous version should succeed.' );
 
-		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
+		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ), 'The previous version should be gone after retiring it.' );
 		$current = wp_get_secret( 'myplugin/api-key' );
-		$this->assertInstanceOf( WP_Secret::class, $current );
-		$this->assertSame( 'second-value', $current->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $current, 'The current version should still be readable as a WP_Secret.' );
+		$this->assertSame( 'second-value', $current->reveal(), 'The current version should be unchanged by retiring the previous one.' );
 	}
 
 	/**
@@ -296,7 +296,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	public function test_retire_on_a_secret_with_no_previous_slot_is_a_successful_noop(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertTrue( wp_retire_secret_version( 'myplugin/api-key' ) );
+		$this->assertTrue( wp_retire_secret_version( 'myplugin/api-key' ), 'Retiring with no previous version should report success.' );
 	}
 
 	/**
@@ -305,7 +305,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	 * @covers ::wp_retire_secret_version
 	 */
 	public function test_retire_on_a_never_set_secret_is_a_successful_noop(): void {
-		$this->assertTrue( wp_retire_secret_version( 'myplugin/never-set' ) );
+		$this->assertTrue( wp_retire_secret_version( 'myplugin/never-set' ), 'Retiring a secret that was never set should report success.' );
 	}
 
 	/**
@@ -316,8 +316,8 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	public function test_retire_rejects_an_invalid_name(): void {
 		$result = wp_retire_secret_version( 'Not A Valid Name' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid name should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid name should be rejected with WP_SECRETS_ERROR_INVALID_NAME.' );
 	}
 
 	/**
@@ -328,7 +328,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	public function test_retire_fires_the_change_hook_with_the_retired_action(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
-		$this->assertInstanceOf( WP_Secret::class, $original );
+		$this->assertInstanceOf( WP_Secret::class, $original, 'The first value should be readable as a WP_Secret.' );
 		$fingerprint_being_retired = $original->fingerprint();
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
@@ -344,15 +344,15 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		wp_retire_secret_version( 'myplugin/api-key' );
 
-		$this->assertIsArray( $captured );
-		$this->assertCount( 7, $captured );
+		$this->assertIsArray( $captured, 'wp_secret_changed should fire when the previous version is retired.' );
+		$this->assertCount( 7, $captured, 'wp_secret_changed should be passed seven arguments.' );
 
 		list( $name, $action, , , $old_fingerprint, $new_fingerprint ) = $captured;
 
-		$this->assertSame( 'myplugin/api-key', $name );
-		$this->assertSame( 'retired', $action );
-		$this->assertSame( $fingerprint_being_retired, $old_fingerprint );
-		$this->assertSame( '', $new_fingerprint );
+		$this->assertSame( 'myplugin/api-key', $name, 'The change hook should report the name of the secret.' );
+		$this->assertSame( 'retired', $action, 'The change hook should report the retired action.' );
+		$this->assertSame( $fingerprint_being_retired, $old_fingerprint, 'The change hook should report the retired fingerprint as the old fingerprint.' );
+		$this->assertSame( '', $new_fingerprint, 'The change hook should report an empty new fingerprint.' );
 	}
 
 	/**
@@ -373,6 +373,6 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 
 		wp_retire_secret_version( 'myplugin/api-key' );
 
-		$this->assertFalse( $fired );
+		$this->assertFalse( $fired, 'A no-op retire should not fire wp_secret_changed.' );
 	}
 }

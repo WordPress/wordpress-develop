@@ -38,7 +38,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_implements_the_keyring_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider() ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
+		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider(), 'WP_Secrets_Config_Key_Provider should implement WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
 	}
 
 	/**
@@ -52,10 +52,10 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$material = random_bytes( 32 );
 
 		$wrapped = $provider->wrap( $material );
-		$this->assertIsString( $wrapped );
+		$this->assertIsString( $wrapped, 'wrap() should return a string.' );
 
 		$unwrapped = $provider->unwrap( $wrapped );
-		$this->assertSame( $material, $unwrapped );
+		$this->assertSame( $material, $unwrapped, 'unwrap() should return the original key material.' );
 	}
 
 	/**
@@ -68,8 +68,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$result = $provider->wrap( '' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
+		$this->assertWPError( $result, 'Wrapping an empty string should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code(), 'Wrapping an empty string should return the invalid value error code.' );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$material = random_bytes( 32 );
 
-		$this->assertNotSame( $provider->wrap( $material ), $provider->wrap( $material ) );
+		$this->assertNotSame( $provider->wrap( $material ), $provider->wrap( $material ), 'Two wraps of the same key material should produce different output.' );
 	}
 
 	/**
@@ -94,8 +94,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$result = $provider->unwrap( '' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'Unwrapping an empty string should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'Unwrapping an empty string should return the key unavailable error code.' );
 	}
 
 	/**
@@ -108,8 +108,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$result = $provider->unwrap( 'not valid base64 at all!!!' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'Unwrapping invalid base64 should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'Unwrapping invalid base64 should return the key unavailable error code.' );
 	}
 
 	/**
@@ -122,8 +122,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$result = $provider->unwrap( base64_encode( 'x' ) );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'Unwrapping data shorter than a nonce should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'Unwrapping data shorter than a nonce should return the key unavailable error code.' );
 	}
 
 	/**
@@ -134,10 +134,10 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	public function test_unwrap_rejects_a_tampered_ciphertext(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$wrapped  = $provider->wrap( random_bytes( 32 ) );
-		$this->assertIsString( $wrapped );
+		$this->assertIsString( $wrapped, 'wrap() should return a string.' );
 
 		$raw = base64_decode( $wrapped, true );
-		$this->assertIsString( $raw );
+		$this->assertIsString( $raw, 'The wrapped value should be valid strict base64.' );
 
 		$tampered_raw               = $raw;
 		$last_byte                  = strlen( $tampered_raw ) - 1;
@@ -145,8 +145,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$result = $provider->unwrap( base64_encode( $tampered_raw ) );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'Unwrapping a tampered ciphertext should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'Unwrapping a tampered ciphertext should return the key unavailable error code.' );
 	}
 
 	/**
@@ -165,7 +165,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertStringContainsString( 'LOGGED_IN_KEY', $provider->get_key_source() );
+		$this->assertStringContainsString( 'LOGGED_IN_KEY', $provider->get_key_source(), 'The key source should name LOGGED_IN_KEY when WP_SECRETS_KEY is unset.' );
 	}
 
 	/**
@@ -181,7 +181,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	public function test_is_canonical_base64_32( $value, $expected ): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertSame( $expected, $this->invoke_private( $provider, 'is_canonical_base64_32', array( $value ) ) );
+		$this->assertSame( $expected, $this->invoke_private( $provider, 'is_canonical_base64_32', array( $value ) ), 'is_canonical_base64_32() should return the expected result for this value.' );
 	}
 
 	/**
@@ -213,7 +213,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	public function test_are_usable_salt_values( $key, $salt, $expected ): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertSame( $expected, $this->invoke_private( $provider, 'are_usable_salt_values', array( $key, $salt ) ) );
+		$this->assertSame( $expected, $this->invoke_private( $provider, 'are_usable_salt_values', array( $key, $salt ) ), 'are_usable_salt_values() should return the expected result for this pair.' );
 	}
 
 	/**
@@ -244,7 +244,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertSame( $raw, $this->invoke_private( $provider, 'get_site_key' ) );
+		$this->assertSame( $raw, $this->invoke_private( $provider, 'get_site_key' ), 'A canonical base64 WP_SECRETS_KEY should be used as the decoded raw bytes.' );
 	}
 
 	/**
@@ -264,10 +264,11 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$key      = $this->invoke_private( $provider, 'get_site_key' );
 
-		$this->assertIsString( $key );
+		$this->assertIsString( $key, 'get_site_key() should return a string for a legacy WP_SECRETS_KEY.' );
 		$this->assertSame(
 			'db0aa0426b1dfaecc1878c103914462b0066eca0cdd050654a179588fed74b21',
-			bin2hex( $key )
+			bin2hex( $key ),
+			'The legacy site key should match the pinned known-answer vector.'
 		);
 	}
 
@@ -290,7 +291,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$this->assertSame(
 			sodium_crypto_generichash( $sixteen_bytes, '', 32 ),
-			$key
+			$key,
+			'A wrong-length base64 WP_SECRETS_KEY should be hashed via the legacy interpretation.'
 		);
 	}
 
@@ -308,8 +310,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$provider = new WP_Secrets_Config_Key_Provider();
 		$result   = $this->invoke_private( $provider, 'get_site_key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'A non-string WP_SECRETS_KEY should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'A non-string WP_SECRETS_KEY should return the key unavailable error code.' );
 	}
 
 	/**
@@ -325,7 +327,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertStringContainsString( 'base64', $provider->get_key_source() );
+		$this->assertStringContainsString( 'base64', $provider->get_key_source(), 'The key source should identify a canonical base64 WP_SECRETS_KEY.' );
 	}
 
 	/**
@@ -341,7 +343,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertStringContainsString( 'legacy', $provider->get_key_source() );
+		$this->assertStringContainsString( 'legacy', $provider->get_key_source(), 'The key source should identify a legacy WP_SECRETS_KEY.' );
 	}
 
 	/**
@@ -358,7 +360,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$provider = new WP_Secrets_Config_Key_Provider( true );
 
-		$this->assertSame( str_repeat( 'C', 32 ), $this->invoke_private( $provider, 'get_site_key' ) );
+		$this->assertSame( str_repeat( 'C', 32 ), $this->invoke_private( $provider, 'get_site_key' ), 'A previous-key provider should use the bytes from WP_SECRETS_KEY_PREVIOUS.' );
 	}
 
 	/**
@@ -380,8 +382,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$provider = new WP_Secrets_Config_Key_Provider( false );
 		$key      = $this->invoke_private( $provider, 'get_site_key' );
 
-		$this->assertNotWPError( $key );
-		$this->assertNotSame( str_repeat( 'C', 32 ), $key );
+		$this->assertNotWPError( $key, 'The current-key provider should derive a site key from the salts.' );
+		$this->assertNotSame( str_repeat( 'C', 32 ), $key, 'The current-key provider should not use WP_SECRETS_KEY_PREVIOUS.' );
 	}
 
 	/**
@@ -399,8 +401,8 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$provider = new WP_Secrets_Config_Key_Provider( true );
 		$result   = $this->invoke_private( $provider, 'get_site_key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'A previous-key provider without WP_SECRETS_KEY_PREVIOUS should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'Without WP_SECRETS_KEY_PREVIOUS, the previous-key provider should return key unavailable.' );
 	}
 
 	/**
@@ -421,9 +423,9 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$new_provider = new WP_Secrets_Config_Key_Provider( false );
 
 		$wrapped_under_old = $old_provider->wrap( random_bytes( 32 ) );
-		$this->assertIsString( $wrapped_under_old );
+		$this->assertIsString( $wrapped_under_old, 'The old provider should wrap to a string.' );
 
-		$this->assertWPError( $new_provider->unwrap( $wrapped_under_old ) );
-		$this->assertIsString( $old_provider->unwrap( $wrapped_under_old ) );
+		$this->assertWPError( $new_provider->unwrap( $wrapped_under_old ), 'The new provider should not unwrap a value wrapped by the old provider.' );
+		$this->assertIsString( $old_provider->unwrap( $wrapped_under_old ), 'The old provider should unwrap its own wrapped value.' );
 	}
 }

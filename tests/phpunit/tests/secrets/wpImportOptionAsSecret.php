@@ -16,12 +16,12 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	public function test_imports_an_existing_option_value(): void {
 		update_option( 'my_plugin_api_key', 'sk_live_from_an_option' );
 
-		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ) );
+		$this->assertTrue( wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' ), 'Importing an existing option should succeed.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'sk_live_from_an_option', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The imported secret should be a WP_Secret.' );
+		$this->assertSame( 'sk_live_from_an_option', $secret->reveal(), 'The imported secret should decrypt to the option value.' );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
 
-		$this->assertSame( 'sk_live_from_an_option', get_option( 'my_plugin_api_key' ) );
+		$this->assertSame( 'sk_live_from_an_option', get_option( 'my_plugin_api_key' ), 'The source option should be left unchanged.' );
 	}
 
 	/**
@@ -49,10 +49,10 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
-		$this->assertTrue( $record['current']['needs_rotation'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
+		$this->assertTrue( $record['current']['needs_rotation'], 'An imported secret should be flagged as needing rotation.' );
 	}
 
 	/**
@@ -69,10 +69,10 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
-		$this->assertFalse( $record['current']['needs_rotation'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
+		$this->assertFalse( $record['current']['needs_rotation'], 'An ordinary write should not be flagged as needing rotation.' );
 	}
 
 	/**
@@ -83,8 +83,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 	public function test_rejects_a_nonexistent_option(): void {
 		$result = wp_import_option_as_secret( 'this_option_was_never_set', 'myplugin/api-key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
+		$this->assertWPError( $result, 'A nonexistent option should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code(), 'A nonexistent option should produce the invalid value error code.' );
 	}
 
 	/**
@@ -97,8 +97,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		$result = wp_import_option_as_secret( 'my_plugin_settings', 'myplugin/api-key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
+		$this->assertWPError( $result, 'A non-string option value should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code(), 'A non-string option value should produce the invalid value error code.' );
 	}
 
 	/**
@@ -111,8 +111,8 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		$result = wp_import_option_as_secret( 'my_plugin_api_key', 'Not A Valid Name' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid destination name should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid destination name should produce the invalid name error code.' );
 	}
 
 	/**
@@ -135,11 +135,11 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );
 
-		$this->assertIsArray( $captured );
+		$this->assertIsArray( $captured, 'The wp_secret_changed action should have fired.' );
 		list( $name, $action ) = $captured;
 
-		$this->assertSame( 'myplugin/api-key', $name );
-		$this->assertSame( 'imported', $action );
+		$this->assertSame( 'myplugin/api-key', $name, 'The hook should receive the destination secret name.' );
+		$this->assertSame( 'imported', $action, 'The hook should receive the imported action.' );
 	}
 
 	/**
@@ -158,9 +158,9 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 		$current  = wp_get_secret( 'myplugin/api-key' );
 		$previous = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
 
-		$this->assertInstanceOf( WP_Secret::class, $current );
-		$this->assertInstanceOf( WP_Secret::class, $previous );
-		$this->assertSame( 'imported-value', $current->reveal() );
-		$this->assertSame( 'original-value', $previous->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $current, 'The current version should be a WP_Secret.' );
+		$this->assertInstanceOf( WP_Secret::class, $previous, 'The previous version should be a WP_Secret.' );
+		$this->assertSame( 'imported-value', $current->reveal(), 'The current version should decrypt to the imported value.' );
+		$this->assertSame( 'original-value', $previous->reveal(), 'The previous version should decrypt to the original value.' );
 	}
 }

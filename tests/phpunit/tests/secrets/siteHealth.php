@@ -16,15 +16,15 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @return array<string, array<mixed>> The section's fields, keyed by field name.
 	 */
 	private function debug_fields( array $info ): array {
-		$this->assertArrayHasKey( 'secrets-api', $info );
-		$this->assertArrayHasKey( 'fields', $info['secrets-api'] );
-		$this->assertIsArray( $info['secrets-api']['fields'] );
+		$this->assertArrayHasKey( 'secrets-api', $info, 'The debug information should include a secrets-api section.' );
+		$this->assertArrayHasKey( 'fields', $info['secrets-api'], 'The secrets-api section should include a fields entry.' );
+		$this->assertIsArray( $info['secrets-api']['fields'], 'The secrets-api fields entry should be an array.' );
 
 		$fields = array();
 
 		foreach ( $info['secrets-api']['fields'] as $key => $field ) {
-			$this->assertIsString( $key );
-			$this->assertIsArray( $field );
+			$this->assertIsString( $key, 'Each debug field key should be a string.' );
+			$this->assertIsArray( $field, 'Each debug field should be an array.' );
 
 			$fields[ $key ] = $field;
 		}
@@ -40,13 +40,13 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	public function test_registers_three_tests_under_direct(): void {
 		$tests = wp_secrets_site_health_tests( array() );
 
-		$this->assertArrayHasKey( 'direct', $tests );
-		$this->assertArrayHasKey( 'secrets_api_key_source', $tests['direct'] );
-		$this->assertArrayHasKey( 'secrets_api_undecryptable', $tests['direct'] );
-		$this->assertArrayHasKey( 'secrets_api_needs_rotation', $tests['direct'] );
+		$this->assertArrayHasKey( 'direct', $tests, 'The registered tests should include a direct group.' );
+		$this->assertArrayHasKey( 'secrets_api_key_source', $tests['direct'], 'The key source test should be registered as a direct test.' );
+		$this->assertArrayHasKey( 'secrets_api_undecryptable', $tests['direct'], 'The undecryptable test should be registered as a direct test.' );
+		$this->assertArrayHasKey( 'secrets_api_needs_rotation', $tests['direct'], 'The needs rotation test should be registered as a direct test.' );
 
 		foreach ( $tests['direct'] as $key => $test ) {
-			$this->assertIsString( $test['test'] );
+			$this->assertIsString( $test['test'], 'Each registered test callback should be a function name string.' );
 			$this->assertTrue( function_exists( $test['test'] ), "Registered test callback \"{$test['test']}\" for \"{$key}\" does not exist." );
 		}
 	}
@@ -59,7 +59,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	public function test_preserves_existing_tests(): void {
 		$tests = wp_secrets_site_health_tests( array( 'direct' => array( 'existing_test' => array( 'label' => 'x' ) ) ) );
 
-		$this->assertArrayHasKey( 'existing_test', $tests['direct'] );
+		$this->assertArrayHasKey( 'existing_test', $tests['direct'], 'A previously registered test should be preserved.' );
 	}
 
 	/**
@@ -74,8 +74,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_key_source();
 
-		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( 'WP_SECRETS_KEY', $result['description'] );
+		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended without WP_SECRETS_KEY.' );
+		$this->assertStringContainsString( 'WP_SECRETS_KEY', $result['description'], 'The description should recommend defining WP_SECRETS_KEY.' );
 	}
 
 	/**
@@ -94,8 +94,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_key_source();
 
-		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( 'generate-key', $result['description'] );
+		$this->assertSame( 'recommended', $result['status'], 'A legacy WP_SECRETS_KEY should produce a recommended status.' );
+		$this->assertStringContainsString( 'generate-key', $result['description'], 'The description should mention generate-key for regenerating the key.' );
 	}
 
 	/**
@@ -114,7 +114,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_key_source();
 
-		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( 'good', $result['status'], 'A base64-encoded 32-byte WP_SECRETS_KEY should produce a good status.' );
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_key_source();
 
-		$this->assertSame( 'critical', $result['status'] );
+		$this->assertSame( 'critical', $result['status'], 'A broken secrets drop-in should produce a critical status.' );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_undecryptable();
 
-		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( 'good', $result['status'], 'The status should be good when every secret decrypts.' );
 	}
 
 	/**
@@ -157,7 +157,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	public function test_undecryptable_test_is_good_with_no_secrets_at_all(): void {
 		$result = wp_secrets_site_health_test_undecryptable();
 
-		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( 'good', $result['status'], 'The status should be good when no secrets are stored.' );
 	}
 
 	/**
@@ -171,23 +171,23 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The stored secret should be retrievable as a WP_Secret.' );
 		$fingerprint = $secret->fingerprint();
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		$record['current']['ct'] = base64_encode( 'not decryptable' );
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		$result = wp_secrets_site_health_test_undecryptable();
 
-		$this->assertSame( 'critical', $result['status'] );
-		$this->assertStringContainsString( 'myplugin/api-key', $result['description'] );
-		$this->assertStringContainsString( $fingerprint, $result['description'] );
+		$this->assertSame( 'critical', $result['status'], 'An undecryptable secret should produce a critical status.' );
+		$this->assertStringContainsString( 'myplugin/api-key', $result['description'], 'The description should name the undecryptable secret.' );
+		$this->assertStringContainsString( $fingerprint, $result['description'], 'The description should include the fingerprint of the undecryptable secret.' );
 	}
 
 	/**
@@ -200,16 +200,16 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		$record['current']['ct'] = base64_encode( 'not decryptable' );
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		$result = wp_secrets_site_health_test_undecryptable();
 
-		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $result['description'] );
+		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $result['description'], 'The description should never contain the plaintext value.' );
 	}
 
 	/**
@@ -222,7 +222,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_needs_rotation();
 
-		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( 'good', $result['status'], 'A directly stored secret should not need rotation.' );
 	}
 
 	/**
@@ -236,7 +236,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$result = wp_secrets_site_health_test_needs_rotation();
 
-		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertSame( 'recommended', $result['status'], 'An imported secret should produce a recommended status.' );
 		$this->assertStringContainsString( '1 secret was imported', $result['description'], 'The description should report the number of secrets flagged for rotation.' );
 	}
 
@@ -251,19 +251,19 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$info   = wp_secrets_site_health_debug_info( array() );
 		$fields = $this->debug_fields( $info );
 
-		$this->assertArrayHasKey( 'dropin_active', $fields );
-		$this->assertArrayHasKey( 'provider_class', $fields );
-		$this->assertArrayHasKey( 'keyring_class', $fields );
-		$this->assertArrayHasKey( 'key_source', $fields );
-		$this->assertArrayHasKey( 'record_version', $fields );
-		$this->assertArrayHasKey( 'site_secret_count', $fields );
+		$this->assertArrayHasKey( 'dropin_active', $fields, 'The debug fields should include dropin_active.' );
+		$this->assertArrayHasKey( 'provider_class', $fields, 'The debug fields should include provider_class.' );
+		$this->assertArrayHasKey( 'keyring_class', $fields, 'The debug fields should include keyring_class.' );
+		$this->assertArrayHasKey( 'key_source', $fields, 'The debug fields should include key_source.' );
+		$this->assertArrayHasKey( 'record_version', $fields, 'The debug fields should include record_version.' );
+		$this->assertArrayHasKey( 'site_secret_count', $fields, 'The debug fields should include site_secret_count.' );
 
 		$this->assertSame( 'No', $fields['dropin_active']['value'], 'No drop-in is installed in the test environment.' );
-		$this->assertSame( 'WP_Secrets_Libsodium_Provider', $fields['provider_class']['value'] );
-		$this->assertSame( 'WP_Secrets_Config_Key_Provider', $fields['keyring_class']['value'] );
+		$this->assertSame( 'WP_Secrets_Libsodium_Provider', $fields['provider_class']['value'], 'The provider class should be WP_Secrets_Libsodium_Provider.' );
+		$this->assertSame( 'WP_Secrets_Config_Key_Provider', $fields['keyring_class']['value'], 'The keyring class should be WP_Secrets_Config_Key_Provider.' );
 		$this->assertSame( ( new WP_Secrets_Config_Key_Provider() )->get_key_source(), $fields['key_source']['value'], 'The key source should be reported from the keyring in use.' );
-		$this->assertSame( '1', $fields['record_version']['value'] );
-		$this->assertSame( '1', $fields['site_secret_count']['value'] );
+		$this->assertSame( '1', $fields['record_version']['value'], 'The record version should be reported as 1.' );
+		$this->assertSame( '1', $fields['site_secret_count']['value'], 'The site secret count should be 1.' );
 	}
 
 	/**
@@ -276,8 +276,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$fields = $this->debug_fields( $info );
 
-		$this->assertArrayHasKey( 'dropin_active', $fields );
-		$this->assertSame( 'No', $fields['dropin_active']['value'] );
+		$this->assertArrayHasKey( 'dropin_active', $fields, 'The debug fields should include dropin_active.' );
+		$this->assertSame( 'No', $fields['dropin_active']['value'], 'The drop-in should be reported as inactive by default.' );
 	}
 
 	/**
@@ -292,8 +292,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$dump = wp_json_encode( $info['secrets-api'] );
 
-		$this->assertIsString( $dump );
-		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $dump );
+		$this->assertIsString( $dump, 'The secrets-api section should encode to a JSON string.' );
+		$this->assertStringNotContainsString( 'UNIQUE-PLAINTEXT-CANARY-9f3a', $dump, 'The debug information should never contain the plaintext value.' );
 	}
 
 	/**
@@ -304,7 +304,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	public function test_debug_info_omits_network_fields_on_single_site(): void {
 		$info = wp_secrets_site_health_debug_info( array() );
 
-		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ) );
+		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ), 'Network secret counts should be omitted on a single site install.' );
 	}
 
 	/**
@@ -327,6 +327,6 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		grant_super_admin( $user_id );
 
 		$info = wp_secrets_site_health_debug_info( array() );
-		$this->assertArrayHasKey( 'network_secret_count', $this->debug_fields( $info ) );
+		$this->assertArrayHasKey( 'network_secret_count', $this->debug_fields( $info ), 'A super admin should see network secret counts.' );
 	}
 }

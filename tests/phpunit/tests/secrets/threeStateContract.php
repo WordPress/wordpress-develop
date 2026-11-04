@@ -19,7 +19,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	public function test_absent_is_null(): void {
 		$result = wp_get_secret( 'myplugin/never-set' );
 
-		$this->assertNull( $result );
+		$this->assertNull( $result, 'A secret that was never set should be null.' );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS );
 
-		$this->assertNull( $result );
+		$this->assertNull( $result, 'A missing previous version should be null.' );
 	}
 
 	/**
@@ -45,9 +45,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+		$this->assertNotNull( $result, 'A malformed record should not be reported as null.' );
+		$this->assertWPError( $result, 'A malformed record should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code(), 'A non-array record should produce the malformed record error code.' );
 	}
 
 	/**
@@ -60,9 +60,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+		$this->assertNotNull( $result, 'A record without a current slot should not be reported as null.' );
+		$this->assertWPError( $result, 'A record without a current slot should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code(), 'A record without a current slot should produce the malformed record error code.' );
 	}
 
 	/**
@@ -88,9 +88,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_UNSUPPORTED_VERSION, $result->get_error_code() );
+		$this->assertNotNull( $result, 'An unsupported record version should not be reported as null.' );
+		$this->assertWPError( $result, 'An unsupported record version should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_UNSUPPORTED_VERSION, $result->get_error_code(), 'An unsupported record version should produce the unsupported version error code.' );
 	}
 
 	/**
@@ -109,9 +109,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/different-name' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_DECRYPTION_FAILED, $result->get_error_code() );
+		$this->assertNotNull( $result, 'A record copied under another name should not be reported as null.' );
+		$this->assertWPError( $result, 'A record copied under another name should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_DECRYPTION_FAILED, $result->get_error_code(), 'A record copied under another name should fail decryption.' );
 	}
 
 	/**
@@ -145,9 +145,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertNotNull( $result, 'A secret with an unusable WP_SECRETS_KEY should not be reported as null.' );
+		$this->assertWPError( $result, 'A secret with an unusable WP_SECRETS_KEY should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'An unusable WP_SECRETS_KEY should produce the key unavailable error code.' );
 	}
 
 	/**
@@ -166,9 +166,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertNotNull( $result, 'A corrupted wrapped root key should not be reported as null.' );
+		$this->assertWPError( $result, 'A corrupted wrapped root key should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'A corrupted wrapped root key should produce the key unavailable error code.' );
 	}
 
 	/**
@@ -186,18 +186,18 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		unset( $record['current']['fingerprint'] );
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $result );
-		$this->assertSame( 'value', $result->reveal() );
-		$this->assertNotSame( '', $result->fingerprint() );
+		$this->assertInstanceOf( WP_Secret::class, $result, 'A record without a fingerprint field should still return a WP_Secret.' );
+		$this->assertSame( 'value', $result->reveal(), 'A record without a fingerprint field should still decrypt to the stored value.' );
+		$this->assertNotSame( '', $result->fingerprint(), 'The fingerprint should be recomputed when the record has none.' );
 	}
 
 	/**
@@ -211,22 +211,22 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		$before = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $before );
+		$this->assertInstanceOf( WP_Secret::class, $before, 'The secret should be a WP_Secret before the fingerprint is tampered with.' );
 		$genuine = $before->fingerprint();
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		$record['current']['fingerprint'] = 'deadbeefdeadbeefdeadbeefdeadbeef';
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		$after = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $after );
-		$this->assertSame( $genuine, $after->fingerprint() );
+		$this->assertInstanceOf( WP_Secret::class, $after, 'The secret should be a WP_Secret after the fingerprint is tampered with.' );
+		$this->assertSame( $genuine, $after->fingerprint(), 'The fingerprint should be recomputed rather than read from the record.' );
 	}
 
 	/**
@@ -239,8 +239,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 		$result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertNotNull( $result );
-		$this->assertNotWPError( $result );
-		$this->assertInstanceOf( WP_Secret::class, $result );
+		$this->assertNotNull( $result, 'An existing secret should not be reported as null.' );
+		$this->assertNotWPError( $result, 'An existing secret should not be reported as a WP_Error.' );
+		$this->assertInstanceOf( WP_Secret::class, $result, 'An existing secret should be returned as a WP_Secret.' );
 	}
 }

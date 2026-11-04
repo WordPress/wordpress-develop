@@ -16,7 +16,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * @param string $name A name that must be accepted.
 	 */
 	public function test_accepts_valid_names( $name ): void {
-		$this->assertTrue( wp_secrets_validate_name( $name ) );
+		$this->assertTrue( wp_secrets_validate_name( $name ), 'A well-formed namespaced name should be accepted.' );
 	}
 
 	/**
@@ -47,8 +47,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	public function test_rejects_invalid_names( $name ): void {
 		$result = wp_secrets_validate_name( $name );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid name should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid name should be reported with the invalid name error code.' );
 	}
 
 	/**
@@ -66,7 +66,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ): void {
 		$this->setExpectedIncorrectUsage( 'wp_secrets_validate_name' );
 
-		$this->assertTrue( wp_secrets_validate_name( $name ) );
+		$this->assertTrue( wp_secrets_validate_name( $name ), 'An unnamespaced name should be accepted.' );
 	}
 
 	/**
@@ -91,8 +91,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {
 		$result = wp_secrets_validate_name( 'Not_A_Valid_Name' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An unnamespaced name with invalid characters should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An unnamespaced name with invalid characters should be reported as an invalid name.' );
 	}
 
 	/**

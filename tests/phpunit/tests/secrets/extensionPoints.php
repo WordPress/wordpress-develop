@@ -40,12 +40,12 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 		$GLOBALS['wp_secrets_store'] = new Mock_Store();
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Writing through the mock store should succeed.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'Reading through the mock store should return a WP_Secret.' );
+		$this->assertSame( 'value', $secret->reveal(), 'The secret should reveal the value written through the mock store.' );
 	}
 
 	/**
@@ -59,12 +59,12 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	public function test_mock_keyring_with_the_default_store_round_trips(): void {
 		$GLOBALS['wp_secrets_keyring'] = new Mock_Keyring();
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Writing through the mock keyring should succeed.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'Reading through the mock keyring should return a WP_Secret.' );
+		$this->assertSame( 'value', $secret->reveal(), 'The secret should reveal the value written through the mock keyring.' );
 	}
 
 	/**
@@ -80,12 +80,12 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$GLOBALS['wp_secrets_store']   = new Mock_Store();
 		$GLOBALS['wp_secrets_keyring'] = new Mock_Keyring();
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Writing through the mock store and keyring should succeed.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'Reading through the mock store and keyring should return a WP_Secret.' );
+		$this->assertSame( 'value', $secret->reveal(), 'The secret should reveal the value written through the mock store and keyring.' );
 	}
 
 	/**
@@ -112,9 +112,9 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$write_result = wp_set_secret( 'myplugin/api-key', 'new-value' );
 		$read_result  = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertWPError( $write_result );
-		$this->assertInstanceOf( WP_Secret::class, $read_result );
-		$this->assertSame( 'seeded-before-write-broke', $read_result->reveal() );
+		$this->assertWPError( $write_result, 'A write to a store that cannot write should return a WP_Error.' );
+		$this->assertInstanceOf( WP_Secret::class, $read_result, 'A read from a store that cannot write should still return a WP_Secret.' );
+		$this->assertSame( 'seeded-before-write-broke', $read_result->reveal(), 'The secret should reveal the value seeded before writes were disabled.' );
 	}
 
 	/**
@@ -134,12 +134,12 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$set_result = wp_set_secret( 'myplugin/api-key', 'value' );
 		$get_result = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertWPError( $set_result );
-		$this->assertWPError( $get_result );
+		$this->assertWPError( $set_result, 'A write to an unreachable store should return a WP_Error.' );
+		$this->assertWPError( $get_result, 'A read from an unreachable store should return a WP_Error.' );
 
 		// Fails closed, not merely differently: nothing was written to the real
 		// default store either, which a silent fallback would have done.
-		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ) );
+		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ), 'Nothing should be written to the default options store as a fallback.' );
 	}
 
 	/**
@@ -184,8 +184,8 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 		$result = wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertWPError( $result );
-		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ) );
+		$this->assertWPError( $result, 'A write through a keyring that cannot wrap should return a WP_Error.' );
+		$this->assertFalse( get_option( '_wp_secret_myplugin/api-key' ), 'Nothing should be written to the default options store as a fallback.' );
 	}
 
 	/**
@@ -233,11 +233,11 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	public function test_a_broken_dropin_state_fails_every_operation_closed(): void {
 		$GLOBALS['wp_secrets_dropin_broken'] = true;
 
-		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'value' ) );
-		$this->assertWPError( wp_get_secret( 'myplugin/api-key' ) );
-		$this->assertWPError( wp_delete_secret( 'myplugin/api-key' ) );
-		$this->assertWPError( wp_list_secrets() );
-		$this->assertWPError( wp_retire_secret_version( 'myplugin/api-key' ) );
-		$this->assertFalse( wp_secrets_provider_is_writable() );
+		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'value' ), 'wp_set_secret() should return a WP_Error when the drop-in is broken.' );
+		$this->assertWPError( wp_get_secret( 'myplugin/api-key' ), 'wp_get_secret() should return a WP_Error when the drop-in is broken.' );
+		$this->assertWPError( wp_delete_secret( 'myplugin/api-key' ), 'wp_delete_secret() should return a WP_Error when the drop-in is broken.' );
+		$this->assertWPError( wp_list_secrets(), 'wp_list_secrets() should return a WP_Error when the drop-in is broken.' );
+		$this->assertWPError( wp_retire_secret_version( 'myplugin/api-key' ), 'wp_retire_secret_version() should return a WP_Error when the drop-in is broken.' );
+		$this->assertFalse( wp_secrets_provider_is_writable(), 'The provider should not report as writable when the drop-in is broken.' );
 	}
 }

@@ -16,7 +16,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_broken_store_implements_the_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Broken_Store() ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
+		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Broken_Store(), 'WP_Secrets_Broken_Store should implement WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
 	}
 
 	/**
@@ -27,8 +27,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_store_get_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->get( 'myplugin/api-key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'get() on the broken store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'get() on the broken store should report the store as unavailable.' );
 	}
 
 	/**
@@ -39,8 +39,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_store_set_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->set( 'myplugin/api-key', array() );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'set() on the broken store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'set() on the broken store should report the store as unavailable.' );
 	}
 
 	/**
@@ -51,8 +51,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_store_delete_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->delete( 'myplugin/api-key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'delete() on the broken store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'delete() on the broken store should report the store as unavailable.' );
 	}
 
 	/**
@@ -63,8 +63,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_store_list_names_fails(): void {
 		$result = ( new WP_Secrets_Broken_Store() )->list_names();
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'list_names() on the broken store should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'list_names() on the broken store should report the store as unavailable.' );
 	}
 
 	/**
@@ -73,7 +73,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_broken_keyring_implements_the_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring() ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
+		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring(), 'WP_Secrets_Broken_Keyring should implement WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
 	}
 
 	/**
@@ -84,8 +84,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_keyring_wrap_fails(): void {
 		$result = ( new WP_Secrets_Broken_Keyring() )->wrap( 'material' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'wrap() on the broken keyring should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'wrap() on the broken keyring should report the key as unavailable.' );
 	}
 
 	/**
@@ -96,8 +96,8 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	public function test_broken_keyring_unwrap_fails(): void {
 		$result = ( new WP_Secrets_Broken_Keyring() )->unwrap( 'wrapped' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
+		$this->assertWPError( $result, 'unwrap() on the broken keyring should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'unwrap() on the broken keyring should report the key as unavailable.' );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Broken_Keyring::get_key_source
 	 */
 	public function test_broken_keyring_reports_a_key_source(): void {
-		$this->assertIsString( ( new WP_Secrets_Broken_Keyring() )->get_key_source() );
+		$this->assertIsString( ( new WP_Secrets_Broken_Keyring() )->get_key_source(), 'The broken keyring should report its key source as a string.' );
 	}
 
 	/**
@@ -115,7 +115,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 * @covers ::wp_using_secrets_dropin
 	 */
 	public function test_wp_using_secrets_dropin_is_false_by_default(): void {
-		$this->assertFalse( wp_using_secrets_dropin() );
+		$this->assertFalse( wp_using_secrets_dropin(), 'wp_using_secrets_dropin() should be false when no drop-in is loaded.' );
 	}
 
 	/**
@@ -134,6 +134,6 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 		 */
 		$GLOBALS['wp_secrets_dropin_loaded'] = true;
 
-		$this->assertTrue( wp_using_secrets_dropin() );
+		$this->assertTrue( wp_using_secrets_dropin(), 'wp_using_secrets_dropin() should be true once the loader flag is set.' );
 	}
 }

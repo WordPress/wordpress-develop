@@ -16,8 +16,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	public function test_deletes_an_existing_secret(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ) );
-		$this->assertNull( wp_get_secret( 'myplugin/api-key' ) );
+		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting an existing secret should return true.' );
+		$this->assertNull( wp_get_secret( 'myplugin/api-key' ), 'A deleted secret should no longer be retrievable.' );
 	}
 
 	/**
@@ -26,7 +26,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	 * @covers ::wp_delete_secret
 	 */
 	public function test_deleting_an_absent_secret_is_not_an_error(): void {
-		$this->assertTrue( wp_delete_secret( 'myplugin/never-set' ) );
+		$this->assertTrue( wp_delete_secret( 'myplugin/never-set' ), 'Deleting an absent secret should return true.' );
 	}
 
 	/**
@@ -37,8 +37,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	public function test_rejects_an_invalid_name(): void {
 		$result = wp_delete_secret( 'Not A Valid Name' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'An invalid name should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid name should use the invalid name error code.' );
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The stored secret should be retrievable as a WP_Secret.' );
 
 		$fingerprint = $secret->fingerprint();
 
@@ -66,14 +66,14 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
 		wp_delete_secret( 'myplugin/api-key' );
 
-		$this->assertIsArray( $captured );
+		$this->assertIsArray( $captured, 'The wp_secret_changed hook should fire.' );
 
 		list( $name, $action, , , $old_fingerprint, $new_fingerprint ) = $captured;
 
-		$this->assertSame( 'myplugin/api-key', $name );
-		$this->assertSame( 'deleted', $action );
-		$this->assertSame( $fingerprint, $old_fingerprint );
-		$this->assertSame( '', $new_fingerprint );
+		$this->assertSame( 'myplugin/api-key', $name, 'The hook should receive the secret name.' );
+		$this->assertSame( 'deleted', $action, 'The hook action should be deleted.' );
+		$this->assertSame( $fingerprint, $old_fingerprint, 'The old fingerprint should match the deleted secret.' );
+		$this->assertSame( '', $new_fingerprint, 'The new fingerprint should be empty after deletion.' );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
 		wp_delete_secret( 'myplugin/never-set' );
 
-		$this->assertFalse( $fired );
+		$this->assertFalse( $fired, 'The hook should not fire when nothing was deleted.' );
 	}
 
 	/**
@@ -105,8 +105,8 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 	public function test_a_corrupt_record_is_still_deletable(): void {
 		update_option( '_wp_secret_myplugin/corrupt', 'not a record at all', false );
 
-		$this->assertTrue( wp_delete_secret( 'myplugin/corrupt' ) );
-		$this->assertNull( wp_get_secret( 'myplugin/corrupt' ) );
+		$this->assertTrue( wp_delete_secret( 'myplugin/corrupt' ), 'Deleting a corrupt record should return true.' );
+		$this->assertNull( wp_get_secret( 'myplugin/corrupt' ), 'A deleted corrupt record should no longer be retrievable.' );
 	}
 
 	/**
@@ -121,6 +121,6 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 		wp_set_current_user( 0 );
 
-		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ) );
+		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting a secret without a logged-in user should succeed.' );
 	}
 }

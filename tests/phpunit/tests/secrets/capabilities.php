@@ -51,8 +51,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_capability_constant_values(): void {
-		$this->assertSame( 'manage_secrets', WP_SECRETS_CAP_MANAGE ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
-		$this->assertSame( 'manage_network_secrets', WP_SECRETS_CAP_MANAGE_NETWORK ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
+		$this->assertSame( 'manage_secrets', WP_SECRETS_CAP_MANAGE, 'WP_SECRETS_CAP_MANAGE should be manage_secrets.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
+		$this->assertSame( 'manage_network_secrets', WP_SECRETS_CAP_MANAGE_NETWORK, 'WP_SECRETS_CAP_MANAGE_NETWORK should be manage_network_secrets.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally pinning the value of a public constant.)
 	}
 
 	/**
@@ -64,7 +64,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 * @covers ::populate_roles_720
 	 */
 	public function test_a_fresh_install_grants_manage_secrets_to_administrator(): void {
-		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ) );
+		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'The administrator role should have manage_secrets on a fresh install.' );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 
 		populate_roles_720();
 
-		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ) );
+		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'populate_roles_720() should grant manage_secrets to the administrator role.' );
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 
 		$wp_current_db_version = $saved;
 
-		$this->assertSame( $expect_granted, $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ) );
+		$this->assertSame( $expect_granted, $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'The administrator role should have manage_secrets only when upgrading from below 64337.' );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	public function test_administrator_user_has_manage_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
-		$this->assertTrue( user_can( $user_id, WP_SECRETS_CAP_MANAGE ) );
+		$this->assertTrue( user_can( $user_id, WP_SECRETS_CAP_MANAGE ), 'An administrator user should have manage_secrets.' );
 	}
 
 	/**
@@ -153,7 +153,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	public function test_subscriber_does_not_have_manage_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 
-		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE ) );
+		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE ), 'A subscriber user should not have manage_secrets.' );
 	}
 
 	/**
@@ -166,7 +166,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	public function test_single_site_administrator_does_not_have_manage_network_secrets(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
-		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE_NETWORK ) );
+		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE_NETWORK ), 'A single site administrator should not have manage_network_secrets.' );
 	}
 
 	/**
@@ -181,7 +181,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 		$super_admin   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		grant_super_admin( $super_admin );
 
-		$this->assertFalse( user_can( $administrator, WP_SECRETS_CAP_MANAGE_NETWORK ) );
-		$this->assertTrue( user_can( $super_admin, WP_SECRETS_CAP_MANAGE_NETWORK ) );
+		$this->assertFalse( user_can( $administrator, WP_SECRETS_CAP_MANAGE_NETWORK ), 'An administrator who is not a super admin should not have manage_network_secrets.' );
+		$this->assertTrue( user_can( $super_admin, WP_SECRETS_CAP_MANAGE_NETWORK ), 'A super admin should have manage_network_secrets.' );
 	}
 }

@@ -16,8 +16,8 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value );
 
-		$this->assertNotSame( 'a plaintext value', $value );
-		$this->assertSame( '', $value );
+		$this->assertNotSame( 'a plaintext value', $value, 'The original plaintext should no longer be in the variable.' );
+		$this->assertSame( '', $value, 'The variable should be an empty string after zeroing.' );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value ); // @phpstan-ignore argument.type (Intentionally passing a non-string value.)
 
-		$this->assertSame( 42, $value );
+		$this->assertSame( 42, $value, 'A non-string value should be left unchanged.' );
 	}
 
 	/**
@@ -43,7 +43,7 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value );
 
-		$this->assertSame( '', $value );
+		$this->assertSame( '', $value, 'An empty string should remain an empty string.' );
 	}
 
 	/**
@@ -57,9 +57,9 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value );
 
-		$this->assertSame( '', $value );
+		$this->assertSame( '', $value, 'The zeroed variable should be an empty string.' );
 		// The shared copy is unaffected – see the docblock on wp_secrets_memzero():
 		// this is hygiene, not a guarantee, for exactly this reason.
-		$this->assertSame( 'shared plaintext', $copy ); // @phpstan-ignore method.alreadyNarrowedType (Whether the copy survives the scrub is decided by the engine at runtime, not by the types.)
+		$this->assertSame( 'shared plaintext', $copy, 'The shared copy should keep its original value.' ); // @phpstan-ignore method.alreadyNarrowedType (Whether the copy survives the scrub is decided by the engine at runtime, not by the types.)
 	}
 }

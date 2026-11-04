@@ -39,7 +39,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_class_is_final(): void {
 		$reflection = new ReflectionClass( WP_Secret::class );
 
-		$this->assertTrue( $reflection->isFinal() );
+		$this->assertTrue( $reflection->isFinal(), 'WP_Secret should be declared final.' );
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_implements_json_serializable(): void {
-		$this->assertInstanceOf( JsonSerializable::class, $this->make_secret() );
+		$this->assertInstanceOf( JsonSerializable::class, $this->make_secret(), 'WP_Secret should implement JsonSerializable.' );
 	}
 
 	/**
@@ -59,7 +59,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_reveal_returns_the_exact_plaintext(): void {
 		$secret = $this->make_secret();
 
-		$this->assertSame( self::PLAINTEXT, $secret->reveal() );
+		$this->assertSame( self::PLAINTEXT, $secret->reveal(), 'reveal() should return the plaintext the secret was constructed with.' );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_fingerprint_returns_the_exact_fingerprint(): void {
 		$secret = $this->make_secret();
 
-		$this->assertSame( self::FINGERPRINT, $secret->fingerprint() );
+		$this->assertSame( self::FINGERPRINT, $secret->fingerprint(), 'fingerprint() should return the fingerprint the secret was constructed with.' );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_get_name_returns_the_exact_name(): void {
 		$secret = $this->make_secret();
 
-		$this->assertSame( self::NAME, $secret->get_name() );
+		$this->assertSame( self::NAME, $secret->get_name(), 'get_name() should return the name the secret was constructed with.' );
 	}
 
 	/**
@@ -133,8 +133,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 		$output = $callback( $secret );
 
-		$this->assertIsString( $output );
-		$this->assertStringNotContainsString( self::PLAINTEXT, $output );
+		$this->assertIsString( $output, 'The masking surface should render the secret as a string.' );
+		$this->assertStringNotContainsString( self::PLAINTEXT, $output, 'The masking surface output should not contain the plaintext.' );
 	}
 
 	/**
@@ -196,7 +196,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	public function test_to_string_yields_the_masked_placeholder(): void {
 		$secret = $this->make_secret();
 
-		$this->assertSame( '[secret:' . self::NAME . ']', (string) $secret );
+		$this->assertSame( '[secret:' . self::NAME . ']', (string) $secret, 'Casting to string should yield the masked placeholder.' );
 	}
 
 	/**
@@ -210,8 +210,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		// json_encode() escapes '/' by default; decode rather than compare raw JSON.
 		$json = json_encode( $secret );
 
-		$this->assertIsString( $json );
-		$this->assertSame( '[secret:' . self::NAME . ']', json_decode( $json ) );
+		$this->assertIsString( $json, 'json_encode() should return a JSON string.' );
+		$this->assertSame( '[secret:' . self::NAME . ']', json_decode( $json ), 'The decoded JSON should be the masked placeholder.' );
 	}
 
 	/**
@@ -226,7 +226,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		var_dump( $secret );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '[secret:' . self::NAME . ']', $output );
+		$this->assertStringContainsString( '[secret:' . self::NAME . ']', $output, 'var_dump() output should contain the masked placeholder.' );
 	}
 
 	/**
@@ -311,15 +311,15 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 		$vault = $vault_property->getValue();
 
-		$this->assertIsArray( $vault );
-		$this->assertArrayHasKey( $id, $vault );
+		$this->assertIsArray( $vault, 'The vault should be an array while the secret is referenced.' );
+		$this->assertArrayHasKey( $id, $vault, 'The vault should hold the secret while it is referenced.' );
 
 		unset( $secret );
 
 		$vault = $vault_property->getValue();
 
-		$this->assertIsArray( $vault );
-		$this->assertArrayNotHasKey( $id, $vault );
+		$this->assertIsArray( $vault, 'The vault should be an array after the secret is destroyed.' );
+		$this->assertArrayNotHasKey( $id, $vault, 'The vault should not hold the secret after its last reference is released.' );
 	}
 
 	/**
@@ -366,7 +366,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 		$cached = wp_cache_get( 'secret', 'secrets-test' );
 
-		$this->assertNeverContainsPlaintext( self::PLAINTEXT, $cached );
+		$this->assertNeverContainsPlaintext( self::PLAINTEXT, $cached, 'The cache should never hold the plaintext after a refused write.' );
 	}
 
 	/**
@@ -380,12 +380,12 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$a = new WP_Secret( 'plugin/a', 'value-a', 'fp-a' );
 		$b = new WP_Secret( 'plugin/b', 'value-b', 'fp-b' );
 
-		$this->assertSame( 'value-a', $a->reveal() );
-		$this->assertSame( 'value-b', $b->reveal() );
+		$this->assertSame( 'value-a', $a->reveal(), 'The first secret should reveal its own plaintext.' );
+		$this->assertSame( 'value-b', $b->reveal(), 'The second secret should reveal its own plaintext.' );
 
 		unset( $a );
 
-		$this->assertSame( 'value-b', $b->reveal() );
+		$this->assertSame( 'value-b', $b->reveal(), 'The second secret should still reveal its plaintext after the first is destroyed.' );
 	}
 
 	// – withheld secrets (provider does not release the value) ---------------
@@ -405,8 +405,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 		$revealed = $secret->reveal();
 
-		$this->assertWPError( $revealed );
-		$this->assertSame( 'provider_withholds_value', $revealed->get_error_code() );
+		$this->assertWPError( $revealed, 'reveal() on a withheld secret should return a WP_Error.' );
+		$this->assertSame( 'provider_withholds_value', $revealed->get_error_code(), 'reveal() should return the error code the provider gave.' );
 	}
 
 	/**
@@ -423,8 +423,8 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 			new WP_Error( 'provider_withholds_value', 'nope' )
 		);
 
-		$this->assertSame( 'myplugin/signing-key', $secret->get_name() );
-		$this->assertSame( 'abc123', $secret->fingerprint() );
+		$this->assertSame( 'myplugin/signing-key', $secret->get_name(), 'A withheld secret should still report its name.' );
+		$this->assertSame( 'abc123', $secret->fingerprint(), 'A withheld secret should still report its fingerprint.' );
 	}
 
 	/**
@@ -444,7 +444,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 
 		$printed = print_r( $secret, true );
 
-		$this->assertStringNotContainsString( 'UNIQUE-REASON-CANARY-4b1c', $printed );
-		$this->assertStringContainsString( '[secret:myplugin/signing-key]', (string) $secret );
+		$this->assertStringNotContainsString( 'UNIQUE-REASON-CANARY-4b1c', $printed, 'print_r() output should not contain the withheld reason.' );
+		$this->assertStringContainsString( '[secret:myplugin/signing-key]', (string) $secret, 'Casting a withheld secret to string should yield the masked placeholder.' );
 	}
 }

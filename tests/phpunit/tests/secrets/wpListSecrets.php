@@ -14,7 +14,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	 * @covers ::wp_list_secrets
 	 */
 	public function test_returns_an_empty_array_when_nothing_is_set(): void {
-		$this->assertSame( array(), wp_list_secrets() );
+		$this->assertSame( array(), wp_list_secrets(), 'An empty store should list no secrets.' );
 	}
 
 	/**
@@ -27,13 +27,14 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$entries = wp_list_secrets();
 
-		$this->assertIsArray( $entries );
-		$this->assertCount( 1, $entries );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertCount( 1, $entries, 'Exactly one secret should be listed.' );
 		$this->assertSame(
 			array( 'name', 'fingerprint', 'created', 'has_previous', 'needs_rotation' ),
-			array_keys( $entries[0] )
+			array_keys( $entries[0] ),
+			'The entry should have exactly the documented metadata keys, in order.'
 		);
-		$this->assertSame( 'myplugin/api-key', $entries[0]['name'] );
+		$this->assertSame( 'myplugin/api-key', $entries[0]['name'], 'The entry should carry the secret name.' );
 	}
 
 	/**
@@ -47,8 +48,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$dump = wp_json_encode( wp_list_secrets() );
 
-		$this->assertIsString( $dump );
-		$this->assertStringNotContainsString( 'a-plaintext-value-that-must-not-leak', $dump );
+		$this->assertIsString( $dump, 'The listing should encode to a JSON string.' );
+		$this->assertStringNotContainsString( 'a-plaintext-value-that-must-not-leak', $dump, 'The listing should never contain the plaintext value.' );
 	}
 
 	/**
@@ -62,9 +63,9 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$secret  = wp_get_secret( 'myplugin/api-key' );
 		$entries = wp_list_secrets();
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertIsArray( $entries );
-		$this->assertSame( $secret->fingerprint(), $entries[0]['fingerprint'] );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The secret should be a WP_Secret.' );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertSame( $secret->fingerprint(), $entries[0]['fingerprint'], 'The listed fingerprint should match the fingerprint of the secret.' );
 	}
 
 	/**
@@ -77,15 +78,15 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$before = wp_list_secrets();
 
-		$this->assertIsArray( $before );
-		$this->assertFalse( $before[0]['has_previous'] );
+		$this->assertIsArray( $before, 'wp_list_secrets() should return an array before the overwrite.' );
+		$this->assertFalse( $before[0]['has_previous'], 'has_previous should be false before the secret is overwritten.' );
 
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
 		$after = wp_list_secrets();
 
-		$this->assertIsArray( $after );
-		$this->assertTrue( $after[0]['has_previous'] );
+		$this->assertIsArray( $after, 'wp_list_secrets() should return an array after the overwrite.' );
+		$this->assertTrue( $after[0]['has_previous'], 'has_previous should be true after the secret is overwritten.' );
 	}
 
 	/**
@@ -101,17 +102,17 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$record = get_option( '_wp_secret_myplugin/api-key' );
 
-		$this->assertIsArray( $record );
-		$this->assertArrayHasKey( 'current', $record );
-		$this->assertIsArray( $record['current'] );
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		$record['current']['needs_rotation'] = true;
 		update_option( '_wp_secret_myplugin/api-key', $record, false );
 
 		$entries = wp_list_secrets();
 
-		$this->assertIsArray( $entries );
-		$this->assertTrue( $entries[0]['needs_rotation'] );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertTrue( $entries[0]['needs_rotation'], 'needs_rotation should reflect the flag stored on the current slot.' );
 	}
 
 	/**
@@ -125,8 +126,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$entries = wp_list_secrets( 'pluginone' );
 
-		$this->assertIsArray( $entries );
-		$this->assertSame( array( 'pluginone/key' ), wp_list_pluck( $entries, 'name' ) );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertSame( array( 'pluginone/key' ), wp_list_pluck( $entries, 'name' ), 'Only secrets in the requested namespace should be listed.' );
 	}
 
 	/**
@@ -140,8 +141,8 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$entries = wp_list_secrets( '' );
 
-		$this->assertIsArray( $entries );
-		$this->assertCount( 2, $entries );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertCount( 2, $entries, 'An empty namespace should list secrets from every namespace.' );
 	}
 
 	/**
@@ -153,7 +154,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		// 'plugin' must not match 'pluginone/key' – only a full "namespace/" prefix.
 		wp_set_secret( 'pluginone/key', 'value' );
 
-		$this->assertSame( array(), wp_list_secrets( 'plugin' ) );
+		$this->assertSame( array(), wp_list_secrets( 'plugin' ), 'A namespace should not match a prefix of a different namespace.' );
 	}
 
 	/**
@@ -167,11 +168,11 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$entries = wp_list_secrets();
 
-		$this->assertIsArray( $entries );
-		$this->assertCount( 1, $entries );
-		$this->assertSame( 'myplugin/corrupt', $entries[0]['name'] );
-		$this->assertSame( '', $entries[0]['fingerprint'] );
-		$this->assertFalse( $entries[0]['has_previous'] );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertCount( 1, $entries, 'The corrupt record should still be listed.' );
+		$this->assertSame( 'myplugin/corrupt', $entries[0]['name'], 'The corrupt record entry should carry its name.' );
+		$this->assertSame( '', $entries[0]['fingerprint'], 'The corrupt record entry should have a blank fingerprint.' );
+		$this->assertFalse( $entries[0]['has_previous'], 'The corrupt record entry should report no previous version.' );
 	}
 
 	/**
@@ -185,7 +186,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
 		$entries = wp_list_secrets();
 
-		$this->assertIsArray( $entries );
-		$this->assertSame( array( 'myplugin/site-only' ), wp_list_pluck( $entries, 'name' ) );
+		$this->assertIsArray( $entries, 'wp_list_secrets() should return an array.' );
+		$this->assertSame( array( 'myplugin/site-only' ), wp_list_pluck( $entries, 'name' ), 'Only site-scope secrets should be listed.' );
 	}
 }

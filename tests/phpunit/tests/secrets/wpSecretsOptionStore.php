@@ -33,7 +33,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	 * @coversNothing
 	 */
 	public function test_implements_the_store_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Option_Store() ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
+		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Option_Store(), 'WP_Secrets_Option_Store should implement WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
 	}
 
 	/**
@@ -44,7 +44,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	public function test_get_returns_null_for_an_absent_secret(): void {
 		$store = new WP_Secrets_Option_Store();
 
-		$this->assertNull( $store->get( 'myplugin/absent' ) );
+		$this->assertNull( $store->get( 'myplugin/absent' ), 'An absent secret should be returned as null.' );
 	}
 
 	/**
@@ -57,8 +57,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$store  = new WP_Secrets_Option_Store();
 		$record = $this->sample_record();
 
-		$this->assertTrue( $store->set( 'myplugin/key', $record ) );
-		$this->assertSame( $record, $store->get( 'myplugin/key' ) );
+		$this->assertTrue( $store->set( 'myplugin/key', $record ), 'Storing a site-scope record should succeed.' );
+		$this->assertSame( $record, $store->get( 'myplugin/key' ), 'The site-scope record should be returned unchanged.' );
 	}
 
 	/**
@@ -71,8 +71,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$store  = new WP_Secrets_Option_Store();
 		$record = $this->sample_record();
 
-		$this->assertTrue( $store->set( 'myplugin/key', $record, true ) );
-		$this->assertSame( $record, $store->get( 'myplugin/key', true ) );
+		$this->assertTrue( $store->set( 'myplugin/key', $record, true ), 'Storing a network-scope record should succeed.' );
+		$this->assertSame( $record, $store->get( 'myplugin/key', true ), 'The network-scope record should be returned unchanged.' );
 	}
 
 	/**
@@ -89,8 +89,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$store->set( 'myplugin/key', $site_record, false );
 		$store->set( 'myplugin/key', $network_record, true );
 
-		$this->assertSame( $site_record, $store->get( 'myplugin/key', false ) );
-		$this->assertSame( $network_record, $store->get( 'myplugin/key', true ) );
+		$this->assertSame( $site_record, $store->get( 'myplugin/key', false ), 'The site-scope record should not be overwritten by the network-scope record.' );
+		$this->assertSame( $network_record, $store->get( 'myplugin/key', true ), 'The network-scope record should be stored separately from the site-scope record.' );
 	}
 
 	/**
@@ -105,8 +105,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		$result = $store->get( 'myplugin/key' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+		$this->assertWPError( $result, 'A non-array stored value should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code(), 'A non-array stored value should produce the malformed record error code.' );
 	}
 
 	/**
@@ -118,8 +118,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$store = new WP_Secrets_Option_Store();
 		$store->set( 'myplugin/key', $this->sample_record() );
 
-		$this->assertTrue( $store->delete( 'myplugin/key' ) );
-		$this->assertNull( $store->get( 'myplugin/key' ) );
+		$this->assertTrue( $store->delete( 'myplugin/key' ), 'Deleting an existing record should succeed.' );
+		$this->assertNull( $store->get( 'myplugin/key' ), 'A deleted record should no longer be returned.' );
 	}
 
 	/**
@@ -130,7 +130,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	public function test_delete_on_an_absent_record_is_not_an_error(): void {
 		$store = new WP_Secrets_Option_Store();
 
-		$this->assertTrue( $store->delete( 'myplugin/never-existed' ) );
+		$this->assertTrue( $store->delete( 'myplugin/never-existed' ), 'Deleting an absent record should report success.' );
 	}
 
 	/**
@@ -156,7 +156,7 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( $autoload, array( 'no', 'off' ) );
+		$this->assertContains( $autoload, array( 'no', 'off' ), 'Site-scope secret records should not be autoloaded.' );
 	}
 
 	/**
@@ -171,9 +171,9 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		$names = $store->list_names();
 
-		$this->assertIsArray( $names );
-		$this->assertContains( 'myplugin/one', $names );
-		$this->assertContains( 'myplugin/two', $names );
+		$this->assertIsArray( $names, 'list_names() should return an array.' );
+		$this->assertContains( 'myplugin/one', $names, 'The first stored name should be listed without the prefix.' );
+		$this->assertContains( 'myplugin/two', $names, 'The second stored name should be listed without the prefix.' );
 	}
 
 	/**
@@ -189,8 +189,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		$names = $store->list_names();
 
-		$this->assertIsArray( $names );
-		$this->assertNotContains( 'completely_unrelated_option', $names );
+		$this->assertIsArray( $names, 'list_names() should return an array.' );
+		$this->assertNotContains( 'completely_unrelated_option', $names, 'Options that are not secret records should not be listed.' );
 	}
 
 	/**
@@ -206,12 +206,12 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$site_names    = $store->list_names( false );
 		$network_names = $store->list_names( true );
 
-		$this->assertIsArray( $site_names );
-		$this->assertIsArray( $network_names );
-		$this->assertContains( 'myplugin/site-only', $site_names );
-		$this->assertNotContains( 'myplugin/network-only', $site_names );
-		$this->assertContains( 'myplugin/network-only', $network_names );
-		$this->assertNotContains( 'myplugin/site-only', $network_names );
+		$this->assertIsArray( $site_names, 'list_names() should return an array for the site scope.' );
+		$this->assertIsArray( $network_names, 'list_names() should return an array for the network scope.' );
+		$this->assertContains( 'myplugin/site-only', $site_names, 'The site-scope name should be listed in the site scope.' );
+		$this->assertNotContains( 'myplugin/network-only', $site_names, 'The network-scope name should not be listed in the site scope.' );
+		$this->assertContains( 'myplugin/network-only', $network_names, 'The network-scope name should be listed in the network scope.' );
+		$this->assertNotContains( 'myplugin/site-only', $network_names, 'The site-scope name should not be listed in the network scope.' );
 	}
 
 	/**
@@ -231,8 +231,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		$names = $store->list_names();
 
-		$this->assertIsArray( $names );
-		$this->assertContains( 'myplugin/real', $names );
-		$this->assertNotContains( 'decoy/name', $names );
+		$this->assertIsArray( $names, 'list_names() should return an array.' );
+		$this->assertContains( 'myplugin/real', $names, 'The real secret name should be listed.' );
+		$this->assertNotContains( 'decoy/name', $names, 'An option matching only via an unescaped underscore wildcard should not be listed.' );
 	}
 }
