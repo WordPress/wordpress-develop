@@ -1039,7 +1039,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *             expected_displayed_errors: string[],
 	 *         }>
 	 */
-	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
+	public static function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
 		$log_and_display_all = array(
 			'error_reporting' => E_ALL,
 			'display_errors'  => true,
@@ -1429,7 +1429,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{theme: string, set_up: Closure|null, expected_on_demand: bool, expected_buffer_started: bool}>
 	 */
-	public function data_wp_load_classic_theme_block_styles_on_demand(): array {
+	public static function data_wp_load_classic_theme_block_styles_on_demand(): array {
 		return array(
 			'block_theme'                              => array(
 				'theme'                   => 'block-theme',
