@@ -39,7 +39,7 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_append_nonce_name_and_value() {
+	public static function data_should_append_nonce_name_and_value() {
 		return array(
 			'http:// and default action/name'             => array(
 				'actionurl' => 'http://example.org/',
@@ -126,7 +126,7 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_handle_existing_query_args() {
+	public static function data_should_handle_existing_query_args() {
 		return array(
 			'one query arg'            => array(
 				'actionurl' => 'http://example.org/?hello=world',

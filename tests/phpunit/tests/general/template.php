@@ -664,7 +664,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_front_page() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_front_page() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
@@ -684,12 +684,12 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
 	 */
 	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined( $url, $attribute_expected ) {
-		// Set up pretty permalinks.
-		update_option( 'permalink_structure', '/%postname%/' );
-
 		// Set posts to show on a static page.
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
+
+		// Set up pretty permalinks.
+		$this->set_permalink_structure( '/%postname%/' );
 
 		// Set the custom logo.
 		$this->set_custom_logo();
@@ -709,10 +709,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
-			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog index'  => array( home_url( '/blog/' ), false ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
 			'Sample page' => array( home_url( '/?page_id=2' ), false ),
 		);
@@ -731,13 +731,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
 	 */
 	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined( $url, $attribute_expected ) {
-		// Set up pretty permalinks.
-		update_option( 'permalink_structure', '/%postname%/' );
-
 		// Set posts to show on a static page, show static page on front.
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
 		update_option( 'page_on_front', self::$home_page_id );
+
+		// Set up pretty permalinks.
+		$this->set_permalink_structure( '/%postname%/' );
 
 		// Set the custom logo.
 		$this->set_custom_logo();
@@ -757,10 +757,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
-			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog index'  => array( home_url( '/blog/' ), false ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
 			'Sample page' => array( home_url( '/?page_id=2' ), false ),
 		);

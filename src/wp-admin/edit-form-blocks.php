@@ -94,6 +94,7 @@ $preload_paths = array(
 		',',
 		array(
 			'description',
+			'generate_animated_image_subsizes',
 			'gmt_offset',
 			'home',
 			'image_max_bit_depth',
@@ -342,6 +343,7 @@ wp_enqueue_editor();
 /**
  * Styles
  */
+// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 wp_enqueue_style( 'wp-edit-post' );
 
 /**

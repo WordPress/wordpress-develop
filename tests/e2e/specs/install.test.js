@@ -101,13 +101,20 @@ test.describe( 'WordPress installation process', () => {
 		writeFileSync( wpConfig, wpConfigPatched );
 	} );
 
-	test.afterEach( async () => {
+	test.afterEach( async ( { page } ) => {
 		writeFileSync( wpConfig, wpConfigOriginal );
 
 		// The test completes a full install under TEST_TABLE_PREFIX. Drop
 		// those tables, otherwise the next run finds a pre-existing install
 		// and never reaches the installation screen it's meant to be testing.
 		dropE2eTables();
+
+		// PHP can briefly serve the previous wp-config.php; wait until the site answers as installed.
+		await expect( async () => {
+			await page.goto( '/wp-login.php' );
+			expect( page.url() ).toMatch( /\/wp-login\.php$/ );
+			await expect( page.getByRole( 'button', { name: 'Log In', exact: true } ) ).toBeVisible();
+		}, 'should restore the installed site after the installation test' ).toPass( { timeout: 10_000 } );
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
@@ -153,7 +160,9 @@ test.describe( 'WordPress installation process', () => {
 			'should redirect to the login page'
 		).toHaveURL( /wp-login\.php$/ );
 
-		await page.getByLabel( 'Username or Email Address' ).fill( 'admin' );
+		const usernameField = page.getByLabel( 'Username or Email Address' );
+		await expect( usernameField ).toBeFocused();
+		await usernameField.fill( 'admin' );
 		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 
 		await page.getByRole( 'button', { name: 'Log In' } ).click();
