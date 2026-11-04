@@ -3139,7 +3139,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that block transforms output the individual `rotate` property, under
 	 * feature selectors, for block styles, block states and block style variations.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66468
 	 */
 	public function test_get_stylesheet_outputs_rotate_for_block_styles_states_and_variations() {
 		register_block_type(
@@ -3213,7 +3213,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Tests that a rotation that is not a single angle is not output.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66468
 	 *
 	 * @dataProvider data_get_stylesheet_skips_invalid_rotate_values
 	 *
@@ -3256,7 +3256,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * Tests that transform styles are kept for blocks and block style variations
 	 * only, and that the transform setting is kept at every level.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66468
 	 */
 	public function test_sanitize_keeps_transform_styles_for_blocks_and_variations_only() {
 		register_block_style(
