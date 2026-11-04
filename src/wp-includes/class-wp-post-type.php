@@ -54,6 +54,19 @@ final class WP_Post_Type {
 	protected static $default_labels = array();
 
 	/**
+	 * Supported features, keyed by post type name.
+	 *
+	 * This store also holds entries for post type subtypes such as
+	 * `attachment:audio`, which have no post type object of their own. The
+	 * insertion order of the keys is preserved, so that the list of post types
+	 * supporting a feature stays stable.
+	 *
+	 * @since 7.2.0
+	 * @var array[] $features
+	 */
+	private static $features = array();
+
+	/**
 	 * A short descriptive summary of what the post type is.
 	 *
 	 * Default empty.
@@ -719,6 +732,52 @@ final class WP_Post_Type {
 	}
 
 	/**
+	 * Checks whether the post type supports a given feature.
+	 *
+	 * A subtype may be passed to check the features of a post type subtype, for example
+	 * `$attachment->supports( 'thumbnail', 'audio' )`, which is equivalent to
+	 * `post_type_supports( 'attachment:audio', 'thumbnail' )`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string      $feature The feature being checked.
+	 * @param string|null $subtype Optional. The post type subtype being checked. Default null.
+	 * @return bool Whether the post type supports the given feature.
+	 */
+	public function supports( $feature, $subtype = null ) {
+		$post_type = $this->name;
+
+		if ( null !== $subtype ) {
+			$post_type .= ':' . $subtype;
+		}
+
+		return self::supports_feature( $post_type, $feature );
+	}
+
+	/**
+	 * Registers support of a feature for the post type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $feature The feature being added.
+	 * @param mixed  ...$args Optional extra arguments to pass along with certain features.
+	 */
+	public function add_support( $feature, ...$args ) {
+		self::add_feature( $this->name, $feature, $args );
+	}
+
+	/**
+	 * Removes support for a feature from the post type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $feature The feature being removed.
+	 */
+	public function remove_support( $feature ) {
+		self::remove_feature( $this->name, $feature );
+	}
+
+	/**
 	 * Adds the necessary rewrite rules for the post type.
 	 *
 	 * @since 4.6.0
@@ -800,13 +859,9 @@ final class WP_Post_Type {
 	 * Removes the features support for the post type.
 	 *
 	 * @since 4.6.0
-	 *
-	 * @global array $_wp_post_type_features Post type features.
 	 */
 	public function remove_supports() {
-		global $_wp_post_type_features;
-
-		unset( $_wp_post_type_features[ $this->name ] );
+		self::remove_all_features( $this->name );
 	}
 
 	/**
@@ -1049,5 +1104,88 @@ final class WP_Post_Type {
 	 */
 	public static function reset_default_labels() {
 		self::$default_labels = array();
+	}
+
+	/**
+	 * Retrieves all the features supported by a post type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type The post type name.
+	 * @return array The features supported by the post type, keyed by feature name.
+	 */
+	public static function get_features( $post_type ) {
+		return self::$features[ $post_type ] ?? array();
+	}
+
+	/**
+	 * Checks whether a post type supports a given feature.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type The post type name.
+	 * @param string $feature   The feature being checked.
+	 * @return bool Whether the post type supports the given feature.
+	 */
+	public static function supports_feature( $post_type, $feature ) {
+		return isset( self::$features[ $post_type ][ $feature ] );
+	}
+
+	/**
+	 * Registers support of a feature for a post type.
+	 *
+	 * Existing keys are never reordered, so the first insertion order of the post
+	 * type names is retained.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type The post type name.
+	 * @param string $feature   The feature being added.
+	 * @param mixed  $args      Optional. Extra arguments to pass along with certain features.
+	 *                          Default empty array.
+	 */
+	public static function add_feature( $post_type, $feature, $args = array() ) {
+		self::$features[ $post_type ][ $feature ] = $args ? $args : true;
+	}
+
+	/**
+	 * Removes support for a feature from a post type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type The post type name.
+	 * @param string $feature   The feature being removed.
+	 */
+	public static function remove_feature( $post_type, $feature ) {
+		unset( self::$features[ $post_type ][ $feature ] );
+	}
+
+	/**
+	 * Removes support for all features from a post type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $post_type The post type name.
+	 */
+	public static function remove_all_features( $post_type ) {
+		unset( self::$features[ $post_type ] );
+	}
+
+	/**
+	 * Retrieves a list of post type names that support a specific feature.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array|string $features Single feature or an array of features the post types should support.
+	 * @param string       $operator Optional. The logical operation to perform. 'or' means
+	 *                               only one element from the array needs to match; 'and'
+	 *                               means all elements must match; 'not' means no elements may
+	 *                               match. Default 'and'.
+	 * @return string[] A list of post type names.
+	 */
+	public static function get_post_types_with_features( $features, $operator = 'and' ) {
+		$features = array_fill_keys( (array) $features, true );
+
+		return array_keys( wp_filter_object_list( self::$features, $features, $operator ) );
 	}
 }
