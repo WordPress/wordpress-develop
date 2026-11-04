@@ -4,87 +4,19 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 /**
- * External dependencies
+ * Internal dependencies
  */
-import path from 'path';
-
-// A 640x480 image: it must be larger than at least one registered sub-size
-// (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
-const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
+import {
+	TEST_IMAGE_PATH,
+	SIMULATED_ERROR,
+	countUploadRequests,
+	failMediaCreate,
+} from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the modal's
 // "Select Files" button; setting files on it triggers FilesAdded, the same
 // event a file dropped on the modal fires.
 const FILE_INPUT_SELECTOR = '.media-modal .moxie-shim-html5 input[type="file"]';
-
-// A REST error the pipeline surfaces as-is: its message matches none of the
-// transient patterns @wordpress/upload-media retries on.
-const SIMULATED_ERROR = {
-	code: 'rest_upload_simulated_failure',
-	message: 'Simulated server failure for testing',
-	data: { status: 500 },
-};
-
-/**
- * Counts the POST requests that upload a file, per transport.
- *
- * The REST route may be a pretty permalink (/wp/v2/media) or the plain form
- * (index.php?rest_route=%2Fwp%2Fv2%2Fmedia), so match on the decoded URL.
- *
- * @param {import('@playwright/test').Page} page
- * @return {{ asyncUpload: number, create: number, sideload: number, finalize: number }} Live counts.
- */
-function countUploadRequests( page ) {
-	const counts = { asyncUpload: 0, create: 0, sideload: 0, finalize: 0 };
-	page.on( 'request', ( request ) => {
-		if ( request.method() !== 'POST' ) {
-			return;
-		}
-		const url = request.url();
-		if ( url.includes( '/async-upload.php' ) ) {
-			counts.asyncUpload++;
-			return;
-		}
-		const decoded = decodeURIComponent( url );
-		if ( /\/wp\/v2\/media\/\d+\/sideload/.test( decoded ) ) {
-			counts.sideload++;
-		} else if ( /\/wp\/v2\/media\/\d+\/finalize/.test( decoded ) ) {
-			counts.finalize++;
-		} else if ( /\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) ) {
-			counts.create++;
-		}
-	} );
-	return counts;
-}
-
-/**
- * Fails the request that creates the attachment, leaving sub-size and
- * finalize requests alone.
- *
- * @param {import('@playwright/test').Page} page
- */
-async function failMediaCreate( page ) {
-	await page.route(
-		( url ) => {
-			const decoded = decodeURIComponent( url.href );
-			return (
-				/\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) &&
-				! /\/(sideload|finalize)/.test( decoded )
-			);
-		},
-		async ( route ) => {
-			if ( route.request().method() !== 'POST' ) {
-				await route.continue();
-				return;
-			}
-			await route.fulfill( {
-				status: 500,
-				contentType: 'application/json',
-				body: JSON.stringify( SIMULATED_ERROR ),
-			} );
-		}
-	);
-}
 
 /**
  * Opens the media modal from a new Image block and switches to its upload tab.
