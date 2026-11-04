@@ -2792,8 +2792,8 @@ p.has-background {
 	padding: var(--global--spacing-unit);
 }
 
-p.has-text-color a {
-	color: var(--wp--style--color--link, var(--global--color-primary));
+p.has-text-color:not(.has-link-color) a {
+	color: currentColor;
 }
 
 pre.wp-block-preformatted {
