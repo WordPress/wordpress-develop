@@ -484,11 +484,6 @@ parameters:
 			count: 6
 			path: ../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentynineteen/inc/helper-functions.php
-		-
 			message: '#^Parameter \#1 \$author_id of function get_author_posts_url expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -669,11 +664,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/canonical.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/capabilities.php
-		-
 			message: '#^Parameter \#1 \$name of class WP_Block_Parser_Block constructor expects string, null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -749,11 +739,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-query.php
-		-
 			message: '#^Parameter \#1 \$pages of function get_page_hierarchy expects array\<WP_Post\>, list\<stdClass\>\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -794,16 +779,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
-		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/comment-template.php
-		-
 			message: '#^Parameter \#1 \$comment_id of function get_page_of_comment expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -835,11 +810,6 @@ parameters:
 			path: ../../../src/wp-includes/customize/class-wp-customize-selective-refresh.php
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:response_to_data\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/embed.php
-		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/embed.php
@@ -934,11 +904,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/link-template.php
-		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, array\<int, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1032,11 +997,6 @@ parameters:
 			message: '#^Parameter \#1 \$user of function user_can expects int\|WP_User, string given\.$#'
 			identifier: argument.type
 			count: 3
-			path: ../../../src/wp-includes/pluggable.php
-		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 2
 			path: ../../../src/wp-includes/pluggable.php
 		-
 			message: '#^Parameter \#3 \$number of function _n expects int, string\|null given\.$#'
