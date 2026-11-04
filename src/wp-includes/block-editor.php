@@ -485,6 +485,8 @@ function wp_get_post_content_block_attributes() {
  * Returns the contextualized block editor settings for a selected editor context.
  *
  * @since 5.8.0
+ * @since 7.3.0 Leaves `innerBlocks` out of the attributes that block bindings support,
+ *              as the editor doesn't render its bindings yet.
  *
  * @param array                   $custom_settings      Custom settings to use with the given editor type.
  * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
@@ -502,7 +504,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
 	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
-		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
+		$supported_block_attributes = array_values( array_diff( get_block_bindings_supported_attributes( $block_type ), array( 'innerBlocks' ) ) );
 		if ( ! empty( $supported_block_attributes ) ) {
 			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
 		}
