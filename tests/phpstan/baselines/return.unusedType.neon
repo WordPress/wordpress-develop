@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method WP_Recovery_Mode_Cookie_Service\:\:recovery_mode_hash\(\) never returns false so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: ../../../src/wp-includes/class-wp-recovery-mode-cookie-service.php
-		-
 			message: '#^Function wp_get_code_editor_settings\(\) never returns false so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
