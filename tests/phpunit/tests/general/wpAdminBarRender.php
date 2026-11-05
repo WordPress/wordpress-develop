@@ -107,13 +107,37 @@ class Tests_General_WpAdminBarRender extends WP_UnitTestCase {
 		$calls = array();
 		$this->record_actions( $calls );
 
+		// Mark where the actions around the rendering output their content.
+		add_action(
+			'wp_before_admin_bar_render',
+			static function () {
+				echo '<!--before-admin-bar-->';
+			},
+			1000
+		);
+		add_action(
+			'wp_after_admin_bar_render',
+			static function () {
+				echo '<!--after-admin-bar-->';
+			},
+			1000
+		);
+
 		show_admin_bar( true );
 
 		ob_start();
 		wp_admin_bar_render();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'id="wpadminbar"', $output );
+		$before_at  = strpos( $output, '<!--before-admin-bar-->' );
+		$toolbar_at = strpos( $output, 'id="wpadminbar"' );
+		$after_at   = strpos( $output, '<!--after-admin-bar-->' );
+
+		$this->assertNotFalse( $before_at, 'The output of wp_before_admin_bar_render should be present.' );
+		$this->assertNotFalse( $toolbar_at, 'The Toolbar should be rendered.' );
+		$this->assertNotFalse( $after_at, 'The output of wp_after_admin_bar_render should be present.' );
+		$this->assertLessThan( $toolbar_at, $before_at, 'The Toolbar should be rendered after wp_before_admin_bar_render.' );
+		$this->assertLessThan( $after_at, $toolbar_at, 'The Toolbar should be rendered before wp_after_admin_bar_render.' );
 		$this->assertSame(
 			array( 'admin_bar_menu', 'wp_before_admin_bar_render', 'wp_after_admin_bar_render' ),
 			$calls,
