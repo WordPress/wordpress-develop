@@ -6,6 +6,13 @@
 class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	protected $post_ids = array();
 
+	public function tear_down() {
+		unregister_post_type( 'post-type-1' );
+		unregister_post_type( 'post-type-2' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 21013
 	 */
@@ -61,9 +68,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 
 		$this->assertSame( 'some-other-slug', wp_unique_post_slug( 'some-other-slug', $one, 'publish', 'post-type-1', 0 ) );
 		$this->assertSame( 'some-other-slug', wp_unique_post_slug( 'some-other-slug', $one, 'publish', 'post-type-2', 0 ) );
-
-		_unregister_post_type( 'post-type-1' );
-		_unregister_post_type( 'post-type-2' );
 	}
 
 	/**
@@ -85,8 +89,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'some-slug-2', get_post( $two )->post_name );
 
 		$this->assertSame( 'some-slug-3', wp_unique_post_slug( 'some-slug', 0, 'publish', 'post-type-1', 0 ) );
-
-		_unregister_post_type( 'post-type-1' );
 	}
 
 	/**
@@ -123,8 +125,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 
 		// 'image' can be a child of image-2.
 		$this->assertSame( 'image', wp_unique_post_slug( 'image', 0, 'publish', 'post-type-1', $two ) );
-
-		_unregister_post_type( 'post-type-1' );
 	}
 
 	/**
