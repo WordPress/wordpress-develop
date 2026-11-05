@@ -3,53 +3,102 @@
 /**
  * Tests for the wp_auth_check_html function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_auth_check_html
  */
-class Tests_functions_wpAuthCheckHtml extends WP_UnitTestCase {
+class Tests_Functions_WpAuthCheckHtml extends WP_UnitTestCase {
 
+	/**
+	 * Original HTTP_HOST server variable.
+	 *
+	 * @var string|null
+	 */
+	protected $original_http_host;
+
+	/**
+	 * Sets up the test fixture.
+	 */
 	public function set_up() {
 		parent::set_up();
 
-		update_option( 'siteurl', 'http://example.org' );
-		$_SERVER['HTTP_HOST'] = 'example.org';
+		$this->original_http_host = $_SERVER['HTTP_HOST'] ?? null;
+
+		$login_url = wp_login_url();
+		$host      = wp_parse_url( $login_url, PHP_URL_HOST );
+		$port      = wp_parse_url( $login_url, PHP_URL_PORT );
+
+		if ( $port ) {
+			$host .= ":$port";
+		}
+
+		$_SERVER['HTTP_HOST'] = $host;
 	}
 
 	/**
+	 * Tears down the test fixture.
+	 */
+	public function tear_down() {
+		if ( null === $this->original_http_host ) {
+			unset( $_SERVER['HTTP_HOST'] );
+		} else {
+			$_SERVER['HTTP_HOST'] = $this->original_http_host;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that wp_auth_check_html() outputs the expected dialog HTML for the same domain.
+	 *
 	 * @ticket 59792
 	 */
 	public function test_wp_auth_check_html() {
+		$login_url = wp_login_url();
+		$login_src = add_query_arg(
+			array(
+				'interim-login' => '1',
+				'wp_lang'       => get_user_locale(),
+			),
+			$login_url
+		);
+
 		$html = get_echo( 'wp_auth_check_html' );
 
 		$this->assertStringContainsString( '<div id="wp-auth-check-wrap" class="hidden">', $html );
-		$this->assertStringContainsString( '<a href="http://example.org/wp-login.php" target="_blank">', $html );
-		$this->assertStringContainsString( '<div id="wp-auth-check-form" class="loading" data-src="http://example.org/wp-login.php?interim-login=1&#038;wp_lang=en_US"></div>', $html );
+		$this->assertStringContainsString( '<a href="' . esc_url( $login_url ) . '" target="_blank">', $html );
+		$this->assertStringContainsString( '<div id="wp-auth-check-form" class="loading" data-src="' . esc_url( $login_src ) . '"></div>', $html );
 	}
 
 	/**
+	 * Tests that wp_auth_check_html() outputs the fallback dialog when on a different domain.
+	 *
 	 * @ticket 59792
 	 */
 	public function test_wp_auth_check_html_wrong_domain() {
 		$_SERVER['HTTP_HOST'] = 'ddd.com';
 
-		$html = get_echo( 'wp_auth_check_html' );
+		$login_url = wp_login_url();
+		$html      = get_echo( 'wp_auth_check_html' );
 
 		$this->assertStringContainsString( '<div id="wp-auth-check-wrap" class="hidden fallback">', $html );
-		$this->assertStringContainsString( '<a href="http://example.org/wp-login.php" target="_blank">', $html );
+		$this->assertStringContainsString( '<a href="' . esc_url( $login_url ) . '" target="_blank">', $html );
 		$this->assertStringNotContainsString( '<div id="wp-auth-check-form" class="loading" data-src=', $html );
 	}
 
 	/**
+	 * Tests that wp_auth_check_html() respects the 'wp_auth_check_same_domain' filter.
+	 *
 	 * @ticket 59792
 	 */
 	public function test_wp_auth_check_html_filtered() {
 		add_filter( 'wp_auth_check_same_domain', '__return_false' );
 
-		$html = get_echo( 'wp_auth_check_html' );
+		$login_url = wp_login_url();
+		$html      = get_echo( 'wp_auth_check_html' );
 
 		$this->assertStringContainsString( '<div id="wp-auth-check-wrap" class="hidden fallback">', $html );
-		$this->assertStringContainsString( '<a href="http://example.org/wp-login.php" target="_blank">', $html );
+		$this->assertStringContainsString( '<a href="' . esc_url( $login_url ) . '" target="_blank">', $html );
 		$this->assertStringNotContainsString( '<div id="wp-auth-check-form" class="loading" data-src=', $html );
 	}
 }
