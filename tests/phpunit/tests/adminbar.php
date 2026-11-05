@@ -1357,8 +1357,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_background = $wp_admin_bar->get_node( 'background' );
 		$node_header     = $wp_admin_bar->get_node( 'header' );
 
-		remove_theme_support( 'custom-background' );
-		remove_theme_support( 'custom-header' );
 		$_wp_theme_features = $original_features;
 
 		$this->assertNotNull( $node_background );
