@@ -499,14 +499,27 @@ final class WP_Interactivity_API {
 		 * The trusted HTML of `data-wp-html` hosts never takes part in the
 		 * processing: each host receives a placeholder comment, and the comments
 		 * are replaced by their HTML once the result is known. The marker that
-		 * identifies them is chosen so that it occurs nowhere in the input, which
-		 * makes it impossible for the input to contain a placeholder.
+		 * identifies them occurs nowhere in the input, which makes it impossible
+		 * for the input to contain a placeholder. It is the base
+		 * `wp-interactivity-dangerous-html` followed by one more underscore than
+		 * the longest run of underscores that follows the base anywhere in the
+		 * input, or the base alone when the input does not hold the base.
+		 *
+		 * The input is read in one pass: each search resumes after the previous
+		 * base and its underscores. No base is missed, because the base starts
+		 * with the only `w` it holds, so no base can start inside another one or
+		 * inside a run of underscores.
 		 */
-		$marker = 'wp-interactivity-dangerous-html';
-		while ( str_contains( $html, $marker ) ) {
-			$marker .= '_';
+		$base        = 'wp-interactivity-dangerous-html';
+		$longest_run = -1;
+		$found_at    = strpos( $html, $base );
+		while ( false !== $found_at ) {
+			$run_start   = $found_at + strlen( $base );
+			$run_length  = strspn( $html, '_', $run_start );
+			$longest_run = max( $longest_run, $run_length );
+			$found_at    = strpos( $html, $base, $run_start + $run_length );
 		}
-		$this->html_placeholder_marker = $marker;
+		$this->html_placeholder_marker = $base . str_repeat( '_', $longest_run + 1 );
 		$this->html_placeholders       = array();
 
 		$result = $this->_process_directives( $html );
