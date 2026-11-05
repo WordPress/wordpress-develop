@@ -3,9 +3,9 @@
 /**
  * Tests for the _deprecated_argument function.
  *
- * @group Functions
+ * @group functions
  *
- * @covers ::__deprecated_argument
+ * @covers ::_deprecated_argument
  */
 class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 
@@ -40,9 +40,11 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 		$action = new MockAction();
 		add_filter( 'deprecated_argument_run', array( $action, 'action' ) );
 
-		_deprecated_argument( 'function_name', 1, 'message' );
-
-		$this->assertSame( 1, $action->get_call_count() );
+		try {
+			_deprecated_argument( 'function_name', 1, 'message' );
+		} finally {
+			$this->assertSame( 1, $action->get_call_count() );
+		}
 	}
 
 	/**
