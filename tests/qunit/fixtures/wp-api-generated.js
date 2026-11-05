@@ -10738,7 +10738,18 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "_wp_note_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "Note resolution status",
+                                    "default": "",
+                                    "enum": [
+                                        "resolved",
+                                        "reopen"
+                                    ]
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -10885,7 +10896,18 @@ mockedApiResponse.Schema = {
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
-                            "properties": [],
+                            "properties": {
+                                "_wp_note_status": {
+                                    "type": "string",
+                                    "title": "",
+                                    "description": "Note resolution status",
+                                    "default": "",
+                                    "enum": [
+                                        "resolved",
+                                        "reopen"
+                                    ]
+                                }
+                            },
                             "required": false
                         }
                     }
@@ -14954,6 +14976,7 @@ mockedApiResponse.CommentsCollection = [
             "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
+            "_wp_note_status": null,
             "meta_key": "meta_value"
         },
         "_links": {
@@ -15008,6 +15031,7 @@ mockedApiResponse.CommentModel = {
         "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
+        "_wp_note_status": null,
         "meta_key": "meta_value"
     }
 };
