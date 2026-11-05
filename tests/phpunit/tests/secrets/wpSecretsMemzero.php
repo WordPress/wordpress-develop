@@ -16,7 +16,6 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value );
 
-		$this->assertNotSame( 'a plaintext value', $value, 'The original plaintext should no longer be in the variable.' );
 		$this->assertSame( '', $value, 'The variable should be an empty string after zeroing.' );
 	}
 
