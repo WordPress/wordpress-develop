@@ -58,9 +58,9 @@ function wp_is_connector_registered( string $id ): bool {
  *         @type string $env_var_name    Optional. Environment variable name for the API key or application-password credentials.
  *     }
  *     @type array  $plugin         {
- *         Optional. Plugin data for install/activate UI.
+ *         Plugin data for install/activate UI.
  *
- *         @type string   $file      The plugin's main file path relative to the plugins
+ *         @type string   $file      Optional. The plugin's main file path relative to the plugins
  *                                   directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
  *         @type callable $is_active Callback to determine whether the plugin is active. Receives no arguments and must return bool.
  *                                   Defaults to `__return_true`.
@@ -124,9 +124,9 @@ function wp_get_connector( string $id ): ?array {
  *             @type string $env_var_name    Optional. Environment variable name for the API key or application-password credentials.
  *         }
  *         @type array       $plugin         {
- *             Optional. Plugin data for install/activate UI.
+ *             Plugin data for install/activate UI.
  *
- *             @type string   $file      The plugin's main file path relative to the plugins
+ *             @type string   $file      Optional. The plugin's main file path relative to the plugins
  *                                       directory (e.g. 'my-plugin/my-plugin.php' or 'hello.php').
  *             @type callable $is_active Callback to determine whether the plugin is active. Receives no arguments and must return bool.
  *                                       Defaults to `__return_true`.
