@@ -10,7 +10,8 @@
  * rather than an exception or a falsy string. Those are the properties that
  * actually matter to WP_Secrets_Key_Manager, the only caller of a keyring.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 
@@ -32,12 +33,12 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 
 		$wrapped = $keyring->wrap( $key_material );
 
-		$this->assertIsString( $wrapped );
-		$this->assertNotSame( '', $wrapped );
+		$this->assertIsString( $wrapped, 'wrap() should return a string.' );
+		$this->assertNotSame( '', $wrapped, 'wrap() should not return an empty string.' );
 
 		$unwrapped = $keyring->unwrap( $wrapped );
 
-		$this->assertSame( $key_material, $unwrapped );
+		$this->assertSame( $key_material, $unwrapped, 'unwrap() should return the original key material.' );
 	}
 
 	/**
@@ -53,7 +54,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 		$first  = $keyring->wrap( $key_material );
 		$second = $keyring->wrap( $key_material );
 
-		$this->assertNotSame( $first, $second );
+		$this->assertNotSame( $first, $second, 'Two wraps of the same key material should return different strings.' );
 	}
 
 	/**
@@ -66,7 +67,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 		$keyring = $this->keyring();
 		$garbage = 'garbage-' . bin2hex( random_bytes( 16 ) );
 
-		$this->assertWPError( $keyring->unwrap( $garbage ) );
+		$this->assertWPError( $keyring->unwrap( $garbage ), 'Unwrapping garbage should return a WP_Error.' );
 	}
 
 	/**
@@ -78,11 +79,11 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 		$keyring = $this->keyring();
 		$wrapped = $keyring->wrap( random_bytes( 32 ) );
 
-		$this->assertIsString( $wrapped );
+		$this->assertIsString( $wrapped, 'wrap() should return a string.' );
 
 		$truncated = substr( $wrapped, 0, intdiv( strlen( $wrapped ), 2 ) );
 
-		$this->assertWPError( $keyring->unwrap( $truncated ) );
+		$this->assertWPError( $keyring->unwrap( $truncated ), 'Unwrapping a truncated value should return a WP_Error.' );
 	}
 
 	/**
@@ -94,13 +95,13 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 		$keyring = $this->keyring();
 		$wrapped = $keyring->wrap( random_bytes( 32 ) );
 
-		$this->assertIsString( $wrapped );
+		$this->assertIsString( $wrapped, 'wrap() should return a string.' );
 
 		$flip_at             = intdiv( strlen( $wrapped ), 2 );
 		$flipped             = $wrapped;
 		$flipped[ $flip_at ] = chr( ord( $wrapped[ $flip_at ] ) ^ 0x01 );
 
-		$this->assertWPError( $keyring->unwrap( $flipped ) );
+		$this->assertWPError( $keyring->unwrap( $flipped ), 'Unwrapping a value with one flipped byte should return a WP_Error.' );
 	}
 
 	/**
@@ -110,7 +111,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	public function test_get_key_source_returns_a_non_empty_string(): void {
 		$source = $this->keyring()->get_key_source();
 
-		$this->assertIsString( $source );
-		$this->assertNotSame( '', trim( $source ) );
+		$this->assertIsString( $source, 'get_key_source() should return a string.' );
+		$this->assertNotSame( '', trim( $source ), 'get_key_source() should not return an empty or whitespace-only string.' );
 	}
 }
