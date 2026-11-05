@@ -444,6 +444,7 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 		 * The image sub-sizes are created during wp_generate_attachment_metadata().
 		 * This is generally slow and may cause timeouts or out of memory errors.
 		 */
+		$file = get_attached_file( $attachment_id );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
 
@@ -532,6 +533,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	}
 
 	if ( ! is_wp_error( $attachment_id ) ) {
+		$file = get_attached_file( $attachment_id );
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 	}
 
