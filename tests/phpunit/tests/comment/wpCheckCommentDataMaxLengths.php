@@ -124,23 +124,38 @@ class Tests_Comment_WpCheckCommentDataMaxLengths extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the first field that is too long is the one that is reported.
+	 * Tests that the fields are checked in the order author, email, URL and content,
+	 * and that the first field that is too long is the one that is reported.
 	 *
 	 * @ticket 66494
 	 */
 	public function test_should_report_the_first_field_that_is_too_long() {
 		$max_lengths = wp_get_comment_fields_max_lengths();
 
-		$result = wp_check_comment_data_max_lengths(
-			array(
-				'comment_content'      => str_repeat( 'a', $max_lengths['comment_content'] + 1 ),
-				'comment_author_url'   => str_repeat( 'a', $max_lengths['comment_author_url'] + 1 ),
-				'comment_author_email' => str_repeat( 'a', $max_lengths['comment_author_email'] + 1 ),
-			)
+		$error_codes = array(
+			'comment_author'       => 'comment_author_column_length',
+			'comment_author_email' => 'comment_author_email_column_length',
+			'comment_author_url'   => 'comment_author_url_column_length',
+			'comment_content'      => 'comment_content_column_length',
 		);
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_author_email_column_length', $result->get_error_code(), 'The email is checked before the URL and the content.' );
+		// Every field is too long. The data is in the reverse of the order in which the fields are checked.
+		$comment_data = array();
+		foreach ( array_reverse( array_keys( $error_codes ) ) as $field ) {
+			$comment_data[ $field ] = str_repeat( 'a', $max_lengths[ $field ] + 1 );
+		}
+
+		// Take away each field after it was reported, to see which one comes next.
+		foreach ( $error_codes as $field => $error_code ) {
+			$result = wp_check_comment_data_max_lengths( $comment_data );
+
+			$this->assertWPError( $result, "An error should be reported while the $field field is too long." );
+			$this->assertSame( $error_code, $result->get_error_code(), "The $field field should be reported next." );
+
+			unset( $comment_data[ $field ] );
+		}
+
+		$this->assertTrue( wp_check_comment_data_max_lengths( $comment_data ), 'There should be no error when no field is left.' );
 	}
 
 	/**

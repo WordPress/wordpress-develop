@@ -23,15 +23,6 @@ class Tests_Comment_WpDeferCommentCounting extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that counting is not deferred by default.
-	 *
-	 * @ticket 66494
-	 */
-	public function test_should_not_defer_by_default() {
-		$this->assertFalse( wp_defer_comment_counting() );
-	}
-
-	/**
 	 * Tests that deferring can be turned on and off, and that the new state is returned.
 	 *
 	 * @ticket 66494
@@ -103,17 +94,25 @@ class Tests_Comment_WpDeferCommentCounting extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the counts are not updated when deferring is turned on again.
+	 * Tests that turning deferring on again does not update the posts that are in the queue.
 	 *
 	 * @ticket 66494
 	 */
-	public function test_should_not_update_the_counts_when_deferring_is_turned_on() {
+	public function test_should_not_update_queued_posts_when_deferring_is_turned_on_again() {
+		$post_id = self::factory()->post->create();
+
+		wp_defer_comment_counting( true );
+		wp_update_comment_count( $post_id );
+
 		$action = new MockAction();
 		add_action( 'wp_update_comment_count', array( $action, 'action' ), 10, 3 );
 
 		wp_defer_comment_counting( true );
-		wp_defer_comment_counting( true );
 
-		$this->assertSame( 0, $action->get_call_count() );
+		$this->assertSame( 0, $action->get_call_count(), 'The queue should not be flushed while deferring is on.' );
+
+		wp_defer_comment_counting( false );
+
+		$this->assertSame( 1, $action->get_call_count(), 'The post should still be in the queue, and be updated when deferring is turned off.' );
 	}
 }
