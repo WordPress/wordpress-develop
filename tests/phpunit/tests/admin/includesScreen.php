@@ -266,6 +266,91 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		$this->assertFalse( $screen->is_block_editor );
 	}
 
+	/**
+	 * @ticket 57419
+	 * @dataProvider data_taxonomy_with_non_ascii_name_as_hookname
+	 *
+	 * @param string $taxonomy        Taxonomy name.
+	 * @param string $suffix          Admin context suffix.
+	 * @param bool   $ascii_collision Whether to register the sanitized taxonomy name too.
+	 */
+	public function test_taxonomy_with_non_ascii_name_as_hookname( $taxonomy, $suffix, $ascii_collision = false ) {
+		register_taxonomy( $taxonomy, 'post' );
+		if ( $ascii_collision ) {
+			register_taxonomy( sanitize_key( $taxonomy ), 'post' );
+		}
+
+		try {
+			$screen = convert_to_screen( 'edit-' . $taxonomy . $suffix );
+
+			$this->assertSame( $taxonomy, $screen->taxonomy );
+			$this->assertSame( 'edit-tags' . $suffix, $screen->base );
+			$this->assertSame( 'edit-' . $taxonomy . $suffix, $screen->id );
+			$this->assertSame( 'post', $screen->post_type );
+			$this->assertTrue( $screen->in_admin( $suffix ? substr( $suffix, 1 ) : 'site' ) );
+		} finally {
+			unregister_taxonomy( $taxonomy );
+			if ( $ascii_collision ) {
+				unregister_taxonomy( sanitize_key( $taxonomy ) );
+			}
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_taxonomy_with_non_ascii_name_as_hookname() {
+		return array(
+			'accented Latin name'          => array( 'tamaño', '' ),
+			'German name'                  => array( 'größe', '' ),
+			'Chinese name'                 => array( '产品', '' ),
+			'network admin'                => array( 'tamaño', '-network' ),
+			'user admin'                   => array( 'tamaño', '-user' ),
+			'sanitized reserved screen'    => array( 'écomments', '' ),
+			'sanitized taxonomy collision' => array( 'tamaño', '', true ),
+		);
+	}
+
+	/**
+	 * @ticket 57419
+	 * @dataProvider data_screen_hookname_sanitization
+	 *
+	 * @param string $hook_name Hook name.
+	 * @param string $id        Expected screen ID.
+	 * @param string $base      Expected screen base.
+	 * @param string $taxonomy  Expected taxonomy name.
+	 */
+	public function test_screen_hookname_sanitization( $hook_name, $id, $base, $taxonomy ) {
+		register_taxonomy( 'comments', 'post' );
+		register_taxonomy( 'tags', 'post' );
+
+		try {
+			$screen = convert_to_screen( $hook_name );
+
+			$this->assertSame( $id, $screen->id );
+			$this->assertSame( $base, $screen->base );
+			$this->assertSame( $taxonomy, $screen->taxonomy );
+		} finally {
+			unregister_taxonomy( 'comments' );
+			unregister_taxonomy( 'tags' );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_screen_hookname_sanitization() {
+		return array(
+			'unknown taxonomy'         => array( 'edit-UNKNOWN TAXONOMY!', 'edit-unknowntaxonomy', 'edit-unknowntaxonomy', '' ),
+			'unknown network taxonomy' => array( 'edit-UNKNOWN TAXONOMY!-network', 'edit-unknowntaxonomy-network', 'edit-unknowntaxonomy-network', '' ),
+			'normalized taxonomy'      => array( 'edit-CATEGORY', 'edit-category', 'edit-tags', 'category' ),
+			'normalized edit prefix'   => array( 'EdIt-category', 'edit-category', 'edit-tags', 'category' ),
+			'reserved comments screen' => array( 'edit-comments', 'edit-comments', 'edit-comments', '' ),
+			'reserved tags screen'     => array( 'edit-tags', 'edit-post_tag', 'edit-tags', 'post_tag' ),
+			'other screen'             => array( 'Some Screen!<>', 'somescreen', 'somescreen', '' ),
+		);
+	}
+
 	public function test_meta_box_reordering_enabled_defaults_to_true() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
