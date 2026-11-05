@@ -1,4 +1,11 @@
 <?php
+/**
+ * Testing wp_ajax_logged_in() functionality.
+ *
+ * @package WordPress
+ * @subpackage UnitTests
+ * @since 6.8.0
+ */
 
 /**
  * Admin Ajax functions to be tested.
@@ -8,27 +15,18 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 /**
  * Testing wp_ajax_logged_in() functionality.
  *
- * @package WordPress
- * @subpackage UnitTests
- * @since 3.1.0
- *
  * @group ajax
  *
  * @covers ::wp_ajax_logged_in
  */
-class Tests_wp_ajax_logged_in extends WP_Ajax_UnitTestCase {
-
-	public function set_up() {
-		parent::set_up();
-		add_action( 'wp_ajax_logged-in', 'wp_ajax_logged_in' );
-	}
+class Tests_Ajax_WpAjaxLoggedIn extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests the logged-in AJAX action.
 	 *
 	 * @ticket 65242
 	 */
-	public function test_wp_ajax_logged_in(): void {
+	public function test_wp_ajax_logged_in() {
 		// Become a subscriber.
 		$this->_setRole( 'subscriber' );
 
