@@ -990,7 +990,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			return false;
 		}
 
-		return in_array( strtolower( $host ), array( '127.0.0.1', 'localhost', '::1' ), true );
+		return in_array( strtolower( $host ), array( '127.0.0.1', 'localhost', '[::1]' ), true );
 	}
 
 	/**
