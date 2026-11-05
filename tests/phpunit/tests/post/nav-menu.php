@@ -15,14 +15,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$this->menu_id = wp_create_nav_menu( 'foo' );
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'fooo-bar-baz' );
-		unregister_post_type( 'books' );
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 11095
 	 * @ticket 33974
