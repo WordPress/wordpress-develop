@@ -115,9 +115,9 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An operator sets the constant wrong after secrets exist: WP_SECRETS_KEY is
-	 * defined with a value that cannot serve as a usable key once secrets already
-	 * exist under the site's real key. wp_get_secret() must fail with WP_Error, not
+	 * An operator defines WP_SECRETS_KEY with a value that is not a usable string,
+	 * here an integer, after secrets already exist. The key is rejected as unavailable
+	 * before it is ever tried, and wp_get_secret() must report that as a WP_Error, not
 	 * silently return null as if the secret never existed.
 	 *
 	 * The write goes through a hand-built WP_Secrets_Libsodium_Provider rather than
@@ -148,6 +148,39 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 		$this->assertNotNull( $result, 'A secret with an unusable WP_SECRETS_KEY should not be reported as null.' );
 		$this->assertWPError( $result, 'A secret with an unusable WP_SECRETS_KEY should be reported as a WP_Error.' );
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'An unusable WP_SECRETS_KEY should produce the key unavailable error code.' );
+	}
+
+	/**
+	 * Ensure that a different valid WP_SECRETS_KEY makes wp_get_secret() return a WP_Error, not null.
+	 *
+	 * This is the realistic misconfiguration: a well-formed key that is not the one the
+	 * stored root key was wrapped under, such as a regenerated key or one copied from
+	 * another site. The secret is written through a keyring that reads
+	 * WP_SECRETS_KEY_PREVIOUS, so this process can then define a different
+	 * WP_SECRETS_KEY for the read.
+	 *
+	 * @covers ::wp_get_secret
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_a_different_valid_key_is_wp_error_not_null(): void {
+		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'a', 32 ) ) );
+
+		$provider = new WP_Secrets_Libsodium_Provider(
+			new WP_Secrets_Option_Store(),
+			new WP_Secrets_Key_Manager( new WP_Secrets_Config_Key_Provider( true ) )
+		);
+		$this->assertTrue( $provider->set( 'myplugin/api-key', 'value' ), 'Writing the secret under the original key should succeed.' );
+
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'b', 32 ) ) );
+
+		$result = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertNotNull( $result, 'A secret read under a different valid WP_SECRETS_KEY should not be reported as null.' );
+		$this->assertWPError( $result, 'A secret read under a different valid WP_SECRETS_KEY should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'A different valid WP_SECRETS_KEY should produce the key unavailable error code.' );
+		$this->assertStringContainsString( 'could not be decrypted', $result->get_error_message(), 'The error should come from failing to decrypt the root key, not from rejecting the key format.' );
 	}
 
 	/**
