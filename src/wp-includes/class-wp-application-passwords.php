@@ -64,10 +64,10 @@ class WP_Application_Passwords {
 	 *
 	 * @param int   $user_id  User ID.
 	 * @param array $args     {
-	 *     Arguments used to create the application password.
+	 *     Arguments used to create the application password. Expected to be slashed.
 	 *
-	 *     @type string $name   The name of the application password.
-	 *     @type string $app_id A UUID provided by the application to uniquely identify it.
+	 *     @type string $name   The name of the application password. Slashed.
+	 *     @type string $app_id A UUID provided by the application to uniquely identify it. Slashed.
 	 * }
 	 * @return array|WP_Error {
 	 *     Application password details, or a WP_Error instance if an error occurs.
@@ -124,6 +124,11 @@ class WP_Application_Passwords {
 		/**
 		 * Fires when an application password is created.
 		 *
+		 * The user-supplied values in `$new_item` (`name` and `app_id`) and in `$args`
+		 * are slashed, as received by WP_Application_Passwords::create_new_application_password().
+		 * Callbacks should pass them through wp_unslash() before using them for display,
+		 * comparison, or storage outside of the metadata API.
+		 *
 		 * @since 5.6.0
 		 * @since 6.8.0 The hashed password value now uses wp_fast_hash() instead of phpass.
 		 *
@@ -132,8 +137,8 @@ class WP_Application_Passwords {
 		 *     The details about the created password.
 		 *
 		 *     @type string $uuid      The unique identifier for the application password.
-		 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
-		 *     @type string $name      The name of the application password.
+		 *     @type string $app_id    A UUID provided by the application to uniquely identify it. Slashed.
+		 *     @type string $name      The name of the application password. Slashed.
 		 *     @type string $password  A one-way hash of the password.
 		 *     @type int    $created   Unix timestamp of when the password was created.
 		 *     @type null   $last_used Null.
@@ -141,10 +146,10 @@ class WP_Application_Passwords {
 		 * }
 		 * @param string $new_password The generated application password in plain text.
 		 * @param array  $args         {
-		 *     Arguments used to create the application password.
+		 *     Slashed arguments used to create the application password.
 		 *
-		 *     @type string $name   The name of the application password.
-		 *     @type string $app_id A UUID provided by the application to uniquely identify it.
+		 *     @type string $name   The name of the application password. Slashed.
+		 *     @type string $app_id A UUID provided by the application to uniquely identify it. Slashed.
 		 * }
 		 */
 		do_action( 'wp_create_application_password', $user_id, $new_item, $new_password, $args );
@@ -256,11 +261,11 @@ class WP_Application_Passwords {
 	 * @param int    $user_id User ID.
 	 * @param string $uuid    The password's UUID.
 	 * @param array  $update  {
-	 *     Information about the application password to update.
+	 *     Information about the application password to update. Expected to be slashed.
 	 *
 	 *     @type string      $uuid      The unique identifier for the application password.
 	 *     @type string      $app_id    A UUID provided by the application to uniquely identify it.
-	 *     @type string      $name      The name of the application password.
+	 *     @type string      $name      The name of the application password. Slashed.
 	 *     @type string      $password  A one-way hash of the password.
 	 *     @type int         $created   Unix timestamp of when the password was created.
 	 *     @type int|null    $last_used The Unix timestamp of the GMT date the application password was last used.
@@ -298,6 +303,13 @@ class WP_Application_Passwords {
 			/**
 			 * Fires when an application password is updated.
 			 *
+			 * The values in `$update` are slashed, as received by
+			 * WP_Application_Passwords::update_application_password(). When `$update`
+			 * contains a `name`, `$item['name']` is set to that slashed value; otherwise
+			 * `$item['name']` is the stored, unslashed value. Callbacks should pass slashed
+			 * values through wp_unslash() before using them for display, comparison, or
+			 * storage outside of the metadata API.
+			 *
 			 * @since 5.6.0
 			 * @since 6.8.0 The password is now hashed using wp_fast_hash() instead of phpass.
 			 *              Existing passwords may still be hashed using phpass.
@@ -308,13 +320,14 @@ class WP_Application_Passwords {
 			 *
 			 *     @type string      $uuid      The unique identifier for the application password.
 			 *     @type string      $app_id    A UUID provided by the application to uniquely identify it.
-			 *     @type string      $name      The name of the application password.
+			 *     @type string      $name      The name of the application password. Slashed if it was
+			 *                                  provided in `$update`, otherwise unslashed.
 			 *     @type string      $password  A one-way hash of the password.
 			 *     @type int         $created   Unix timestamp of when the password was created.
 			 *     @type int|null    $last_used The Unix timestamp of the GMT date the application password was last used.
 			 *     @type string|null $last_ip   The IP address the application password was last used by.
 			 * }
-			 * @param array $update  The information to update.
+			 * @param array $update  The slashed information to update.
 			 */
 			do_action( 'wp_update_application_password', $user_id, $item, $update );
 
