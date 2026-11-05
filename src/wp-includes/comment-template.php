@@ -2357,9 +2357,10 @@ function wp_list_comments( $args = array(), $comments = null ) {
 					$_comments = $comments;
 				}
 			}
+		}
 
-			// Otherwise, fall back on the comments from `$wp_query->comments`.
-		} else {
+		// Otherwise, fall back on the comments from `$wp_query->comments`.
+		if ( ! isset( $_comments ) ) {
 			if ( empty( $wp_query->comments ) ) {
 				return null;
 			}
