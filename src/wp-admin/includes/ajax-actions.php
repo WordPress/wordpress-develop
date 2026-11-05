@@ -2051,6 +2051,15 @@ function wp_ajax_inline_save() {
 
 	$post_id = (int) $_POST['post_ID'];
 
+	/*
+	 * Match the show_ui enforcement used by edit.php / post.php. Quick Edit is a UI action,
+	 * so posts belonging to a post type with show_ui disabled must not be editable here.
+	 */
+	$post_type = get_post_type( $post_id );
+	if ( ! $post_type || ! in_array( $post_type, get_post_types( array( 'show_ui' => true ) ), true ) ) {
+		wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ) );
+	}
+
 	if ( 'page' === $_POST['post_type'] ) {
 		if ( ! current_user_can( 'edit_page', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
