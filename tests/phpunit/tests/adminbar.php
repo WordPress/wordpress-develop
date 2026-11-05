@@ -1131,7 +1131,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node_site    = $wp_admin_bar->get_node( 'site-editor' );
 
-		unset( $_wp_current_template_id );
+		unset( $GLOBALS['_wp_current_template_id'] );
 		switch_theme( $original_stylesheet );
 
 		$this->assertNotNull( $node_site );
