@@ -71,11 +71,27 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 * Ensure that no default role other than administrator is granted manage_secrets.
 	 *
 	 * @covers ::populate_roles_720
+	 *
+	 * @dataProvider data_no_other_role_is_granted_manage_secrets
+	 *
+	 * @param string $role A default role other than administrator.
 	 */
-	public function test_no_other_role_is_granted_manage_secrets(): void {
-		foreach ( array( 'editor', 'author', 'contributor', 'subscriber' ) as $role ) {
-			$this->assertFalse( $this->role( $role )->has_cap( WP_SECRETS_CAP_MANAGE ), $role );
-		}
+	public function test_no_other_role_is_granted_manage_secrets( $role ): void {
+		$this->assertFalse( $this->role( $role )->has_cap( WP_SECRETS_CAP_MANAGE ), 'Role should not be granted capability' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_no_other_role_is_granted_manage_secrets() {
+		return array(
+			'editor'      => array( 'editor' ),
+			'author'      => array( 'author' ),
+			'contributor' => array( 'contributor' ),
+			'subscriber'  => array( 'subscriber' ),
+		);
 	}
 
 	/**
