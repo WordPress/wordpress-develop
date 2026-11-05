@@ -74,4 +74,65 @@ return array(
 				$call->expect( 0 === $children, 'esc_xml( %s ) returned %s, which is %s.', $call->arg( 'text' ), $text, null === $children ? 'not well-formed' : 'markup' );
 			}
 		),
+
+	WP_Invariant::define( 'esc-js-stays-in-string' )
+		->describe( 'What esc_js() returns stays in a single-quoted JavaScript string inside an inline event handler, as a browser reads it: the attribute stays one attribute, and the string has no unescaped quote or line break.' )
+		->include_test_callers()
+		->after(
+			'esc_js',
+			static function ( WP_Invariant_Call $call ) {
+				$escaped = $call->return_value();
+				if ( ! is_string( $escaped ) || '' === $escaped ) {
+					return;
+				}
+
+				$tag = WP_Invariant_Browser::start_tag( '<a onclick="f(\'' . $escaped . '\')">' );
+				if ( ! $call->expect( null !== $tag && array( 'onclick' ) === array_keys( $tag['attributes'] ), 'esc_js( %s ) returned %s, which breaks out of an attribute.', $call->arg( 'text' ), $escaped ) ) {
+					return;
+				}
+
+				// What the script sees between the quotes, with its escapes taken out.
+				$script = $tag['attributes']['onclick'];
+				$string = preg_replace( '/\\\\./s', '', substr( $script, 3, -2 ) );
+				$call->expect(
+					"f('" === substr( $script, 0, 3 ) && "')" === substr( $script, -2 ) && false === strpbrk( $string, "'\r\n" ),
+					'esc_js( %s ) returned %s, which a browser runs as %s.',
+					$call->arg( 'text' ),
+					$escaped,
+					$script
+				);
+			}
+		),
+
+	WP_Invariant::define( 'esc-textarea-reads-back' )
+		->describe( 'What esc_textarea() returns, inside a TEXTAREA, stays one TEXTAREA, which a browser gives the original text as its value, apart from a leading line break, which browsers drop.' )
+		->include_test_callers()
+		->after(
+			'esc_textarea',
+			static function ( WP_Invariant_Call $call ) {
+				$escaped = $call->return_value();
+				$text    = $call->arg( 'text' );
+				if ( ! is_string( $escaped ) || ! is_scalar( $text ) ) {
+					return;
+				}
+
+				$text = (string) $text;
+				if ( '' === $escaped && '' !== $text ) {
+					$call->expect( false, 'esc_textarea() returned an empty string for %d bytes of text, which are %s.', strlen( $text ), mb_check_encoding( $text, 'UTF-8' ) ? 'valid UTF-8' : 'not valid UTF-8' );
+					return;
+				}
+				if ( ! mb_check_encoding( $text, 'UTF-8' ) ) {
+					// In another character set, which the browser here does not read.
+					return;
+				}
+
+				// As a browser reads text: line breaks become LF, and NUL the replacement character.
+				$expected = str_replace( array( "\r\n", "\r", "\0" ), array( "\n", "\n", "\u{FFFD}" ), $text );
+				if ( "\n" === substr( $expected, 0, 1 ) ) {
+					$expected = substr( $expected, 1 );
+				}
+				$value = WP_Invariant_Browser::textarea_value( $escaped );
+				$call->expect( $value === $expected, 'esc_textarea( %s ) returned %s, which a browser reads as %s.', $text, $escaped, $value );
+			}
+		),
 );

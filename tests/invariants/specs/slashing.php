@@ -86,4 +86,15 @@ return array(
 				$call->expect( null === $string, '%s() stores data as given, but received %s, which wp_slash() had just returned.', $call->target(), $string );
 			}
 		),
+
+	WP_Invariant::define( 'wpdb-receives-unslashed' )
+		->describe( 'wpdb takes raw values, which it escapes itself: no value given to wpdb::insert(), update(), replace(), delete() or prepare() is a string which wp_slash() just returned with added backslashes, which would be stored.' )
+		// unslashed-input-not-slashed records what wp_slash() returns.
+		->before_each(
+			array( 'wpdb::insert', 'wpdb::update', 'wpdb::replace', 'wpdb::delete', 'wpdb::prepare' ),
+			static function ( WP_Invariant_Call $call ) use ( $slashed, $find ) {
+				$string = $find( $slashed, $call );
+				$call->expect( null === $string, '%s() takes raw values, but received %s, which wp_slash() had just returned.', $call->target(), $string );
+			}
+		),
 );

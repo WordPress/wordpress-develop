@@ -101,4 +101,44 @@ return array(
 				$call->expect( in_array( $call->return_value(), array( false, 1, 2 ), true ), 'wp_verify_nonce() returned %s.', $call->return_value() );
 			}
 		),
+
+	WP_Invariant::define( 'check-password-accepts-own-hash' )
+		->describe( 'wp_check_password() accepts a password with the hash wp_hash_password() made from it, unless a check_password filter decides otherwise.' )
+		->include_test_callers()
+		->state(
+			static function () {
+				return array();
+			},
+			'test'
+		)
+		->after(
+			'wp_hash_password',
+			static function ( WP_Invariant_Call $call, array &$hashes ) {
+				$hash = $call->return_value();
+				if ( is_string( $hash ) && '*' !== $hash ) {
+					$hashes[ $hash ] = (string) $call->arg( 'password' );
+					if ( count( $hashes ) > 64 ) {
+						unset( $hashes[ array_key_first( $hashes ) ] );
+					}
+				}
+			}
+		)
+		->after(
+			'wp_check_password',
+			static function ( WP_Invariant_Call $call, array &$hashes ) {
+				$hash = $call->arg( 'hash' );
+				if ( ! is_string( $hash ) || ! isset( $hashes[ $hash ] ) || $hashes[ $hash ] !== $call->arg( 'password' ) || WP_Invariant::has_callbacks( 'check_password' ) || ! empty( $GLOBALS['wp_hasher'] ) ) {
+					return;
+				}
+
+				// The report never includes the password.
+				$password = $hashes[ $hash ];
+				$call->expect(
+					true === $call->return_value(),
+					'wp_check_password() rejected a password of %d bytes%s with the hash wp_hash_password() made from it.',
+					strlen( $password ),
+					trim( $password ) === $password ? '' : ', with whitespace at its start or end,'
+				);
+			}
+		),
 );

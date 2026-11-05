@@ -146,4 +146,47 @@ return array(
 				);
 			}
 		),
+
+	WP_Invariant::define( 'tables-are-prefixed' )
+		->describe( 'Every table a query sent to MySQL names, as MySQL\'s grammar parses it, starts with $wpdb->prefix or $wpdb->base_prefix, or is in information_schema, or is CUSTOM_USER_TABLE or CUSTOM_USER_META_TABLE.' )
+		->before(
+			'wpdb::_do_query',
+			static function ( WP_Invariant_Call $call ) {
+				$query = $call->arg( 'query' );
+				if ( ! is_string( $query ) ) {
+					return;
+				}
+
+				// Parsed once for this and queries-are-valid-mysql; a query MySQL would reject is left to that.
+				$tables = WP_Invariant_MySQL::table_names( $query );
+				if ( empty( $tables ) ) {
+					return;
+				}
+
+				$wpdb     = $call->self();
+				// An empty prefix, which WordPress allows, is the start of every name.
+				$prefixes = array_unique( array( strtolower( (string) $wpdb->prefix ), strtolower( (string) $wpdb->base_prefix ) ) );
+				$custom   = array();
+				foreach ( array( 'CUSTOM_USER_TABLE', 'CUSTOM_USER_META_TABLE' ) as $constant ) {
+					if ( defined( $constant ) ) {
+						$custom[] = strtolower( constant( $constant ) );
+					}
+				}
+
+				foreach ( $tables as list( $database, $table ) ) {
+					$table = strtolower( $table );
+					if ( 'information_schema' === strtolower( (string) $database ) || in_array( $table, $custom, true ) ) {
+						continue;
+					}
+
+					$prefixed = false;
+					foreach ( $prefixes as $prefix ) {
+						$prefixed = $prefixed || 0 === strpos( $table, $prefix );
+					}
+					if ( ! $call->expect( $prefixed, 'The query names the table %s, without the prefix %s: %s', null === $database ? $table : "{$database}.{$table}", implode( ' or ', $prefixes ), $query ) ) {
+						return;
+					}
+				}
+			}
+		),
 );

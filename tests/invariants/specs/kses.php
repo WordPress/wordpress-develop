@@ -88,4 +88,36 @@ return array(
 				}
 			}
 		),
+
+	WP_Invariant::define( 'idempotent-when-reapplied' )
+		->describe( 'Given something it returned earlier in the test, wp_kses() returns it unchanged, when its allowed HTML and protocols are the same.' )
+		->include_test_callers()
+		->state(
+			static function () {
+				return array();
+			},
+			'test'
+		)
+		->after(
+			'wp_kses',
+			static function ( WP_Invariant_Call $call, array &$outputs ) {
+				$input  = $call->arg( 'content' );
+				$output = $call->return_value();
+				if ( ! is_string( $input ) || ! is_string( $output ) ) {
+					return;
+				}
+
+				$allowed = $call->arg( 'allowed_html' );
+				$key     = md5( serialize( array( is_string( $allowed ) ? $allowed : (array) $allowed, $call->arg( 'allowed_protocols' ) ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Only to compare arguments.
+				if ( isset( $outputs[ $key ][ $input ] ) ) {
+					$call->expect( $output === $input, 'wp_kses() changed what it had returned before, %s, to %s.', $input, $output );
+				}
+
+				unset( $outputs[ $key ][ $output ] );
+				$outputs[ $key ][ $output ] = true;
+				if ( count( $outputs[ $key ] ) > 256 ) {
+					unset( $outputs[ $key ][ array_key_first( $outputs[ $key ] ) ] );
+				}
+			}
+		),
 );
