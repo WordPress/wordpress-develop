@@ -31,7 +31,7 @@ permissions: {}
 jobs:
   prepare-gutenberg:
     name: Gutenberg
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Two download attempts of up to six minutes each, where download.js retries internally.
     timeout-minutes: 15
     outputs:
