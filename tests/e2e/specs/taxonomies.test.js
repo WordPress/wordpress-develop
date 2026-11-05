@@ -86,8 +86,11 @@ for ( const { taxonomy, endpoint, label } of [
 			);
 			await expect( link ).toBeVisible();
 			await expect(
-				page.locator( 'tr', { has: link } ).locator( '.column-slug' )
-			).toHaveText( slug );
+				page
+					.getByRole( 'row' )
+					.filter( { has: link } )
+					.getByRole( 'cell', { name: slug, exact: true } )
+			).toBeVisible();
 		} );
 
 		test( 'quick edits a term', async ( { admin, page, requestUtils } ) => {

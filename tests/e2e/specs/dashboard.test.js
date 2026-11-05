@@ -49,20 +49,31 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', {
+				name: 'Edit “Quick Draft test title”',
+				exact: true,
+			} )
 		).toHaveText( 'Quick Draft test title' );
 
 		// Check that the new draft content appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-content' ).first()
-		).toHaveText( 'Quick Draft test content' );
+			page.getByText( 'Quick Draft test content', { exact: true } )
+		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
 		await admin.visitAdminPage( '/edit.php' );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( 'Quick Draft test title' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', {
+						name: 'Quick Draft test title',
+						exact: true,
+					} ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 
 	test( 'should prevent Quick Draft from being created without Title and Content', async ( {
@@ -88,8 +99,8 @@ test.describe( 'Quick Draft', () => {
 		await admin.visitAdminPage( '/edit.php' );
 
 		await expect(
-			page.locator( '#the-list .no-items .colspanchange' )
-		).toContainText( 'No posts found.' );
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
 
 	test( 'should allow Quick Draft to be created with only the Title', async ( {
@@ -118,15 +129,26 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', {
+				name: 'Edit “Quick Draft test title”',
+				exact: true,
+			} )
 		).toHaveText( 'Quick Draft test title' );
 
 		// Check that the new draft appears in the Posts page.
 		await admin.visitAdminPage( '/edit.php' );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( 'Quick Draft test title' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', {
+						name: 'Quick Draft test title',
+						exact: true,
+					} ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 
 	test( 'should allow Quick Draft to be created with only the Content', async ( {
@@ -155,19 +177,24 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', { name: 'Edit “(no title)”', exact: true } )
 		).toHaveText( '(no title)' );
 
 		await expect(
-			page.locator( '.drafts .draft-content' ).first()
-		).toHaveText( 'Quick Draft test content' );
+			page.getByText( 'Quick Draft test content', { exact: true } )
+		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
 		await admin.visitAdminPage( '/edit.php' );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( '(no title)' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', { name: '(no title)' } ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 } );
 
@@ -328,7 +355,7 @@ test.describe( 'Dashboard preferences', () => {
 
 	test( 'saves a widget collapse and expansion', async () => {
 		const widget = dashboard.locator( '#dashboard_right_now' );
-		const content = widget.locator( '.inside' );
+		const content = widget.locator( '#wp-version-message' );
 		const toggle = widget.getByRole( 'button', {
 			name: 'Show or hide panel',
 			exact: true,

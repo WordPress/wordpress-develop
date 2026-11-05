@@ -51,8 +51,6 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	 * @param int|string $year Year input.
 	 */
 	public function test_get_year_link_pretty_permalinks( $year ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . $year . '/' );
 		$this->assertSame( $expected, get_year_link( $year ) );
 	}
@@ -67,8 +65,6 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	 * @param mixed $empty_year Empty year input.
 	 */
 	public function test_get_year_link_pretty_permalinks_fallback_to_current_year( $empty_year ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . current_time( 'Y' ) . '/' );
 		$this->assertSame( $expected, get_year_link( $empty_year ) );
 	}
@@ -117,8 +113,6 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_year_link_filter_custom_url() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$custom_callback = static function ( $yearlink, $year ) {
 			return 'https://example.org/custom-archive/' . $year;
 		};
