@@ -257,7 +257,7 @@ declare( strict_types = 1 );
  *  3. `wp_ability_normalize_input`, `wp_ability_validate_input`, and
  *     `wp_ability_permission_result` filters. The input validation filter runs only
  *     when a non-empty input schema is defined. Input coercion runs after validation
- *     and before permission checks.
+ *     and before permission checks, also only with a non-empty input schema.
  *  4. `wp_before_execute_ability` action.
  *  5. `wp_ability_execute_result` and `wp_ability_validate_output` filters.
  *  6. `wp_after_execute_ability` action.
