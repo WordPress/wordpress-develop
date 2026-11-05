@@ -19,6 +19,22 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 
 	/**
+	 * Keeps time formatting deterministic across requests and assertions.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		add_filter(
+			'date_i18n',
+			static function ( $date, $format ) {
+				return wp_date( $format, 1700000000 );
+			},
+			10,
+			2
+		);
+	}
+
+	/**
 	 * Tests formatting a time via AJAX.
 	 *
 	 * @ticket 65228
@@ -50,12 +66,7 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 			$this->_last_response = (string) $e->getMessage();
 		}
 
-		if ( '' === $payload['date'] && '' === $this->_last_response ) {
-			$this->markTestSkipped( 'Empty time returns empty response in this environment' );
-		}
-
-		$format   = ! empty( $payload['date'] ) ? $payload['date'] : get_option( 'time_format' );
-		$expected = date_i18n( $format );
+		$expected = date_i18n( $payload['date'] );
 
 		$this->assertSame( $expected, $this->_last_response );
 	}
@@ -72,6 +83,17 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'time_format' );
 		$_POST['date']        = '<script>alert(1)</script>H:i';
 
+		$actual_format = null;
+		add_filter(
+			'date_i18n',
+			static function ( $date, $format ) use ( &$actual_format ) {
+				$actual_format = $format;
+				return 'formatted time';
+			},
+			10,
+			2
+		);
+
 		try {
 			$this->_handleAjax( 'time_format' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -80,7 +102,8 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 			$this->_last_response = (string) $e->getMessage();
 		}
 
-		$this->assertStringNotContainsString( '<script>', $this->_last_response );
+		$this->assertSame( 'alert(1)H:i', $actual_format );
+		$this->assertSame( 'formatted time', $this->_last_response );
 	}
 
 	/**
