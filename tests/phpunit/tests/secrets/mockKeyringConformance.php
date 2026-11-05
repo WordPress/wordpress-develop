@@ -10,6 +10,8 @@
  * @ticket 66187
  *
  * @group secrets
+ *
+ * @coversNothing
  */
 class Tests_Secrets_MockKeyringConformance extends WP_Secrets_Keyring_Conformance {
 

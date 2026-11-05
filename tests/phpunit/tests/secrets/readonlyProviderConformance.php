@@ -10,6 +10,8 @@
  * @ticket 66187
  *
  * @group secrets
+ *
+ * @coversNothing
  */
 class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conformance {
 
