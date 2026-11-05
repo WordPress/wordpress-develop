@@ -1029,6 +1029,15 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	font-weight: 600;
 }
 
+/* Offset by the .describe input height so the overlay does not cover it. */
+.wp-core-ui .attachment:has(.describe):not(:has(.filename))::after {
+	bottom: calc(8px + 40px); /* 8px padding + 40px input height */
+}
+
+.wp-core-ui .attachment .describe {
+	z-index: 10;
+}
+
 /* Do not show the aria-label overlay on thumbnails in the gallery selection strip. */
 .wp-core-ui .media-selection .attachment::after {
 	content: none;
