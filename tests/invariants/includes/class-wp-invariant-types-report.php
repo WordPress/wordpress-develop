@@ -303,6 +303,15 @@ final class WP_Invariant_Types_Report {
 			$rows[] = self::row( $type, $counts );
 		}
 
+		$ints = $slot['ints'];
+		if ( $ints['widened'] ) {
+			$rows[] = self::row( 'int', $ints['total'] );
+		} else {
+			foreach ( $ints['values'] as $value => $counts ) {
+				$rows[] = self::row( (string) $value, $counts );
+			}
+		}
+
 		$strings = $slot['strings'];
 		if ( $strings['widened'] ) {
 			$rows[] = self::row( 'string', $strings['total'] );
@@ -396,10 +405,11 @@ final class WP_Invariant_Types_Report {
 			'# Argument and return types',
 			'',
 			sprintf(
-				'%s of %s WordPress functions and methods were called, %s times in all. Each type shows how often it came from WordPress, then from tests, next to the types the function declares. Strings are shown as literals until there are more than %d distinct ones, or one of %d bytes or more; `true` and `false` are shown apart until both are seen.',
+				'%s of %s WordPress functions and methods were called, %s times in all. Each type shows how often it came from WordPress, then from tests, next to the types the function declares. Ints are shown as literals until there are more than %d distinct ones. Strings are shown as literals until there are more than %d distinct ones, or one of %d bytes or more. `true` and `false` are shown apart until both are seen.',
 				number_format( $summary['called'] ),
 				number_format( $summary['targets'] ),
 				number_format( $summary['calls'] ),
+				WP_Invariant_Types::INT_LITERALS,
 				WP_Invariant_Types::STRING_LITERALS,
 				WP_Invariant_Types::STRING_LENGTH
 			),

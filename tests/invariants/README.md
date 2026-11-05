@@ -230,6 +230,7 @@ wp_kses()  src/wp-includes/kses.php:979
 - **Documented types:** the native type, the PHPDoc `@param` or `@return` type, and the PHPStan `@phpstan-param` or `@phpstan-return` type are shown as written, next to what was counted. The report does not decide whether they agree; the JSON keeps them in separate fields, for a script to compare.
 - **How types are written:**
   - `true` and `false` are shown apart until both are seen, then as `bool`.
+  - Up to 4 distinct ints are shown as literals, such as `0` or `-1`. A fifth distinct int makes them all `int`. Floats are always `float`.
   - Up to 10 distinct strings shorter than 32 bytes are shown as literals, such as `'post'`. Another distinct string, or a longer one, makes them all `string`.
   - An array is `array{}` when empty, `list<…>` with the types of its first 16 elements, or a record such as `array{post_type: string, paged?: int}` of its first-level keys, where `?` marks a key some arrays did not have. Past 64 keys, it is `array`.
   - A stdClass object is a record of its properties, like an array, and other objects are their class.

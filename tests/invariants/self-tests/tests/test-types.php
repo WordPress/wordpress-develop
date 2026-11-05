@@ -73,6 +73,37 @@ class Tests_Invariants_Types extends TestCase {
 		$this->assertTypes( array( 'bool' => 3 ), $slot );
 	}
 
+	public function test_ints_are_literals_until_five_distinct_ones_are_seen() {
+		$values = array( 0, -1, 0, 7, 42 );
+		$this->assertTypes(
+			array(
+				'0'  => 2,
+				'-1' => 1,
+				'7'  => 1,
+				'42' => 1,
+			),
+			$this->slot( ...$values ),
+			'Four distinct ints are literals.'
+		);
+
+		$values[] = 3;
+		$this->assertTypes( array( 'int' => 6 ), $this->slot( ...$values ), 'A fifth distinct int makes them all int.' );
+
+		$slot = $this->slot( ...$values );
+		WP_Invariant_Types::add_to_slot( $slot, 0, WP_Invariant_Types::CORE );
+		$this->assertTypes( array( 'int' => 7 ), $slot, 'Once widened, ints seen before are int too.' );
+	}
+
+	public function test_floats_are_never_literals() {
+		$this->assertTypes(
+			array(
+				'float' => 3,
+				'1'     => 1,
+			),
+			$this->slot( 1.0, 1.5, 1.0, 1 )
+		);
+	}
+
 	public function test_strings_are_literals_until_there_are_too_many() {
 		$values = array( 'post', 'page', 'post' );
 		$this->assertTypes(
@@ -98,7 +129,7 @@ class Tests_Invariants_Types extends TestCase {
 		$this->assertTypes(
 			array(
 				'null'                        => 1,
-				'int'                         => 1,
+				'1'                           => 1,
 				'float'                       => 1,
 				'Closure'                     => 1,
 				'WP_Invariants_Types_Fixture' => 1,
@@ -171,16 +202,27 @@ class Tests_Invariants_Types extends TestCase {
 	}
 
 	public function test_merging_follows_the_same_widening_rules() {
-		$first  = $this->slot( 'a', 'b', 'c', 'd', 'e', 'f', array( 'x' => 1 ), true );
-		$second = $this->slot( 'g', 'h', 'i', 'j', 'k', 'a', array( 'y' => 'z' ), false );
+		$first  = $this->slot( 'a', 'b', 'c', 'd', 'e', 'f', array( 'x' => 1 ), true, 1, 2 );
+		$second = $this->slot( 'g', 'h', 'i', 'j', 'k', 'a', array( 'y' => 'z' ), false, 3, 4, 5 );
 
 		$this->assertTypes(
 			array(
 				'string'                     => 12,
 				'array{x?: int, y?: string}' => 2,
 				'bool'                       => 2,
+				'int'                        => 5,
 			),
 			WP_Invariant_Types::merge_slots( $first, $second )
+		);
+
+		$this->assertTypes(
+			array(
+				'1' => 2,
+				'2' => 1,
+				'3' => 1,
+			),
+			WP_Invariant_Types::merge_slots( $this->slot( 1, 2 ), $this->slot( 3, 1 ) ),
+			'Ints stay literals while there are no more than four distinct ones.'
 		);
 	}
 
@@ -201,7 +243,7 @@ class Tests_Invariants_Types extends TestCase {
 			),
 			$arguments
 		);
-		$this->assertSame( array( 'int' => array( 1, 0 ) ), $profile['slots'][0]['types'] );
+		$this->assertSame( array( 5 => array( 1, 0 ) ), $profile['slots'][0]['ints']['values'] );
 		$this->assertSame(
 			array(
 				'from a test' => array( 0, 1 ),

@@ -19,6 +19,8 @@
  * calls from tests:
  *
  * - `true` and `false` are counted apart; the report shows `bool` once both are seen.
+ * - Up to INT_LITERALS distinct ints are counted as literals, such as `0` or `-1`.
+ *   One more distinct int widens the slot to `int`. Floats are always `float`.
  * - Up to STRING_LITERALS distinct strings shorter than STRING_LENGTH bytes are
  *   counted as literals, such as `'post'`. A longer string, or one more distinct
  *   string, widens the slot to `string`.
@@ -32,6 +34,11 @@
  * @see WP_Invariant_Types_Report
  */
 final class WP_Invariant_Types {
+
+	/**
+	 * Most distinct ints a slot counts as literals: the fifth makes them `int`.
+	 */
+	const INT_LITERALS = 4;
 
 	/**
 	 * Most distinct strings a slot counts as literals.
@@ -355,12 +362,23 @@ final class WP_Invariant_Types {
 	public static function empty_slot() {
 		return array(
 			'types'   => array(),
-			'strings' => array(
-				'widened' => false,
-				'total'   => array( 0, 0 ),
-				'values'  => array(),
-			),
+			'ints'    => self::empty_literals(),
+			'strings' => self::empty_literals(),
 			'records' => array(),
+		);
+	}
+
+	/**
+	 * Returns literals which have counted nothing yet.
+	 *
+	 * @return array `widened`, whether they are no longer counted apart; `total`, the counts of all
+	 *               values; and `values`, the counts of each value until widened.
+	 */
+	private static function empty_literals() {
+		return array(
+			'widened' => false,
+			'total'   => array( 0, 0 ),
+			'values'  => array(),
 		);
 	}
 
@@ -372,22 +390,12 @@ final class WP_Invariant_Types {
 	 * @param int   $kind  self::CORE or self::TEST.
 	 */
 	public static function add_to_slot( array &$slot, $value, $kind ) {
+		if ( is_int( $value ) ) {
+			self::add_literal( $slot['ints'], $value, $kind, self::INT_LITERALS, true );
+			return;
+		}
 		if ( is_string( $value ) ) {
-			$strings = &$slot['strings'];
-			++$strings['total'][ $kind ];
-			if ( $strings['widened'] ) {
-				return;
-			}
-
-			if ( isset( $strings['values'][ $value ] ) ) {
-				++$strings['values'][ $value ][ $kind ];
-			} elseif ( strlen( $value ) < self::STRING_LENGTH && count( $strings['values'] ) < self::STRING_LITERALS ) {
-				$strings['values'][ $value ]          = array( 0, 0 );
-				$strings['values'][ $value ][ $kind ] = 1;
-			} else {
-				$strings['widened'] = true;
-				$strings['values']  = array();
-			}
+			self::add_literal( $slot['strings'], $value, $kind, self::STRING_LITERALS, strlen( $value ) < self::STRING_LENGTH );
 			return;
 		}
 
@@ -422,6 +430,32 @@ final class WP_Invariant_Types {
 			$slot['types'][ $type ] = array( 0, 0 );
 		}
 		++$slot['types'][ $type ][ $kind ];
+	}
+
+	/**
+	 * Counts an int or string in a slot's literals of its type.
+	 *
+	 * @param array      $literals The slot's literals, from empty_literals().
+	 * @param int|string $value    The value.
+	 * @param int        $kind     self::CORE or self::TEST.
+	 * @param int        $limit    Most distinct values to count apart.
+	 * @param bool       $fits     Whether the value may be a literal at all.
+	 */
+	private static function add_literal( array &$literals, $value, $kind, $limit, $fits ) {
+		++$literals['total'][ $kind ];
+		if ( $literals['widened'] ) {
+			return;
+		}
+
+		if ( isset( $literals['values'][ $value ] ) ) {
+			++$literals['values'][ $value ][ $kind ];
+		} elseif ( $fits && count( $literals['values'] ) < $limit ) {
+			$literals['values'][ $value ]          = array( 0, 0 );
+			$literals['values'][ $value ][ $kind ] = 1;
+		} else {
+			$literals['widened'] = true;
+			$literals['values']  = array();
+		}
 	}
 
 	/**
@@ -593,20 +627,8 @@ final class WP_Invariant_Types {
 			$into['types'][ $type ] = isset( $into['types'][ $type ] ) ? self::add_counts( $into['types'][ $type ], $counts ) : $counts;
 		}
 
-		$strings          = &$into['strings'];
-		$strings['total'] = self::add_counts( $strings['total'], $other['strings']['total'] );
-		if ( ! $strings['widened'] && ! $other['strings']['widened'] ) {
-			foreach ( $other['strings']['values'] as $value => $counts ) {
-				$strings['values'][ $value ] = isset( $strings['values'][ $value ] ) ? self::add_counts( $strings['values'][ $value ], $counts ) : $counts;
-			}
-		}
-		if ( $other['strings']['widened'] || count( $strings['values'] ) > self::STRING_LITERALS ) {
-			$strings['widened'] = true;
-		}
-		if ( $strings['widened'] ) {
-			$strings['values'] = array();
-		}
-		unset( $strings );
+		$into['ints']    = self::merge_literals( $into['ints'], $other['ints'], self::INT_LITERALS );
+		$into['strings'] = self::merge_literals( $into['strings'], $other['strings'], self::STRING_LITERALS );
 
 		foreach ( $other['records'] as $type => $record ) {
 			if ( ! isset( $into['records'][ $type ] ) ) {
@@ -644,6 +666,29 @@ final class WP_Invariant_Types {
 				$into['types'][ $type ] = isset( $into['types'][ $type ] ) ? self::add_counts( $into['types'][ $type ], $recorded ) : $recorded;
 			}
 			unset( $merged );
+		}
+
+		return $into;
+	}
+
+	/**
+	 * Merges two slots' literals of one type, widening them past the limit.
+	 *
+	 * @param array $into  Literals, from empty_literals().
+	 * @param array $other Other literals of the same type.
+	 * @param int   $limit Most distinct values to count apart.
+	 * @return array
+	 */
+	private static function merge_literals( array $into, array $other, $limit ) {
+		$into['total'] = self::add_counts( $into['total'], $other['total'] );
+		if ( ! $into['widened'] && ! $other['widened'] ) {
+			foreach ( $other['values'] as $value => $counts ) {
+				$into['values'][ $value ] = isset( $into['values'][ $value ] ) ? self::add_counts( $into['values'][ $value ], $counts ) : $counts;
+			}
+		}
+		if ( $other['widened'] || count( $into['values'] ) > $limit ) {
+			$into['widened'] = true;
+			$into['values']  = array();
 		}
 
 		return $into;
