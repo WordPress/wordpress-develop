@@ -30,6 +30,12 @@ class Tests_Invariants_Helpers extends TestCase {
 		$this->assertSame( $seen['wp_invariants_fixture_outer'] + 1, $seen['wp_invariants_fixture_inner'] );
 	}
 
+	public function test_caller_args_are_the_arguments_of_the_function_which_called_the_target() {
+		wp_invariants_fixture_call( 'wp_invariants_fixture_positive', 5, 'label' );
+
+		$this->assertSame( array( 'wp_invariants_fixture_positive', 5, 'label' ), WP_Invariant::shared( 'self-test/caller-args' )->seen );
+	}
+
 	public function test_check_on_a_pcre_function_sees_its_error() {
 		wp_invariants_fixture_call( 'preg_match', '/(a+)+$/', str_repeat( 'a', 30000 ) . 'b' );
 		wp_invariants_fixture_call( 'preg_match', '/a/', 'a' );
@@ -44,6 +50,22 @@ class Tests_Invariants_Helpers extends TestCase {
 			)
 		);
 		$this->assertSame( array( array( '/(a+)+$/', PREG_BACKTRACK_LIMIT_ERROR ), array( '/a/', PREG_NO_ERROR ) ), $errors );
+	}
+
+	public function test_property_reads_private_and_protected_properties_without_running_code() {
+		$fixture = new WP_Invariants_Fixture_Properties();
+
+		$this->assertSame( 'private', WP_Invariant::property( $fixture, 'WP_Invariants_Fixture_Properties', 'hidden' ) );
+		$this->assertSame( 'protected', WP_Invariant::property( $fixture, 'WP_Invariants_Fixture_Properties', 'kept' ) );
+		$this->assertSame( 0, $fixture->magic_reads );
+	}
+
+	public function test_methods_in_lists_methods_declared_in_files_without_loading_them() {
+		$this->assertSame(
+			array( 'WP_Invariants_Fixture_Unloaded::get_item_permissions_check', 'WP_Invariants_Fixture_Unloaded::get_items_permissions_check' ),
+			WP_Invariant::methods_in( dirname( __DIR__ ) . '/fixtures/methods', '/_permissions_check$/' )
+		);
+		$this->assertFalse( class_exists( 'WP_Invariants_Fixture_Unloaded', false ) );
 	}
 
 	public function test_skipped_spec_files_are_not_loaded() {

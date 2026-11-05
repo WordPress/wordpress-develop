@@ -54,6 +54,97 @@ class Tests_Invariants_Oracles extends TestCase {
 		$this->assertNull( WP_Invariant_MySQL::parse_tree( 'SELECT ID FROM wp_posts WHERE' ) );
 	}
 
+	public function test_browser_reads_a_start_tag_where_it_would_move_or_drop_it_elsewhere() {
+		$this->assertSame(
+			array(
+				'name'       => 'td',
+				'attributes' => array( 'title' => "a\u{2209}b&" ),
+			),
+			WP_Invariant_Browser::start_tag( '<td title="a&notin;b&amp" TITLE=y>' )
+		);
+		$this->assertSame(
+			array(
+				'name'       => 'svg',
+				'attributes' => array(
+					'viewbox'    => '0 0 1 1',
+					'xlink:href' => 'x',
+				),
+			),
+			WP_Invariant_Browser::start_tag( '<svg viewBox="0 0 1 1" xlink:href=x>' )
+		);
+		$this->assertSame( array( 'disabled' => '' ), WP_Invariant_Browser::start_tag( '<input disabled>' )['attributes'] );
+		$this->assertSame( array( 'title' => '&notinx' ), WP_Invariant_Browser::start_tag( '<a title="&notinx">' )['attributes'], 'A reference without a semicolon, followed by a letter, is not decoded in an attribute.' );
+		$this->assertNull( WP_Invariant_Browser::start_tag( '<body class=x>' ) );
+	}
+
+	public function test_browser_reads_a_textarea_value_without_its_leading_line_break() {
+		$this->assertSame( 'a&b <i>', WP_Invariant_Browser::textarea_value( "\na&amp;b <i>" ) );
+		$this->assertNull( WP_Invariant_Browser::textarea_value( 'a</textarea><b>' ) );
+	}
+
+	public function test_browser_lists_the_nodes_of_a_fragment() {
+		$escaped = '{"a":"' . str_repeat( chr( 92 ) . 'u002d', 2 ) . chr( 92 ) . 'u003e"}';
+
+		$this->assertSame( array( array( 'comment', " wp:x {$escaped} /" ) ), WP_Invariant_Browser::nodes( "<!-- wp:x {$escaped} /-->" ) );
+		$this->assertSame( array( array( 'comment', ' wp:x {"a":"' ), array( 'text', '"} /-->' ) ), WP_Invariant_Browser::nodes( '<!-- wp:x {"a":"-->"} /-->' ) );
+		$this->assertSame( array( array( 'text', 'a' ), array( 'element', 'b' ) ), WP_Invariant_Browser::nodes( 'a<b>' ) );
+	}
+
+	/**
+	 * @dataProvider data_redirect_hosts
+	 *
+	 * @param string $location Location header.
+	 * @param string $host     Host a browser goes to.
+	 */
+	public function test_browser_finds_the_host_a_location_goes_to( $location, $host ) {
+		$this->assertSame( $host, WP_Invariant_Browser::url_host( $location, 'http://site.invalid/wp-admin/' ) );
+	}
+
+	public function data_redirect_hosts() {
+		return array(
+			'relative path'              => array( 'edit.php', 'site.invalid' ),
+			'absolute path'              => array( '/wp-admin/', 'site.invalid' ),
+			'protocol-relative'          => array( '//evil.example/', 'evil.example' ),
+			'backslash after a slash'    => array( '/\\evil.example/', 'evil.example' ),
+			'backslashes'                => array( '\\\\evil.example', 'evil.example' ),
+			'backslash after the scheme' => array( 'https:/\\evil.example', 'evil.example' ),
+			'leading space'              => array( ' //evil.example', 'evil.example' ),
+			'user info'                  => array( 'http://site.invalid@evil.example/', 'evil.example' ),
+			'upper case'                 => array( 'HTTPS://EVIL.Example/', 'evil.example' ),
+			'no host'                    => array( 'mailto:a@example.org', '' ),
+		);
+	}
+
+	public function test_xml_parser_tells_whether_a_document_is_well_formed() {
+		$this->assertTrue( WP_Invariant_Browser::xml_well_formed( '<?xml version="1.0"?><a>&amp;</a>' ) );
+		$this->assertFalse( WP_Invariant_Browser::xml_well_formed( '<?xml version="1.0"?><a>&</a>' ) );
+		$this->assertFalse( WP_Invariant_Browser::xml_well_formed( '<a/><b/>' ) );
+	}
+
+	/**
+	 * @dataProvider data_table_names
+	 *
+	 * @param string     $sql    Query.
+	 * @param array|null $tables Tables it names.
+	 */
+	public function test_mysql_finds_the_tables_a_query_names( $sql, $tables ) {
+		$this->assertSame( $tables, WP_Invariant_MySQL::table_names( $sql ) );
+	}
+
+	public function data_table_names() {
+		return array(
+			'join, alias and subquery' => array( 'SELECT p.* FROM `wp_posts` p JOIN wp_postmeta AS m ON m.post_id = p.ID WHERE p.ID IN (SELECT object_id FROM wp_term_relationships)', array( array( null, 'wp_posts' ), array( null, 'wp_postmeta' ), array( null, 'wp_term_relationships' ) ) ),
+			'insert'                   => array( 'INSERT INTO wp_options (option_name) VALUES (1)', array( array( null, 'wp_options' ) ) ),
+			'describe'                 => array( 'DESCRIBE wp_posts;', array( array( null, 'wp_posts' ) ) ),
+			'database'                 => array( 'SELECT * FROM information_schema.tables', array( array( 'information_schema', 'tables' ) ) ),
+			'aliases of a delete'      => array( 'DELETE a, b FROM wp_a a JOIN wp_b b', array( array( null, 'wp_a' ), array( null, 'wp_b' ) ) ),
+			'common table expression'  => array( 'WITH x AS (SELECT 1) SELECT * FROM x JOIN wp_posts', array( array( null, 'wp_posts' ) ) ),
+			'pattern of SHOW TABLES'   => array( "SHOW TABLES LIKE 'wp_x'", array() ),
+			'no table'                 => array( 'SELECT FOUND_ROWS()', array() ),
+			'not valid MySQL'          => array( 'SELECT * FROM', null ),
+		);
+	}
+
 	public function test_fill_template_puts_a_harmless_value_in_each_placeholder() {
 		$this->assertSame(
 			"SELECT * FROM `i` WHERE a = 'x' AND b = 'x' AND c = 0 AND d = 0 AND e LIKE '%%%s%%' AND f = x AND g = 100%",

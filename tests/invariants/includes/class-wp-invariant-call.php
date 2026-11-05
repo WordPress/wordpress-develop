@@ -324,12 +324,36 @@ final class WP_Invariant_Call {
 			return $this->frames;
 		}
 
-		$frames = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$frames       = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$index        = $this->target_frame( $frames );
+		$this->frames = null === $index ? array() : array_slice( $frames, $index );
+		return $this->frames;
+	}
+
+	/**
+	 * Returns the arguments the target's caller was given, as they are now: its parameters may have changed since.
+	 *
+	 * This takes a backtrace with arguments, so only call it when a check has found something to report.
+	 *
+	 * @return array Empty when the target was called from outside a function.
+	 */
+	public function caller_args() {
+		$frames = debug_backtrace();
+		$index  = $this->target_frame( $frames );
+		return null !== $index && isset( $frames[ $index + 1 ]['args'] ) ? $frames[ $index + 1 ]['args'] : array();
+	}
+
+	/**
+	 * Finds the target's own frame in a backtrace: it holds the file and line the target was called from.
+	 *
+	 * @param array[] $frames Frames from debug_backtrace().
+	 * @return int|null
+	 */
+	private function target_frame( array $frames ) {
 		$parts  = explode( '::', $this->target );
 		$method = array_pop( $parts );
 		$class  = array_pop( $parts );
 
-		// The target's own frame holds the file and line it was called from.
 		foreach ( $frames as $index => $frame ) {
 			if ( ! isset( $frame['function'] ) || 0 !== strcasecmp( $frame['function'], $method ) ) {
 				continue;
@@ -338,12 +362,10 @@ final class WP_Invariant_Call {
 				continue;
 			}
 
-			$this->frames = array_slice( $frames, $index );
-			return $this->frames;
+			return $index;
 		}
 
-		$this->frames = array();
-		return $this->frames;
+		return null;
 	}
 
 	/**

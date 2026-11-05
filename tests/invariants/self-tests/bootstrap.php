@@ -12,3 +12,4 @@ wp_invariants_require_loaded( __DIR__ . '/gameshark.php' );
 require_once dirname( __DIR__ ) . '/includes/class-wp-invariant-phpunit-extension.php';
 require_once __DIR__ . '/fixtures/core.php';
 require_once __DIR__ . '/fixtures/class-wp-invariants-fixture.php';
+require_once __DIR__ . '/fixtures/class-wp-invariants-fixture-properties.php';

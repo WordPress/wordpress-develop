@@ -30,6 +30,13 @@ final class WP_Invariant_MySQL {
 	private static $parser = null;
 
 	/**
+	 * The latest parse trees: query => tree, or null when it is not valid MySQL.
+	 *
+	 * @var array
+	 */
+	private static $trees = array();
+
+	/**
 	 * Returns the shape of a query's parse tree, or null when it is not valid MySQL.
 	 *
 	 * The shape names each grammar rule and token, but leaves out the values of
@@ -40,8 +47,84 @@ final class WP_Invariant_MySQL {
 	 * @return string|null
 	 */
 	public static function parse_tree( $sql ) {
-		$tree = self::parser()->parse( ( new WP_MySQL_Lexer( $sql ) )->remaining_tokens() );
+		$tree = self::tree( $sql );
 		return null === $tree ? null : self::shape( $tree );
+	}
+
+	/**
+	 * Returns the tables a query names, or null when it is not valid MySQL.
+	 *
+	 * These are the names of tables to read or change, in any statement: not
+	 * aliases, columns, the names of common table expressions, nor the patterns of
+	 * `SHOW TABLES LIKE`.
+	 *
+	 * @param string $sql Query.
+	 * @return array[]|null Each as `array( database, table )`, with the database null when the query does not give it.
+	 */
+	public static function table_names( $sql ) {
+		$tree = self::tree( $sql );
+		if ( null === $tree ) {
+			return null;
+		}
+
+		$ctes = array();
+		foreach ( $tree->get_descendant_nodes( 'common_table_expr' ) as $cte ) {
+			$ident = $cte->get_first_child_node( 'ident' );
+			if ( null !== $ident ) {
+				$ctes[ strtolower( implode( '', array_map( array( __CLASS__, 'token_value' ), $ident->get_descendant_tokens() ) ) ) ] = true;
+			}
+		}
+
+		$names = array();
+		foreach ( $tree->get_descendant_nodes( 'table_ident' ) as $node ) {
+			$parts = array();
+			foreach ( $node->get_descendant_tokens() as $token ) {
+				if ( 'DOT' !== $token->get_name() ) {
+					$parts[] = self::token_value( $token );
+				}
+			}
+
+			$table    = array_pop( $parts );
+			$database = array() === $parts ? null : implode( '.', $parts );
+			if ( null === $database && isset( $ctes[ strtolower( $table ) ] ) ) {
+				continue;
+			}
+			$names[] = array( $database, $table );
+		}
+
+		return $names;
+	}
+
+	/**
+	 * Returns the parse tree of a query, or null when it is not valid MySQL.
+	 *
+	 * Several invariants parse the same query, so the latest trees are kept.
+	 *
+	 * @param string $sql Query.
+	 * @return WP_Parser_Node|null
+	 */
+	private static function tree( $sql ) {
+		if ( array_key_exists( $sql, self::$trees ) ) {
+			return self::$trees[ $sql ];
+		}
+
+		$tree                = self::parser()->parse( ( new WP_MySQL_Lexer( $sql ) )->remaining_tokens() );
+		self::$trees[ $sql ] = $tree;
+		if ( count( self::$trees ) > 16 ) {
+			unset( self::$trees[ array_key_first( self::$trees ) ] );
+		}
+
+		return $tree;
+	}
+
+	/**
+	 * Returns the value of a token: an identifier without its quotes.
+	 *
+	 * @param WP_MySQL_Token $token Token.
+	 * @return string
+	 */
+	private static function token_value( $token ) {
+		return $token->get_value();
 	}
 
 	/**

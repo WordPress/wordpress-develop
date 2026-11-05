@@ -135,6 +135,16 @@ return array(
 			}
 		),
 
+	WP_Invariant::define( 'caller-args' )
+		->describe( 'A check can see the arguments of the function which called its target.' )
+		->include_test_callers()
+		->before(
+			'wp_invariants_fixture_positive',
+			static function ( WP_Invariant_Call $call ) {
+				WP_Invariant::shared( 'self-test/caller-args' )->seen = $call->caller_args();
+			}
+		),
+
 	WP_Invariant::define( 'pcre-error-survives' )
 		->describe( 'A check on a PCRE function sees the error of the call it is checking.' )
 		->include_test_callers()

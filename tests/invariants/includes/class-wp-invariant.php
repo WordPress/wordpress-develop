@@ -128,6 +128,13 @@ final class WP_Invariant {
 	private static $paths = null;
 
 	/**
+	 * Properties property() has read: `Class::name` => ReflectionProperty.
+	 *
+	 * @var ReflectionProperty[]
+	 */
+	private static $properties = array();
+
+	/**
 	 * Starts defining an invariant.
 	 *
 	 * @param string $name Name, unique within its spec file, such as `positive-id`.
@@ -295,6 +302,91 @@ final class WP_Invariant {
 		}
 
 		return $strings;
+	}
+
+	/**
+	 * Returns a property of an object, even a private or protected one.
+	 *
+	 * It reads the property with reflection, which runs no code of the object's,
+	 * not even __get().
+	 *
+	 * @param object $instance  Object.
+	 * @param string $declaring The class which declares the property: a private property belongs to its class, not to subclasses.
+	 * @param string $name      Property.
+	 * @return mixed
+	 */
+	public static function property( $instance, $declaring, $name ) {
+		$key = "{$declaring}::{$name}";
+		if ( ! isset( self::$properties[ $key ] ) ) {
+			self::$properties[ $key ] = new ReflectionProperty( $declaring, $name );
+		}
+
+		return self::$properties[ $key ]->getValue( $instance );
+	}
+
+	/**
+	 * Returns the methods declared in the PHP files of a directory whose names match a pattern.
+	 *
+	 * The files are read as tokens, never included, so this works before WordPress
+	 * loads, as spec files do.
+	 *
+	 * @param string $directory Directory, searched recursively.
+	 * @param string $pattern   Regular expression for method names, such as `/_permissions_check$/`.
+	 * @return string[] Each as `Class::method`, sorted.
+	 */
+	public static function methods_in( $directory, $pattern ) {
+		$methods = array();
+		foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
+			if ( 'php' !== $file->getExtension() ) {
+				continue;
+			}
+
+			$tokens = token_get_all( file_get_contents( $file->getPathname() ) );
+			$class  = null;
+			$depth  = 0;
+			$body   = null;
+			foreach ( $tokens as $index => $token ) {
+				if ( '{' === $token || ( is_array( $token ) && in_array( $token[0], array( T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES ), true ) ) ) {
+					++$depth;
+					continue;
+				}
+				if ( '}' === $token ) {
+					--$depth;
+					if ( $depth === $body ) {
+						$class = null;
+						$body  = null;
+					}
+					continue;
+				}
+				if ( ! is_array( $token ) ) {
+					continue;
+				}
+
+				$next = self::next_token( $tokens, $index );
+				if ( in_array( $token[0], array( T_CLASS, T_TRAIT, T_INTERFACE ), true ) && null === $class && is_array( $next ) && T_STRING === $next[0] ) {
+					// Not `Foo::class`, nor `new class`, which are followed by other tokens.
+					$class = $next[1];
+					$body  = $depth;
+				} elseif ( T_FUNCTION === $token[0] && null !== $class && $depth === $body + 1 && is_array( $next ) && T_STRING === $next[0] && preg_match( $pattern, $next[1] ) ) {
+					$methods[] = "{$class}::{$next[1]}";
+				}
+			}
+		}
+
+		sort( $methods );
+		return $methods;
+	}
+
+	/**
+	 * Whether a filter or action has callbacks.
+	 *
+	 * It reads $wp_filter directly, and runs no hook.
+	 *
+	 * @param string $hook Filter or action.
+	 * @return bool
+	 */
+	public static function has_callbacks( $hook ) {
+		return isset( $GLOBALS['wp_filter'][ $hook ] ) && $GLOBALS['wp_filter'][ $hook ]->has_filters();
 	}
 
 	/**
@@ -668,6 +760,24 @@ final class WP_Invariant {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the next token which is not whitespace or a comment.
+	 *
+	 * @param array $tokens Tokens from token_get_all().
+	 * @param int   $index  Position to look after.
+	 * @return array|string|null
+	 */
+	private static function next_token( array $tokens, $index ) {
+		$count = count( $tokens );
+		for ( $i = $index + 1; $i < $count; $i++ ) {
+			if ( ! is_array( $tokens[ $i ] ) || ! in_array( $tokens[ $i ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
+				return $tokens[ $i ];
+			}
+		}
+
+		return null;
 	}
 
 	/**

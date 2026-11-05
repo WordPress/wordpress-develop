@@ -45,7 +45,7 @@ To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`
 
 To stop at a violation with its full stack, set `WP_INVARIANTS_THROW=1`. A check which throws then breaks the code under test, so only use it to investigate one invariant.
 
-Outside Docker, PHP 8.5 or newer which is not thread-safe can run the suite: build it with `scripts/build-unix.sh` from its repository, then run PHPUnit with `-d extension=/path/to/gameshark.so` and the environment variables `GAMESHARK_INVARIANTS=1` and `GAMESHARK_INVARIANTS_FILE=/absolute/path/to/tests/invariants/gameshark.php`. The self-tests need no database, so they run this way anywhere.
+Outside Docker, PHP 8.5 or newer which is not thread-safe can run the suite: build it with `scripts/build-unix.sh` from its repository, then run PHPUnit with `-d extension=/path/to/gameshark.so` and the environment variables `GAMESHARK_INVARIANTS=1` and `GAMESHARK_INVARIANTS_FILE=/absolute/path/to/tests/invariants/gameshark.php`. The self-tests need no database, so they run this way anywhere. Tests which run in a separate process start PHP again without `-d` options, so for them, enable the extension in an ini file instead, in a directory given by `PHP_INI_SCAN_DIR`.
 
 ## Writing an invariant
 
@@ -87,6 +87,7 @@ A check is `function ( WP_Invariant_Call $call, &$state )`. It records a violati
 | `return_value()` | What the call returned, in an after check. |
 | `before()` | What the paired before check returned for this same call, in an after check. |
 | `caller()` | The file and line the target was called from. |
+| `caller_args()` | The arguments of the function which called the target. It takes a backtrace with arguments, so only call it once a check has found something to report. |
 | `depth()` | How deep the call is. A call the target makes is one deeper. |
 | `stack()` | The frames of the call stack in `src/`, innermost first. |
 | `target()`, `when()` | The target, and `before` or `after`. |
@@ -142,6 +143,14 @@ To check one call against others, keep a table of calls in the invariant's state
 
 `WP_Invariant::strings_in( $value )` returns the strings in a value and its nested arrays, which helps with arguments such as `$postarr`. It does not look inside objects.
 
+### Other helpers
+
+| | |
+| --- | --- |
+| `WP_Invariant::property( $instance, $declaring, $name )` | A private or protected property, read with reflection, which runs none of the object's code. `$declaring` is the class which declares it. `specs/html.php` reads where the tag processor's current tag is. |
+| `WP_Invariant::methods_in( $directory, $pattern )` | The `Class::method` names declared in a directory's PHP files whose names match a pattern, read from their tokens without loading them, as targets for a spec file. `specs/rest.php` hooks every core REST permission check this way. |
+| `WP_Invariant::has_callbacks( $hook )` | Whether a filter or action has callbacks, read from `$wp_filter` without running anything. Checks use it to stay quiet when a test filters what they check. |
+
 ### Asking an oracle
 
 An oracle reads the same thing WordPress produced, independently. Compare with it rather than with WordPress's own functions:
@@ -152,10 +161,16 @@ An oracle reads the same thing WordPress produced, independently. Compare with i
 | `WP_Invariant_Browser::tree( $html )` | How a browser serializes HTML after parsing it: two pieces of HTML with the same tree give the same string. |
 | `WP_Invariant_Browser::attribute_value( $value )` | The value a browser reads from `href="…"`, or null when the markup does not stay one attribute. |
 | `WP_Invariant_Browser::url_scheme( $url )` | The scheme a browser gives a URL, or null when it is relative or cannot be parsed. |
+| `WP_Invariant_Browser::url_host( $url, $base )` | The host a browser goes to for a URL, such as a Location header, resolved against a base. |
+| `WP_Invariant_Browser::start_tag( $tag )` | The name and attribute values a browser reads from one start tag, parsed inside a TEMPLATE, where tags such as TD are kept. |
+| `WP_Invariant_Browser::textarea_value( $html )` | The value a browser gives `<textarea>…</textarea>`, or null when the markup does not stay one TEXTAREA. |
+| `WP_Invariant_Browser::nodes( $html )` | The comments, text and elements a browser builds directly in a BODY element. |
 | `WP_Invariant_Browser::xml_child_elements( $xml )` | How many elements XML content adds, or null when it is not well-formed. |
+| `WP_Invariant_Browser::xml_well_formed( $xml )` | Whether an XML document is well-formed. |
 | `WP_Invariant_MySQL::parse_tree( $sql )` | The shape of a query's parse tree without its values, or null when MySQL would reject it. |
+| `WP_Invariant_MySQL::table_names( $sql )` | The tables a query reads or changes, without aliases or common table expressions, or null when MySQL would reject it. |
 
-`specs/escaping.php`, `specs/kses.php`, `specs/html.php` and `specs/wpdb.php` use them.
+Most spec files use them. A check which compares WordPress with itself, such as `blocks/serialized-blocks-parse-back`, which parses what `serialize_blocks()` returns with WordPress's own block parser, is a round trip, not an oracle: it finds where the two disagree, but not a mistake they share.
 
 ### Calls from tests
 
