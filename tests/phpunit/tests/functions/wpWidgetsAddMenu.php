@@ -52,11 +52,18 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 	public function test_wp_widgets_add_menu() {
 		global $submenu;
 
+		$submenu['themes.php'] = array(
+			11 => array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' ),
+			5  => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
+		);
+
 		wp_widgets_add_menu();
 
 		$expected = array(
 			'themes.php' => array(
-				9 => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+				5  => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
+				9  => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+				11 => array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' ),
 			),
 		);
 		$this->assertSame( $expected, $submenu );
