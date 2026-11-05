@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-26.04, windows-latest ]
+        os: [ ubuntu-26.04, windows-2025 ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts once.
@@ -78,7 +78,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-15 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
