@@ -681,7 +681,8 @@
 					"typography": {
 						"textDecoration": "none"
 					}
-				}
+				},
+				"css": "& { overflow-wrap: break-word; word-wrap: break-word; }"
 			}
 		}
 	},
