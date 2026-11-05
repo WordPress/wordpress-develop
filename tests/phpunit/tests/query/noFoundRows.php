@@ -155,6 +155,7 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertIsString( $q->request );
 		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $q->request, 'Expected the filtered LIMIT to trigger the found-rows query.' );
 		$this->assertSame( 3, $q->found_posts, 'Expected found_posts to reflect all matching rows.' );
 		$this->assertSame( 0, $q->max_num_pages, 'Expected max_num_pages to be clamped to zero.' );
