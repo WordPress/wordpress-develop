@@ -197,10 +197,6 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 			),
 			$this->get_form_field( $config, 'excerpt' )['layout']
 		);
-
-		if ( ! in_array( $post_type, array( 'page', 'post', 'wp_block' ), true ) ) {
-			unregister_post_type( $post_type );
-		}
 	}
 
 	/**
@@ -265,10 +261,6 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 			),
 			$this->get_form_field( $config, 'author' )['layout']
 		);
-
-		if ( ! in_array( $post_type, array( 'page', 'post', 'attachment' ), true ) ) {
-			unregister_post_type( $post_type );
-		}
 	}
 
 	/**
