@@ -76,6 +76,17 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_genre' );
+		unregister_post_type( 'wptests_book' );
+
+		parent::tear_down();
+	}
+
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_genre' );
+	}
+
 	/**
 	 * Goes to an archive.
 	 *
