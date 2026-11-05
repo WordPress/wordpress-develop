@@ -2405,7 +2405,7 @@ HTML;
 	public function test_add_hooks_callbacks_read_the_current_global_instance() {
 		global $wp_interactivity;
 
-		// set_up() registered the hooks on the instance that is the global.
+		// Core registered the hooks before this instance became the global.
 		$wp_interactivity = new WP_Interactivity_API();
 		wp_interactivity_state( 'test-hooks-global', array( 'value' => 'from-current-global' ) );
 
