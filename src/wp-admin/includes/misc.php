@@ -604,6 +604,43 @@ function wp_reset_vars( $vars ) {
 }
 
 /**
+ * Resolves the value to save for a "date_format" or "time_format" option
+ * submitted from the General Settings screen.
+ *
+ * When the "Custom" radio option is selected, the format to save comes from
+ * an accompanying text field instead of the radio value itself. If that field
+ * is left empty, the option should be left untouched rather than overwritten
+ * with an empty value.
+ *
+ * The submitted values are expected in their raw (slashed) form, as read
+ * directly from `$_POST`, and are returned the same way so callers can
+ * continue to `wp_unslash()` the result exactly once, as with any other
+ * submitted option value.
+ *
+ * @since 7.2.0
+ *
+ * @param string      $submitted_format The raw submitted format radio value,
+ *                                      e.g. `$_POST['date_format']`.
+ * @param string|null $custom_format    The raw submitted custom format value,
+ *                                      e.g. `$_POST['date_format_custom']`, or
+ *                                      null if it wasn't submitted at all.
+ * @return string|null The format to save, or null if the "Custom" option was
+ *                      selected with an empty value and the option should be
+ *                      left unchanged.
+ */
+function wp_get_submitted_date_time_format( $submitted_format, $custom_format ) {
+	if ( '\c\u\s\t\o\m' !== wp_unslash( $submitted_format ) || null === $custom_format ) {
+		return $submitted_format;
+	}
+
+	if ( '' === trim( $custom_format ) ) {
+		return null;
+	}
+
+	return $custom_format;
+}
+
+/**
  * Displays the given administration message.
  *
  * @since 2.1.0
