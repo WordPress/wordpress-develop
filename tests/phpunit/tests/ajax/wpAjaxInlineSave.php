@@ -17,6 +17,7 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 	public function tear_down() {
 		unregister_taxonomy( 'wptests_tax_1' );
 		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_post_type( 'wptests_hidden_cpt' );
 
 		parent::tear_down();
 	}
@@ -206,5 +207,56 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 		$post = get_post( $post->ID );
 
 		$this->assertSame( '2020-09-11 19:20:11', $post->post_date_gmt );
+	}
+
+	/**
+	 * Quick Edit must refuse posts whose post type has show_ui disabled.
+	 *
+	 * @ticket 57447
+	 */
+	public function test_inline_save_blocks_post_types_without_show_ui() {
+		register_post_type(
+			'wptests_hidden_cpt',
+			array(
+				'public'   => false,
+				'show_ui'  => false,
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+
+		$this->_setRole( 'administrator' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type'   => 'wptests_hidden_cpt',
+				'post_title'  => 'Hidden CPT Original',
+				'post_status' => 'publish',
+				'post_author' => get_current_user_id(),
+			)
+		);
+
+		$_POST['_inline_edit'] = wp_create_nonce( 'inlineeditnonce' );
+		$_POST['post_ID']      = $post->ID;
+		$_POST['post_type']    = 'wptests_hidden_cpt';
+		$_POST['post_title']   = 'Hidden CPT Hijacked';
+		$_POST['content']      = $post->post_content;
+		$_POST['excerpt']      = $post->post_excerpt;
+		$_POST['_status']      = $post->post_status;
+		$_POST['post_status']  = $post->post_status;
+		$_POST['screen']       = 'edit-wptests_hidden_cpt';
+		$_POST['post_view']    = 'list';
+
+		try {
+			$this->_handleAjax( 'inline-save' );
+			$this->fail( 'Expected Quick Edit to reject a post type with show_ui disabled.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame(
+				'Sorry, you are not allowed to edit posts in this post type.',
+				$e->getMessage()
+			);
+		}
+
+		$updated = get_post( $post->ID );
+		$this->assertSame( 'Hidden CPT Original', $updated->post_title );
 	}
 }
