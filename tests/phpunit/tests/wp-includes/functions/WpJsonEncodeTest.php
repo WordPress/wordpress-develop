@@ -94,10 +94,12 @@ class WpJsonEncodeTest extends WP_UnitTestCase {
 		$invalid_utf8 = "Invalid\x80UTF8";
 		$encoded      = wp_json_encode( $invalid_utf8 );
 
-		// It should not be false, it should have attempted to fix it.
 		$this->assertNotFalse( $encoded );
-		// In newer PHP versions, json_encode might handle it or it's sanitized to 'Invalid' or similar.
-		// WordPress's _wp_json_sanity_check will attempt to clean it.
-		$this->assertStringContainsString( 'Invalid', $encoded );
+
+		$decoded = json_decode( $encoded );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error() );
+		$this->assertIsString( $decoded );
+		$this->assertStringStartsWith( 'Invalid', $decoded );
+		$this->assertStringEndsWith( 'UTF8', $decoded );
 	}
 }
