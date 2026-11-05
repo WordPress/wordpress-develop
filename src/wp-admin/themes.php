@@ -248,6 +248,12 @@ wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+/**
+ * @global string $self        The current admin page, set in wp-admin/menu-header.php.
+ * @global string $parent_file The parent menu file, filtered in wp-admin/menu-header.php.
+ */
+global $self, $parent_file;
 ?>
 
 <div class="wrap">
@@ -373,7 +379,9 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		}
 
 		// 0 = name, 1 = capability, 2 = file.
-		if ( $parent_file && $item[2] === $parent_file ) {
+		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
+			|| $parent_file && $item[2] === $parent_file
+		) {
 			$class = ' current';
 		}
 
