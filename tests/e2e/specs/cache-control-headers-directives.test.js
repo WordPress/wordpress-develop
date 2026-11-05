@@ -1,7 +1,7 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 
 test.describe( 'Cache Control header directives', () => {
 	test.beforeAll( async ( { requestUtils } ) => {
@@ -10,25 +10,20 @@ test.describe( 'Cache Control header directives', () => {
 
 	test(
 		'No private directive present in cache control when user not logged in.',
-		async ( { browser, admin, editor}
+		async ( { loggedOutPage, admin, editor}
 		) => {
 		await admin.createNewPost( { title: 'Hello World' } );
 		await editor.publishPost();
 
 		await admin.visitAdminPage( '/' );
 
-		// Create a new incognito browser context to simulate logged-out state.
-		const context = await browser.newContext();
-		const loggedOutPage = await context.newPage();
-
 		const response = await loggedOutPage.goto( '/hello-world/' );
 		const responseHeaders = response.headers();
 
-		// Dispose context once it's no longer needed.
-		await context.close();
-
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "no-store" } ) );
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "private" } ) );
+		const cacheControl = responseHeaders[ 'cache-control' ] ?? '';
+		expect( cacheControl ).not.toContain( 'no-cache' );
+		expect( cacheControl ).not.toContain( 'no-store' );
+		expect( cacheControl ).not.toContain( 'private' );
 	} );
 
 	test(
@@ -40,6 +35,21 @@ test.describe( 'Cache Control header directives', () => {
 		const response = await page.goto( '/wp-admin' );
 		const responseHeaders = response.headers();
 
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-cache' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-store' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'private' );
+	} );
+
+	test(
+		'Correct directives present in cache control header when not logged in on 404 page.',
+		async ( { loggedOutPage }
+		) => {
+		const response = await loggedOutPage.goto( '/this-does-not-exist/' );
+		const responseHeaders = response.headers();
+		const responseStatus = response.status();
+
+		expect( responseStatus ).toBe( 404 );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-cache' );
 		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-store' );
 		expect( responseHeaders[ 'cache-control' ] ).toContain( 'private' );
 	} );

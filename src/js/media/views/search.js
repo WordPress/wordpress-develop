@@ -24,6 +24,8 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	},
 
 	/**
+	 * Renders the search input.
+	 *
 	 * @return {wp.media.view.Search} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -31,6 +33,11 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 		return this;
 	},
 
+	/**
+	 * Searches the media library.
+	 *
+	 * @param {JQuery.Event} event The input event.
+	 */
 	search: _.debounce( function( event ) {
 		var searchTerm = event.target.value.trim();
 

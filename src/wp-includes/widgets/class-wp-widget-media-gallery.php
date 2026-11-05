@@ -148,8 +148,8 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 			$handle,
 			sprintf(
 				'wp.mediaWidgets.modelConstructors[ %s ].prototype.schema = %s;',
-				wp_json_encode( $this->id_base ),
-				wp_json_encode( $exported_schema )
+				wp_json_encode( $this->id_base, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $exported_schema, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 
@@ -160,9 +160,9 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 					wp.mediaWidgets.controlConstructors[ %1$s ].prototype.mime_type = %2$s;
 					_.extend( wp.mediaWidgets.controlConstructors[ %1$s ].prototype.l10n, %3$s );
 				',
-				wp_json_encode( $this->id_base ),
-				wp_json_encode( $this->widget_options['mime_type'] ),
-				wp_json_encode( $this->l10n )
+				wp_json_encode( $this->id_base, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $this->widget_options['mime_type'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 	}
@@ -240,23 +240,22 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 * Whether the widget has content to show.
 	 *
 	 * @since 4.9.0
-	 * @access protected
 	 *
 	 * @param array $instance Widget instance props.
 	 * @return bool Whether widget has content.
 	 */
 	protected function has_content( $instance ) {
-		if ( ! empty( $instance['ids'] ) ) {
-			$attachments = wp_parse_id_list( $instance['ids'] );
-			// Prime attachment post caches.
-			_prime_post_caches( $attachments, false, false );
-			foreach ( $attachments as $attachment ) {
-				if ( 'attachment' !== get_post_type( $attachment ) ) {
-					return false;
-				}
-			}
-			return true;
+		if ( empty( $instance['ids'] ) ) {
+			return false;
 		}
-		return false;
+
+		$attachments = wp_parse_id_list( $instance['ids'] );
+		// Prime attachment post caches.
+		_prime_post_caches( $attachments, false, false );
+
+		return array_all(
+			$attachments,
+			fn( $attachment ) => 'attachment' === get_post_type( $attachment )
+		);
 	}
 }
