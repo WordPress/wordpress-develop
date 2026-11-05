@@ -661,7 +661,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_flip_moves_every_pixel() {
+	public static function data_flip_moves_every_pixel() {
 		return array(
 			'no flip'         => array( false, false ),
 			'vertical flip'   => array( true, false ),
@@ -778,7 +778,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_maybe_exif_rotate_flips_image() {
+	public static function data_maybe_exif_rotate_flips_image() {
 		return array(
 			'orientation 2: mirrored horizontally' => array( 2, true, false ),
 			'orientation 3: upside down'           => array( 3, true, true ),

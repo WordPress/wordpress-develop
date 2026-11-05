@@ -1264,7 +1264,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_flip_image_resource() {
+	public static function data_flip_image_resource() {
 		return array(
 			'no flip'         => array( false, false ),
 			'vertical flip'   => array( true, false ),
