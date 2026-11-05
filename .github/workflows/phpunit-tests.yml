@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-26.04 ]
         # Test highest and lowest supported version of each major.
         php: [ '7.0', '7.4', '8.0', '8.3' ]
         db-type: [ 'mysql' ]
@@ -49,20 +49,20 @@ jobs:
 
         include:
           # Include jobs for PHP 7.4 with memcached.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
             multisite: false
             memcached: true
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
             multisite: true
             memcached: true
           # Report test results to the Host Test Results.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
@@ -90,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-26.04 ]
         # Test highest and lowest supported version of each major.
         php: [ '7.0', '7.4', '8.0', '8.3' ]
         db-type: [ 'mariadb' ]
@@ -100,13 +100,13 @@ jobs:
 
         include:
         # Include jobs for PHP 7.4 with memcached.
-        - os: ubuntu-latest
+        - os: ubuntu-26.04
           php: '7.4'
           db-type: 'mariadb'
           db-version: '10.11'
           multisite: false
           memcached: true
-        - os: ubuntu-latest
+        - os: ubuntu-26.04
           php: '7.4'
           db-type: 'mariadb'
           db-version: '10.11'
@@ -140,7 +140,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
