@@ -1,13 +1,13 @@
 {
 	"name": "WordPress",
-	"version": "7.1.3",
+	"version": "7.1.5",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"repository": {
 		"type": "svn",
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "dd294ab86ceaf9f3d7d42a09b78f399238ce8826",
+		"sha": "8daba429215ef3dce75da4360156b1a2f39897c6",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
