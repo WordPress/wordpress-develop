@@ -413,15 +413,39 @@ window.wp = window.wp || {};
 	}
 
 	/**
+	 * Whether a file is an image the client-side pipeline can process.
+	 *
+	 * Mirrors the formats the upload-media store processes in the browser:
+	 * the wasm-vips formats, plus HEIC and HEIF, which it converts. A HEIC
+	 * file is also matched by its extension, since browsers on platforms
+	 * without a HEIC codec may give it no type at all.
+	 *
+	 * @param {plupload.File} file A file added to the plupload queue.
+	 * @return {boolean} True when the pipeline should take the file.
+	 */
+	function isPipelineFile( file ) {
+		return (
+			/^image\/(?:jpeg|png|gif|webp|avif|heic|heif)$/i.test(
+				file.type || ''
+			) || /\.hei[cf]$/i.test( file.name || '' )
+		);
+	}
+
+	/**
 	 * Splits a batch of plupload files between the pipeline and classic
 	 * plupload.
 	 *
-	 * Audio files stay classic so they keep the title and description that
-	 * media_handle_upload() derives from their ID3 tags, which the REST
-	 * endpoint does not do. So do JPEG and PNG images while plupload's own
-	 * client-side resize is enabled (the "Scale images" setting, or a
-	 * `resize` passed through `plupload_init`): plupload scales those down
-	 * before uploading them, the pipeline would not.
+	 * Only images the pipeline can process are taken (see isPipelineFile()).
+	 * Everything else, such as audio, video, PDF, SVG or JSON, stays
+	 * classic: the pipeline would do nothing for it but upload it, and
+	 * would check its type against the allowed types the page was rendered
+	 * with instead of the uploader's own filters, which a plugin can extend
+	 * for a single frame. Audio also keeps the title and description that
+	 * media_handle_upload() derives from its ID3 tags, which the REST
+	 * endpoint does not. JPEG and PNG images stay classic too while
+	 * plupload's own client-side resize is enabled (the "Scale images"
+	 * setting, or a `resize` passed through `plupload_init`): plupload
+	 * scales those down before uploading them, the pipeline would not.
 	 *
 	 * The whole batch stays classic when a file cannot be re-queued on
 	 * plupload or is already plupload's: plupload returns no native File
@@ -450,7 +474,7 @@ window.wp = window.wp || {};
 			}
 			const type = file.type || '';
 			if (
-				/^audio\//i.test( type ) ||
+				! isPipelineFile( file ) ||
 				( isResizing && /^image\/(?:jpeg|png)$/i.test( type ) )
 			) {
 				batch.classic.push( file );
