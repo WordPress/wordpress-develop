@@ -1415,7 +1415,7 @@ module.exports = function(grunt) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
-						if ( [ 'png', 'jpg', 'gif', 'jpeg' ].some( testExtension ) ) {
+						if ( [ 'png', 'jpg', 'gif', 'jpeg', 'webp' ].some( testExtension ) ) {
 							grunt.log.writeln( 'Image files modified. Minifying.' );
 							taskList.push( 'precommit:image' );
 						}
