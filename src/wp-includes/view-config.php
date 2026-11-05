@@ -45,6 +45,7 @@ function wp_get_entity_view_config_hook_name( $kind, $name ) {
  * returns `false`.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty excerpt and a missing author.
  *
  * @return array The default form configuration.
  */
@@ -338,6 +339,7 @@ function _wp_get_entity_view_config_posttype_page( $data ) {
  * Provides the view configuration for the `wp_block` post type.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty excerpt.
  *
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
@@ -560,6 +562,7 @@ function _wp_get_entity_view_config_posttype_wp_template_part( $data ) {
  * Provides the view configuration for the `wp_template` post type.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty description.
  *
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
