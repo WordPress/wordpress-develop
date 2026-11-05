@@ -14,6 +14,8 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_delete_inactive_widgets() does nothing when there are no inactive widgets.
+	 *
+	 * @ticket 65414
 	 */
 	public function test_wp_delete_inactive_widgets_empty() {
 		$sidebars_widgets                        = wp_get_sidebars_widgets();
@@ -27,6 +29,8 @@ class Tests_Widgets_WpDeleteInactiveWidgets extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_delete_inactive_widgets() removes inactive widgets and their settings.
+	 *
+	 * @ticket 65414
 	 */
 	public function test_wp_delete_inactive_widgets_removes_widgets() {
 		// Set up some inactive widgets.
