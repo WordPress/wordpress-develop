@@ -10,6 +10,13 @@
 class Tests_Functions_WpAuthCheckHtml extends WP_UnitTestCase {
 
 	/**
+	 * The original forced admin SSL setting.
+	 *
+	 * @var bool
+	 */
+	protected $original_force_ssl_admin;
+
+	/**
 	 * Original HTTP_HOST server variable.
 	 *
 	 * @var string|null
@@ -21,6 +28,8 @@ class Tests_Functions_WpAuthCheckHtml extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_force_ssl_admin = force_ssl_admin( false );
 
 		$this->original_http_host = $_SERVER['HTTP_HOST'] ?? null;
 
@@ -39,6 +48,8 @@ class Tests_Functions_WpAuthCheckHtml extends WP_UnitTestCase {
 	 * Tears down the test fixture.
 	 */
 	public function tear_down() {
+		force_ssl_admin( $this->original_force_ssl_admin );
+
 		if ( null === $this->original_http_host ) {
 			unset( $_SERVER['HTTP_HOST'] );
 		} else {
