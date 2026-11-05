@@ -29,6 +29,14 @@ class Tests_Post_GetPostsByAuthorSql extends WP_UnitTestCase {
 		self::$user_id_2 = $factory->user->create();
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'foo' );
+		unregister_post_type( 'bar' );
+		unregister_post_type( 'baz' );
+
+		parent::tear_down();
+	}
+
 	public function test_post_type_post() {
 		$maybe_string = get_posts_by_author_sql( 'post' );
 		$this->assertStringContainsString( "post_type = 'post'", $maybe_string );
@@ -51,9 +59,6 @@ class Tests_Post_GetPostsByAuthorSql extends WP_UnitTestCase {
 		$maybe_string = get_posts_by_author_sql( array( 'foo', 'bar' ) );
 		$this->assertStringContainsString( "post_type = 'foo'", $maybe_string );
 		$this->assertStringContainsString( "post_type = 'bar'", $maybe_string );
-
-		_unregister_post_type( 'foo' );
-		_unregister_post_type( 'bar' );
 	}
 
 	public function test_full_true() {
@@ -167,9 +172,6 @@ class Tests_Post_GetPostsByAuthorSql extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( "post_type = 'bar' AND ( post_status = 'publish' OR post_status = 'private' )", $maybe_string );
 		$this->assertStringContainsString( "post_type = 'baz' AND ( post_status = 'publish' OR post_status = 'private' )", $maybe_string );
 
-		_unregister_post_type( 'foo' );
-		_unregister_post_type( 'bar' );
-		_unregister_post_type( 'baz' );
 		wp_set_current_user( $current_user );
 	}
 }
