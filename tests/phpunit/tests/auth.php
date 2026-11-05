@@ -866,6 +866,30 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65817
+	 */
+	public function test_user_activation_key_with_non_numeric_timestamp_is_rejected() {
+		global $wpdb;
+
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => 'not-a-timestamp:' . wp_fast_hash( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		// A key with a valid hash but a malformed timestamp should be rejected as expired.
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertWPError( $check );
+		$this->assertSame( 'expired_key', $check->get_error_code() );
+	}
+
+	/**
 	 * @ticket 32429
 	 */
 	public function test_empty_user_activation_key_fails_key_check() {

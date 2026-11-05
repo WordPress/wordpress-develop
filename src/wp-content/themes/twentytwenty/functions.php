@@ -321,8 +321,8 @@ function twentytwenty_get_custom_logo( $html ) {
 
 	if ( $logo ) {
 		// For clarity.
-		$logo_width  = esc_attr( $logo[1] );
-		$logo_height = esc_attr( $logo[2] );
+		$logo_width  = absint( $logo[1] );
+		$logo_height = absint( $logo[2] );
 
 		// If the retina logo setting is active, reduce the width/height by half.
 		if ( get_theme_mod( 'retina_logo', false ) ) {
