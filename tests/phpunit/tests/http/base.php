@@ -11,8 +11,16 @@
  * The WP_Http tests require a class-http.php file of r17550 or later.
  */
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
-	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
-	public $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
+	/**
+	 * URL of the local redirection fixture (set in set_up() when available).
+	 *
+	 * Prefer the local PHP built-in server fixture. Tests that need redirection
+	 * coverage must call require_redirection_fixture() so missing fixtures skip
+	 * or fail instead of falling back to a live api.wordpress.org request.
+	 *
+	 * @var string
+	 */
+	public $redirection_script = '';
 
 	/**
 	 * URL of the local stream/size fixture (set in set_up_before_class()).
@@ -306,7 +314,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirect_on_301() {
 		// 5 : 5 & 301.
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=301&rt=' . 5, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=301&rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 200, (int) $res['response']['code'] );
@@ -317,7 +325,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirect_on_302() {
 		// 5 : 5 & 302.
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=302&rt=' . 5, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=302&rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 200, (int) $res['response']['code'] );
@@ -330,7 +338,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirect_on_301_no_redirect() {
 		// 5 > 0 & 301.
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=301&rt=' . 5, array( 'redirection' => 0 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=301&rt=' . 5, array( 'redirection' => 0 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 301, (int) $res['response']['code'] );
@@ -343,7 +351,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirect_on_302_no_redirect() {
 		// 5 > 0 & 302.
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=302&rt=' . 5, array( 'redirection' => 0 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=302&rt=' . 5, array( 'redirection' => 0 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 302, (int) $res['response']['code'] );
@@ -354,7 +362,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirections_equal() {
 		// 5 - 5.
-		$res = $this->wp_remote_request( $this->redirection_script . '?rt=' . 5, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 200, (int) $res['response']['code'] );
@@ -365,7 +373,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_no_head_redirections() {
 		// No redirections on HEAD request.
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=302&rt=' . 1, array( 'method' => 'HEAD' ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=302&rt=' . 1, array( 'method' => 'HEAD' ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 302, (int) $res['response']['code'] );
@@ -379,7 +387,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	public function test_redirect_on_head() {
 		// Redirections on HEAD request when Requested.
 		$res = $this->wp_remote_request(
-			$this->redirection_script . '?rt=' . 5,
+			$this->get_redirection_script() . '?rt=' . 5,
 			array(
 				'redirection' => 5,
 				'method'      => 'HEAD',
@@ -395,7 +403,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirections_greater() {
 		// 10 > 5.
-		$res = $this->wp_remote_request( $this->redirection_script . '?rt=' . 10, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?rt=' . 10, array( 'redirection' => 5 ) );
 
 		$this->assertWPError( $res );
 	}
@@ -405,7 +413,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirections_greater_edgecase() {
 		// 6 > 5 (close edge case).
-		$res = $this->wp_remote_request( $this->redirection_script . '?rt=' . 6, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?rt=' . 6, array( 'redirection' => 5 ) );
 
 		$this->assertWPError( $res );
 	}
@@ -415,7 +423,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirections_less_edgecase() {
 		// 4 < 5 (close edge case).
-		$res = $this->wp_remote_request( $this->redirection_script . '?rt=' . 4, array( 'redirection' => 5 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?rt=' . 4, array( 'redirection' => 5 ) );
 
 		$this->assertNotWPError( $res );
 	}
@@ -427,7 +435,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_redirections_zero_redirections_specified() {
 		// 0 redirections asked for, should return the document?
-		$res = $this->wp_remote_request( $this->redirection_script . '?code=302&rt=' . 5, array( 'redirection' => 0 ) );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?code=302&rt=' . 5, array( 'redirection' => 0 ) );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 302, (int) $res['response']['code'] );
@@ -442,7 +450,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_location_header_on_201() {
 		// Prints PASS on initial load, FAIL if the client follows the specified redirection.
-		$res = $this->wp_remote_request( $this->redirection_script . '?201-location=true' );
+		$res = $this->wp_remote_request( $this->get_redirection_script() . '?201-location=true' );
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', $res['body'] );
@@ -457,7 +465,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_no_redirection_on_PUT() {
-		$url = $this->redirection_script . '?201-location=1';
+		$url = $this->get_redirection_script() . '?201-location=1';
 
 		// Test 301 - POST to POST.
 		$res = $this->wp_remote_request(
@@ -510,7 +518,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			'test2' => 0,
 			'test3' => '',
 		);
-		$res     = $this->wp_remote_request( $this->redirection_script . '?header-check', array( 'headers' => $headers ) );
+		$res     = $this->wp_remote_request( $this->get_redirection_script() . '?header-check', array( 'headers' => $headers ) );
 
 		$this->assertNotWPError( $res );
 
@@ -546,6 +554,43 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 
 		$this->fail( 'The local HTTP stream fixture server was not started.' );
+	}
+
+	/**
+	 * Ensures the local redirection fixture server is available.
+	 *
+	 * Skips when a prerequisite is missing. Fails with a diagnostic when
+	 * fixture startup failed unexpectedly. Does not fall back to the live
+	 * api.wordpress.org redirection script.
+	 *
+	 * @ticket 63914
+	 */
+	protected function require_redirection_fixture() {
+		if ( ! empty( $this->redirection_script ) ) {
+			return;
+		}
+
+		if ( self::$file_stream_fixture_skip_reason ) {
+			$this->markTestSkipped( self::$file_stream_fixture_skip_reason );
+		}
+
+		if ( self::$file_stream_fixture_fail_reason ) {
+			$this->fail( self::$file_stream_fixture_fail_reason );
+		}
+
+		$this->fail( 'The local HTTP redirection fixture server was not started.' );
+	}
+
+	/**
+	 * Returns the local redirection fixture URL, requiring it first.
+	 *
+	 * @ticket 63914
+	 *
+	 * @return string Local redirection fixture URL.
+	 */
+	protected function get_redirection_script() {
+		$this->require_redirection_fixture();
+		return $this->redirection_script;
 	}
 
 	/**
@@ -646,7 +691,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_post_redirect_to_method_300( $response_code, $method ) {
-		$url = $this->redirection_script . '?post-redirect-to-method=1';
+		$url = $this->get_redirection_script() . '?post-redirect-to-method=1';
 
 		$res = $this->wp_remote_post( add_query_arg( 'response_code', $response_code, $url ), array( 'timeout' => 30 ) );
 
@@ -695,7 +740,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_ip_url_with_host_header() {
-		$parts = wp_parse_url( $this->redirection_script );
+		$parts = wp_parse_url( $this->get_redirection_script() );
 		$this->assertIsArray( $parts );
 		$this->assertNotEmpty( $parts['host'] );
 		$this->assertNotEmpty( $parts['path'] );
@@ -743,7 +788,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP requests where SSL verification is disabled but the CA bundle is still populated.
 	 *
+	 * Mocks the response: this assertion is about request-arg population in WP_Http,
+	 * not live TLS against wordpress.org.
+	 *
 	 * @ticket 33978
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_head
 	 */
@@ -754,13 +803,41 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		);
 
 		add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
+		add_filter( 'pre_http_request', array( $this, 'mock_https_head_response' ), 10, 3 );
 
 		$res = $this->wp_remote_head( $url, $args );
 
 		remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
+		remove_filter( 'pre_http_request', array( $this, 'mock_https_head_response' ), 10 );
 
 		$this->assertNotEmpty( $this->http_request_args['sslcertificates'] );
+		$this->assertFalse( $this->http_request_args['sslverify'] );
 		$this->assertNotWPError( $res );
+	}
+
+	/**
+	 * Returns a canned HTTPS HEAD response for offline CA-bundle coverage.
+	 *
+	 * @param false|array|WP_Error $preempt Whether to preempt the request.
+	 * @param array                $args    Request arguments.
+	 * @param string               $url     Request URL.
+	 * @return array|false|WP_Error Canned response for the wordpress.org HEAD URL.
+	 */
+	public function mock_https_head_response( $preempt, $args, $url ) {
+		if ( 'https://wordpress.org/' !== $url ) {
+			return $preempt;
+		}
+
+		return array(
+			'headers'  => array(),
+			'body'     => '',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
 	}
 
 	/**
@@ -779,7 +856,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_cookie_handling() {
-		$url = $this->redirection_script . '?cookie-test=1';
+		$url = $this->get_redirection_script() . '?cookie-test=1';
 
 		$res = $this->wp_remote_get( $url );
 
@@ -801,6 +878,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_parent_domain_cookie_is_sent_on_redirect() {
+		// Allow the canned Requests transport to run outside external-http.
+		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
 		add_action( 'requests-requests.before_request', array( $this, 'inject_parent_domain_cookie_test_transport' ), 10, 5 );
 
 		try {
@@ -827,10 +906,15 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if HTTPS support works.
+	 * Test if HTTPS support works against a live endpoint.
+	 *
+	 * Remains in external-http: this is intentional live TLS smoke coverage for
+	 * the real transport. Parsing and arg-shape checks live elsewhere offline.
 	 *
 	 * @group ssl
+	 * @group external-http
 	 * @ticket 25007
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_get
 	 */
@@ -850,7 +934,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_request
 	 */
 	public function test_url_with_double_slashes_path() {
-		$url = $this->redirection_script . '?rt=' . 0;
+		$url = $this->get_redirection_script() . '?rt=' . 0;
 
 		$path = parse_url( $url, PHP_URL_PATH );
 		$url  = str_replace( $path, '/' . $path, $url );
