@@ -379,7 +379,13 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 			continue;
 		}
 
-		// 0 = name, 1 = capability, 2 = file.
+		/*
+		 * 0 = name, 1 = capability, 2 = file.
+		 *
+		 * On this screen, $self and $parent_file are both 'themes.php', which is skipped above,
+		 * so an item can only be marked current when a plugin changes $parent_file via the
+		 * 'parent_file' filter in wp-admin/menu-header.php.
+		 */
 		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
 			|| $parent_file && $item[2] === $parent_file
 		) {
