@@ -128,9 +128,9 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 			explode( ' ', $class_list ),
 			'Class list does not match expected classes'
 		);
-		$this->assertSame(
-			array_map( 'trim', explode( ';', $expected_styles ) ),
-			array_map( 'trim', explode( ';', $style_list ) ),
+		$this->assertEqualStyleAttribute(
+			$expected_styles,
+			WP_HTML_Decoder::decode_attribute( $style_list ),
 			'Style list does not match expected styles'
 		);
 	}
@@ -787,7 +787,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 		$wrapper_attributes = get_block_wrapper_attributes( $extra_attributes );
 
-		$this->assertSame( $expected_attribute, $wrapper_attributes );
+		$this->assertEqualHTML( "<div {$expected_attribute}></div>", "<div {$wrapper_attributes}></div>" );
 	}
 
 	/**

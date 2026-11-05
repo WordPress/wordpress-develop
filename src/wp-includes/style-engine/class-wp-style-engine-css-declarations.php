@@ -199,8 +199,22 @@ class WP_Style_Engine_CSS_Declarations {
 
 			$filtered_declaration = safecss_filter_attr( "{$property}:{$spacer}{$filtered_value}" );
 
+			// safecss_filter_attr() may end each declaration with `;`. The caller adds its own.
+			if ( str_ends_with( $filtered_declaration, ';' ) ) {
+				$filtered_declaration = substr( $filtered_declaration, 0, -1 );
+			}
+
+			if ( '' === $filtered_declaration ) {
+				return '';
+			}
+
+			// safecss_filter_attr() writes its own space after the colon. Apply the spacer.
+			if ( str_starts_with( $filtered_declaration, "{$property}:" ) ) {
+				$filtered_declaration = "{$property}:{$spacer}" . ltrim( substr( $filtered_declaration, strlen( $property ) + 1 ) );
+			}
+
 			// Only append !important in the presence of an option value and when sanitization returns a single declaration.
-			if ( true === $options['important'] && '' !== $filtered_declaration && ! str_contains( $filtered_declaration, ';' ) ) {
+			if ( true === $options['important'] && ! str_contains( $filtered_declaration, ';' ) ) {
 				return "$filtered_declaration !important";
 			}
 
