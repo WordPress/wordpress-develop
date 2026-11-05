@@ -35,17 +35,18 @@ Description: Used to style blocks in the editor.
 
 .editor-post-title__block .editor-post-title__input,
 .editor-styles-wrapper .wp-block-post-title {
-    font-family: "Open Sans", Helvetica, Arial, sans-serif;
-    font-size: 20px;
-    font-weight: 400;
+	font-family: "Open Sans", Helvetica, Arial, sans-serif;
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 1.2;
 }
 
 @media screen and (min-width: 600px) {
-    .editor-post-title__block .editor-post-title__input, 
-    .editor-styles-wrapper .wp-block-post-title{
-        font-size: 22px;
-    }
- }
+	.editor-post-title__block .editor-post-title__input, 
+	.editor-styles-wrapper .wp-block-post-title{
+		font-size: 22px;
+	}
+}
 
 .wp-block-freeform.block-library-rich-text__tinymce h1 {
 	font-size: 21px;
@@ -78,7 +79,7 @@ Description: Used to style blocks in the editor.
 /* Main column width */
 
 .wp-block {
-	max-width: 625px;
+	max-width: 655px; /* 625px + 30px for padding */
 }
 
 /* Link styles */
