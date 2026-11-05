@@ -15,6 +15,7 @@ require_once __DIR__ . '/class-wp-invariant-violations.php';
 require_once __DIR__ . '/class-wp-invariant-report.php';
 require_once __DIR__ . '/sql/class-wp-invariant-sql-lexer.php';
 require_once __DIR__ . '/oracles/class-wp-invariant-browser.php';
+require_once __DIR__ . '/oracles/class-wp-invariant-html-api.php';
 require_once __DIR__ . '/oracles/class-wp-invariant-mysql.php';
 
 /**

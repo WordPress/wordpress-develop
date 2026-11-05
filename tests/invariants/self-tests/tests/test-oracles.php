@@ -13,6 +13,16 @@ use PHPUnit\Framework\TestCase;
  */
 class Tests_Invariants_Oracles extends TestCase {
 
+	/**
+	 * Loads the tag processor, which WordPress would have loaded, for WP_Invariant_HTML_API.
+	 */
+	private static function load_html_api() {
+		$directory = dirname( __DIR__, 4 ) . '/src/wp-includes/html-api';
+		foreach ( array( 'class-wp-html-attribute-token.php', 'class-wp-html-span.php', 'class-wp-html-text-replacement.php', 'class-wp-html-decoder.php', 'class-wp-html-doctype-info.php', 'class-wp-html-tag-processor.php' ) as $file ) {
+			require_once "{$directory}/{$file}";
+		}
+	}
+
 	public function test_browser_reads_a_url_scheme_as_browsers_do() {
 		$this->assertSame( 'javascript', WP_Invariant_Browser::url_scheme( WP_Invariant_Browser::attribute_value( ' java&#x09;script:alert(1)' ) ) );
 		$this->assertSame( 'javascript', WP_Invariant_Browser::url_scheme( 'JaVaScRiPt:alert(1)' ) );
@@ -143,6 +153,51 @@ class Tests_Invariants_Oracles extends TestCase {
 			'no table'                 => array( 'SELECT FOUND_ROWS()', array() ),
 			'not valid MySQL'          => array( 'SELECT * FROM', null ),
 		);
+	}
+
+	public function test_html_api_counts_markup_but_not_what_only_looks_like_markup() {
+		self::load_html_api();
+
+		$this->assertSame(
+			array(
+				'<!DOCTYPE' => 1,
+				'<p'        => 2,
+				'<!--'      => 2,
+				'</p'       => 1,
+				'<script'   => 1,
+				'<textarea' => 1,
+			),
+			WP_Invariant_HTML_API::markup( '<!DOCTYPE html><P class=x>a<!-- <b> --></p></1><script><b></script><textarea><i></textarea><p>x <b' )
+		);
+	}
+
+	public function test_html_api_finds_text_nodes_but_not_values_or_raw_text() {
+		self::load_html_api();
+
+		$this->assertSame( array( array( 0, 2 ), array( 18, 20 ), array( 52, 54 ) ), WP_Invariant_HTML_API::texts( 'a <b title="&lt;">c <!-- d --><textarea>e</textarea>f ' ) );
+	}
+
+	public function test_html_api_finds_where_html_syntax_starts() {
+		self::load_html_api();
+
+		$this->assertSame(
+			array(
+				0  => 'tag',
+				1  => 'tag name',
+				3  => 'attribute',
+				10 => 'attribute value',
+				13 => 'attribute',
+				16 => 'attribute value',
+				18 => 'attribute',
+				25 => 'attribute',
+				34 => 'tag',
+				36 => 'tag name',
+				38 => 'comment',
+				69 => 'DOCTYPE',
+			),
+			WP_Invariant_HTML_API::boundaries( '<p class="x" id=y hidden class=z>a</p><!--c--><?php x ?>Name <a@b.c> <!DOCTYPE html>' )
+		);
+		$this->assertSame( array(), WP_Invariant_HTML_API::boundaries( 'if ( a < b && c > d ) { echo "<?php"; } Name <name@example.com>' ) );
 	}
 
 	public function test_fill_template_puts_a_harmless_value_in_each_placeholder() {
