@@ -49,11 +49,11 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		self::$upgrader_skin_mock = $this->getMockBuilder( 'WP_Upgrader_Skin' )->getMock();
+		self::$upgrader_skin_mock = $this->createMock( 'WP_Upgrader_Skin' );
 
 		self::$instance = new WP_Upgrader( self::$upgrader_skin_mock );
 
-		self::$wp_filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Base' )->getMock();
+		self::$wp_filesystem_mock = $this->createMock( 'WP_Filesystem_Base' );
 
 		if ( array_key_exists( 'wp_filesystem', $GLOBALS ) ) {
 			self::$wp_filesystem_backup = $GLOBALS['wp_filesystem'];
@@ -126,7 +126,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_init_should_initialize_strings() {
+	public static function data_init_should_initialize_strings() {
 		return self::text_array_to_dataprovider(
 			array(
 				'bad_request',
@@ -137,6 +137,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 				'fs_no_plugins_dir',
 				'fs_no_themes_dir',
 				'fs_no_folder',
+				'no_package',
 				'download_failed',
 				'installing_package',
 				'no_files',
@@ -169,9 +170,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 */
 	public function test_flatten_dirlist_should_flatten_the_provided_directory_list( $expected, $nested_files, $path = '' ) {
 		$flatten_dirlist = new ReflectionMethod( self::$instance, 'flatten_dirlist' );
-		$flatten_dirlist->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( true );
+		}
 		$actual = $flatten_dirlist->invoke( self::$instance, $nested_files, $path );
-		$flatten_dirlist->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( false );
+		}
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -181,7 +186,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_flatten_dirlist() {
+	public static function data_should_flatten_dirlist() {
 		return array(
 			'empty array, default path'       => array(
 				'expected'     => array(),
@@ -775,18 +780,38 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_install_package_invalid_paths() {
+	public static function data_install_package_invalid_paths() {
 		return array(
-			'empty string' => array( 'path' => '' ),
+			'empty string'                   => array( 'path' => '' ),
 
 			// Type checks.
-			'empty array'  => array( 'path' => array() ),
-			'(int) 0'      => array( 'path' => 0 ),
-			'(int) -0'     => array( 'path' => -0 ),
-			'(float) 0.0'  => array( 'path' => 0.0 ),
-			'(float) -0.0' => array( 'path' => -0.0 ),
-			'(bool) false' => array( 'path' => false ),
-			'null'         => array( 'path' => null ),
+			'empty array'                    => array( 'path' => array() ),
+			'populated array'                => array( 'path' => array( '/' ) ),
+			'(int) 0'                        => array( 'path' => 0 ),
+			'(int) -0'                       => array( 'path' => -0 ),
+			'(int) -1'                       => array( 'path' => -1 ),
+			'(int) 1'                        => array( 'path' => 1 ),
+			'(float) 0.0'                    => array( 'path' => 0.0 ),
+			'(float) -0.0'                   => array( 'path' => -0.0 ),
+			'(float) 1.0'                    => array( 'path' => 1.0 ),
+			'(float) -1.0'                   => array( 'path' => -1.0 ),
+			'(bool) false'                   => array( 'path' => false ),
+			'(bool) true'                    => array( 'path' => true ),
+			'null'                           => array( 'path' => null ),
+			'empty object'                   => array( 'path' => new stdClass() ),
+			'populated object'               => array( 'path' => (object) array( '/' ) ),
+
+			// Ensures that `trim()` is run triggering an empty array.
+			'a string with spaces'           => array( 'path' => '   ' ),
+			'a string with tabs'             => array( 'path' => "\t\t" ),
+			'a string with new lines'        => array( 'path' => "\n\n" ),
+			'a string with carriage returns' => array( 'path' => "\r\r" ),
+
+			// Ensure that strings with leading/trailing whitespace are invalid.
+			'a path with a leading space'    => array( 'path' => ' /path' ),
+			'a path with a trailing space'   => array( 'path' => '/path ' ),
+			'a path with a leading tab'      => array( 'path' => "\t/path" ),
+			'a path with a trailing tab'     => array( 'path' => "/path\t" ),
 		);
 	}
 
@@ -922,6 +947,107 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'incompatible_archive_empty',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory's file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 */
+	public function test_install_package_should_return_wp_error_when_source_directory_file_list_cannot_be_retrieved() {
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
+				->method( 'dirlist' )
+				->willReturn( false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'source_read_failed',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory is filtered and its file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_install_package_should_return_wp_error_when_a_filtered_source_directory_file_list_cannot_be_retrieved() {
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		$first_source = array(
+			'subdir' => array(
+				'name'  => 'subdir',
+				'type'  => 'd',
+				'files' => array( 'subfile.php' ),
+			),
+		);
+
+		self::$wp_filesystem_mock
+				->expects( $this->exactly( 2 ) )
+				->method( 'dirlist' )
+				->willReturn( $first_source, false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		// Filter the source to something else.
+		add_filter(
+			'upgrader_source_selection',
+			static function () {
+				return '/not_original_source/';
+			}
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'new_source_read_failed',
 			$actual->get_error_code(),
 			'Unexpected WP_Error code'
 		);
@@ -1146,7 +1272,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory() {
+	public static function data_install_package_should_make_remote_destination_safe_when_set_to_a_protected_directory() {
 		return array(
 			'ABSPATH'               => array(
 				'protected_directory' => ABSPATH,
@@ -1554,6 +1680,31 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		$result = self::$instance->download_package( __FILE__ );
 
 		$this->assertSame( __FILE__, $result );
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::download_package()` returns a WP_Error object
+	 * for an empty package.
+	 *
+	 * @ticket 59712
+	 *
+	 * @covers WP_Upgrader::download_package
+	 */
+	public function test_download_package_should_return_a_wp_error_object_for_an_empty_package() {
+		self::$instance->init();
+
+		$result = self::$instance->download_package( '' );
+
+		$this->assertWPError(
+			$result,
+			'WP_Upgrader::download_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'no_package',
+			$result->get_error_code(),
+			'Unexpected WP_Error code'
+		);
 	}
 
 	/**
