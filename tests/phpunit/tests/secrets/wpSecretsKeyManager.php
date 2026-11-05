@@ -195,6 +195,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * the multisite suite; skips under single-site since there is only one blog to
 	 * compare against.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
@@ -216,6 +217,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * Site-scope master keys, by contrast, must differ per blog even though every
 	 * blog derives from the same shared root key.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
@@ -241,6 +243,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * Requires the multisite suite; skips under single-site since sitemeta and
 	 * the main site's options are the same table there.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
@@ -269,6 +272,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * Requires the multisite suite; skips under single-site for the same reason
 	 * as the adoption test above.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers WP_Secrets_Key_Manager::get_root_key
@@ -294,6 +298,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * Requires the multisite suite; skips under single-site for the same reason
 	 * as the adoption test above.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers WP_Secrets_Key_Manager::rotate_site_key

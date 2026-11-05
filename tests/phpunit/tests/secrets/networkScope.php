@@ -193,6 +193,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * The entire point of network scope: a secret written from one blog's context
 	 * must read back identically from another blog's context. Requires multisite.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers ::wp_set_network_secret
@@ -214,6 +215,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * proving there is no implicit fallback between scopes and no accidental sharing
 	 * across blogs for site-scope secrets.
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
 	 * @covers ::wp_set_secret
