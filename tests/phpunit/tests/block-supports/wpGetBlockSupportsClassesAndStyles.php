@@ -8,7 +8,7 @@ class Tests_Block_Supports_WpGetBlockSupportsClassesAndStyles extends WP_UnitTes
 	/**
 	 * Tests that block support classes and styles are combined from block attributes.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66485
 	 *
 	 * @dataProvider data_get_block_supports_classes_and_styles
 	 *
