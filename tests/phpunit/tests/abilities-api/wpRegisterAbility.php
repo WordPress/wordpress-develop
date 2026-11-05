@@ -455,8 +455,8 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'a' => 5,
-				'b' => 3,
+				'a' => 5.0,
+				'b' => 3.0,
 			),
 			$received_input
 		);
@@ -472,8 +472,8 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'a' => 2,
-				'b' => 8,
+				'a' => 2.0,
+				'b' => 8.0,
 			),
 			$received_input
 		);

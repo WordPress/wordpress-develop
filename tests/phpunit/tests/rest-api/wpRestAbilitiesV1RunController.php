@@ -2173,4 +2173,126 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
 		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
 	}
+	/**
+	 * Tests that the REST permission check prepares input exactly once.
+	 *
+	 * @ticket 66482
+	 */
+	public function test_permission_check_prepares_input_once(): void {
+		$normalized = 0;
+		$validated  = 0;
+		$received   = null;
+		add_filter(
+			'wp_ability_normalize_input',
+			static function ( $input ) use ( &$normalized ) {
+				++$normalized;
+				++$input['a'];
+				return $input;
+			}
+		);
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $valid ) use ( &$validated ) {
+				++$validated;
+				return $valid;
+			}
+		);
+		add_filter(
+			'wp_ability_permission_result',
+			static function ( $permission, $name, $input ) use ( &$received ) {
+				$received = $input;
+				return $permission;
+			},
+			10,
+			3
+		);
+
+		$request = new WP_REST_Request( 'POST' );
+		$request->set_param( 'name', 'test/calculator' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => '1',
+						'b' => '3',
+					),
+				)
+			)
+		);
+		$controller = new WP_REST_Abilities_V1_Run_Controller();
+
+		$this->assertTrue( $controller->check_ability_permissions( $request ) );
+		$this->assertSame(
+			array(
+				'a' => 2.0,
+				'b' => 3.0,
+			),
+			$received
+		);
+		$this->assertSame( 1, $normalized );
+		$this->assertSame( 1, $validated );
+	}
+
+	/**
+	 * Tests that input errors keep their HTTP status and bypass permission filters.
+	 *
+	 * @ticket 66482
+	 * @dataProvider data_permission_input_error_status
+	 *
+	 * @param string $hook     Preparation hook.
+	 * @param array  $data     Error data.
+	 * @param int    $expected Expected HTTP status.
+	 */
+	public function test_permission_input_error_status( string $hook, array $data, int $expected ): void {
+		$error = new WP_Error( 'custom_input_error', 'Invalid input.', $data );
+		$calls = 0;
+		add_filter(
+			$hook,
+			static function () use ( $error ) {
+				return $error;
+			}
+		);
+		add_filter(
+			'wp_ability_permission_result',
+			static function () use ( &$calls ) {
+				++$calls;
+				return true;
+			}
+		);
+
+		$request = new WP_REST_Request( 'POST' );
+		$request->set_param( 'name', 'test/calculator' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'a' => '1',
+						'b' => '3',
+					),
+				)
+			)
+		);
+		$controller = new WP_REST_Abilities_V1_Run_Controller();
+		$result     = $controller->check_ability_permissions( $request );
+
+		$this->assertSame( $error, $result );
+		$this->assertSame( $expected, $result->get_error_data()['status'] );
+		$this->assertSame( 0, $calls );
+	}
+
+	/**
+	 * Provides input errors with and without a custom HTTP status.
+	 *
+	 * @return array
+	 */
+	public static function data_permission_input_error_status(): array {
+		return array(
+			'normalization default' => array( 'wp_ability_normalize_input', array(), 400 ),
+			'normalization custom'  => array( 'wp_ability_normalize_input', array( 'status' => 422 ), 422 ),
+			'validation default'    => array( 'wp_ability_validate_input', array(), 400 ),
+			'validation custom'     => array( 'wp_ability_validate_input', array( 'status' => 422 ), 422 ),
+		);
+	}
 }

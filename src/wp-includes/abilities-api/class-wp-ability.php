@@ -751,8 +751,12 @@ class WP_Ability {
 	/**
 	 * Checks whether the ability has the necessary permissions.
 	 *
-	 * Please note that input is not automatically validated against the input schema.
-	 * Use `validate_input()` method to validate input before calling this method if needed.
+	 * The default implementation normalizes, validates, and coerces input before
+	 * checking permissions. Input errors are returned without running permission checks.
+	 *
+	 * Subclasses overriding this method retain responsibility for preparing their input.
+	 * Calls to the parent implementation from an override continue to accept prepared
+	 * input, as they did before automatic input preparation was introduced.
 	 *
 	 * The checks run in this order:
 	 *
@@ -766,14 +770,96 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
-	 * @since 7.2.0 Added the `required_capabilities` check.
+	 * @since 7.2.0 Added the `required_capabilities` check and automatic input preparation.
 	 *
-	 * @see validate_input()
+	 * @see check_permissions_for_prepared_input()
 	 *
-	 * @param mixed $input Optional. The valid input data for permission checking. Default `null`.
+	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
+		// Preserve the prepared-input contract of parent calls from existing overrides.
+		if ( ! $this->has_custom_permission_check() ) {
+			$input = $this->prepare_input( $input );
+			if ( is_wp_error( $input ) ) {
+				return $input;
+			}
+		}
+
+		return $this->do_check_permissions( $input );
+	}
+
+	/**
+	 * Checks permissions for input that has already been prepared.
+	 *
+	 * Callers must normalize, validate, and coerce input before calling this method.
+	 * This avoids repeating preparation filters when the caller also needs the
+	 * prepared input or must distinguish input errors from permission errors.
+	 *
+	 * Custom check_permissions() overrides receive the prepared input, preserving
+	 * the extension point used by execute() and the REST API.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see normalize_input()
+	 * @see validate_input()
+	 * @see coerce_input()
+	 *
+	 * @param mixed $input Optional. The prepared input data. Default `null`.
+	 * @return bool|WP_Error Whether the ability has the necessary permission.
+	 */
+	public function check_permissions_for_prepared_input( $input = null ) {
+		if ( $this->has_custom_permission_check() ) {
+			return $this->check_permissions( $input );
+		}
+
+		return $this->do_check_permissions( $input );
+	}
+
+	/**
+	 * Determines whether a subclass implements its own permission check.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether check_permissions() is overridden.
+	 */
+	private function has_custom_permission_check(): bool {
+		$method = new ReflectionMethod( $this, 'check_permissions' );
+
+		return self::class !== $method->getDeclaringClass()->getName();
+	}
+
+	/**
+	 * Normalizes, validates, and coerces input for an ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $input The input data.
+	 * @return mixed|WP_Error The prepared input, or an error if preparation fails.
+	 */
+	private function prepare_input( $input ) {
+		$input = $this->normalize_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $input;
+		}
+
+		$is_valid = $this->validate_input( $input );
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		return $this->coerce_input( $input );
+	}
+
+	/**
+	 * Runs the default permission checks without preparing input.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $input The prepared input data.
+	 * @return bool|WP_Error Whether the ability has the necessary permission.
+	 */
+	private function do_check_permissions( $input ) {
 		// A permission callback that is set must be callable.
 		$is_invalid_callback = null !== $this->permission_callback && ! is_callable( $this->permission_callback );
 
@@ -986,22 +1072,12 @@ class WP_Ability {
 			return $pre;
 		}
 
-		$input = $this->normalize_input( $input );
+		$input = $this->prepare_input( $input );
 		if ( is_wp_error( $input ) ) {
 			return $input;
 		}
 
-		$is_valid = $this->validate_input( $input );
-		if ( is_wp_error( $is_valid ) ) {
-			return $is_valid;
-		}
-
-		$input = $this->coerce_input( $input );
-		if ( is_wp_error( $input ) ) {
-			return $input;
-		}
-
-		$has_permissions = $this->check_permissions( $input );
+		$has_permissions = $this->check_permissions_for_prepared_input( $input );
 		if ( true !== $has_permissions ) {
 			if ( is_wp_error( $has_permissions ) ) {
 				// Don't leak the permission check error to someone without the correct perms.

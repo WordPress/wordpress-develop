@@ -187,7 +187,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $this->ensure_error_status( $input, 400 );
 		}
 
-		$result = $ability->check_permissions( $input );
+		$result = $ability->check_permissions_for_prepared_input( $input );
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => rest_authorization_required_code() ) );
 			return $result;
