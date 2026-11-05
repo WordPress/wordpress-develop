@@ -15,6 +15,22 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up a test case.
 	 *
 	 * @see WP_UnitTestCase_Base::set_up()
@@ -22,7 +38,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
@@ -216,6 +232,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSameSets( $value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 
@@ -261,6 +279,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSame( $menu_id, $term['term_taxonomy_id'] );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $term, $menu_object );
 		$this->assertSame( $post_value['name'], $menu_object->name );
 

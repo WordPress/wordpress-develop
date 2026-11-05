@@ -17,9 +17,21 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		}
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
+
 		self::register_custom_taxonomy();
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax2' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -50,6 +62,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_integer_should_be_interpreted_as_term_id() {
+		$this->set_permalink_structure( '' );
+
 		$t1 = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
@@ -70,6 +84,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_numeric_string_should_be_interpreted_as_term_slug() {
+		$this->set_permalink_structure( '' );
+
 		$t1 = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
@@ -95,6 +111,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_category_should_use_cat_query_var_with_term_id() {
+		$this->set_permalink_structure( '' );
+
 		$c = self::factory()->category->create();
 
 		$actual = get_term_link( $c, 'category' );
@@ -102,6 +120,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_taxonomy_with_query_var_should_use_that_query_var_with_term_slug() {
+		$this->set_permalink_structure( '' );
+
 		register_taxonomy(
 			'wptests_tax2',
 			'post',
@@ -122,6 +142,8 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_taxonomy_without_query_var_should_use_taxonomy_query_var_and_term_query_var_with_term_slug() {
+		$this->set_permalink_structure( '' );
+
 		register_taxonomy(
 			'wptests_tax2',
 			'post',
@@ -146,8 +168,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 * @ticket 52882
 	 */
 	public function test_taxonomy_with_rewrite_false_and_custom_permalink_structure() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		register_taxonomy(
 			'wptests_tax2',
 			'post',
@@ -173,8 +193,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_taxonomy_permastruct_with_hierarchical_rewrite_should_put_term_ancestors_in_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		register_taxonomy(
 			'wptests_tax2',
 			'post',
@@ -210,8 +228,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	}
 
 	public function test_taxonomy_permastruct_with_nonhierarchical_rewrite_should_not_put_term_ancestors_in_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		register_taxonomy(
 			'wptests_tax2',
 			'post',
@@ -274,7 +290,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_term_link_filter_should_receive_term_object() {
+	public static function data_term_link_filter_should_receive_term_object() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',
@@ -325,9 +341,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
+	public static function data_get_term_feed_link_should_use_term_taxonomy_when_term_id_is_passed() {
 		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
 
-		return $this->text_array_to_dataprovider( $taxonomies );
+		return self::text_array_to_dataprovider( $taxonomies );
 	}
 }
