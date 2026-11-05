@@ -10,9 +10,8 @@
 /**
  * Registers the Secrets API's Site Health tests.
  *
- * No settings screen – the proposal defers that to 7.3 – but the health signal an
- * operator needs to notice a broken key, a weak key source, or a pending rotation is
- * in scope now.
+ * There is no settings screen for secrets, so these tests are how an operator
+ * notices a broken key, a weak key source, or a pending rotation.
  *
  * @since 7.2.0
  *

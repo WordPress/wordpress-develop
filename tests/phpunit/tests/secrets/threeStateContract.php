@@ -122,7 +122,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 *
 	 * The write goes through a hand-built WP_Secrets_Libsodium_Provider rather than
 	 * wp_set_secret() so it bypasses the static _wp_secrets_get_key_manager(), whose
-	 * request-scoped root-key cache (ADR 0009) would otherwise keep serving the
+	 * request-scoped root-key cache would otherwise keep serving the
 	 * already-unwrapped key and mask the misconfiguration this test defines below.
 	 *
 	 * @covers ::wp_get_secret

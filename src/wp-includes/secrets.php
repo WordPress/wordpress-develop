@@ -212,9 +212,9 @@ function wp_secrets_memzero( &$value ): void {
  * plugin that can run PHP can read any secret, namespaced or not.
  *
  * An unnamespaced name ('secret-name', no '/') is accepted, but reports through
- * _doing_it_wrong(). It exists for one reason: code written against the earlier
- * prototype used a flat keyspace, and refusing those names outright would mean
- * every such call site has to be rewritten before it can be ported at all.
+ * _doing_it_wrong(). It exists for one reason: existing code may already use a flat
+ * keyspace, and refusing those names outright would mean every such call site has
+ * to be rewritten before it can be ported at all.
  * Accepting them keeps that migration incremental. Nothing else should use one.
  * Two plugins that both choose 'api-key' collide silently, which is a real problem
  * even though it is not a security one.
@@ -272,7 +272,7 @@ function wp_secrets_validate_name( string $name ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: The unnamespaced secret name. */
-				__( 'The secret name "%s" has no namespace. Namespaced names ("plugin-slug/secret-name") group secrets by owner so that listings and admin screens can be organized; unnamespaced names are supported only so that code written against the Displace prototype can be ported incrementally.' ),
+				__( 'The secret name "%s" has no namespace. Namespaced names ("plugin-slug/secret-name") group secrets by owner so that listings and admin screens can be organized; unnamespaced names are supported only so that existing code using flat names can be ported incrementally.' ),
 				$name
 			),
 			'7.2.0'
@@ -424,10 +424,9 @@ function wp_set_secret( string $name, $value ) {
 /**
  * Imports an existing option's value as a secret.
  *
- * For an explicit migration, "on their own explicit upgrade schedule,"
- * in the proposal's words, because "core cannot reliably tell which options are
- * credentials, and guessing would break sites." The source option is left
- * untouched: this reads it, it does not move or delete it.
+ * For an explicit migration on the caller's own schedule, because core cannot
+ * reliably tell which options are credentials, and guessing would break sites. The
+ * source option is left untouched: this reads it, it does not move or delete it.
  *
  * The imported secret is flagged needs_rotation, unconditionally. A credential that
  * sat in a plain option has already been through however many backups and
@@ -506,8 +505,6 @@ function wp_delete_secret( string $name ) {
  * that has never been rotated, or that does not exist, is a successful no-op:
  * the previous slot is already absent either way.
  *
- * Beyond the API surface the proposal names.
- *
  * @since 7.2.0
  *
  * @param string $name The secret's namespaced name.
@@ -520,10 +517,6 @@ function wp_retire_secret_version( string $name ) {
 /**
  * Lists secrets by name and metadata. Never a value.
  *
- * Beyond the API surface the proposal names, and justified by its statement that
- * the hooks and accessors a future admin screen needs are in scope now, even though
- * the screen itself is not.
- *
  * @since 7.2.0
  *
  * @param string $namespace Only secrets whose name starts with "{$namespace}/" are
@@ -534,7 +527,7 @@ function wp_retire_secret_version( string $name ) {
  *
  * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>|WP_Error
  */
-function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.namespaceFound -- $namespace is the parameter name the proposal specifies.
+function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.namespaceFound -- $namespace is the public parameter name; renaming it would break named-argument callers.
 	return _wp_secrets_list( $namespace, false );
 }
 
@@ -543,8 +536,7 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
  *
  * Site secrets and network secrets are separate functions with separate
  * capabilities and separate storage prefixes, with no implicit fallback from one
- * scope to the other. The proposal describes network scope but does not name these
- * functions; these are this implementation's names for them.
+ * scope to the other.
  *
  * @since 7.2.0
  *
