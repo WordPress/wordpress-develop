@@ -43,16 +43,36 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that a null document parses as an empty document instead of causing a fatal error.
+	 * Ensures that a document that is not a string returns an empty array and triggers a notice.
 	 *
 	 * @ticket 66138
 	 *
 	 * @covers ::parse
+	 *
+	 * @dataProvider data_non_string_documents
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 *
+	 * @param mixed $document Document that is not a string.
 	 */
-	public function test_parses_null_document_as_empty() {
+	public function test_returns_empty_array_for_non_string_document( $document ) {
 		$p = new WP_Block_Parser();
 
-		$this->assertSame( array(), $p->parse( null ) );
+		$this->assertSame( array(), $p->parse( $document ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_documents() {
+		return array(
+			'null'    => array( null ),
+			'false'   => array( false ),
+			'integer' => array( 123 ),
+			'array'   => array( array( 'content' ) ),
+		);
 	}
 
 	/**

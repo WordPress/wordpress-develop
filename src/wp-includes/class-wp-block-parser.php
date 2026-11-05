@@ -66,17 +66,27 @@ class WP_Block_Parser {
 	 * return an error on invalid inputs.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Returns an empty array and triggers a notice when the document is not a string.
 	 *
-	 * @param string|null $document Input document being parsed. Null is treated as an empty document.
+	 * @param string $document Input document being parsed.
 	 * @return array[]
 	 */
 	public function parse( $document ) {
-		$this->document = $document ?? '';
+		if ( ! is_string( $document ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The document must be a string.' ),
+				'7.2.0'
+			);
+			return array();
+		}
+
+		$this->document = $document;
 		$this->offset   = 0;
 		$this->output   = array();
 		$this->stack    = array();
 
-		$this->block_processor = new WP_Block_Processor( $this->document );
+		$this->block_processor = new WP_Block_Processor( $document );
 
 		while ( $this->proceed() ) {
 			continue;
