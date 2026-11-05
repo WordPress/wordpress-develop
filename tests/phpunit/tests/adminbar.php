@@ -700,6 +700,341 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The comments item is not added for users who cannot edit posts.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_comments_menu
+	 */
+	public function test_comments_menu_is_not_added_without_edit_posts_capability() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'comments' ) );
+	}
+
+	/**
+	 * The comments item links to the comments screen and shows the number of comments in moderation.
+	 *
+	 * @ticket 66491
+	 *
+	 * @dataProvider data_comments_menu_moderation_counts
+	 *
+	 * @covers ::wp_admin_bar_comments_menu
+	 *
+	 * @param int    $count         Number of comments awaiting moderation.
+	 * @param string $expected_text Expected hidden accessibility text.
+	 */
+	public function test_comments_menu_shows_number_of_comments_in_moderation( $count, $expected_text ) {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		self::factory()->comment->create_many(
+			$count,
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '0',
+			)
+		);
+		// Comments awaiting moderation are counted per request, so make sure the count is fresh.
+		wp_cache_delete( 'comments-0', 'counts' );
+
+		$wp_admin_bar  = $this->get_standard_admin_bar();
+		$node_comments = $wp_admin_bar->get_node( 'comments' );
+
+		$this->assertNotNull( $node_comments );
+		$this->assertSame( admin_url( 'edit-comments.php' ), $node_comments->href );
+		$this->assertSame( 'core-admin/comment', $node_comments->icon );
+		$this->assertStringContainsString( '<span class="ab-label awaiting-mod pending-count count-' . $count . '" aria-hidden="true">' . $count . '</span>', $node_comments->title );
+		$this->assertStringContainsString( '<span class="screen-reader-text comments-in-moderation-text">' . $expected_text . '</span>', $node_comments->title );
+	}
+
+	/**
+	 * Data provider for test_comments_menu_shows_number_of_comments_in_moderation().
+	 *
+	 * @return array[]
+	 */
+	public static function data_comments_menu_moderation_counts() {
+		return array(
+			'none'     => array( 0, '0 Comments in moderation' ),
+			'one'      => array( 1, '1 Comment in moderation' ),
+			'multiple' => array( 3, '3 Comments in moderation' ),
+		);
+	}
+
+	/**
+	 * The updates item is not added when there are no updates.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_updates_menu
+	 */
+	public function test_updates_menu_is_not_added_without_updates() {
+		wp_set_current_user( self::$admin_id );
+
+		add_filter( 'wp_get_update_data', array( $this, 'filter_update_data_with_no_updates' ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'updates' ) );
+	}
+
+	/**
+	 * The updates item shows the total number of updates and links to the updates screen.
+	 *
+	 * @ticket 66491
+	 *
+	 * @dataProvider data_updates_menu_totals
+	 *
+	 * @covers ::wp_admin_bar_updates_menu
+	 *
+	 * @param int    $total         Total number of available updates.
+	 * @param string $expected_text Expected hidden accessibility text.
+	 */
+	public function test_updates_menu_shows_total_number_of_updates( $total, $expected_text ) {
+		wp_set_current_user( self::$admin_id );
+
+		add_filter(
+			'wp_get_update_data',
+			static function ( $update_data ) use ( $total ) {
+				$update_data['counts']['total'] = $total;
+
+				return $update_data;
+			}
+		);
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_updates = $wp_admin_bar->get_node( 'updates' );
+
+		$this->assertNotNull( $node_updates );
+		$this->assertSame( network_admin_url( 'update-core.php' ), $node_updates->href );
+		$this->assertSame( 'core-admin/update', $node_updates->icon );
+		$this->assertStringContainsString( '<span class="ab-label" aria-hidden="true">' . $total . '</span>', $node_updates->title );
+		$this->assertStringContainsString( '<span class="screen-reader-text updates-available-text">' . $expected_text . '</span>', $node_updates->title );
+	}
+
+	/**
+	 * Data provider for test_updates_menu_shows_total_number_of_updates().
+	 *
+	 * @return array[]
+	 */
+	public static function data_updates_menu_totals() {
+		return array(
+			'one'      => array( 1, '1 update available' ),
+			'multiple' => array( 4, '4 updates available' ),
+		);
+	}
+
+	/**
+	 * The updates item counts available plugin updates for users who can update plugins.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_updates_menu
+	 */
+	public function test_updates_menu_counts_plugin_updates_for_users_who_can_update_plugins() {
+		wp_set_current_user( self::$admin_id );
+
+		// On multisite, only super admins can update plugins.
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'last_checked' => time(),
+				'response'     => array(
+					'foo/foo.php' => (object) array( 'new_version' => '2.0' ),
+					'bar/bar.php' => (object) array( 'new_version' => '2.0' ),
+				),
+			)
+		);
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_updates = $wp_admin_bar->get_node( 'updates' );
+
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+
+		$this->assertNotNull( $node_updates );
+		$this->assertStringContainsString( '<span class="ab-label" aria-hidden="true">2</span>', $node_updates->title );
+		$this->assertStringContainsString( '2 updates available', $node_updates->title );
+	}
+
+	/**
+	 * The updates item is not added for users who cannot update anything,
+	 * even when updates are available.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_updates_menu
+	 */
+	public function test_updates_menu_is_not_added_for_users_who_cannot_update() {
+		wp_set_current_user( self::$editor_id );
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'last_checked' => time(),
+				'response'     => array(
+					'foo/foo.php' => (object) array( 'new_version' => '2.0' ),
+				),
+			)
+		);
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'updates' ) );
+	}
+
+	/**
+	 * Filters the update data so that no updates are available.
+	 *
+	 * @param array $update_data Update data.
+	 * @return array Update data without any updates.
+	 */
+	public function filter_update_data_with_no_updates( $update_data ) {
+		$update_data['counts'] = array(
+			'plugins'      => 0,
+			'themes'       => 0,
+			'wordpress'    => 0,
+			'translations' => 0,
+			'total'        => 0,
+		);
+
+		return $update_data;
+	}
+
+	/**
+	 * The search form is added to the secondary group on the front end.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_search_menu
+	 */
+	public function test_search_menu_adds_search_form_on_front_end() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_search  = $wp_admin_bar->get_node( 'search' );
+
+		$this->assertNotNull( $node_search );
+		$this->assertSame( 'top-secondary', $node_search->parent );
+		$this->assertSame( 'admin-bar-search', $node_search->meta['class'] );
+		$this->assertSame( -1, $node_search->meta['tabindex'] );
+
+		$this->assertStringContainsString( '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">', $node_search->title );
+		$this->assertStringContainsString( '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />', $node_search->title );
+		$this->assertStringContainsString( '<label for="adminbar-search" class="screen-reader-text">Search</label>', $node_search->title );
+		$this->assertStringContainsString( '<input type="submit" class="adminbar-button" value="Search" />', $node_search->title );
+	}
+
+	/**
+	 * The search form is also added for logged-in users without any capabilities.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_search_menu
+	 */
+	public function test_search_menu_is_added_for_users_without_capabilities() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'search' ) );
+	}
+
+	/**
+	 * The search form action is escaped.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_search_menu
+	 */
+	public function test_search_menu_escapes_form_action() {
+		wp_set_current_user( self::$editor_id );
+
+		add_filter(
+			'home_url',
+			static function () {
+				return 'http://example.org/?foo=bar&baz="><script>';
+			}
+		);
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_search  = $wp_admin_bar->get_node( 'search' );
+
+		$this->assertStringNotContainsString( '<script>', $node_search->title );
+		$this->assertStringContainsString( 'action="' . esc_url( home_url( '/' ) ) . '"', $node_search->title );
+	}
+
+	/**
+	 * The search form is not added in the admin.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_search_menu
+	 */
+	public function test_search_menu_is_not_added_in_admin() {
+		wp_set_current_user( self::$editor_id );
+		set_current_screen( 'dashboard' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'search' ) );
+	}
+
+	/**
+	 * The exit recovery mode link is not added when recovery mode is not active.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_recovery_mode_menu
+	 */
+	public function test_recovery_mode_menu_is_not_added_when_recovery_mode_is_inactive() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertFalse( wp_is_recovery_mode() );
+		$this->assertNull( $wp_admin_bar->get_node( 'recovery-mode' ) );
+	}
+
+	/**
+	 * The exit recovery mode link is added when recovery mode is active.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_recovery_mode_menu
+	 */
+	public function test_recovery_mode_menu_links_to_exit_action_when_recovery_mode_is_active() {
+		wp_set_current_user( self::$admin_id );
+
+		$reflection = new ReflectionProperty( wp_recovery_mode(), 'is_active' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+
+		$was_active = $reflection->getValue( wp_recovery_mode() );
+		$reflection->setValue( wp_recovery_mode(), true );
+
+		$wp_admin_bar      = $this->get_standard_admin_bar();
+		$node_recovery     = $wp_admin_bar->get_node( 'recovery-mode' );
+		$expected_url      = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, wp_login_url() );
+		$expected_url_full = wp_nonce_url( $expected_url, WP_Recovery_Mode::EXIT_ACTION );
+
+		$reflection->setValue( wp_recovery_mode(), $was_active );
+
+		$this->assertNotNull( $node_recovery );
+		$this->assertSame( 'top-secondary', $node_recovery->parent );
+		$this->assertSame( 'Exit Recovery Mode', $node_recovery->title );
+		$this->assertSame( $expected_url_full, $node_recovery->href );
+	}
+
+	/**
 	 * @ticket 30937
 	 * @covers ::wp_admin_bar_customize_menu
 	 */
