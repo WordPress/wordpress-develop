@@ -47,6 +47,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 */
 	public function tear_down() {
 		unregister_post_type( 'wp_tests_private' );
+		_unregister_post_status( 'custom' );
 
 		parent::tear_down();
 	}
