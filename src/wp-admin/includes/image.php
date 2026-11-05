@@ -312,6 +312,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 		if ( is_wp_error( $editor ) ) {
 			// This image cannot be edited.
+			$image_meta['error'] = $editor->get_error_message();
 			return $image_meta;
 		}
 
@@ -364,6 +365,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 		if ( is_wp_error( $editor ) ) {
 			// This image cannot be edited.
+			$image_meta['error'] = $editor->get_error_message();
 			return $image_meta;
 		}
 
@@ -425,7 +427,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * @param string $file          Full path to the image file.
  * @param array  $image_meta    The attachment meta data array.
  * @param int    $attachment_id Attachment ID to process.
- * @return array The attachment meta data with updated `sizes` array. Includes an array of errors encountered while resizing.
+ * @return array The attachment meta data with updated `sizes` array. Includes an `error` key
+ *               if no suitable image editor could be found.
  */
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
@@ -472,6 +475,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 
 	if ( is_wp_error( $editor ) ) {
 		// The image cannot be edited.
+		$image_meta['error'] = $editor->get_error_message();
 		return $image_meta;
 	}
 

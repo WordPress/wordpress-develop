@@ -101,4 +101,25 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 		// Check that the full sized image with `-scaled` is created for the PNG.
 		$this->assertStringContainsString( '-scaled.png', basename( $metadata['file'] ) );
 	}
+
+	/**
+	 * Checks that a `wp_get_image_editor()` failure is surfaced in the metadata
+	 * instead of being silently swallowed.
+	 *
+	 * @ticket 35959
+	 *
+	 * @covers ::wp_create_image_subsizes
+	 * @covers ::_wp_make_subsizes
+	 */
+	public function test_wp_generate_attachment_metadata_surfaces_image_editor_error() {
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		$metadata = wp_get_attachment_metadata( $attachment );
+
+		$this->assertArrayHasKey( 'error', $metadata, 'Metadata is expected to record the image editor error.' );
+		$this->assertSame( 'No editor could be selected.', $metadata['error'] );
+		$this->assertEmpty( $metadata['sizes'], 'No sub-sizes are expected to be created without an image editor.' );
+	}
 }
