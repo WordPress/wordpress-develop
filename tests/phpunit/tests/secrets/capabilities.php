@@ -100,7 +100,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @covers ::upgrade_720
 	 *
-	 * @dataProvider data_upgrade_720_gate
+	 * @dataProvider data_upgrade_720_grants_manage_secrets_below_its_db_version
 	 *
 	 * @param int  $db_version     The database version being upgraded from.
 	 * @param bool $expect_granted Whether the upgrade should grant the capability.
@@ -125,7 +125,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: int, 1: bool}>
 	 */
-	public static function data_upgrade_720_gate() {
+	public static function data_upgrade_720_grants_manage_secrets_below_its_db_version() {
 		return array(
 			'upgrading from 7.0'              => array( 61644, true ),
 			'upgrading from just below 7.2'   => array( 64336, true ),

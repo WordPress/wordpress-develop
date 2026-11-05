@@ -11,7 +11,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_secrets_validate_name
 	 *
-	 * @dataProvider data_valid_names
+	 * @dataProvider data_accepts_valid_names
 	 *
 	 * @param string $name A name that must be accepted.
 	 */
@@ -22,7 +22,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_valid_names(): array {
+	public static function data_accepts_valid_names(): array {
 		return array(
 			'simple'                      => array( 'myplugin/api-key' ),
 			'single character segments'   => array( 'a/b' ),
@@ -40,7 +40,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_secrets_validate_name
 	 *
-	 * @dataProvider data_invalid_names
+	 * @dataProvider data_rejects_invalid_names
 	 *
 	 * @param string $name A name that must be rejected.
 	 */
@@ -52,6 +52,30 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_rejects_invalid_names(): array {
+		return array(
+			'empty string'                 => array( '' ),
+			'two slashes'                  => array( 'too/many/slashes' ),
+			'uppercase, unnamespaced'      => array( 'NotAValidName' ),
+			'space, unnamespaced'          => array( 'not a valid name' ),
+			'empty namespace'              => array( '/key' ),
+			'empty key'                    => array( 'namespace/' ),
+			'uppercase namespace'          => array( 'MyPlugin/key' ),
+			'uppercase key'                => array( 'plugin/MyKey' ),
+			'leading hyphen in namespace'  => array( '-plugin/key' ),
+			'trailing hyphen in namespace' => array( 'plugin-/key' ),
+			'leading underscore in key'    => array( 'plugin/_key' ),
+			'trailing underscore in key'   => array( 'plugin/key_' ),
+			'space in key'                 => array( 'plugin/key with space' ),
+			'dot in key'                   => array( 'plugin/key.name' ),
+			'non-ascii'                    => array( 'plügin/key' ),
+			'one character over the max'   => array( str_repeat( 'a', 85 ) . '/' . str_repeat( 'b', 87 ) ),
+		);
+	}
+
+	/**
 	 * An unnamespaced name is accepted, but reports through _doing_it_wrong().
 	 * It exists so code written against the Displace prototype – whose keyspace
 	 * was flat – can be ported one call site at a time rather than all at once.
@@ -59,7 +83,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_secrets_validate_name
 	 *
-	 * @dataProvider data_unnamespaced_names
+	 * @dataProvider data_accepts_an_unnamespaced_name_but_reports_it
 	 *
 	 * @param string $name An unnamespaced name that must be accepted.
 	 */
@@ -72,7 +96,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_unnamespaced_names(): array {
+	public static function data_accepts_an_unnamespaced_name_but_reports_it(): array {
 		return array(
 			'simple'      => array( 'api_key' ),
 			'with hyphen' => array( 'api-key' ),
@@ -93,29 +117,5 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'An unnamespaced name with invalid characters should be rejected with a WP_Error.' );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An unnamespaced name with invalid characters should be reported as an invalid name.' );
-	}
-
-	/**
-	 * @return array<string, array{0: string}>
-	 */
-	public static function data_invalid_names(): array {
-		return array(
-			'empty string'                 => array( '' ),
-			'two slashes'                  => array( 'too/many/slashes' ),
-			'uppercase, unnamespaced'      => array( 'NotAValidName' ),
-			'space, unnamespaced'          => array( 'not a valid name' ),
-			'empty namespace'              => array( '/key' ),
-			'empty key'                    => array( 'namespace/' ),
-			'uppercase namespace'          => array( 'MyPlugin/key' ),
-			'uppercase key'                => array( 'plugin/MyKey' ),
-			'leading hyphen in namespace'  => array( '-plugin/key' ),
-			'trailing hyphen in namespace' => array( 'plugin-/key' ),
-			'leading underscore in key'    => array( 'plugin/_key' ),
-			'trailing underscore in key'   => array( 'plugin/key_' ),
-			'space in key'                 => array( 'plugin/key with space' ),
-			'dot in key'                   => array( 'plugin/key.name' ),
-			'non-ascii'                    => array( 'plügin/key' ),
-			'one character over the max'   => array( str_repeat( 'a', 85 ) . '/' . str_repeat( 'b', 87 ) ),
-		);
 	}
 }

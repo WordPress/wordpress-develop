@@ -103,7 +103,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Cipher::encrypt_value
 	 *
-	 * @dataProvider data_bad_master_keys
+	 * @dataProvider data_encrypt_rejects_a_bad_master_key
 	 *
 	 * @param string $bad_key Master key the cipher must refuse.
 	 */
@@ -119,7 +119,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_bad_master_keys() {
+	public static function data_encrypt_rejects_a_bad_master_key() {
 		return array(
 			'too short' => array( str_repeat( 'a', 31 ) ),
 			'too long'  => array( str_repeat( 'a', 33 ) ),
@@ -199,7 +199,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
-	 * @dataProvider data_mismatched_context
+	 * @dataProvider data_decrypt_fails_when_context_does_not_match
 	 *
 	 * @param string $scope   Scope to decrypt under.
 	 * @param int    $site_id Site id to decrypt under.
@@ -222,7 +222,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string, 1: int, 2: string, 3: string}>
 	 */
-	public static function data_mismatched_context() {
+	public static function data_decrypt_fails_when_context_does_not_match() {
 		return array(
 			'different scope'   => array( 'network', 1, self::NAME, WP_Secret_Version::CURRENT ),
 			'different site id' => array( 'site', 2, self::NAME, WP_Secret_Version::CURRENT ),
@@ -254,7 +254,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
-	 * @dataProvider data_tamperable_fields
+	 * @dataProvider data_decrypt_fails_when_a_field_is_tampered
 	 *
 	 * @param string $field Record field to corrupt.
 	 */
@@ -282,7 +282,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_tamperable_fields() {
+	public static function data_decrypt_fails_when_a_field_is_tampered() {
 		return array(
 			'ciphertext'       => array( 'ct' ),
 			'value nonce'      => array( 'nonce' ),
@@ -296,7 +296,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Cipher::decrypt_value
 	 *
-	 * @dataProvider data_malformed_records
+	 * @dataProvider data_decrypt_rejects_a_malformed_record
 	 *
 	 * @param mixed $record Stored record the cipher must refuse.
 	 */
@@ -312,7 +312,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: mixed}>
 	 */
-	public static function data_malformed_records() {
+	public static function data_decrypt_rejects_a_malformed_record() {
 		return array(
 			'not an array'       => array( 'just a string' ),
 			'missing ct'         => array(

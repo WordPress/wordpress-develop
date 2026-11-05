@@ -124,7 +124,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * @covers WP_Secret::jsonSerialize
 	 * @covers WP_Secret::__debugInfo
 	 *
-	 * @dataProvider data_masking_surfaces
+	 * @dataProvider data_masking_surfaces_never_contain_the_plaintext
 	 *
 	 * @param callable( WP_Secret ): ( string|false ) $callback Renders the secret through one surface.
 	 */
@@ -140,7 +140,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: callable( WP_Secret ): ( string|false )}>
 	 */
-	public static function data_masking_surfaces() {
+	public static function data_masking_surfaces_never_contain_the_plaintext() {
 		return array(
 			'(string) cast'        => array(
 				function ( WP_Secret $secret ) {
@@ -265,7 +265,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * @covers WP_Secret::__serialize
 	 * @covers WP_Secret::__unserialize
 	 *
-	 * @dataProvider data_refusing_magic_methods
+	 * @dataProvider data_serialization_magic_methods_throw_directly
 	 *
 	 * @param string            $method Magic method name.
 	 * @param array<int, mixed> $args   Arguments to invoke it with.
@@ -285,7 +285,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string, 1: array<int, mixed>}>
 	 */
-	public static function data_refusing_magic_methods() {
+	public static function data_serialization_magic_methods_throw_directly() {
 		return array(
 			'__sleep'       => array( '__sleep', array() ),
 			'__wakeup'      => array( '__wakeup', array() ),

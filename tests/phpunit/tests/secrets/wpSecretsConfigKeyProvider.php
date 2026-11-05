@@ -173,7 +173,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::is_canonical_base64_32
 	 *
-	 * @dataProvider data_canonical_base64_32
+	 * @dataProvider data_is_canonical_base64_32
 	 *
 	 * @param string|int $value    Candidate value.
 	 * @param bool       $expected Whether it is the canonical base64 encoding of 32 bytes.
@@ -187,7 +187,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string|int, 1: bool}>
 	 */
-	public static function data_canonical_base64_32(): array {
+	public static function data_is_canonical_base64_32(): array {
 		return array(
 			'exactly 32 bytes, canonical encoding' => array( base64_encode( str_repeat( 'A', 32 ) ), true ),
 			'31 bytes'                             => array( base64_encode( str_repeat( 'A', 31 ) ), false ),
@@ -204,7 +204,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::are_usable_salt_values
 	 *
-	 * @dataProvider data_usable_salt_values
+	 * @dataProvider data_are_usable_salt_values
 	 *
 	 * @param string|int|null $key      Candidate LOGGED_IN_KEY value.
 	 * @param string          $salt     Candidate LOGGED_IN_SALT value.
@@ -219,7 +219,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string|int|null, 1: string, 2: bool}>
 	 */
-	public static function data_usable_salt_values(): array {
+	public static function data_are_usable_salt_values(): array {
 		return array(
 			'both usable'             => array( 'a real key', 'a real salt', true ),
 			'key is the placeholder'  => array( 'put your unique phrase here', 'a real salt', false ),

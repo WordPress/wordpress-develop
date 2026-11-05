@@ -163,7 +163,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 *
-	 * @dataProvider data_invalid_site_ids
+	 * @dataProvider data_get_master_key_reports_an_invalid_site_id_as_a_wp_error
 	 *
 	 * @param int $site_id A value that is not a usable blog id.
 	 */
@@ -181,7 +181,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: int}>
 	 */
-	public static function data_invalid_site_ids(): array {
+	public static function data_get_master_key_reports_an_invalid_site_id_as_a_wp_error(): array {
 		return array(
 			'zero'     => array( 0 ),
 			'negative' => array( -1 ),
