@@ -50,7 +50,6 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		 */
 		$this->original_wp_interactivity = $wp_interactivity;
 		$wp_interactivity                = new WP_Interactivity_API();
-		$wp_interactivity->add_hooks();
 
 		$interactive_block = array(
 			'render_callback' => function ( $attributes, $content ) {

@@ -42,7 +42,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		 */
 		$this->original_wp_interactivity = $wp_interactivity;
 		$wp_interactivity                = new WP_Interactivity_API();
-		$wp_interactivity->add_hooks();
 
 		$this->interactivity = $wp_interactivity;
 		wp_default_script_modules();
