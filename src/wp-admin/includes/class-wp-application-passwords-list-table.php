@@ -29,6 +29,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			'created'   => __( 'Created' ),
 			'last_used' => __( 'Last Used' ),
 			'last_ip'   => __( 'Last IP' ),
+			'expires'   => __( 'Expires' ),
 			'revoke'    => __( 'Revoke' ),
 		);
 	}
@@ -99,6 +100,35 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		} else {
 			echo $item['last_ip'];
 		}
+	}
+
+	/**
+	 * Handles the expires column output.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_expires( $item ) {
+		if ( empty( $item['expires'] ) ) {
+			echo '&mdash;';
+		} else {
+			$date = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $item['expires'] );
+			if ( time() > $item['expires'] ) {
+				printf(
+					'%s',
+					/* translators: %s: Expiration date and time for the Application Password. */
+					sprintf( esc_html__( 'Expired on %s' ), esc_html( $date ) )
+				);
+			} else {
+				echo esc_html( $date );
+			}
+		}
+		printf(
+			'<br><button type="button" class="button-link edit-expires" aria-label="%s">%s</button>',
+			esc_attr__( 'Edit Expiration Date and Time' ),
+			esc_html__( 'Edit Expiry' )
+		);
 	}
 
 	/**
@@ -178,7 +208,8 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * @param array $item The current item.
 	 */
 	public function single_row( $item ) {
-		echo '<tr data-uuid="' . esc_attr( $item['uuid'] ) . '">';
+		$expires = ! empty( $item['expires'] ) ? gmdate( 'Y-m-d\TH:i:s', $item['expires'] ) : '';
+		echo '<tr data-uuid="' . esc_attr( $item['uuid'] ) . '" data-expires="' . esc_attr( $expires ) . '">';
 		$this->single_row_columns( $item );
 		echo '</tr>';
 	}
@@ -202,7 +233,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	public function print_js_template_row() {
 		list( $columns, $hidden, , $primary ) = $this->get_column_info();
 
-		echo '<tr data-uuid="{{ data.uuid }}">';
+		echo '<tr data-uuid="{{ data.uuid }}" data-expires="{{ data.expires || \'\' }}">';
 
 		foreach ( $columns as $column_name => $display_name ) {
 			$is_primary = $primary === $column_name;
@@ -236,6 +267,26 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					break;
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
+					break;
+				case 'expires':
+					?>
+					<# if ( data.expires ) { #>
+						<# var expiresDate = new Date( data.expires + 'Z' ); #>
+						<# var isExpired = new Date().getTime() > expiresDate.getTime(); #>
+						<# var formattedDate = wp.date.dateI18n( <?php echo wp_json_encode( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ); ?>, expiresDate ); #>
+						<# if ( isExpired ) { #>
+							<?php
+							/* translators: %s: Expiration date and time for the Application Password. */
+							printf( esc_html__( 'Expired on %s' ), '{{ formattedDate }}' );
+							?>
+						<# } else { #>
+							{{ formattedDate }}
+						<# } #>
+					<# } else { #>
+						—
+					<# } #>
+					<br><button type="button" class="button-link edit-expires" aria-label="<?php esc_attr_e( 'Edit Expiration Date and Time' ); ?>"><?php esc_html_e( 'Edit Expiry' ); ?></button>
+					<?php
 					break;
 				case 'revoke':
 					printf(
