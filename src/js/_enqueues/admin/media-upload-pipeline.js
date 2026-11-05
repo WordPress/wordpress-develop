@@ -38,6 +38,11 @@ window.wp = window.wp || {};
 
 	const imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
 
+	// Image subtypes the pipeline processes. Keep in sync with
+	// CLIENT_SIDE_SUPPORTED_MIME_TYPES and HEIC_MIME_TYPES in the
+	// upload-media package.
+	const IMAGE_SUBTYPES = [ 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'heif' ];
+
 	/**
 	 * Recursively appends data to a FormData object, supporting nested objects.
 	 *
@@ -413,22 +418,42 @@ window.wp = window.wp || {};
 	}
 
 	/**
+	 * Gets the image subtype of a file name the pipeline can process.
+	 *
+	 * @param {string} fileName A file name.
+	 * @return {string|null} The subtype, eg. `jpeg` for `photo.jpg`, or
+	 *                       null when the pipeline does not process it.
+	 */
+	function getImageSubtype( fileName ) {
+		const match = /\.([a-z0-9]+)$/i.exec( fileName || '' );
+		if ( ! match ) {
+			return null;
+		}
+		// `jpg` is not a valid subtype, so map it to `jpeg`.
+		const extension = match[ 1 ].toLowerCase();
+		const subtype = 'jpg' === extension ? 'jpeg' : extension;
+		return IMAGE_SUBTYPES.includes( subtype ) ? subtype : null;
+	}
+
+	/**
 	 * Whether a file is an image the client-side pipeline can process.
 	 *
-	 * Mirrors the formats the upload-media store processes in the browser:
-	 * the wasm-vips formats, plus HEIC and HEIF, which it converts. A HEIC
-	 * file is also matched by its extension, since browsers on platforms
-	 * without a HEIC codec may give it no type at all.
+	 * A HEIC file is also matched by its extension, since browsers on
+	 * platforms without a HEIC codec may give it no type at all.
 	 *
 	 * @param {plupload.File} file A file added to the plupload queue.
 	 * @return {boolean} True when the pipeline should take the file.
 	 */
 	function isPipelineFile( file ) {
-		return (
-			/^image\/(?:jpeg|png|gif|webp|avif|heic|heif)$/i.test(
-				file.type || ''
-			) || /\.hei[cf]$/i.test( file.name || '' )
-		);
+		const type = ( file.type || '' ).toLowerCase();
+		if (
+			type.startsWith( 'image/' ) &&
+			IMAGE_SUBTYPES.includes( type.slice( 6 ) )
+		) {
+			return true;
+		}
+		const subtype = getImageSubtype( file.name );
+		return 'heic' === subtype || 'heif' === subtype;
 	}
 
 	/**
@@ -759,5 +784,6 @@ window.wp = window.wp || {};
 		isReady: isReady,
 		routeBatch: routeBatch,
 		getErrorText: getErrorText,
+		getImageSubtype: getImageSubtype,
 	};
 } )( window.wp );

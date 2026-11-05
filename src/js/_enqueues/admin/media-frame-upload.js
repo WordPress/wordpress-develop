@@ -200,18 +200,12 @@
 					percent: file.percent,
 				};
 
-				/*
-				 * Early mime type scanning for images, as wp-plupload.js does,
-				 * extended with the formats the client-side pipeline accepts.
-				 */
-				const image = /(?:jpe?g|png|gif|webp|avif|heic|heif)$/i.exec(
-					file.name
-				);
-				if ( image ) {
+				// Early mime type scanning for images, as wp-plupload.js does,
+				// for the formats the pipeline processes.
+				const subtype = pipeline.getImageSubtype( file.name );
+				if ( subtype ) {
 					attributes.type = 'image';
-					// `jpg` is not a valid subtype, so map it to `jpeg`.
-					const subtype = image[ 0 ].toLowerCase();
-					attributes.subtype = 'jpg' === subtype ? 'jpeg' : subtype;
+					attributes.subtype = subtype;
 				}
 
 				const model = wp.media.model.Attachment.create( attributes );
