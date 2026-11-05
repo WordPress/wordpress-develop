@@ -97,3 +97,18 @@ function wp_invariants_fixture_outer() {
 function wp_invariants_fixture_inner() {
 	return 1;
 }
+
+/**
+ * Takes one declared argument and any number of others, and has a local variable.
+ *
+ * PHP keeps the arguments beyond those a function declares apart from the
+ * declared ones, after its local variables.
+ *
+ * @param mixed $first   First argument.
+ * @param mixed ...$rest Other arguments.
+ * @return int How many other arguments there were.
+ */
+function wp_invariants_fixture_variadic( $first, ...$rest ) {
+	$local = array( $first, $rest );
+	return count( $local[1] );
+}

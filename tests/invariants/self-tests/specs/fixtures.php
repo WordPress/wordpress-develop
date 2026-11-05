@@ -147,6 +147,21 @@ return array(
 			}
 		),
 
+	WP_Invariant::define( 'extra-arguments' )
+		->describe( 'Checks see every argument of a variadic function, before and after the call. The gameshark extension at a7f9b79 passed undefined values instead of the extra ones.' )
+		->before(
+			'wp_invariants_fixture_variadic',
+			static function ( WP_Invariant_Call $call ) {
+				$call->expect( array( 1, 'two', array( 3 ) ) === $call->args() && array( 'two', array( 3 ) ) === $call->arg( 'rest' ), 'A before check got %s.', $call->args() );
+			}
+		)
+		->after(
+			'wp_invariants_fixture_variadic',
+			static function ( WP_Invariant_Call $call ) {
+				$call->expect( array( 1, 'two', array( 3 ) ) === $call->args() && 2 === $call->return_value(), 'An after check got %s.', $call->args() );
+			}
+		),
+
 	WP_Invariant::define( 'check-throws' )
 		->describe( 'A check which throws is recorded as a hook error.' )
 		->before(

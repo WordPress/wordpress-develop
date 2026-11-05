@@ -127,6 +127,13 @@ class Tests_Invariants_Hooks extends TestCase {
 		$this->assertSame( array( 'calls' => $run_calls + 1 ), WP_Invariant::all()['fixtures/counted-per-run']->current_state() );
 	}
 
+	public function test_checks_see_every_argument_of_a_variadic_function() {
+		wp_invariants_fixture_call( 'wp_invariants_fixture_variadic', 1, 'two', array( 3 ) );
+
+		$this->assertSame( array(), WP_Invariant_Violations::in_test() );
+		$this->assertGreaterThan( 0, $this->runs( 'fixtures/extra-arguments#1' ) );
+	}
+
 	public function test_check_which_throws_is_recorded_without_breaking_the_call() {
 		$this->assertSame( 'kept', wp_invariants_fixture_call( 'wp_invariants_fixture_error', 'kept' ) );
 
