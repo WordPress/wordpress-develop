@@ -96,7 +96,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-14 ]
+        os: [ macos-15 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -125,6 +125,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.8'
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -143,11 +144,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-14 ]
+        os: [ macos-15 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.8'
 
   slack-notifications:
     name: Slack Notifications
