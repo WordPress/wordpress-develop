@@ -99,6 +99,8 @@ function get_default_feed() {
  *
  * @param string $deprecated Unused.
  * @return string The document title.
+ *
+ * @phpstan-param '&#8211;' $deprecated
  */
 function get_wp_title_rss( $deprecated = '&#8211;' ) {
 	if ( '&#8211;' !== $deprecated ) {
@@ -125,6 +127,8 @@ function get_wp_title_rss( $deprecated = '&#8211;' ) {
  * @since 4.4.0 The optional `$sep` parameter was deprecated and renamed to `$deprecated`.
  *
  * @param string $deprecated Unused.
+ *
+ * @phpstan-param '&#8211;' $deprecated
  */
 function wp_title_rss( $deprecated = '&#8211;' ) {
 	if ( '&#8211;' !== $deprecated ) {
@@ -406,13 +410,24 @@ function get_the_category_rss( $type = null ) {
 
 	$cat_names = array_unique( $cat_names );
 
+	$atom_scheme  = '';
+	$blog_charset = '';
+
+	if ( $cat_names ) {
+		if ( 'atom' === $type ) {
+			$atom_scheme = get_bloginfo_rss( 'url' );
+		} elseif ( 'rdf' !== $type ) {
+			$blog_charset = get_option( 'blog_charset' );
+		}
+	}
+
 	foreach ( $cat_names as $cat_name ) {
 		if ( 'rdf' === $type ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
-			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( get_bloginfo_rss( 'url' ) ), esc_attr( $cat_name ) );
+			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( $atom_scheme ), esc_attr( $cat_name ) );
 		} else {
-			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
+			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, $blog_charset ) . "]]></category>\n";
 		}
 	}
 
@@ -700,6 +715,126 @@ function self_link() {
 }
 
 /**
+ * Retrieves the XML namespaces for the root element of a feed.
+ *
+ * Namespaces are keyed by their prefix, so the same prefix cannot be
+ * declared twice. The default namespaces of a feed type cannot be removed,
+ * as the bundled feed templates use them in their static markup.
+ *
+ * @since 7.2.0
+ *
+ * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
+ *                     'rdf', 'atom', and 'atom-comments'.
+ * @return array<string, string> Array of namespace URIs, keyed by their prefix.
+ * @phpstan-param non-falsy-string $type
+ * @phpstan-return array<non-falsy-string, non-falsy-string>
+ */
+function wp_get_feed_namespaces( string $type ): array {
+	$defaults = array();
+
+	switch ( $type ) {
+		case 'rss2':
+			$defaults = array(
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+				'wfw'     => 'http://wellformedweb.org/CommentAPI/',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'atom'    => 'http://www.w3.org/2005/Atom',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+				'slash'   => 'http://purl.org/rss/1.0/modules/slash/',
+			);
+			break;
+
+		case 'rss2-comments':
+			$defaults = array(
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'atom'    => 'http://www.w3.org/2005/Atom',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+			);
+			break;
+
+		case 'rdf':
+			$defaults = array(
+				'rdf'     => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+				'dc'      => 'http://purl.org/dc/elements/1.1/',
+				'sy'      => 'http://purl.org/rss/1.0/modules/syndication/',
+				'admin'   => 'http://webns.net/mvcb/',
+				'content' => 'http://purl.org/rss/1.0/modules/content/',
+			);
+			break;
+
+		case 'atom':
+		case 'atom-comments':
+			$defaults = array(
+				'thr' => 'http://purl.org/syndication/thread/1.0',
+			);
+			break;
+	}
+
+	/**
+	 * Filters the XML namespaces of a feed's root element.
+	 *
+	 * Namespaces are keyed by their prefix, which makes duplicate `xmlns`
+	 * attributes impossible.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, string> $namespaces Array of namespace URIs, keyed by their prefix.
+	 * @param string                $type       Type of feed. Possible values include 'rss2',
+	 *                                          'rss2-comments', 'rdf', 'atom', and 'atom-comments'.
+	 */
+	$namespaces = apply_filters( 'wp_feed_namespaces', $defaults, $type );
+
+	if ( ! is_array( $namespaces ) ) {
+		$namespaces = array();
+	}
+
+	// The bundled feed templates use the default namespaces, so they cannot be removed.
+	$namespaces = array_merge( $namespaces, $defaults );
+
+	$sanitized = array();
+
+	foreach ( $namespaces as $prefix => $uri ) {
+		$prefix = (string) $prefix;
+
+		// Prefixes must be valid XML names, and the `xml` and `xmlns` prefixes are reserved.
+		if ( ! preg_match( '/^[\p{L}_][\p{L}\p{M}\p{N}._\-\x{B7}]*\z/u', $prefix )
+			|| in_array( strtolower( $prefix ), array( 'xml', 'xmlns' ), true )
+		) {
+			continue;
+		}
+
+		if ( ! is_string( $uri ) || empty( $uri ) ) {
+			continue;
+		}
+
+		$sanitized[ $prefix ] = $uri;
+	}
+
+	return $sanitized;
+}
+
+/**
+ * Displays the XML namespaces for the root element of a feed.
+ *
+ * Plugins should add namespaces via the {@see 'wp_feed_namespaces'} filter instead
+ * of the older {@see "{$type}_ns"} actions, as two action callbacks printing the
+ * same namespace produce a duplicate attribute, which is a well-formedness
+ * error in XML.
+ *
+ * @since 7.2.0
+ *
+ * @param string $type Type of feed. Possible values include 'rss2', 'rss2-comments',
+ *                     'rdf', 'atom', and 'atom-comments'.
+ * @phpstan-param non-falsy-string $type
+ */
+function wp_feed_namespaces( string $type ): void {
+	foreach ( wp_get_feed_namespaces( $type ) as $prefix => $uri ) {
+		printf( "xmlns:%s=\"%s\"\n\t", $prefix, esc_attr( $uri ) );
+	}
+}
+
+/**
  * Gets the UTC time of the most recently modified post from WP_Query.
  *
  * If viewing a comment feed, the time of the most recently modified
@@ -719,21 +854,56 @@ function get_feed_build_date( $format ) {
 	$max_modified_time = false;
 	$utc               = new DateTimeZone( 'UTC' );
 
-	if ( ! empty( $wp_query ) && $wp_query->have_posts() ) {
-		// Extract the post modified times from the posts.
-		$modified_times = wp_list_pluck( $wp_query->posts, 'post_modified_gmt' );
+	if ( $wp_query instanceof WP_Query && is_array( $wp_query->posts ) ) {
+		/*
+		 * Collect the post modified times. WP_Post objects are read as-is, since
+		 * passing them through get_post() would look them up again by ID, which
+		 * drops virtual posts and discards in-memory changes. Queries using
+		 * fields => 'ids' (or 'id=>parent') yield post IDs instead, which are
+		 * looked up after priming the post cache to avoid a query per post.
+		 */
+		$modified_times = array();
+		$post_ids       = array();
+		foreach ( $wp_query->posts as $post ) {
+			if ( $post instanceof WP_Post ) {
+				$modified_times[] = $post->post_modified_gmt;
+			} elseif ( is_int( $post ) ) {
+				// A post ID, from a query with fields => 'ids'.
+				$post_ids[] = $post;
+			} elseif ( is_object( $post ) && isset( $post->ID ) && is_int( $post->ID ) ) {
+				/*
+				 * A partial post object of shape object{ ID: int, post_parent: int },
+				 * from a query with fields => 'id=>parent'. It lacks post_modified_gmt,
+				 * so the post is looked up by its ID.
+				 */
+				$post_ids[] = $post->ID;
+			}
+		}
+
+		if ( $post_ids ) {
+			_prime_post_caches( $post_ids, false, false );
+			foreach ( $post_ids as $post_id ) {
+				$post = get_post( $post_id );
+				if ( $post instanceof WP_Post ) {
+					$modified_times[] = $post->post_modified_gmt;
+				}
+			}
+		}
 
 		// If this is a comment feed, check those objects too.
-		if ( $wp_query->is_comment_feed() && $wp_query->comment_count ) {
-			// Extract the comment modified times from the comments.
-			$comment_times = wp_list_pluck( $wp_query->comments, 'comment_date_gmt' );
-
-			// Add the comment times to the post times for comparison.
-			$modified_times = array_merge( $modified_times, $comment_times );
+		if ( $wp_query->is_comment_feed() && is_array( $wp_query->comments ) ) {
+			foreach ( $wp_query->comments as $comment ) {
+				// A 'get_comment' filter may have returned null for a comment.
+				if ( $comment instanceof WP_Comment ) {
+					$modified_times[] = $comment->comment_date_gmt;
+				}
+			}
 		}
 
 		// Determine the maximum modified time.
-		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
+		if ( $modified_times ) {
+			$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
+		}
 	}
 
 	if ( false === $datetime ) {

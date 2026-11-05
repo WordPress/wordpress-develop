@@ -65,7 +65,7 @@ function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max
 			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
 			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
 			$i,
-			$end - $i
+			min( $end - $i, $max_count - $count )
 		);
 
 		if ( $count + $ascii_byte_count >= $max_count ) {
@@ -120,7 +120,7 @@ function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max
 		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
 		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
 		 *
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
 		 */
 
 		// Valid two-byte code points.
@@ -197,7 +197,7 @@ function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max
 		 * > Furthermore, this practice can be defined consistently for better
 		 * > interoperability between different implementations of conversion.
 		 *
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
 		 */
 		invalid_utf8:
 		$at             = $i;

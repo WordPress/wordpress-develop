@@ -287,11 +287,84 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Plugins_List_Table::single_row() determines the auto-update
+	 * message once, rather than for each plugin with an update.
+	 *
+	 * The 'ms-excluded' group is added as the auto-updates column is only shown in the network admin.
+	 *
+	 * @ticket 27814
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers WP_Plugins_List_Table::single_row
+	 */
+	public function test_single_row_should_determine_the_auto_update_message_once() {
+		add_filter( 'plugins_auto_update_enabled', '__return_true' );
+		add_filter( 'request_filesystem_credentials', '__return_true' );
+
+		$vcs_checks = 0;
+		add_filter(
+			'automatic_updates_is_vcs_checkout',
+			static function () use ( &$vcs_checks ) {
+				++$vcs_checks;
+				return true;
+			}
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$list_table_mock = $this->getMockBuilder( 'WP_Plugins_List_Table' )
+			->setMethods( array( 'get_column_info' ) )
+			->getMock();
+
+		$list_table_mock->method( 'get_column_info' )->willReturn(
+			array(
+				array(
+					'name'         => 'Plugin',
+					'auto-updates' => 'Auto-updates',
+				),
+				array(),
+				array(),
+				'name',
+			)
+		);
+
+		$output = '';
+		foreach ( array( 'plugin-one', 'plugin-two' ) as $slug ) {
+			ob_start();
+			$list_table_mock->single_row(
+				array(
+					"$slug/$slug.php",
+					array(
+						'Name'             => $slug,
+						'slug'             => $slug,
+						'Description'      => 'A plugin with an update available.',
+						'Author'           => 'A plugin author',
+						'Version'          => '1.0.0',
+						'Author URI'       => 'http://example.org',
+						'Text Domain'      => $slug,
+						'update'           => true,
+						'update-supported' => true,
+					),
+				)
+			);
+			$output .= ob_get_clean();
+		}
+
+		$this->assertSame( 1, $vcs_checks, 'Version control was not checked exactly once.' );
+		$this->assertSame(
+			2,
+			substr_count( $output, 'appears to be under version control' ),
+			'The auto-update message was not output for both plugins.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
 	 */
-	public function data_status_mustuse_and_dropins() {
+	public static function data_status_mustuse_and_dropins() {
 		return array(
 			'Must-Use' => array( 'mustuse' ),
 			'Drop-ins' => array( 'dropins' ),
