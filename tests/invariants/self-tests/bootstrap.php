@@ -13,3 +13,7 @@ require_once dirname( __DIR__ ) . '/includes/class-wp-invariant-phpunit-extensio
 require_once __DIR__ . '/fixtures/core.php';
 require_once __DIR__ . '/fixtures/class-wp-invariants-fixture.php';
 require_once __DIR__ . '/fixtures/class-wp-invariants-fixture-properties.php';
+require_once __DIR__ . '/fixtures/types/functions.php';
+require_once __DIR__ . '/fixtures/types/class-wp-invariants-types-fixture.php';
+require_once __DIR__ . '/fixtures/types/class-wp-invariants-types-private-fixture.php';
+require_once __DIR__ . '/fixtures/types/interface-wp-invariants-types-fixture-interface.php';

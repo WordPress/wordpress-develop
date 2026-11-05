@@ -378,6 +378,166 @@ final class WP_Invariant {
 	}
 
 	/**
+	 * Returns every named function and method declared in the PHP files of some directories.
+	 *
+	 * The files are read as tokens, never included, so this works before WordPress
+	 * loads, as spec files do. Functions declared inside other blocks, such as
+	 * `if ( ! function_exists() )`, are included. Closures, abstract methods,
+	 * and the methods of interfaces and traits are not: they are never the target
+	 * of a call, which for a trait method is the class which uses it.
+	 *
+	 * @param string[] $directories Directories, searched recursively.
+	 * @param string[] $exclude     Directories and files inside them to leave out.
+	 * @return array[] Each with `target` (`name` or `Class::name`), `class`, `function`,
+	 *                 `file`, `line`, `static`, `visibility` (`public`, `protected` or
+	 *                 `private`), `magic`, `private` (named with `_`, or documented
+	 *                 `@access private`, on itself or its class) and `deprecated`.
+	 */
+	public static function functions_in( array $directories, array $exclude = array() ) {
+		$exclude = array_map(
+			static function ( $path ) {
+				return rtrim( $path, '/' );
+			},
+			$exclude
+		);
+
+		$files = array();
+		foreach ( $directories as $directory ) {
+			if ( ! is_dir( $directory ) ) {
+				continue;
+			}
+			foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
+				$path = $file->getPathname();
+				if ( 'php' !== $file->getExtension() ) {
+					continue;
+				}
+				foreach ( $exclude as $excluded ) {
+					if ( $path === $excluded || 0 === strpos( $path, $excluded . '/' ) ) {
+						continue 2;
+					}
+				}
+				$files[] = $path;
+			}
+		}
+		sort( $files );
+
+		$functions = array();
+		foreach ( $files as $file ) {
+			foreach ( self::functions_in_file( $file ) as $function ) {
+				$functions[] = $function;
+			}
+		}
+
+		return $functions;
+	}
+
+	/**
+	 * Returns the named functions and methods declared in one PHP file.
+	 *
+	 * @see WP_Invariant::functions_in()
+	 *
+	 * @param string $file PHP file.
+	 * @return array[]
+	 */
+	private static function functions_in_file( $file ) {
+		$tokens    = token_get_all( file_get_contents( $file ) );
+		$functions = array();
+		$depth     = 0;
+		$class     = null;
+		$body      = null;
+		$doc       = '';
+		$modifiers = array();
+
+		foreach ( $tokens as $index => $token ) {
+			// A doc comment and modifiers belong to the declaration which follows them.
+			if ( '{' === $token || ';' === $token || '}' === $token ) {
+				$doc       = '';
+				$modifiers = array();
+			}
+
+			if ( '{' === $token || ( is_array( $token ) && in_array( $token[0], array( T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES ), true ) ) ) {
+				++$depth;
+				continue;
+			}
+			if ( '}' === $token ) {
+				--$depth;
+				if ( $depth === $body ) {
+					$class = null;
+					$body  = null;
+				}
+				continue;
+			}
+			if ( ! is_array( $token ) ) {
+				continue;
+			}
+
+			switch ( $token[0] ) {
+				case T_DOC_COMMENT:
+					$doc = $token[1];
+					continue 2;
+
+				case T_PUBLIC:
+				case T_PROTECTED:
+				case T_PRIVATE:
+				case T_STATIC:
+				case T_ABSTRACT:
+					$modifiers[ $token[0] ] = true;
+					continue 2;
+			}
+
+			$next = self::next_token( $tokens, $index );
+			if ( in_array( $token[0], array( T_CLASS, T_TRAIT, T_INTERFACE, T_ENUM ), true ) && null === $class && is_array( $next ) && T_STRING === $next[0] ) {
+				// Not `Foo::class`, nor `new class`, which are followed by other tokens.
+				$class = array(
+					'name'    => $next[1],
+					'methods' => T_CLASS === $token[0] || T_ENUM === $token[0],
+					'private' => false !== stripos( $doc, '@access private' ),
+				);
+				$body  = $depth;
+				continue;
+			}
+			if ( T_FUNCTION !== $token[0] ) {
+				continue;
+			}
+
+			// A function which returns by reference has `&` before its name, a token of its own since PHP 8.1.
+			$by_reference = '&' === $next || ( is_array( $next ) && T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG === $next[0] );
+			$name_index   = $by_reference ? self::next_token_index( $tokens, self::next_token_index( $tokens, $index ) ) : self::next_token_index( $tokens, $index );
+			$name         = null === $name_index ? null : $tokens[ $name_index ];
+			if ( ! is_array( $name ) || T_STRING !== $name[0] ) {
+				continue;
+			}
+
+			$method = null !== $class && $depth === $body + 1;
+			if ( $method && ( ! $class['methods'] || isset( $modifiers[ T_ABSTRACT ] ) ) ) {
+				continue;
+			}
+
+			$visibility = 'public';
+			if ( $method && isset( $modifiers[ T_PROTECTED ] ) ) {
+				$visibility = 'protected';
+			} elseif ( $method && isset( $modifiers[ T_PRIVATE ] ) ) {
+				$visibility = 'private';
+			}
+
+			$functions[] = array(
+				'target'     => $method ? "{$class['name']}::{$name[1]}" : $name[1],
+				'class'      => $method ? $class['name'] : null,
+				'function'   => $name[1],
+				'file'       => $file,
+				'line'       => $token[2],
+				'static'     => $method && isset( $modifiers[ T_STATIC ] ),
+				'visibility' => $visibility,
+				'magic'      => $method && 0 === strpos( $name[1], '__' ),
+				'private'    => ( ! $method && '_' === $name[1][0] ) || false !== stripos( $doc, '@access private' ) || ( $method && $class['private'] ),
+				'deprecated' => false !== stripos( $doc, '@deprecated' ),
+			);
+		}
+
+		return $functions;
+	}
+
+	/**
 	 * Whether a filter or action has callbacks.
 	 *
 	 * It reads $wp_filter directly, and runs no hook.
@@ -770,10 +930,26 @@ final class WP_Invariant {
 	 * @return array|string|null
 	 */
 	private static function next_token( array $tokens, $index ) {
+		$next = self::next_token_index( $tokens, $index );
+		return null === $next ? null : $tokens[ $next ];
+	}
+
+	/**
+	 * Returns where the next token is which is not whitespace or a comment.
+	 *
+	 * @param array    $tokens Tokens from token_get_all().
+	 * @param int|null $index  Position to look after.
+	 * @return int|null
+	 */
+	private static function next_token_index( array $tokens, $index ) {
+		if ( null === $index ) {
+			return null;
+		}
+
 		$count = count( $tokens );
 		for ( $i = $index + 1; $i < $count; $i++ ) {
 			if ( ! is_array( $tokens[ $i ] ) || ! in_array( $tokens[ $i ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
-				return $tokens[ $i ];
+				return $i;
 			}
 		}
 

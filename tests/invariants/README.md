@@ -210,9 +210,37 @@ A hook on a function which runs often, such as `get_post`, runs millions of time
 - A check which throws is reported as a hook error, and the code under test carries on.
 - A target which is never called, which is what a misspelled target looks like, is listed in the report under "Hooks which never ran".
 
+## Types report
+
+With `WP_INVARIANTS_TYPES=1`, as in CI, the run also counts the types of the arguments every WordPress function and method is given, and of the values it returns. The result is a second report, `invariants-types.md` and `invariants-types.json`, beside the invariant report, for adding type annotations and correcting them:
+
+```
+wp_kses()  src/wp-includes/kses.php:979
+    calls: 242 (154 core, 88 tests)
+    $content                      @param string
+         242: string                  (154 core, 88 tests)
+    $allowed_html                 @param array[]|string
+          92: false                   (92 core)
+          37: 'post'                  (34 core, 3 tests)
+    ...
+```
+
+- **What it covers:** every named function and method declared in `src/wp-includes` and `src/wp-admin`, private or not. Private ones are marked, as are protected and private methods, magic methods, static methods, deprecated functions and generators. The bundled third-party libraries which `tests/phpstan/base.neon` lists are left out, as are closures and the methods of traits and interfaces. `WP_Invariant::functions_in()` finds them from the source, and functions which were never called are listed at the end.
+- **How it counts them:** two catch-all hooks of the extension, with the target `*`, run before and after every call to a user-space function in those directories. Each type is counted separately for calls from WordPress and for calls made directly from tests, which deliberately pass odd types.
+- **Documented types:** the native type, the PHPDoc `@param` or `@return` type, and the PHPStan `@phpstan-param` or `@phpstan-return` type are shown as written, next to what was counted. The report does not decide whether they agree; the JSON keeps them in separate fields, for a script to compare.
+- **How types are written:**
+  - `true` and `false` are shown apart until both are seen, then as `bool`.
+  - Up to 10 distinct strings shorter than 32 bytes are shown as literals, such as `'post'`. Another distinct string, or a longer one, makes them all `string`.
+  - An array is `array{}` when empty, `list<…>` with the types of its first 16 elements, or a record such as `array{post_type: string, paged?: int}` of its first-level keys, where `?` marks a key some arrays did not have. Past 64 keys, it is `array`.
+  - A stdClass object is a record of its properties, like an array, and other objects are their class.
+  - `(not passed)` counts calls which left out an optional parameter, and `(extra)` counts arguments beyond the declared parameters of a function without a variadic one.
+- **Separate processes:** tests which run in a separate process save what they counted when they finish, and the report adds it in. This needs the extension enabled in an ini file, as in CI.
+
+Return values can be counted fewer times than calls: none is counted for a call which throws, or for a generator, whose caller receives a Generator. The cost is about twice the run time of the groups measured locally.
+
 ## Limits
 
-- Tests which run in a separate process run the hooks too, but what they record is not reported.
+- Tests which run in a separate process run the hooks too, but what their invariants record is not reported. The types report does include what they count.
 - The extension tracks at most 128 nested calls with after checks at once; deeper calls get no after checks.
 - The suite needs PHP 8.5 or newer, for the oracles. The extension does not support thread-safe builds or Windows.
 - `WP_Invariant_MySQL` parses MySQL 8.4, as CI runs it. Syntax only MariaDB accepts would be reported as invalid.

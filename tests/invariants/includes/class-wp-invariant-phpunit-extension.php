@@ -80,6 +80,10 @@ final class WP_Invariant_PHPUnit_Extension implements BeforeTestHook, AfterTestH
 		if ( ! $this->directory ) {
 			$this->directory = dirname( __DIR__, 2 ) . '/phpunit/build/logs';
 		}
+
+		if ( array() !== WP_Invariant_Types::hooked() ) {
+			WP_Invariant_Types::collect_from_processes( $this->processes_directory() );
+		}
 	}
 
 	/**
@@ -124,6 +128,26 @@ final class WP_Invariant_PHPUnit_Extension implements BeforeTestHook, AfterTestH
 		WP_Invariant_Report::write( $this->directory, $this->report_name );
 		@unlink( "{$this->directory}/{$this->report_name}-current-test.txt" ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- It may not exist.
 		fwrite( STDOUT, sprintf( "\nInvariant report, after %s tests in %s: %s/%s.md\n", number_format( $this->finished ), $this->elapsed(), $this->directory, $this->report_name ) );
+
+		if ( array() !== WP_Invariant_Types::hooked() ) {
+			$processes = glob( $this->processes_directory() . '/*.serialized' );
+			WP_Invariant_Types_Report::write( $this->directory, "{$this->report_name}-types", WP_Invariant_Types::hooked(), WP_Invariant_Types::profile(), $processes ? $processes : array() );
+			// They exist only when a separate process saved what it collected, and the parent only while no other run uses it.
+			@rmdir( $this->processes_directory() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@rmdir( dirname( $this->processes_directory() ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			fwrite( STDOUT, sprintf( "Types report: %s/%s-types.md\n", $this->directory, $this->report_name ) );
+		}
+	}
+
+	/**
+	 * Returns the directory where tests in separate processes leave the types they collected.
+	 *
+	 * It is this run's own, so that what an earlier run which was stopped left is not merged.
+	 *
+	 * @return string
+	 */
+	private function processes_directory() {
+		return "{$this->directory}/{$this->report_name}-types-processes/" . getmypid();
 	}
 
 	/**

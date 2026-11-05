@@ -17,4 +17,8 @@ WP_Invariant::configure_paths(
 	)
 );
 
-return WP_Invariant::load_specs( __DIR__ . '/specs' );
+// The functions in fixtures/types/ are hooked for the types report, as WordPress's functions are with WP_INVARIANTS_TYPES=1.
+return array_merge(
+	WP_Invariant::load_specs( __DIR__ . '/specs' ),
+	WP_Invariant_Types::specs( WP_Invariant::functions_in( array( __DIR__ . '/fixtures/types' ) ), array( __DIR__ . '/fixtures/types' ), array( __DIR__ . '/tests' ) )
+);

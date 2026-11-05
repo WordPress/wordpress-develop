@@ -189,6 +189,9 @@ jobs:
 
       - name: Run PHPUnit tests with the invariants
         run: npm run test:php:invariants -- --verbose
+        env:
+          # Also count the types every WordPress function is given and returns, for the types report.
+          WP_INVARIANTS_TYPES: 1
 
       - name: Show the test which was running
         if: ${{ failure() || cancelled() }}
@@ -201,6 +204,10 @@ jobs:
             cat tests/phpunit/build/logs/invariants.md >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'No invariant report was written.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          # The types report itself is too large for the summary, which links to it.
+          if [[ -f tests/phpunit/build/logs/invariants-types-summary.md ]]; then
+            cat tests/phpunit/build/logs/invariants-types-summary.md >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload the invariant report

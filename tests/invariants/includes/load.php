@@ -13,6 +13,8 @@ require_once __DIR__ . '/class-wp-invariant.php';
 require_once __DIR__ . '/class-wp-invariant-call.php';
 require_once __DIR__ . '/class-wp-invariant-violations.php';
 require_once __DIR__ . '/class-wp-invariant-report.php';
+require_once __DIR__ . '/class-wp-invariant-types.php';
+require_once __DIR__ . '/class-wp-invariant-types-report.php';
 require_once __DIR__ . '/sql/class-wp-invariant-sql-lexer.php';
 require_once __DIR__ . '/oracles/class-wp-invariant-browser.php';
 require_once __DIR__ . '/oracles/class-wp-invariant-html-api.php';
