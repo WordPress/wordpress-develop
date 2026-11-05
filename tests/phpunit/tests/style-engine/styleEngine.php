@@ -26,7 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 64974
 	 * @ticket 65037
 	 * @ticket 66094
-	 * @ticket XXXXX
+	 * @ticket 66488
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
