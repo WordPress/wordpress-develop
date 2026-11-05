@@ -3,7 +3,7 @@
 /**
  * Tests for the is_lighttpd_before_150 function.
  *
- * @group Functions.php
+ * @group functions
  *
  * @covers ::is_lighttpd_before_150
  */
