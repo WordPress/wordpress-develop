@@ -242,5 +242,6 @@ Return values can be counted fewer times than calls: none is counted for a call 
 
 - Tests which run in a separate process run the hooks too, but what their invariants record is not reported. The types report does include what they count.
 - The extension tracks at most 128 nested calls with after checks at once; deeper calls get no after checks.
+- A call to an inaccessible or undefined method, which PHP routes to `__call()` or `__callStatic()`, is hooked as that method. A generator is hooked once, when it is called, and gets no after checks.
 - The suite needs PHP 8.5 or newer, for the oracles. The extension does not support thread-safe builds or Windows.
 - `WP_Invariant_MySQL` parses MySQL 8.4, as CI runs it. Syntax only MariaDB accepts would be reported as invalid.
