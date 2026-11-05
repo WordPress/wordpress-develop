@@ -28,11 +28,19 @@ AttachmentFilters = wp.media.View.extend(/** @lends wp.media.view.AttachmentFilt
 
 		// Build `<option>` elements.
 		this.$el.html( _.chain( this.filters ).map( function( filter, value ) {
+			// Potentially add an icon to the option.
+			var filterText = filter.text;
+			if ( filter.props.icon ) {
+				filterText = '<span class="dashicons dashicons-' + filter.props.icon + '"></span> ' + filter.text;
+			}
 			return {
-				el: $( '<option></option>' ).val( value ).html( filter.text )[0],
+				el: $( '<option></option>' ).val( value ).html( filterText )[0],
 				priority: filter.priority || 50
 			};
 		}, this ).sortBy('priority').pluck('el').value() );
+
+		// Prepend the selectedelement.
+		this.$el.prepend( '<button><selectedcontent></selectedcontent></button>' );
 
 		this.listenTo( this.model, 'change', this.select );
 		this.select();

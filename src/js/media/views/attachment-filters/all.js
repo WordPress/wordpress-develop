@@ -21,25 +21,27 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 			filters[ key ] = {
 				text: text,
 				props: {
-					status:  null,
-					type:    key,
+					status:     null,
+					type:       key,
 					uploadedTo: null,
-					orderby: 'date',
-					order:   'DESC',
-					author:  null
-				}
+					orderby:    'date',
+					order:      'DESC',
+					author:     null,
+					icon:       wp.media.view.settings.mimeIcons[key] || false
+				},
 			};
 		});
 
 		filters.all = {
 			text:  l10n.allMediaItems,
 			props: {
-				status:  null,
-				type:    null,
+				status:     null,
+				type:       null,
 				uploadedTo: null,
-				orderby: 'date',
-				order:   'DESC',
-				author:  null
+				orderby:   'date',
+				order:     'DESC',
+				author:    null,
+				icon:      'format-gallery'
 			},
 			priority: 10
 		};
@@ -48,12 +50,13 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 			filters.uploaded = {
 				text:  l10n.uploadedToThisPost,
 				props: {
-					status:  null,
-					type:    null,
+					status:     null,
+					type:       null,
 					uploadedTo: wp.media.view.settings.post.id,
-					orderby: 'menuOrder',
-					order:   'ASC',
-					author:  null
+					orderby:   'menuOrder',
+					order:     'ASC',
+					author:    null,
+					icon:      'upload'
 				},
 				priority: 20
 			};
@@ -67,7 +70,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 				type:       null,
 				orderby:    'menuOrder',
 				order:      'ASC',
-				author:     null
+				author:     null,
+				icon:       'no'
 			},
 			priority: 50
 		};
@@ -76,12 +80,13 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 			filters.mine = {
 				text:  l10n.mine,
 				props: {
-					status:		null,
-					type:		null,
-					uploadedTo:	null,
-					orderby:	'date',
-					order:		'DESC',
-					author:		uid
+					status:     null,
+					type:       null,
+					uploadedTo: null,
+					orderby:    'date',
+					order:      'DESC',
+					author:     uid,
+					icon:       'admin-users'
 				},
 				priority: 50
 			};
@@ -98,7 +103,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 					type:       null,
 					orderby:    'date',
 					order:      'DESC',
-					author:     null
+					author:     null,
+					icon:       'trash'
 				},
 				priority: 50
 			};
