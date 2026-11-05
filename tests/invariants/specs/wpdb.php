@@ -51,7 +51,7 @@ return array(
 		),
 
 	WP_Invariant::define( 'prepared-reaches-mysql' )
-		->describe( 'A query returned by wpdb::prepare() reaches MySQL intact: where it appears in a query sent to MySQL, it starts and ends on that query\'s tokens and lexes the same there.' )
+		->describe( 'A query returned by wpdb::prepare() reaches MySQL intact: where it appears in a query sent to MySQL, it lexes the same there, and does not break into or out of a string, quoted identifier or comment. Text which only matches part of a number or a name, such as `= 1` in `= 11`, is another query.' )
 		->before(
 			'wpdb::_do_query',
 			static function ( WP_Invariant_Call $call ) use ( $prepared ) {
@@ -62,8 +62,7 @@ return array(
 				$sql    = $call->arg( 'query' );
 				$tokens = null;
 				foreach ( $prepared->queries as $query => $query_tokens ) {
-					$at = array() === $query_tokens ? false : strpos( $sql, $query );
-					if ( false === $at ) {
+					if ( array() === $query_tokens || false === strpos( $sql, $query ) ) {
 						continue;
 					}
 
@@ -71,24 +70,10 @@ return array(
 						$tokens = WP_Invariant_SQL_Lexer::tokens( $sql );
 					}
 
-					// The span of the prepared query's tokens in the query sent to MySQL.
-					$start = $at + $query_tokens[0]['start'];
-					$end   = $at + $query_tokens[ count( $query_tokens ) - 1 ]['end'];
-					$first = null;
-					$last  = null;
-					foreach ( $tokens as $index => $token ) {
-						if ( $token['start'] === $start ) {
-							$first = $index;
-						}
-						if ( $token['end'] === $end ) {
-							$last = $index;
-							break;
-						}
+					$appearances = WP_Invariant_SQL_Lexer::appearances( $sql, $tokens, $query, $query_tokens );
+					if ( array() !== $appearances ) {
+						$call->expect( ! in_array( false, $appearances, true ), 'The prepared query %s does not lex the same inside %s.', $query, $sql );
 					}
-
-					$intact = null !== $first && null !== $last &&
-						WP_Invariant_SQL_Lexer::structure( array_slice( $tokens, $first, $last - $first + 1 ) ) === WP_Invariant_SQL_Lexer::structure( $query_tokens );
-					$call->expect( $intact, 'The prepared query %s reached MySQL inside %s.', $query, $sql );
 				}
 			}
 		),

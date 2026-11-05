@@ -105,6 +105,38 @@ class Tests_Invariants_SQL_Lexer extends TestCase {
 	}
 
 	/**
+	 * @dataProvider data_appearances
+	 *
+	 * @param string $sql         Query sent to MySQL.
+	 * @param string $query       Prepared query.
+	 * @param bool[] $appearances Expected appearances.
+	 */
+	public function test_finds_where_a_prepared_query_appears_in_another( $sql, $query, array $appearances ) {
+		$this->assertSame(
+			$appearances,
+			WP_Invariant_SQL_Lexer::appearances( $sql, WP_Invariant_SQL_Lexer::tokens( $sql ), $query, WP_Invariant_SQL_Lexer::tokens( $query ) )
+		);
+	}
+
+	public function data_appearances() {
+		$prefix = 'SELECT term_taxonomy_id FROM wptests_term_relationships WHERE object_id = 4194558 AND term_taxonomy_id = 1';
+
+		return array(
+			'the whole query'               => array( $prefix, $prefix, array( true ) ),
+			'inside a larger query'         => array( "SELECT * FROM t WHERE ID IN ({$prefix}) LIMIT 1", $prefix, array( true ) ),
+			'twice'                         => array( "{$prefix} UNION {$prefix}", $prefix, array( true, true ) ),
+			'a prefix of a longer number'   => array( "{$prefix}1", $prefix, array() ),
+			'a suffix of a longer name'     => array( 'SELECT * FROM t WHERE meta_post_id = 5', 'post_id = 5', array() ),
+			'the text of a string'          => array( "INSERT INTO t VALUES ('{$prefix}')", $prefix, array() ),
+			'the text of a comment'         => array( "SELECT 1 /* {$prefix} */", $prefix, array() ),
+			'once intact, once in a number' => array( "{$prefix}1 UNION {$prefix}", $prefix, array( true ) ),
+			'a string glued to a quote'     => array( "SELECT * FROM t WHERE a = 'x'' OR 1 = 1 -- '", "SELECT * FROM t WHERE a = 'x'", array( false ) ),
+			'opening a comment'             => array( 'SELECT * FROM t WHERE a = 1 /*/ AND b = 2 */', 'SELECT * FROM t WHERE a = 1 /*/', array( false ) ),
+			'starting inside a string'      => array( "SELECT 'a, b' FROM t", "b' FROM t", array( false ) ),
+		);
+	}
+
+	/**
 	 * Returns the type and text of each token.
 	 *
 	 * @param array[] $tokens Tokens.

@@ -250,6 +250,76 @@ final class WP_Invariant_SQL_Lexer {
 	}
 
 	/**
+	 * Finds where one query appears in another, and whether it lexes the same there.
+	 *
+	 * Text which matches is only the query when it starts and ends where tokens of
+	 * the other query do, or when it starts or ends inside a quoted string, quoted
+	 * identifier or comment, which the query would break into or out of. Text which
+	 * matches only part of a number or a name, such as `= 1` in `= 11`, or which
+	 * lies inside one token, such as a string holding the query's text, is another
+	 * query with the same text, and is left out.
+	 *
+	 * @param string  $sql          Query to look in.
+	 * @param array[] $sql_tokens   Its tokens, from tokens().
+	 * @param string  $query        Query to look for.
+	 * @param array[] $query_tokens Its tokens, from tokens().
+	 * @return bool[] For each place the query appears, whether it lexes the same there.
+	 */
+	public static function appearances( $sql, array $sql_tokens, $query, array $query_tokens ) {
+		$appearances = array();
+		if ( array() === $query_tokens ) {
+			return $appearances;
+		}
+
+		$structure = null;
+		$offset    = 0;
+		while ( false !== ( $at = strpos( $sql, $query, $offset ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
+			$offset = $at + 1;
+
+			// The tokens of $sql which hold the first and last characters of the query's tokens.
+			$start = $at + $query_tokens[0]['start'];
+			$end   = $at + $query_tokens[ count( $query_tokens ) - 1 ]['end'];
+			$first = null;
+			$last  = null;
+			foreach ( $sql_tokens as $index => $token ) {
+				if ( null === $first && $token['end'] > $start ) {
+					$first = $index;
+				}
+				if ( $token['end'] >= $end ) {
+					$last = $index;
+					break;
+				}
+			}
+			if ( null === $first || null === $last ) {
+				continue;
+			}
+
+			$starts_inside = $sql_tokens[ $first ]['start'] !== $start;
+			$ends_inside   = $sql_tokens[ $last ]['end'] !== $end;
+			if ( $first === $last && ( $starts_inside || $ends_inside ) ) {
+				continue;
+			}
+			if (
+				( $starts_inside && in_array( $sql_tokens[ $first ]['type'], array( 'word', 'number' ), true ) ) ||
+				( $ends_inside && in_array( $sql_tokens[ $last ]['type'], array( 'word', 'number' ), true ) )
+			) {
+				continue;
+			}
+			if ( $starts_inside || $ends_inside ) {
+				$appearances[] = false;
+				continue;
+			}
+
+			if ( null === $structure ) {
+				$structure = self::structure( $query_tokens );
+			}
+			$appearances[] = self::structure( array_slice( $sql_tokens, $first, $last - $first + 1 ) ) === $structure;
+		}
+
+		return $appearances;
+	}
+
+	/**
 	 * Returns where a quoted string or identifier ends.
 	 *
 	 * @param string $sql   Query.
