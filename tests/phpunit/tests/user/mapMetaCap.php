@@ -414,7 +414,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 *     @type string $cap The meta capability requiring an argument.
 	 * }
 	 */
-	public function data_meta_caps_throw_doing_it_wrong_without_required_argument_provided() {
+	public static function data_meta_caps_throw_doing_it_wrong_without_required_argument_provided() {
 		return array(
 			array( 'delete_post' ),
 			array( 'delete_page' ),

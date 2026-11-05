@@ -375,7 +375,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_default_block_editor_settings_auto_attach_media_enabled() {
+	public static function data_get_default_block_editor_settings_auto_attach_media_enabled() {
 		return array(
 			'attachment pages disabled' => array( 0, true ),
 			'attachment pages enabled'  => array( 1, false ),
@@ -831,7 +831,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
+	public static function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
 		return array(
 			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),

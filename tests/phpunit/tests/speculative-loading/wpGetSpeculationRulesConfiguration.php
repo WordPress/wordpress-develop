@@ -25,8 +25,6 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 		foreach ( array( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE', 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' ) as $name ) {
 			$this->original_env[ $name ] = getenv( $name );
 		}
-
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
 	public function tear_down(): void {

@@ -96,7 +96,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{int}>
 	 */
-	public function data_non_positive_object_ids() {
+	public static function data_non_positive_object_ids() {
 		return array(
 			'zero'          => array( 0 ),
 			'a negative ID' => array( -1 ),
@@ -327,7 +327,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string, bool }>
 	 */
-	public function data_term_taxonomy_sources(): array {
+	public static function data_term_taxonomy_sources(): array {
 		return array(
 			'factory taxonomy, in the args' => array( 'post_tag', false ),
 			'another taxonomy, in the args' => array( 'category', false ),
@@ -471,7 +471,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{WP_Error|null|false, string}>
 	 */
-	public function data_legacy_retrieval_failures(): array {
+	public static function data_legacy_retrieval_failures(): array {
 		return array(
 			'null'     => array( null, 'Unable to retrieve the object with ID 5. Args: []' ),
 			'false'    => array( false, 'Unable to retrieve the object with ID 5. Args: []' ),

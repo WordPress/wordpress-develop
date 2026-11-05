@@ -512,6 +512,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 33392
 	 */
 	public function test_wp_insert_post_should_invalidate_post_cache_before_generating_guid_when_post_name_is_empty_and_is_generated_from_the_post_ID() {
+		$this->set_permalink_structure( '' );
+
 		register_post_type( 'wptests_pt' );
 
 		$post_id = wp_insert_post(
@@ -573,8 +575,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_permalink_without_title() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$data = array(
 			'post_status'  => 'publish',
 			'post_content' => 'content',
@@ -1547,5 +1547,50 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Post metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_post
+	 */
+	public function test_meta_query_is_fresh_inside_added_post_meta_action() {
+		$args    = array(
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+			'meta_key'       => 'target_meta_key',
+			'meta_value'     => 'present',
+		);
+		$results = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $post_id, $meta_key ) use ( $args, &$results ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$results['before'] = get_posts( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$results['during'] = get_posts( $args );
+			}
+		};
+
+		add_action( 'added_post_meta', $observer, 20, 3 );
+		try {
+			$post_id = wp_insert_post(
+				array(
+					'post_title'  => 'Cache observer fixture',
+					'post_status' => 'publish',
+					'meta_input'  => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$this->assertSame( array(), $results['before'] );
+			$this->assertSameSets( array( $post_id ), $results['during'] );
+		} finally {
+			remove_action( 'added_post_meta', $observer, 20 );
+		}
 	}
 }

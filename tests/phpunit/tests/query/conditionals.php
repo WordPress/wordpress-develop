@@ -36,8 +36,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		create_initial_taxonomies();
 		flush_rewrite_rules();
 	}
@@ -1017,8 +1015,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_single( $post_id ) );
 		$this->assertFalse( $q->is_attachment() );
 		$this->assertFalse( $q->is_404() );
-
-		$this->set_permalink_structure();
 	}
 
 	/**
@@ -1255,25 +1251,32 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_page( $p2 ) );
 	}
 
+	/**
+	 * @ticket 65819
+	 */
 	public function test_is_page_template() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_post_meta( $post_id, '_wp_page_template', 'example.php' );
 		$this->go_to( "/?page_id=$post_id" );
 		$this->assertTrue( is_page_template( 'example.php' ) );
+		$this->assertTrue( is_page_template() );
 	}
 
 	/**
 	 * @ticket 31271
+	 * @ticket 65819
 	 */
 	public function test_is_page_template_default() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$this->go_to( "/?page_id=$post_id" );
 		$this->assertTrue( is_page_template( 'default' ) );
 		$this->assertTrue( is_page_template( array( 'random', 'default' ) ) );
+		$this->assertFalse( is_page_template() );
 	}
 
 	/**
 	 * @ticket 31271
+	 * @ticket 65819
 	 */
 	public function test_is_page_template_array() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -1281,6 +1284,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->go_to( "/?page_id=$post_id" );
 		$this->assertFalse( is_page_template( array( 'test.php' ) ) );
 		$this->assertTrue( is_page_template( array( 'test.php', 'example.php' ) ) );
+		$this->assertFalse( is_page_template( array( 'default', 'test.php' ) ) );
 	}
 
 	/**
