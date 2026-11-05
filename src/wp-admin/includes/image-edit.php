@@ -1026,6 +1026,11 @@ function wp_save_image( $post_id ) {
 
 	$saved_image = wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id );
 	// Save the full-size file, also needed to create sub-sizes.
+	if ( is_wp_error( $saved_image ) ) {
+		$return->error = esc_js( $saved_image->get_error_message() );
+		return $return;
+	}
+
 	if ( ! $saved_image ) {
 		$return->error = esc_js( __( 'Unable to save the image.' ) );
 		return $return;
