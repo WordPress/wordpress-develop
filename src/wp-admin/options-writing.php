@@ -219,9 +219,10 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	<p><label for="ping_sites">
 		<?php
 		printf(
-			/* translators: %s: Documentation URL. */
-			__( 'When you publish a new post, WordPress automatically notifies the following site update services. For more about this, see the <a href="%s">Update Services</a> documentation article. Separate multiple service URLs with line breaks.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' )
+			/* translators: 1: Documentation URL. 2: Accessibility text (do not translate). */
+			__( 'When you publish a new post, WordPress automatically notifies the following site update services. For more about this, see the <a href="%1$s" target="_blank" rel="noopener noreferrer">Update Services%2$s</a> documentation article. Separate multiple service URLs with line breaks.' ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' ) ),
+			'<span class="screen-reader-text"> ' . /* translators: Hidden accessibility text. */ __( '(opens in a new tab)' ) . '</span><span aria-hidden="true" class="dashicons dashicons-external"></span>'
 		);
 		?>
 	</label></p>
@@ -233,9 +234,10 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 	<p>
 		<?php
 		printf(
-			/* translators: 1: Documentation URL, 2: URL to Reading Settings screen. */
-			__( 'WordPress is not notifying any <a href="%1$s">Update Services</a> because of your site&#8217;s <a href="%2$s">visibility settings</a>.' ),
-			__( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' ),
+			/* translators: 1: Documentation URL. 2: Accessibility text (do not translate). 3: URL to Reading Settings screen. */
+			__( 'WordPress is not notifying any <a href="%1$s" target="_blank" rel="noopener noreferrer">Update Services%2$s</a> because of your site&#8217;s <a href="%3$s">visibility settings</a>.' ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/update-services/' ) ),
+			'<span class="screen-reader-text"> ' . /* translators: Hidden accessibility text. */ __( '(opens in a new tab)' ) . '</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 			'options-reading.php'
 		);
 		?>
