@@ -1,5 +1,9 @@
 ##
+# DEPRECATED
+#
 # A reusable workflow that tests the Gutenberg plugin build process when run within a wordpress-develop checkout.
+#
+# This workflow is used by branches 6.5 through 6.9.
 ##
 name: Test the Gutenberg plugin Build Process
 

@@ -39,7 +39,7 @@ function media_upload_tabs() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $tabs Associative array of default tab names.
- * @return array $tabs Filtered tabs with gallery if post has image attachment.
+ * @return array Filtered tabs with gallery if post has image attachment.
  */
 function update_gallery_tab( $tabs ) {
 	global $wpdb;
@@ -1315,6 +1315,8 @@ function image_size_input_fields( $post, $check = '' ) {
  * @param WP_Post $post
  * @param string  $url_type
  * @return string HTML markup for the link URL buttons.
+ *
+ * @phpstan-return non-falsy-string
  */
 function image_link_input_fields( $post, $url_type = '' ) {
 
@@ -1348,6 +1350,8 @@ function image_link_input_fields( $post, $url_type = '' ) {
  *
  * @param WP_Post $edit_post Attachment WP_Post object.
  * @return string HTML markup for the textarea element.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_caption_input_textarea( $edit_post ) {
 	// Post data is already escaped.
@@ -1637,6 +1641,8 @@ function get_media_items( $post_id, $errors ) {
  * @param int          $attachment_id Attachment ID for modification.
  * @param string|array $args          Optional. Override defaults.
  * @return string HTML form for attachment.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_media_item( $attachment_id, $args = null ) {
 	global $redir_tab;
@@ -3013,6 +3019,8 @@ function media_upload_library_form( $errors ) {
  *
  * @param string $default_view
  * @return string HTML content of the form.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_media_insert_url_form( $default_view = 'image' ) {
 	/** This filter is documented in wp-admin/includes/media.php */
@@ -3438,7 +3446,7 @@ function attachment_submitbox_metadata() {
 	<?php
 	if ( $post->post_parent ) {
 		$post_parent = get_post( $post->post_parent );
-		if ( $post_parent ) {
+		if ( $post_parent && current_user_can( 'read_post', $post_parent->ID ) ) {
 			$uploaded_to_title = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
 			$uploaded_to_link  = get_edit_post_link( $post->post_parent, 'raw' );
 			?>
@@ -3742,12 +3750,9 @@ function wp_read_video_metadata( $file ) {
 		$metadata['audio'] = $data['audio'];
 	}
 
-	if ( empty( $metadata['created_timestamp'] ) ) {
-		$created_timestamp = wp_get_media_creation_timestamp( $data );
-
-		if ( false !== $created_timestamp ) {
-			$metadata['created_timestamp'] = $created_timestamp;
-		}
+	$created_timestamp = wp_get_media_creation_timestamp( $data );
+	if ( false !== $created_timestamp ) {
+		$metadata['created_timestamp'] = $created_timestamp;
 	}
 
 	wp_add_id3_tag_data( $metadata, $data );

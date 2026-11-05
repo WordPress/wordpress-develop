@@ -1551,6 +1551,7 @@ function get_uploaded_header_images() {
  * Gets the header image data.
  *
  * @since 3.4.0
+ * @since 7.1.1 The `width` and `height` are cast to non-negative integers.
  *
  * @global array $_wp_default_headers
  *
@@ -1589,7 +1590,14 @@ function get_custom_header() {
 		'height'        => get_theme_support( 'custom-header', 'height' ),
 		'video'         => get_theme_support( 'custom-header', 'video' ),
 	);
-	return (object) wp_parse_args( $data, $default );
+
+	if ( ! is_array( $data ) && ! is_object( $data ) ) {
+		$data = array();
+	}
+	$header         = (object) wp_parse_args( $data, $default );
+	$header->width  = absint( $header->width );
+	$header->height = absint( $header->height );
+	return $header;
 }
 
 /**
@@ -2175,6 +2183,14 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * Since version 3.4 the TinyMCE body has .rtl CSS class.
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
+ * Internally this registers the 'editor-style' (singular) theme support to enable
+ * editor stylesheets for the classic/TinyMCE editor.
+ *
+ * The plural form, 'editor-styles', is a separate theme support that allows the block
+ * editor to load the stylesheets registered by this function. To add styles to the
+ * block editor, use add_theme_support( 'editor-styles' ) in addition to this function.
+ * Block themes support 'editor-styles' by default.
+ *
  * @since 3.0.0
  *
  * @global array $editor_styles
@@ -2200,6 +2216,13 @@ function add_editor_style( $stylesheet = 'editor-style.css' ) {
 
 /**
  * Removes all visual editor stylesheets.
+ *
+ * Internally this removes the 'editor-style' (singular) theme support added by
+ * add_editor_style(). In the admin, it also clears the registered stylesheets,
+ * so they are no longer loaded in either the classic/TinyMCE or the block editor.
+ *
+ * The plural form, 'editor-styles', is a separate theme support and is not affected
+ * by this function. To remove it, use remove_theme_support( 'editor-styles' ).
  *
  * @since 3.1.0
  *
@@ -3066,7 +3089,11 @@ function get_theme_support( $feature, ...$args ) {
  * @return bool Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
-	// Do not remove internal registrations that are not used directly by themes.
+	/*
+	 * Do not remove internal registrations that are not used directly by themes.
+	 * 'editor-style' (singular) is added by add_editor_style(); use remove_editor_styles().
+	 * It is unrelated to the 'editor-styles' (plural) feature, which can be removed here.
+	 */
 	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}

@@ -22,16 +22,6 @@ parameters:
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
-			path: ../../../src/wp-admin/my-sites.php
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 2
-			path: ../../../src/wp-admin/upload.php
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/template-parts/footer/footer-widgets.php
 		-
 			message: '#^If condition is always true\.$#'
@@ -43,8 +33,3 @@ parameters:
 			identifier: if.alwaysTrue
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwenty/template-parts/modal-menu.php
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 2
-			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
