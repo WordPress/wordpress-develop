@@ -12,7 +12,7 @@ require_once __DIR__ . '/../../../../src/wp-includes/class-wp-token-map.php';
  *         'characters' => '©',
  *     );
  *
- * @see https://html.spec.whatwg.org/entities.json
+ * @link https://html.spec.whatwg.org/entities.json
  *
  * @var array.
  */

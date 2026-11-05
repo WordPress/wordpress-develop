@@ -7,14 +7,21 @@
  */
 class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 
+	public function tear_down() {
+		_unregister_post_status( 'wp_tests_ps' );
+		_unregister_post_status( 'WP_Tests_ps' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Remove the test status from the global when finished.
 	 *
 	 * @global $wp_post_statuses
 	 */
 	public static function wpTearDownAfterClass() {
-		global $wp_post_statuses;
-		unset( $wp_post_statuses['wp_tests_ps'] );
+		_unregister_post_status( 'wp_tests_ps' );
+		_unregister_post_status( 'WP_Tests_ps' );
 	}
 
 	/**

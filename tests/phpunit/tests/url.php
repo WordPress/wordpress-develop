@@ -35,7 +35,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $expected, $is_ssl );
 	}
 
-	public function data_is_ssl() {
+	public static function data_is_ssl() {
 		return array(
 			array(
 				'on',
@@ -102,7 +102,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $siteurl_https . $expected, $admin_url_https );
 	}
 
-	public function data_admin_urls() {
+	public static function data_admin_urls() {
 		return array(
 			array(
 				null,
@@ -172,7 +172,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $homeurl_https . $expected, $home_url_https );
 	}
 
-	public function data_home_urls() {
+	public static function data_home_urls() {
 		return array(
 			array(
 				null,
@@ -364,11 +364,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$post_id  = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now - 1 ) ) );
 		$post_id2 = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now ) ) );
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post       = $GLOBALS['post'];
-		$GLOBALS['post'] = get_post( $post_id2 );
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
+		$GLOBALS['post']   = get_post( $post_id2 );
 
 		$p = get_adjacent_post();
 		$this->assertInstanceOf( 'WP_Post', $p );
@@ -416,10 +414,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p2 );
 
@@ -456,10 +452,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p2 );
 
@@ -502,10 +496,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p3 );
 

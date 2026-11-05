@@ -316,7 +316,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$data = $response->get_data();
 		$this->assertSame( 'New Name', $data['name'] );
 		$this->assertSame( 'New Description', $data['description'] );
-		$this->assertSame( true, $data['auto_add'] );
+		$this->assertTrue( $data['auto_add'] );
 		$this->assertSame( 'new-name', $data['slug'] );
 		$this->assertSame( 'just meta', $data['meta']['test_single_menu'] );
 		$this->assertFalse( isset( $data['meta']['test_cat_meta'] ) );
