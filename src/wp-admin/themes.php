@@ -252,8 +252,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 /**
  * @global string $self        The current admin page, set in wp-admin/menu-header.php.
  * @global string $parent_file The parent menu file, filtered in wp-admin/menu-header.php.
+ * @global array<string, array<int, array{ 0: string, 1: string, 2: string, 3?: string, 4?: string }>> $submenu The admin submenu items keyed by parent slug, set in wp-admin/menu.php.
  */
-global $self, $parent_file;
+global $self, $parent_file, $submenu;
 ?>
 
 <div class="wrap">
