@@ -51,10 +51,11 @@ abstract class WP_AI_Client_Builder {
 	 * WordPress error instance, if any error occurred during method calls.
 	 *
 	 * @since 7.0.0
-	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
+	 *              and changed visibility from private to protected.
 	 * @var WP_Error|null
 	 */
-	private ?WP_Error $error = null;
+	protected ?WP_Error $error = null;
 
 	/**
 	 * Constructor.
@@ -339,6 +340,28 @@ abstract class WP_AI_Client_Builder {
 	private function is_support_check_method( string $name ): bool {
 		$methods = $this->get_support_check_methods();
 		return isset( $methods[ $name ] );
+	}
+
+	/**
+	 * Checks whether the builder is in an error state.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool True if an error has occurred, false otherwise.
+	 */
+	public function has_error(): bool {
+		return null !== $this->error;
+	}
+
+	/**
+	 * Retrieves the WP_Error instance if the builder is in an error state.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return WP_Error|null The error instance or null if no error has occurred.
+	 */
+	public function get_error(): ?WP_Error {
+		return $this->error;
 	}
 
 	/**
