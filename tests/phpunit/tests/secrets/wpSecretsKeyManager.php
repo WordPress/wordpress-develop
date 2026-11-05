@@ -201,6 +201,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_network_scope_master_key_is_identical_across_blogs(): void {
+		$this->skipWithoutMultisite();
+
 		$second_blog_id = self::factory()->blog->create();
 
 		$manager               = new WP_Secrets_Key_Manager();
@@ -223,6 +225,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Key_Manager::get_master_key
 	 */
 	public function test_site_scope_master_key_differs_across_blogs(): void {
+		$this->skipWithoutMultisite();
+
 		$second_blog_id = self::factory()->blog->create();
 
 		$manager            = new WP_Secrets_Key_Manager();
@@ -249,6 +253,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Key_Manager::get_root_key
 	 */
 	public function test_get_root_key_adopts_a_pre_conversion_root_key(): void {
+		$this->skipWithoutMultisite();
+
 		$manager  = new WP_Secrets_Key_Manager();
 		$root_key = $manager->get_root_key();
 
@@ -279,6 +285,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_secret_written_before_conversion_still_decrypts(): void {
+		$this->skipWithoutMultisite();
+
 		$main_site_id = get_main_site_id();
 
 		$this->assertTrue( wp_set_secret( 'secrets-api/pre-conversion', 'shh' ), 'Storing the secret before conversion should succeed.' );
@@ -304,6 +312,8 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	 * @covers WP_Secrets_Key_Manager::rotate_site_key
 	 */
 	public function test_rotate_site_key_works_after_conversion_before_any_read(): void {
+		$this->skipWithoutMultisite();
+
 		$main_site_id  = get_main_site_id();
 		$right_keyring = new WP_Secrets_Config_Key_Provider();
 		$manager       = new WP_Secrets_Key_Manager( $right_keyring );

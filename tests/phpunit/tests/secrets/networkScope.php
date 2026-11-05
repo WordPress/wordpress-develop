@@ -200,6 +200,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * @covers ::wp_get_network_secret
 	 */
 	public function test_network_secret_is_readable_from_any_blog(): void {
+		$this->skipWithoutMultisite();
+
 		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'cross-blog-value' ), 'Setting network secret myplugin/api-key to cross-blog-value should succeed.' );
 
 		$second_blog_id = self::factory()->blog->create();
@@ -222,6 +224,8 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * @covers ::wp_get_secret
 	 */
 	public function test_site_secret_is_not_readable_from_a_different_blog(): void {
+		$this->skipWithoutMultisite();
+
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'blog-one-value' ), 'Setting myplugin/api-key to blog-one-value should succeed.' );
 
 		$second_blog_id = self::factory()->blog->create();

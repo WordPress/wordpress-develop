@@ -180,6 +180,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 * @covers ::map_meta_cap
 	 */
 	public function test_single_site_administrator_does_not_have_manage_network_secrets(): void {
+		$this->skipWithMultisite();
+
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
 		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE_NETWORK ), 'A single site administrator should not have manage_network_secrets.' );
@@ -193,6 +195,8 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 * @covers ::map_meta_cap
 	 */
 	public function test_only_super_admins_have_manage_network_secrets(): void {
+		$this->skipWithoutMultisite();
+
 		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$super_admin   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		grant_super_admin( $super_admin );

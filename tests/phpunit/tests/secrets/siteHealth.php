@@ -318,6 +318,8 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @covers ::wp_secrets_site_health_debug_info
 	 */
 	public function test_debug_info_includes_network_fields_only_for_a_super_admin(): void {
+		$this->skipWithoutMultisite();
+
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
