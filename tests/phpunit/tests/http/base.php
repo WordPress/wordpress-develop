@@ -22,6 +22,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	public $file_stream_url = '';
 
 	/**
+	 * URL of the local large-headers fixture (set in set_up_before_class()).
+	 *
+	 * @var string
+	 */
+	public $file_stream_large_headers_url = '';
+
+	/**
 	 * Byte size of the local stream/size fixture payload.
 	 *
 	 * @var int
@@ -48,6 +55,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @var string|null
 	 */
 	private static $file_stream_fixture_url = null;
+
+	/**
+	 * Local large-headers fixture URL shared with instance tests after set_up_before_class().
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_large_headers_fixture_url = null;
 
 	/**
 	 * Local redirection fixture URL shared with instance tests after set_up_before_class().
@@ -107,6 +121,27 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
 			self::$file_stream_fixture_fail_reason = sprintf(
 				'Could not write the local HTTP stream fixture payload in: %s',
+				$fixture_dir
+			);
+			return;
+		}
+
+		/*
+		 * A response whose headers are larger than the 4 KB read size used by
+		 * WP_Http_Streams, so that the header/body separator is read in a
+		 * separate fread() call. The fill length can be overridden with the
+		 * `fill` query argument to place the separator at a chosen offset.
+		 */
+		$large_headers_php = <<<'PHP'
+<?php
+$fill = isset( $_GET['fill'] ) ? (int) $_GET['fill'] : 5000;
+header( 'X-Fill: ' . str_repeat( 'a', $fill ) );
+echo 'hello';
+PHP;
+		if ( false === file_put_contents( $fixture_dir . '/large-headers.php', $large_headers_php ) ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not write the local HTTP large-headers fixture in: %s',
 				$fixture_dir
 			);
 			return;
@@ -217,9 +252,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			return;
 		}
 
-		self::$file_stream_fixture_dir     = $fixture_dir;
-		self::$file_stream_fixture_process = $process;
-		self::$file_stream_fixture_url     = $url;
+		self::$file_stream_fixture_dir               = $fixture_dir;
+		self::$file_stream_fixture_process           = $process;
+		self::$file_stream_fixture_url               = $url;
+		self::$file_stream_large_headers_fixture_url = 'http://127.0.0.1:' . $port . '/large-headers.php';
 		if ( $redirection_copied ) {
 			self::$redirection_fixture_url = 'http://127.0.0.1:' . $port . '/redirection.php';
 		}
@@ -240,10 +276,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			self::$file_stream_fixture_dir = null;
 		}
 
-		self::$file_stream_fixture_url         = null;
-		self::$redirection_fixture_url         = null;
-		self::$file_stream_fixture_skip_reason = null;
-		self::$file_stream_fixture_fail_reason = null;
+		self::$file_stream_fixture_url               = null;
+		self::$file_stream_large_headers_fixture_url = null;
+		self::$redirection_fixture_url               = null;
+		self::$file_stream_fixture_skip_reason       = null;
+		self::$file_stream_fixture_fail_reason       = null;
 
 		parent::tear_down_after_class();
 	}
@@ -289,6 +326,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		if ( self::$file_stream_fixture_url ) {
 			$this->file_stream_url = self::$file_stream_fixture_url;
+		}
+
+		if ( self::$file_stream_large_headers_fixture_url ) {
+			$this->file_stream_large_headers_url = self::$file_stream_large_headers_fixture_url;
 		}
 
 		if ( self::$redirection_fixture_url ) {
