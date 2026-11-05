@@ -612,12 +612,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$saved = $imagick_image_editor->save( $temp_file );
 
+		$this->assertNotWPError( $saved );
+
 		if ( $temp_file !== $saved['path'] ) {
 			unlink( $saved['path'] );
 		}
 		unlink( $temp_file );
 
-		$this->assertNotWPError( $saved );
 		$this->assertSame( $temp_file, $saved['path'] );
 	}
 
