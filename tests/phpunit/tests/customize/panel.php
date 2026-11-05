@@ -51,7 +51,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		$this->assertSame( 'foo', $panel->id );
 		$this->assertSame( 160, $panel->priority );
 		$this->assertSame( 'edit_theme_options', $panel->capability );
-		$this->assertSame( '', $panel->theme_supports );
+		$this->assertSame( array(), $panel->theme_supports );
 		$this->assertSame( '', $panel->title );
 		$this->assertSame( '', $panel->description );
 		$this->assertEmpty( $panel->sections );
