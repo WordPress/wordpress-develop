@@ -46,6 +46,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unregister_post_type( 'press_release' );
+		unregister_post_type( 'poem' );
 
 		parent::tear_down();
 	}
@@ -903,7 +904,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value_object = $setting->value_as_wp_post_nav_menu_item();
 		$this->assertFalse( $value_object->_invalid );
 
-		_unregister_post_type( 'poem' );
+		unregister_post_type( 'poem' );
 		$setting = new WP_Customize_Nav_Menu_Item_Setting( $this->wp_customize, $setting_id );
 		$value   = $setting->value();
 		$this->assertTrue( $value['_invalid'] );
