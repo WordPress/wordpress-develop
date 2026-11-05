@@ -695,8 +695,24 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * @covers WP_Image_Editor::make_image
 	 */
 	public function test_save_to_stream_fails_when_write_fails() {
-		$saved = $this->save_to_stream( 'wptestgdwritefail', 'WP_Test_Stream_GD_Write_Failure' );
+		// file_put_contents() warns about the incomplete write. $this->expectWarning() is deprecated in PHPUnit 10.
+		$warnings = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+				$warnings[] = $errstr;
+				return true;
+			},
+			E_WARNING
+		);
 
+		try {
+			$saved = $this->save_to_stream( 'wptestgdwritefail', 'WP_Test_Stream_GD_Write_Failure' );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertCount( 1, $warnings, 'Expected one warning about the incomplete write.' );
+		$this->assertStringContainsString( 'bytes written', $warnings[0] );
 		$this->assertWPError( $saved );
 		$this->assertSame( 'image_save_error', $saved->get_error_code() );
 	}

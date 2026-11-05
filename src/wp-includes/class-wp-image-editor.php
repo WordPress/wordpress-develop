@@ -580,23 +580,13 @@ abstract class WP_Image_Editor {
 		if ( $result && $stream ) {
 			$contents = ob_get_contents();
 
-			$fp = fopen( $filename, 'w' );
-
-			if ( ! $fp ) {
-				ob_end_clean();
-				return false;
-			}
-
-			$bytes_written = fwrite( $fp, $contents );
-
 			/*
-			 * Some stream wrappers only send the data when the stream is flushed or closed (for example, when
-			 * uploading to remote storage), so a failure to close the stream means the image was not saved.
-			 * As of PHP 8.6, fclose() returns false when flushing or closing a stream fails.
+			 * file_put_contents() returns false when the stream cannot be opened or the image cannot be fully written.
+			 * As of PHP 8.6, it also returns false when flushing or closing the stream fails. Some stream wrappers only
+			 * send the data at that point (for example, when uploading to remote storage), so the image was not saved.
+			 * This matches how WP_Image_Editor_Imagick::write_image() writes to streams.
 			 */
-			$closed = fclose( $fp );
-
-			if ( strlen( $contents ) !== $bytes_written || ! $closed ) {
+			if ( false === file_put_contents( $filename, $contents ) ) {
 				$result = false;
 			}
 		}
