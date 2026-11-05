@@ -115,6 +115,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function tear_down() {
+		unregister_taxonomy( 'status' );
+
 		if ( true === $this->attachments_created ) {
 			$this->remove_added_uploads();
 			$this->attachments_created = false;
