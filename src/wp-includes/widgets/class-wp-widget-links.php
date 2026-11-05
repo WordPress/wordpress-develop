@@ -99,9 +99,7 @@ class WP_Widget_Links extends WP_Widget {
 			'rating'      => 0,
 		);
 		foreach ( $instance as $field => $val ) {
-			if ( isset( $new_instance[ $field ] ) ) {
-				$instance[ $field ] = 1;
-			}
+			$instance[ $field ] = ! empty( $new_instance[ $field ] ) ? 1 : 0;
 		}
 
 		$instance['orderby'] = 'name';
