@@ -868,7 +868,7 @@ function wp_revisions_to_keep( $post ) {
  * @access private
  *
  * @param WP_Post $post
- * @return WP_Post|false
+ * @return WP_Post
  */
 function _set_preview( $post ) {
 	if ( ! is_object( $post ) ) {
