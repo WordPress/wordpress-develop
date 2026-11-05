@@ -28,7 +28,6 @@ includes:
 	- tests/phpstan/baselines/argument.unresolvableType.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
-	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/class.notFound.neon
