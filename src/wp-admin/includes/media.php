@@ -3379,6 +3379,9 @@ function edit_form_image_editor( $post ) {
 		'tinymce'       => apply_filters( 'activate_tinymce_for_media_description', false ),
 		'quicktags'     => $quicktags_settings,
 	);
+	if ( true === $editor_args['tinymce'] ) {
+		$editor_args['textarea_rows'] = 20;
+	}
 
 	?>
 
@@ -3391,7 +3394,7 @@ function edit_form_image_editor( $post ) {
 
 	?>
 	</label>
-	<?php wp_editor( format_to_edit( $post->post_content ), 'attachment_content', $editor_args ); ?>
+	<?php wp_editor( format_to_edit( $post->post_content, $editor_args['tinymce'] ), 'attachment_content', $editor_args ); ?>
 
 	</div>
 	<?php
