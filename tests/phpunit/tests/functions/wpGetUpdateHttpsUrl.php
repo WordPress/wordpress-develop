@@ -56,6 +56,10 @@ class Tests_Functions_WpGetUpdateHttpsUrl extends WP_UnitTestCase {
 		putenv( 'WP_UPDATE_HTTPS_URL=https://example.com' );
 
 		$this->assertSame( 'https://example.com', wp_get_update_https_url() );
+
+		putenv( 'WP_UPDATE_HTTPS_URL=' );
+
+		$this->assertSame( wp_get_default_update_https_url(), wp_get_update_https_url() );
 	}
 
 	/**
