@@ -124,6 +124,52 @@ final class WP_Invariant_SQL_Lexer {
 	}
 
 	/**
+	 * Fills a wpdb::prepare() template with a harmless value of each placeholder's kind.
+	 *
+	 * Quoted string placeholders become `'x'`, numbers `0`, identifiers `` `i` ``,
+	 * and the unquoted placeholders wpdb::prepare() leaves raw become `x`. A `%%`
+	 * becomes `%`. What wpdb::prepare() returns for the template should parse the
+	 * same way as this.
+	 *
+	 * @param string $template Template for wpdb::prepare().
+	 * @return string
+	 */
+	public static function fill_template( $template ) {
+		$template = str_replace( array( "'%s'", '"%s"' ), '%s', $template );
+		$filled   = '';
+		$at       = 0;
+		foreach ( self::tokens( $template, true ) as $token ) {
+			switch ( $token['type'] ) {
+				case 'value':
+					$fill = 's' === substr( $token['text'], -1 ) ? "'x'" : '0';
+					break;
+
+				case 'ident-placeholder':
+					$fill = '`i`';
+					break;
+
+				case 'raw':
+					$fill = 'x';
+					break;
+
+				case 'punct':
+					$fill = '%' === $token['text'] ? '%' : null;
+					break;
+
+				default:
+					$fill = null;
+			}
+
+			if ( null !== $fill ) {
+				$filled .= substr( $template, $at, $token['start'] - $at ) . $fill;
+				$at      = $token['end'];
+			}
+		}
+
+		return $filled . substr( $template, $at );
+	}
+
+	/**
 	 * Returns the structure of tokens, as a list of strings to compare.
 	 *
 	 * Literals become `VALUE`, quoted identifiers `IDENT` and unquoted placeholders

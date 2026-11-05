@@ -191,6 +191,34 @@ final class WP_Invariant {
 	}
 
 	/**
+	 * Adds the same before check to several functions or methods.
+	 *
+	 * @param string[] $targets Functions or methods.
+	 * @param callable $check   `function ( WP_Invariant_Call $call, &$state )`.
+	 * @return WP_Invariant
+	 */
+	public function before_each( array $targets, $check ) {
+		foreach ( $targets as $target ) {
+			$this->before( $target, $check );
+		}
+		return $this;
+	}
+
+	/**
+	 * Adds the same after check to several functions or methods.
+	 *
+	 * @param string[] $targets Functions or methods.
+	 * @param callable $check   `function ( WP_Invariant_Call $call, &$state )`.
+	 * @return WP_Invariant
+	 */
+	public function after_each( array $targets, $check ) {
+		foreach ( $targets as $target ) {
+			$this->after( $target, $check );
+		}
+		return $this;
+	}
+
+	/**
 	 * Gives the invariant's hooks a state to share.
 	 *
 	 * @param callable $initial Returns the starting state.
@@ -205,11 +233,15 @@ final class WP_Invariant {
 	}
 
 	/**
-	 * Checks calls made directly from test code too.
+	 * Reports violations on calls made directly from test code too.
 	 *
-	 * By default a call whose caller is in test code is not checked, because tests
-	 * deliberately give invalid input to public functions. The default answers
-	 * whether WordPress itself ever breaks the invariant.
+	 * By default a violation on a call whose caller is in test code is not
+	 * reported, because tests deliberately give invalid input to public functions.
+	 * The default answers whether WordPress itself ever breaks the invariant.
+	 * Invariants about what a function returns hold whoever calls it, and use this.
+	 *
+	 * The check runs either way; only reporting depends on the caller, so that
+	 * the stack is only looked at when there is something to report.
 	 *
 	 * @return WP_Invariant
 	 */
@@ -243,6 +275,36 @@ final class WP_Invariant {
 	}
 
 	/**
+	 * Returns the strings in a value: the value itself, or the strings in its arrays, at any depth.
+	 *
+	 * Objects are left out, because reading their properties can run code, such
+	 * as WP_Post::__get(), which would change what the suite does.
+	 *
+	 * @param mixed $value Any value.
+	 * @param int   $limit Most strings to return.
+	 * @return string[]
+	 */
+	public static function strings_in( $value, $limit = 200 ) {
+		if ( is_string( $value ) ) {
+			return array( $value );
+		}
+
+		$strings = array();
+		if ( is_array( $value ) ) {
+			array_walk_recursive(
+				$value,
+				static function ( $item ) use ( &$strings, $limit ) {
+					if ( is_string( $item ) && count( $strings ) < $limit ) {
+						$strings[] = $item;
+					}
+				}
+			);
+		}
+
+		return $strings;
+	}
+
+	/**
 	 * Sets which directories hold test code, and which hold the code under test.
 	 *
 	 * @param array $paths {
@@ -263,6 +325,9 @@ final class WP_Invariant {
 	 * Each file returns a list of invariants. The id of each is the file's path
 	 * under the directory, without `.php`, then its name: `wpdb/prepared-structure`.
 	 *
+	 * The environment variable WP_INVARIANTS_SKIP leaves files out: a comma-separated
+	 * list of their paths under the directory, without `.php`, such as `pcre,xml`.
+	 *
 	 * @param string $directory Directory of spec files.
 	 * @return array[] One gameshark spec for each hook: `id`, `target`, `when` and `hook`.
 	 */
@@ -276,9 +341,14 @@ final class WP_Invariant {
 		}
 		sort( $files );
 
+		$skip  = array_filter( array_map( 'trim', explode( ',', (string) getenv( 'WP_INVARIANTS_SKIP' ) ) ) );
 		$specs = array();
 		foreach ( $files as $file ) {
-			$prefix     = substr( $file, strlen( $directory ) + 1, -4 );
+			$prefix = substr( $file, strlen( $directory ) + 1, -4 );
+			if ( in_array( $prefix, $skip, true ) ) {
+				continue;
+			}
+
 			$invariants = self::require_spec_file( $file );
 			if ( ! is_array( $invariants ) ) {
 				throw new UnexpectedValueException( sprintf( '%s must return a list of invariants.', $file ) );
@@ -386,6 +456,16 @@ final class WP_Invariant {
 	}
 
 	/**
+	 * Whether a violation on a call is left out of the report, because test code made the call.
+	 *
+	 * @param WP_Invariant_Call $call The call.
+	 * @return bool
+	 */
+	public function ignores( WP_Invariant_Call $call ) {
+		return ! $this->include_test_callers && self::is_test_file( $call->caller()['file'] );
+	}
+
+	/**
 	 * Returns the invariant's current state, for the self-tests.
 	 *
 	 * @return mixed
@@ -444,10 +524,6 @@ final class WP_Invariant {
 		try {
 			$call   = new WP_Invariant_Call( $this, $hook['when'], $hook['target'], $params );
 			$paired = isset( $this->paired_targets[ strtolower( $hook['target'] ) ] );
-
-			if ( ! $this->include_test_callers && self::is_test_file( $call->caller()['file'] ) ) {
-				return;
-			}
 
 			if ( $paired ) {
 				// The hooks for one call run at the same depth; deeper entries were left by calls which threw.

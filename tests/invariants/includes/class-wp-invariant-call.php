@@ -228,6 +228,19 @@ final class WP_Invariant_Call {
 	}
 
 	/**
+	 * Returns how deep the call is: the number of frames from the target's own frame outward.
+	 *
+	 * A call the target made is one deeper. Invariants use this to tell which call,
+	 * recorded in a table, a target made itself. It does not depend on how deep the
+	 * invariant's own code is.
+	 *
+	 * @return int
+	 */
+	public function depth() {
+		return count( $this->frames() );
+	}
+
+	/**
 	 * Returns the frames of the call stack in the code under test, innermost first.
 	 *
 	 * @param int $limit Most frames to return.

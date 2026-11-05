@@ -125,6 +125,28 @@ return array(
 			}
 		),
 
+	WP_Invariant::define( 'depth' )
+		->describe( 'A call a target makes is one deeper than the target, and a check on each target runs once per call.' )
+		->after_each(
+			array( 'wp_invariants_fixture_inner', 'wp_invariants_fixture_outer' ),
+			static function ( WP_Invariant_Call $call ) {
+				$depths                           = WP_Invariant::shared( 'self-test/depths' );
+				$depths->seen[ $call->target() ] = $call->depth();
+			}
+		),
+
+	WP_Invariant::define( 'pcre-error-survives' )
+		->describe( 'A check on a PCRE function sees the error of the call it is checking.' )
+		->include_test_callers()
+		->after(
+			'preg_match',
+			static function ( WP_Invariant_Call $call ) {
+				$error = preg_last_error();
+
+				WP_Invariant::shared( 'self-test/pcre' )->errors[] = array( $call->arg( 'pattern' ), $error );
+			}
+		),
+
 	WP_Invariant::define( 'check-throws' )
 		->describe( 'A check which throws is recorded as a hook error.' )
 		->before(

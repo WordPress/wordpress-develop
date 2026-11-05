@@ -60,7 +60,8 @@ jobs:
   # Runs the test suite with the invariants, on the latest PHP only.
   #
   # Performs the following steps:
-  # - Checks out the repository, and the gameshark extension at the commit in tests/invariants/GAMESHARK_REF.
+  # - Checks out the repository, and the gameshark extension and the MySQL parser at the commits in
+  #   tests/invariants/DEPENDENCIES.
   # - Sets up Node.js, PHP and Composer, and builds WordPress.
   # - Starts the Docker environment and installs WordPress.
   # - Builds the extension inside the PHP container and enables it there.
@@ -94,17 +95,30 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      - name: Read the gameshark commit
-        id: gameshark
-        run: echo "ref=$( tr -d '[:space:]' < tests/invariants/GAMESHARK_REF )" >> "$GITHUB_OUTPUT"
+      - name: Read the commits of the dependencies
+        id: dependencies
+        run: |
+          echo "gameshark=$( sed -n 's/^gameshark=//p' tests/invariants/DEPENDENCIES )" >> "$GITHUB_OUTPUT"
+          echo "sqlite-database-integration=$( sed -n 's/^sqlite-database-integration=//p' tests/invariants/DEPENDENCIES )" >> "$GITHUB_OUTPUT"
 
-      # Inside the repository, so that it is mounted in the PHP container at /var/www/.gameshark/src.
+      # Both are checked out inside the repository, so that they are mounted in the PHP container under /var/www/.invariants.
       - name: Checkout the gameshark extension
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: dmsnell/php-ext-gameshark-extension
-          ref: ${{ steps.gameshark.outputs.ref }}
-          path: .gameshark/src
+          ref: ${{ steps.dependencies.outputs.gameshark }}
+          path: .invariants/gameshark
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      # The MySQL parser, in packages/mysql-parser, is the oracle for the structure of queries.
+      - name: Checkout the MySQL parser
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: WordPress/sqlite-database-integration
+          ref: ${{ steps.dependencies.outputs.sqlite-database-integration }}
+          path: .invariants/sqlite-database-integration
+          sparse-checkout: packages/mysql-parser/src
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
@@ -161,10 +175,10 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
-            .gameshark/cargo
-            .gameshark/rustup
-            .gameshark/src/rust/target
-          key: gameshark-${{ steps.gameshark.outputs.ref }}-${{ steps.php-image.outputs.id }}
+            .invariants/cargo
+            .invariants/rustup
+            .invariants/gameshark/rust/target
+          key: gameshark-${{ steps.dependencies.outputs.gameshark }}-${{ steps.php-image.outputs.id }}
 
       - name: Build and enable the gameshark extension
         run: docker compose exec -T -u 0 php bash /var/www/tests/invariants/bin/install-gameshark.sh

@@ -79,3 +79,21 @@ function wp_invariants_fixture_counter() {
 function wp_invariants_fixture_error( $value ) {
 	return $value;
 }
+
+/**
+ * Calls wp_invariants_fixture_inner(), one call deeper.
+ *
+ * @return int
+ */
+function wp_invariants_fixture_outer() {
+	return wp_invariants_fixture_inner();
+}
+
+/**
+ * Does nothing; it is called by wp_invariants_fixture_outer().
+ *
+ * @return int
+ */
+function wp_invariants_fixture_inner() {
+	return 1;
+}

@@ -14,6 +14,8 @@ require_once __DIR__ . '/class-wp-invariant-call.php';
 require_once __DIR__ . '/class-wp-invariant-violations.php';
 require_once __DIR__ . '/class-wp-invariant-report.php';
 require_once __DIR__ . '/sql/class-wp-invariant-sql-lexer.php';
+require_once __DIR__ . '/oracles/class-wp-invariant-browser.php';
+require_once __DIR__ . '/oracles/class-wp-invariant-mysql.php';
 
 /**
  * Stops PHPUnit unless the gameshark extension has loaded the expected invariants file.
@@ -27,7 +29,9 @@ function wp_invariants_require_loaded( $file ) {
 	$file   = realpath( $file );
 	$status = function_exists( 'gameshark_invariants_status' ) ? gameshark_invariants_status() : null;
 
-	if ( null === $status ) {
+	if ( PHP_VERSION_ID < 80500 ) {
+		$problem = sprintf( 'The invariants need PHP 8.5 or newer, for the parsers they compare WordPress with; this is PHP %s.', PHP_VERSION );
+	} elseif ( null === $status ) {
 		$problem = 'The gameshark PHP extension is not loaded.';
 	} elseif ( ! $status['loaded'] ) {
 		$problem = 'The gameshark extension did not load invariants' . ( $status['load_error'] ? ': ' . $status['load_error'] : '.' );

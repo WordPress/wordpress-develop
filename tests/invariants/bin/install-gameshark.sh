@@ -6,23 +6,23 @@
 #
 #     docker compose exec -u 0 php bash /var/www/tests/invariants/bin/install-gameshark.sh
 #
-# It builds the extension from .gameshark/src, which must be a checkout of
-# https://github.com/dmsnell/php-ext-gameshark-extension at the commit in tests/invariants/GAMESHARK_REF.
-# Rust and the build are kept in .gameshark/ so that later runs reuse them.
+# It builds the extension from .invariants/gameshark, which must be a checkout of
+# https://github.com/dmsnell/php-ext-gameshark-extension at the commit named in tests/invariants/DEPENDENCIES.
+# Rust and the build are kept in .invariants/ so that later runs reuse them.
 #
 # The extension is only enabled until the container is recreated, as by `npm run env:restart`.
 set -euo pipefail
 
 root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../.." && pwd )"
-source_dir="$root/.gameshark/src"
-export CARGO_HOME="$root/.gameshark/cargo"
-export RUSTUP_HOME="$root/.gameshark/rustup"
+source_dir="$root/.invariants/gameshark"
+export CARGO_HOME="$root/.invariants/cargo"
+export RUSTUP_HOME="$root/.invariants/rustup"
 export PATH="$CARGO_HOME/bin:$PATH"
 
 if [[ ! -f "$source_dir/config.m4" ]]; then
 	echo "There is no gameshark source in $source_dir. Check it out with:" >&2
-	echo "  git clone https://github.com/dmsnell/php-ext-gameshark-extension.git .gameshark/src" >&2
-	echo "  git -C .gameshark/src checkout \"\$( cat tests/invariants/GAMESHARK_REF )\"" >&2
+	echo "  git clone https://github.com/dmsnell/php-ext-gameshark-extension.git .invariants/gameshark" >&2
+	echo "  git -C .invariants/gameshark checkout \"\$( sed -n 's/^gameshark=//p' tests/invariants/DEPENDENCIES )\"" >&2
 	exit 1
 fi
 
@@ -39,4 +39,4 @@ echo 'extension=gameshark.so' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-ga
 php --ri gameshark
 
 # Whoever runs the tests, and the CI cache, can read and replace what was built here as root.
-chmod -R a+rwX "$root/.gameshark"
+chmod -R a+rwX "$root/.invariants"

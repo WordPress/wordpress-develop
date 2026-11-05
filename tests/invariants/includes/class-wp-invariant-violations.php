@@ -63,6 +63,10 @@ final class WP_Invariant_Violations {
 	 * @param WP_Invariant_Call $call      The call it was found on.
 	 */
 	public static function record( WP_Invariant $invariant, $message, WP_Invariant_Call $call ) {
+		if ( $invariant->ignores( $call ) ) {
+			return;
+		}
+
 		self::add( $invariant->id(), 'violation', $message, $call->target(), $call->when(), $call->stack() );
 	}
 
@@ -75,6 +79,10 @@ final class WP_Invariant_Violations {
 	 * @param Throwable              $error     What it threw.
 	 */
 	public static function record_hook_error( WP_Invariant $invariant, array $hook, $call, Throwable $error ) {
+		if ( $call && $invariant->ignores( $call ) ) {
+			return;
+		}
+
 		$message = sprintf( 'The check threw %s: %s (%s:%d)', get_class( $error ), $error->getMessage(), WP_Invariant::relative_path( $error->getFile() ), $error->getLine() );
 		self::add( $invariant->id(), 'hook-error', $message, $hook['target'], 'pre' === $hook['when'] ? 'before' : 'after', $call ? $call->stack() : array() );
 	}

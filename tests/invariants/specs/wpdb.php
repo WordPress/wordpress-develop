@@ -4,6 +4,8 @@
  *
  * prepared-structure and prepared-reaches-mysql share the queries which
  * wpdb::prepare() returned in the running test, through WP_Invariant::shared().
+ * prepared-parse-tree and queries-are-valid-mysql parse queries with the MySQL
+ * parser from WordPress/sqlite-database-integration, as an independent oracle.
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -88,6 +90,51 @@ return array(
 						WP_Invariant_SQL_Lexer::structure( array_slice( $tokens, $first, $last - $first + 1 ) ) === WP_Invariant_SQL_Lexer::structure( $query_tokens );
 					$call->expect( $intact, 'The prepared query %s reached MySQL inside %s.', $query, $sql );
 				}
+			}
+		),
+
+	WP_Invariant::define( 'prepared-parse-tree' )
+		->describe( 'Parsed with MySQL\'s grammar, what wpdb::prepare() returns has the same parse tree as its template filled with harmless values: the values it fills in change no SQL. Templates which are not whole statements are left to prepared-structure.' )
+		->state(
+			static function () {
+				return array( 'templates' => array() );
+			},
+			'run'
+		)
+		->after(
+			'wpdb::prepare',
+			static function ( WP_Invariant_Call $call, array &$state ) {
+				$result   = $call->return_value();
+				$template = $call->arg( 'query' );
+				if ( ! is_string( $result ) || '' === $result || ! is_string( $template ) ) {
+					return;
+				}
+
+				// The same templates are prepared over and over: keep the parse trees of the latest 2,000.
+				if ( ! array_key_exists( $template, $state['templates'] ) ) {
+					$state['templates'][ $template ] = WP_Invariant_MySQL::parse_tree( WP_Invariant_SQL_Lexer::fill_template( $template ) );
+					if ( count( $state['templates'] ) > 2000 ) {
+						unset( $state['templates'][ array_key_first( $state['templates'] ) ] );
+					}
+				}
+				$expected = $state['templates'][ $template ];
+				if ( null === $expected ) {
+					return;
+				}
+
+				$query = $call->self()->remove_placeholder_escape( $result );
+				$call->expect( WP_Invariant_MySQL::parse_tree( $query ) === $expected, 'wpdb::prepare( %s ) returned %s, which MySQL parses differently.', $template, $query );
+			}
+		),
+
+	WP_Invariant::define( 'queries-are-valid-mysql' )
+		->describe( 'Every query sent to MySQL is valid MySQL 8.4, as MySQL\'s grammar parses it.' )
+		->include_test_callers()
+		->before(
+			'wpdb::_do_query',
+			static function ( WP_Invariant_Call $call ) {
+				$query = $call->arg( 'query' );
+				$call->expect( ! is_string( $query ) || null !== WP_Invariant_MySQL::parse_tree( $query ), 'MySQL would reject this query as invalid: %s', $query );
 			}
 		),
 
