@@ -21,6 +21,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 */
 	protected $image;
 
+	/**
+	 * Whether the loaded image is an indexed (palette-based) PNG with no transparency.
+	 *
+	 * Used to save resized copies of such images as indexed PNGs again,
+	 * rather than as considerably larger truecolor PNGs.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	protected $is_opaque_indexed_png = false;
+
 	public function __destruct() {
 		if ( $this->image ) {
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
@@ -133,10 +144,41 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imagesavealpha( $this->image, true );
 		}
 
+		$this->is_opaque_indexed_png = 'image/png' === $size['mime'] && $this->is_opaque_palette_image();
+
 		$this->update_size( $size[0], $size[1] );
 		$this->mime_type = $size['mime'];
 
 		return $this->set_quality();
+	}
+
+	/**
+	 * Checks whether the loaded image is palette-based and has no transparency.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool True if the image is palette-based and fully opaque, false otherwise.
+	 */
+	protected function is_opaque_palette_image() {
+		if ( ! function_exists( 'imageistruecolor' ) || imageistruecolor( $this->image ) ) {
+			return false;
+		}
+
+		if ( imagecolortransparent( $this->image ) >= 0 ) {
+			return false;
+		}
+
+		$colors_total = imagecolorstotal( $this->image );
+
+		for ( $i = 0; $i < $colors_total; $i++ ) {
+			$color = imagecolorsforindex( $this->image, $i );
+
+			if ( $color['alpha'] > 0 ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -536,12 +578,36 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} elseif ( 'image/png' === $mime_type ) {
-			// Convert from full colors to index colors, like original PNG.
-			if ( function_exists( 'imageistruecolor' ) && ! imageistruecolor( $image ) ) {
-				imagetruecolortopalette( $image, false, imagecolorstotal( $image ) );
+			$png_image = $image;
+
+			/*
+			 * Resizing, cropping, and rotating always produce a truecolor image. If the original
+			 * was an opaque indexed PNG, save an indexed copy instead, like the original.
+			 *
+			 * A copy is converted so that $image stays truecolor for any later saves from this
+			 * editor, since GD cannot write WebP or AVIF from a palette image.
+			 *
+			 * Indexed PNGs with transparency are saved as truecolor, because
+			 * imagetruecolortopalette() does not reliably preserve the alpha channel.
+			 */
+			if ( $this->is_opaque_indexed_png && imageistruecolor( $image ) ) {
+				$width  = imagesx( $image );
+				$height = imagesy( $image );
+
+				$png_image = wp_imagecreatetruecolor( $width, $height );
+
+				if ( is_gd_image( $png_image ) && imagecopy( $png_image, $image, 0, 0, 0, 0, $width, $height ) ) {
+					imagetruecolortopalette( $png_image, false, 256 );
+
+					if ( function_exists( 'imageinterlace' ) ) {
+						imageinterlace( $png_image, imageinterlace( $image ) );
+					}
+				} else {
+					$png_image = $image;
+				}
 			}
 
-			if ( ! $this->make_image( $filename, 'imagepng', array( $image, $filename ) ) ) {
+			if ( ! $this->make_image( $filename, 'imagepng', array( $png_image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} elseif ( 'image/jpeg' === $mime_type ) {
