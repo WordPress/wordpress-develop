@@ -1,6 +1,5 @@
-import { execFileSync } from 'node:child_process';
-import { join } from 'node:path';
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { wpCli } from '../utils/wp-cli';
 
 function timezoneOptions( baseURL, values ) {
 	const restore = values === undefined ? '' : `
@@ -10,9 +9,8 @@ function timezoneOptions( baseURL, values ) {
 		}
 	`;
 
-	return JSON.parse( execFileSync( process.execPath, [
-		join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
-		'exec', '--user', 'wp_php', 'cli', 'wp', `--url=${ baseURL }`, 'eval',
+	return JSON.parse( wpCli( [
+		`--url=${ baseURL }`, 'eval',
 		`
 			// Read and restore the stored offset, not the value calculated for a named timezone.
 			remove_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
@@ -22,7 +20,7 @@ function timezoneOptions( baseURL, values ) {
 				'gmt_offset' => get_option( 'gmt_offset' ),
 			) );
 		`,
-	], { encoding: 'utf-8', env: { ...process.env, DOTENV_CONFIG_QUIET: 'true' } } ) );
+	] ) );
 }
 
 test.describe( 'Settings -> General', () => {
