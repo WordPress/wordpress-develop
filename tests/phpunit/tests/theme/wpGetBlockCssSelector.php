@@ -131,7 +131,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 	}
 
 	/**
@@ -205,7 +205,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, 'typography' );
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, array( 'typography', 'fontSize' ) );
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 	}
 
 	/**
@@ -297,7 +297,7 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 			$block_type,
 			array( 'typography', 'fontSize' )
 		);
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 	}
 
 	/**
@@ -311,10 +311,10 @@ class Tests_Theme_WpGetBlockCssSelector extends WP_Theme_UnitTestCase {
 		);
 
 		$selector = wp_get_block_css_selector( $block_type, array() );
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 
 		$selector = wp_get_block_css_selector( $block_type, '' );
-		$this->assertSame( null, $selector );
+		$this->assertNull( $selector );
 	}
 
 	/**
