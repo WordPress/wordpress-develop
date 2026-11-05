@@ -751,8 +751,13 @@ class WP_Ability {
 	/**
 	 * Checks whether the ability has the necessary permissions.
 	 *
-	 * Please note that input is not automatically validated against the input schema.
-	 * Use `validate_input()` method to validate input before calling this method if needed.
+	 * This method does not normalize, validate, or coerce input. Use execute() to run
+	 * the full ability lifecycle. When calling this method directly, prepare the input
+	 * in the same order as execute(): normalize_input(), validate_input(), and then
+	 * coerce_input(). Stop if any step returns a WP_Error, and pass the coerced input
+	 * to this method. Otherwise, the permission callback may receive different input
+	 * than it does during execute(), for example a missing schema default or a string
+	 * instead of an integer.
 	 *
 	 * The checks run in this order:
 	 *
@@ -768,9 +773,13 @@ class WP_Ability {
 	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
 	 * @since 7.2.0 Added the `required_capabilities` check.
 	 *
+	 * @see normalize_input()
 	 * @see validate_input()
+	 * @see coerce_input()
+	 * @see execute()
 	 *
-	 * @param mixed $input Optional. The valid input data for permission checking. Default `null`.
+	 * @param mixed $input Optional. The normalized, validated, and coerced input data for permission checking.
+	 *                     Default `null`.
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
