@@ -226,9 +226,10 @@ final class WP_Secret implements JsonSerializable {
 	/**
 	 * Masks the instance for var_dump() and print_r().
 	 *
-	 * Note that var_export() has no equivalent hook. It is safe regardless, because
-	 * the plaintext is never a declared property for it to enumerate; it will surface
-	 * the (non-sensitive) name and fingerprint rather than this placeholder.
+	 * Note that var_export() does not use this hook. It does not expose plaintext
+	 * from the vault, but it enumerates all instance properties, including the
+	 * unmasked WP_Error reason on a withheld secret. Use a masked output path
+	 * instead when the reason must remain private.
 	 *
 	 * @since 7.2.0
 	 *
