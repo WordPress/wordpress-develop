@@ -3241,7 +3241,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								),
 							),
 						),
-						'core/button'            => array(
+						'core/button'         => array(
 							':hover'  => array(
 								'transform' => array( 'rotate' => '3deg' ),
 							),
