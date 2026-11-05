@@ -127,7 +127,8 @@ class Tests_Kses_wpKsesNoNull extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `slash_zero` option only keeps escaped zeros for the value `keep`.
+	 * Tests that escaped zeros are only removed when the `slash_zero` option is exactly `remove`,
+	 * and are kept for any other value.
 	 *
 	 * @ticket 66492
 	 *
@@ -140,7 +141,7 @@ class Tests_Kses_wpKsesNoNull extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for the `slash_zero` values that are not exactly `remove`.
 	 *
 	 * @return array[]
 	 */
