@@ -1,7 +1,5 @@
 <?php
 
-namespace WordPress\Tests\WP_Includes\Functions;
-
 use WP_UnitTestCase;
 
 /**
