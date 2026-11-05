@@ -113,6 +113,7 @@ jobs:
           - db-version: '9.4'
           - db-version: '9.5'
           - db-version: '9.6'
+          - db-version: '26.7'
           # No PHP 8.5 + Memcached support yet.
           - php: '8.5'
             memcached: true

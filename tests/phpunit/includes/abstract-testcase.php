@@ -271,8 +271,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->reset_post_statuses();
 			$this->reset__SERVER();
 
-			if ( $wp_rewrite->permalink_structure ) {
-				$this->set_permalink_structure( '' );
+			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+				$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+			} else {
+				// Discard endpoints and extra rules added by previous tests.
+				$wp_rewrite->init();
 			}
 		}
 
@@ -343,8 +346,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
 		 * remains synchronized with the restored database option for subsequent class fixtures.
 		 */
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
-			$this->set_permalink_structure( '' );
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		}
 
 		$wpdb->query( 'ROLLBACK' );

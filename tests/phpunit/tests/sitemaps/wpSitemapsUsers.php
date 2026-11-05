@@ -31,6 +31,11 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 		self::$editor_id = self::$users[0];
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	public function tear_down() {
 		unregister_post_type( 'public_cpt' );
 		unregister_post_type( 'private_cpt' );
