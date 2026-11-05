@@ -58,7 +58,6 @@ Source: https://fontsource.org/fonts/libre-franklin
 
 Bundled header image, Copyright Alvin Engler
 License: CC0 1.0 Universal (CC0 1.0)
-Source: https://unsplash.com/@englr?photo=bIhpiQA009k
 
 Bundled block pattern images, Copyright Solo Shutter
 License: CC0 1.0 Universal (CC0 1.0)
