@@ -27,11 +27,17 @@ class Tests_Functions_wpGetUpdateHttpsUrl extends WP_UnitTestCase {
 	 * @covers ::wp_get_update_https_url
 	 */
 	public function test_wp_get_update_https_url_env() {
-		putenv( 'WP_UPDATE_HTTPS_URL=https://example.com' );
+		$previous_url = getenv( 'WP_UPDATE_HTTPS_URL' );
 
-		$result   = wp_get_update_https_url();
-		$expected = 'https://example.com';
-		$this->assertEquals( $expected, $result );
+		try {
+			putenv( 'WP_UPDATE_HTTPS_URL=https://example.com' );
+
+			$result   = wp_get_update_https_url();
+			$expected = 'https://example.com';
+			$this->assertEquals( $expected, $result );
+		} finally {
+			putenv( false === $previous_url ? 'WP_UPDATE_HTTPS_URL' : 'WP_UPDATE_HTTPS_URL=' . $previous_url );
+		}
 	}
 
 	/**
