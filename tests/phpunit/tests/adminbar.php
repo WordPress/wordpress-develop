@@ -38,6 +38,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unregister_post_type( 'content' );
+		unregister_post_type( 'foo-non-public' );
 
 		parent::tear_down();
 	}
@@ -560,8 +561,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		unregister_post_type( 'foo-non-public' );
-
 		$this->assertNull( $node );
 	}
 
@@ -583,8 +582,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		unregister_post_type( 'foo-non-public' );
-
 		$this->assertNull( $node );
 	}
 
@@ -605,8 +602,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
-
-		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
 	}
