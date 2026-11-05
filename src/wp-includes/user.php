@@ -52,7 +52,7 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 			$credentials['user_login'] = wp_unslash( $_POST['log'] );
 		}
 		if ( ! empty( $_POST['pwd'] ) && is_string( $_POST['pwd'] ) ) {
-			$credentials['user_password'] = $_POST['pwd'];
+			$credentials['user_password'] = wp_unslash( $_POST['pwd'] );
 		}
 		if ( ! empty( $_POST['rememberme'] ) ) {
 			$credentials['remember'] = $_POST['rememberme'];
@@ -208,6 +208,19 @@ function wp_authenticate_username_password(
 	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
 
 	if ( ! $valid ) {
+		/*
+		 * Back-compat for users whose password was hashed with magic-quote slashes
+		 * intact. If the slashed version matches, migrate the hash to the
+		 * unslashed password.
+		 */
+		$valid = wp_check_password( wp_slash( $password ), $user->user_pass, $user->ID );
+
+		if ( $valid ) {
+			wp_set_password( $password, $user->ID );
+		}
+	}
+
+	if ( ! $valid ) {
 		return new WP_Error(
 			'incorrect_password',
 			sprintf(
@@ -289,6 +302,19 @@ function wp_authenticate_email_password(
 	}
 
 	$valid = wp_check_password( $password, $user->user_pass, $user->ID );
+
+	if ( ! $valid ) {
+		/*
+		 * Back-compat for users whose password was hashed with magic-quote slashes
+		 * intact. If the slashed version matches, migrate the hash to the
+		 * unslashed password.
+		 */
+		$valid = wp_check_password( wp_slash( $password ), $user->user_pass, $user->ID );
+
+		if ( $valid ) {
+			wp_set_password( $password, $user->ID );
+		}
+	}
 
 	if ( ! $valid ) {
 		return new WP_Error(
