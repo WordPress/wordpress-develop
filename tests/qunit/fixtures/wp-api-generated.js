@@ -1378,6 +1378,16 @@ mockedApiResponse.Schema = {
                             ],
                             "default": "view",
                             "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 },
@@ -2527,6 +2537,16 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
                             "required": false
                         }
                     }
@@ -4438,6 +4458,16 @@ mockedApiResponse.Schema = {
                             ],
                             "default": "view",
                             "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 },
@@ -5470,6 +5500,16 @@ mockedApiResponse.Schema = {
                             ],
                             "default": "view",
                             "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
+                            "required": false
                         }
                     }
                 },
@@ -5853,6 +5893,16 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
                             "required": false
                         }
                     }
@@ -6537,6 +6587,16 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
                             "required": false
                         }
                     }
@@ -7954,6 +8014,16 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to autosaves assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "default": [],
                             "required": false
                         }
                     }
