@@ -193,14 +193,12 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * The entire point of network scope: a secret written from one blog's context
 	 * must read back identically from another blog's context. Requires multisite.
 	 *
+	 * @group ms-required
+	 *
 	 * @covers ::wp_set_network_secret
 	 * @covers ::wp_get_network_secret
 	 */
 	public function test_network_secret_is_readable_from_any_blog(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Requires multisite: proves network secrets are not bound to the blog that wrote them.' );
-		}
-
 		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'cross-blog-value' ), 'Setting network secret myplugin/api-key to cross-blog-value should succeed.' );
 
 		$second_blog_id = self::factory()->blog->create();
@@ -216,14 +214,12 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * proving there is no implicit fallback between scopes and no accidental sharing
 	 * across blogs for site-scope secrets.
 	 *
+	 * @group ms-required
+	 *
 	 * @covers ::wp_set_secret
 	 * @covers ::wp_get_secret
 	 */
 	public function test_site_secret_is_not_readable_from_a_different_blog(): void {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Requires multisite: proves site secrets do not leak across blogs.' );
-		}
-
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'blog-one-value' ), 'Setting myplugin/api-key to blog-one-value should succeed.' );
 
 		$second_blog_id = self::factory()->blog->create();
