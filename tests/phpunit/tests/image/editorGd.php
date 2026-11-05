@@ -1017,14 +1017,19 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
+	 * @dataProvider data_flip_moves_every_pixel
+	 *
 	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
 	 */
-	public function test_flip_disables_alpha_blending_after_rotate() {
+	public function test_flip_disables_alpha_blending_after_rotate( $horz, $vert ) {
 		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
 		$gd_image_editor->load();
 
 		$this->assertTrue( $gd_image_editor->rotate( 90 ) );
-		$this->assertTrue( $gd_image_editor->flip( true, false ) );
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
 		$property = new ReflectionProperty( $gd_image_editor, 'image' );
 		if ( PHP_VERSION_ID < 80100 ) {

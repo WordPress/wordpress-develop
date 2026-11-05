@@ -587,6 +587,10 @@ function _flip_image_resource( $img, $horz, $vert ) {
 		return $img;
 	}
 
+	// Match the alpha settings of the previous implementation's copy, including when no axis is flipped.
+	imagealphablending( $img, false );
+	imagesavealpha( $img, true );
+
 	if ( ! $horz && ! $vert ) {
 		return $img;
 	}
@@ -599,10 +603,7 @@ function _flip_image_resource( $img, $horz, $vert ) {
 		$mode = IMG_FLIP_HORIZONTAL;
 	}
 
-	if ( imageflip( $img, $mode ) ) {
-		imagealphablending( $img, false );
-		imagesavealpha( $img, true );
-	}
+	imageflip( $img, $mode );
 
 	return $img;
 }

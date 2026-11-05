@@ -1318,6 +1318,44 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, imagecolorat( $flipped, $target_x, $target_y ), 'The bottom-left pixel did not move to its mirrored position.' );
 	}
+
+	/**
+	 * Tests that _flip_image_resource() returns an image that keeps its alpha channel when saved as PNG.
+	 *
+	 * The previous implementation always returned a new image with alpha saving
+	 * enabled, even if the input had it disabled and no axis was flipped.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_enables_alpha_saving( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// A single half-transparent pixel, so its position does not change when flipped.
+		$image = imagecreatetruecolor( 1, 1 );
+		imagealphablending( $image, false );
+		imagesavealpha( $image, false );
+		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 200, 100, 50, 64 ) );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flip-image-resource-alpha.png' );
+		imagepng( $flipped, $file );
+		$reloaded = imagecreatefrompng( $file );
+		unlink( $file );
+
+		$this->assertSame( 64, ( imagecolorat( $reloaded, 0, 0 ) >> 24 ) & 0x7F, 'The alpha channel should be kept when saving as PNG.' );
+	}
 }
 
 /**

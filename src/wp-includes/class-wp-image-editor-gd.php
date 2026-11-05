@@ -453,6 +453,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
 		}
 
+		/*
+		 * imageflip() also keeps the current alpha settings, which rotate() leaves
+		 * with blending enabled. Reset them to what the previous implementation
+		 * always produced, including when no axis is flipped.
+		 */
+		imagealphablending( $this->image, false );
+		imagesavealpha( $this->image, true );
+
 		if ( ! $horz && ! $vert ) {
 			return true;
 		}
@@ -466,14 +474,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		if ( imageflip( $this->image, $mode ) ) {
-			/*
-			 * imageflip() works in place and keeps the current alpha settings, which
-			 * rotate() leaves with blending enabled. Reset them to what the previous
-			 * implementation always produced.
-			 */
-			imagealphablending( $this->image, false );
-			imagesavealpha( $this->image, true );
-
 			return true;
 		}
 
