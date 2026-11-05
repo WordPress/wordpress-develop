@@ -35,11 +35,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-26.04, windows-2025 ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts once.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-15 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-26.04, windows-2025 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-15 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -118,7 +118,7 @@ jobs:
   # leave a comment detailing how to test the PR within WordPress Playground.
   playground-comment:
     name: Leave WordPress Playground details
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     continue-on-error: true
@@ -155,7 +155,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
