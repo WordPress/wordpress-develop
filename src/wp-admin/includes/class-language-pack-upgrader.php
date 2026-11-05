@@ -22,7 +22,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * Result of the language pack upgrade.
 	 *
 	 * @since 3.7.0
-	 * @var array|WP_Error $result
+	 * @var array|WP_Error|null $result
+	 * @phpstan-var non-empty-array<string, mixed>|WP_Error|null
 	 * @see WP_Upgrader::$result
 	 */
 	public $result;
@@ -67,8 +68,14 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return;
 		}
 
+		$deferred_updates = wp_get_deferred_translation_updates( $language_updates );
+
 		foreach ( $language_updates as $key => $language_update ) {
 			$update = ! empty( $language_update->autoupdate );
+
+			if ( $update && wp_is_translation_update_deferred( $language_update, $deferred_updates ) ) {
+				$update = false;
+			}
 
 			/**
 			 * Filters whether to asynchronously update translation for core, a plugin, or a theme.
@@ -127,10 +134,13 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|false $update Optional. Whether an update offer is available. Default false.
+	 * @param object|false $update Optional. The language pack update offer, or false to upgrade all
+	 *                             available language packs. Default false.
 	 * @param array        $args   Optional. Other optional arguments, see
 	 *                             Language_Pack_Upgrader::bulk_upgrade(). Default empty array.
-	 * @return array|bool|WP_Error The result of the upgrade, or a WP_Error object instead.
+	 * @return array|bool|WP_Error|null The result of the upgrade, or a WP_Error object instead. Null if the
+	 *                                  upgrade failed before the package was installed, for example when
+	 *                                  the package could not be downloaded.
 	 */
 	public function upgrade( $update = false, $args = array() ) {
 		if ( $update ) {
@@ -226,6 +236,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		}
 
 		$language_updates_results = array();
+		$successful_update_ids    = array();
 
 		foreach ( $language_updates as $language_update ) {
 
@@ -262,12 +273,25 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				break;
 			}
 
+			if ( is_array( $result ) ) {
+				$successful_update_ids[ wp_get_translation_update_id( $language_update ) ] = true;
+			}
+
 			$language_updates_results[] = array(
 				'language' => $language_update->language,
 				'type'     => $language_update->type,
-				'slug'     => isset( $language_update->slug ) ? $language_update->slug : 'default',
+				'slug'     => $language_update->slug ?? 'default',
 				'version'  => $language_update->version,
 			);
+		}
+
+		if ( $successful_update_ids ) {
+			$deferred_updates = wp_get_deferred_translation_updates();
+			$remaining        = array_diff_key( $deferred_updates, $successful_update_ids );
+
+			if ( $remaining !== $deferred_updates ) {
+				wp_set_deferred_translation_updates( $remaining );
+			}
 		}
 
 		// Remove upgrade hooks which are not required for translation updates.
@@ -332,15 +356,22 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		// Check that the folder contains a valid language.
 		$files = $wp_filesystem->dirlist( $remote_source );
 
-		// Check to see if a .po and .mo exist in the folder.
-		$po = false;
-		$mo = false;
+		// Check to see if the expected files exist in the folder.
+		$po  = false;
+		$mo  = false;
+		$php = false;
 		foreach ( (array) $files as $file => $filedata ) {
 			if ( str_ends_with( $file, '.po' ) ) {
 				$po = true;
 			} elseif ( str_ends_with( $file, '.mo' ) ) {
 				$mo = true;
+			} elseif ( str_ends_with( $file, '.l10n.php' ) ) {
+				$php = true;
 			}
+		}
+
+		if ( $php ) {
+			return $source;
 		}
 
 		if ( ! $mo || ! $po ) {
@@ -348,10 +379,11 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				'incompatible_archive_pomo',
 				$this->strings['incompatible_archive'],
 				sprintf(
-					/* translators: 1: .po, 2: .mo */
-					__( 'The language pack is missing either the %1$s or %2$s files.' ),
+					/* translators: 1: .po, 2: .mo, 3: .l10n.php */
+					__( 'The language pack is missing either the %1$s, %2$s, or %3$s files.' ),
 					'<code>.po</code>',
-					'<code>.mo</code>'
+					'<code>.mo</code>',
+					'<code>.l10n.php</code>'
 				)
 			);
 		}
@@ -375,7 +407,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			case 'theme':
 				$theme = wp_get_theme( $update->slug );
 				if ( $theme->exists() ) {
-					return $theme->Get( 'Name' );
+					return $theme->get( 'Name' );
 				}
 				break;
 			case 'plugin':
@@ -409,12 +441,16 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$files = array(
 				$remote_destination . $language_update->language . '.po',
 				$remote_destination . $language_update->language . '.mo',
+				$remote_destination . $language_update->language . '.l10n.php',
 				$remote_destination . 'admin-' . $language_update->language . '.po',
 				$remote_destination . 'admin-' . $language_update->language . '.mo',
+				$remote_destination . 'admin-' . $language_update->language . '.l10n.php',
 				$remote_destination . 'admin-network-' . $language_update->language . '.po',
 				$remote_destination . 'admin-network-' . $language_update->language . '.mo',
+				$remote_destination . 'admin-network-' . $language_update->language . '.l10n.php',
 				$remote_destination . 'continents-cities-' . $language_update->language . '.po',
 				$remote_destination . 'continents-cities-' . $language_update->language . '.mo',
+				$remote_destination . 'continents-cities-' . $language_update->language . '.l10n.php',
 			);
 
 			$json_translation_files = glob( $language_directory . $language_update->language . '-*.json' );
@@ -427,6 +463,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$files = array(
 				$remote_destination . $language_update->slug . '-' . $language_update->language . '.po',
 				$remote_destination . $language_update->slug . '-' . $language_update->language . '.mo',
+				$remote_destination . $language_update->slug . '-' . $language_update->language . '.l10n.php',
 			);
 
 			$language_directory     = $language_directory . $language_update->type . 's/';

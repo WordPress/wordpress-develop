@@ -21,6 +21,16 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 */
 	protected static $user_id;
 
+	/**
+	 * @var WP_Locale_Switcher
+	 */
+	protected $orig_instance;
+
+	/**
+	 * @var WP_Locale
+	 */
+	protected $orig_wp_locale;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
@@ -38,11 +48,16 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		global $wp_textdomain_registry, $wp_locale_switcher;
+		global $wp_textdomain_registry, $wp_locale_switcher, $wp_locale;
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
-		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
+		$this->orig_instance  = $wp_locale_switcher;
+		$this->orig_wp_locale = $wp_locale;
+
+		remove_all_filters( 'locale' );
+		remove_all_filters( 'determine_locale' );
+
 		$wp_locale_switcher = new WP_Locale_Switcher();
 		$wp_locale_switcher->init();
 	}
@@ -50,7 +65,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	public function tear_down() {
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		global $wp_textdomain_registry, $wp_locale_switcher;
+		global $wp_textdomain_registry, $wp_locale_switcher, $wp_locale;
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
@@ -58,9 +73,14 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		// before resetting $wp_locale_switcher.
 		restore_current_locale();
 
-		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
-		$wp_locale_switcher = new WP_Locale_Switcher();
-		$wp_locale_switcher->init();
+		remove_all_filters( 'locale' );
+		remove_all_filters( 'determine_locale' );
+
+		$wp_locale_switcher = $this->orig_instance;
+		$wp_locale          = $this->orig_wp_locale;
+
+		unload_textdomain( 'internationalized-plugin' );
+		unload_textdomain( 'custom-internationalized-theme' );
 
 		parent::tear_down();
 	}
@@ -479,6 +499,8 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		global $wp_textdomain_registry;
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
+
+		custom_i18n_load_textdomain();
 
 		$actual = custom_i18n_plugin_test();
 

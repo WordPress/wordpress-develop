@@ -2,10 +2,22 @@
 
 /**
  * @group taxonomy
+ * @group category
  *
  * @covers ::get_category_link
  */
 class Tests_Category_GetCategoryLink extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
 	public function test_success() {
 		$c = self::factory()->category->create();
 

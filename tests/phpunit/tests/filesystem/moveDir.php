@@ -3,7 +3,8 @@
 /**
  * Tests move_dir().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::move_dir
  */
@@ -161,7 +162,7 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_return_wp_error() {
+	public static function data_should_return_wp_error() {
 		return array(
 			'$overwrite is false and $to exists' => array(
 				'from'      => 'existing_from',
@@ -261,7 +262,7 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_move_directory() {
+	public static function data_should_move_directory() {
 		return array(
 			'$overwrite is false and $to does not exist' => array(
 				'from'      => 'existing_from',
