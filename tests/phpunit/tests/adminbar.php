@@ -878,11 +878,19 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_new_content_menu
 	 */
 	public function test_new_content_menu_omits_site_on_single_site() {
-		wp_set_current_user( self::$admin_id );
+		$user = wp_set_current_user( self::$admin_id );
+
+		// Administrators of a single site cannot create sites, so grant the capability to test the guard.
+		$user->add_cap( 'create_sites' );
+		$this->assertTrue( current_user_can( 'create_sites' ), 'The user should be able to create sites.' );
+		$this->assertFalse( is_multisite() );
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'add-new-site' );
 
-		$this->assertNull( $wp_admin_bar->get_node( 'add-new-site' ) );
+		$user->remove_cap( 'create_sites' );
+
+		$this->assertNull( $node_site );
 	}
 
 	/**
