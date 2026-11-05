@@ -3268,9 +3268,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( $c2, $found );
-
-		_unregister_post_type( 'post-type-1' );
-		_unregister_post_type( 'post-type-2' );
 	}
 
 	/**
@@ -3297,9 +3294,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( $c2, $found );
-
-		_unregister_post_type( 'post-type-1' );
-		_unregister_post_type( 'post-type-2' );
 	}
 
 	/**
