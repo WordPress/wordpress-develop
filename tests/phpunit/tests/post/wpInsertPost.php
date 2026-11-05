@@ -77,7 +77,9 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		unregister_post_type( 'unmapped_meta_caps' );
 		unregister_post_type( 'no_admin_caps' );
 		unregister_post_type( 'cpt' );
+		unregister_post_type( 'wptests_pt' );
 		unregister_taxonomy( 'ctax' );
+		unregister_taxonomy( 'test_tax' );
 
 		parent::tear_down();
 	}
