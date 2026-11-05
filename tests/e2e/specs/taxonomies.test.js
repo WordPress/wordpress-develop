@@ -59,6 +59,7 @@ for ( const { taxonomy, endpoint, label } of [
 
 		test( 'adds a term', async ( { admin, page } ) => {
 			const name = `${ prefix }-new`;
+			const slug = `${ name }-slug`;
 			await admin.visitAdminPage(
 				'/edit-tags.php',
 				`taxonomy=${ taxonomy }`
@@ -69,7 +70,7 @@ for ( const { taxonomy, endpoint, label } of [
 				.fill( name );
 			await form
 				.getByRole( 'textbox', { name: 'Slug', exact: true } )
-				.fill( name );
+				.fill( slug );
 			await form
 				.getByRole( 'button', { name: `Add ${ label }`, exact: true } )
 				.click();
@@ -86,7 +87,7 @@ for ( const { taxonomy, endpoint, label } of [
 			await expect( link ).toBeVisible();
 			await expect(
 				page.locator( 'tr', { has: link } ).locator( '.column-slug' )
-			).toHaveText( name );
+			).toHaveText( slug );
 		} );
 
 		test( 'quick edits a term', async ( { admin, page, requestUtils } ) => {
