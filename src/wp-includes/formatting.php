@@ -2040,6 +2040,10 @@ function sanitize_file_name( $filename ) {
 	$filename     = remove_accents( $filename );
 
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
+	// Add C0 controls except tab, line feed and carriage return, which become dashes below.
+	foreach ( array_merge( range( 1, 8 ), array( 11, 12 ), range( 14, 31 ) ) as $control_code ) {
+		$special_chars[] = chr( $control_code );
+	}
 
 	if ( ! wp_is_valid_utf8( $filename ) ) {
 		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
