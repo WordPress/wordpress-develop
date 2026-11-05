@@ -102,6 +102,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.5'
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -125,6 +126,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.5'
 
   # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
   # leave a comment detailing how to test the PR within WordPress Playground.
