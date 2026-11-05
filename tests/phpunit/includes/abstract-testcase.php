@@ -959,12 +959,38 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			return $response;
 		}
 
+		/*
+		 * Loopback requests (local PHPUnit fixtures) are not external network
+		 * calls. Allow them so real-transport coverage can run outside the
+		 * external-http group against 127.0.0.1 / localhost.
+		 */
+		if ( $this->is_loopback_http_url( $url ) ) {
+			return $response;
+		}
+
 		$this->blocked_http_requests[] = $url;
 
 		return new WP_Error(
 			'test_external_http_blocked',
 			'External HTTP requests are blocked in tests that are not in the `external-http` group.'
 		);
+	}
+
+	/**
+	 * Whether a URL targets a loopback host used by local test fixtures.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $url Request URL.
+	 * @return bool True when the host is 127.0.0.1, localhost, or ::1.
+	 */
+	protected function is_loopback_http_url( string $url ): bool {
+		$host = wp_parse_url( $url, PHP_URL_HOST );
+		if ( ! is_string( $host ) || '' === $host ) {
+			return false;
+		}
+
+		return in_array( strtolower( $host ), array( '127.0.0.1', 'localhost', '::1' ), true );
 	}
 
 	/**
