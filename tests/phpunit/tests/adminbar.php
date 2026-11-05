@@ -991,6 +991,429 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The account nodes are not added for logged-out visitors.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_is_not_added_for_logged_out_users() {
+		wp_set_current_user( 0 );
+
+		$wp_admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_my_account_item( $wp_admin_bar );
+		wp_admin_bar_my_account_menu( $wp_admin_bar );
+
+		$this->assertNull( $wp_admin_bar->get_node( 'my-account' ), 'The my-account node should not exist.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'user-actions' ), 'The user-actions group should not exist.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'user-info' ), 'The user-info node should not exist.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'logout' ), 'The logout node should not exist.' );
+	}
+
+	/**
+	 * The account nodes are nested in the expected hierarchy.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_nodes_have_expected_hierarchy() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$node_my_account   = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_actions = $wp_admin_bar->get_node( 'user-actions' );
+		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
+		$node_logout       = $wp_admin_bar->get_node( 'logout' );
+
+		$this->assertSame( 'top-secondary', $node_my_account->parent, 'The my-account node should be in the secondary group.' );
+		$this->assertSame( 'my-account', $node_user_actions->parent, 'The user-actions group should be a child of my-account.' );
+		$this->assertTrue( $node_user_actions->group, 'The user-actions node should be a group.' );
+		$this->assertSame( 'user-actions', $node_user_info->parent, 'The user-info node should be in the user-actions group.' );
+		$this->assertSame( 'user-actions', $node_logout->parent, 'The logout node should be in the user-actions group.' );
+		$this->assertSame( 'Log Out', $node_logout->title );
+		$this->assertSame( wp_logout_url(), $node_logout->href );
+	}
+
+	/**
+	 * The "Edit Profile" label is shown and the item is not forced into the tab order
+	 * when the user can access a profile screen.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_with_profile_link_shows_edit_profile_label() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertSame( '', $node_my_account->meta['tabindex'], 'A linked my-account item should not set a tabindex.' );
+		$this->assertStringContainsString( "<span class='display-name edit-profile'>Edit Profile</span>", $node_user_info->title );
+	}
+
+	/**
+	 * The "Edit Profile" label is omitted and the item is focusable
+	 * when the user has no profile screen to link to.
+	 *
+	 * @ticket 66491
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_without_profile_link_omits_edit_profile_label() {
+		$this->assertFalse( user_can( self::$no_role_id, 'read' ) );
+
+		wp_set_current_user( self::$no_role_id );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertSame( 0, $node_my_account->meta['tabindex'], 'An unlinked my-account item should be focusable.' );
+		$this->assertStringNotContainsString( 'edit-profile', $node_user_info->title );
+		$this->assertStringNotContainsString( 'Edit Profile', $node_user_info->title );
+	}
+
+	/**
+	 * The avatar is added to the account nodes when avatars are enabled.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_includes_avatar_when_avatars_are_enabled() {
+		update_option( 'show_avatars', 1 );
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringContainsString( '<img', $node_my_account->title );
+		$this->assertSame( 'with-avatar', $node_my_account->meta['class'] );
+		$this->assertFalse( $node_my_account->icon, 'No fallback icon should be used when there is an avatar.' );
+		$this->assertStringContainsString( '<img', $node_user_info->title );
+	}
+
+	/**
+	 * A fallback icon is used instead of the avatar when avatars are disabled.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_uses_fallback_icon_when_avatars_are_disabled() {
+		update_option( 'show_avatars', 0 );
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringNotContainsString( '<img', $node_my_account->title );
+		$this->assertSame( '', $node_my_account->meta['class'] );
+		$this->assertSame( 'core-admin/people', $node_my_account->icon );
+		$this->assertStringNotContainsString( '<img', $node_user_info->title );
+	}
+
+	/**
+	 * The "My Sites" menu is not added on a single site installation.
+	 *
+	 * @ticket 66491
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_is_not_added_on_single_site() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites' ) );
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites-list' ) );
+	}
+
+	/**
+	 * The "My Sites" menu is not added for logged-out visitors.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_is_not_added_for_logged_out_users() {
+		wp_set_current_user( 0 );
+
+		$wp_admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_my_sites_menu( $wp_admin_bar );
+
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites' ) );
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites-list' ) );
+	}
+
+	/**
+	 * The "My Sites" menu is not added for a user who belongs to no sites
+	 * and is not a super admin.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_is_not_added_for_user_without_sites() {
+		remove_user_from_blog( self::$no_role_id, get_current_blog_id() );
+		$this->assertSame( array(), get_blogs_of_user( self::$no_role_id ) );
+
+		wp_set_current_user( self::$no_role_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites' ) );
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites-list' ) );
+	}
+
+	/**
+	 * The "My Sites" menu lists the site of a user who belongs to a single site.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_lists_site_for_user_with_one_site() {
+		$blog_id = get_current_blog_id();
+		$menu_id = 'blog-' . $blog_id;
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$node_my_sites = $wp_admin_bar->get_node( 'my-sites' );
+		$node_list     = $wp_admin_bar->get_node( 'my-sites-list' );
+		$node_site     = $wp_admin_bar->get_node( $menu_id );
+
+		$this->assertSame( 'My Sites', $node_my_sites->title );
+		$this->assertSame( get_admin_url( $blog_id, 'my-sites.php' ), $node_my_sites->href );
+		$this->assertSame( 'my-sites', $node_list->parent, 'The site list should be a child of My Sites.' );
+		$this->assertSame( '', $node_list->meta['class'], 'The site list should not be styled as secondary for non network admins.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'my-sites-super-admin' ), 'The network admin group should not exist.' );
+
+		$this->assertSame( 'my-sites-list', $node_site->parent );
+		$this->assertStringContainsString( get_option( 'blogname' ), $node_site->title );
+		$this->assertStringContainsString( 'class="blavatar"', $node_site->title );
+		$this->assertSame( admin_url(), $node_site->href );
+
+		$expected_children = array(
+			$menu_id . '-d' => array( 'Dashboard', admin_url() ),
+			$menu_id . '-n' => array( 'New Post', admin_url( 'post-new.php' ) ),
+			$menu_id . '-c' => array( 'Manage Comments', admin_url( 'edit-comments.php' ) ),
+			$menu_id . '-v' => array( 'Visit Site', home_url( '/' ) ),
+		);
+
+		foreach ( $expected_children as $id => $expected ) {
+			$node = $wp_admin_bar->get_node( $id );
+
+			$this->assertNotNull( $node, "The $id node should exist." );
+			$this->assertSame( $menu_id, $node->parent, "The $id node should be a child of the site." );
+			$this->assertSame( $expected[0], $node->title, "The $id node should have the expected title." );
+			$this->assertSame( $expected[1], $node->href, "The $id node should have the expected URL." );
+		}
+	}
+
+	/**
+	 * The "My Sites" menu lists every site the user belongs to,
+	 * with links that point to the matching site.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_lists_every_site_for_user_with_multiple_sites() {
+		$main_blog_id = get_current_blog_id();
+		$new_blog_id  = self::factory()->blog->create(
+			array(
+				'user_id' => self::$editor_id,
+				'title'   => 'Second Site',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertSame( $main_blog_id, get_current_blog_id(), 'The current site should be restored.' );
+
+		foreach ( array( $main_blog_id, $new_blog_id ) as $blog_id ) {
+			$node_site = $wp_admin_bar->get_node( 'blog-' . $blog_id );
+
+			$this->assertNotNull( $node_site, "The site $blog_id should be listed." );
+			$this->assertSame( 'my-sites-list', $node_site->parent );
+			$this->assertSame( get_admin_url( $blog_id ), $node_site->href );
+			$this->assertSame( get_admin_url( $blog_id ), $wp_admin_bar->get_node( 'blog-' . $blog_id . '-d' )->href );
+			$this->assertSame( get_admin_url( $blog_id, 'post-new.php' ), $wp_admin_bar->get_node( 'blog-' . $blog_id . '-n' )->href );
+			$this->assertSame( get_admin_url( $blog_id, 'edit-comments.php' ), $wp_admin_bar->get_node( 'blog-' . $blog_id . '-c' )->href );
+			$this->assertSame( get_home_url( $blog_id, '/' ), $wp_admin_bar->get_node( 'blog-' . $blog_id . '-v' )->href );
+		}
+
+		$this->assertStringContainsString( 'Second Site', $wp_admin_bar->get_node( 'blog-' . $new_blog_id )->title );
+	}
+
+	/**
+	 * A site where the user has no capabilities links to the front end
+	 * and only offers the "Visit Site" item.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_links_to_front_end_for_site_without_read_capability() {
+		$blog_id = get_current_blog_id();
+		$menu_id = 'blog-' . $blog_id;
+
+		$this->assertFalse( user_can( self::$no_role_id, 'read' ) );
+		$this->assertTrue( is_user_member_of_blog( self::$no_role_id, $blog_id ) );
+
+		wp_set_current_user( self::$no_role_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$node_site = $wp_admin_bar->get_node( $menu_id );
+
+		$this->assertNotNull( $node_site, 'The site should be listed.' );
+		$this->assertSame( home_url(), $node_site->href );
+		$this->assertNull( $wp_admin_bar->get_node( $menu_id . '-d' ), 'There should be no Dashboard item.' );
+		$this->assertNull( $wp_admin_bar->get_node( $menu_id . '-n' ), 'There should be no New Post item.' );
+		$this->assertNull( $wp_admin_bar->get_node( $menu_id . '-c' ), 'There should be no Manage Comments item.' );
+		$this->assertSame( home_url( '/' ), $wp_admin_bar->get_node( $menu_id . '-v' )->href );
+	}
+
+	/**
+	 * The URL without its scheme and "www." is used when the site has no name.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_falls_back_to_site_url_when_blogname_is_empty() {
+		update_option( 'blogname', '' );
+		update_option( 'home', 'https://www.example.org/site' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'blog-' . get_current_blog_id() );
+
+		$this->assertStringEndsWith( 'example.org/site', $node_site->title );
+		$this->assertStringNotContainsString( 'https://', wp_strip_all_tags( $node_site->title ) );
+		$this->assertStringNotContainsString( 'www.', wp_strip_all_tags( $node_site->title ) );
+	}
+
+	/**
+	 * The network admin items link to the matching network admin screens.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_network_admin_items_have_expected_urls() {
+		wp_set_current_user( self::$editor_id );
+
+		grant_super_admin( self::$editor_id );
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		revoke_super_admin( self::$editor_id );
+
+		$this->assertSame( 'my-sites', $wp_admin_bar->get_node( 'my-sites-super-admin' )->parent );
+		$this->assertSame( 'my-sites-super-admin', $wp_admin_bar->get_node( 'network-admin' )->parent );
+		$this->assertSame( network_admin_url(), $wp_admin_bar->get_node( 'network-admin' )->href );
+		$this->assertSame( 'ab-sub-secondary', $wp_admin_bar->get_node( 'my-sites-list' )->meta['class'], 'The site list should be styled as secondary for network admins.' );
+
+		$expected_urls = array(
+			'network-admin-d' => network_admin_url(),
+			'network-admin-s' => network_admin_url( 'sites.php' ),
+			'network-admin-u' => network_admin_url( 'users.php' ),
+			'network-admin-t' => network_admin_url( 'themes.php' ),
+			'network-admin-p' => network_admin_url( 'plugins.php' ),
+			'network-admin-o' => network_admin_url( 'settings.php' ),
+		);
+
+		foreach ( $expected_urls as $id => $expected_url ) {
+			$node = $wp_admin_bar->get_node( $id );
+
+			$this->assertNotNull( $node, "The $id node should exist." );
+			$this->assertSame( 'network-admin', $node->parent, "The $id node should be a child of Network Admin." );
+			$this->assertSame( $expected_url, $node->href, "The $id node should have the expected URL." );
+		}
+	}
+
+	/**
+	 * The site icon is used as the site's avatar in the menu.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_includes_site_icon_when_set() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'blog-' . get_current_blog_id() );
+
+		$this->assertStringContainsString( '<img class="blavatar"', $node_site->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 16 ) ), $node_site->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 32 ) ) . ' 2x', $node_site->title );
+	}
+
+	/**
+	 * The default avatar is used when the site icon is filtered out.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_admin_bar_my_sites_menu
+	 */
+	public function test_my_sites_menu_respects_show_site_icons_filter() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		add_filter( 'wp_admin_bar_show_site_icons', '__return_false' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'blog-' . get_current_blog_id() );
+
+		$this->assertStringNotContainsString( '<img', $node_site->title );
+		$this->assertStringContainsString( '<div class="blavatar">', $node_site->title );
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
