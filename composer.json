@@ -1,6 +1,6 @@
 {
 	"name": "wordpress/wordpress",
-	"version": "7.0.3",
+	"version": "7.0.8",
 	"license": "GPL-2.0-or-later",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"homepage": "https://wordpress.org",
@@ -19,7 +19,7 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"composer/ca-bundle": "1.5.11",
+		"composer/ca-bundle": "1.6.0",
 		"squizlabs/php_codesniffer": "3.13.5",
 		"wp-coding-standards/wpcs": "~3.3.0",
 		"phpcompatibility/phpcompatibility-wp": "~2.1.3",
