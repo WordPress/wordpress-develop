@@ -9,6 +9,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 import {
 	TEST_IMAGE_PATH,
 	TEST_AUDIO_PATH,
+	TEST_SVG_PATH,
 	SIMULATED_ERROR,
 	UNDECODABLE_HEIC,
 	failMediaCreate,
@@ -565,6 +566,46 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'leaves files that are not processable images to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		// A plugin can allow an extra type on its own uploader, as page
+		// builders do for SVG, without adding it to the allowed mime types
+		// the page was rendered with.
+		await overridePluploadDefaults( page, {
+			filters: { mime_types: [ { extensions: 'svg' } ] },
+		} );
+		await stubClassicUpload( page );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_SVG_PATH );
+
+		// The uploader's own filter decides, so the file reaches the server
+		// instead of being rejected in the browser.
+		await expect
+			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect(
+			page.locator( '.upload-error-message', {
+				hasText: 'not allowed to upload this file type',
+			} )
+		).toHaveCount( 0 );
 	} );
 
 	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
