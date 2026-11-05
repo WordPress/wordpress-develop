@@ -44,6 +44,8 @@ class Tests_Link_GetThePostsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_posts_pagination_returns_markup() {
+		$this->set_permalink_structure( '' );
+
 		global $wp_query;
 
 		$wp_query = new WP_Query(
