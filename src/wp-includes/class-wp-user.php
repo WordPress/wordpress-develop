@@ -118,6 +118,20 @@ class WP_User {
 	private static $back_compat_keys;
 
 	/**
+	 * Whether this instance was initialized without loading capability data.
+	 *
+	 * When true, `$caps`, `$roles`, and `$allcaps` have not yet been populated from
+	 * the database. They are populated on first access via `load_capability_data()`,
+	 * called from `has_cap()`, `get_role_caps()`, `add_cap()`, `remove_cap()`,
+	 * `add_role()`, `remove_role()`, and `set_role()`. They can be loaded explicitly
+	 * with `load_capabilities()`.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $short_init = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * Retrieves the userdata and passes it to WP_User::init().
@@ -176,16 +190,21 @@ class WP_User {
 	 * Sets up object properties, including capabilities.
 	 *
 	 * @since 3.3.0
+	 * @since 7.2.0 Added the `$short_init` parameter.
 	 *
-	 * @param object $data    User DB row object.
-	 * @param int    $site_id Optional. The site ID to initialize for.
+	 * @param object $data       User DB row object.
+	 * @param int    $site_id    Optional. The site ID to initialize for.
+	 * @param bool   $short_init Optional. Whether to skip loading capability and role data
+	 *                           until it is first needed. Default false.
 	 */
-	public function init( $data, $site_id = 0 ) {
+	public function init( $data, $site_id = 0, $short_init = false ) {
 		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
+
+		$this->short_init = $short_init;
 
 		$this->for_site( $site_id );
 	}
@@ -492,9 +511,7 @@ class WP_User {
 			$this->cap_key = $cap_key;
 		}
 
-		$this->caps = $this->get_caps_data();
-
-		$this->get_role_caps();
+		$this->load_capabilities();
 	}
 
 	/**
@@ -511,6 +528,8 @@ class WP_User {
 	 *                and boolean values represent whether the user has that capability.
 	 */
 	public function get_role_caps() {
+		$this->load_capability_data();
+
 		$switch_site = false;
 		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			$switch_site = true;
@@ -560,6 +579,8 @@ class WP_User {
 			return;
 		}
 
+		$this->load_capability_data();
+
 		if ( in_array( $role, $this->roles, true ) ) {
 			return;
 		}
@@ -588,6 +609,8 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
+		$this->load_capability_data();
+
 		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
@@ -620,6 +643,8 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
+		$this->load_capability_data();
+
 		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
 			return;
 		}
@@ -721,6 +746,8 @@ class WP_User {
 	 * @param bool   $grant Whether to grant capability to user.
 	 */
 	public function add_cap( $cap, $grant = true ) {
+		$this->load_capability_data();
+
 		$this->caps[ $cap ] = $grant;
 		update_user_meta( $this->ID, $this->cap_key, $this->caps );
 		$this->get_role_caps();
@@ -735,6 +762,8 @@ class WP_User {
 	 * @param string $cap Capability name.
 	 */
 	public function remove_cap( $cap ) {
+		$this->load_capability_data();
+
 		if ( ! isset( $this->caps[ $cap ] ) ) {
 			return;
 		}
@@ -753,7 +782,8 @@ class WP_User {
 	 */
 	public function remove_all_caps() {
 		global $wpdb;
-		$this->caps = array();
+		$this->short_init = false;
+		$this->caps       = array();
 		delete_user_meta( $this->ID, $this->cap_key );
 		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
 		$this->get_role_caps();
@@ -787,6 +817,8 @@ class WP_User {
 	 *              the given capability for that object.
 	 */
 	public function has_cap( $cap, ...$args ) {
+		$this->load_capability_data();
+
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
 			$cap = $this->translate_level_to_cap( $cap );
@@ -867,6 +899,8 @@ class WP_User {
 	 * Sets the site to operate on. Defaults to the current site.
 	 *
 	 * @since 4.9.0
+	 * @since 7.2.0 Capability and role data is no longer loaded here if this instance was
+	 *              constructed with `$short_init`; it is loaded on demand instead.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -882,6 +916,10 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
+
+		if ( $this->short_init ) {
+			return;
+		}
 
 		$this->caps = $this->get_caps_data();
 
@@ -915,5 +953,36 @@ class WP_User {
 		}
 
 		return $caps;
+	}
+
+	/**
+	 * Loads capability and role data if this instance was constructed with `$short_init`
+	 * and the data has not been loaded yet.
+	 *
+	 * @since 7.2.0
+	 */
+	private function load_capability_data() {
+		if ( ! $this->short_init ) {
+			return;
+		}
+
+		$this->load_capabilities();
+	}
+
+	/**
+	 * Loads the user's capability and role data from the database for the current site.
+	 *
+	 * Capability data is loaded on demand for instances constructed with `$short_init`.
+	 * This method forces it to load immediately, and can also be used to reload it.
+	 *
+	 * @since 7.2.0
+	 */
+	public function load_capabilities() {
+		// Must be set before get_role_caps(), which calls load_capability_data().
+		$this->short_init = false;
+
+		$this->caps = $this->get_caps_data();
+
+		$this->get_role_caps();
 	}
 }
