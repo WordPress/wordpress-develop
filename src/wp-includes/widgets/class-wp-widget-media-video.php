@@ -44,7 +44,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 					__( 'That video cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: Widget count. */
+				/* translators: %d: Widget count. Please translate as singular in both cases. */
 				'media_library_state_multi'  => _n_noop( 'Video Widget (%d)', 'Video Widget (%d)' ),
 				'media_library_state_single' => __( 'Video Widget' ),
 				/* translators: %s: A list of valid video file extensions. */

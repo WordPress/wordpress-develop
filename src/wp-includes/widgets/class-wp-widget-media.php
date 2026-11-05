@@ -505,7 +505,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 				__( 'That file cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 				esc_url( admin_url( 'upload.php' ) )
 			),
-			/* translators: %d: Widget count. */
+			/* translators: %d: Widget count. Please translate as singular in both cases. */
 			'media_library_state_multi'  => _n_noop( 'Media Widget (%d)', 'Media Widget (%d)' ),
 			'media_library_state_single' => __( 'Media Widget' ),
 			'unsupported_file_type'      => __( 'Looks like this is not the correct kind of file. Please link to an appropriate file instead.' ),
