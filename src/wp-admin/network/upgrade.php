@@ -47,15 +47,13 @@ if ( ! current_user_can( 'upgrade_network' ) ) {
 echo '<div class="wrap">';
 echo '<h1>' . __( 'Upgrade Network' ) . '</h1>';
 
-$action = $_GET['action'] ?? 'show';
+$action           = $_GET['action'] ?? 'show';
+$upgrade_page_url = add_query_arg( 'action', 'upgrade', network_admin_url( 'upgrade.php' ) );
 
 switch ( $action ) {
 	case 'upgrade':
-		$n = ( isset( $_GET['n'] ) ) ? (int) $_GET['n'] : 0;
-
-		if ( $n < 5 ) {
-			update_site_option( 'wpmu_upgrade_site', $wp_db_version );
-		}
+		$n          = ( isset( $_GET['n'] ) ) ? (int) $_GET['n'] : 0;
+		$had_errors = ! empty( $_GET['failed'] );
 
 		$site_ids = get_sites(
 			array(
@@ -72,9 +70,15 @@ switch ( $action ) {
 			)
 		);
 		if ( empty( $site_ids ) ) {
-			echo '<p>' . __( 'All done!' ) . '</p>';
+			if ( $had_errors ) {
+				wp_admin_notice( __( 'Some sites could not be upgraded. Please resolve the errors and try again.' ), array( 'type' => 'error' ) );
+			} else {
+				update_site_option( 'wpmu_upgrade_site', $wp_db_version );
+				echo '<p>' . __( 'All done!' ) . '</p>';
+			}
 			break;
 		}
+		$upgrade_errors = array();
 		echo '<ul>';
 		foreach ( (array) $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
@@ -82,7 +86,7 @@ switch ( $action ) {
 			$upgrade_url = admin_url( 'upgrade.php?step=upgrade_db' );
 			restore_current_blog();
 
-			echo "<li>$siteurl</li>";
+			echo '<li>' . esc_html( $siteurl ) . '</li>';
 
 			$response = wp_remote_get(
 				$upgrade_url,
@@ -94,14 +98,24 @@ switch ( $action ) {
 			);
 
 			if ( is_wp_error( $response ) ) {
-				wp_die(
-					sprintf(
-						/* translators: 1: Site URL, 2: Server error message. */
-						__( 'Warning! Problem updating %1$s. Your server may not be able to connect to sites running on it. Error message: %2$s' ),
-						$siteurl,
-						'<em>' . $response->get_error_message() . '</em>'
-					)
+				$upgrade_errors[] = sprintf(
+					/* translators: 1: Site URL, 2: Server error message. */
+					__( 'Warning! Problem updating %1$s. Your server may not be able to connect to sites running on it. Error message: %2$s' ),
+					esc_html( $siteurl ),
+					'<em>' . esc_html( $response->get_error_message() ) . '</em>'
 				);
+				continue;
+			}
+
+			$response_code = (int) wp_remote_retrieve_response_code( $response );
+			if ( 200 !== $response_code ) {
+				$upgrade_errors[] = sprintf(
+					/* translators: 1: Site URL, 2: HTTP response code. */
+					__( 'Warning! Problem updating %1$s. Unexpected HTTP response code: %2$d.' ),
+					esc_html( $siteurl ),
+					$response_code
+				);
+				continue;
 			}
 
 			/**
@@ -123,15 +137,30 @@ switch ( $action ) {
 			do_action( 'wpmu_upgrade_site', $site_id );
 		}
 		echo '</ul>';
-		?><p><?php _e( 'If your browser does not start loading the next page automatically, click this link:' ); ?> <a class="button" href="upgrade.php?action=upgrade&amp;n=<?php echo ( $n + 5 ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
+		if ( ! empty( $upgrade_errors ) ) {
+			$had_errors = true;
+			wp_admin_notice( implode( "<br />\n", $upgrade_errors ), array( 'type' => 'error' ) );
+			$next_page_message = __( 'Some sites could not be upgraded. You can continue with the next sites.' );
+		} else {
+			$next_page_message = __( 'If your browser does not start loading the next page automatically, click this link:' );
+		}
+		$next_page_args = array( 'n' => $n + 5 );
+		if ( $had_errors ) {
+			$next_page_args['failed'] = 1;
+		}
+		$next_page = add_query_arg( $next_page_args, $upgrade_page_url );
+		?>
+		<p><?php echo esc_html( $next_page_message ); ?> <a class="button" href="<?php echo esc_url( $next_page ); ?>"><?php _e( 'Next Sites' ); ?></a></p>
+		<?php if ( empty( $upgrade_errors ) ) : ?>
 		<script>
 		<!--
 		function nextpage() {
-			location.href = "upgrade.php?action=upgrade&n=<?php echo ( $n + 5 ); ?>";
+			location.href = <?php echo wp_json_encode( $next_page, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 		}
 		setTimeout( "nextpage()", 250 );
 		//-->
 		</script>
+		<?php endif; ?>
 		<?php
 		break;
 	case 'show':
@@ -143,7 +172,7 @@ switch ( $action ) {
 		<?php endif; ?>
 
 		<p><?php _e( 'The database update process may take a little while, so please be patient.' ); ?></p>
-		<p><a class="button button-primary" href="upgrade.php?action=upgrade"><?php _e( 'Upgrade Network' ); ?></a></p>
+		<p><a class="button button-primary" href="<?php echo esc_url( $upgrade_page_url ); ?>"><?php _e( 'Upgrade Network' ); ?></a></p>
 		<?php
 		/**
 		 * Fires before the footer on the network upgrade screen.
