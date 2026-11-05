@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 permissions: {}
@@ -58,7 +58,7 @@ jobs:
 
               const pascal = segment.replace( /(?:^|-|_)+([a-zA-Z0-9])/g, ( _, chr ) => chr.toUpperCase() );
               const upperUnderscore = segment.replace( /-/g, '_' );
-              return Array.from( new Set( [ segment, pascal, upperUnderscore ] ) );
+              return Array.from( new Set( [ segment, pascal, upperUnderscore ] ) ).filter( ( value ) => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test( value ) );
             }
 
             // Helper to convert any symbol/name (snake_case, kebab-case, or prefix) to PascalCase / CamelCase
@@ -421,8 +421,12 @@ jobs:
               }
 
               // 7. Validate that test file location corresponds to the correct source file in src/
+              if ( coversParsed && ! coversParsed.targetClass && ! /^Functions_.+$/.test( pathParts[ pathParts.length - 1 ] || '' ) ) {
+                errors.push( `[${filename}] Procedural tests must reside in a Functions_FileName directory.` );
+              }
+
               if ( declaredNs && coversParsed ) {
-                const srcCandidates = findLinkedSourceFiles( workspaceRoot, declaredNs, coversParsed.targetClass );
+                const srcCandidates = findLinkedSourceFiles( workspaceRoot, [ 'WordPress', 'Tests', ...pathParts ].join( '\\' ), coversParsed.targetClass );
                 if ( srcCandidates.length === 0 ) {
                   errors.push( `[${filename}] No matching source file found in "src/" for namespace "${declaredNs}". Ensure the test file is located in the correct directory matching WordPress source code.` );
                 } else {
