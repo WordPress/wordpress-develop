@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
@@ -127,7 +127,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
