@@ -12,6 +12,14 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$this->post_id = self::factory()->post->create();
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		parent::tear_down();
+	}
+
 	public function test_with_tags() {
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'post_tag' );
 
@@ -134,5 +142,27 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$found = get_post_class( '', $this->post_id );
 
 		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * @ticket 64247
+	 */
+	public function test_list_return_value_when_duplicate_classes() {
+
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$class_list = get_post_class( 'original', $this->post_id );
+		$this->assertTrue( array_is_list( $class_list ), 'Expected get_post_class() to return list.' );
+		$this->assertContains( 'duplicate-class', $class_list );
+		$this->assertContains( 'original', $class_list );
 	}
 }

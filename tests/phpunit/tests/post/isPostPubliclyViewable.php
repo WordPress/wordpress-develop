@@ -76,7 +76,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 	 *     @type string $parent_key  The parent key as set up in shared fixtures.
 	 * }
 	 */
-	public function data_is_post_publicly_viewable() {
+	public static function data_is_post_publicly_viewable() {
 		return array(
 			array( 'post', 'publish', true ),
 			array( 'post', 'private', false ),

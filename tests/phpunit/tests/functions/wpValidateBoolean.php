@@ -32,7 +32,7 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 *     @type bool  $expected   Expected return value.
 	 * }
 	 */
-	public function data_wp_validate_boolean() {
+	public static function data_wp_validate_boolean() {
 		$std = new \stdClass();
 
 		return array(
