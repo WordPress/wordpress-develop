@@ -344,6 +344,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		$this->assertSame( $terms_2, $terms );
 
 		// Make sure the term taxonomy ID for 'bar' matches.
+		// Keep assertEquals() because wp_set_object_terms() may return term taxonomy IDs as numeric strings or integers.
 		$this->assertEquals( $tt_1[1], $tt_2[0] );
 	}
 
@@ -465,7 +466,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_value_should_clear_terms() {
+	public static function data_empty_value_should_clear_terms() {
 		return array(
 			'(bool) false' => array( false ),
 			'null'         => array( null ),

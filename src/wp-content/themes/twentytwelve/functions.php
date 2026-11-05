@@ -216,7 +216,7 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20260520' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20251031' );
@@ -309,7 +309,7 @@ add_filter( 'mce_css', 'twentytwelve_mce_css' );
  * @global int $page  Page number of a single post.
  *
  * @param string $title Default title text for current view.
- * @param string $sep Optional separator.
+ * @param string $sep   Optional separator.
  * @return string Filtered title.
  */
 function twentytwelve_wp_title( $title, $sep ) {
@@ -344,6 +344,10 @@ add_filter( 'wp_title', 'twentytwelve_wp_title', 10, 2 );
  * Makes our wp_nav_menu() fallback -- wp_page_menu() -- show a home link.
  *
  * @since Twenty Twelve 1.0
+ *
+ * @param array $args An array of page menu arguments. See wp_page_menu() for information
+ *                    on accepted arguments.
+ * @return array Filtered page menu arguments.
  */
 function twentytwelve_page_menu_args( $args ) {
 	if ( ! isset( $args['show_home'] ) ) {
@@ -422,6 +426,8 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 	 * @since Twenty Twelve 1.0
 	 *
 	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @param string $html_id The HTML id attribute for the navigation element.
 	 */
 	function twentytwelve_content_nav( $html_id ) {
 		global $wp_query;
