@@ -940,7 +940,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_search_menu
 	 */
 	public function test_search_menu_is_added_for_users_without_capabilities() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->assertFalse( user_can( self::$no_role_id, 'read' ), 'The user should not have any capabilities.' );
+
+		wp_set_current_user( self::$no_role_id );
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 
@@ -1021,12 +1023,16 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$was_active = $reflection->getValue( wp_recovery_mode() );
 		$reflection->setValue( wp_recovery_mode(), true );
 
-		$wp_admin_bar      = $this->get_standard_admin_bar();
-		$node_recovery     = $wp_admin_bar->get_node( 'recovery-mode' );
+		try {
+			$wp_admin_bar  = $this->get_standard_admin_bar();
+			$node_recovery = $wp_admin_bar->get_node( 'recovery-mode' );
+		} finally {
+			// The recovery mode singleton is not reset between tests.
+			$reflection->setValue( wp_recovery_mode(), $was_active );
+		}
+
 		$expected_url      = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, wp_login_url() );
 		$expected_url_full = wp_nonce_url( $expected_url, WP_Recovery_Mode::EXIT_ACTION );
-
-		$reflection->setValue( wp_recovery_mode(), $was_active );
 
 		$this->assertNotNull( $node_recovery );
 		$this->assertSame( 'top-secondary', $node_recovery->parent );
