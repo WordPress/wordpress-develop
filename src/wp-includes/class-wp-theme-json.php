@@ -4198,7 +4198,7 @@ class WP_Theme_JSON {
 
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node   = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
-				$style_variation_styles = $style_variation_node;
+				$style_variation_source = $style_variation_node;
 
 				// Generate any feature/subfeature style declarations for the current style variation.
 				$variation_declarations = static::get_feature_declarations_for_node( $block_metadata, $style_variation_node );
@@ -4212,7 +4212,7 @@ class WP_Theme_JSON {
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$variation_base_declarations = self::get_state_declarations_with_text_clip_escapes(
 					static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json ),
-					$style_variation_styles,
+					$style_variation_source,
 					array( $variation_block_node ),
 					$block_metadata['selectors'] ?? array(),
 					$variation_declarations
@@ -4235,7 +4235,7 @@ class WP_Theme_JSON {
 				} else {
 					$block_name = null;
 				}
-				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_styles, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
+				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_source, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
 
 				// Custom CSS targets the block's `css` feature selector, if any.
@@ -4291,8 +4291,8 @@ class WP_Theme_JSON {
 					$breakpoint_declarations = static::compute_style_properties( $breakpoint_node, $settings, null, $this->theme_json );
 					$breakpoint_declarations = self::get_state_declarations_with_text_clip_escapes(
 						$breakpoint_declarations,
-						$style_variation_styles[ $breakpoint ],
-						array( $style_variation_styles, $variation_block_node ),
+						$style_variation_source[ $breakpoint ],
+						array( $style_variation_source, $variation_block_node ),
 						$block_metadata['selectors'] ?? array(),
 						$breakpoint_feature_declarations
 					);
@@ -4309,7 +4309,7 @@ class WP_Theme_JSON {
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
 					}
 
-					$breakpoint_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_styles[ $breakpoint ], $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
+					$breakpoint_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_source[ $breakpoint ], $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 					foreach ( $breakpoint_pseudo_declarations as $pseudo_selector => $pseudo_declarations ) {
 						if ( empty( $pseudo_declarations ) ) {
 							continue;
