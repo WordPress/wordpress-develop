@@ -30,8 +30,23 @@ class Tests_Comment_WpCheckCommentFlood extends WP_UnitTestCase {
 	 */
 	protected static $post_id;
 
+	/**
+	 * Time of the new comment, as a Unix timestamp.
+	 *
+	 * The comments that were posted before are dated from this time, so the results do not depend on how long the test takes.
+	 *
+	 * @var int
+	 */
+	protected $now;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
+	}
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->now = time();
 	}
 
 	/**
@@ -42,7 +57,7 @@ class Tests_Comment_WpCheckCommentFlood extends WP_UnitTestCase {
 	 * @return int ID of the comment.
 	 */
 	private function create_comment_posted_ago( $seconds_ago, $args = array() ) {
-		$time = time() - $seconds_ago;
+		$time = $this->now - $seconds_ago;
 
 		return self::factory()->comment->create(
 			array_merge(
@@ -66,7 +81,7 @@ class Tests_Comment_WpCheckCommentFlood extends WP_UnitTestCase {
 	 * @return bool Whether the comment is a flood.
 	 */
 	private function check_new_comment( $is_flood = false, $avoid_die = true ) {
-		return wp_check_comment_flood( $is_flood, self::IP, self::EMAIL, gmdate( 'Y-m-d H:i:s' ), $avoid_die );
+		return wp_check_comment_flood( $is_flood, self::IP, self::EMAIL, gmdate( 'Y-m-d H:i:s', $this->now ), $avoid_die );
 	}
 
 	/**
@@ -265,7 +280,7 @@ class Tests_Comment_WpCheckCommentFlood extends WP_UnitTestCase {
 		$this->assertFalse( $this->check_new_comment() );
 		$this->assertTrue( $args[0], 'The filter should receive the decision of the default callback, which blocks a comment 3 seconds after the last one.' );
 		$this->assertSame( (int) mysql2date( 'U', get_comment( $last )->comment_date_gmt, false ), $args[1] );
-		$this->assertEqualsWithDelta( time(), $args[2], 2 );
+		$this->assertSame( $this->now, $args[2], 'The filter should receive the time of the new comment.' );
 	}
 
 	/**
@@ -351,7 +366,7 @@ class Tests_Comment_WpCheckCommentFlood extends WP_UnitTestCase {
 				'comment_content'      => 'A comment posted too quickly.',
 				'comment_author_IP'    => self::IP,
 				'comment_parent'       => 0,
-				'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s' ),
+				'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s', $this->now ),
 				'comment_agent'        => 'Tests/1.0',
 				'comment_type'         => 'comment',
 			),
