@@ -37,6 +37,41 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 	}
 
+	/**
+	 * @ticket 40863
+	 * @dataProvider data_menu_order
+	 *
+	 * @param string $post_type  Post type.
+	 * @param int    $menu_order Menu order.
+	 */
+	public function test_menu_order( $post_type, $menu_order ) {
+		$this->make_user_by_role( 'editor' );
+
+		$post   = array(
+			'post_title' => 'Menu order test',
+			'post_type'  => $post_type,
+			'menu_order' => $menu_order,
+		);
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( $menu_order, get_post( $result )->menu_order );
+	}
+
+	/**
+	 * Data provider for test_menu_order().
+	 *
+	 * @return array
+	 */
+	public function data_menu_order() {
+		return array(
+			'post'           => array( 'post', 5 ),
+			'page'           => array( 'page', 5 ),
+			'zero order'     => array( 'page', 0 ),
+			'negative order' => array( 'page', -5 ),
+		);
+	}
+
 	public function test_ignore_id() {
 		$this->make_user_by_role( 'author' );
 
