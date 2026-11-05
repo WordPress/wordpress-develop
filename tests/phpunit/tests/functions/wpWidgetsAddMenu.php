@@ -91,11 +91,16 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 
 		switch_theme( 'block-theme' );
 
+		$submenu['themes.php'] = array(
+			5 => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
+		);
+
 		wp_widgets_add_menu();
 
 		$expected = array(
 			'themes.php' => array(
-				array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+				5 => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
+				6 => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
 			),
 		);
 		$this->assertSame( $expected, $submenu );
