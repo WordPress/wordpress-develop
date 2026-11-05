@@ -117,6 +117,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.9'
 
   # Tests the Gutenberg plugin build process on additional operating systems.
   #
@@ -142,6 +143,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      gutenberg-branch: 'wp/6.9'
 
   slack-notifications:
     name: Slack Notifications
