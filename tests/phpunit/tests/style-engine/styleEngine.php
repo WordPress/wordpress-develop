@@ -26,6 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 64974
 	 * @ticket 65037
 	 * @ticket 66094
+	 * @ticket XXXXX
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -665,6 +666,26 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'background-repeat'     => 'no-repeat',
 						'background-size'       => 'cover',
 						'background-attachment' => 'fixed',
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_gradient_clipped_to_text'   => array(
+				'block_styles'    => array(
+					'background' => array(
+						'gradient'       => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+						'backgroundClip' => 'text',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+					'declarations' => array(
+						'background-image'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+						'background-clip'         => 'text',
+						'-webkit-background-clip' => 'text',
+						'-webkit-text-fill-color' => 'transparent',
 					),
 				),
 			),
