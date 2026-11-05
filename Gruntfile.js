@@ -1050,10 +1050,10 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: SOURCE_DIR,
 					src: [
-						'wp-{admin,includes}/images/**/*.{webp}',
-						'wp-content/themes/**/*.{webp}'
+						'wp-{admin,includes}/images/**/*.webp',
+						'wp-content/themes/**/*.webp'
 					],
-					dest: 'SOURCE_DIR'
+					dest: SOURCE_DIR
 				}],
 			}
 		},
