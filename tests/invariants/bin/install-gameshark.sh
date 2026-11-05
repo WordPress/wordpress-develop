@@ -37,8 +37,13 @@ RUN_TESTS=0 PHP_CONFIG="$( command -v php-config )" scripts/build-unix.sh
 install -m 0644 modules/gameshark.so "$( php-config --extension-dir )/gameshark.so"
 # The report lists the hooks on built-in functions, so the extension's warning about them is turned off. It has to be
 # an INI setting: the extension's default for it is an INI value, which beats GAMESHARK_INVARIANTS_WARN_BUILTINS.
-printf 'extension=gameshark.so\ngameshark.invariants_warn_builtins=0\n' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-gameshark.ini"
+# PHP may use all the memory the container has: what the invariants and the types report keep grows with the suite,
+# and WordPress only lifts the limit once it loads, after the invariants file and in no separate process before that.
+printf 'extension=gameshark.so\ngameshark.invariants_warn_builtins=0\nmemory_limit=-1\n' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-gameshark.ini"
 php --ri gameshark
+echo "PHP memory_limit: $( php -r 'echo ini_get( "memory_limit" );' )"
+echo "Container memory limit: $( cat /sys/fs/cgroup/memory.max 2> /dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2> /dev/null || echo unknown )"
+echo "Memory: $( grep -E '^(MemTotal|MemAvailable)' /proc/meminfo 2> /dev/null | tr -s ' ' | paste -sd ',' - )"
 
 # Whoever runs the tests, and the CI cache, can read and replace what was built here as root.
 chmod -R a+rwX "$root/.invariants"
