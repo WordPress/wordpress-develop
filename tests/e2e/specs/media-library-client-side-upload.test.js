@@ -15,6 +15,7 @@ import {
 	stubClassicUpload,
 	withoutHeicDecoder,
 	countUploadRequests,
+	tile,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
@@ -185,9 +186,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The finalized attachment resolves to a normal (non-uploading) tile.
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		// The original upload and every sideload go through the REST API,
 		// and the upload is finalized exactly once.
@@ -270,9 +271,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		await expect
 			.poll( () =>
@@ -311,16 +312,16 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		// The Manage frame renders rejected uploads in the error sidebar.
 		const errorNotice = page
-			.locator( '.upload-error, .upload-errors' )
-			.first();
+			.locator( '.upload-error' )
+			.filter( { hasText: 'disallowed.xyz' } );
 		await expect( errorNotice ).toBeVisible( { timeout: 30_000 } );
 
 		// The sidebar names the file in its own span and keeps the reason
 		// in the message span; the reason has to be readable text, not a
 		// stringified object.
 		await expect(
-			errorNotice.locator( '.upload-error-filename' )
-		).toHaveText( 'disallowed.xyz' );
+			errorNotice.getByText( 'disallowed.xyz', { exact: true } )
+		).toBeVisible();
 		const message = errorNotice.locator( '.upload-error-message' );
 		await expect( message ).toHaveText( /\S/ );
 		await expect( message ).not.toContainText( '[object Object]' );
@@ -368,9 +369,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		// Classic plupload handled the upload end to end.
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
@@ -409,13 +410,10 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
 
-		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0,
-			{ timeout: 90_000 }
-		);
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' )
-		).toHaveCount( 2 );
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 90_000,
+		} );
+		await expect( tile( page, 'test-image' ) ).toHaveCount( 2 );
 		expect( finalizeCount ).toBe( 2 );
 	} );
 
@@ -475,8 +473,8 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		// The placeholder tile's progress bar has advanced past zero but
 		// is not reported complete while work remains.
-		const bar = page.locator(
-			'li.attachment.uploading .media-progress-bar div'
+		const bar = tile( page, 'uploading…' ).locator(
+			'.media-progress-bar div'
 		);
 		await expect( bar ).toHaveAttribute( 'style', /width:\s*[1-9]/ );
 		await expect( bar ).not.toHaveAttribute( 'style', /width:\s*100%/ );
@@ -485,9 +483,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 	} );
 
 	test( 'surfaces a pipeline error with its message and file name', async ( {
@@ -512,19 +510,19 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		// The error lands in the grid's error sidebar exactly like a classic
 		// upload error: the file name and the server's message.
-		const error = page.locator( '.upload-error' ).first();
+		const error = page
+			.locator( '.upload-error' )
+			.filter( { hasText: 'test-image.jpg' } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
-		await expect( error.locator( '.upload-error-filename' ) ).toHaveText(
-			'test-image.jpg'
-		);
-		await expect( error.locator( '.upload-error-message' ) ).toHaveText(
-			SIMULATED_ERROR.message
-		);
+		await expect(
+			error.getByText( 'test-image.jpg', { exact: true } )
+		).toBeVisible();
+		await expect(
+			error.getByText( SIMULATED_ERROR.message, { exact: true } )
+		).toBeVisible();
 
 		// The placeholder tile is removed rather than left spinning.
-		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0
-		);
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
 	} );
 	test( 'leaves audio files to the classic uploader', async ( {
 		page,
@@ -559,9 +557,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_AUDIO_PATH );
 
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-audio' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
@@ -599,9 +597,10 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' )
-		).toHaveCount( 2, { timeout: 90_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 90_000,
+		} );
+		await expect( tile( page, 'test-audio' ) ).toBeVisible();
 
 		// The image went through the pipeline, the audio file through plupload.
 		expect( restCreateCount ).toBe( 1 );
@@ -650,9 +649,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		expect( asyncUploadCount ).toBe( 1 );
 		expect( restUploadCount ).toBe( 0 );
@@ -689,9 +688,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( 'li.attachment:not(.uploading)' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
 
 		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
 		expect( counts.rest ).toBe( 0 );
@@ -728,10 +727,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
 			.toBeGreaterThanOrEqual( 1 );
 		expect( counts.rest ).toBe( 0 );
-		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0,
-			{ timeout: 60_000 }
-		);
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 60_000,
+		} );
 		await expect(
 			page.locator( '.upload-error-message', { hasText: 'HEIC' } )
 		).toHaveCount( 0 );
@@ -762,19 +760,19 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		// Nothing can convert the file, so the pipeline's message (which
 		// explains the platform limitation) is what the user sees.
-		const error = page.locator( '.upload-error' ).first();
+		const error = page
+			.locator( '.upload-error' )
+			.filter( { hasText: UNDECODABLE_HEIC.name } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
-		await expect( error.locator( '.upload-error-filename' ) ).toHaveText(
-			UNDECODABLE_HEIC.name
-		);
-		await expect( error.locator( '.upload-error-message' ) ).toContainText(
-			'HEIC'
-		);
+		await expect(
+			error.getByText( UNDECODABLE_HEIC.name, { exact: true } )
+		).toBeVisible();
+		await expect(
+			error.locator( '.upload-error-message' )
+		).toContainText( 'HEIC' );
 		expect( counts.asyncUpload ).toBe( 0 );
 		expect( counts.rest ).toBe( 0 );
-		await expect( page.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0
-		);
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
 	} );
 	test( 'deletes the attachment when finalizing the upload fails', async ( {
 		page,
@@ -809,9 +807,11 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect( page.locator( '.upload-error' ).first() ).toBeVisible( {
-			timeout: 60_000,
-		} );
+		await expect(
+			page
+				.locator( '.upload-error' )
+				.filter( { hasText: 'test-image.jpg' } )
+		).toBeVisible( { timeout: 60_000 } );
 
 		// Nothing is left behind for a retry to duplicate.
 		await expect
