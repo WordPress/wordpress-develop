@@ -95,7 +95,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 
 		// If we get this far, we have custom styles. Let's do this.
 		?>
-		<style type="text/css" id="twentyfifteen-header-css">
+		<style id="twentyfifteen-header-css">
 		<?php
 		// Short header for when there is no Custom Header and Header Text is hidden.
 		if ( empty( $header_image ) && ! display_header_text() ) :
@@ -146,7 +146,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 
 			/*
 			 * No shorthand so the Customizer can override individual properties.
-			 * @see https://core.trac.wordpress.org/ticket/31460
+			 * @link https://core.trac.wordpress.org/ticket/31460
 			 */
 			background-image: url(<?php header_image(); ?>);
 			background-repeat: no-repeat;
@@ -162,7 +162,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 
 				/*
 				 * No shorthand so the Customizer can override individual properties.
-				 * @see https://core.trac.wordpress.org/ticket/31460
+				 * @link https://core.trac.wordpress.org/ticket/31460
 				 */
 				background-image: url(<?php header_image(); ?>);
 				background-repeat: no-repeat;

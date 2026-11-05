@@ -9,13 +9,24 @@
 	"textdomain": "default",
 	"usesContext": [ "termQuery" ],
 	"supports": {
+		"anchor": true,
 		"reusable": false,
 		"html": false,
 		"align": [ "wide", "full" ],
 		"layout": true,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true
+			}
+		},
 		"color": {
 			"gradients": true,
 			"link": true,
+			"heading": true,
+			"button": true,
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
@@ -33,6 +44,10 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
 		},
 		"spacing": {
 			"margin": true,
@@ -54,7 +69,8 @@
 			"color": true,
 			"width": true,
 			"style": true
-		}
+		},
+		"shadow": true
 	},
 	"style": "wp-block-term-template",
 	"editorStyle": "wp-block-term-template-editor"

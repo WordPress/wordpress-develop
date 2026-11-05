@@ -21,8 +21,19 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		'eagerness' => 'conservative',
 	);
 
-	public function set_up() {
+	/**
+	 * Stores the original speculative loading env values for cleanup.
+	 *
+	 * @var array<string, string|false>
+	 */
+	private array $original_env = array();
+
+	public function set_up(): void {
 		parent::set_up();
+
+		foreach ( array( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE', 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' ) as $name ) {
+			$this->original_env[ $name ] = getenv( $name );
+		}
 
 		add_filter(
 			'template_directory_uri',
@@ -37,8 +48,18 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 				return content_url( 'themes/stylesheet' );
 			}
 		);
+	}
 
-		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	public function tear_down(): void {
+		foreach ( $this->original_env as $name => $value ) {
+			if ( false === $value ) {
+				putenv( $name );
+			} else {
+				putenv( "{$name}={$value}" );
+			}
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -193,7 +214,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -223,7 +244,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -261,7 +282,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -310,7 +331,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -340,7 +361,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -386,7 +407,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp-*.php',
 				'/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -444,7 +465,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 			array(
 				'/wp/wp-*.php',
 				'/wp/wp-admin/*',
-				'/wp-content/uploads/*',
+				'/' . UPLOADS . '/*',
 				'/wp-content/*',
 				'/wp-content/plugins/*',
 				'/wp-content/themes/stylesheet/*',
@@ -557,5 +578,44 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		$this->assertSame( 'conservative', $rules['prefetch'][0]['eagerness'] );
 		$this->assertSame( 'moderate', $rules['prerender'][0]['eagerness'] );
 		$this->assertSame( 'eager', $rules['prerender'][1]['eagerness'] );
+	}
+
+	/**
+	 * Tests that an overridden default eagerness is applied to the main document-level rule.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_with_overridden_default_eagerness(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		$rules = wp_get_speculation_rules();
+		$this->assertInstanceOf( WP_Speculation_Rules::class, $rules );
+
+		$rules = $rules->jsonSerialize();
+
+		$this->assertArrayHasKey( 'prefetch', $rules );
+		$this->assertCount( 1, $rules['prefetch'] );
+		$this->assertSame( 'moderate', $rules['prefetch'][0]['eagerness'] );
+	}
+
+	/**
+	 * Tests that an eagerness of 'immediate' cannot be forced as the default.
+	 *
+	 * WordPress does not allow 'immediate' for the document-level rules it generates, so allowing it as a default
+	 * would cause the main rule to be rejected, leaving no speculation rules at all.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_with_immediate_default_eagerness(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=immediate' );
+
+		$rules = wp_get_speculation_rules();
+		$this->assertInstanceOf( WP_Speculation_Rules::class, $rules );
+
+		$rules = $rules->jsonSerialize();
+
+		$this->assertArrayHasKey( 'prefetch', $rules );
+		$this->assertCount( 1, $rules['prefetch'] );
+		$this->assertSame( 'conservative', $rules['prefetch'][0]['eagerness'] );
 	}
 }

@@ -425,7 +425,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			'<label for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label><span class="spinner"></span>',
 			esc_attr( $item->ID ),
 			/* translators: Hidden accessibility text. %s: Email address. */
-			sprintf( __( 'Select %s' ), $item->email )
+			sprintf( __( 'Select %s' ), esc_html( $item->email ) )
 		);
 	}
 
@@ -435,7 +435,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 4.9.6
 	 *
 	 * @param WP_User_Request $item Item being shown.
-	 * @return string|void Status column markup. Returns a string if no status is found,
+	 * @return string|null Status column markup. Returns a string if no status is found,
 	 *                     otherwise it displays the markup.
 	 */
 	public function column_status( $item ) {
@@ -465,6 +465,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		}
 
 		echo '</span>';
+		return null;
 	}
 
 	/**
@@ -550,7 +551,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return string Email column markup.
 	 */
 	public function column_email( $item ) {
-		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), $item->email, $this->row_actions( array() ) );
+		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), esc_html( $item->email ), $this->row_actions( array() ) );
 	}
 
 	/**

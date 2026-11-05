@@ -71,8 +71,7 @@ if ( empty( $plugin ) ) {
 			$plugin = $file;
 		}
 	} else {
-		$plugin = array_keys( $plugins );
-		$plugin = $plugin[0];
+		$plugin = array_key_first( $plugins );
 	}
 }
 
@@ -164,7 +163,7 @@ $settings = array(
 );
 wp_enqueue_script( 'wp-theme-plugin-editor' );
 wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
-wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'wp.themePluginEditor.themeOrPlugin = "plugin";' ) );
+wp_add_inline_script( 'wp-theme-plugin-editor', 'wp.themePluginEditor.themeOrPlugin = "plugin";' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
@@ -316,7 +315,7 @@ printf(
 	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
 		<?php
-		if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) {
+		if ( is_plugin_active( $plugin ) ) {
 			wp_admin_notice(
 				__( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ),
 				array(

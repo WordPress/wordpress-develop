@@ -59,15 +59,14 @@ function render_block_core_term_template( $attributes, $content, $block ) {
 			$query_args['include'] = array_unique( array_map( 'intval', $query['include'] ) );
 			$query_args['orderby'] = 'include';
 			$query_args['order']   = 'asc';
-		} elseif ( empty( $query['showNested'] ) ) {
+		} elseif ( is_taxonomy_hierarchical( $query['taxonomy'] ) && empty( $query['showNested'] ) ) {
 			// We set parent only when inheriting from the taxonomy archive context or not
 			// showing nested terms, otherwise nested terms are not displayed.
 			$query_args['parent'] = 0;
 		}
 	}
 
-	$terms_query = new WP_Term_Query( $query_args );
-	$terms       = $terms_query->get_terms();
+	$terms = get_terms( $query_args );
 
 	if ( ! $terms || is_wp_error( $terms ) ) {
 		return '';
@@ -85,9 +84,10 @@ function render_block_core_term_template( $attributes, $content, $block ) {
 		$term_id  = $term->term_id;
 		$taxonomy = $term->taxonomy;
 
-		$filter_block_context = static function ( $context ) use ( $term_id, $taxonomy ) {
+		$filter_block_context = static function ( $context ) use ( $term_id, $taxonomy, $term ) {
 			$context['termId']   = $term_id;
 			$context['taxonomy'] = $taxonomy;
+			$context['termData'] = $term;
 			return $context;
 		};
 

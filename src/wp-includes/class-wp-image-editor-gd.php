@@ -144,11 +144,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true
 	 */
-	protected function update_size( $width = false, $height = false ) {
+	protected function update_size( $width = null, $height = null ) {
 		if ( ! $width ) {
 			$width = imagesx( $this->image );
 		}
@@ -312,17 +312,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		$orig_size = $this->size;
 
-		if ( ! isset( $size_data['width'] ) ) {
-			$size_data['width'] = null;
-		}
-
-		if ( ! isset( $size_data['height'] ) ) {
-			$size_data['height'] = null;
-		}
-
-		if ( ! isset( $size_data['crop'] ) ) {
-			$size_data['crop'] = false;
-		}
+		$size_data['width']  ??= null;
+		$size_data['height'] ??= null;
+		$size_data['crop']   ??= false;
 
 		$resized = $this->_resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
 

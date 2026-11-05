@@ -656,7 +656,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * @covers WP_Image_Editor_Imagick::remove_pdf_alpha_channel
 	 */
 	public function test_remove_pdf_alpha_channel_should_remove_the_alpha_channel_in_preview() {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
+		if ( ! Imagick::queryFormats( 'PDF' ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
@@ -665,8 +665,31 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
 		}
 
-		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
-		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$test_file = DIR_TESTDATA . '/images/test-alpha.pdf';
+
+		// Check native PDF rendering without running the WordPress code under test.
+		$imagick = new Imagick();
+		try {
+			$imagick->readImage( $test_file . '[0]' );
+		} catch ( ImagickException $e ) {
+			$this->markTestSkipped( 'Imagick cannot render the PDF fixture: ' . $e->getMessage() );
+		} finally {
+			$imagick->destroy();
+		}
+
+		$this->assertTrue(
+			wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ),
+			'WordPress should support PDFs when native Imagick can render the fixture.'
+		);
+
+		// A fallback size is required to generate the full PDF preview.
+		// Keep the thumbnail, but omit unused medium and large images.
+		$preview_sizes = static function () {
+			return array( 'thumbnail' );
+		};
+		add_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
@@ -836,14 +859,15 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing.
 	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_png_color_type_after_resize
 	 *
-	 * @param string $file_path             Path to the image file.
-	 * @param int    $expected_color_type   The expected original color type.
+	 * @param string $file_path           Path to the image file.
+	 * @param int    $expected_color_type The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
 
@@ -902,6 +926,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that alpha transparency is preserved after resizing.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
 	 *
 	 * @param string $file_path Path to the image file.
