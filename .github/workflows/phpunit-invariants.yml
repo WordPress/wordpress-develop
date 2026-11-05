@@ -74,7 +74,8 @@ jobs:
     needs: [ prepare-gutenberg ]
     permissions:
       contents: read
-    timeout-minutes: 60
+    # The suite runs several times slower with the invariants.
+    timeout-minutes: 180
     env:
       LOCAL_PHP: '8.5-fpm'
       LOCAL_PHP_XDEBUG: false
@@ -188,6 +189,10 @@ jobs:
 
       - name: Run PHPUnit tests with the invariants
         run: npm run test:php:invariants -- --verbose
+
+      - name: Show the test which was running
+        if: ${{ failure() || cancelled() }}
+        run: cat tests/phpunit/build/logs/invariants-current-test.txt 2> /dev/null || echo 'No test was running.'
 
       - name: Add the invariant report to the summary
         if: ${{ always() }}

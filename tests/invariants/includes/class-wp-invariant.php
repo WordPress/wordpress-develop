@@ -107,13 +107,6 @@ final class WP_Invariant {
 	private $pending = array();
 
 	/**
-	 * Lower-case targets which have both a `before()` and an `after()` hook.
-	 *
-	 * @var bool[]
-	 */
-	private $paired_targets = array();
-
-	/**
 	 * Every loaded invariant, by id.
 	 *
 	 * @var WP_Invariant[]
@@ -523,12 +516,12 @@ final class WP_Invariant {
 
 		try {
 			$call   = new WP_Invariant_Call( $this, $hook['when'], $hook['target'], $params );
-			$paired = isset( $this->paired_targets[ strtolower( $hook['target'] ) ] );
+			$paired = $hook['paired'];
 
 			if ( $paired ) {
 				// The hooks for one call run at the same depth; deeper entries were left by calls which threw.
 				$depth = count( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) );
-				$key   = strtolower( $hook['target'] );
+				$key   = $hook['key'];
 				if ( 'post' === $hook['when'] ) {
 					while ( ! empty( $this->pending[ $key ] ) && end( $this->pending[ $key ] )[0] > $depth ) {
 						array_pop( $this->pending[ $key ] );
@@ -589,20 +582,28 @@ final class WP_Invariant {
 		}
 
 		$target        = ltrim( $target, '\\' );
+		$key           = strtolower( $target );
 		$this->hooks[] = array(
 			'when'   => $when,
 			'target' => $target,
 			'check'  => $check,
+			'key'    => $key,
+			'paired' => false,
 		);
 
+		// A before and an after hook on the same target are paired; work that out once, not on every call.
 		$whens = array();
 		foreach ( $this->hooks as $hook ) {
-			if ( 0 === strcasecmp( $hook['target'], $target ) ) {
+			if ( $hook['key'] === $key ) {
 				$whens[ $hook['when'] ] = true;
 			}
 		}
 		if ( isset( $whens['pre'], $whens['post'] ) ) {
-			$this->paired_targets[ strtolower( $target ) ] = true;
+			foreach ( $this->hooks as $index => $hook ) {
+				if ( $hook['key'] === $key ) {
+					$this->hooks[ $index ]['paired'] = true;
+				}
+			}
 		}
 
 		return $this;

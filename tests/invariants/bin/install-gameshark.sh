@@ -35,7 +35,9 @@ cd "$source_dir"
 RUN_TESTS=0 PHP_CONFIG="$( command -v php-config )" scripts/build-unix.sh
 
 install -m 0644 modules/gameshark.so "$( php-config --extension-dir )/gameshark.so"
-echo 'extension=gameshark.so' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-gameshark.ini"
+# The report lists the hooks on built-in functions, so the extension's warning about them is turned off. It has to be
+# an INI setting: the extension's default for it is an INI value, which beats GAMESHARK_INVARIANTS_WARN_BUILTINS.
+printf 'extension=gameshark.so\ngameshark.invariants_warn_builtins=0\n' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-gameshark.ini"
 php --ri gameshark
 
 # Whoever runs the tests, and the CI cache, can read and replace what was built here as root.
