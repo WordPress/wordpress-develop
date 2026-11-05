@@ -533,6 +533,212 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `core/get-site-info` ability is available to administrators.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_site_info_allows_administrator(): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		$this->assertTrue( current_user_can( 'manage_options' ) );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+
+		$this->assertTrue( $ability->check_permissions() );
+		$this->assertIsArray( $ability->execute() );
+	}
+
+	/**
+	 * Tests that the `core/get-site-info` ability is denied to users who cannot manage options.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_site_info_requires_manage_options(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		wp_set_current_user( $user_id );
+
+		$this->assertFalse( current_user_can( 'manage_options' ) );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+
+		$this->assertFalse( $ability->check_permissions() );
+
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the `core/get-site-info` ability is denied to logged-out visitors.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_site_info_denies_logged_out_visitor(): void {
+		wp_set_current_user( 0 );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+
+		$this->assertFalse( $ability->check_permissions() );
+
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that managing options is enough to use the `core/get-site-info` ability.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_site_info_allows_delegated_manage_options(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_cap( 'manage_options' );
+
+		$this->assertFalse( current_user_can( 'edit_posts' ) );
+
+		$ability = wp_get_ability( 'core/get-site-info' );
+
+		$this->assertTrue( $ability->check_permissions() );
+		$this->assertIsArray( $ability->execute() );
+	}
+
+	/**
+	 * Tests the label and description of the core ability categories.
+	 *
+	 * @ticket 66493
+	 *
+	 * @dataProvider data_core_ability_categories
+	 *
+	 * @param string $slug        Category slug.
+	 * @param string $label       Expected label.
+	 * @param string $description Expected description.
+	 */
+	public function test_core_ability_categories_are_registered( string $slug, string $label, string $description ): void {
+		$category = wp_get_ability_category( $slug );
+
+		$this->assertInstanceOf( WP_Ability_Category::class, $category );
+		$this->assertSame( $slug, $category->get_slug() );
+		$this->assertSame( $label, $category->get_label() );
+		$this->assertSame( $description, $category->get_description() );
+	}
+
+	/**
+	 * Data provider for the core ability categories.
+	 *
+	 * @return array[]
+	 */
+	public static function data_core_ability_categories(): array {
+		return array(
+			'site'    => array( 'site', 'Site', 'Abilities that retrieve or modify site information and settings.' ),
+			'user'    => array( 'user', 'User', 'Abilities that retrieve or modify user information and settings.' ),
+			'content' => array( 'content', 'Content', 'Abilities that retrieve or manage posts and other content.' ),
+		);
+	}
+
+	/**
+	 * Tests the category of each core information ability.
+	 *
+	 * @ticket 66493
+	 *
+	 * @dataProvider data_core_information_abilities
+	 *
+	 * @param string $ability_name Ability name.
+	 * @param string $category     Expected category slug.
+	 */
+	public function test_core_information_abilities_use_expected_category( string $ability_name, string $category ): void {
+		$ability = wp_get_ability( $ability_name );
+
+		$this->assertSame( $category, $ability->get_category() );
+		$this->assertTrue( wp_has_ability_category( $category ), 'The category of the ability should be registered.' );
+	}
+
+	/**
+	 * Tests that the core information abilities are annotated as read-only and idempotent.
+	 *
+	 * @ticket 66493
+	 *
+	 * @dataProvider data_core_information_abilities
+	 *
+	 * @param string $ability_name Ability name.
+	 */
+	public function test_core_information_abilities_are_annotated_as_read_only( string $ability_name ): void {
+		$annotations = wp_get_ability( $ability_name )->get_meta_item( 'annotations' );
+
+		$this->assertTrue( $annotations['readonly'], 'The ability should be read-only.' );
+		$this->assertFalse( $annotations['destructive'], 'The ability should not be destructive.' );
+		$this->assertTrue( $annotations['idempotent'], 'The ability should be idempotent.' );
+	}
+
+	/**
+	 * Data provider for the core information abilities.
+	 *
+	 * @return array[]
+	 */
+	public static function data_core_information_abilities(): array {
+		return array(
+			'core/get-site-info'        => array( 'core/get-site-info', 'site' ),
+			'core/get-user-info'        => array( 'core/get-user-info', 'user' ),
+			'core/get-environment-info' => array( 'core/get-environment-info', 'site' ),
+		);
+	}
+
+	/**
+	 * Tests that the roles of a user with several roles are returned in order.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_user_info_returns_all_roles_of_user(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+		$user->add_role( 'editor' );
+
+		$result = wp_get_ability( 'core/get-user-info' )->execute( array( 'fields' => array( 'roles' ) ) );
+
+		$this->assertSame( array( 'roles' => array( 'subscriber', 'editor' ) ), $result );
+	}
+
+	/**
+	 * Tests that the roles are returned as a list when the roles of the user are not numbered in sequence.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_user_info_returns_roles_as_list(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = wp_set_current_user( $user_id );
+
+		// The roles of a user can come with gaps in their numbering, for example when they are filtered.
+		$user->roles = array(
+			2 => 'subscriber',
+			5 => 'editor',
+		);
+
+		$result = wp_get_ability( 'core/get-user-info' )->execute( array( 'fields' => array( 'roles' ) ) );
+
+		$this->assertSame( array( 'roles' => array( 'subscriber', 'editor' ) ), $result );
+		$this->assertSame( '{"roles":["subscriber","editor"]}', wp_json_encode( $result ), 'The roles should be encoded as a JSON array.' );
+	}
+
+	/**
+	 * Tests that a user without roles gets an empty list of roles.
+	 *
+	 * @ticket 66493
+	 */
+	public function test_core_get_user_info_returns_empty_roles_for_user_without_roles(): void {
+		$user_id = self::factory()->user->create( array( 'role' => '' ) );
+		$user    = wp_set_current_user( $user_id );
+
+		$this->assertSame( array(), $user->roles, 'The user should not have any roles.' );
+
+		$result = wp_get_ability( 'core/get-user-info' )->execute( array( 'fields' => array( 'roles' ) ) );
+
+		$this->assertSame( array( 'roles' => array() ), $result );
+	}
+
+	/**
 	 * Tests that all core ability schemas only use valid JSON Schema keywords.
 	 *
 	 * This prevents regressions where invalid keywords like 'examples' are used
