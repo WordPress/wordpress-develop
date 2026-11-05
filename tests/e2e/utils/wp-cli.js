@@ -12,7 +12,7 @@ import { join } from 'node:path';
  *
  * @param {string[]} args    WP-CLI arguments, without the leading `wp`.
  * @param {Object}   options Options for `execFileSync()`.
- * @return {string} The command's standard output.
+ * @return {string|null} The command's standard output, or `null` if `options.stdio` does not pipe it.
  */
 export function wpCli( args, options = {} ) {
 	return execFileSync(

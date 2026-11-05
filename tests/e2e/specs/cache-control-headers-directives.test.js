@@ -20,9 +20,10 @@ test.describe( 'Cache Control header directives', () => {
 		const response = await loggedOutPage.goto( '/hello-world/' );
 		const responseHeaders = response.headers();
 
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "no-cache" } ) );
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "no-store" } ) );
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "private" } ) );
+		const cacheControl = responseHeaders[ 'cache-control' ] ?? '';
+		expect( cacheControl ).not.toContain( 'no-cache' );
+		expect( cacheControl ).not.toContain( 'no-store' );
+		expect( cacheControl ).not.toContain( 'private' );
 	} );
 
 	test(
