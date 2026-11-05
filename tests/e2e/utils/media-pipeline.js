@@ -169,3 +169,16 @@ export function countUploadRequests( page ) {
 	} );
 	return counts;
 }
+
+/**
+ * Finds a media grid tile by its accessible name. A tile is named after the
+ * attachment title; placeholders have no title yet, so they are named
+ * "uploading…" (see getAriaLabel() in src/js/media/views/attachment.js).
+ *
+ * @param {import('@playwright/test').Page|import('@playwright/test').Locator} scope
+ * @param {string}                                                              name
+ * @return {import('@playwright/test').Locator} The tile.
+ */
+export function tile( scope, name ) {
+	return scope.getByRole( 'checkbox', { name, exact: true } );
+}

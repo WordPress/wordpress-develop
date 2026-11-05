@@ -132,18 +132,20 @@ test.describe( 'Media library', () => {
 		page,
 		requestUtils,
 	} ) => {
-		const image = await upload( requestUtils, 'image' );
-		const audio = await upload(
-			requestUtils,
-			'audio',
-			'uploads/small-audio.mp3'
-		);
+		await upload( requestUtils, 'image' );
+		await upload( requestUtils, 'audio', 'uploads/small-audio.mp3' );
 		await admin.visitAdminPage( '/upload.php', 'mode=grid' );
 		await page
 			.getByRole( 'searchbox', { name: 'Search media', exact: true } )
 			.fill( prefix );
-		const imageTile = page.locator( `.attachments [data-id="${ image }"]` );
-		const audioTile = page.locator( `.attachments [data-id="${ audio }"]` );
+		const imageTile = page.getByRole( 'checkbox', {
+			name: `${ prefix }-image`,
+			exact: true,
+		} );
+		const audioTile = page.getByRole( 'checkbox', {
+			name: `${ prefix }-audio`,
+			exact: true,
+		} );
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeVisible();
 		await page

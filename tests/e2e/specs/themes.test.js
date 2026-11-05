@@ -81,23 +81,27 @@ test.describe( 'Theme management', () => {
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'themes.php' );
-		const card = page.locator( `.theme[data-slug="${ themeSlug }"]` );
-		await card.hover();
-		await card
+		await page
+			.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+			.hover();
+		await page
 			.getByRole( 'link', {
 				name: `Activate ${ themeName }`,
 				exact: true,
 			} )
 			.click();
 		await expect(
-			card.getByRole( 'heading', {
+			page.getByRole( 'heading', {
 				name: `Active: ${ themeName }`,
 				exact: true,
 			} )
 		).toBeVisible();
 		await page.reload();
 		await expect(
-			card.getByRole( 'heading', {
+			page.getByRole( 'heading', {
 				name: `Active: ${ themeName }`,
 				exact: true,
 			} )
@@ -114,8 +118,11 @@ test.describe( 'Theme management', () => {
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'themes.php' );
-		const card = page.locator( `.theme[data-slug="${ themeSlug }"]` );
-		await card.click();
+		const details = page.getByRole( 'button', {
+			name: `View Theme Details for ${ themeName }`,
+			exact: true,
+		} );
+		await details.click();
 		await Promise.all( [
 			page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
 				expect( dialog.type() ).toBe( 'confirm' );
@@ -128,9 +135,9 @@ test.describe( 'Theme management', () => {
 				} )
 				.click(),
 		] );
-		await expect( card ).toHaveCount( 0 );
+		await expect( details ).toHaveCount( 0 );
 		await page.reload();
-		await expect( card ).toHaveCount( 0 );
+		await expect( details ).toHaveCount( 0 );
 		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 		expect( themes.map( ( theme ) => theme.stylesheet ) ).not.toContain(
 			themeSlug

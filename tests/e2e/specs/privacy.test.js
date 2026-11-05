@@ -145,10 +145,14 @@ test( 'copies suggested policy text without tutorial or toolbar text', async ( {
 			navigator.clipboard.writeText( 'Clipboard sentinel' )
 		);
 		if ( attempt > 0 ) {
-			await expect( panel.locator( '.success' ) ).toBeVisible();
+			await expect(
+				panel.getByText( 'Copied!', { exact: true } )
+			).toBeVisible();
 		}
 		await copyButton.click();
-		await expect( panel.locator( '.success' ) ).toBeVisible();
+		await expect(
+			panel.getByText( 'Copied!', { exact: true } )
+		).toBeVisible();
 		await expect
 			.poll( async () =>
 				normalizeText(

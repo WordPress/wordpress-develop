@@ -25,10 +25,7 @@ test.describe( 'Classic Menus', () => {
 			name: 'Menu Name',
 		} );
 		await menuNameField.fill( 'E2E Menu' );
-		await page
-			.getByRole( 'button', { name: 'Create Menu' } )
-			.first()
-			.click();
+		await page.locator( '#save_menu_footer' ).click();
 
 		// The screen reloads into the edit state for the new menu.
 		await expect(
@@ -68,7 +65,7 @@ test.describe( 'Classic Menus', () => {
 		// Activate via keyboard: the sticky footer bar can shift on focus
 		// and swallow the first pointer click at certain window heights.
 		// See https://core.trac.wordpress.org/ticket/65684.
-		await page.getByRole( 'button', { name: 'Save Menu' } ).first().focus();
+		await page.locator( '#save_menu_footer' ).focus();
 		await page.keyboard.press( 'Enter' );
 
 		// The location assignment persists.
