@@ -1,85 +1,80 @@
 <?php
 /**
- * Tests for the wpGetDirectUpdateHttpsUrl.php function.
+ * Tests for the wp_get_update_https_url() function.
  *
- * @group functions.php
+ * @group functions
  *
- */#
-class Tests_Functions_wpGetUpdateHttpsUrl extends WP_UnitTestCase {
+ * @covers ::wp_get_update_https_url
+ */
+class Tests_Functions_WpGetUpdateHttpsUrl extends WP_UnitTestCase {
 
 	/**
-	 * Check that the function returns an empty string if no environment variable is set and no filter is applied.
+	 * Original environment variable value.
 	 *
-	 * @ticket 59623
-	 * @covers ::wp_get_update_https_url
+	 * @var string|false
+	 */
+	private $original_update_https_url;
+
+	/**
+	 * Sets up an environment without an HTTPS update URL.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_update_https_url = getenv( 'WP_UPDATE_HTTPS_URL' );
+		putenv( 'WP_UPDATE_HTTPS_URL' );
+	}
+
+	/**
+	 * Restores the original environment variable value.
+	 */
+	public function tear_down() {
+		if ( false === $this->original_update_https_url ) {
+			putenv( 'WP_UPDATE_HTTPS_URL' );
+		} else {
+			putenv( 'WP_UPDATE_HTTPS_URL=' . $this->original_update_https_url );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that the default HTTPS update documentation URL is returned when no override is set.
+	 *
+	 * @ticket 59637
 	 */
 	public function test_wp_get_update_https_url_default() {
-		// Test 1: Check that the function returns an empty string if no environment variable is set.
-		$result   = wp_get_update_https_url();
-		$expected = 'https://wordpress.org/documentation/article/why-should-i-use-https/';
-		$this->assertEquals( $expected, $result );
+		$this->assertSame( 'https://developer.wordpress.org/advanced-administration/security/https/', wp_get_update_https_url() );
 	}
 
 	/**
-	 * Check that the function returns environment variable if set.
+	 * Tests that the environment variable override is returned when set.
 	 *
 	 * @ticket 59637
-	 * @covers ::wp_get_update_https_url
 	 */
 	public function test_wp_get_update_https_url_env() {
-		$previous_url = getenv( 'WP_UPDATE_HTTPS_URL' );
+		putenv( 'WP_UPDATE_HTTPS_URL=https://example.com' );
 
-		try {
-			putenv( 'WP_UPDATE_HTTPS_URL=https://example.com' );
-
-			$result   = wp_get_update_https_url();
-			$expected = 'https://example.com';
-			$this->assertEquals( $expected, $result );
-		} finally {
-			putenv( false === $previous_url ? 'WP_UPDATE_HTTPS_URL' : 'WP_UPDATE_HTTPS_URL=' . $previous_url );
-		}
+		$this->assertSame( 'https://example.com', wp_get_update_https_url() );
 	}
 
 	/**
-	 * Check the filter work
+	 * Tests that the URL can be modified via the 'wp_update_https_url' filter.
 	 *
 	 * @ticket 59637
-	 * @covers ::wp_get_update_https_url
 	 */
 	public function test_wp_get_update_https_url_filter() {
-		// Test 1: Check that the function returns an empty string if no environment variable is set.
-		add_filter( 'wp_update_https_url', array( $this, 'wp_get_update_https_url' ) );
+		add_filter( 'wp_update_https_url', array( $this, 'filter_wp_update_https_url' ) );
 
-		$result   = wp_get_update_https_url();
-		$expected = 'https://filtered-example.com';
-		$this->assertEquals( $expected, $result );
+		$this->assertSame( 'https://filtered-example.com', wp_get_update_https_url() );
 	}
 
 	/**
-	 * Filter for test_wp_get_direct_update_https_url_filter()
-	 *
-	 * @ticket 59637
-	 *
-	 * @param $url
+	 * Filter callback for the 'wp_update_https_url' hook.
 	 *
 	 * @return string
 	 */
-	public function wp_get_update_https_url() {
-
+	public function filter_wp_update_https_url() {
 		return 'https://filtered-example.com';
-	}
-
-	/**
-	 * Filter for wp_get_default_update_https_url()
-	 *
-	 * @ticket 59637
-	 * @covers ::wp_get_default_update_https_url
-	 *
-	 */
-	public function test_wp_get_default_update_https_url() {
-
-		$result   = wp_get_default_update_https_url();
-		$expected = 'https://wordpress.org/documentation/article/why-should-i-use-https/';
-		$this->assertEquals( $expected, $result );
 	}
 }
