@@ -92,7 +92,7 @@ function wp_interactivity_config( string $store_namespace, array $config = array
  *
  * Example:
  *
- *     <div <?php echo wp_interactivity_data_wp_context( array( 'isOpen' => true, 'count' => 0 ) ); ?>>
+ *     <div <?php echo wp_kses_data( wp_interactivity_data_wp_context( array( 'isOpen' => true, 'count' => 0 ) ) ); ?>>
  *
  * @since 6.5.0
  *
