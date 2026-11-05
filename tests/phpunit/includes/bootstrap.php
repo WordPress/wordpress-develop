@@ -427,42 +427,88 @@ require __DIR__ . '/secrets/class-wp-secrets-keyring-conformance.php';
  * how you call phpunit has no effect.
  */
 class WP_PHPUnit_Util_Getopt {
+	/**
+	 * Groups that are skipped by default for the current test run.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $skipped_groups = array();
 
-	public function __construct( $argv ) {
+	/**
+	 * Groups that were explicitly requested via the command line.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $requested_groups = array();
+
+	/**
+	 * Initializes the default skipped groups for the current test mode.
+	 *
+	 * @return array<string, bool> The groups skipped by default.
+	 */
+	protected static function get_default_skipped_groups() {
 		$skipped_groups = array(
-			'ajax'          => true,
-			'ms-files'      => true,
-			'external-http' => true,
+			'ajax'                    => true,
+			'ms-files'                => true,
+			'external-http'           => true,
+			'html-api-html5lib-tests' => true,
 		);
 
-		while ( current( $argv ) ) {
-			$option = current( $argv );
-			$value  = next( $argv );
+		if ( is_multisite() ) {
+			$skipped_groups['ms-excluded']    = true;
+			$skipped_groups['oembed-headers'] = true;
+		} else {
+			$skipped_groups['ms-required'] = true;
+		}
+
+		return $skipped_groups;
+	}
+
+	/**
+	 * Initializes the parsed command line state.
+	 */
+	protected static function reset() {
+		self::$skipped_groups   = self::get_default_skipped_groups();
+		self::$requested_groups = array();
+	}
+
+	public function __construct( $argv ) {
+		self::reset();
+
+		foreach ( $argv as $index => $argument ) {
+			$option = $argument;
+			$value  = isset( $argv[ $index + 1 ] ) ? $argv[ $index + 1 ] : '';
+
+			if ( 0 === strpos( $option, '--group=' ) ) {
+				$value  = substr( $option, strlen( '--group=' ) );
+				$option = '--group';
+			}
 
 			switch ( $option ) {
 				case '--exclude-group':
-					foreach ( $skipped_groups as $group_name => $skipped ) {
-						$skipped_groups[ $group_name ] = false;
-					}
-					continue 2;
+					// PHPUnit replaces XML exclusions when this option is provided.
+					// Keep our default skipped groups active unless they are requested explicitly.
+					break;
 				case '--group':
 					$groups = explode( ',', $value );
 					foreach ( $groups as $group ) {
+						self::$requested_groups[ $group ] = true;
+
 						if ( is_numeric( $group ) || preg_match( '/^(UT|Plugin)\d+$/', $group ) ) {
 							WP_UnitTestCase::forceTicket( $group );
 						}
 					}
 
-					foreach ( $skipped_groups as $group_name => $skipped ) {
+					foreach ( self::$skipped_groups as $group_name => $skipped ) {
 						if ( in_array( $group_name, $groups, true ) ) {
-							$skipped_groups[ $group_name ] = false;
+							self::$skipped_groups[ $group_name ] = false;
 						}
 					}
-					continue 2;
+					break;
 			}
 		}
 
-		$skipped_groups = array_filter( $skipped_groups );
+		$skipped_groups = array_filter( self::$skipped_groups );
 		foreach ( $skipped_groups as $group_name => $skipped ) {
 			echo sprintf( 'Not running %1$s tests. To execute these, use --group %1$s.', $group_name ) . PHP_EOL;
 		}
@@ -474,5 +520,76 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
+
+	/**
+	 * Returns the groups that are still skipped by default for this run.
+	 *
+	 * @return string[]
+	 */
+	public static function get_skipped_groups() {
+		return array_keys( array_filter( self::$skipped_groups ) );
+	}
+
+	/**
+	 * Determines whether a group was explicitly requested via the command line.
+	 *
+	 * @param string $group Group name.
+	 * @return bool Whether the group was explicitly requested.
+	 */
+	public static function is_group_requested( $group ) {
+		return isset( self::$requested_groups[ $group ] );
+	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
+
+/**
+ * Removes default-excluded tests from PHPUnit suites before class fixtures run.
+ */
+trait WP_PHPUnit_Default_Group_Filter_Methods {
+
+	/**
+	 * Filters default-excluded tests from a suite and all nested suites.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	public function start_test_suite( $suite ) {
+		$this->filter_suite( $suite );
+	}
+
+	/**
+	 * Filters a test suite recursively.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	protected function filter_suite( $suite ) {
+		$tests = array();
+
+		foreach ( $suite->tests() as $test ) {
+			if ( $test instanceof PHPUnit\Framework\TestSuite || $test instanceof PHPUnit_Framework_TestSuite ) {
+				$this->filter_suite( $test );
+
+				if ( count( $test ) ) {
+					$tests[] = $test;
+				}
+			} elseif ( ! method_exists( $test, 'getGroups' ) || ! WP_UnitTestCase_Base::get_default_excluded_groups_for_test( $test->getGroups() ) ) {
+				$tests[] = $test;
+			}
+		}
+
+		$suite->setTests( $tests );
+	}
+}
+
+if ( version_compare( tests_get_phpunit_version(), '6.0', '<' ) ) {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit_Framework_TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
+	}
+} else {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
+	}
+}
