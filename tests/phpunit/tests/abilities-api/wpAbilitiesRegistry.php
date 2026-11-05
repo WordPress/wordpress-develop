@@ -68,7 +68,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 				'description' => 'The result of adding the two numbers.',
 				'required'    => true,
 			),
-			'execute_callback'    => static function ( array $input ): int {
+			'execute_callback'    => static function ( array $input ): float {
 				return $input['a'] + $input['b'];
 			},
 			'permission_callback' => static function (): bool {
@@ -348,7 +348,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 				'b' => 3,
 			)
 		);
-		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
+		$this->assertSame( 15.0, $execute_result, 'Custom do_execute should multiply instead of add.' );
 	}
 
 	/**
@@ -515,6 +515,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_new_ability() {
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
@@ -678,7 +679,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( $was_filter_callback_fired, 'The execute callback defined in the filter was not fired.' );
-		$this->assertSame( 3, $result, 'The original execute callback did not return the expected result.' );
+		$this->assertSame( 3.0, $result, 'The original execute callback did not return the expected result.' );
 	}
 
 	/**

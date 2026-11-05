@@ -22,6 +22,8 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	}
 
 	public function test_with_ugly_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$embed_url = get_post_embed_url( $post_id );
@@ -33,8 +35,6 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_static_front_page() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		update_option( 'show_on_front', 'page' );
@@ -51,6 +51,8 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_static_front_page_with_ugly_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		update_option( 'show_on_front', 'page' );
@@ -67,8 +69,6 @@ class Tests_oEmbed_GetPostEmbedUrl extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_page_conflicts_with_embed_slug() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$parent_page = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ) );

@@ -24,7 +24,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFromSchema extends WP_UnitTestCase {
 		$this->assertSame( $result, $expected );
 	}
 
-	public function data_sanitize_from_schema() {
+	public static function data_sanitize_from_schema() {
 		return array(
 			'One level associative array'  => array(
 				'data'     => array(
