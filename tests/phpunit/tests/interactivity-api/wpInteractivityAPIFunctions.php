@@ -95,10 +95,6 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	public function tear_down() {
 		global $wp_interactivity;
 
-		/*
-		 * The hooks registered by core are bound to the original instance and are
-		 * restored by the parent method, so the same instance must be restored.
-		 */
 		$wp_interactivity = $this->original_wp_interactivity;
 
 		unregister_block_type( 'test/interactive-block' );
