@@ -58,6 +58,102 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<a href="contribute.php" class="nav-tab"><?php _e( 'Get Involved' ); ?></a>
 		</nav>
 
+		<div class="about__section changelog has-subtle-background-color">
+			<div class="column">
+				<h2><?php _e( 'Maintenance and Security Releases' ); ?></h2>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: WordPress version. */
+						__( '<strong>Version %s</strong> addressed some security issues.' ),
+						'7.1.4'
+					);
+					?>
+					<?php
+					printf(
+						/* translators: %s: HelpHub URL. */
+						__( 'For more information, see <a href="%s">the release notes</a>.' ),
+						sprintf(
+							/* translators: %s: WordPress version. */
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+							sanitize_title( '7.1.4' )
+						)
+					);
+					?>
+				</p>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: WordPress version number, 2: Plural number of bugs. */
+						_n(
+							'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug.',
+							'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bugs.',
+							4
+						),
+						'7.1.3',
+						'4'
+					);
+					?>
+					<?php
+					printf(
+						/* translators: %s: HelpHub URL. */
+						__( 'For more information, see <a href="%s">the release notes</a>.' ),
+						sprintf(
+							/* translators: %s: WordPress version. */
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+							sanitize_title( '7.1.3' )
+						)
+					);
+					?>
+				</p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: WordPress version. */
+						__( '<strong>Version %s</strong> addressed one security issue.' ),
+						'7.1.2'
+					);
+					?>
+					<?php
+					printf(
+						/* translators: %s: HelpHub URL. */
+						__( 'For more information, see <a href="%s">the release notes</a>.' ),
+						sprintf(
+							/* translators: %s: WordPress version. */
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+							sanitize_title( '7.1.2' )
+						)
+					);
+					?>
+				</p>
+				<p>
+					<?php
+					printf(
+						/* translators: 1: WordPress version number, 2: Plural number of bugs. More than one security issue. */
+						_n(
+							'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug.',
+							'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bugs.',
+							36
+						),
+						'7.1.1',
+						number_format_i18n( 36 )
+					);
+					?>
+					<?php
+					printf(
+						/* translators: %s: HelpHub URL. */
+						__( 'For more information, see <a href="%s">the release notes</a>.' ),
+						sprintf(
+							/* translators: %s: WordPress version. */
+							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
+							sanitize_title( '7.1.1' )
+						)
+					);
+					?>
+				</p>
+			</div>
+		</div>
+
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
 				<h2><?php _e( 'Welcome to WordPress 7.1' ); ?></h2>
@@ -75,7 +171,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.1/about-feature-01.webp?ver=20260810" alt="" height="900" width="900" />
+					<img src="https://s.w.org/images/core/7.1/about-feature-01.webp?ver=20260814" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -83,7 +179,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.1/about-feature-02.webp?ver=20260810" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.1/about-feature-02.webp?ver=20260814" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -105,7 +201,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.1/about-feature-03.webp?ver=20260810" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.1/about-feature-03.webp?ver=20260814" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -113,7 +209,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.1/about-feature-04.webp?ver=20260810" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.1/about-feature-04.webp?ver=20260814" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">

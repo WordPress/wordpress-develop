@@ -1224,6 +1224,7 @@ EOF;
 	 * @ticket 64414
 	 * @ticket 65457
 	 * @ticket 64974
+	 * @ticket 65832
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1765,6 +1766,121 @@ EOF;
 			array(
 				'css'      => 'text-anchor: middle',
 				'expected' => 'text-anchor: middle',
+			),
+			// SVG transform functions (ticket #65832).
+			array(
+				'css'      => 'transform: rotate(45deg)',
+				'expected' => 'transform: rotate(45deg)',
+			),
+			array(
+				'css'      => 'transform: translate(10px, 20px)',
+				'expected' => 'transform: translate(10px, 20px)',
+			),
+			array(
+				'css'      => 'transform: scale(1.5)',
+				'expected' => 'transform: scale(1.5)',
+			),
+			array(
+				'css'      => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+				'expected' => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+			),
+			array(
+				'css'      => 'transform: skewX(30deg)',
+				'expected' => 'transform: skewX(30deg)',
+			),
+			array(
+				'css'      => 'transform: skewY(30deg)',
+				'expected' => 'transform: skewY(30deg)',
+			),
+			// Multiple transform functions chained.
+			array(
+				'css'      => 'transform: rotate(45deg) scale(1.5)',
+				'expected' => 'transform: rotate(45deg) scale(1.5)',
+			),
+			// transform: none is unchanged (regression control).
+			array(
+				'css'      => 'transform: none',
+				'expected' => 'transform: none',
+			),
+			// SVG clip-path shape functions (ticket #65832).
+			array(
+				'css'      => 'clip-path: inset(10px)',
+				'expected' => 'clip-path: inset(10px)',
+			),
+			array(
+				'css'      => 'clip-path: circle(50%)',
+				'expected' => 'clip-path: circle(50%)',
+			),
+			array(
+				'css'      => 'clip-path: ellipse(25% 40% at 50% 50%)',
+				'expected' => 'clip-path: ellipse(25% 40% at 50% 50%)',
+			),
+			array(
+				'css'      => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+				'expected' => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+			),
+			array(
+				'css'      => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+				'expected' => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+			),
+			array(
+				'css'      => 'clip-path: rect(0 100% 100% 0)',
+				'expected' => 'clip-path: rect(0 100% 100% 0)',
+			),
+			array(
+				'css'      => 'clip-path: xywh(0 0 100% 100% round 10px)',
+				'expected' => 'clip-path: xywh(0 0 100% 100% round 10px)',
+			),
+			array(
+				'css'      => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+				'expected' => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+			),
+			// Nested functions within a basic shape are allowed.
+			array(
+				'css'      => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+				'expected' => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+			),
+			// SVG url() references for allowlisted properties (ticket #65832).
+			array(
+				'css'      => 'clip-path: url(#myClipper)',
+				'expected' => 'clip-path: url(#myClipper)',
+			),
+			array(
+				'css'      => 'fill: url(#gradient1)',
+				'expected' => 'fill: url(#gradient1)',
+			),
+			array(
+				'css'      => 'mask: url(#myMask)',
+				'expected' => 'mask: url(#myMask)',
+			),
+			array(
+				'css'      => 'marker-start: url(#arrowStart)',
+				'expected' => 'marker-start: url(#arrowStart)',
+			),
+			array(
+				'css'      => 'marker-end: url(#arrowEnd)',
+				'expected' => 'marker-end: url(#arrowEnd)',
+			),
+			array(
+				'css'      => 'marker-mid: url(#arrowMid)',
+				'expected' => 'marker-mid: url(#arrowMid)',
+			),
+			array(
+				'css'      => 'marker: url(#marker1)',
+				'expected' => 'marker: url(#marker1)',
+			),
+			array(
+				'css'      => 'stroke: url(#strokeGradient)',
+				'expected' => 'stroke: url(#strokeGradient)',
+			),
+			// Disallow javascript: URLs in SVG url() references (security regression).
+			array(
+				'css'      => 'fill: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'clip-path: url(javascript:alert(1))',
+				'expected' => '',
 			),
 		);
 	}

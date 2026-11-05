@@ -4102,7 +4102,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * The image_size argument accepts either a single size name or an array of
 	 * size names, so it validates via a custom callback rather than an enum. The
 	 * callback must accept 'scaled' and the 'source_original' source-format size,
-	 * and reject unknown sizes.
+	 * reject unknown sizes, and reject a special size sent as an array, since an
+	 * array registers one file under several regular sub-sizes.
 	 *
 	 * sideload_item() never reads generate_sub_sizes, so advertising it on the
 	 * route would silently mislead clients into expecting server-side sub-size
@@ -4145,12 +4146,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'image_size validation should accept the source_original source-format size.'
 		);
 		$this->assertTrue(
-			$validate( array( 'scaled' ), $request, $param_name ),
+			$validate( array( 'thumbnail', 'medium' ), $request, $param_name ),
 			'image_size validation should accept an array of size names.'
+		);
+		$this->assertTrue(
+			$validate( array( 'full', 'large' ), $request, $param_name ),
+			'image_size validation should accept the full size grouped with a registered size.'
 		);
 		$this->assertWPError(
 			$validate( 'not-a-real-size', $request, $param_name ),
 			'image_size validation should reject an unknown size.'
+		);
+		$this->assertWPError(
+			$validate( array( 'scaled' ), $request, $param_name ),
+			'image_size validation should reject a special size sent as an array.'
 		);
 
 		$this->assertArrayNotHasKey( 'generate_sub_sizes', $args, 'Sideload route should not advertise the unused generate_sub_sizes arg.' );
@@ -4991,20 +5000,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$metadata['image_meta']['orientation'] = 6;
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 
+		// Sideload the client-scaled image so finalize has a provenance-backed
+		// 'scaled' entry to store.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=big-rotated-photo-scaled.jpg' );
+		$request->set_param( 'image_size', 'scaled' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the scaled image should succeed.' );
+		$sub_size = $response->get_data();
+
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size'     => 'scaled',
-					'width'          => 1920,
-					'height'         => 2560,
-					'file'           => '2026/07/big-rotated-photo-scaled.jpg',
-					'filesize'       => 500000,
-					'original_image' => 'big-rotated-photo.jpg',
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5090,21 +5098,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$original_image_meta = wp_get_attachment_metadata( $attachment_id, true )['image_meta'];
 
-		// Finalize with a thumbnail sub-size.
+		// Sideload a thumbnail sub-size so finalize has a provenance-backed file
+		// to store. test-image.jpg is 50x50, within the thumbnail maximum.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=2004-07-22-DSC_0008-thumb.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Sideloading a thumbnail should succeed.' );
+		$sub_size = $response->get_data();
+
+		// Finalize with the sideloaded thumbnail sub-size.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
-		$request->set_param(
-			'sub_sizes',
-			array(
-				array(
-					'image_size' => 'thumbnail',
-					'width'      => 150,
-					'height'     => 150,
-					'file'       => '2004-07-22-DSC_0008-150x150.jpg',
-					'mime_type'  => 'image/jpeg',
-					'filesize'   => 5000,
-				),
-			)
-		);
+		$request->set_param( 'sub_sizes', array( $sub_size ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
@@ -5119,6 +5126,204 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $original_image_meta['camera'], $metadata['image_meta']['camera'], 'Camera should be preserved.' );
 		$this->assertSame( $original_image_meta['focal_length'], $metadata['image_meta']['focal_length'], 'Focal length should be preserved.' );
 		$this->assertSame( $original_image_meta['iso'], $metadata['image_meta']['iso'], 'ISO should be preserved.' );
+	}
+
+	/**
+	 * Verifies that the finalize response carries the generated sub-sizes.
+	 *
+	 * The response is prepared after the sub-size metadata has been written, so
+	 * it is the finished attachment record. The editor stores it as-is instead
+	 * of fetching the attachment again to pick the sizes up.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_response_contains_generated_sub_sizes(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=finalize-response-test.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
+		$data          = $response->get_data();
+		$attachment_id = $data['id'];
+
+		// Nothing has generated sub-sizes yet, which is the window in which the
+		// editor's first read of the attachment happens.
+		$this->assertEmpty(
+			(array) $data['media_details']['sizes'],
+			'The create response should not carry sub-sizes yet.'
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=finalize-response-test-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$response       = rest_get_server()->dispatch( $request );
+		$thumbnail_data = $response->get_data();
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the thumbnail should succeed.' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $thumbnail_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'media_details', $data );
+		$this->assertArrayHasKey(
+			'thumbnail',
+			$data['media_details']['sizes'],
+			'The finalize response should list the sideloaded sub-size.'
+		);
+
+		// source_url is what the Image block's Resolution control offers.
+		$this->assertArrayHasKey(
+			'source_url',
+			$data['media_details']['sizes']['thumbnail'],
+			'Each sub-size in the finalize response should carry its URL.'
+		);
+		$this->assertStringEndsWith(
+			'finalize-response-test-150x150.jpg',
+			$data['media_details']['sizes']['thumbnail']['source_url']
+		);
+
+		// The finalize response must match what a later read would return, as
+		// the editor stores it in place of that read.
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment_id}" );
+		$request->set_param( 'context', 'view' );
+		$fetched = rest_get_server()->dispatch( $request )->get_data();
+
+		$this->assertSame(
+			array_keys( (array) $fetched['media_details']['sizes'] ),
+			array_keys( (array) $data['media_details']['sizes'] ),
+			'The finalize response should carry the same sizes a refetch would.'
+		);
+	}
+
+	/**
+	 * Verifies that the finalize response reflects the post row as it stands
+	 * after the metadata has been generated.
+	 *
+	 * finalize_item() applies the 'wp_generate_attachment_metadata' filter
+	 * before preparing its response, and a callback is free to rewrite the
+	 * attachment's post row - an optimizer that converts the file updates
+	 * post_mime_type, for instance. The editor stores this response as its
+	 * copy of the record rather than reading the attachment again, so
+	 * anything stale here is what the block keeps for the session.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_response_reflects_post_row_changed_by_metadata_filter(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=filtered-post-row.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_param( 'title', 'Original title' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$attachment_id = rest_get_server()->dispatch( $request )->get_data()['id'];
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=filtered-post-row-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$thumbnail_data = rest_get_server()->dispatch( $request )->get_data();
+
+		// Stands in for a plugin that rewrites the post row as the metadata is
+		// generated. Added after the upload so only finalize runs it.
+		add_filter(
+			'wp_generate_attachment_metadata',
+			static function ( $metadata, $id ) {
+				wp_update_post(
+					array(
+						'ID'         => $id,
+						'post_title' => 'Rewritten while generating metadata',
+					)
+				);
+				return $metadata;
+			},
+			10,
+			2
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $thumbnail_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			'Rewritten while generating metadata',
+			get_post( $attachment_id )->post_title,
+			'The filter should have rewritten the stored post row.'
+		);
+
+		$this->assertSame(
+			'Rewritten while generating metadata',
+			$response->get_data()['title']['raw'],
+			'The finalize response should carry the rewritten post row, not the row as it was before the metadata was generated.'
+		);
+	}
+
+	/**
+	 * Verifies that finalize fails when the attachment no longer exists by the
+	 * time its response is prepared.
+	 *
+	 * A 'wp_generate_attachment_metadata' callback that rejects the file and
+	 * deletes the attachment must not be answered with a 200 built from the row
+	 * as it was before the callback ran: the editor would store that stale
+	 * record and report the upload as complete.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_fails_when_metadata_filter_deletes_attachment(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=deleted-while-finalizing.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$attachment_id = rest_get_server()->dispatch( $request )->get_data()['id'];
+
+		add_filter(
+			'wp_generate_attachment_metadata',
+			static function ( $metadata, $id ) {
+				wp_delete_attachment( $id, true );
+				return $metadata;
+			},
+			10,
+			2
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array() );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	/**
@@ -5247,12 +5452,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 
-		// Sideload a single file registered under multiple sizes.
+		/*
+		 * Sideload a single file registered under multiple sizes. The file is
+		 * 50x50 so that it satisfies the registered maximum for every size in
+		 * the group, which is what sharing one file among them requires.
+		 */
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-dup.jpg' );
 		$request->set_param( 'image_size', array( 'thumbnail', 'medium' ) );
-		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'Sideloading with an array of sizes should succeed.' );

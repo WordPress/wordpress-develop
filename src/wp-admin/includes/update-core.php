@@ -767,12 +767,17 @@ $_old_files = array(
 	'wp-includes/blocks/query/style.min.css',
 	'wp-includes/blocks/query/style-rtl.css',
 	'wp-includes/blocks/query/style.css',
-	'wp-admin/images/about-header-privacy.svg',
 	'wp-admin/images/about-header-about.svg',
-	'wp-admin/images/about-header-credits.svg',
-	'wp-admin/images/about-header-freedoms.svg',
 	'wp-admin/images/about-header-contribute.svg',
 	'wp-admin/images/about-header-background.svg',
+	/*
+	 * Restored in WordPress 7.1
+	 *
+	 * 'wp-admin/images/about-header-privacy.svg',
+	 * 'wp-admin/images/about-header-credits.svg',
+	 * 'wp-admin/images/about-header-freedoms.svg',
+	 */
+
 	// 6.6
 	'wp-includes/blocks/block/editor.css',
 	'wp-includes/blocks/block/editor.min.css',
@@ -900,12 +905,8 @@ $_old_files = array(
 	// 7.0.2
 	'wp-includes/collaboration',
 	'wp-includes/collaboration.php',
-	/*
-	 * Restored in WordPress 7.1.
-	 *
-	 * 'wp-includes/js/dist/sync.js',
-	 * 'wp-includes/js/dist/sync.min.js',
-	 */
+	'wp-includes/js/dist/sync.js',
+	'wp-includes/js/dist/sync.min.js',
 	// 7.1
 	'wp-includes/images/icon-library/accordion-heading.svg',
 	'wp-includes/images/icon-library/accordion-item.svg',
@@ -1544,8 +1545,9 @@ function update_core( $from, $to ) {
 	/*
 	 * Don't copy wp-content, we'll deal with that below.
 	 * We also copy version.php last so failed updates report their old version.
+	 * Never copy a wp-config.php, which could have been written to the working directory.
 	 */
-	$skip              = array( 'wp-content', 'wp-includes/version.php' );
+	$skip              = array( 'wp-content', 'wp-includes/version.php', 'wp-config.php' );
 	$check_is_writable = array();
 
 	// Check to see which files don't really need updating - only available for 3.7 and higher.

@@ -1178,14 +1178,20 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * <?php
+	 * require '/wordpress/wp-load.php';
+	 * $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   var_dump( $class_name );
+	 * }
+	 * ```
+	 * ```expected-output
+	 * string(4) "free"
+	 * string(5) "<egg>"
+	 * string(7) "lang-en"
+	 * ```
 	 *
 	 * @since 6.4.0
 	 *
@@ -1475,7 +1481,7 @@ class WP_HTML_Tag_Processor {
 			 * though "textarea" is found within the text.
 			 */
 			$c = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if ( ' ' !== $c && "\t" !== $c && "\f" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
 				continue;
 			}
 
@@ -3982,7 +3988,7 @@ class WP_HTML_Tag_Processor {
 			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
 		) {
 			// Check if the text could close the comment.
-			if ( 1 === preg_match( '/--!?>/', $plaintext_content ) ) {
+			if ( 1 === preg_match( '/^-?>|--!?>/', $plaintext_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Comment text cannot contain a comment closer.' ),
@@ -4192,7 +4198,7 @@ class WP_HTML_Tag_Processor {
 
 		_doing_it_wrong(
 			__METHOD__,
-			__( 'This tag does not support setting modifiable text.' ),
+			__( 'Only the IFRAME, NOEMBED, NOFRAMES, SCRIPT, STYLE, TEXTAREA, TITLE, and XMP tags support setting modifiable text.' ),
 			'7.1.0'
 		);
 		return false;

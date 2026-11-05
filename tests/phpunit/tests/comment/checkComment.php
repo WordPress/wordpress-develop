@@ -306,6 +306,8 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test auto approvals can be turned off via the `wp_auto_approve_ping` filter.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_be_able_to_hold_a_pingback_from_this_site() {
@@ -313,23 +315,45 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 		$source_url = get_permalink( self::factory()->post->create() );
 
-		add_filter( 'auto_approve_pingback', '__return_false' );
+		add_filter( 'wp_auto_approve_ping', '__return_false' );
 
 		$this->assertFalse( check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
 	}
 
 	/**
+	 * Test auto approvals can be turned on via the `wp_auto_approve_ping` filter.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_be_able_to_approve_a_pingback_from_another_site() {
 		update_option( 'comment_previously_approved', '1' );
 
-		add_filter( 'auto_approve_pingback', '__return_true' );
+		add_filter( 'wp_auto_approve_ping', '__return_true' );
 
 		$this->assertTrue( check_comment( 'Site Title', '', 'http://example.com/a-post/', 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
 	}
 
 	/**
+	 * Ensure pingbacks from Multisite sub-sites are not auto approved.
+	 *
+	 * @ticket 65016
+	 * @group ms-required
+	 */
+	public function test_auto_approve_pingback_should_not_approve_from_a_different_ms_site() {
+		update_option( 'comment_previously_approved', '1' );
+
+		$new_blog = self::factory()->blog->create();
+
+		switch_to_blog( $new_blog );
+		$source_url = get_permalink( self::factory()->post->create() );
+		restore_current_blog();
+
+		$this->assertFalse( check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' ) );
+	}
+
+	/**
+	 * Ensure the `wp_auto_approve_ping` filter receives the post ID for same site pings.
+	 *
 	 * @ticket 65016
 	 */
 	public function test_auto_approve_pingback_should_receive_the_source_post_id() {
@@ -340,7 +364,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 		$observed = null;
 		add_filter(
-			'auto_approve_pingback',
+			'wp_auto_approve_ping',
 			static function ( $approve, $source_id ) use ( &$observed ) {
 				$observed = $source_id;
 				return $approve;
@@ -352,6 +376,33 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' );
 
 		$this->assertSame( $post_id, $observed );
+	}
+
+	/**
+	 * Ensure the `wp_auto_approve_ping` filter does not receive a post ID for off-site pings.
+	 *
+	 * @ticket 65016
+	 */
+	public function test_auto_approve_pingback_should_receive_the_post_id_zero_for_off_site_pings() {
+		update_option( 'comment_previously_approved', '1' );
+
+		$post_permalink = get_permalink( self::factory()->post->create() );
+		$source_url     = str_replace( home_url( '/' ), 'http://wordpress.org/', $post_permalink );
+
+		$observed = null;
+		add_filter(
+			'wp_auto_approve_ping',
+			static function ( $approve, $source_id ) use ( &$observed ) {
+				$observed = $source_id;
+				return $approve;
+			},
+			10,
+			2
+		);
+
+		check_comment( 'Site Title', '', $source_url, 'Excerpt.', '192.168.0.1', '', 'pingback' );
+
+		$this->assertSame( 0, $observed );
 	}
 
 	/**
