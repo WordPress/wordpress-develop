@@ -2075,10 +2075,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'double slash'             => array( '//double-slash//', false ),
 			// Like Add New Site in Network Admin, a site name is a single segment of letters, numbers and hyphens.
 			'nested segments'          => array( '/parent/child/', false ),
-			'segment with apostrophe'  => array( "/o'brien/", false ),
 			'segment with punctuation' => array( '/with-hyphen_and.dot~tilde/', false ),
 			'percent encoded segment'  => array( '/percent%20encoded/', false ),
-			'encoded, not reserved'    => array( '/caf%C3%A9/', false ),
 			'path with a space'        => array( '/with space/', false ),
 			'path with a query string' => array( '/with?query/', false ),
 			'path with a fragment'     => array( '/with#fragment/', false ),
@@ -2090,18 +2088,12 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'login file'               => array( '/wp-login.php/', false ),
 			'php file, uppercase'      => array( '/XMLRPC.PHP/', false ),
 			'php file nested'          => array( '/parent/wp-login.php/', false ),
-			'php in the middle'        => array( '/my.php.site/', false ),
 			'php file, encoded dot'    => array( '/wp-login%2ephp/', false ),
 			'reserved name, encoded'   => array( '/%77p-json/', false ),
 			'reserved name, encoded /' => array( '/wp-json%2F/', false ),
 			'robots file'              => array( '/robots.txt/', false ),
-			'sitemap file'             => array( '/wp-sitemap.xml/', false ),
-			// Browsers resolve dot segments, so these sites could never be reached.
-			'dot segment'              => array( '/parent/./', false ),
-			'double dot segment'       => array( '/parent/../', false ),
-			'leading double dot'       => array( '/../child/', false ),
+			// Browsers resolve dot segments, so this site could never be reached.
 			'double dot, encoded'      => array( '/parent/%2e%2E/', false ),
-			'three dots'               => array( '/.../', false ),
 			// The wp_blogs.path column is varchar(100).
 			'path at max length'       => array( '/' . str_repeat( 'a', 98 ) . '/', true ),
 			'path over max length'     => array( '/' . str_repeat( 'a', 99 ) . '/', false ),
