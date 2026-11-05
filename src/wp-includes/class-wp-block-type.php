@@ -137,8 +137,13 @@ class WP_Block_Type {
 	/**
 	 * Custom CSS selectors for theme.json style generation.
 	 *
+	 * The `root` key holds the selector for the block itself. Each other key is a block support
+	 * feature (such as `color` or `typography`) whose value is either a selector string, or an
+	 * array of selectors keyed by subfeature (such as `root` or `text`).
+	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var array<string, string|array<string, string>>
+	 * @phpstan-var array{ root?: string, ...<string, string|array<string, string>> }
 	 */
 	public $selectors = array();
 
@@ -327,7 +332,7 @@ class WP_Block_Type {
 	 *     @type string|null   $textdomain               The translation textdomain.
 	 *     @type array[]       $styles                   Alternative block styles.
 	 *     @type array[]       $variations               Block variations.
-	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
+	 *     @type array<string, string|array<string, string>> $selectors Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
