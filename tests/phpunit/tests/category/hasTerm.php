@@ -45,6 +45,12 @@ class Tests_Category_HasTerm extends WP_UnitTestCase {
 		wp_set_object_terms( $this->post->ID, $this->term->term_id, self::TAXONOMY );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( self::TAXONOMY );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that has_term() defaults to the global post when no post parameter is passed.
 	 *
