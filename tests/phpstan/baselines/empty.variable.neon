@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$parent_file in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: ../../../src/wp-admin/themes.php
-		-
 			message: '#^Variable \$search in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
