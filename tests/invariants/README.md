@@ -14,7 +14,7 @@ Violations are reported only; they never fail a test. The [`PHPUnit Invariants`]
 - `gameshark.php`: the file the extension loads at the start of every PHP process, before PHPUnit and WordPress. It returns the hooks of every invariant in `specs/`.
 - `bootstrap.php` and `phpunit.xml.dist`: run the WordPress test suite with the invariants. The test suites and groups are the same as in `phpunit.xml.dist` at the root of the repository.
 - `includes/`: the support code. `WP_Invariant` defines invariants, `WP_Invariant_Call` is what their checks receive, and `WP_Invariant_SQL_Lexer` compares the structure of queries and of `wpdb::prepare()` templates.
-- `includes/oracles/`: the independent parsers. `WP_Invariant_Browser` reads HTML, URLs and XML as browsers and XML parsers do; `WP_Invariant_MySQL` parses queries with the [MySQL parser](https://github.com/WordPress/sqlite-database-integration/tree/trunk/packages/mysql-parser) from `WordPress/sqlite-database-integration`.
+- `includes/oracles/`: the independent parsers. `WP_Invariant_Browser` reads HTML, URLs and XML as browsers and XML parsers do; `WP_Invariant_MySQL` parses queries with the [MySQL parser](https://github.com/WordPress/sqlite-database-integration/tree/trunk/packages/mysql-parser) from `WordPress/sqlite-database-integration`; `WP_Invariant_HTML_API` finds where the syntax of HTML is with WordPress's own tag processor.
 - `self-tests/`: tests of the support code, with fixtures standing in for WordPress. They need the extension, but not WordPress or a database.
 - `bin/install-gameshark.sh`: builds the extension in the PHP container of the local Docker environment.
 - `DEPENDENCIES`: the commits of the extension and of `sqlite-database-integration`, for the MySQL parser. Both are checked out in `.invariants/`, which git ignores.
@@ -41,7 +41,7 @@ npm run test:php:invariants -- --group post
 
 The report is written to `tests/phpunit/build/logs/invariants.md` and `invariants.json`. Set `WP_INVARIANTS_REPORT_DIR` to write it somewhere else.
 
-To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest. To load the MySQL parser from somewhere else, set `WP_INVARIANTS_MYSQL_PARSER` to its `packages/mysql-parser/src` directory.
+To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml,filesystem npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest. To load the MySQL parser from somewhere else, set `WP_INVARIANTS_MYSQL_PARSER` to its `packages/mysql-parser/src` directory.
 
 To stop at a violation with its full stack, set `WP_INVARIANTS_THROW=1`. A check which throws then breaks the code under test, so only use it to investigate one invariant.
 
@@ -141,6 +141,8 @@ After checks do not run for a call which throws.
 
 To check one call against others, keep a table of calls in the invariant's state, or in an object shared by several invariants, in any spec files: `WP_Invariant::shared( 'wpdb/prepared' )` returns a plain object, which is emptied before each test unless it is given the scope `'run'`. In `specs/wpdb.php`, `prepared-structure` records every query that `wpdb::prepare()` returns, and `prepared-reaches-mysql` looks for them in the queries sent to MySQL.
 
+An invariant which finds places in WordPress, rather than calls, such as `pcre/matches-no-html-syntax`, keeps the places it has reported in a `'run'` state, and reports each place once.
+
 `WP_Invariant::strings_in( $value )` returns the strings in a value and its nested arrays, which helps with arguments such as `$postarr`. It does not look inside objects.
 
 ### Other helpers
@@ -167,10 +169,12 @@ An oracle reads the same thing WordPress produced, independently. Compare with i
 | `WP_Invariant_Browser::nodes( $html )` | The comments, text and elements a browser builds directly in a BODY element. |
 | `WP_Invariant_Browser::xml_child_elements( $xml )` | How many elements XML content adds, or null when it is not well-formed. |
 | `WP_Invariant_Browser::xml_well_formed( $xml )` | Whether an XML document is well-formed. |
+| `WP_Invariant_HTML_API::markup( $html )` | The tags, comments and DOCTYPE declarations in HTML, counted by kind, as WordPress's HTML API reads them: not what only looks like markup inside a SCRIPT or TEXTAREA element, nor a tag the end of the HTML cuts off. |
+| `WP_Invariant_HTML_API::boundaries( $html )` | Where tags, tag names, attributes, attribute values, comments and DOCTYPE declarations start in HTML, by byte offset, as the HTML API reads them. |
 | `WP_Invariant_MySQL::parse_tree( $sql )` | The shape of a query's parse tree without its values, or null when MySQL would reject it. |
 | `WP_Invariant_MySQL::table_names( $sql )` | The tables a query reads or changes, without aliases or common table expressions, or null when MySQL would reject it. |
 
-Most spec files use them. A check which compares WordPress with itself, such as `blocks/serialized-blocks-parse-back`, which parses what `serialize_blocks()` returns with WordPress's own block parser, is a round trip, not an oracle: it finds where the two disagree, but not a mistake they share.
+Most spec files use them. `WP_Invariant_HTML_API` uses WordPress's tag processor, which follows the tokenizer of the HTML standard and, unlike `Dom\HTMLDocument`, gives byte offsets. It is independent of the regular expressions and string functions it checks, such as `wpautop()`, but not of the HTML API, and it is only there once WordPress has loaded the HTML API: before that, it returns null. A check which compares WordPress with itself, such as `blocks/serialized-blocks-parse-back`, which parses what `serialize_blocks()` returns with WordPress's own block parser, is a round trip, not an oracle: it finds where the two disagree, but not a mistake they share.
 
 ### Calls from tests
 
@@ -194,7 +198,7 @@ For example, `specs/capabilities.php` records what `map_meta_cap()` returned, by
 
 ### Hooks on built-in functions
 
-Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php` and `specs/xml.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
+Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php`, `specs/xml.php` and `specs/filesystem.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
 
 ### Keep checks cheap
 

@@ -18,7 +18,66 @@ $implied = array(
 	'colgroup' => true,
 );
 
+/*
+ * Where HTML next has an escaped tag or comment: a character reference for `<`, such as
+ * `&lt;`, `&#60;` or `&#x3C;`, before a letter, `/` and a letter, or `!--`. It is
+ * found without PCRE, which would reset preg_last_error() for the code under test.
+ */
+$escaped_tag = static function ( $html, $from ) {
+	for ( $at = strpos( $html, '&', $from ); false !== $at; $at = strpos( $html, '&', $at + 1 ) ) {
+		$end = null;
+		if ( '&lt;' === substr( $html, $at, 4 ) || '&LT;' === substr( $html, $at, 4 ) ) {
+			$end = $at + 4;
+		} elseif ( '&#' === substr( $html, $at, 2 ) ) {
+			$hex    = isset( $html[ $at + 2 ] ) && ( 'x' === $html[ $at + 2 ] || 'X' === $html[ $at + 2 ] );
+			$digits = $at + ( $hex ? 3 : 2 );
+			$digits = $digits + strspn( $html, '0', $digits );
+			if ( strtolower( substr( $html, $digits, 2 ) ) !== ( $hex ? '3c' : '60' ) ) {
+				continue;
+			}
+
+			// Without a semicolon, the reference takes every digit which follows, as in `&#x3cb`.
+			$end = $digits + 2;
+			if ( isset( $html[ $end ] ) && ';' === $html[ $end ] ) {
+				++$end;
+			} elseif ( strspn( $html, $hex ? '0123456789abcdefABCDEF' : '0123456789', $end, 1 ) ) {
+				continue;
+			}
+		}
+
+		$next = null === $end ? '' : substr( $html, $end, 3 );
+		if ( '' !== $next && ( ctype_alpha( $next[0] ) || ( '/' === $next[0] && isset( $next[1] ) && ctype_alpha( $next[1] ) ) || '!--' === $next ) ) {
+			return array( $at, substr( $html, $at, $end - $at ) . $next );
+		}
+	}
+
+	return null;
+};
+
 return array(
+	WP_Invariant::define( 'input-not-escaped' )
+		->describe( 'wp_kses() is given HTML, not escaped HTML: the text of its content has no escaped tag or comment, such as &lt;p or &#60;/p. Markup escaped before it is filtered shows up as text. Attribute values, and the contents of elements such as TEXTAREA, are escaped as they should be, and are left out.' )
+		->before(
+			'wp_kses',
+			static function ( WP_Invariant_Call $call ) use ( $escaped_tag ) {
+				$content = $call->arg( 'content' );
+				if ( ! is_string( $content ) || false === strpos( $content, '&' ) ) {
+					return;
+				}
+
+				$texts = null;
+				for ( $found = $escaped_tag( $content, 0 ); null !== $found; $found = $escaped_tag( $content, $found[0] + 1 ) ) {
+					$texts = null === $texts ? WP_Invariant_HTML_API::texts( $content ) : $texts;
+					foreach ( (array) $texts as $text ) {
+						if ( $found[0] >= $text[0] && $found[0] < $text[1] ) {
+							$call->expect( false, 'wp_kses() was given the escaped markup %s at byte %d of %s', $found[1], $found[0], substr( $content, max( 0, $found[0] - 40 ), 120 ) );
+							return;
+						}
+					}
+				}
+			}
+		),
+
 	WP_Invariant::define( 'allowed-markup-only' )
 		->describe( 'Read as a browser reads it, what wp_kses() returns has only elements its allowed HTML allows, no event handler attributes unless allowed, and no URL with a scheme outside its allowed protocols.' )
 		->include_test_callers()
