@@ -61,7 +61,7 @@ class Tests_Post_GetThePasswordForm extends WP_UnitTestCase {
 		$id = self::$post_id;
 
 		return '<form action="http://' . WP_TESTS_DOMAIN . '/wp-login.php?action=postpass" class="post-password-form' . $form_class . '" method="post">'
-			. '<input type="hidden" name="redirect_to" value="http://' . WP_TESTS_DOMAIN . '/?p=' . $id . '" />'
+			. '<input type="hidden" name="redirect_to" value="' . get_permalink( $id ) . '" />'
 			. $error_html
 			. "\n\t<p>This content is password-protected. To view it, please enter the password below.</p>"
 			. "\n\t" . '<p><label for="pwbox-' . $id . '">Password: <input name="post_password" id="pwbox-' . $id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> '

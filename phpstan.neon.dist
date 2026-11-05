@@ -1,6 +1,8 @@
 # PHPStan configuration for WordPress Core.
 #
-# To overload this configuration, copy this file to phpstan.neon and adjust as needed.
+# To override this configuration, create a phpstan.neon which includes this file and adjusts
+# its parameters as needed, rather than copying it, so that the copy does not go stale. See
+# tests/phpstan/README.md for examples.
 #
 # https://phpstan.org/config-reference
 
@@ -58,10 +60,26 @@ includes:
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
 
+# Rules from phpstan-strict-rules which core already complies with, or which enforce the
+# WordPress Coding Standards. The others are not enabled until the code complies with them,
+# but they can be enabled in a local phpstan.neon to work toward that. See
+# tests/phpstan/README.md.
+#
+# These are registered individually, rather than by including phpstan-strict-rules' rules.neon
+# with only these enabled, because that file also makes several PHPStan parameters stricter
+# even when its rules are disabled.
+# https://github.com/phpstan/phpstan-strict-rules
+rules:
+	- PHPStan\Rules\DisallowedConstructs\DisallowedBacktickRule
+	- PHPStan\Rules\DisallowedConstructs\DisallowedShortTernaryRule
+	- PHPStan\Rules\Functions\ClosureUsesThisRule
+	- PHPStan\Rules\Methods\WrongCaseOfInheritedMethodRule
+
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
 	level: 5
 	reportUnmatchedIgnoredErrors: true
+
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
 	# included above.

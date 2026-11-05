@@ -61,17 +61,11 @@ test.describe( 'Edit Posts', () => {
 		// Click the post title (edit) link
 		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
 
-		// Wait for the editor iframe to load, and switch to it as the active content frame.
-		await page
-				.frameLocator( '[name=editor-canvas]' )
-				.locator( 'body > *' )
-				.first()
-				.waitFor();
-
 		const editorPostTitle = editor.canvas.getByRole( 'textbox', { name: 'Add title' } );
 
 		// Expect title field to be in the editor with correct title shown.
-		await expect( editorPostTitle ).toBeVisible();
+		// The editor iframe can take a while to load.
+		await expect( editorPostTitle ).toBeVisible( { timeout: 15_000 } );
 		await expect( editorPostTitle ).toHaveText( title );
 	} );
 
