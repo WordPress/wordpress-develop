@@ -9,6 +9,13 @@
  */
 class Tests_functions_wpAuthCheckHtml extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		update_option( 'siteurl', 'http://example.org' );
+		$_SERVER['HTTP_HOST'] = 'example.org';
+	}
+
 	/**
 	 * @ticket 59792
 	 */
