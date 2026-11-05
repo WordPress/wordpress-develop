@@ -139,7 +139,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		$simulated_text_widget_instance = array_merge(
 			$instance,
 			array(
-				'text'   => isset( $instance['content'] ) ? $instance['content'] : '',
+				'text'   => $instance['content'] ?? '',
 				'filter' => false, // Because wpautop is not applied.
 				'visual' => false, // Because it wasn't created in TinyMCE.
 			)
@@ -215,14 +215,14 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		);
 
 		wp_enqueue_script( 'custom-html-widgets' );
-		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
+		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 
 		if ( empty( $settings ) ) {
 			$settings = array(
 				'disabled' => true,
 			);
 		}
-		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.init( %s );', wp_json_encode( $settings ) ), 'after' );
+		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.init( %s );', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ), 'after' );
 
 		$l10n = array(
 			'errorNotice' => array(
@@ -233,7 +233,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 				// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
 			),
 		);
-		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n ) ), 'after' );
+		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ), 'after' );
 	}
 
 	/**

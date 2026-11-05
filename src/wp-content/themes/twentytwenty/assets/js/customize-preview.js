@@ -9,7 +9,7 @@
 
 ( function( $, api, _ ) {
 	/**
-	 * Return a value for our partial refresh.
+	 * Returns a value for our partial refresh.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
@@ -31,7 +31,7 @@
 	api.selectiveRefresh.partialConstructor.cover_fixed = api.selectiveRefresh.Partial.extend( {
 
 		/**
-		 * Override the refresh method.
+		 * Overrides the refresh method.
 		 *
 		 * @since Twenty Twenty 1.0
 		 *
@@ -42,7 +42,7 @@
 
 			partial = this;
 			params = partial.params;
-			cover = $( params.selector );
+			cover = $( document ).find( params.selector );
 
 			if ( cover.length && cover.hasClass( 'bg-image' ) ) {
 				cover.toggleClass( 'bg-attachment-fixed' );
@@ -65,7 +65,7 @@
 		attrs: {},
 
 		/**
-		 * Override the refresh method.
+		 * Overrides the refresh method.
 		 *
 		 * @since Twenty Twenty 1.0
 		 *
@@ -79,7 +79,7 @@
 			ranges = _.range( attrs.min, attrs.max + attrs.step, attrs.step );
 			params = partial.params;
 			setting = api( params.primarySetting );
-			cover = $( params.selector );
+			cover = $( document ).find( params.selector );
 
 			if ( cover.length ) {
 				classNames = _.map( ranges, function( val ) {
@@ -151,7 +151,7 @@
 	} );
 
 	/**
-	 * Add styles to elements in the preview pane.
+	 * Adds styles to elements in the preview pane.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *

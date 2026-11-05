@@ -1,0 +1,78 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"title": "Blue Hour",
+	"settings": {
+		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#0d1b26",
+						"#ecf7fe"
+					],
+					"name": "Ink on paper",
+					"slug": "duotone-1"
+				}
+			],
+			"palette": [
+				{
+					"color": "#ecf7fe",
+					"name": "Base",
+					"slug": "base"
+				},
+				{
+					"color": "#0d1b26bf",
+					"name": "Contrast",
+					"slug": "contrast"
+				},
+				{
+					"color": "#006699",
+					"name": "Accent",
+					"slug": "accent-1"
+				},
+				{
+					"color": "#0d1b26",
+					"name": "Strong Contrast",
+					"slug": "accent-3"
+				},
+				{
+					"color": "#0d1b2608",
+					"name": "Surface",
+					"slug": "accent-5"
+				},
+				{
+					"color": "#0d1b2633",
+					"name": "Border",
+					"slug": "accent-6"
+				}
+			]
+		},
+		"custom": {
+			"controlScheme": "light"
+		}
+	},
+	"styles": {
+		"blocks": {
+			"core/post-featured-image": {
+				"filter": {
+					"duotone": "var:preset|duotone|duotone-1"
+				}
+			},
+			"core/site-tagline": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--stix-two-text)"
+				}
+			},
+			"core/site-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--stix-two-text)"
+				}
+			}
+		},
+		"typography": {
+			"fontFamily": "var(--wp--preset--font-family--stix-two-text)",
+			"fontStyle": "normal",
+			"fontWeight": "400"
+		}
+	}
+}

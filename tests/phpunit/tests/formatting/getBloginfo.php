@@ -22,7 +22,7 @@ class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 		$locale = $old_locale;
 	}
 
-	public function data_get_bloginfo_language() {
+	public static function data_get_bloginfo_language() {
 		return array(
 			// Locale, language code.
 			array( 'en_US', 'en-US' ),

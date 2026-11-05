@@ -17,7 +17,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * The file structure for tests.
 	 *
-	 * @var array
+	 * @var array<string, array{type: string, path: string, contents?: string}>
 	 */
 	protected static $file_structure = array();
 
@@ -90,7 +90,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 			} elseif ( 'f' === $entry['type'] ) {
 				$this->create_file_if_needed(
 					$entry['path'],
-					isset( $entry['contents'] ) ? $entry['contents'] : ''
+					$entry['contents'] ?? ''
 				);
 			}
 		}
@@ -168,7 +168,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_paths_that_exist() {
+	public static function data_paths_that_exist() {
 		return array(
 			'a file that exists'      => array(
 				'path' => 'a_file_that_exists.txt',
@@ -184,7 +184,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_paths_that_do_not_exist() {
+	public static function data_paths_that_do_not_exist() {
 		return array(
 			'a file that does not exist'      => array(
 				'path' => 'a_file_that_does_not_exist.txt',

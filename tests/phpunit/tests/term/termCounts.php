@@ -67,6 +67,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		self::register_taxonomies();
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wp_test_tax_counts' );
+		unregister_taxonomy( 'wp_test_user_tax_counts' );
+		parent::tear_down();
+	}
+
 	/**
 	 * Register taxonomies used by tests.
 	 *
@@ -104,7 +110,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	public function data_term_count_changes_for_post_statuses() {
+	public static function data_term_count_changes_for_post_statuses() {
 		return array(
 			// 0. Published post
 			array( 'publish', 1 ),
@@ -146,7 +152,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_counts_incremented_on_publish() {
+	public static function data_term_counts_incremented_on_publish() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -193,7 +199,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_count_transitions_update_term_counts() {
+	public static function data_term_count_transitions_update_term_counts() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 1 ),
@@ -269,7 +275,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	public function data_term_count_changes_for_update_post_term_count_statuses_filter() {
+	public static function data_term_count_changes_for_update_post_term_count_statuses_filter() {
 		return array(
 			// 0. Published post
 			array( 'publish', 2 ),
@@ -319,7 +325,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change      Expected change.
 	 * }
 	 */
-	public function data_term_count_changes_for_post_statuses_with_attachments() {
+	public static function data_term_count_changes_for_post_statuses_with_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 2 ),
@@ -370,7 +376,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_counts_incremented_on_publish_with_attachments() {
+	public static function data_term_counts_incremented_on_publish_with_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -426,7 +432,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_count_transitions_update_term_counts_with_attachments() {
+	public static function data_term_count_transitions_update_term_counts_with_attachments() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 2 ),
@@ -494,7 +500,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_counts_incremented_on_publish_with_untermed_attachments() {
+	public static function data_term_counts_incremented_on_publish_with_untermed_attachments() {
 		return array(
 			// 0. Published post
 			array( 'publish', 0 ),
@@ -549,7 +555,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *     @type int    $change               Expected change upon publish.
 	 * }
 	 */
-	public function data_term_count_transitions_update_term_counts_with_untermed_attachments() {
+	public static function data_term_count_transitions_update_term_counts_with_untermed_attachments() {
 		return array(
 			// 0. Draft -> published post
 			array( 'draft', 'publish', 1 ),
