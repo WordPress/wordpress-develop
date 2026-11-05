@@ -2405,4 +2405,163 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
+
+	/**
+	 * @ticket 57731
+	 */
+	public function test_search_with_id_column_should_not_match_non_numeric_search_starting_with_user_id() {
+		$user_id = self::factory()->user->create();
+
+		$q = new WP_User_Query(
+			array(
+				'search'         => $user_id . 'abc@example.com',
+				'search_columns' => array( 'user_email', 'ID' ),
+				'fields'         => 'ID',
+			)
+		);
+
+		$this->assertSame( array(), $q->get_results() );
+	}
+
+	/**
+	 * @ticket 57731
+	 */
+	public function test_search_with_id_column_should_match_email_starting_with_another_user_id() {
+		$user_id       = self::factory()->user->create();
+		$email_user_id = self::factory()->user->create(
+			array(
+				'user_email' => $user_id . 'abc@example.com',
+			)
+		);
+
+		$q = new WP_User_Query(
+			array(
+				'search'         => $user_id . 'abc@example.com',
+				'search_columns' => array( 'user_email', 'ID' ),
+				'fields'         => 'ID',
+			)
+		);
+
+		$this->assertSame( array( (string) $email_user_id ), $q->get_results() );
+	}
+
+	/**
+	 * @ticket 57731
+	 */
+	public function test_search_with_only_id_column_and_non_numeric_search_should_match_no_users() {
+		$user_id = self::factory()->user->create();
+
+		$q = new WP_User_Query(
+			array(
+				'search'         => $user_id . 'abc',
+				'search_columns' => array( 'ID' ),
+				'fields'         => 'ID',
+			)
+		);
+
+		$this->assertSame( array(), $q->get_results(), 'No users should be returned.' );
+		$this->assertStringContainsString( 'AND 1=0', $q->request, 'The query should contain an always-false condition.' );
+	}
+
+	/**
+	 * @ticket 57731
+	 *
+	 * @dataProvider data_search_with_id_column_should_match_integer_search
+	 *
+	 * @param string $format Search string format, where %d is replaced with the user ID.
+	 */
+	public function test_search_with_id_column_should_match_integer_search( $format ) {
+		$user_id = self::factory()->user->create();
+
+		$q = new WP_User_Query(
+			array(
+				'search'         => sprintf( $format, $user_id ),
+				'search_columns' => array( 'ID' ),
+				'fields'         => 'ID',
+			)
+		);
+
+		$this->assertSame( array( (string) $user_id ), $q->get_results() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_search_with_id_column_should_match_integer_search() {
+		return array(
+			'plain integer'     => array( '%d' ),
+			'leading zero'      => array( '0%d' ),
+			'leading wildcard'  => array( '*%d' ),
+			'trailing wildcard' => array( '%d*' ),
+			'both wildcards'    => array( '*%d*' ),
+		);
+	}
+
+	/**
+	 * @ticket 57731
+	 *
+	 * @dataProvider data_search_with_id_column_should_not_match_non_integer_search
+	 *
+	 * @param string   $format         Search string format, where %d is replaced with the user ID.
+	 * @param string[] $search_columns Columns to search.
+	 */
+	public function test_search_with_id_column_should_not_match_non_integer_search( $format, $search_columns ) {
+		$user_id = self::factory()->user->create();
+
+		$q = new WP_User_Query(
+			array(
+				'search'         => sprintf( $format, $user_id ),
+				'search_columns' => $search_columns,
+				'fields'         => 'ID',
+			)
+		);
+
+		$this->assertSame( array(), $q->get_results(), 'No users should be returned.' );
+		$this->assertStringNotContainsString( "ID = '", $q->request, 'The ID column should not be searched.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_search_with_id_column_should_not_match_non_integer_search() {
+		$formats = array(
+			'email'                        => '%dabc@example.com',
+			'email with leading wildcard'  => '*%dabc@example.com',
+			'email with trailing wildcard' => '%dabc@example.com*',
+			'email with both wildcards'    => '*%dabc@example.com*',
+			'exponent'                     => '%de0',
+			'decimal with zero fraction'   => '%d.0',
+			'decimal'                      => '%d.5',
+			'negative'                     => '-%d',
+			'explicit positive sign'       => '+%d',
+		);
+
+		$data = array();
+		foreach ( $formats as $name => $format ) {
+			$data[ "$name, ID only" ]           = array( $format, array( 'ID' ) );
+			$data[ "$name, user_email and ID" ] = array( $format, array( 'user_email', 'ID' ) );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 57731
+	 */
+	public function test_search_without_search_columns_should_match_numeric_search_by_id() {
+		$user_id = self::factory()->user->create();
+
+		$q = new WP_User_Query(
+			array(
+				'search' => (string) $user_id,
+				'fields' => 'ID',
+			)
+		);
+
+		$this->assertContains( (string) $user_id, $q->get_results() );
+	}
 }
