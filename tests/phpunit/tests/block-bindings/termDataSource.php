@@ -91,6 +91,15 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_private_tax' );
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Helper method to create a WP_Block instance.
 	 *
 	 * @param string $name       Block name.
@@ -449,8 +458,6 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$this->assertNull( _block_bindings_term_data_get_value( array( 'field' => 'name' ), $block ) );
-
-		_unregister_taxonomy( 'wptests_private_tax' );
 	}
 
 	/**
@@ -482,8 +489,6 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 		wp_set_current_user( $subscriber_id );
 
 		$this->assertSame( 'Secret Term', _block_bindings_term_data_get_value( array( 'field' => 'name' ), $block ) );
-
-		_unregister_taxonomy( 'wptests_private_tax' );
 	}
 
 	/**
