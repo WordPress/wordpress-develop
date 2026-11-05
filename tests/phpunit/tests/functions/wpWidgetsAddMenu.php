@@ -56,7 +56,7 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 
 		$expected = array(
 			'themes.php' => array(
-				7 => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+				9 => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
 			),
 		);
 		$this->assertSame( $expected, $submenu );
