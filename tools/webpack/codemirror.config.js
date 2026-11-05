@@ -1,7 +1,7 @@
 /* jshint node:true */
 const path = require( 'path' );
 const webpack = require( 'webpack' );
-const TerserPlugin = require( 'terser-webpack-plugin' );
+const TerserPlugin = require( 'minimizer-webpack-plugin' );
 const codemirrorBanner = require( './codemirror-banner' );
 
 module.exports = ( env = { buildTarget: 'src/' } ) => {
