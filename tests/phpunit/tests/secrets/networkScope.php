@@ -208,7 +208,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		$secret = wp_get_network_secret( 'myplugin/api-key' );
 		restore_current_blog();
 
-		$this->assertIsSecret( $secret, 'cross-blog-value', 'Read from a second blog:' );
+		$this->assertIsSecret( $secret, 'cross-blog-value', 'The network secret should be readable from a second blog.' );
 	}
 
 	/**
