@@ -6730,6 +6730,7 @@ function get_page_uri( $page = 0 ) {
  *
  * @since 1.5.0
  * @since 6.3.0 Use WP_Query internally.
+ * @since 7.3.0 The `$fields` argument was added.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to retrieve pages.
@@ -6763,6 +6764,10 @@ function get_page_uri( $page = 0 ) {
  *     @type string       $post_type    The post type to query. Default 'page'.
  *     @type string|array $post_status  A comma-separated list or array of post statuses to include.
  *                                      Default 'publish'.
+ *     @type string|array $fields       Post fields to load. Accepts 'all' or an array of post field names.
+ *                                      'ID', 'post_parent', 'post_type' and 'post_status' are always loaded.
+ *                                      Fields that are not loaded are empty in the returned objects,
+ *                                      which are not added to the post cache. Default 'all'.
  * }
  * @return WP_Post[]|false Array of pages (or hierarchical post type items). Boolean false if the
  *                         specified post type is not hierarchical or the specified status is not
@@ -6899,6 +6904,10 @@ function get_pages( $args = array() ) {
 
 	if ( ! empty( $number ) ) {
 		$query_args['posts_per_page'] = $number;
+	}
+
+	if ( isset( $parsed_args['fields'] ) && is_array( $parsed_args['fields'] ) ) {
+		$query_args['fields'] = array_merge( array( 'post_parent', 'post_type', 'post_status' ), $parsed_args['fields'] );
 	}
 
 	/**

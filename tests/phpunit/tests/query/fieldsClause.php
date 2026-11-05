@@ -333,6 +333,108 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests limiting the WP_Query fields to an array of post field names.
+	 *
+	 * @ticket 54378
+	 */
+	public function test_should_limit_fields_to_requested_post_fields() {
+		global $wpdb;
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'wptests_pt',
+				'fields'    => array( 'post_title', 'post_parent' ),
+			)
+		);
+
+		$this->assertStringContainsString( "{$wpdb->posts}.ID, {$wpdb->posts}.post_title, {$wpdb->posts}.post_parent", $q->request, 'The requested fields and ID should be selected.' );
+		$this->assertStringNotContainsString( "{$wpdb->posts}.*", $q->request, 'All fields should not be selected.' );
+		$this->assertStringNotContainsString( 'post_content', $q->request, 'Fields that were not requested should not be selected.' );
+		$this->assertSameSets( self::$post_ids, wp_list_pluck( $q->posts, 'ID' ), 'All posts should be returned.' );
+		$this->assertContainsOnlyInstancesOf( WP_Post::class, $q->posts, 'Posts should be WP_Post objects.' );
+
+		$post    = get_post( self::$post_ids[0] );
+		$partial = wp_list_filter( $q->posts, array( 'ID' => $post->ID ) );
+		$partial = reset( $partial );
+
+		$this->assertSame( $post->post_title, $partial->post_title, 'Requested fields should be loaded.' );
+		$this->assertSame( '', $partial->post_content, 'Fields that were not requested should be empty.' );
+		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
+	}
+
+	/**
+	 * Tests that unknown field names are not selected.
+	 *
+	 * @ticket 54378
+	 */
+	public function test_should_ignore_unknown_post_fields() {
+		global $wpdb;
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'wptests_pt',
+				'fields'    => array( 'post_title', 'not_a_column', 'ID FROM wp_users --' ),
+			)
+		);
+
+		$this->assertStringNotContainsString( 'not_a_column', $q->request );
+		$this->assertStringNotContainsString( 'wp_users', $q->request );
+		$this->assertSameSets( self::$post_ids, wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * Tests that partial posts are not added to the post cache or the query cache.
+	 *
+	 * @ticket 54378
+	 */
+	public function test_requested_post_fields_should_not_be_cached() {
+		$query_args = array(
+			'post_type' => 'wptests_pt',
+			'fields'    => array( 'post_title' ),
+		);
+
+		clean_post_cache( self::$post_ids[0] );
+
+		new WP_Query( $query_args );
+
+		$this->assertFalse( wp_cache_get( self::$post_ids[0], 'posts' ), 'Partial posts should not be added to the post cache.' );
+
+		$num_queries = get_num_queries();
+		$q           = new WP_Query( $query_args );
+
+		$this->assertSame( 2, get_num_queries() - $num_queries, 'The query should run again instead of using a cached result.' );
+		$this->assertSame( '', $q->posts[0]->post_content, 'The second query should also return partial posts.' );
+	}
+
+	/**
+	 * Tests that the loop sets up full posts when partial posts were queried.
+	 *
+	 * @ticket 54378
+	 */
+	public function test_the_post_should_set_up_full_post_when_post_fields_are_requested() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'wptests_pt',
+				'post_content' => 'Post content',
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'p'         => $post_id,
+				'post_type' => 'wptests_pt',
+				'fields'    => array( 'post_title' ),
+			)
+		);
+
+		$q->the_post();
+
+		$this->assertSame( 'Post content', get_post()->post_content );
+
+		wp_reset_postdata();
+	}
+
+	/**
 	 * Filters the posts fields.
 	 *
 	 * @param string $fields The fields to SELECT.

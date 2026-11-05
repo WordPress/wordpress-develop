@@ -1225,6 +1225,10 @@ function wp_dropdown_pages( $args = '' ) {
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
+	if ( isset( $parsed_args['fields'] ) && is_array( $parsed_args['fields'] ) ) {
+		$parsed_args['fields'][] = $parsed_args['value_field'];
+	}
+
 	$pages  = get_pages( $parsed_args );
 	$output = '';
 	// Back-compat with old system where both id and name were based on $name argument.

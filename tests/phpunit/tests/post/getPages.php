@@ -1211,4 +1211,124 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_get_pages_fields_should_select_only_requested_and_required_columns() {
+		global $wpdb;
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_content' => 'Parent content',
+			)
+		);
+		$child_id  = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_parent'  => $parent_id,
+				'post_content' => 'Child content',
+			)
+		);
+
+		$pages = get_pages( array( 'fields' => array( 'post_title' ) ) );
+
+		$this->assertStringContainsString( "{$wpdb->posts}.post_title", $wpdb->last_query, 'The requested column should be selected.' );
+		$this->assertStringNotContainsString( "{$wpdb->posts}.*", $wpdb->last_query, 'All columns should not be selected.' );
+		$this->assertStringNotContainsString( 'post_content', $wpdb->last_query, 'Columns that were not requested should not be selected.' );
+
+		$pages = array_column( $pages, null, 'ID' );
+		$this->assertSameSets( array( $parent_id, $child_id ), array_keys( $pages ), 'All pages should be returned.' );
+
+		$child = $pages[ $child_id ];
+		$this->assertInstanceOf( WP_Post::class, $child, 'Pages should be WP_Post objects.' );
+		$this->assertSame( get_post( $child_id )->post_title, $child->post_title, 'The requested field should be loaded.' );
+		$this->assertSame( $parent_id, $child->post_parent, 'The post_parent field should always be loaded.' );
+		$this->assertSame( 'page', $child->post_type, 'The post_type field should always be loaded.' );
+		$this->assertSame( 'publish', $child->post_status, 'The post_status field should always be loaded.' );
+		$this->assertSame( '', $child->post_content, 'Fields that were not requested should be empty.' );
+	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_get_pages_fields_should_ignore_invalid_field_names() {
+		global $wpdb;
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$pages = get_pages( array( 'fields' => array( 'post_title', 'not_a_column', 'ID FROM wp_users --' ) ) );
+
+		$this->assertSame( array( $page_id ), wp_list_pluck( $pages, 'ID' ), 'The page should be returned.' );
+		$this->assertStringNotContainsString( 'not_a_column', $wpdb->last_query, 'Unknown field names should not be selected.' );
+		$this->assertStringNotContainsString( 'wp_users', $wpdb->last_query, 'Unknown field names should not be selected.' );
+	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_get_pages_fields_should_not_add_partial_pages_to_the_post_cache() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_content' => 'Page content',
+			)
+		);
+		clean_post_cache( $page_id );
+
+		get_pages( array( 'fields' => array( 'post_title' ) ) );
+
+		$this->assertFalse( wp_cache_get( $page_id, 'posts' ), 'Partial pages should not be cached.' );
+		$this->assertSame( 'Page content', get_post( $page_id )->post_content, 'get_post() should return the full page afterwards.' );
+	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_get_pages_fields_should_return_hierarchical_children() {
+		$parent_id     = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$child_id      = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+			)
+		);
+		$grandchild_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $child_id,
+			)
+		);
+		self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$pages = get_pages(
+			array(
+				'child_of' => $parent_id,
+				'fields'   => array( 'post_title' ),
+			)
+		);
+
+		$this->assertSameSets( array( $child_id, $grandchild_id ), wp_list_pluck( $pages, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_get_pages_fields_all_should_select_all_columns() {
+		global $wpdb;
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_content' => 'Page content',
+			)
+		);
+
+		$pages = get_pages( array( 'fields' => 'all' ) );
+
+		$this->assertStringContainsString( "{$wpdb->posts}.*", $wpdb->last_query );
+		$this->assertSame( 'Page content', $pages[0]->post_content );
+		$this->assertSame( $page_id, $pages[0]->ID );
+	}
 }
