@@ -24,14 +24,14 @@ final class Tests_Diff_TextDiff extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_edit_counts
 	 *
-	 * @param string[] $from_lines      Lines before the change.
-	 * @param string[] $to_lines        Lines after the change.
-	 * @param int      $added           Expected number of added lines.
-	 * @param int      $deleted         Expected number of deleted lines.
-	 * @param bool     $is_empty        Whether the diff is expected to have no changes.
-	 * @param int      $unchanged_lines Expected number of unchanged lines.
+	 * @param non-empty-string[] $from_lines      Lines before the change.
+	 * @param non-empty-string[] $to_lines        Lines after the change.
+	 * @param non-negative-int   $added           Expected number of added lines.
+	 * @param non-negative-int   $deleted         Expected number of deleted lines.
+	 * @param bool               $is_empty        Whether the diff is expected to have no changes.
+	 * @param non-negative-int   $unchanged_lines Expected number of unchanged lines.
 	 */
-	public function test_edit_counts( $from_lines, $to_lines, $added, $deleted, $is_empty, $unchanged_lines ) {
+	public function test_edit_counts( array $from_lines, array $to_lines, int $added, int $deleted, bool $is_empty, int $unchanged_lines ) {
 		$diff = new Text_Diff( 'native', array( $from_lines, $to_lines ) );
 
 		$this->assertSame( $added, $diff->countAddedLines(), 'Added lines do not match.' );
@@ -41,11 +41,11 @@ final class Tests_Diff_TextDiff extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_edit_counts()}.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ non-empty-string[], non-empty-string[], non-negative-int, non-negative-int, bool, non-negative-int }>
 	 */
-	public static function data_edit_counts() {
+	public static function data_edit_counts(): array {
 		return array(
 			'both empty'           => array( array(), array(), 0, 0, true, 0 ),
 			'identical'            => array( array( 'a', 'b' ), array( 'a', 'b' ), 0, 0, true, 2 ),
