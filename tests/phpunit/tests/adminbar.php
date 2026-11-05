@@ -640,6 +640,252 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The "New" menu lists the items the user can create, and links to the first one.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_lists_items_the_user_can_create() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar     = $this->get_standard_admin_bar();
+		$node_new_content = $wp_admin_bar->get_node( 'new-content' );
+
+		$this->assertNotNull( $node_new_content );
+		$this->assertSame( 'core-admin/plus', $node_new_content->icon );
+		$this->assertSame( '<span class="ab-label">New</span>', $node_new_content->title );
+		$this->assertSame( 'New', $node_new_content->meta['menu_title'] );
+		$this->assertSame( admin_url( 'post-new.php' ), $node_new_content->href, 'The menu should link to the first item.' );
+
+		$expected = array(
+			'new-post'  => array( 'Post', admin_url( 'post-new.php' ) ),
+			'new-media' => array( 'Media', admin_url( 'media-new.php' ) ),
+			'new-page'  => array( 'Page', admin_url( 'post-new.php?post_type=page' ) ),
+		);
+
+		foreach ( $expected as $id => $item ) {
+			$node = $wp_admin_bar->get_node( $id );
+
+			$this->assertNotNull( $node, "The $id node should exist." );
+			$this->assertSame( 'new-content', $node->parent, "The $id node should be a child of the New menu." );
+			$this->assertSame( $item[0], $node->title, "The $id node should have the expected title." );
+			$this->assertSame( $item[1], $node->href, "The $id node should have the expected URL." );
+		}
+
+		$this->assertNull( $wp_admin_bar->get_node( 'new-link' ), 'Editors cannot manage links.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'new-user' ), 'Editors cannot create users.' );
+	}
+
+	/**
+	 * The "New" menu only lists the items that a contributor can create.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_lists_only_post_for_contributor() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'new-content' ) );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'new-post' ) );
+		$this->assertNull( $wp_admin_bar->get_node( 'new-media' ), 'Contributors cannot upload files.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'new-page' ), 'Contributors cannot create pages.' );
+	}
+
+	/**
+	 * The "New" menu is not added when the user cannot create anything.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_is_not_added_for_user_who_cannot_create_anything() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'new-content' ) );
+		$this->assertNull( $wp_admin_bar->get_node( 'new-post' ) );
+	}
+
+	/**
+	 * The "New" menu includes a custom post type that is shown in the Toolbar.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_includes_custom_post_type_shown_in_admin_bar() {
+		register_post_type(
+			'foo-visible',
+			array(
+				'public'            => true,
+				'show_in_admin_bar' => true,
+				'labels'            => array(
+					'name_admin_bar' => 'Foo Visible',
+				),
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_cpt     = $wp_admin_bar->get_node( 'new-foo-visible' );
+
+		unregister_post_type( 'foo-visible' );
+
+		$this->assertNotNull( $node_cpt );
+		$this->assertSame( 'new-content', $node_cpt->parent );
+		$this->assertSame( 'Foo Visible', $node_cpt->title );
+		$this->assertSame( admin_url( 'post-new.php?post_type=foo-visible' ), $node_cpt->href );
+	}
+
+	/**
+	 * The "New" menu omits a custom post type that is hidden from the Toolbar.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_omits_custom_post_type_not_shown_in_admin_bar() {
+		register_post_type(
+			'foo-hidden',
+			array(
+				'public'            => true,
+				'show_in_admin_bar' => false,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_cpt     = $wp_admin_bar->get_node( 'new-foo-hidden' );
+
+		unregister_post_type( 'foo-hidden' );
+
+		$this->assertNull( $node_cpt );
+	}
+
+	/**
+	 * The "New" menu omits a custom post type that the user cannot create.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_omits_custom_post_type_without_create_capability() {
+		register_post_type(
+			'foo-restricted',
+			array(
+				'public'            => true,
+				'show_in_admin_bar' => true,
+				'capability_type'   => 'foo_restricted',
+				'map_meta_cap'      => true,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_cpt     = $wp_admin_bar->get_node( 'new-foo-restricted' );
+
+		unregister_post_type( 'foo-restricted' );
+
+		$this->assertNull( $node_cpt );
+	}
+
+	/**
+	 * A custom post type named "content" does not clash with the parent node.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_avoids_clash_for_custom_post_type_named_content() {
+		register_post_type(
+			'content',
+			array(
+				'public'            => true,
+				'show_in_admin_bar' => true,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar     = $this->get_standard_admin_bar();
+		$node_new_content = $wp_admin_bar->get_node( 'new-content' );
+		$node_cpt         = $wp_admin_bar->get_node( 'add-new-content' );
+
+		unregister_post_type( 'content' );
+
+		$this->assertNotNull( $node_new_content );
+		$this->assertEmpty( $node_new_content->parent, 'The New menu should stay a top level node.' );
+		$this->assertNotNull( $node_cpt );
+		$this->assertSame( 'new-content', $node_cpt->parent );
+		$this->assertSame( admin_url( 'post-new.php?post_type=content' ), $node_cpt->href );
+	}
+
+	/**
+	 * The "Site" item is added for super admins on multisite.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_includes_site_for_super_admin() {
+		wp_set_current_user( self::$editor_id );
+
+		grant_super_admin( self::$editor_id );
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		revoke_super_admin( self::$editor_id );
+
+		$node_site = $wp_admin_bar->get_node( 'add-new-site' );
+
+		$this->assertNotNull( $node_site );
+		$this->assertSame( 'new-content', $node_site->parent );
+		$this->assertSame( 'Site', $node_site->title );
+		$this->assertSame( network_admin_url( 'site-new.php' ), $node_site->href );
+	}
+
+	/**
+	 * The "Site" item is not added for users who cannot create sites.
+	 *
+	 * @ticket 66491
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_omits_site_for_users_who_cannot_create_sites() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'add-new-site' ) );
+	}
+
+	/**
+	 * The "Site" item is not added on a single site installation.
+	 *
+	 * @ticket 66491
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_new_content_menu
+	 */
+	public function test_new_content_menu_omits_site_on_single_site() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'add-new-site' ) );
+	}
+
+	/**
 	 * @ticket 39252
 	 */
 	public function test_new_user_link_exists_for_user_with_create_users() {
@@ -1216,5 +1462,415 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
 		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
+	}
+
+	/**
+	 * The "Customize" link is added on the front end for users who can customize, and links back to the current URL.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_links_to_customizer_for_current_url() {
+		$GLOBALS['wp_customize'] = null;
+
+		switch_theme( 'default' );
+		wp_set_current_user( self::$admin_id );
+		$this->go_to( home_url( '/sample-page/?foo=bar' ) );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_customize = $wp_admin_bar->get_node( 'customize' );
+
+		$this->assertNotNull( $node_customize );
+		$this->assertSame( 'Customize', $node_customize->title );
+		$this->assertSame( 'core-admin/brush', $node_customize->icon );
+		$this->assertSame( 'hide-if-no-customize', $node_customize->meta['class'] );
+
+		$parsed_url   = wp_parse_url( $node_customize->href );
+		$query_params = array();
+		wp_parse_str( $parsed_url['query'], $query_params );
+
+		$this->assertSame( wp_customize_url(), strtok( $node_customize->href, '?' ) );
+		$this->assertSame( home_url( '/sample-page/?foo=bar' ), $query_params['url'] );
+		$this->assertArrayNotHasKey( 'changeset_uuid', $query_params );
+	}
+
+	/**
+	 * The "Customize" link is hooked to load the Customizer support script.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_loads_customizer_support_script() {
+		$GLOBALS['wp_customize'] = null;
+
+		switch_theme( 'default' );
+		remove_action( 'wp_before_admin_bar_render', 'wp_customize_support_script' );
+		wp_set_current_user( self::$admin_id );
+
+		$this->get_standard_admin_bar();
+
+		$this->assertNotFalse( has_action( 'wp_before_admin_bar_render', 'wp_customize_support_script' ) );
+	}
+
+	/**
+	 * The "Customize" link is not added for users who cannot customize.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_is_not_added_without_customize_capability() {
+		$GLOBALS['wp_customize'] = null;
+
+		switch_theme( 'default' );
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertFalse( current_user_can( 'customize' ) );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'customize' ) );
+	}
+
+	/**
+	 * The "Customize" link is not added in the admin.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_is_not_added_in_admin() {
+		$GLOBALS['wp_customize'] = null;
+
+		switch_theme( 'default' );
+		wp_set_current_user( self::$admin_id );
+		set_current_screen( 'dashboard' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'customize' ) );
+	}
+
+	/**
+	 * The "Customize" link is not added for a block theme when no plugin uses the Customizer.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_is_not_added_for_block_theme_without_customizer_registrations() {
+		$GLOBALS['wp_customize'] = null;
+
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+		remove_all_actions( 'customize_register' );
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_customize = $wp_admin_bar->get_node( 'customize' );
+
+		switch_theme( $original_stylesheet );
+
+		$this->assertNull( $node_customize );
+	}
+
+	/**
+	 * The "Customize" link is added for a block theme when a plugin uses the Customizer.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_customize_menu
+	 */
+	public function test_customize_menu_is_added_for_block_theme_with_customizer_registrations() {
+		$GLOBALS['wp_customize'] = null;
+
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+		add_action( 'customize_register', '__return_null' );
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_customize = $wp_admin_bar->get_node( 'customize' );
+
+		switch_theme( $original_stylesheet );
+
+		$this->assertNotNull( $node_customize );
+	}
+
+	/**
+	 * The Toolbar is not showing for logged-out visitors.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_false_for_logged_out_visitors() {
+		wp_set_current_user( 0 );
+
+		$this->assertFalse( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The Toolbar is showing for logged-in users by default.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_true_for_logged_in_users_by_default() {
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertTrue( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The Toolbar is not showing for users who turned it off in their profile.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_respects_user_preference() {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', 'false' );
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertFalse( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The Toolbar is always showing in the admin.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_true_in_admin_even_when_user_turned_it_off() {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', 'false' );
+		wp_set_current_user( self::$editor_id );
+		set_current_screen( 'dashboard' );
+
+		$this->assertTrue( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The Toolbar is not showing on the login screen.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_false_on_login_screen() {
+		global $pagenow;
+
+		$original_pagenow = $pagenow;
+		$pagenow          = 'wp-login.php';
+
+		wp_set_current_user( self::$editor_id );
+		$showing = is_admin_bar_showing();
+
+		$pagenow = $original_pagenow;
+
+		$this->assertFalse( $showing );
+	}
+
+	/**
+	 * The Toolbar is not showing for JSON requests.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_false_for_json_requests() {
+		$original_accept = $_SERVER['HTTP_ACCEPT'] ?? null;
+
+		$_SERVER['HTTP_ACCEPT'] = 'application/json';
+		wp_set_current_user( self::$editor_id );
+		$showing = is_admin_bar_showing();
+
+		if ( null === $original_accept ) {
+			unset( $_SERVER['HTTP_ACCEPT'] );
+		} else {
+			$_SERVER['HTTP_ACCEPT'] = $original_accept;
+		}
+
+		$this->assertFalse( $showing );
+	}
+
+	/**
+	 * The Toolbar is not showing in embeds.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_is_false_in_embeds() {
+		wp_set_current_user( self::$editor_id );
+		$GLOBALS['wp_query']->is_embed = true;
+
+		$this->assertFalse( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The `show_admin_bar` filter can hide the Toolbar for logged-in users.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_can_be_turned_off_with_filter() {
+		wp_set_current_user( self::$editor_id );
+		add_filter( 'show_admin_bar', '__return_false' );
+
+		$this->assertFalse( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The `show_admin_bar` filter can show the Toolbar for logged-out visitors.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_is_admin_bar_showing_can_be_turned_on_with_filter() {
+		wp_set_current_user( 0 );
+		add_filter( 'show_admin_bar', '__return_true' );
+
+		$this->assertTrue( is_admin_bar_showing() );
+	}
+
+	/**
+	 * Calling show_admin_bar() overrides the user preference.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::show_admin_bar
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_show_admin_bar_overrides_user_preference() {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', 'false' );
+		wp_set_current_user( self::$editor_id );
+
+		show_admin_bar( true );
+
+		$this->assertTrue( is_admin_bar_showing() );
+	}
+
+	/**
+	 * Calling show_admin_bar() can hide the Toolbar for logged-in users.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::show_admin_bar
+	 * @covers ::is_admin_bar_showing
+	 */
+	public function test_show_admin_bar_can_hide_toolbar() {
+		wp_set_current_user( self::$editor_id );
+
+		show_admin_bar( false );
+
+		$this->assertFalse( is_admin_bar_showing() );
+	}
+
+	/**
+	 * The value passed to show_admin_bar() is cast to a boolean.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::show_admin_bar
+	 */
+	public function test_show_admin_bar_casts_value_to_boolean() {
+		show_admin_bar( 'yes' );
+		$this->assertTrue( $GLOBALS['show_admin_bar'] );
+
+		show_admin_bar( 0 );
+		$this->assertFalse( $GLOBALS['show_admin_bar'] );
+	}
+
+	/**
+	 * The Toolbar is not set up when it is not showing.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_wp_admin_bar_init
+	 */
+	public function test_wp_admin_bar_init_returns_false_and_does_nothing_when_toolbar_is_not_showing() {
+		global $wp_admin_bar;
+
+		$wp_admin_bar = null;
+		wp_set_current_user( 0 );
+
+		$this->assertFalse( _wp_admin_bar_init() );
+		$this->assertNull( $wp_admin_bar );
+	}
+
+	/**
+	 * The Toolbar is set up with its menus when it is showing.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_wp_admin_bar_init
+	 */
+	public function test_wp_admin_bar_init_sets_up_toolbar_with_default_menus() {
+		global $wp_admin_bar;
+
+		$wp_admin_bar = null;
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertTrue( _wp_admin_bar_init() );
+		$this->assertInstanceOf( WP_Admin_Bar::class, $wp_admin_bar );
+		$this->assertNotFalse( has_action( 'admin_bar_menu', 'wp_admin_bar_wp_menu' ), 'The default menus should be hooked.' );
+	}
+
+	/**
+	 * The class used for the Toolbar can be replaced with the `wp_admin_bar_class` filter.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_wp_admin_bar_init
+	 */
+	public function test_wp_admin_bar_init_uses_class_from_filter() {
+		global $wp_admin_bar;
+
+		$wp_admin_bar = null;
+		wp_set_current_user( self::$editor_id );
+
+		$subclass = get_class( new class() extends WP_Admin_Bar {} );
+
+		add_filter(
+			'wp_admin_bar_class',
+			static function () use ( $subclass ) {
+				return $subclass;
+			}
+		);
+
+		$this->assertTrue( _wp_admin_bar_init() );
+		$this->assertInstanceOf( $subclass, $wp_admin_bar );
+		$this->assertNotSame( WP_Admin_Bar::class, get_class( $wp_admin_bar ) );
+	}
+
+	/**
+	 * The Toolbar is not set up when the class from the `wp_admin_bar_class` filter does not exist.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_wp_admin_bar_init
+	 */
+	public function test_wp_admin_bar_init_returns_false_when_filtered_class_does_not_exist() {
+		global $wp_admin_bar;
+
+		$wp_admin_bar = null;
+		wp_set_current_user( self::$editor_id );
+
+		add_filter(
+			'wp_admin_bar_class',
+			static function () {
+				return 'This_Admin_Bar_Class_Does_Not_Exist';
+			}
+		);
+
+		$this->assertFalse( _wp_admin_bar_init() );
+		$this->assertNull( $wp_admin_bar );
 	}
 }
