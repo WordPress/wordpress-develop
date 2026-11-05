@@ -29,6 +29,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	public function tear_down() {
 		unregister_post_type( 'yes_title' );
 		unregister_post_type( 'no_title' );
+		unregister_taxonomy( 'wptests_tax' );
 
 		parent::tear_down();
 	}
