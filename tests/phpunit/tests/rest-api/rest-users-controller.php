@@ -656,8 +656,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_include_query() {
 		wp_set_current_user( self::$user );
 
-		$id1 = self::factory()->user->create();
-		$id2 = self::factory()->user->create();
+		$id1 = self::$author;
+		$id2 = self::$subscriber;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 
@@ -691,8 +691,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_exclude_query() {
 		wp_set_current_user( self::$user );
 
-		$id1 = self::factory()->user->create();
-		$id2 = self::factory()->user->create();
+		$id1 = self::$subscriber;
+		$id2 = self::$author;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'per_page', self::$per_page ); // There are >10 users at this point.
@@ -1089,7 +1089,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		wp_set_current_user( self::$user );
 
@@ -1175,6 +1175,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$data = $response->get_data();
 
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $data['capabilities'], new stdClass() );
 			$this->assertEquals( $data['extra_capabilities'], new stdClass() );
 		}
@@ -1241,11 +1242,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_post() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1261,11 +1258,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_pages() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		wp_set_current_user( 0 );
 
@@ -1285,7 +1278,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_user_with_edit_context() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		$this->allow_user_to_manage_multisite();
 
@@ -1296,11 +1289,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_wrong_context() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1776,7 +1765,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'email', 'testjson@example.com' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_email', $response->as_error()->get_error_code() );
 	}
 
@@ -1834,7 +1823,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user1 );
 		$request->set_param( 'locale', 'klingon' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_invalid_param', $response->as_error()->get_error_code() );
 	}
 
@@ -1907,7 +1896,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'username', 'test_json_user' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_argument', $response->as_error()->get_error_code() );
 	}
 
@@ -1932,7 +1921,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'slug', 'test_json_user' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_slug', $response->as_error()->get_error_code() );
 	}
 
@@ -2182,11 +2171,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 40263
 	 */
 	public function test_update_item_only_roles_as_editor() {
-		$user_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_id = self::$author;
 
 		wp_set_current_user( self::$editor );
 
@@ -2387,7 +2372,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2410,7 +2395,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2469,7 +2454,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'first_name'  => 'div strong',
 				'last_name'   => 'div strong',
 				'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 				'nickname'    => 'div strong',
 				'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 			)
@@ -2594,7 +2579,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_delete_user_without_permission() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		$this->allow_user_to_manage_multisite();
 
@@ -3128,7 +3113,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $expected, $meta[ $meta_key ] );
 	}
 
-	public function data_get_default_data() {
+	public static function data_get_default_data() {
 		return array(
 			array(
 				array(
@@ -3315,7 +3300,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param string $path The path to test.
 	 */
 	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 		wp_set_current_user( self::$user );
 
 		$request = new WP_REST_Request( 'HEAD', sprintf( $path, $user_id ) );
@@ -3355,6 +3340,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->last_name, $data['last_name'] );
 			$this->assertSame( $user->nickname, $data['nickname'] );
 			$this->assertSame( $user->user_email, $data['email'] );
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( (object) $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( (object) $user->caps, $data['extra_capabilities'] );
 			$this->assertSame( gmdate( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );

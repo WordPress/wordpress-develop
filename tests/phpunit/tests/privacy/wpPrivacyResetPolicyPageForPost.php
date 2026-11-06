@@ -21,7 +21,7 @@ class Tests_Privacy_WpPrivacyResetPolicyPageForPost extends WP_UnitTestCase {
 		parent::set_up();
 
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		assert( is_int( $page_id ) );
+		$this->assertIsInt( $page_id );
 		$this->policy_page_id = $page_id;
 		update_option( 'wp_page_for_privacy_policy', $this->policy_page_id );
 	}

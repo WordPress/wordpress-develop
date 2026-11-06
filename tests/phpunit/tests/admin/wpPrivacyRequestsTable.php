@@ -129,7 +129,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_columns_should_be_sortable() {
+	public static function data_columns_should_be_sortable() {
 		return array(
 			// Default order (ID) DESC.
 			array(
@@ -247,5 +247,60 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$this->assertStringContainsString( $date_part, $result );
 		$this->assertStringContainsString( 'at', $result );
 		$this->assertStringContainsString( $time_part, $result );
+	}
+
+	/**
+	 * The requester's email is escaped in the email and checkbox columns of each request table.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_request_tables
+	 *
+	 * @covers WP_Privacy_Requests_Table::column_email
+	 * @covers WP_Privacy_Requests_Table::column_cb
+	 * @covers WP_Privacy_Data_Export_Requests_List_Table::column_email
+	 * @covers WP_Privacy_Data_Removal_Requests_List_Table::column_email
+	 *
+	 * @param string $table_class  The list table class, or an empty string for the base class.
+	 * @param string $request_type The request type.
+	 */
+	public function test_request_email_is_escaped_in_columns( $table_class, $request_type ) {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request_id     = wp_create_user_request( 'requester@example.org', $request_type );
+		$request        = wp_get_user_request( $request_id );
+		$request->email = '<img src=x onerror=alert(1)>@example.org';
+
+		if ( '' === $table_class ) {
+			$table = $this->get_mocked_class_instance();
+		} else {
+			$table = new $table_class(
+				array(
+					'plural'   => 'privacy_requests',
+					'singular' => 'privacy_request',
+					'screen'   => $request_type,
+				)
+			);
+		}
+
+		foreach ( array( 'column_email', 'column_cb' ) as $column ) {
+			$output = $table->$column( $request );
+
+			$this->assertStringNotContainsString( '<img', $output, "The email should be escaped in {$column}()." );
+			$this->assertStringContainsString( '&lt;img src=x onerror=alert(1)&gt;@example.org', $output, "The escaped email should be shown in {$column}()." );
+		}
+	}
+
+	/**
+	 * Data provider for test_request_email_is_escaped_in_columns().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_request_tables() {
+		return array(
+			'base requests table'   => array( '', 'export_personal_data' ),
+			'export requests list'  => array( 'WP_Privacy_Data_Export_Requests_List_Table', 'export_personal_data' ),
+			'removal requests list' => array( 'WP_Privacy_Data_Removal_Requests_List_Table', 'remove_personal_data' ),
+		);
 	}
 }

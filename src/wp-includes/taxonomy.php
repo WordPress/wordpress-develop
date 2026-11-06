@@ -274,10 +274,13 @@ function create_initial_taxonomies() {
  *                         Default empty array.
  * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
- * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
- *                         one element from the array needs to match; 'and' means all elements must match.
+ * @param string $operator Optional. The logical operation to perform. Accepts 'and', 'or', or 'not'. 'or'
+ *                         means only one element from the array needs to match; 'and' means all elements
+ *                         must match; 'not' means no elements may match. The value is case-insensitive.
  *                         Default 'and'.
  * @return string[]|WP_Taxonomy[] An array of taxonomy names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -374,6 +377,9 @@ function get_taxonomy( $taxonomy ) {
  *
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $taxonomy
+ * @phpstan-return ( $taxonomy is non-falsy-string ? bool : false )
  */
 function taxonomy_exists( $taxonomy ) {
 	global $wp_taxonomies;
@@ -516,6 +522,8 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *                                                Default false.
  * }
  * @return WP_Taxonomy|WP_Error The registered taxonomy object on success, WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $taxonomy
  */
 function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
 	global $wp_taxonomies;
@@ -979,6 +987,13 @@ function get_tax_sql( $tax_query, $primary_table, $primary_id_column ) {
  * @param string             $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|WP_Error|null WP_Term instance (or array) on success, depending on the `$output` value.
  *                                     WP_Error if `$taxonomy` does not exist. Null for miscellaneous failure.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|WP_Error|null : (
+ *         $output is 'ARRAY_N' ? list<mixed>|WP_Error|null : WP_Term|WP_Error|null
+ *     )
+ * )
  */
 function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	if ( empty( $term ) ) {
@@ -1101,6 +1116,13 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  * @param string     $filter   Optional. How to sanitize term fields. Default 'raw'.
  * @return WP_Term|array|false WP_Term instance (or array) on success, depending on the `$output` value.
  *                             False if `$taxonomy` does not exist or `$term` was not found.
+ *
+ * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
+ * @phpstan-return (
+ *     $output is 'ARRAY_A' ? array<string, mixed>|false : (
+ *         $output is 'ARRAY_N' ? list<mixed>|false : WP_Term|false
+ *     )
+ * )
  */
 function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
@@ -1822,6 +1844,14 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                         'attribute', or 'js'.
  * @return mixed Sanitized field.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $value
+ * @phpstan-return (
+ *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
+ *         ? ( $context is 'raw' ? int<0, max> : int )
+ *         : ( $context is 'raw' ? T : ( $context is 'attribute'|'edit'|'js' ? string : mixed ) )
+ * )
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 	$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );

@@ -1,10 +1,14 @@
 <?php
 
 /**
+ * Tests for urlencode_deep(), rawurlencode_deep(), and urldecode_deep().
+ *
  * @group formatting
  * @ticket 22300
  *
  * @covers ::urlencode_deep
+ * @covers ::rawurlencode_deep
+ * @covers ::urldecode_deep
  */
 class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
@@ -23,7 +27,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 */
-	public function data_urlencode_deep() {
+	public static function data_urlencode_deep() {
 		return array(
 			array( 'qwerty123456', 'qwerty123456' ),
 			array( '|!"£$%&/()=?', '%7C%21%22%C2%A3%24%25%26%2F%28%29%3D%3F' ),
@@ -43,5 +47,24 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 		$expected = wp_list_pluck( $data, 1 );
 
 		$this->assertSame( $expected, urlencode_deep( $actual ) );
+	}
+
+	/**
+	 * Tests that rawurlencode_deep() encodes a single string.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_rawurlencode_deep_string() {
+		$this->assertSame( 'foo%20bar%26baz%3D1', rawurlencode_deep( 'foo bar&baz=1' ) );
+	}
+
+	/**
+	 * Tests that urldecode_deep() decodes a single string.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_urldecode_deep_string() {
+		$this->assertSame( 'foo bar&baz=1', urldecode_deep( 'foo+bar%26baz%3D1' ) );
+		$this->assertSame( 'foo bar', urldecode_deep( 'foo%20bar' ) );
 	}
 }

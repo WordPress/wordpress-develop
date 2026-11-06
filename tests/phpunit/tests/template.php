@@ -114,7 +114,7 @@ class Tests_Template extends WP_UnitTestCase {
 				'hierarchical' => true,
 			)
 		);
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 
 		// Remove hooks which are added by wp_load_classic_theme_block_styles_on_demand() during bootstrapping.
 		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
@@ -357,6 +357,29 @@ class Tests_Template extends WP_UnitTestCase {
 				'page.php',
 				'singular.php',
 			)
+		);
+	}
+
+	/**
+	 * Tests that a decoded page name containing directory traversal is left out of the hierarchy.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_page_template
+	 */
+	public function test_page_template_hierarchy_omits_decoded_pagename_with_directory_traversal() {
+		$this->go_to( get_permalink( self::$page ) );
+		set_query_var( 'pagename', '..%2Fpage-name' );
+
+		$this->assertSame(
+			array(
+				'templates/page.php',
+				'page-..%2Fpage-name.php',
+				'page-' . self::$page->ID . '.php',
+				'page.php',
+				'singular.php',
+			),
+			$this->get_template_hierarchy()
 		);
 	}
 
