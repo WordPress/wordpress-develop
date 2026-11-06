@@ -321,7 +321,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function block_external_http_request( $response, array $args, string $url ) {
 		if ( false === $response && $this->is_fixture_url( $url ) ) {
-			add_action( 'requests-requests.before_redirect', array( $this, 'block_external_fixture_redirect' ) );
+			if ( ! has_action( 'requests-requests.before_redirect', array( $this, 'block_external_fixture_redirect' ) ) ) {
+				add_action( 'requests-requests.before_redirect', array( $this, 'block_external_fixture_redirect' ), 10, 5 );
+			}
 
 			return $response;
 		}
