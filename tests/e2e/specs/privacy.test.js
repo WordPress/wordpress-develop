@@ -1,46 +1,26 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 
 function normalizeText( text ) {
 	return text.replace( /\s+/g, ' ' ).trim();
 }
 
 test.describe( 'Privacy page creation', () => {
-	let originalSettings;
 	let createdPageId;
 
-	test.beforeEach( async ( { requestUtils } ) => {
-		originalSettings = undefined;
+	test.beforeEach( () => {
 		createdPageId = undefined;
-		originalSettings = await requestUtils.rest( {
-			path: '/wp/v2/settings',
-		} );
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( ! originalSettings ) {
-			return;
-		}
-
-		try {
+		if ( createdPageId ) {
 			await requestUtils.rest( {
-				method: 'POST',
-				path: '/wp/v2/settings',
-				data: {
-					page_for_privacy_policy:
-						originalSettings.page_for_privacy_policy,
-				},
+				method: 'DELETE',
+				path: `/wp/v2/pages/${ createdPageId }`,
+				params: { force: true },
 			} );
-		} finally {
-			if ( createdPageId ) {
-				await requestUtils.rest( {
-					method: 'DELETE',
-					path: `/wp/v2/pages/${ createdPageId }`,
-					params: { force: true },
-				} );
-			}
 		}
 	} );
 
@@ -48,7 +28,12 @@ test.describe( 'Privacy page creation', () => {
 		admin,
 		page,
 		requestUtils,
+		siteSettings,
 	} ) => {
+		// The form changes this setting, so register it for the fixture to restore.
+		const { page_for_privacy_policy } = await siteSettings.get();
+		await siteSettings.set( { page_for_privacy_policy } );
+
 		await admin.visitAdminPage( 'options-privacy.php' );
 		await Promise.all( [
 			page
