@@ -757,6 +757,44 @@
 		}
 	}
 
+	// Let wide and full alignments set the Wide Line and Dots widths.
+	.wp-block-separator.is-style-wide,
+	.wp-block-separator.is-style-dots {
+
+		&.alignwide,
+		&.alignfull {
+			max-width: none;
+		}
+	}
+
+	.wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
+
+		&.aligncenter,
+		&.alignfull {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		&.alignfull {
+			left: 0;
+		}
+	}
+
+	// Center on the text column, like `.wp-caption.aligncenter`.
+	> .wp-block-separator.aligncenter:not(.is-style-wide):not(.is-style-dots) {
+
+		@include media(tablet) {
+			position: relative;
+			left: calc(#{$size__site-tablet-content} / 2);
+			margin-left: 0;
+			transform: translateX(-50%);
+		}
+
+		@include media(desktop) {
+			left: calc(#{$size__site-desktop-content} / 2);
+		}
+	}
+
 	//! Twitter Embed
 	.wp-block-embed-twitter {
 		word-break: break-word;
