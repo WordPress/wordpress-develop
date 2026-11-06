@@ -99,7 +99,8 @@ jobs:
       matrix:
         os: [ ubuntu-24.04 ]
         memcached: [ false, true ]
-        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+        # PHP 8.6 is in beta/RC and not listed in `.version-support-php.json` yet, so it is appended here.
+        php: ${{ fromJSON( format( '["{0}","8.6"]', join( fromJSON( needs.build-test-matrix.outputs.php-versions ), '","' ) ) ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
 
         exclude:
@@ -114,8 +115,10 @@ jobs:
           - db-version: '9.5'
           - db-version: '9.6'
           - db-version: '26.7'
-          # No PHP 8.5 + Memcached support yet.
+          # No PHP 8.5 or 8.6 + Memcached support yet.
           - php: '8.5'
+            memcached: true
+          - php: '8.6'
             memcached: true
 
     with:
@@ -125,36 +128,13 @@ jobs:
       db-version: ${{ matrix.db-version }}
       memcached: ${{ matrix.memcached }}
 
-  # Tests the local Docker environment with PHP 8.6.
-  #
-  # The number of testing combinations is intentionally limited because PHP 8.6 is still in beta/RC.
-  # Memcached is not tested because the PHP 8.6 container does not include the extension yet.
-  pre-release-php-8-6:
-    name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-24.04 ]
-        php: [ '8.6' ]
-        db-version: [ '9.7' ]
-
-    with:
-      os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      db-type: 'mysql'
-      db-version: ${{ matrix.db-version }}
-
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ build-test-matrix, environment-tests-mysql, pre-release-php-8-6 ]
+    needs: [ build-test-matrix, environment-tests-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
