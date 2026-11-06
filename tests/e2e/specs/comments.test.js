@@ -43,7 +43,7 @@ test.describe( 'Front-end comments', () => {
 		).toBeVisible();
 
 		const commentField = page.getByRole( 'textbox', {
-			name: 'Comment',
+			name: 'Comment *',
 			exact: true,
 		} );
 		await expect( commentField ).toBeVisible();
