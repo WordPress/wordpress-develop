@@ -2187,4 +2187,119 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
 		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
 	}
+
+	/**
+	 * Data provider for input sent with the request and input left out.
+	 *
+	 * @return array<string, array{0: array|null}> Request input, or null to use the schema default.
+	 */
+	public static function data_input_prepared_once(): array {
+		return array(
+			'request input'  => array( array( 'count' => '10' ) ),
+			'schema default' => array( null ),
+		);
+	}
+
+	/**
+	 * Tests that the input is prepared only once before the permission check.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_input_prepared_once
+	 *
+	 * @param array|null $input Request input, or null to use the schema default.
+	 */
+	public function test_input_is_prepared_once_before_permission_check( ?array $input ): void {
+		$calls = new stdClass();
+
+		$calls->validate = 0;
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid ) use ( $calls ) {
+				++$calls->validate;
+				return $is_valid;
+			}
+		);
+
+		$this->register_test_ability(
+			'test/prepared-once',
+			array(
+				'label'               => 'Prepared Once',
+				'description'         => 'Records how the input was prepared for the permission check.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'default'    => array( 'count' => '10' ),
+					'properties' => array(
+						'count' => array( 'type' => 'integer' ),
+					),
+				),
+				'permission_callback' => static function ( $value ) use ( $calls ) {
+					$calls->permission ??= array( $value, $calls->validate );
+					return true;
+				},
+				'execute_callback'    => static function ( $value ) {
+					return $value;
+				},
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => true ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( 'GET', 'test/prepared-once', $input );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( array( 'count' => 10 ), 1 ), $calls->permission, 'The permission callback should get input prepared once.' );
+	}
+
+	/**
+	 * Data provider for requests rejected by the permission check.
+	 *
+	 * @return array<string, array{0: string, 1: bool, 2: string}> HTTP method, whether the
+	 *                                                            ability is shown in REST, and the expected error code.
+	 */
+	public static function data_invalid_input_does_not_hide_request_errors(): array {
+		return array(
+			'hidden ability'    => array( 'GET', false, 'rest_ability_not_found' ),
+			'wrong HTTP method' => array( 'POST', true, 'rest_ability_invalid_method' ),
+		);
+	}
+
+	/**
+	 * Tests that invalid input does not replace not found and wrong method errors.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_invalid_input_does_not_hide_request_errors
+	 *
+	 * @param string $method       HTTP method.
+	 * @param bool   $show_in_rest Whether the ability is shown in REST.
+	 * @param string $error_code   Expected error code.
+	 */
+	public function test_invalid_input_does_not_hide_request_errors( string $method, bool $show_in_rest, string $error_code ): void {
+		$this->register_test_ability(
+			'test/rejected-request',
+			array(
+				'label'               => 'Rejected Request',
+				'description'         => 'Is rejected before its input is checked.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'count' => array( 'type' => 'integer' ),
+					),
+				),
+				'permission_callback' => '__return_true',
+				'execute_callback'    => '__return_true',
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => true ),
+					'show_in_rest' => $show_in_rest,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( $method, 'test/rejected-request', array( 'count' => 'not-a-number' ) );
+
+		$this->assertSame( $error_code, $response->get_data()['code'] );
+	}
 }
