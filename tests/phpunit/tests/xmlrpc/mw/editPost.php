@@ -335,4 +335,38 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$future_date_string = date_format( date_create( "@{$future_time}" ), 'Y-m-d H:i:s' );
 		$this->assertSame( $future_date_string, $after->post_date );
 	}
+
+	/**
+	 * Tests that passing an empty array of categories removes all categories
+	 * from the post, leaving it with the default category.
+	 *
+	 * @ticket 25037
+	 */
+	public function test_should_remove_all_categories_when_empty_array_is_passed() {
+		$administrator_id = $this->make_user_by_role( 'administrator' );
+		if ( is_multisite() ) {
+			grant_super_admin( $administrator_id );
+		}
+
+		$post_id = self::factory()->post->create();
+
+		$cat_a = self::factory()->category->create( array( 'name' => 'Cat A' ) );
+		$cat_b = self::factory()->category->create( array( 'name' => 'Cat B' ) );
+		wp_set_post_categories( $post_id, array( $cat_a, $cat_b ) );
+
+		$this->assertCount( 2, wp_get_post_categories( $post_id ) );
+
+		$content = array(
+			'post_id'    => $post_id,
+			'categories' => array(),
+		);
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'administrator', 'administrator', $content ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+
+		$categories = wp_get_post_categories( $post_id );
+		$this->assertCount( 1, $categories );
+		$this->assertSame( (int) get_option( 'default_category' ), $categories[0] );
+	}
 }
