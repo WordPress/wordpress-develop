@@ -79,6 +79,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	private static $file_stream_fixture_fail_reason = null;
 
 	/**
+	 * Captured HTTP request args from the most recent filtered request.
+	 *
+	 * @var array
+	 */
+	protected $http_request_args;
+
+	/**
 	 * Captured Requests options from the most recent intercepted request.
 	 *
 	 * @var array
@@ -859,8 +866,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Test HTTP requests where SSL verification is disabled.
 	 *
-	 * Captures Requests options after WP_Http::request() maps sslverify=false to
-	 * verify/verifyname, which is the #33978 / r34639 behavior. Stops before connecting.
+	 * Asserts that sslcertificates stays set when sslverify is false (#33978 /
+	 * r34639), and that WP_Http::request() maps that to Requests verify /
+	 * verifyname. Stops before connecting.
 	 *
 	 * @ticket 33978
 	 * @ticket 63914
@@ -869,17 +877,31 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function test_https_url_without_ssl_verification() {
 		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
+		add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
 		add_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10, 5 );
 
 		try {
 			$res = $this->wp_remote_head( 'https://wordpress.org/', array( 'sslverify' => false ) );
 		} finally {
+			remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
 			remove_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10 );
 		}
 
 		$this->assertWPError( $res );
+		$this->assertNotEmpty( $this->http_request_args['sslcertificates'] );
 		$this->assertFalse( $this->requests_options['verify'] );
 		$this->assertFalse( $this->requests_options['verifyname'] );
+	}
+
+	/**
+	 * Stores HTTP request args for later assertion.
+	 *
+	 * @param array $args Request arguments.
+	 * @return array Unmodified request arguments.
+	 */
+	public function filter_http_request_args( array $args ) {
+		$this->http_request_args = $args;
+		return $args;
 	}
 
 	/**
