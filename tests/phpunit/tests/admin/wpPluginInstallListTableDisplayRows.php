@@ -133,7 +133,7 @@ class Tests_Admin_wpPluginInstallListTableDisplayRows extends WP_UnitTestCase {
 		$output = $this->render( array( $this->get_plugin() ) );
 
 		$this->assertStringContainsString( '<div class="plugin-card plugin-card-contact-forms">', $output, 'The card should have the slug as a class.' );
-		$this->assertStringContainsString( 'Contact Forms', $output, 'The name should be output.' );
+		$this->assertMatchesRegularExpression( '/<h3>\s*<a [^>]*class="thickbox open-plugin-details-modal">\s*Contact Forms\s*<img /', $output, 'The name should be in the heading of the card.' );
 		$this->assertStringContainsString( '<p>Build simple forms.</p>', $output, 'The description should be output.' );
 		$this->assertStringContainsString( '<cite>By <a href="https://example.org/jane">Jane Doe</a></cite>', $output, 'The author should be output.' );
 		$this->assertStringContainsString( 'plugin-install.php?tab=plugin-information&#038;plugin=contact-forms&#038;TB_iframe=true&#038;width=600&#038;height=550', $output, 'The link to the details should be output.' );
