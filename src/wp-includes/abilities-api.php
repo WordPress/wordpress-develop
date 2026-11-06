@@ -228,10 +228,9 @@ declare( strict_types = 1 );
  * The permission callback determines whether the ability can be executed and
  * must return a boolean or `WP_Error`. When called through `WP_Ability::execute()`,
  * it receives the same normalized, validated, and coerced input as the execute
- * callback. Common use cases
- * include checking user capabilities, validating API keys, or verifying system
- * state. In the example above, every execution requires `edit_posts`, and the
- * callback only adds the check that depends on the input:
+ * callback. Common use cases include checking user capabilities, validating API
+ * keys, or verifying system state. In the example above, every execution requires
+ * `edit_posts`, and the callback only adds the check that depends on the input:
  *
  *     function my_plugin_can_analyze_text( string $input ): bool|WP_Error {
  *         // Only administrators can analyze long texts.
@@ -257,8 +256,9 @@ declare( strict_types = 1 );
  *  2. `wp_pre_execute_ability` filter, which can short-circuit the rest of execution.
  *  3. `wp_ability_normalize_input`, `wp_ability_validate_input`, and
  *     `wp_ability_permission_result` filters. The input validation filter runs only
- *     when a non-empty input schema is defined. Input coercion runs after validation
- *     and before permission checks, also only with a non-empty input schema.
+ *     when a non-empty input schema is defined. Input coercion has no filter. It runs
+ *     between validation and the permission check, only when a non-empty input
+ *     schema is defined.
  *  4. `wp_before_execute_ability` action.
  *  5. `wp_ability_execute_result` and `wp_ability_validate_output` filters.
  *  6. `wp_after_execute_ability` action.
