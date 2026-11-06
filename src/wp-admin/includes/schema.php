@@ -429,8 +429,8 @@ function populate_options( array $options = array() ) {
 		'mailserver_port'                 => 110,
 		'default_category'                => 1,
 		'default_comment_status'          => 'open',
-		'default_ping_status'             => 'open',
-		'default_pingback_flag'           => 1,
+		'default_ping_status'             => 'closed',
+		'default_pingback_flag'           => 0,
 		'posts_per_page'                  => 10,
 		/* translators: Default date format, see https://www.php.net/manual/datetime.format.php */
 		'date_format'                     => __( 'F j, Y' ),
