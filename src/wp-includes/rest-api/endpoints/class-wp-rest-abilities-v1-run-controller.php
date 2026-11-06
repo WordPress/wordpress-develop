@@ -149,6 +149,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * Checks if a given request has permission to execute a specific ability.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 Uses the input prepared by `sanitize_input_for_ability()`, and prepares only null input.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
@@ -172,19 +173,26 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		}
 
 		$input = $this->get_input_from_request( $request );
-		$input = $ability->normalize_input( $input );
-		if ( is_wp_error( $input ) ) {
-			return $this->ensure_error_status( $input, 400 );
-		}
 
-		$is_valid = $ability->validate_input( $input );
-		if ( is_wp_error( $is_valid ) ) {
-			return $this->ensure_error_status( $is_valid, 400 );
-		}
+		/*
+		 * Input sent with the request was prepared by `sanitize_input_for_ability()`.
+		 * REST sanitization skips absent parameters, so prepare null input here.
+		 */
+		if ( null === $input ) {
+			$input = $ability->normalize_input( $input );
+			if ( is_wp_error( $input ) ) {
+				return $this->ensure_error_status( $input, 400 );
+			}
 
-		$input = $ability->coerce_input( $input );
-		if ( is_wp_error( $input ) ) {
-			return $this->ensure_error_status( $input, 400 );
+			$is_valid = $ability->validate_input( $input );
+			if ( is_wp_error( $is_valid ) ) {
+				return $this->ensure_error_status( $is_valid, 400 );
+			}
+
+			$input = $ability->coerce_input( $input );
+			if ( is_wp_error( $input ) ) {
+				return $this->ensure_error_status( $input, 400 );
+			}
 		}
 
 		$result = $ability->check_permissions( $input );
@@ -242,33 +250,63 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Sanitizes the run input by coercing it to the ability's input schema.
+	 * Sanitizes the run input by preparing it for the ability.
 	 *
-	 * Registered as the `input` argument `sanitize_callback` so request input is coerced
-	 * before any route callback runs, regardless of transport. `check_ability_permissions()`
-	 * and `WP_Ability::execute()` coerce the input again after normalization and validation,
-	 * so schema defaults and values from normalization filters are coerced too.
+	 * Registered as the `input` argument `sanitize_callback`, so it runs before the
+	 * permission callback. The input is normalized, validated, and coerced to the
+	 * ability's input schema, so `check_ability_permissions()` can use it as is.
+	 * When any step fails, the request is rejected before permissions are checked.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Normalizes the input before validation and coercion, and returns a `WP_Error` when any step fails.
 	 *
+	 * @see WP_Ability::normalize_input()
+	 * @see WP_Ability::validate_input()
 	 * @see WP_Ability::coerce_input()
 	 *
 	 * @param mixed           $input   Raw input extracted from the request.
 	 * @param WP_REST_Request $request The request object.
-	 * @return mixed|WP_Error Coerced input, raw input when validation fails, or WP_Error when coercion fails.
+	 * @return mixed|WP_Error Prepared input, or `WP_Error` when normalization, validation, or coercion fails.
 	 */
 	public function sanitize_input_for_ability( $input, $request ) {
+		/*
+		 * Leave hidden abilities and wrong HTTP methods to `check_ability_permissions()`,
+		 * so they get a 404 or 405 error instead of an input error.
+		 */
 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
-		if ( ! $ability instanceof WP_Ability ) {
+		if ( ! $ability instanceof WP_Ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return $input;
+		}
+
+		$is_valid_method = $this->validate_request_method(
+			$request->get_method(),
+			$ability->get_meta_item( 'annotations' )
+		);
+		if ( is_wp_error( $is_valid_method ) ) {
+			return $input;
+		}
+
+		/*
+		 * The request is sanitized once for each place that holds the `input` parameter.
+		 * Prepare only the input that `get_input_from_request()` reads, so input sent
+		 * elsewhere (such as the query string of a POST request) is ignored as before.
+		 */
+		if ( $input !== $this->get_input_from_request( $request ) ) {
+			return $input;
+		}
+
+		$normalized = $ability->normalize_input( $input );
+		if ( is_wp_error( $normalized ) ) {
+			return $normalized;
 		}
 
 		// Validate before coercion so sanitization cannot rescue invalid input.
-		if ( null === $input || empty( $ability->get_input_schema() ) || is_wp_error( $ability->validate_input( $input ) ) ) {
-			return $input;
+		$is_valid = $ability->validate_input( $normalized );
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
 		}
 
-		return $ability->coerce_input( $input );
+		return $ability->coerce_input( $normalized );
 	}
 
 	/**
