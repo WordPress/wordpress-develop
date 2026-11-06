@@ -19,6 +19,9 @@ class Tests_HTTP_WpHttpValidateRedirects extends WP_UnitTestCase {
 	 * @param string $url Valid URL.
 	 */
 	public function test_should_accept_a_valid_url( $url ) {
+		// Make the host of the URL the host of the site, so that no DNS lookup is needed.
+		update_option( 'home', $url );
+
 		$this->assertNull( WP_Http::validate_redirects( $url ) );
 	}
 
