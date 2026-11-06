@@ -250,6 +250,7 @@ add_filter( 'widget_block_content', 'do_shortcode', 11 );
 add_filter( 'widget_block_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
+add_filter( 'block_type_metadata', 'wp_resolve_block_icon_path' );
 
 add_filter( 'wp_get_custom_css', 'wp_replace_insecure_home_url' );
 
