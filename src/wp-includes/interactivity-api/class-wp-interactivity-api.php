@@ -145,11 +145,14 @@ final class WP_Interactivity_API {
 	 *
 	 * This is only available during directive processing, otherwise it is `null`.
 	 *
-	 * Unlike the namespace stack, an entry never falls back to an enclosing
-	 * namespace. It is `null` when the directive names none: the attribute has
-	 * no value or an empty one, its JSON object holds no string `namespace`, or
-	 * the namespace is `__proto__`, `constructor` or `prototype`. Only
-	 * `data-wp-html` reads it, as the client resolves every directive.
+	 * Unlike the namespace stack, the entry of an element that carries the
+	 * attribute named exactly `data-wp-interactive` never falls back to an
+	 * enclosing namespace. It is `null` when the attribute names none: it has no
+	 * value or an empty one, its JSON object holds no string `namespace`, or the
+	 * namespace is `__proto__`, `constructor` or `prototype`. An element with
+	 * only suffixed or unique-ID entries is no island, so its entry repeats the
+	 * enclosing one. Only `data-wp-html` reads it, as the client resolves every
+	 * directive.
 	 *
 	 * @since 7.2.0
 	 * @var array<string|null>|null
@@ -1173,7 +1176,16 @@ final class WP_Interactivity_API {
 			? $new_namespace
 			: end( $this->namespace_stack );
 
-		// The client reads a JSON object only when the value starts with `{`, and keeps any other value as given.
+		/*
+		 * Only the attribute named exactly `data-wp-interactive` makes an island,
+		 * so an element with only suffixed or unique-ID entries keeps the
+		 * enclosing island's namespace. The client reads a JSON object only when
+		 * the value starts with `{`, and keeps any other value as given.
+		 */
+		if ( null === $attribute_value ) {
+			$this->island_namespace_stack[] = array_last( $this->island_namespace_stack );
+			return;
+		}
 		$island_namespace = is_string( $attribute_value ) ? $attribute_value : null;
 		if ( is_array( $decoded_json ) && 1 === preg_match( '/^\s*\{/', $attribute_value ) ) {
 			$island_namespace = is_string( $decoded_json['namespace'] ?? null ) ? $decoded_json['namespace'] : null;

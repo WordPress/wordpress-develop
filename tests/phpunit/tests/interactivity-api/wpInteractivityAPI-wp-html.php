@@ -557,6 +557,29 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an element whose only `data-wp-interactive` directive has a
+	 * unique ID is not an island, so a host inside it resolves its reference
+	 * in the enclosing namespace.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_host_under_a_unique_id_interactive_directive_keeps_the_enclosing_namespace() {
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		$output = wp_interactivity_process_directives(
+			$this->page( '<div data-wp-interactive---x><p data-wp-html="state.html">Fallback</p></div>' )
+		);
+
+		$this->assertSame(
+			$this->processed_page( '<div data-wp-interactive---x><p data-wp-html="state.html">' . self::MARKER_HTML . '</p></div>' ),
+			$output
+		);
+		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
+	}
+
+	/**
 	 * Tests that a directive the client cannot combine with `data-wp-html`
 	 * makes the element render as if it had no `data-wp-html` directive, with
 	 * one notice naming that directive, and without resolving the reference.
