@@ -566,9 +566,9 @@ class WP_Ability {
 	 * Coerces validated input to the types declared in the input schema.
 	 *
 	 * Also applies schema format sanitization, such as stripping tags for
-	 * `text-field` and sanitizing URLs for `uri`, using rest_sanitize_value_from_schema().
+	 * `text-field` and sanitizing URLs for `uri`, using `rest_sanitize_value_from_schema()`.
 	 *
-	 * Call validate_input() before this method. Coercing unvalidated input can
+	 * Call `validate_input()` before this method. Coercing unvalidated input can
 	 * remove unknown properties or cast invalid values, hiding validation errors.
 	 * This method does not apply defaults or run input validation filters.
 	 *
@@ -577,10 +577,10 @@ class WP_Ability {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @see validate_input()
+	 * @see WP_Ability::validate_input()
 	 *
 	 * @param mixed $input Validated ability input.
-	 * @return mixed|WP_Error Coerced input, or WP_Error when it cannot be safely coerced.
+	 * @return mixed|WP_Error Coerced input, or `WP_Error` when it cannot be safely coerced.
 	 */
 	public function coerce_input( $input ) {
 		$schema = $this->get_input_schema();
