@@ -596,7 +596,7 @@ class Tests_Blocks_RenderPostNavigationLink extends WP_UnitTestCase {
 					),
 				),
 				'has-background',
-				"background-image:url('https://example.org/a.jpg');background-attachment:fixed;background-size:cover;",
+				"background-image:url('https://example.org/a.jpg');background-size:cover;background-attachment:fixed;",
 			),
 			'a gradient'                                   => array( array( 'style' => array( 'background' => array( 'gradient' => 'linear-gradient(red,blue)' ) ) ), 'has-background', 'background-image:linear-gradient(red,blue);' ),
 			'the minimum dimensions'                       => array(
