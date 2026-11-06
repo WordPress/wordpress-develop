@@ -16,7 +16,9 @@ class Tests_Diff_WpTextDiffRendererInline extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-		require_once ABSPATH . WPINC . '/wp-diff.php';
+		require_once ABSPATH . WPINC . '/Text/Diff/Renderer.php';
+		require_once ABSPATH . WPINC . '/Text/Diff/Renderer/inline.php';
+		require_once ABSPATH . WPINC . '/class-wp-text-diff-renderer-inline.php';
 	}
 
 	public function set_up() {
