@@ -147,7 +147,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInformationFooter_Test extends 
 			}
 		);
 
-		// The headers have been sent by the output of the tests. Other errors are left to the handler of the tests.
+		// The headers have been sent by the output of the tests. Every other error is passed to the handler of the tests.
 		$previous_handler = set_error_handler(
 			static function ( $errno, $errstr, $errfile, $errline ) use ( &$previous_handler ) {
 				if ( str_contains( $errstr, 'headers already sent' ) ) {
@@ -156,7 +156,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInformationFooter_Test extends 
 
 				return $previous_handler ? $previous_handler( $errno, $errstr, $errfile, $errline ) : false;
 			},
-			E_WARNING
+			E_ALL
 		);
 
 		ob_start();
