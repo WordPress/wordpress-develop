@@ -159,4 +159,25 @@ test.describe( 'Media library', () => {
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeHidden();
 	} );
+
+	test( 'shows an empty result when searching for missing media', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		// Ensure the library is not empty so ignoring search cannot vacuously pass.
+		await upload( requestUtils, 'present' );
+		const missing = `${ prefix }-missing-${ randomUUID() }`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( missing ) }`
+		);
+		await expect(
+			page.getByRole( 'cell', {
+				name: 'No media files found.',
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
 } );
