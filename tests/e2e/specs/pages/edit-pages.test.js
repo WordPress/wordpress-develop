@@ -103,7 +103,7 @@ test.describe( 'Edit Pages', () => {
 		await expect( row ).toBeVisible();
 		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
-			.getByRole( 'button', {
+			.getByRole( 'link', {
 				name: `Move “${ title }” to the Trash`,
 				exact: true,
 			} )
