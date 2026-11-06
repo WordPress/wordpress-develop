@@ -3311,6 +3311,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				 * some .mp3 files produced by mobile recorders) is frequently detected as
 				 * video/mp4. Allow these known audio-in-video-container confusions rather
 				 * than rejecting a legitimate audio file whose major types don't match.
+				 * Also allow `video/3gpp`, as a RFC 3839 specification-compliant container
+				 * for audio-only content.
 				 */
 				$cross_container_types = array(
 					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
