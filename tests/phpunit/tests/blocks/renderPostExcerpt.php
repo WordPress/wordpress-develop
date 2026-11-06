@@ -258,7 +258,10 @@ class Tests_Blocks_RenderPostExcerpt extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '">Read <strong>more</strong></a>', $output );
+		// Only the tag of the script is checked, because what happens to its text depends on the filter of the content.
+		$this->assertStringContainsString( '">Read <strong>more</strong>', $output, 'The allowed markup should be kept.' );
+		$this->assertStringNotContainsString( '<script', $output, 'The script should be removed.' );
+		$this->assertStringEndsWith( '</a></p></div>', $output, 'The link should be closed.' );
 	}
 
 	/**
