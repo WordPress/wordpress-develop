@@ -125,13 +125,36 @@ jobs:
       db-version: ${{ matrix.db-version }}
       memcached: ${{ matrix.memcached }}
 
+  # Tests the local Docker environment with PHP 8.6.
+  #
+  # The number of testing combinations is intentionally limited because PHP 8.6 is still in beta/RC.
+  # Memcached is not tested because the PHP 8.6 container does not include the extension yet.
+  pre-release-php-8-6:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: [ '8.6' ]
+        db-version: [ '9.7' ]
+
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: 'mysql'
+      db-version: ${{ matrix.db-version }}
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
-    needs: [ build-test-matrix, environment-tests-mysql ]
+    needs: [ build-test-matrix, environment-tests-mysql, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
