@@ -163,6 +163,26 @@ for ( const { taxonomy, endpoint, label } of [
 			expect( terms ).toEqual( [] );
 		} );
 
+		test( 'shows an empty result when searching for a missing term', async ( {
+			admin,
+			page,
+		} ) => {
+			const missing = `${ prefix }-missing-${ randomUUID().slice( 0, 8 ) }`;
+			await admin.visitAdminPage(
+				'/edit-tags.php',
+				`taxonomy=${ taxonomy }&s=${ encodeURIComponent( missing ) }`
+			);
+			await expect(
+				page.getByRole( 'cell', {
+					name:
+						taxonomy === 'category'
+							? 'No categories found.'
+							: 'No tags found.',
+					exact: true,
+				} )
+			).toBeVisible();
+		} );
+
 		if ( taxonomy === 'category' ) {
 			test( 'adds a category with a parent', async ( {
 				admin,
@@ -209,6 +229,80 @@ for ( const { taxonomy, endpoint, label } of [
 				} );
 				expect( terms ).toHaveLength( 1 );
 				expect( terms[ 0 ].parent ).toBe( parent.id );
+			} );
+
+			test( 'bulk deleting categories leaves Uncategorized untouched', async ( {
+				admin,
+				page,
+				requestUtils,
+			} ) => {
+				const first = await createTerm( requestUtils, 'bulk-one' );
+				const second = await createTerm( requestUtils, 'bulk-two' );
+				// Default category has no delete checkbox and must survive bulk removal.
+				const defaults = await requestUtils.rest( {
+					path: '/wp/v2/categories',
+					params: { slug: 'uncategorized' },
+				} );
+				expect( defaults ).toHaveLength( 1 );
+				const uncategorizedId = defaults[ 0 ].id;
+
+				await admin.visitAdminPage(
+					'/edit-tags.php',
+					`taxonomy=category&s=${ prefix }`
+				);
+				await page
+					.locator( `#tag-${ first.id }` )
+					.getByRole( 'checkbox' )
+					.check();
+				await page
+					.locator( `#tag-${ second.id }` )
+					.getByRole( 'checkbox' )
+					.check();
+				await page
+					.locator( '#bulk-action-selector-top' )
+					.selectOption( 'delete' );
+				await Promise.all( [
+					page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
+						await dialog.accept();
+						expect( dialog.type() ).toBe( 'confirm' );
+					} ),
+					page.locator( '#doaction' ).click(),
+				] );
+
+				await expect(
+					page.locator( `#tag-${ first.id }` )
+				).toBeHidden();
+				await expect(
+					page.locator( `#tag-${ second.id }` )
+				).toBeHidden();
+
+				await admin.visitAdminPage(
+					'/edit-tags.php',
+					'taxonomy=category'
+				);
+				await expect(
+					page.locator( `#tag-${ uncategorizedId }` )
+				).toBeVisible();
+				await expect(
+					page
+						.locator( `#tag-${ uncategorizedId }` )
+						.getByRole( 'link', {
+							name: 'Uncategorized',
+							exact: true,
+						} )
+				).toBeVisible();
+				await expect(
+					page
+						.locator( `#tag-${ uncategorizedId }` )
+						.getByRole( 'checkbox' )
+				).toHaveCount( 0 );
+
+				const remaining = await requestUtils.rest( {
+					path: '/wp/v2/categories',
+					params: { include: [ uncategorizedId ] },
+				} );
+				expect( remaining ).toHaveLength( 1 );
+				expect( remaining[ 0 ].id ).toBe( uncategorizedId );
 			} );
 		}
 	} );
