@@ -159,4 +159,44 @@ test.describe( 'Media library', () => {
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeHidden();
 	} );
+
+	test( 'searches for an existing image', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'search' );
+		const title = `${ prefix }-search`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( title ) }`
+		);
+		const row = page.locator( `#post-${ id }` );
+		await expect( row ).toBeVisible();
+		await expect(
+			row.getByRole( 'link', { name: title, exact: true } )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for missing media', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		// Ensure the library is not empty so ignoring search cannot vacuously pass.
+		await upload( requestUtils, 'present' );
+		const missing = `${ prefix }-missing-${ randomUUID() }`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( missing ) }`
+		);
+		await expect(
+			page.getByRole( 'cell', {
+				name: 'No media files found.',
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
 } );
