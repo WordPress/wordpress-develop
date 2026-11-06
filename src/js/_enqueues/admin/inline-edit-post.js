@@ -221,7 +221,7 @@ window.wp = window.wp || {};
 					theTitle = $( '#inline_' + id + ' .post_title' ).html() || wp.i18n.__( '(no title)' ),
 					buttonVisuallyHiddenText = wp.i18n.sprintf(
 						/* translators: %s: Post title. */
-						wp.i18n.__( 'Remove &#8220;%s&#8221; from Bulk Edit' ),
+						wp.i18n.__( 'Remove “%s” from Bulk Edit' ),
 						theTitle
 					);
 
