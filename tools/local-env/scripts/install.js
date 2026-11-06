@@ -1,7 +1,5 @@
 /* jshint node:true */
 
-const dotenv       = require( 'dotenv' );
-const dotenvExpand = require( 'dotenv-expand' );
 const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
 const { readFileSync, writeFileSync } = require( 'fs' );
@@ -9,7 +7,7 @@ const local_env_utils = require( './utils' );
 
 local_env_utils.ensure_env_file();
 
-dotenvExpand.expand( dotenv.config() );
+local_env_utils.load_env();
 
 // Create wp-config.php. This verifies the database connection, so retrying it keeps
 // `env:install` working on its own, without `env:start` having waited for the mysql
