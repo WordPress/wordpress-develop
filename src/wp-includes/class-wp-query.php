@@ -681,6 +681,7 @@ class WP_Query {
 	 * @since 5.3.0 Introduced the `$meta_type_key` parameter.
 	 * @since 6.1.0 Introduced the `$update_menu_item_cache` parameter.
 	 * @since 6.2.0 Introduced the `$search_columns` parameter.
+	 * @since 7.3.0 The `$fields` parameter accepts an array of post field names.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or string of Query parameters.
@@ -707,11 +708,15 @@ class WP_Query {
 	 *                                                   See WP_Date_Query::__construct().
 	 *     @type int             $day                    Day of the month. Default empty. Accepts numbers 1-31.
 	 *     @type bool            $exact                  Whether to search by exact keyword. Default false.
-	 *     @type string          $fields                 Post fields to query for. Accepts:
+	 *     @type string|string[] $fields                 Post fields to query for. Accepts:
 	 *                                                   - '' Returns an array of complete post objects (`WP_Post[]`).
 	 *                                                   - 'ids' Returns an array of post IDs (`int[]`).
 	 *                                                   - 'id=>parent' Returns an associative array of parent post IDs,
 	 *                                                     keyed by post ID (`int[]`).
+	 *                                                   - An array of post field names. Returns an array of partial post
+	 *                                                     objects (`WP_Post[]`) with only those fields and 'ID' loaded.
+	 *                                                     Fields that are not loaded are empty, and the partial post
+	 *                                                     objects are not added to the post cache.
 	 *                                                   Default ''.
 	 *     @type int             $hour                   Hour of the day. Default empty. Accepts numbers 0-23.
 	 *     @type int|bool        $ignore_sticky_posts    Whether to ignore sticky posts or not. Setting this to false
@@ -2081,6 +2086,13 @@ class WP_Query {
 				// Falls through.
 			default:
 				$fields = "{$wpdb->posts}.*";
+
+				if ( is_array( $query_vars['fields'] ) ) {
+					$post_fields = array( 'ID', 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_excerpt', 'post_status', 'comment_status', 'ping_status', 'post_password', 'post_name', 'to_ping', 'pinged', 'post_modified', 'post_modified_gmt', 'post_content_filtered', 'post_parent', 'guid', 'menu_order', 'post_type', 'post_mime_type', 'comment_count' );
+					$post_fields = array_intersect( $post_fields, array_merge( array( 'ID' ), $query_vars['fields'] ) );
+
+					$fields = "{$wpdb->posts}." . implode( ", {$wpdb->posts}.", $post_fields );
+				}
 		}
 
 		if ( '' !== $query_vars['menu_order'] ) {
@@ -3649,7 +3661,7 @@ class WP_Query {
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
-			if ( $query_vars['cache_results'] ) {
+			if ( $query_vars['cache_results'] && ! is_array( $query_vars['fields'] ) ) {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
 					update_post_caches( $this->posts, $post_type, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
 				} else {
