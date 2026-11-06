@@ -111,7 +111,7 @@ class Tests_Admin_Includes_Plugin_GetPlugins extends WP_UnitTestCase {
 		$this->write_file( "{$this->prefix}/no-header.php", "<?php\n// Not a plugin.\n" );
 		$this->write_file( "{$this->prefix}/readme.txt", "Plugin Name: Text File\n" );
 		$this->write_plugin( "{$this->prefix}/.hidden.php", 'Hidden File' );
-		$this->write_plugin( "{$this->prefix}-dir/.hidden/plugin.php", 'Hidden Folder' );
+		$this->write_plugin( ".{$this->prefix}-folder/plugin.php", 'Hidden Folder' );
 		$this->write_plugin( ".{$this->prefix}.php", 'Hidden Single File' );
 		$this->write_file( "{$this->prefix}.txt", "<?php\n/**\n * Plugin Name: Text File In The Plugins Directory\n */\n" );
 
@@ -154,9 +154,10 @@ class Tests_Admin_Includes_Plugin_GetPlugins extends WP_UnitTestCase {
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_should_sort_the_plugins_by_name() {
-		$this->write_plugin( "{$this->prefix}/zeta.php", "{$this->prefix} Zeta" );
-		$this->write_plugin( "{$this->prefix}/alpha.php", "{$this->prefix} Alpha" );
-		$this->write_plugin( "{$this->prefix}/middle.php", "{$this->prefix} Middle" );
+		// The order of the names is not the order of the files.
+		$this->write_plugin( "{$this->prefix}/a.php", "{$this->prefix} Zeta" );
+		$this->write_plugin( "{$this->prefix}/b.php", "{$this->prefix} Alpha" );
+		$this->write_plugin( "{$this->prefix}/c.php", "{$this->prefix} Middle" );
 
 		$files = array_values(
 			array_filter(
@@ -168,7 +169,7 @@ class Tests_Admin_Includes_Plugin_GetPlugins extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( "{$this->prefix}/alpha.php", "{$this->prefix}/middle.php", "{$this->prefix}/zeta.php" ),
+			array( "{$this->prefix}/b.php", "{$this->prefix}/c.php", "{$this->prefix}/a.php" ),
 			$files
 		);
 	}
