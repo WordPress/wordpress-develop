@@ -179,9 +179,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$show_autoupdates = new ReflectionProperty( $list_table, 'show_autoupdates' );
 
 		if ( PHP_VERSION_ID < 80100 ) {
-			if ( PHP_VERSION_ID < 80100 ) {
-				$show_autoupdates->setAccessible( true );
-			}
+			$show_autoupdates->setAccessible( true );
 		}
 		$actual = $show_autoupdates->getValue( $list_table );
 		if ( PHP_VERSION_ID < 80100 ) {
