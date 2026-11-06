@@ -853,6 +853,96 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a call made while another call is processing returns its own
+	 * processed markup, and that the other call then completes as without it:
+	 * every host holds its token's HTML, and the directives after the nested
+	 * call resolve in the namespace and context in effect there.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_ways_to_make_a_nested_call
+	 *
+	 * @param callable $make_value Callable that receives a callable making the nested call, and
+	 *                             returns the value of `state.inner` whose `markup` is its result.
+	 */
+	public function test_nested_call_keeps_the_outer_call_processing( callable $make_value ) {
+		$this->set_state(
+			array(
+				'html'  => $this->token(),
+				'inner' => $make_value(
+					static function () {
+						return wp_interactivity_process_directives( '<i data-wp-interactive="test" data-wp-html="state.html">Inner</i>' );
+					}
+				),
+			)
+		);
+		$host = '<p data-wp-html="state.html">Fallback</p>';
+
+		$output = wp_interactivity_process_directives(
+			'<div data-wp-interactive="test" data-wp-context=\'{"id":"outer"}\'>' . $host .
+			'<span data-wp-text="state.inner.markup">x</span>' . $host .
+			'<b data-wp-bind--title="context.id">z</b></div>'
+		);
+
+		$rendered = '<p data-wp-html="state.html">' . self::MARKER_HTML . '</p>';
+		$this->assertSame(
+			'<div data-wp-interactive="test" data-wp-context=\'{"id":"outer"}\'>' . $rendered .
+			'<span data-wp-text="state.inner.markup">' . esc_html( '<i data-wp-interactive="test" data-wp-html="state.html">' . self::MARKER_HTML . '</i>' ) . '</span>' . $rendered .
+			'<b title="outer" data-wp-bind--title="context.id">z</b></div>',
+			$output
+		);
+		$this->assertStringNotContainsString( 'wp-interactivity-dangerous-html', $output, 'Expected no placeholder to be left.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: callable }> Data provider.
+	 */
+	public static function data_ways_to_make_a_nested_call(): array {
+		return array(
+			'derived-state closure'            => array(
+				static function ( callable $render ) {
+					return static function () use ( $render ) {
+						return array( 'markup' => $render() );
+					};
+				},
+			),
+			'state value read during the call' => array(
+				function ( callable $render ) {
+					return new class( $render ) implements ArrayAccess {
+						/**
+						 * Makes the nested call.
+						 *
+						 * @var callable
+						 */
+						private $render;
+
+						public function __construct( callable $render ) {
+							$this->render = $render;
+						}
+
+						public function offsetExists( $offset ): bool {
+							return 'markup' === $offset;
+						}
+
+						#[ReturnTypeWillChange]
+						public function offsetGet( $offset ) {
+							return ( $this->render )();
+						}
+
+						public function offsetSet( $offset, $value ): void {}
+
+						public function offsetUnset( $offset ): void {}
+					};
+				},
+			),
+		);
+	}
+
+	/**
 	 * Tests that inside `data-wp-each` each item renders the HTML its reference
 	 * resolves to, with the item in context, and only the item's top-level
 	 * element is marked.

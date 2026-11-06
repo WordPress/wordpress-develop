@@ -180,7 +180,8 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Marker that makes the placeholders of the current `process_directives()`
-	 * call recognizable. It occurs nowhere in the HTML that call received.
+	 * call recognizable. It occurs nowhere in the HTML that call received, and
+	 * it differs from the marker of any call that the current one runs inside.
 	 *
 	 * @since 7.2.0
 	 * @var string
@@ -510,6 +511,9 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @since 7.2.0 The output includes the trusted HTML that `data-wp-html` renders. That HTML is
 	 *              added once the whole call has finished, so it is never processed.
+	 * @since 7.2.0 It can be called while another call is processing, as from a derived-state
+	 *              closure that renders markup. That call processes its HTML on its own, and the
+	 *              processing of the other call continues as before it once it returns.
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
@@ -519,32 +523,49 @@ final class WP_Interactivity_API {
 			return $html;
 		}
 
+		$caller_state = array(
+			$this->namespace_stack,
+			$this->island_namespace_stack,
+			$this->context_stack,
+			$this->current_element,
+			$this->html_placeholder_marker,
+			$this->html_placeholders,
+		);
+
 		$this->namespace_stack        = array();
 		$this->island_namespace_stack = array();
 		$this->context_stack          = array();
+		$this->current_element        = null;
 
 		/*
 		 * The trusted HTML of `data-wp-html` hosts never takes part in the
 		 * processing: each host receives a placeholder comment, and the comments
 		 * are replaced by their HTML once the result is known. The marker that
 		 * identifies them is chosen so that it occurs nowhere in the input, which
-		 * makes it impossible for the input to contain a placeholder.
+		 * makes it impossible for the input to contain a placeholder. It is also
+		 * longer than the marker of any call this one runs inside, so their
+		 * placeholders never coincide.
 		 */
-		$marker = 'wp-interactivity-dangerous-html';
+		$marker = '' === $this->html_placeholder_marker ? 'wp-interactivity-dangerous-html' : $this->html_placeholder_marker . '_';
 		while ( str_contains( $html, $marker ) ) {
 			$marker .= '_';
 		}
 		$this->html_placeholder_marker = $marker;
 		$this->html_placeholders       = array();
 
-		$result = $this->_process_directives( $html );
-
-		$this->namespace_stack        = null;
-		$this->island_namespace_stack = null;
-		$this->context_stack          = null;
-
-		$placeholders            = $this->html_placeholders;
-		$this->html_placeholders = array();
+		try {
+			$result       = $this->_process_directives( $html );
+			$placeholders = $this->html_placeholders;
+		} finally {
+			list(
+				$this->namespace_stack,
+				$this->island_namespace_stack,
+				$this->context_stack,
+				$this->current_element,
+				$this->html_placeholder_marker,
+				$this->html_placeholders
+			) = $caller_state;
+		}
 
 		if ( null === $result ) {
 			return $html;
@@ -559,7 +580,7 @@ final class WP_Interactivity_API {
 	 * and updates the markup accordingly.
 	 *
 	 * It uses the WP_Interactivity_API instance's context and namespace stacks,
-	 * which are shared between all calls.
+	 * which every call made during one `process_directives()` call shares.
 	 *
 	 * This method returns null if the HTML contains unbalanced tags.
 	 *
