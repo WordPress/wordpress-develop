@@ -1480,6 +1480,22 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 	// Ensure HTML tags are not being used to bypass the list of disallowed characters and words.
 	$comment_without_html = wp_strip_all_tags( $comment );
 
+	$fields = array( $author, $email, $url, $comment, $comment_without_html, $user_ip, $user_agent );
+
+	/*
+	 * Also check NFKC-normalized copies, so that compatibility characters
+	 * (e.g. mathematical bold or fullwidth letters) that browsers map to ASCII
+	 * in hostnames cannot be used to bypass the list.
+	 */
+	if ( class_exists( 'Normalizer' ) ) {
+		foreach ( $fields as $field ) {
+			$normalized = Normalizer::normalize( $field, Normalizer::FORM_KC );
+			if ( false !== $normalized && $normalized !== $field ) {
+				$fields[] = $normalized;
+			}
+		}
+	}
+
 	$words = explode( "\n", $mod_keys );
 
 	foreach ( (array) $words as $word ) {
@@ -1487,21 +1503,16 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 
 		// Skip empty lines.
 		if ( empty( $word ) ) {
-			continue; }
+			continue;
+		}
 
 		// Do some escaping magic so that '#' chars in the spam words don't break things:
-		$word = preg_quote( $word, '#' );
+		$pattern = '#' . preg_quote( $word, '#' ) . '#iu';
 
-		$pattern = "#$word#iu";
-		if ( preg_match( $pattern, $author )
-			|| preg_match( $pattern, $email )
-			|| preg_match( $pattern, $url )
-			|| preg_match( $pattern, $comment )
-			|| preg_match( $pattern, $comment_without_html )
-			|| preg_match( $pattern, $user_ip )
-			|| preg_match( $pattern, $user_agent )
-		) {
-			return true;
+		foreach ( $fields as $field ) {
+			if ( preg_match( $pattern, $field ) ) {
+				return true;
+			}
 		}
 	}
 	return false;
