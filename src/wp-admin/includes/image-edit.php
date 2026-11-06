@@ -565,7 +565,7 @@ function _rotate_image_resource( $img, $angle ) {
  * Flips an image resource. Internal use only.
  *
  * @since 2.9.0
- * @since 7.2.0 Uses imageflip() instead of imagecopyresampled() with negative dimensions.
+ * @since 7.2.0 Switched to using imageflip() instead of imagecopyresampled() with negative dimensions.
  * @deprecated 3.5.0 Use WP_Image_Editor::flip()
  * @see WP_Image_Editor::flip()
  *
@@ -590,6 +590,16 @@ function _flip_image_resource( $img, $horz, $vert ) {
 	// Match the alpha settings of the previous implementation's copy, including when no axis is flipped.
 	imagealphablending( $img, false );
 	imagesavealpha( $img, true );
+
+	/*
+	 * imageflip() changes the image in place, so the image keeps its current resolution and interlace setting.
+	 * _rotate_image_resource() and _crop_image_resource() copy into a new image, which resets them to GD's defaults:
+	 * 96 DPI and no interlacing. Reset them here too, so a flip gives the same result as the other edits.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/66113
+	 */
+	imageresolution( $img, 96, 96 );
+	imageinterlace( $img, false );
 
 	if ( ! $horz && ! $vert ) {
 		return $img;

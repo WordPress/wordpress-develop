@@ -1277,6 +1277,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests that _flip_image_resource() returns a truecolor image for a palette image.
 	 *
 	 * The previous implementation always copied into a new truecolor image.
+	 * A small palette image with a distinct color per pixel is used, so every
+	 * pixel can be checked at its mirrored position.
 	 *
 	 * @ticket 66113
 	 *
@@ -1294,29 +1296,40 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_flip_image_resource_converts_palette_image_to_truecolor( $horz, $vert ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$image = imagecreatefromgif( DIR_TESTDATA . '/images/test-image.gif' );
-		$w     = imagesx( $image );
-		$h     = imagesy( $image );
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
 
-		$this->assertFalse( imageistruecolor( $image ), 'The fixture should be a palette image.' );
+		$image = imagecreate( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$rgb = $color( $x, $y );
+				imagesetpixel( $image, $x, $y, imagecolorallocate( $image, ( $rgb >> 16 ) & 0xFF, ( $rgb >> 8 ) & 0xFF, $rgb & 0xFF ) );
+			}
+		}
 
-		$top_left    = imagecolorsforindex( $image, imagecolorat( $image, 0, 0 ) );
-		$bottom_left = imagecolorsforindex( $image, imagecolorat( $image, 0, $h - 1 ) );
+		$this->assertFalse( imageistruecolor( $image ), 'The test image should be a palette image.' );
 
 		$flipped = _flip_image_resource( $image, $horz, $vert );
 
 		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
 
-		$target_x = $vert ? $w - 1 : 0;
-		$target_y = $horz ? $h - 1 : 0;
-		$expected = ( $top_left['alpha'] << 24 ) | ( $top_left['red'] << 16 ) | ( $top_left['green'] << 8 ) | $top_left['blue'];
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
 
-		$this->assertSame( $expected, imagecolorat( $flipped, $target_x, $target_y ), 'The top-left pixel did not move to its mirrored position.' );
-
-		$target_y = $horz ? 0 : $h - 1;
-		$expected = ( $bottom_left['alpha'] << 24 ) | ( $bottom_left['red'] << 16 ) | ( $bottom_left['green'] << 8 ) | $bottom_left['blue'];
-
-		$this->assertSame( $expected, imagecolorat( $flipped, $target_x, $target_y ), 'The bottom-left pixel did not move to its mirrored position.' );
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
 	}
 
 	/**
@@ -1355,6 +1368,39 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 
 		$this->assertSame( 64, ( imagecolorat( $reloaded, 0, 0 ) >> 24 ) & 0x7F, 'The alpha channel should be kept when saving as PNG.' );
+	}
+
+	/**
+	 * Tests that _flip_image_resource() resets the resolution and interlace setting to GD's defaults.
+	 *
+	 * The previous implementation always copied into a new image, which starts
+	 * at 96 DPI with interlacing disabled, like _rotate_image_resource() and
+	 * _crop_image_resource().
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_resets_resolution_and_interlace( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$image = imagecreatetruecolor( 3, 2 );
+		imageresolution( $image, 300, 150 );
+		imageinterlace( $image, true );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
+		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
 	}
 }
 

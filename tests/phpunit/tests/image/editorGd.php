@@ -595,7 +595,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @dataProvider data_flip_moves_every_pixel
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
 	 *
 	 * @param bool $horz Whether to flip along the horizontal axis.
 	 * @param bool $vert Whether to flip along the vertical axis.
@@ -658,11 +660,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_flip_moves_every_pixel().
+	 * Data provider with every combination of flip axes.
 	 *
 	 * @return array[]
 	 */
-	public static function data_flip_moves_every_pixel() {
+	public static function data_flip_axes() {
 		return array(
 			'no flip'         => array( false, false ),
 			'vertical flip'   => array( true, false ),
@@ -676,7 +678,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @dataProvider data_flip_moves_every_pixel
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
 	 *
 	 * @param bool $horz Whether to flip along the horizontal axis.
 	 * @param bool $vert Whether to flip along the vertical axis.
@@ -707,8 +711,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * @ticket 66113
 	 *
 	 * @dataProvider data_maybe_exif_rotate_flips_image
-	 *
-	 * @requires function exif_read_data
 	 *
 	 * @covers WP_Image_Editor::maybe_exif_rotate
 	 * @covers WP_Image_Editor_GD::flip
@@ -796,7 +798,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @dataProvider data_flip_moves_every_pixel
+	 * @dataProvider data_flip_axes
 	 *
 	 * @covers WP_Image_Editor_GD::flip
 	 *
@@ -856,8 +858,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @requires function imagewebp
-	 *
 	 * @covers WP_Image_Editor_GD::flip
 	 * @covers WP_Image_Editor_GD::save
 	 */
@@ -895,7 +895,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @dataProvider data_flip_moves_every_pixel
+	 * @dataProvider data_flip_axes
 	 *
 	 * @covers WP_Image_Editor_GD::flip
 	 *
@@ -1018,7 +1018,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 66113
 	 *
-	 * @dataProvider data_flip_moves_every_pixel
+	 * @dataProvider data_flip_axes
 	 *
 	 * @covers WP_Image_Editor_GD::flip
 	 *
@@ -1041,6 +1041,42 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 0, 0, 0, 127 ) );
 
 		$this->assertSame( 127, ( imagecolorat( $image, 0, 0 ) >> 24 ) & 0x7F, 'Alpha blending should be disabled after flipping.' );
+	}
+
+	/**
+	 * Tests that flip() resets the resolution and interlace setting to GD's defaults.
+	 *
+	 * The previous implementation always copied into a new image, which starts
+	 * at 96 DPI with interlacing disabled, like rotate(), crop() and resize().
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_resets_resolution_and_interlace( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$property = new ReflectionProperty( $gd_image_editor, 'image' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		$image = $property->getValue( $gd_image_editor );
+
+		imageresolution( $image, 300, 150 );
+		imageinterlace( $image, true );
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $property->getValue( $gd_image_editor );
+
+		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
+		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
 	}
 
 	/**

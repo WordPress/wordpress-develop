@@ -432,7 +432,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Flips current image.
 	 *
 	 * @since 3.5.0
-	 * @since 7.2.0 Uses imageflip() instead of imagecopyresampled() with negative dimensions.
+	 * @since 7.2.0 Switched to using imageflip() instead of imagecopyresampled() with negative dimensions.
 	 *
 	 * @param bool $horz Flip along Horizontal Axis.
 	 * @param bool $vert Flip along Vertical Axis.
@@ -460,6 +460,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		 */
 		imagealphablending( $this->image, false );
 		imagesavealpha( $this->image, true );
+
+		/*
+		 * imageflip() changes the image in place, so the image keeps its current resolution and interlace setting.
+		 * rotate(), crop() and resize() copy into a new image, which resets them to GD's defaults: 96 DPI and no
+		 * interlacing. Reset them here too, so a flip gives the same result as the other edits.
+		 *
+		 * @link https://core.trac.wordpress.org/ticket/66113
+		 */
+		imageresolution( $this->image, 96, 96 );
+		imageinterlace( $this->image, false );
 
 		if ( ! $horz && ! $vert ) {
 			return true;
