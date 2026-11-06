@@ -4356,23 +4356,10 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( '', $data['password'] );
 	}
 
-	public function test_update_post_with_password_and_sticky_fails() {
-		wp_set_current_user( self::$editor_id );
-
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
-		$params  = $this->set_post_data(
-			array(
-				'password' => '123',
-				'sticky'   => true,
-			)
-		);
-		$request->set_body_params( $params );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_invalid_field', $response, 400 );
-	}
-
-	public function test_update_stick_post_with_password_fails() {
+	/**
+	 * @ticket 64810
+	 */
+	public function test_update_stick_post_with_password_succeeds() {
 		wp_set_current_user( self::$editor_id );
 
 		stick_post( self::$post_id );
@@ -4386,10 +4373,15 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_field', $response, 400 );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '123', get_post( self::$post_id )->post_password );
+		$this->assertTrue( is_sticky( self::$post_id ) );
 	}
 
-	public function test_update_password_protected_post_with_sticky_fails() {
+	/**
+	 * @ticket 64810
+	 */
+	public function test_update_password_protected_post_with_sticky_succeeds() {
 		wp_set_current_user( self::$editor_id );
 
 		wp_update_post(
@@ -4408,7 +4400,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_field', $response, 400 );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( is_sticky( self::$post_id ) );
 	}
 
 	public function test_update_post_with_quotes_in_title() {
