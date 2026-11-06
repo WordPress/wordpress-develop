@@ -320,9 +320,6 @@ function edit_post( $post_data = null ) {
 			case 'public':
 				$post_data['post_password'] = '';
 				break;
-			case 'password':
-				unset( $post_data['sticky'] );
-				break;
 			case 'private':
 				$post_data['post_status']   = 'private';
 				$post_data['post_password'] = '';
@@ -951,9 +948,6 @@ function wp_write_post() {
 		switch ( $_POST['visibility'] ) {
 			case 'public':
 				$_POST['post_password'] = '';
-				break;
-			case 'password':
-				unset( $_POST['sticky'] );
 				break;
 			case 'private':
 				$_POST['post_status']   = 'private';

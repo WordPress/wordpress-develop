@@ -1431,8 +1431,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	private function _toggle_sticky( $post_data, $update = false ) {
 		$post_type = get_post_type_object( $post_data['post_type'] );
 
-		// Private and password-protected posts cannot be stickied.
-		if ( 'private' === $post_data['post_status'] || ! empty( $post_data['post_password'] ) ) {
+		// Private posts cannot be stickied.
+		if ( 'private' === $post_data['post_status'] ) {
 			// Error if the client tried to stick the post, otherwise, silently unstick.
 			if ( ! empty( $post_data['sticky'] ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you cannot stick a private post.' ) );
