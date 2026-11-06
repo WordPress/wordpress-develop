@@ -881,7 +881,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		add_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10, 5 );
 
 		try {
-			$res = $this->wp_remote_head( 'https://wordpress.org/', array( 'sslverify' => false ) );
+			// Call the global directly: the intentional WP_Error from the capture
+			// callback must not go through retry_on_error()'s 5s sleeps.
+			$res = wp_remote_head( 'https://wordpress.org/', array( 'sslverify' => false ) );
 		} finally {
 			remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
 			remove_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10 );
