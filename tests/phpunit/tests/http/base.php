@@ -340,26 +340,22 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			return false;
 		}
 
-		$fixture = wp_parse_url( self::$file_stream_fixture_url );
-		$parts   = wp_parse_url( $url );
+		$fixture_host = wp_parse_url( self::$file_stream_fixture_url, PHP_URL_HOST );
+		$fixture_port = wp_parse_url( self::$file_stream_fixture_url, PHP_URL_PORT );
+		$host         = wp_parse_url( $url, PHP_URL_HOST );
+		$port         = wp_parse_url( $url, PHP_URL_PORT );
 
-		if ( ! is_array( $fixture ) || ! is_array( $parts ) ) {
-			return false;
-		}
-
-		if ( empty( $fixture['host'] ) || empty( $parts['host'] ) ) {
-			return false;
-		}
-
-		$fixture_port = isset( $fixture['port'] ) ? (int) $fixture['port'] : ( 'https' === ( $fixture['scheme'] ?? 'http' ) ? 443 : 80 );
-		$request_port = isset( $parts['port'] ) ? (int) $parts['port'] : ( 'https' === ( $parts['scheme'] ?? 'http' ) ? 443 : 80 );
-
-		return strtolower( $fixture['host'] ) === strtolower( $parts['host'] )
-			&& $fixture_port === $request_port;
+		return is_string( $fixture_host )
+			&& is_string( $host )
+			&& strtolower( $fixture_host ) === strtolower( $host )
+			&& (int) $fixture_port === (int) $port;
 	}
 
 	/**
 	 * Blocks redirects from the local fixture to non-fixture URLs.
+	 *
+	 * Defensive only: the current redirection fixture never leaves this host/port,
+	 * so this callback is not exercised by existing tests.
 	 *
 	 * @throws WpOrg\Requests\Exception When the redirect target leaves the fixture server.
 	 *
