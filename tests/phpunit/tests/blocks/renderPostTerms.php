@@ -396,6 +396,8 @@ class Tests_Blocks_RenderPostTerms extends WP_UnitTestCase {
 	 * @covers ::block_core_post_terms_build_variations
 	 */
 	public function test_should_put_the_built_in_taxonomies_first_and_make_the_category_the_default() {
+		global $wp_taxonomies;
+
 		register_taxonomy(
 			'wp_test_genre',
 			'post',
@@ -405,10 +407,19 @@ class Tests_Blocks_RenderPostTerms extends WP_UnitTestCase {
 			)
 		);
 
+		$original_taxonomies = $wp_taxonomies;
+
+		// Put the custom taxonomy first, so the order of the variations cannot come from the order of registration.
+		$wp_taxonomies = array_merge(
+			array( 'wp_test_genre' => $wp_taxonomies['wp_test_genre'] ),
+			$wp_taxonomies
+		);
+
 		try {
 			$variations = block_core_post_terms_build_variations();
 			$names      = wp_list_pluck( $variations, 'name' );
 
+			$this->assertSame( 'wp_test_genre', array_key_first( $wp_taxonomies ), 'The custom taxonomy should be registered first.' );
 			$this->assertLessThan( array_search( 'wp_test_genre', $names, true ), array_search( 'category', $names, true ), 'A built-in taxonomy should come before a custom one.' );
 			$this->assertLessThan( array_search( 'wp_test_genre', $names, true ), array_search( 'post_tag', $names, true ), 'A built-in taxonomy should come before a custom one.' );
 
@@ -420,6 +431,7 @@ class Tests_Blocks_RenderPostTerms extends WP_UnitTestCase {
 				}
 			}
 		} finally {
+			$wp_taxonomies = $original_taxonomies;
 			unregister_taxonomy( 'wp_test_genre' );
 		}
 	}
@@ -433,21 +445,25 @@ class Tests_Blocks_RenderPostTerms extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_callbacks() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-terms' );
+		$original_block = $registry->get_registered( 'core/post-terms' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-terms' );
 		}
 
-		register_block_core_post_terms();
-		$block_type = $registry->get_registered( 'core/post-terms' );
+		try {
+			register_block_core_post_terms();
+			$block_type = $registry->get_registered( 'core/post-terms' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_terms', $block_type->render_callback );
+			$this->assertSame( 'block_core_post_terms_build_variations', $block_type->variation_callback );
+		} finally {
 			unregister_block_type( 'core/post-terms' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_terms', $block_type->render_callback );
-		$this->assertSame( 'block_core_post_terms_build_variations', $block_type->variation_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
