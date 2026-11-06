@@ -45,11 +45,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-26.04, windows-2025 ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts once.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             directory: 'build'
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
     with:
@@ -100,7 +100,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
