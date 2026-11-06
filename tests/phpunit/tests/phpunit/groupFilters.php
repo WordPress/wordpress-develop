@@ -40,7 +40,7 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<int, array<int, string>>>
 	 */
-	public function data_group_argument_syntax() {
+	public static function data_group_argument_syntax() {
 		return array(
 			'spaced' => array( array( 'phpunit', '--group', 'ajax' ) ),
 			'equals' => array( array( 'phpunit', '--group=ajax' ) ),
