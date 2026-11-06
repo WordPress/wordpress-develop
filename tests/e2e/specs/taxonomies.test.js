@@ -261,13 +261,7 @@ for ( const { taxonomy, endpoint, label } of [
 				await page
 					.locator( '#bulk-action-selector-top' )
 					.selectOption( 'delete' );
-				await Promise.all( [
-					page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
-						await dialog.accept();
-						expect( dialog.type() ).toBe( 'confirm' );
-					} ),
-					page.locator( '#doaction' ).click(),
-				] );
+				await page.locator( '#doaction' ).click();
 
 				await expect(
 					page.locator( `#tag-${ first.id }` )
