@@ -686,6 +686,58 @@ function wp_secrets_provider_is_writable(): bool {
 }
 
 /**
+ * Whether the Secrets API can store and read secrets on this site.
+ *
+ * A plugin can check this before it moves a credential into the Secrets API, and
+ * keep its existing storage while it returns false:
+ *
+ *     if ( wp_is_secrets_api_available() ) {
+ *         // Move the credential, then use wp_set_secret() and wp_get_secret().
+ *     } else {
+ *         // Keep using the existing storage.
+ *     }
+ *
+ * Returns false when the secrets.php drop-in failed to load, or when the default
+ * keyring has no usable WP_SECRETS_KEY. A provider or keyring from a working drop-in
+ * manages its own keys, so it is reported as available. Its backend can still be
+ * unreachable on a given request, which each call reports as a WP_Error.
+ *
+ * Whether the provider accepts writes is a separate question. See
+ * wp_secrets_provider_is_writable().
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Secrets_Provider $wp_secrets_provider Optional. Provider override set by the drop-in.
+ *
+ * @return bool
+ */
+function wp_is_secrets_api_available(): bool {
+	if ( _wp_secrets_get_provider() instanceof WP_Secrets_Broken_Provider ) {
+		return false;
+	}
+
+	if ( isset( $GLOBALS['wp_secrets_provider'] ) ) {
+		return true;
+	}
+
+	$keyring = _wp_secrets_get_key_manager()->get_keyring();
+
+	if ( $keyring instanceof WP_Secrets_Broken_Keyring ) {
+		return false;
+	}
+
+	if ( $keyring instanceof WP_Secrets_Config_Key_Provider ) {
+		return in_array(
+			$keyring->get_key_status(),
+			array( WP_Secrets_Config_Key_Provider::KEY_STATUS_BASE64, WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY ),
+			true
+		);
+	}
+
+	return true;
+}
+
+/**
  * A human-readable description of what is protecting this site's secrets.
  *
  * For Site Health and a future admin screen. Never key material, never a value.
