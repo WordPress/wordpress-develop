@@ -1575,13 +1575,13 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		$entries = $this->get_client_directives( $p, 'html' );
-		if ( empty( $entries ) ) {
+		$directives = $this->get_client_directives( $p );
+		if ( empty( $directives['html'] ) ) {
 			return;
 		}
 
 		foreach ( array( 'text', 'each', 'router-region' ) as $conflicting_prefix ) {
-			if ( ! empty( $this->get_client_directives( $p, $conflicting_prefix ) ) ) {
+			if ( ! empty( $directives[ $conflicting_prefix ] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
@@ -1595,7 +1595,7 @@ final class WP_Interactivity_API {
 			}
 		}
 
-		$entries = array_filter( $entries, fn( $entry ) => null === $entry['suffix'] );
+		$entries = array_filter( $directives['html'], fn( $entry ) => null === $entry['suffix'] );
 		if ( empty( $entries ) ) {
 			return;
 		}
@@ -1667,34 +1667,36 @@ final class WP_Interactivity_API {
 	}
 
 	/**
-	 * Gets the directives with the given prefix on the current element that the
-	 * client keeps.
+	 * Gets the directives on the current element that the client keeps.
 	 *
 	 * The client drops a directive when a reserved word (`__proto__`,
-	 * `constructor` or `prototype`) is any `--`-separated part of its suffix or
-	 * its unique ID, ignoring case and leading and trailing dashes, or when its
-	 * value names a reserved word as its namespace.
+	 * `constructor` or `prototype`) is its prefix, any `--`-separated part of its
+	 * suffix or its unique ID, ignoring case and leading and trailing dashes, or
+	 * when its value names a reserved word as its namespace.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
-	 * @param string                                    $prefix The directive prefix, such as `html`.
-	 * @return array[] The directives, in the order of the element's attributes, with their raw values.
-	 * @phpstan-return list<array{
+	 * @param WP_Interactivity_API_Directives_Processor $p The directives processor instance.
+	 * @return array[] The directives by prefix, such as `html`, each in the order of the element's attributes,
+	 *                 with their raw values.
+	 * @phpstan-return array<non-empty-string, list<array{
 	 *     suffix: non-empty-string|null,
 	 *     unique_id: non-empty-string|null,
 	 *     value: string|true,
-	 * }>
+	 * }>>
 	 */
-	private function get_client_directives( WP_Interactivity_API_Directives_Processor $p, string $prefix ): array {
+	private function get_client_directives( WP_Interactivity_API_Directives_Processor $p ): array {
 		$directives = array();
-		foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' . $prefix ) ?? array() as $attribute_name ) {
+		foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ?? array() as $attribute_name ) {
 			$parsed_directive = $this->parse_directive_name( $attribute_name );
-			if ( null === $parsed_directive || $prefix !== $parsed_directive['prefix'] ) {
+			if ( null === $parsed_directive ) {
 				continue;
 			}
 
-			$name_parts = null === $parsed_directive['suffix'] ? array() : explode( '--', $parsed_directive['suffix'] );
+			$name_parts = array( $parsed_directive['prefix'] );
+			if ( null !== $parsed_directive['suffix'] ) {
+				array_push( $name_parts, ...explode( '--', $parsed_directive['suffix'] ) );
+			}
 			if ( null !== $parsed_directive['unique_id'] ) {
 				$name_parts[] = $parsed_directive['unique_id'];
 			}
@@ -1709,7 +1711,7 @@ final class WP_Interactivity_API {
 				continue;
 			}
 
-			$directives[] = array(
+			$directives[ $parsed_directive['prefix'] ][] = array(
 				'suffix'    => $parsed_directive['suffix'],
 				'unique_id' => $parsed_directive['unique_id'],
 				'value'     => $value,
