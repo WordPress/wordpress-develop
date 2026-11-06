@@ -246,8 +246,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'email' => 'rest-users-email-lookup@example.org' ) ) ) );
 
 		$this->assertSame( 400, $response->get_status(), 'Filtering by email should fail validation, since email is not a filter.' );
-		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'], 'Input errors should be reported as an invalid parameter.' );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['data']['details']['input']['code'], 'The email error should come from input validation.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The email error should come from input validation.' );
 
 		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'usernames' => array( 'rest_users_username_lookup' ) ) ) ) );
 

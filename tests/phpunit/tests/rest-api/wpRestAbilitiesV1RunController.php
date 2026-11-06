@@ -153,32 +153,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Asserts that a response reports invalid ability input.
-	 *
-	 * Input is prepared during REST request sanitization, so input errors are
-	 * reported as `rest_invalid_param` with the original error in the details.
-	 *
-	 * @param WP_REST_Response $response       The response to check.
-	 * @param string           $code           Expected code of the original error.
-	 * @param string|null      $message        Optional. Expected message of the original error.
-	 * @param int|null         $details_status Optional. Expected status of the original error.
-	 */
-	private function assert_invalid_input_response( WP_REST_Response $response, string $code, ?string $message = null, ?int $details_status = null ): void {
-		$this->assertSame( 400, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertSame( 'rest_invalid_param', $data['code'] );
-		$this->assertSame( $code, $data['data']['details']['input']['code'] );
-		if ( null !== $message ) {
-			$this->assertSame( $message, $data['data']['params']['input'] );
-			$this->assertSame( $message, $data['data']['details']['input']['message'] );
-		}
-		if ( null !== $details_status ) {
-			$this->assertSame( $details_status, $data['data']['details']['input']['data']['status'] );
-		}
-	}
-
-	/**
 	 * Register test abilities for testing.
 	 */
 	private function register_test_abilities(): void {
@@ -1281,19 +1255,21 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		// Should return error when input validation fails.
-		$this->assert_invalid_input_response(
-			$response,
-			'ability_invalid_input',
-			'Ability "test/strict-input" has invalid input. Reason: required_field is a required property of input.'
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'ability_invalid_input', $data['code'] );
+		$this->assertSame(
+			'Ability "test/strict-input" has invalid input. Reason: required_field is a required property of input.',
+			$data['message']
 		);
 	}
 
 	/**
-	 * Tests that a normalization filter error returns a 400 REST response.
+	 * Tests that a normalization filter error defaults to a 400 REST response.
 	 *
 	 * @ticket 64989
 	 */
-	public function test_normalize_input_filter_error_returns_bad_request(): void {
+	public function test_normalize_input_filter_error_defaults_to_bad_request_status(): void {
 		$filter = static function ( $input ) {
 			return new WP_Error( 'normalize_rejected', 'Rejected input.' );
 		};
@@ -1317,17 +1293,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_normalize_input', $filter );
 
-		$this->assert_invalid_input_response( $response, 'normalize_rejected', 'Rejected input.' );
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
 	}
 
 	/**
-	 * Tests that a normalization filter error with a custom status returns a 400 REST response.
-	 *
-	 * The custom status is kept in the error details.
+	 * Tests that a normalization filter error with custom status keeps that status.
 	 *
 	 * @ticket 64989
 	 */
-	public function test_normalize_input_filter_error_with_custom_status_returns_bad_request(): void {
+	public function test_normalize_input_filter_error_preserves_custom_status(): void {
 		$filter = static function ( $input ) {
 			return new WP_Error(
 				'normalize_unprocessable',
@@ -1355,15 +1332,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_normalize_input', $filter );
 
-		$this->assert_invalid_input_response( $response, 'normalize_unprocessable', 'Input cannot be normalized.', 422 );
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'normalize_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be normalized.', $data['message'] );
 	}
 
 	/**
-	 * Tests that a validation filter error returns a 400 REST response.
+	 * Tests that a validation filter error defaults to a 400 REST response.
 	 *
 	 * @ticket 64311
 	 */
-	public function test_validate_input_filter_error_returns_bad_request(): void {
+	public function test_validate_input_filter_error_defaults_to_bad_request_status(): void {
 		$filter = static function () {
 			return new WP_Error( 'validate_rejected', 'Rejected input.' );
 		};
@@ -1387,17 +1367,18 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_validate_input', $filter );
 
-		$this->assert_invalid_input_response( $response, 'validate_rejected', 'Rejected input.' );
+		$this->assertSame( 400, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_rejected', $data['code'] );
+		$this->assertSame( 'Rejected input.', $data['message'] );
 	}
 
 	/**
-	 * Tests that a validation filter error with a custom status returns a 400 REST response.
-	 *
-	 * The custom status is kept in the error details.
+	 * Tests that a validation filter error with custom status keeps that status.
 	 *
 	 * @ticket 64311
 	 */
-	public function test_validate_input_filter_error_with_custom_status_returns_bad_request(): void {
+	public function test_validate_input_filter_error_preserves_custom_status(): void {
 		$filter = static function () {
 			return new WP_Error(
 				'validate_unprocessable',
@@ -1425,7 +1406,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		remove_filter( 'wp_ability_validate_input', $filter );
 
-		$this->assert_invalid_input_response( $response, 'validate_unprocessable', 'Input cannot be validated.', 422 );
+		$this->assertSame( 422, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'validate_unprocessable', $data['code'] );
+		$this->assertSame( 'Input cannot be validated.', $data['message'] );
 	}
 
 	/**
@@ -1953,12 +1937,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->dispatch_run( $method, 'test/coercion-error', 'request' === $source ? $input : null );
 		$this->assertSame( 400, $response->get_status() );
 		$data = $response->get_data();
-		if ( 'request' === $source ) {
-			$this->assertSame( 'rest_invalid_param', $data['code'] );
-			$this->assertSame( 'ability_invalid_input', $data['data']['details']['input']['code'] );
-		} else {
-			$this->assertSame( 'ability_invalid_input', $data['code'] );
-		}
+		$this->assertSame( 'ability_invalid_input', $data['code'] );
 	}
 
 	/**
@@ -1996,8 +1975,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * Tests that coercion never rescues otherwise-invalid input.
 	 *
 	 * Sanitizing invalid input could silently change what is accepted, so coercion runs only on
-	 * input that already validates. Invalid input therefore still reports the
-	 * `ability_invalid_input` error from validation.
+	 * input that already validates. Invalid input therefore still returns the authoritative
+	 * `ability_invalid_input` (400) from validation.
 	 *
 	 * @ticket 65594
 	 *
@@ -2011,7 +1990,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->dispatch_run( 'GET', 'test/strict-typed-input', $input );
 
-		$this->assert_invalid_input_response( $response, 'ability_invalid_input' );
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
 	}
 
 	/**
@@ -2040,7 +2020,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$input = array( 'count' => '10' );
 
 		$response = $this->dispatch_run( 'GET', 'test/filtered-typed-input', $input );
-		$this->assert_invalid_input_response( $response, 'ability_invalid_input' );
+		$this->assertSame( 400, $response->get_status(), 'Schema validation should reject the input on its own.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'] );
 
 		// A filter that accepts the input makes it valid, so it must also be coerced.
 		add_filter( 'wp_ability_validate_input', '__return_true' );
@@ -2301,5 +2282,110 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->dispatch_run( $method, 'test/rejected-request', array( 'count' => 'not-a-number' ) );
 
 		$this->assertSame( $error_code, $response->get_data()['code'] );
+	}
+
+	/**
+	 * Provides input sources and methods for normalization regression tests.
+	 *
+	 * @return array
+	 */
+	public static function data_normalization_lifecycle(): array {
+		$cases = array();
+		foreach ( self::data_coercion_transports() as $method => $transport ) {
+			foreach ( array( 'value', 'null', 'absent' ) as $source ) {
+				foreach ( array( 'none', 'equal', 'different' ) as $other_source ) {
+					$cases[ "$method $source $other_source" ] = array( $transport[0], $transport[1], $source, $other_source );
+				}
+			}
+		}
+		return $cases;
+	}
+
+	/**
+	 * Tests that permission checks and execution independently prepare raw input.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_normalization_lifecycle
+	 *
+	 * @param string $method       HTTP method.
+	 * @param array  $annotations  Ability annotations.
+	 * @param string $source       Input case.
+	 * @param string $other_source Input to send in the ignored source.
+	 */
+	public function test_normalization_lifecycle( string $method, array $annotations, string $source, string $other_source ): void {
+		$seen = (object) array(
+			'normalized'  => array(),
+			'permissions' => array(),
+			'invoked'     => array(),
+		);
+		add_filter(
+			'wp_ability_normalize_input',
+			static function ( $input, $name ) use ( $seen ) {
+				if ( 'test/normalization-lifecycle' === $name ) {
+					$seen->normalized[] = $input;
+					return null === $input ? null : $input . '!';
+				}
+				return $input;
+			},
+			10,
+			2
+		);
+		add_action(
+			'wp_ability_invoked',
+			static function ( $name, $input ) use ( $seen ) {
+				if ( 'test/normalization-lifecycle' === $name ) {
+					$seen->invoked[] = $input;
+				}
+			},
+			10,
+			2
+		);
+		$this->register_test_ability(
+			'test/normalization-lifecycle',
+			array(
+				'label'               => 'Normalization Lifecycle',
+				'description'         => 'Records input preparation across the REST lifecycle.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'      => array( 'string', 'null' ),
+					'maxLength' => 4,
+				),
+				'permission_callback' => static function ( $input ) use ( $seen ) {
+					$seen->permissions[] = array( $input, count( $seen->normalized ) );
+					return true;
+				},
+				'execute_callback'    => static function ( $input ) {
+					return $input;
+				},
+				'meta'                => array(
+					'show_in_rest' => true,
+					'annotations'  => $annotations,
+				),
+			)
+		);
+
+		$raw      = 'value' === $source ? 'raw' : null;
+		$expected = 'value' === $source ? 'raw!' : null;
+		$request  = new WP_REST_Request( $method, '/wp-abilities/v1/abilities/test/normalization-lifecycle/run' );
+		$params   = 'absent' === $source ? array() : array( 'input' => $raw );
+		$ignored  = 'none' === $other_source ? array() : array( 'input' => 'equal' === $other_source ? $raw : 'ignored' );
+		$request->set_query_params( 'POST' === $method ? $ignored : $params );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( 'POST' === $method ? $params : $ignored ) );
+
+		// Repeated dispatches must independently prepare the same raw input.
+		for ( $attempt = 0; $attempt < 2; ++$attempt ) {
+			$seen->normalized  = array();
+			$seen->permissions = array();
+			$seen->invoked     = array();
+
+			$response = $this->server->dispatch( $request );
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertSame( $expected, $response->get_data() );
+			$this->assertSame( array( array( $expected, 1 ), array( $expected, 2 ) ), $seen->permissions );
+			$this->assertSame( array( $raw, $raw ), $seen->normalized );
+			$this->assertSame( array( $raw ), $seen->invoked, 'Execution hooks should receive raw input.' );
+		}
 	}
 }

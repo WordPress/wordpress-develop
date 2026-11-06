@@ -406,7 +406,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $this->run_request( array( 'type' => 'post' ) ) );
 
 		$this->assertSame( 400, $response->get_status(), 'Input without where should be rejected.' );
-		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'], 'Input errors should be reported as an invalid parameter.' );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['data']['details']['input']['code'], 'The error should come from input validation.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The error should come from input validation.' );
 	}
 }
