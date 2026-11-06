@@ -172,6 +172,120 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 53160
+	 * @dataProvider data_array_object_flags
+	 *
+	 * @param int    $flags          ArrayObject flags.
+	 * @param string $expected_value Expected value of the stored entry.
+	 */
+	public function test_map_deep_should_map_array_object_entries_and_public_properties( $flags, $expected_value ) {
+		$value = new class( array( 'entry' => 'x' ), $flags ) extends ArrayObject {
+			public $property = 'a';
+		};
+
+		$result = map_deep( $value, array( $this, 'append_baba' ) );
+
+		$this->assertSame( $value, $result, 'The original object should be returned.' );
+		$this->assertSame( $flags, $result->getFlags(), 'The flags should not change.' );
+		$this->assertSame( 'ababa', $result->property, 'Public properties should still be mapped.' );
+		$this->assertSame( array( 'entry' => $expected_value ), $result->getArrayCopy() );
+	}
+
+	/**
+	 * Data provider for ArrayObject flag combinations.
+	 *
+	 * @return array[]
+	 */
+	public static function data_array_object_flags() {
+		return array(
+			'default'                     => array( 0, 'xbaba' ),
+			'array entries as properties' => array( ArrayObject::ARRAY_AS_PROPS, 'xbaba' ),
+			'public properties only'      => array( ArrayObject::STD_PROP_LIST, 'x' ),
+			'both flags'                  => array( ArrayObject::STD_PROP_LIST | ArrayObject::ARRAY_AS_PROPS, 'x' ),
+		);
+	}
+
+	/**
+	 * @ticket 53160
+	 */
+	public function test_map_deep_should_map_nested_array_objects() {
+		$inner = new ArrayObject( array( 'x' ) );
+		$outer = new ArrayObject(
+			array(
+				'array'  => array( 'a' ),
+				'object' => (object) array( 'inner' => $inner ),
+			)
+		);
+
+		$result = map_deep( array( 'outer' => $outer ), array( $this, 'append_baba' ) );
+
+		$this->assertSame( $outer, $result['outer'] );
+		$this->assertSame( array( 'ababa' ), $outer['array'] );
+		$this->assertSame( $inner, $outer['object']->inner );
+		$this->assertSame( array( 'xbaba' ), $inner->getArrayCopy() );
+	}
+
+	/**
+	 * Object-backed storage is deprecated as of PHP 8.5.
+	 *
+	 * @ticket 53160
+	 * @requires PHP < 8.5
+	 */
+	public function test_map_deep_should_map_array_object_backed_by_an_object() {
+		$storage = (object) array( 'entry' => 'x' );
+		$value   = new ArrayObject( $storage );
+
+		$this->assertSame( $value, map_deep( $value, array( $this, 'append_baba' ) ) );
+		$this->assertSame( 'xbaba', $storage->entry );
+	}
+
+	/**
+	 * @ticket 53160
+	 */
+	public function test_map_deep_should_not_call_callback_for_empty_array_object() {
+		$value = new ArrayObject();
+
+		$result = map_deep(
+			$value,
+			function () {
+				$this->fail( 'The callback should not be called for an empty ArrayObject.' );
+			}
+		);
+
+		$this->assertSame( $value, $result );
+		$this->assertSame( array(), $result->getArrayCopy() );
+	}
+
+	/**
+	 * @ticket 53160
+	 * @dataProvider data_array_object_callers
+	 *
+	 * @param callable $callback Function using map_deep().
+	 * @param string   $input    Input value.
+	 * @param string   $expected Expected mapped value.
+	 */
+	public function test_map_deep_callers_should_map_array_object_entries( $callback, $input, $expected ) {
+		$value = new ArrayObject( array( 'entry' => $input ) );
+
+		$this->assertSame( $value, $callback( $value ) );
+		$this->assertSame( array( 'entry' => $expected ), $value->getArrayCopy() );
+	}
+
+	/**
+	 * Data provider for functions using map_deep().
+	 *
+	 * @return array[]
+	 */
+	public static function data_array_object_callers() {
+		return array(
+			'strip slashes'  => array( 'stripslashes_deep', "a\\'b", "a'b" ),
+			'encode URL'     => array( 'urlencode_deep', 'a b', 'a+b' ),
+			'encode raw URL' => array( 'rawurlencode_deep', 'a b', 'a%20b' ),
+			'decode URL'     => array( 'urldecode_deep', 'a+b', 'a b' ),
+		);
+	}
+
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}
