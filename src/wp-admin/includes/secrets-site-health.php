@@ -82,7 +82,9 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
  * @phpstan-return array{test: string, label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_key_source(): array {
-	$key_source = _wp_secrets_get_key_manager()->get_keyring()->get_key_source();
+	$keyring    = _wp_secrets_get_key_manager()->get_keyring();
+	$key_source = $keyring->get_key_source();
+	$key_status = $keyring instanceof WP_Secrets_Config_Key_Provider ? $keyring->get_key_status() : null;
 
 	if ( str_contains( $key_source, 'broken' ) ) {
 		return wp_secrets_site_health_result(
@@ -96,7 +98,7 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( str_contains( $key_source, 'legacy interpretation' ) ) {
+	if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY === $key_status ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API key should be regenerated' ),
@@ -108,8 +110,8 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( str_contains( $key_source, 'not defined' ) || str_contains( $key_source, 'not usable' ) ) {
-		$is_defined = str_contains( $key_source, 'not usable' );
+	if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNDEFINED === $key_status || WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status ) {
+		$is_defined = WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status;
 		$example    = sprintf( "define( 'WP_SECRETS_KEY', '%s' );", base64_encode( random_bytes( 32 ) ) );
 
 		return wp_secrets_site_health_result(

@@ -102,6 +102,32 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check still detects a missing key on a translated site.
+	 *
+	 * The key source text is translated, so the check must not depend on it.
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_offers_a_generated_key_on_a_translated_site(): void {
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return '%s is not defined' === $text ? '%s ist nicht definiert' : $translation;
+			},
+			10,
+			2
+		);
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended without WP_SECRETS_KEY on a translated site.' );
+		$this->assertStringContainsString( 'Add this line', $result['description'], 'The description should ask for the line to be added on a translated site.' );
+	}
+
+	/**
 	 * Ensure that the key source check recommends regenerating a WP_SECRETS_KEY not in base64 form.
 	 *
 	 * Runs in a separate process because WP_SECRETS_KEY is a constant and cannot be

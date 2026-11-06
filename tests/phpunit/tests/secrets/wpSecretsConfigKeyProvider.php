@@ -148,17 +148,42 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source reports an undefined WP_SECRETS_KEY.
+	 * Ensure that the key status and source report an undefined WP_SECRETS_KEY.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_get_key_status_reports_an_undefined_key(): void {
+		$provider = new WP_Secrets_Config_Key_Provider();
+
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNDEFINED, $provider->get_key_status(), 'The key status should be undefined without WP_SECRETS_KEY.' );
+		$this->assertStringContainsString( 'not defined', $provider->get_key_source(), 'The key source should say that WP_SECRETS_KEY is not defined.' );
+	}
+
+	/**
+	 * Ensure that the key source is translated.
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_an_undefined_key(): void {
+	public function test_get_key_source_is_translated(): void {
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return '%s is not defined' === $text ? '%s ist nicht definiert' : $translation;
+			},
+			10,
+			2
+		);
+
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertStringContainsString( 'not defined', $provider->get_key_source(), 'The key source should say that WP_SECRETS_KEY is not defined.' );
+		$this->assertSame( 'WP_SECRETS_KEY ist nicht definiert', $provider->get_key_source(), 'The key source should use the translated text.' );
 	}
 
 	/**
@@ -247,6 +272,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 * Ensure that the wp-config-sample.php placeholder is not usable as WP_SECRETS_KEY.
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -259,7 +285,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'The placeholder should return a WP_Error.' );
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'The placeholder should return the key unavailable error code.' );
-		$this->assertStringContainsString( 'not usable', $provider->get_key_source(), 'The key source should say that the placeholder is not usable.' );
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE, $provider->get_key_status(), 'The key status should be unusable for the placeholder.' );
 	}
 
 	/**
@@ -365,34 +391,38 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source identifies a canonical base64 WP_SECRETS_KEY.
+	 * Ensure that the key status and source identify a canonical base64 WP_SECRETS_KEY.
 	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_base64_form(): void {
+	public function test_get_key_status_reports_base64_form(): void {
 		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'A', 32 ) ) );
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_BASE64, $provider->get_key_status(), 'The key status should identify a canonical base64 WP_SECRETS_KEY.' );
 		$this->assertStringContainsString( 'base64', $provider->get_key_source(), 'The key source should identify a canonical base64 WP_SECRETS_KEY.' );
 	}
 
 	/**
-	 * Ensure that the key source identifies a WP_SECRETS_KEY using the legacy interpretation.
+	 * Ensure that the key status and source identify a WP_SECRETS_KEY using the legacy interpretation.
 	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_legacy_form(): void {
+	public function test_get_key_status_reports_legacy_form(): void {
 		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY, $provider->get_key_status(), 'The key status should identify a legacy WP_SECRETS_KEY.' );
 		$this->assertStringContainsString( 'legacy', $provider->get_key_source(), 'The key source should identify a legacy WP_SECRETS_KEY.' );
 	}
 
