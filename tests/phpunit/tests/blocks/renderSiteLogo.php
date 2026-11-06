@@ -23,6 +23,13 @@ class Tests_Blocks_RenderSiteLogo extends WP_UnitTestCase {
 	 */
 	private $original_block_to_render;
 
+	/**
+	 * Original Customizer manager.
+	 *
+	 * @var WP_Customize_Manager|null
+	 */
+	private $original_customize;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$logo_id = $factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 	}
@@ -33,11 +40,17 @@ class Tests_Blocks_RenderSiteLogo extends WP_UnitTestCase {
 		$this->original_block_to_render     = WP_Block_Supports::$block_to_render;
 		WP_Block_Supports::$block_to_render = null;
 
+		// The logo has a placeholder in the Customizer preview, which another test can leave on.
+		$this->original_customize = $GLOBALS['wp_customize'] ?? null;
+		$GLOBALS['wp_customize']  = null;
+
 		add_theme_support( 'custom-logo' );
 	}
 
 	public function tear_down() {
 		WP_Block_Supports::$block_to_render = $this->original_block_to_render;
+
+		$GLOBALS['wp_customize'] = $this->original_customize;
 
 		remove_theme_support( 'custom-logo' );
 		unregister_setting( 'general', 'site_logo' );
