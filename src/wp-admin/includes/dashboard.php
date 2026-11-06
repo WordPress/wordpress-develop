@@ -1407,7 +1407,6 @@ function wp_dashboard_rss_output( $widget_id ) {
  * @since 2.5.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
- * @since 7.2.0 Removed the "This widget requires JavaScript." notice from the loading stub.
  *
  * @param string   $widget_id  The widget ID.
  * @param callable $callback   The callback function used to display each feed.
