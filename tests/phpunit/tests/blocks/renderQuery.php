@@ -356,6 +356,8 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 	 * @covers ::render_block_core_query
 	 */
 	public function test_should_not_change_the_styles_when_they_are_enqueued() {
+		// The style is registered by the build of the block, so it is registered here.
+		wp_register_style( 'wp-block-query', false );
 		wp_enqueue_style( 'wp-block-query' );
 
 		$block                            = new WP_Block( $this->parsed_block( 'core/query' ) );
