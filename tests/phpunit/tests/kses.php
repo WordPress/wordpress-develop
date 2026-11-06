@@ -1287,6 +1287,7 @@ EOF;
 	 * @ticket 64974
 	 * @ticket 65832
 	 * @ticket 64972
+	 * @ticket 66468
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1965,6 +1966,47 @@ EOF;
 			array(
 				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+			),
+			// `rotate` introduced in 7.3, limited to a single angle.
+			array(
+				'css'      => 'rotate: -15deg',
+				'expected' => 'rotate: -15deg',
+			),
+			array(
+				'css'      => 'rotate: 0.25turn',
+				'expected' => 'rotate: 0.25turn',
+			),
+			array(
+				'css'      => 'rotate: 1.5rad',
+				'expected' => 'rotate: 1.5rad',
+			),
+			array(
+				'css'      => 'rotate: 100grad',
+				'expected' => 'rotate: 100grad',
+			),
+			array(
+				'css'      => 'rotate: 0',
+				'expected' => 'rotate: 0',
+			),
+			array(
+				'css'      => 'rotate: 45',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'rotate: x 45deg',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'rotate: 1 0 0 45deg',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'rotate: calc(10deg + 5deg)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'rotate: var(--angle)',
+				'expected' => '',
 			),
 		);
 	}

@@ -26,6 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 64974
 	 * @ticket 65037
 	 * @ticket 66094
+	 * @ticket 66468
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -361,6 +362,41 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				'expected_output' => array(
 					'classnames' => 'has-text-color',
 				),
+			),
+
+			'inline_valid_transform_rotate_style'          => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => '-0.25turn',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'rotate:-0.25turn;',
+					'declarations' => array(
+						'rotate' => '-0.25turn',
+					),
+				),
+			),
+
+			'inline_invalid_transform_rotate_style'        => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => '1 0 0 45deg',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
+			'inline_newline_transform_rotate_style'        => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => "45deg\n",
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
 			),
 
 			'valid_classnames_deduped'                     => array(

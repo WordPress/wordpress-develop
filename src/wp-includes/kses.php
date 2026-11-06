@@ -3727,6 +3727,7 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
+ * @since 7.3.0 Added support for `rotate`, limited to a single angle.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3976,6 +3977,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			'transform',
 			'transform-origin',
+			'rotate',
 
 			'pointer-events',
 			'visibility',
@@ -4047,6 +4049,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$found           = false;
 		$url_attr        = false;
 		$gradient_attr   = false;
+		$angle_attr      = false;
 		$is_custom_var   = false;
 
 		if ( ! str_contains( $css_item, ':' ) ) {
@@ -4065,6 +4068,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$found         = true;
 				$url_attr      = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr = in_array( $css_selector, $css_gradient_data_types, true );
+				$angle_attr    = 'rotate' === $css_selector;
 			}
 
 			if ( $is_custom_var ) {
@@ -4145,6 +4149,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * which were removed from the test string above.
 			 */
 			$allow_css = 0 === preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
+
+			// Only allow a single angle for `rotate`, mirroring the style engine.
+			if ( $allow_css && $angle_attr ) {
+				$allow_css = 1 === preg_match( WP_Style_Engine::VALID_ANGLE_PATTERN, trim( $parts[1] ) );
+			}
 
 			/**
 			 * Filters the check for unsafe CSS in `safecss_filter_attr`.
