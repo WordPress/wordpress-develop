@@ -273,21 +273,26 @@ class WP_Debug_Data {
 		);
 
 		// WordPress features requiring processing.
-		$wp_dotorg = wp_remote_get( 'https://wordpress.org', array( 'timeout' => 10 ) );
+		$fields['dotorg_api_hostname'] = array(
+			'label' => __( 'WordPress API source used by this site' ),
+			'value' => wp_get_api_hostname(),
+		);
+
+		$wp_dotorg = wp_remote_get( wp_get_api_hostname(), array( 'timeout' => 10 ) );
 
 		if ( ! is_wp_error( $wp_dotorg ) ) {
 			$fields['dotorg_communication'] = array(
-				'label' => __( 'Communication with WordPress.org' ),
-				'value' => __( 'WordPress.org is reachable' ),
+				'label' => __( 'Communication with the WordPress API' ),
+				'value' => __( 'The WordPress API is reachable' ),
 				'debug' => 'true',
 			);
 		} else {
 			$fields['dotorg_communication'] = array(
-				'label' => __( 'Communication with WordPress.org' ),
+				'label' => __( 'Communication with the WordPress API' ),
 				'value' => sprintf(
-				/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
-					__( 'Unable to reach WordPress.org at %1$s: %2$s' ),
-					gethostbyname( 'wordpress.org' ),
+					/* translators: 1: The IP address the WordPress API resolves to. 2: The error returned by the lookup. */
+					__( 'Unable to reach the WordPress API at %1$s: %2$s' ),
+					gethostbyname( wp_get_api_hostname() ),
 					$wp_dotorg->get_error_message()
 				),
 				'debug' => $wp_dotorg->get_error_message(),
