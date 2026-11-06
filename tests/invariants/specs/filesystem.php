@@ -46,34 +46,12 @@ $functions = array(
 );
 
 /*
- * An absolute path with its . and .. segments resolved, as the file system would
- * resolve them without symbolic links. A relative path is read from the working
- * directory.
- */
-$resolve = static function ( $path ) {
-	if ( '/' !== $path[0] ) {
-		$path = getcwd() . '/' . $path;
-	}
-
-	$segments = array();
-	foreach ( explode( '/', $path ) as $segment ) {
-		if ( '..' === $segment ) {
-			array_pop( $segments );
-		} elseif ( '' !== $segment && '.' !== $segment ) {
-			$segments[] = $segment;
-		}
-	}
-
-	return '/' . implode( '/', $segments );
-};
-
-/*
  * The directories WordPress runs in, as the configuration names them, each as it
  * resolves and as its real path, ending in a slash. Those are where WordPress is
  * installed, its content, plugin, language and theme directories, temporary
  * directories, and the test suite's own files, which tests give to WordPress.
  */
-$roots = static function () use ( $resolve ) {
+$roots = static function () {
 	static $known = array();
 
 	$directories = array( sys_get_temp_dir(), '/tmp', (string) ini_get( 'upload_tmp_dir' ), dirname( __DIR__, 2 ) );
@@ -90,13 +68,9 @@ $roots = static function () use ( $resolve ) {
 	if ( ! isset( $known[ $key ] ) ) {
 		$roots = array();
 		foreach ( array_filter( $directories ) as $directory ) {
-			$roots[] = rtrim( $resolve( $directory ), '/' ) . '/';
-			$real    = realpath( $directory );
-			if ( false !== $real ) {
-				$roots[] = rtrim( $real, '/' ) . '/';
-			}
+			$roots = array_merge( $roots, WP_Invariant::directory_forms( $directory ) );
 		}
-		$known = array( $key => array_unique( $roots ) );
+		$known = array( $key => array_values( array_unique( $roots ) ) );
 	}
 
 	return $known[ $key ];
@@ -109,17 +83,6 @@ $devices = array(
 	'/dev/urandom' => true,
 );
 
-// Whether a resolved path is one of the directories, or inside one.
-$inside = static function ( $path, array $roots ) {
-	foreach ( $roots as $root ) {
-		if ( 0 === strpos( $path . '/', $root ) ) {
-			return true;
-		}
-	}
-
-	return false;
-};
-
 return array(
 	WP_Invariant::define( 'paths-stay-inside' )
 		->describe( 'WordPress gives the file system no path outside the directories it runs in: where it is installed, its content, plugin, language and theme directories, and temporary directories, apart from /dev/null and the random devices. A .. in a path never takes it out of them. Each place in WordPress is reported once for each path.' )
@@ -131,7 +94,7 @@ return array(
 		)
 		->before_each(
 			array_keys( $functions ),
-			static function ( WP_Invariant_Call $call, array &$reported ) use ( $functions, $resolve, $roots, $devices, $inside ) {
+			static function ( WP_Invariant_Call $call, array &$reported ) use ( $functions, $roots, $devices ) {
 				$args = $call->args();
 				foreach ( $functions[ $call->target() ] as $position ) {
 					$path = isset( $args[ $position ] ) ? $args[ $position ] : null;
@@ -147,15 +110,15 @@ return array(
 						continue;
 					}
 
-					$resolved = $resolve( $path );
-					if ( isset( $devices[ $resolved ] ) || $inside( $resolved, $roots() ) ) {
+					$resolved = WP_Invariant::resolve_path( $path );
+					if ( isset( $devices[ $resolved ] ) || WP_Invariant::path_inside( $resolved, $roots() ) ) {
 						continue;
 					}
 
 					// A symbolic link, such as /tmp on macOS, can lead inside.
 					$real = realpath( $resolved );
 					$real = false === $real ? realpath( dirname( $resolved ) ) : $real;
-					if ( false !== $real && $inside( $real, $roots() ) ) {
+					if ( false !== $real && WP_Invariant::path_inside( $real, $roots() ) ) {
 						continue;
 					}
 

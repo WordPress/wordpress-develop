@@ -165,18 +165,7 @@ final class WP_Invariant_Types {
 	 * @return array[] As WP_Invariant::functions_in() returns them.
 	 */
 	public static function targets( array $directories, array $exclude, $cache ) {
-		$key = array( $directories, $exclude );
-		foreach ( $directories as $directory ) {
-			if ( ! is_dir( $directory ) ) {
-				continue;
-			}
-			foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
-				if ( 'php' === $file->getExtension() ) {
-					$key[] = $file->getPathname() . ':' . $file->getMTime();
-				}
-			}
-		}
-		$key = md5( serialize( $key ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Only to compare.
+		$key = md5( serialize( array( $exclude, WP_Invariant::source_key( $directories ) ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Only to compare.
 
 		$cached = is_readable( $cache ) ? unserialize( file_get_contents( $cache ), array( 'allowed_classes' => false ) ) : null; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- A cache this class wrote.
 		if ( is_array( $cached ) && isset( $cached['key'], $cached['targets'] ) && $cached['key'] === $key ) {

@@ -538,6 +538,334 @@ final class WP_Invariant {
 	}
 
 	/**
+	 * Returns an absolute path with its . and .. segments resolved, as the file system would resolve them without symbolic links.
+	 *
+	 * A relative path is read from the working directory.
+	 *
+	 * @param string $path A non-empty path.
+	 * @return string
+	 */
+	public static function resolve_path( $path ) {
+		if ( '/' !== $path[0] ) {
+			$path = getcwd() . '/' . $path;
+		}
+
+		$segments = array();
+		foreach ( explode( '/', $path ) as $segment ) {
+			if ( '..' === $segment ) {
+				array_pop( $segments );
+			} elseif ( '' !== $segment && '.' !== $segment ) {
+				$segments[] = $segment;
+			}
+		}
+
+		return '/' . implode( '/', $segments );
+	}
+
+	/**
+	 * Whether a resolved path is one of some directories, or inside one.
+	 *
+	 * @param string   $path        A path from resolve_path(), or a real path.
+	 * @param string[] $directories Directories, each ending in a slash.
+	 * @return bool
+	 */
+	public static function path_inside( $path, array $directories ) {
+		foreach ( $directories as $directory ) {
+			if ( 0 === strpos( rtrim( $path, '/' ) . '/', $directory ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether a path is inside some directories, as it resolves or through symbolic links.
+	 *
+	 * A path which does not exist yet is looked at through its nearest directory which does.
+	 *
+	 * @param string   $path        A non-empty path.
+	 * @param string[] $directories Directories, as they resolve and as their real paths, each ending in a slash.
+	 * @return bool
+	 */
+	public static function path_resolves_inside( $path, array $directories ) {
+		$resolved = self::resolve_path( $path );
+		if ( self::path_inside( $resolved, $directories ) ) {
+			return true;
+		}
+
+		$existing = $resolved;
+		$rest     = '';
+		while ( '/' !== $existing && ! file_exists( $existing ) ) {
+			$rest     = '/' . basename( $existing ) . $rest;
+			$existing = dirname( $existing );
+		}
+		$real = realpath( $existing );
+
+		return false !== $real && self::path_inside( rtrim( $real, '/' ) . $rest, $directories );
+	}
+
+	/**
+	 * Returns a directory as it resolves and as its real path, each ending in a slash.
+	 *
+	 * @param string $directory A non-empty path.
+	 * @return string[]
+	 */
+	public static function directory_forms( $directory ) {
+		$forms = array( rtrim( self::resolve_path( $directory ), '/' ) . '/' );
+		$real  = realpath( $directory );
+		if ( false !== $real ) {
+			$forms[] = rtrim( $real, '/' ) . '/';
+		}
+
+		return array_values( array_unique( $forms ) );
+	}
+
+	/**
+	 * Returns a mark for the innermost running call to a function, which running() can check later.
+	 *
+	 * A hook can open a scope for a call this way without an after hook, which
+	 * would not run when the call throws, as AJAX handlers do through wp_die() in
+	 * tests.
+	 *
+	 * @param string $name Function or method, such as `do_action` or `WP_REST_Server::respond_to_request`.
+	 * @return int|null Position of its frame, counted from the outermost, or null when it is not running.
+	 */
+	public static function frame_mark( $name ) {
+		$frames = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$count  = count( $frames );
+		foreach ( $frames as $index => $frame ) {
+			if ( self::frame_name( $frame ) === $name ) {
+				return $count - $index;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Whether the call frame_mark() marked is still running.
+	 *
+	 * The call is still running when a frame of the same function is at the same
+	 * position from the outermost frame. A later call to the same function at
+	 * exactly the same depth, after the first one threw, looks the same.
+	 *
+	 * @param int    $mark From frame_mark().
+	 * @param string $name The same function.
+	 * @return bool
+	 */
+	public static function running( $mark, $name ) {
+		$frames = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		$index  = count( $frames ) - $mark;
+
+		return $index >= 0 && isset( $frames[ $index ] ) && self::frame_name( $frames[ $index ] ) === $name;
+	}
+
+	/**
+	 * Returns the names of the functions and methods running, innermost first.
+	 *
+	 * @return string[] Such as `wp_generate_password` or `WP_Session_Tokens::create`.
+	 */
+	public static function running_functions() {
+		return array_map( array( __CLASS__, 'frame_name' ), debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) );
+	}
+
+	/**
+	 * Returns the function or method of a frame, as `name` or `Class::name`.
+	 *
+	 * @param array $frame A frame from debug_backtrace().
+	 * @return string
+	 */
+	private static function frame_name( array $frame ) {
+		return isset( $frame['class'] ) ? $frame['class'] . '::' . $frame['function'] : $frame['function'];
+	}
+
+	/**
+	 * Returns a key which changes whenever a PHP file in some directories is added, removed or changed.
+	 *
+	 * It is computed once per process for each set of directories.
+	 *
+	 * @param string[] $directories Directories, searched recursively.
+	 * @return string
+	 */
+	public static function source_key( array $directories ) {
+		static $keys = array();
+
+		$id = implode( "\0", $directories );
+		if ( ! isset( $keys[ $id ] ) ) {
+			$parts = $directories;
+			foreach ( $directories as $directory ) {
+				if ( ! is_dir( $directory ) ) {
+					continue;
+				}
+				foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
+					if ( 'php' === $file->getExtension() ) {
+						$parts[] = $file->getPathname() . ':' . $file->getMTime();
+					}
+				}
+			}
+			$keys[ $id ] = md5( implode( "\n", $parts ) );
+		}
+
+		return $keys[ $id ];
+	}
+
+	/**
+	 * Returns a value computed from the PHP files in some directories, from a cache in the temporary directory when they have not changed.
+	 *
+	 * Processes which PHPUnit starts for tests in separate processes reuse it.
+	 *
+	 * @param string   $name        Name of the cache, such as `switch-to-blog-callers`.
+	 * @param string[] $directories Directories the value is computed from.
+	 * @param callable $compute     Computes the value, which serialize() can store.
+	 * @return mixed
+	 */
+	public static function cached( $name, array $directories, $compute ) {
+		$key   = self::source_key( $directories );
+		$cache = sys_get_temp_dir() . "/wp-invariants-{$name}-" . md5( implode( "\0", $directories ) ) . '.cache';
+
+		$cached = is_readable( $cache ) ? unserialize( file_get_contents( $cache ), array( 'allowed_classes' => false ) ) : null; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- A cache this class wrote.
+		if ( is_array( $cached ) && isset( $cached['key'] ) && $cached['key'] === $key && array_key_exists( 'value', $cached ) ) {
+			return $cached['value'];
+		}
+
+		$value  = $compute();
+		$cached = array(
+			'key'   => $key,
+			'value' => $value,
+		);
+		file_put_contents( $cache, serialize( $cached ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- A cache for this class.
+
+		return $value;
+	}
+
+	/**
+	 * Returns the named functions and methods, in the PHP files of some directories, whose own code calls a function.
+	 *
+	 * A call inside a closure belongs to the closure, not to the function around it.
+	 * The files are read as tokens, never included.
+	 *
+	 * @param string[] $directories Directories, searched recursively.
+	 * @param string   $callee      Name of the function called, such as `switch_to_blog`.
+	 * @return string[] Targets, such as `wpmu_delete_blog` or `WP_Site_Query::get_sites`.
+	 */
+	public static function functions_calling( array $directories, $callee ) {
+		$callers = array();
+		foreach ( $directories as $directory ) {
+			if ( ! is_dir( $directory ) ) {
+				continue;
+			}
+			foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ) ) as $file ) {
+				if ( 'php' !== $file->getExtension() ) {
+					continue;
+				}
+				$code = file_get_contents( $file->getPathname() );
+				if ( false === stripos( $code, $callee ) ) {
+					continue;
+				}
+				foreach ( self::functions_calling_in( $code, $callee ) as $caller ) {
+					$callers[ $caller ] = true;
+				}
+			}
+		}
+
+		$callers = array_keys( $callers );
+		sort( $callers );
+		return $callers;
+	}
+
+	/**
+	 * Returns the named functions and methods in some PHP code whose own code calls a function.
+	 *
+	 * @see WP_Invariant::functions_calling()
+	 *
+	 * @param string $code   PHP code.
+	 * @param string $callee Name of the function called.
+	 * @return string[]
+	 */
+	private static function functions_calling_in( $code, $callee ) {
+		$tokens  = token_get_all( $code );
+		$depth   = 0;
+		$class   = null;
+		$body    = null;
+		$scopes  = array(); // Each open function: its name, or null for a closure, and the depth of its body.
+		$pending = false;   // The name of a function whose body has not opened yet, or null for a closure.
+		$callers = array();
+
+		foreach ( $tokens as $index => $token ) {
+			if ( '{' === $token || ( is_array( $token ) && in_array( $token[0], array( T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES ), true ) ) ) {
+				++$depth;
+				if ( false !== $pending ) {
+					$scopes[] = array( $pending, $depth );
+					$pending  = false;
+				}
+				continue;
+			}
+			if ( '}' === $token ) {
+				if ( array() !== $scopes && end( $scopes )[1] === $depth ) {
+					array_pop( $scopes );
+				}
+				--$depth;
+				if ( $depth === $body ) {
+					$class = null;
+					$body  = null;
+				}
+				continue;
+			}
+			if ( ';' === $token && false !== $pending ) {
+				// An abstract or interface method has no body.
+				$pending = false;
+				continue;
+			}
+			if ( ! is_array( $token ) ) {
+				continue;
+			}
+
+			$next = self::next_token( $tokens, $index );
+			if ( in_array( $token[0], array( T_CLASS, T_TRAIT, T_INTERFACE, T_ENUM ), true ) && null === $class && is_array( $next ) && T_STRING === $next[0] ) {
+				$class = $next[1];
+				$body  = $depth;
+				continue;
+			}
+
+			if ( T_FUNCTION === $token[0] || T_FN === $token[0] ) {
+				$by_reference = '&' === $next || ( is_array( $next ) && T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG === $next[0] );
+				$name_index   = $by_reference ? self::next_token_index( $tokens, self::next_token_index( $tokens, $index ) ) : self::next_token_index( $tokens, $index );
+				$name         = null === $name_index ? null : $tokens[ $name_index ];
+				if ( T_FUNCTION === $token[0] && is_array( $name ) && T_STRING === $name[0] ) {
+					$pending = null !== $class && $depth === $body + 1 ? "{$class}::{$name[1]}" : $name[1];
+				} elseif ( T_FUNCTION === $token[0] ) {
+					$pending = null;
+				}
+				continue;
+			}
+
+			if ( T_STRING !== $token[0] || 0 !== strcasecmp( $token[1], $callee ) || '(' !== $next || array() === $scopes ) {
+				continue;
+			}
+
+			// Not a method, a declaration or a constant of that name.
+			$previous = null;
+			for ( $back = $index - 1; $back >= 0; $back-- ) {
+				if ( ! is_array( $tokens[ $back ] ) || ! in_array( $tokens[ $back ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
+					$previous = $tokens[ $back ];
+					break;
+				}
+			}
+			if ( is_array( $previous ) && in_array( $previous[0], array( T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW ), true ) ) {
+				continue;
+			}
+
+			$scope = end( $scopes );
+			if ( null !== $scope[0] ) {
+				$callers[ $scope[0] ] = true;
+			}
+		}
+
+		return array_keys( $callers );
+	}
+
+	/**
 	 * Whether a filter or action has callbacks.
 	 *
 	 * It reads $wp_filter directly, and runs no hook.
@@ -637,6 +965,7 @@ final class WP_Invariant {
 	 */
 	public static function start_test( $test ) {
 		WP_Invariant_Violations::start_test( $test );
+		WP_Invariant_Request::reset();
 
 		foreach ( self::$invariants as $invariant ) {
 			// A call which is still running when a test starts is not paired across tests.
