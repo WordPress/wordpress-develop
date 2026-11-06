@@ -78,7 +78,7 @@
 		"json2php": "0.0.12",
 		"minimizer-webpack-plugin": "5.6.1",
 		"php-array-reader": "2.1.4",
-		"postcss": "8.5.19",
+		"postcss": "8.5.32",
 		"prettier": "npm:wp-prettier@3.0.3",
 		"qunit": "~2.26.0",
 		"react-refresh": "0.14.0",
