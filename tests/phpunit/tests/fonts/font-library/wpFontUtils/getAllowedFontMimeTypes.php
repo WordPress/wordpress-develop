@@ -21,6 +21,10 @@ class Tests_Fonts_WpFontUtils_GetAllowedFontMimeTypes extends WP_UnitTestCase {
 	 * @param string $extension Font file extension.
 	 */
 	public function test_should_match_the_mime_type_detected_for_a_font_file( $extension ) {
+		if ( 'ttf' === $extension && 'application/octet-stream' === finfo_file( finfo_open( FILEINFO_MIME_TYPE ), DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf' ) ) {
+        		$this->markTestSkipped( 'This libmagic version cannot detect TrueType fonts. See https://github.com/php/php-src/issues/25051.' );
+		}
+
 		$mimes = WP_Font_Utils::get_allowed_font_mime_types();
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
