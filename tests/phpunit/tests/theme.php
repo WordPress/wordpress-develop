@@ -6,8 +6,8 @@
  * @group themes
  */
 class Tests_Theme extends WP_UnitTestCase {
-	protected $theme_slug     = 'twentyeleven';
-	protected $theme_name     = 'Twenty Eleven';
+	protected $theme_slug            = 'twentyeleven';
+	protected $theme_name            = 'Twenty Eleven';
 	protected static $default_themes = array(
 		'twentyten',
 		'twentyeleven',
