@@ -140,4 +140,27 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 			'a WP_Post without ID'  => array( new WP_Post( new stdClass() ) ),
 		);
 	}
+
+	/**
+	 * Tests that a cache miss is not stored while cache addition is suspended.
+	 *
+	 * @ticket 66006
+	 *
+	 * @covers WP_Post::get_instance
+	 */
+	public function test_get_instance_does_not_cache_a_miss_while_cache_addition_is_suspended(): void {
+		clean_post_cache( self::$post_id );
+		$this->assertFalse( wp_cache_get( self::$post_id, 'posts' ), 'The post was cached before the test began.' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$post = WP_Post::get_instance( self::$post_id );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertInstanceOf( WP_Post::class, $post, 'A post object was not returned.' );
+		$this->assertSame( self::$post_id, $post->ID, 'The wrong post was returned.' );
+		$this->assertFalse( wp_cache_get( self::$post_id, 'posts' ), 'The post was added to the cache.' );
+	}
 }
