@@ -74,15 +74,21 @@ test.describe( 'Erase Personal Data', () => {
 			'Request added successfully.'
 		);
 
-		const requester = page.getByRole( 'row' ).filter( { hasText: email } );
-		await expect( requester ).toBeVisible();
+		const requesterLink = page
+			.getByRole( 'row' )
+			.filter( { hasText: email } )
+			.getByRole( 'link', { name: email, exact: true } );
+		await expect( requesterLink ).toBeVisible();
 
 		await admin.visitAdminPage(
 			'erase-personal-data.php',
 			`s=${ encodeURIComponent( email ) }`
 		);
 		await expect(
-			page.getByRole( 'row' ).filter( { hasText: email } )
+			page
+				.getByRole( 'row' )
+				.filter( { hasText: email } )
+				.getByRole( 'link', { name: email, exact: true } )
 		).toBeVisible();
 	} );
 } );
