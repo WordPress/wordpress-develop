@@ -237,6 +237,13 @@ class Tests_Blocks_RenderPostNavigationLink extends WP_UnitTestCase {
 				),
 				'<span class="post-navigation-link__label">Read</span> <a href="{url}" rel="next">Newer post</a>',
 			),
+			'the title without a label and not linked' => array(
+				array(
+					'showTitle' => true,
+					'linkLabel' => false,
+				),
+				'<a href="{url}" rel="next">Newer post</a>',
+			),
 			'the title and a link without a label'     => array(
 				array(
 					'showTitle' => true,
@@ -567,6 +574,30 @@ class Tests_Blocks_RenderPostNavigationLink extends WP_UnitTestCase {
 				'has-background',
 				"background-image:url('https://example.org/a.jpg');background-position:10% 20%;background-size:contain;",
 			),
+			'a background image that does not repeat'      => array(
+				array(
+					'style' => array(
+						'background' => array(
+							'backgroundImage'  => $image,
+							'backgroundRepeat' => 'no-repeat',
+						),
+					),
+				),
+				'has-background',
+				"background-image:url('https://example.org/a.jpg');background-repeat:no-repeat;background-size:cover;",
+			),
+			'a background image that is fixed'             => array(
+				array(
+					'style' => array(
+						'background' => array(
+							'backgroundImage'      => $image,
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+				),
+				'has-background',
+				"background-image:url('https://example.org/a.jpg');background-attachment:fixed;background-size:cover;",
+			),
 			'a gradient'                                   => array( array( 'style' => array( 'background' => array( 'gradient' => 'linear-gradient(red,blue)' ) ) ), 'has-background', 'background-image:linear-gradient(red,blue);' ),
 			'the minimum dimensions'                       => array(
 				array(
@@ -605,20 +636,24 @@ class Tests_Blocks_RenderPostNavigationLink extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-navigation-link' );
+		$original_block = $registry->get_registered( 'core/post-navigation-link' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-navigation-link' );
 		}
 
-		register_block_core_post_navigation_link();
-		$block_type = $registry->get_registered( 'core/post-navigation-link' );
+		try {
+			register_block_core_post_navigation_link();
+			$block_type = $registry->get_registered( 'core/post-navigation-link' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_navigation_link', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-navigation-link' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_navigation_link', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
