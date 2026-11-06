@@ -179,7 +179,9 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$show_autoupdates = new ReflectionProperty( $list_table, 'show_autoupdates' );
 
 		if ( PHP_VERSION_ID < 80100 ) {
-			$show_autoupdates->setAccessible( true );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$show_autoupdates->setAccessible( true );
+			}
 		}
 		$actual = $show_autoupdates->getValue( $list_table );
 		if ( PHP_VERSION_ID < 80100 ) {
@@ -449,7 +451,9 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 */
 	private function call_protected( $method, array $args = array() ) {
 		$reflection = new ReflectionMethod( $this->table, $method );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		return $reflection->invokeArgs( $this->table, $args );
 	}
