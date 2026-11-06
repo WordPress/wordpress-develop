@@ -205,6 +205,7 @@ body:not(.single) .site-main > article:last-of-type .entry-footer {
 			font-size: var(--global--font-size-xs);
 			margin-top: calc(0.5 * var(--global--spacing-vertical));
 			margin-bottom: calc(0.5 * var(--global--spacing-vertical));
+			word-wrap: break-word;
 		}
 	}
 }
