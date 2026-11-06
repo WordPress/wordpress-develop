@@ -10686,9 +10686,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Calls the protected {@see WP_Theme_JSON::get_block_selectors()} method.
 	 *
-	 * @param string        $class_name    The name of WP_Theme_JSON or a subclass of it.
-	 * @param WP_Block_Type $block_type    The block type.
-	 * @param string        $root_selector The block's root selector.
+	 * @param class-string<WP_Theme_JSON> $class_name    The name of WP_Theme_JSON or a subclass of it.
+	 * @param WP_Block_Type               $block_type    The block type.
+	 * @param string                      $root_selector The block's root selector.
 	 * @return mixed The selectors for the block, as returned through reflection.
 	 */
 	private function get_block_selectors( string $class_name, WP_Block_Type $block_type, string $root_selector ) {
