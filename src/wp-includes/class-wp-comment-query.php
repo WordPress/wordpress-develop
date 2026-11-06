@@ -687,17 +687,9 @@ class WP_Comment_Query {
 					}
 				}
 
-				// If no date-related order is available, use the date from the first available clause.
+				// If no date-related order is available, use the order from the first clause.
 				if ( ! $comment_id_order ) {
-					foreach ( $orderby_array as $orderby_clause ) {
-						if ( str_contains( 'ASC', $orderby_clause ) ) {
-							$comment_id_order = 'ASC';
-						} else {
-							$comment_id_order = 'DESC';
-						}
-
-						break;
-					}
+					$comment_id_order = str_ends_with( $orderby_array[0], ' ASC' ) ? 'ASC' : 'DESC';
 				}
 
 				// The logic above ensures $comment_id_order is set to 'ASC' or defaults to 'DESC'.
