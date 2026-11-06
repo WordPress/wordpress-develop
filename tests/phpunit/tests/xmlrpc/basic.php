@@ -382,8 +382,9 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 
 		$result = $server->call( 'test.echo', array( $arg ) );
 
-		$this->assertIXRError( $result );
-		$this->assertSame( -32602, $result->code );
+		$this->assertIXRError( $result, 'A non-date argument should return an IXR_Error.' );
+		$this->assertSame( -32602, $result->code, 'The error code should indicate invalid method parameters.' );
+		$this->assertSame( 'server error. invalid method parameters', $result->message, 'The error message should indicate an invalid parameter type rather than a wrong parameter count.' );
 	}
 
 	/**
@@ -424,9 +425,9 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	 * @covers IXR_Value::calculateType
 	 */
 	public function test_ixr_value_calculate_type(): void {
-		$this->assertSame( 'date', ( new IXR_Value( new IXR_Date( '20261030T12:00:00' ) ) )->calculateType() );
-		$this->assertSame( 'base64', ( new IXR_Value( new IXR_Base64( 'data' ) ) )->calculateType() );
-		$this->assertSame( 'string', ( new IXR_Value( 'IXR_Date' ) )->calculateType() );
+		$this->assertSame( 'date', ( new IXR_Value( new IXR_Date( '20261030T12:00:00' ) ) )->calculateType(), 'An IXR_Date object should be typed as a date.' );
+		$this->assertSame( 'base64', ( new IXR_Value( new IXR_Base64( 'data' ) ) )->calculateType(), 'An IXR_Base64 object should be typed as base64.' );
+		$this->assertSame( 'string', ( new IXR_Value( 'IXR_Date' ) )->calculateType(), 'A string matching a class name should be typed as a string.' );
 	}
 
 	/**
