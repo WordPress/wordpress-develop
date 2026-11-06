@@ -22,7 +22,9 @@ use PHPUnit\Runner\BeforeTestHook;
  *     </extensions>
  *
  * The report is written to tests/phpunit/build/logs/, or to the directory in the
- * environment variable WP_INVARIANTS_REPORT_DIR.
+ * environment variable WP_INVARIANTS_REPORT_DIR. The environment variable
+ * WP_INVARIANTS_REPORT_NAME changes its base name, for a second run, such as of
+ * the AJAX tests.
  *
  * Running with invariants is several times slower than without, so it also
  * reports how far the run has got: every 1,000 tests, and every test which takes
@@ -72,10 +74,11 @@ final class WP_Invariant_PHPUnit_Extension implements BeforeTestHook, AfterTestH
 	/**
 	 * Constructor.
 	 *
-	 * @param string $report_name Base name of the report files.
+	 * @param string $report_name Base name of the report files, unless WP_INVARIANTS_REPORT_NAME is set.
 	 */
 	public function __construct( $report_name = 'invariants' ) {
-		$this->report_name = $report_name;
+		$name              = getenv( 'WP_INVARIANTS_REPORT_NAME' );
+		$this->report_name = $name ? $name : $report_name;
 		$this->directory   = getenv( 'WP_INVARIANTS_REPORT_DIR' );
 		if ( ! $this->directory ) {
 			$this->directory = dirname( __DIR__, 2 ) . '/phpunit/build/logs';
