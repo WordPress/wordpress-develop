@@ -20,6 +20,20 @@ class Tests_Blocks_RenderPostCommentsForm extends WP_UnitTestCase {
 	private $original_block_to_render;
 
 	/**
+	 * Original stylesheet of the active theme.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
+	 * Original scripts instance.
+	 *
+	 * @var WP_Scripts|null
+	 */
+	private $original_wp_scripts;
+
+	/**
 	 * ID of a post.
 	 *
 	 * @var int
@@ -51,10 +65,24 @@ class Tests_Blocks_RenderPostCommentsForm extends WP_UnitTestCase {
 
 		$this->original_block_to_render     = WP_Block_Supports::$block_to_render;
 		WP_Block_Supports::$block_to_render = null;
+		$this->original_stylesheet          = get_stylesheet();
+
+		// Use a new scripts instance, so enqueuing the comment reply script does not leak into other tests.
+		global $wp_scripts;
+		$this->original_wp_scripts = $wp_scripts;
+		$wp_scripts                = null;
+		wp_scripts();
 	}
 
 	public function tear_down() {
+		global $wp_scripts;
+
 		WP_Block_Supports::$block_to_render = $this->original_block_to_render;
+		$wp_scripts                         = $this->original_wp_scripts;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
@@ -250,7 +278,12 @@ class Tests_Blocks_RenderPostCommentsForm extends WP_UnitTestCase {
 	public function test_should_render_the_form_with_the_button_of_a_block_theme() {
 		switch_theme( 'block-theme' );
 
-		$this->assertStringContainsString( '<p class="form-submit wp-block-button">', $this->render() );
+		$output = $this->render();
+
+		$this->assertStringContainsString( '<p class="form-submit wp-block-button">', $output );
+		$this->assertStringContainsString( 'type="submit"', $output );
+		$this->assertMatchesRegularExpression( '/<input name="submit"[^>]* class="wp-block-button__link[^"]*"/', $output, 'The submit button should use the classes of the block theme.' );
+		$this->assertDoesNotMatchRegularExpression( '/<input name="submit"[^>]* class="[^"]*\bsubmit\b[^"]*"/', $output, 'The default submit class should be replaced.' );
 	}
 
 	/**
@@ -262,20 +295,24 @@ class Tests_Blocks_RenderPostCommentsForm extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-comments-form' );
+		$original_block = $registry->get_registered( 'core/post-comments-form' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-comments-form' );
 		}
 
-		register_block_core_post_comments_form();
-		$block_type = $registry->get_registered( 'core/post-comments-form' );
+		try {
+			register_block_core_post_comments_form();
+			$block_type = $registry->get_registered( 'core/post-comments-form' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_comments_form', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-comments-form' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_comments_form', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
