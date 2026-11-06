@@ -959,72 +959,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			return $response;
 		}
 
-		/*
-		 * Loopback requests (local PHPUnit fixtures) are not external network
-		 * calls. Allow them so real-transport coverage can run outside the
-		 * external-http group against 127.0.0.1 / localhost.
-		 *
-		 * Requests follows redirects inside the same call without returning to
-		 * pre_http_request, so also watch redirect targets and block any that
-		 * leave loopback.
-		 */
-		if ( $this->is_loopback_http_url( $url ) ) {
-			if ( ! has_action( 'requests-requests.before_redirect', array( $this, 'block_external_http_redirect' ) ) ) {
-				add_action( 'requests-requests.before_redirect', array( $this, 'block_external_http_redirect' ), 10, 5 );
-			}
-
-			return $response;
-		}
-
 		$this->blocked_http_requests[] = $url;
 
 		return new WP_Error(
 			'test_external_http_blocked',
 			'External HTTP requests are blocked in tests that are not in the `external-http` group.'
 		);
-	}
-
-	/**
-	 * Blocks redirects from loopback fixtures to non-loopback URLs.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @throws WpOrg\Requests\Exception When the redirect target is not loopback.
-	 *
-	 * @param string                  $location    Redirect location (passed by reference by Requests).
-	 * @param array                   $req_headers Request headers.
-	 * @param array|null              $req_data    Request data.
-	 * @param array                   $options     Requests options.
-	 * @param WpOrg\Requests\Response $response    Response that triggered the redirect.
-	 */
-	public function block_external_http_redirect( &$location, &$req_headers, &$req_data, &$options, $response ) {
-		if ( $this->is_loopback_http_url( $location ) ) {
-			return;
-		}
-
-		$this->blocked_http_requests[] = $location;
-
-		throw new WpOrg\Requests\Exception(
-			'External HTTP redirects are blocked in tests that are not in the `external-http` group.',
-			'test_external_http_blocked'
-		);
-	}
-
-	/**
-	 * Whether a URL targets a loopback host used by local test fixtures.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $url Request URL.
-	 * @return bool True when the host is 127.0.0.1, localhost, or ::1.
-	 */
-	protected function is_loopback_http_url( string $url ): bool {
-		$host = wp_parse_url( $url, PHP_URL_HOST );
-		if ( ! is_string( $host ) || '' === $host ) {
-			return false;
-		}
-
-		return in_array( strtolower( $host ), array( '127.0.0.1', 'localhost', '[::1]' ), true );
 	}
 
 	/**

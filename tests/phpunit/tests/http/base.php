@@ -78,7 +78,12 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	private static $file_stream_fixture_fail_reason = null;
 
-	protected $http_request_args;
+	/**
+	 * Captured Requests options from the most recent intercepted request.
+	 *
+	 * @var array
+	 */
+	protected $requests_options = array();
 
 	/**
 	 * Starts a local HTTP fixture server for stream and response-size tests.
@@ -304,9 +309,77 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 	}
 
-	public function filter_http_request_args( array $args ) {
-		$this->http_request_args = $args;
-		return $args;
+	/**
+	 * Allows only this class's local HTTP fixture through the external-HTTP guard.
+	 *
+	 * Other tests continue to use the parent blocker for any non-mocked request.
+	 *
+	 * @param false|array|WP_Error $response A preemptive response, or false when none was given.
+	 * @param array                $args     Request arguments.
+	 * @param string               $url      The request URL.
+	 * @return false|array|WP_Error The preemptive response, or an error for a blocked request.
+	 */
+	public function block_external_http_request( $response, array $args, string $url ) {
+		if ( false === $response && $this->is_fixture_url( $url ) ) {
+			add_action( 'requests-requests.before_redirect', array( $this, 'block_external_fixture_redirect' ) );
+
+			return $response;
+		}
+
+		return parent::block_external_http_request( $response, $args, $url );
+	}
+
+	/**
+	 * Whether a URL targets this class's local fixture server host and port.
+	 *
+	 * @param string $url Request URL.
+	 * @return bool True when the URL matches the fixture host and port.
+	 */
+	protected function is_fixture_url( string $url ): bool {
+		if ( ! self::$file_stream_fixture_url ) {
+			return false;
+		}
+
+		$fixture = wp_parse_url( self::$file_stream_fixture_url );
+		$parts   = wp_parse_url( $url );
+
+		if ( ! is_array( $fixture ) || ! is_array( $parts ) ) {
+			return false;
+		}
+
+		if ( empty( $fixture['host'] ) || empty( $parts['host'] ) ) {
+			return false;
+		}
+
+		$fixture_port = isset( $fixture['port'] ) ? (int) $fixture['port'] : ( 'https' === ( $fixture['scheme'] ?? 'http' ) ? 443 : 80 );
+		$request_port = isset( $parts['port'] ) ? (int) $parts['port'] : ( 'https' === ( $parts['scheme'] ?? 'http' ) ? 443 : 80 );
+
+		return strtolower( $fixture['host'] ) === strtolower( $parts['host'] )
+			&& $fixture_port === $request_port;
+	}
+
+	/**
+	 * Blocks redirects from the local fixture to non-fixture URLs.
+	 *
+	 * @throws WpOrg\Requests\Exception When the redirect target leaves the fixture server.
+	 *
+	 * @param string                  $location    Redirect location (passed by reference by Requests).
+	 * @param array                   $req_headers Request headers.
+	 * @param array|null              $req_data    Request data.
+	 * @param array                   $options     Requests options.
+	 * @param WpOrg\Requests\Response $response    Response that triggered the redirect.
+	 */
+	public function block_external_fixture_redirect( &$location, &$req_headers, &$req_data, &$options, $response ) {
+		if ( $this->is_fixture_url( $location ) ) {
+			return;
+		}
+
+		$this->blocked_http_requests[] = $location;
+
+		throw new WpOrg\Requests\Exception(
+			'External HTTP redirects are blocked in tests that are not in the `external-http` group.',
+			'test_external_http_blocked'
+		);
 	}
 
 	/**
@@ -786,10 +859,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test HTTP requests where SSL verification is disabled but the CA bundle is still populated.
+	 * Test HTTP requests where SSL verification is disabled.
 	 *
-	 * Mocks the response: this assertion is about request-arg population in WP_Http,
-	 * not live TLS against wordpress.org.
+	 * Captures Requests options after WP_Http::request() maps sslverify=false to
+	 * verify/verifyname, which is the #33978 / r34639 behavior. Stops before connecting.
 	 *
 	 * @ticket 33978
 	 * @ticket 63914
@@ -797,47 +870,35 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_head
 	 */
 	public function test_https_url_without_ssl_verification() {
-		$url  = 'https://wordpress.org/';
-		$args = array(
-			'sslverify' => false,
-		);
+		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
+		add_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10, 5 );
 
-		add_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
-		add_filter( 'pre_http_request', array( $this, 'mock_https_head_response' ), 10, 3 );
+		try {
+			$res = $this->wp_remote_head( 'https://wordpress.org/', array( 'sslverify' => false ) );
+		} finally {
+			remove_action( 'requests-requests.before_request', array( $this, 'capture_requests_options' ), 10 );
+		}
 
-		$res = $this->wp_remote_head( $url, $args );
-
-		remove_filter( 'http_request_args', array( $this, 'filter_http_request_args' ) );
-		remove_filter( 'pre_http_request', array( $this, 'mock_https_head_response' ), 10 );
-
-		$this->assertNotEmpty( $this->http_request_args['sslcertificates'] );
-		$this->assertFalse( $this->http_request_args['sslverify'] );
-		$this->assertNotWPError( $res );
+		$this->assertWPError( $res );
+		$this->assertFalse( $this->requests_options['verify'] );
+		$this->assertFalse( $this->requests_options['verifyname'] );
 	}
 
 	/**
-	 * Returns a canned HTTPS HEAD response for offline CA-bundle coverage.
+	 * Captures Requests options and stops before a network connection.
 	 *
-	 * @param false|array|WP_Error $preempt Whether to preempt the request.
-	 * @param array                $args    Request arguments.
-	 * @param string               $url     Request URL.
-	 * @return array|false|WP_Error Canned response for the wordpress.org HEAD URL.
+	 * @throws WpOrg\Requests\Exception Always, after capturing options.
+	 *
+	 * @param string       $url     Request URL.
+	 * @param array        $headers Request headers.
+	 * @param string|array $data    Request data.
+	 * @param string       $type    HTTP method.
+	 * @param array        $options Request options (passed by reference).
 	 */
-	public function mock_https_head_response( $preempt, $args, $url ) {
-		if ( 'https://wordpress.org/' !== $url ) {
-			return $preempt;
-		}
+	public function capture_requests_options( $url, $headers, $data, $type, &$options ) {
+		$this->requests_options = $options;
 
-		return array(
-			'headers'  => array(),
-			'body'     => '',
-			'response' => array(
-				'code'    => 200,
-				'message' => 'OK',
-			),
-			'cookies'  => array(),
-			'filename' => null,
-		);
+		throw new WpOrg\Requests\Exception( 'Stopped after capturing the request options.', 'test_stopped' );
 	}
 
 	/**
