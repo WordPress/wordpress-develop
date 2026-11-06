@@ -1112,3 +1112,88 @@ function wp_redirect_admin_locations() {
 		exit;
 	}
 }
+
+/**
+ * Short-circuits template rendering for 404 requests targeting sourcemaps or internal assets.
+ *
+ * Prevents loading and rendering the full 404 theme template (including block templates,
+ * template parts, and queries) when a request for a missing sourcemap (.map file) or
+ * missing asset within the administration or includes directory is routed to WordPress.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True if the request was short-circuited as a 404 asset, false otherwise.
+ */
+function wp_short_circuit_404_assets(): bool {
+	if ( ! is_404() ) {
+		return false;
+	}
+
+	$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+	if ( ! is_string( $request_uri ) || '' === $request_uri ) {
+		return false;
+	}
+
+	$request_path = parse_url( $request_uri, PHP_URL_PATH );
+	if ( ! is_string( $request_path ) || '' === $request_path ) {
+		return false;
+	}
+
+	$request_path = rawurldecode( $request_path );
+
+	$should_short_circuit = false;
+
+	// Short-circuit sourcemaps (.map files, e.g. .js.map, .css.map).
+	if ( str_ends_with( strtolower( $request_path ), '.map' ) ) {
+		$should_short_circuit = true;
+	}
+
+	// Short-circuit missing files under wp-admin/ or wp-includes/.
+	if ( ! $should_short_circuit ) {
+		$admin_path    = parse_url( admin_url(), PHP_URL_PATH );
+		$includes_path = parse_url( includes_url(), PHP_URL_PATH );
+
+		if ( ( $admin_path && str_starts_with( $request_path, $admin_path ) ) ||
+			( $includes_path && str_starts_with( $request_path, $includes_path ) )
+		) {
+			$should_short_circuit = true;
+		}
+	}
+
+	/**
+	 * Filters whether to short-circuit 404 template rendering for the current request.
+	 *
+	 * Allows bypassing full 404 template rendering (including theme canvas, block templates,
+	 * and template parts) for missing static assets or specific request paths.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool   $should_short_circuit Whether to short-circuit 404 template rendering.
+	 * @param string $request_path         The requested URL path.
+	 */
+	$should_short_circuit = apply_filters( 'wp_short_circuit_404_assets', $should_short_circuit, $request_path );
+
+	if ( ! $should_short_circuit ) {
+		return false;
+	}
+
+	status_header( 404 );
+	nocache_headers();
+
+	/**
+	 * Filters whether to terminate execution after short-circuiting a 404 asset request.
+	 *
+	 * Primarily intended to disable exit during automated testing.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool   $should_exit  Whether to call exit. Default true.
+	 * @param string $request_path The requested URL path.
+	 */
+	$should_exit = apply_filters( 'wp_exit_on_short_circuit_404_assets', true, $request_path );
+	if ( $should_exit ) {
+		exit;
+	}
+
+	return true;
+}
