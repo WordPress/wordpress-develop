@@ -220,7 +220,7 @@
 				var url = event.target.getAttribute( 'href' ) ? event.target.getAttribute( 'href' ) : '';
 
 				// Open submenu if URL is #.
-				if ( '#' === url && event.target.nextSibling.matches('.submenu-expand') ) {
+				if ( '#' === url && event.target.nextElementSibling && event.target.nextElementSibling.matches('.submenu-expand') ) {
 					openSubMenu( event.target );
 				}
 			}
