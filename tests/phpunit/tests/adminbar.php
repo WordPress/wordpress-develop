@@ -14,6 +14,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
+	/**
+	 * Holds the global styles instance replaced by use_fresh_styles().
+	 *
+	 * @var array
+	 */
+	protected $saved_styles = array();
+
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
@@ -25,6 +32,25 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		// is_admin_bar_showing() caches its result, so an earlier logged-out test can leave it false.
 		unset( $GLOBALS['show_admin_bar'] );
+	}
+
+	public function tear_down() {
+		if ( ! empty( $this->saved_styles ) ) {
+			$GLOBALS['wp_styles'] = $this->saved_styles[0];
+			$this->saved_styles   = array();
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Replaces the global styles instance with a fresh one, which is restored in tear_down().
+	 *
+	 * Inline styles added to the `admin-bar` handle by one test would otherwise be visible to the next.
+	 */
+	protected function use_fresh_styles() {
+		$this->saved_styles   = array( $GLOBALS['wp_styles'] ?? null );
+		$GLOBALS['wp_styles'] = null;
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -815,6 +841,248 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			array( 'network-admin-p', 'manage_network_plugins' ),
 			array( 'network-admin-o', 'manage_network_options' ),
 		);
+	}
+
+	/**
+	 * The secondary groups are added to the Toolbar.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_add_secondary_groups
+	 */
+	public function test_add_secondary_groups_adds_expected_groups() {
+		$wp_admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_add_secondary_groups( $wp_admin_bar );
+
+		$node_secondary = $wp_admin_bar->get_node( 'top-secondary' );
+		$node_external  = $wp_admin_bar->get_node( 'wp-logo-external' );
+
+		$this->assertNotNull( $node_secondary );
+		$this->assertTrue( $node_secondary->group );
+		$this->assertEmpty( $node_secondary->parent, 'The top-secondary group should be at the top level.' );
+		$this->assertSame( 'ab-top-secondary', $node_secondary->meta['class'] );
+
+		$this->assertNotNull( $node_external );
+		$this->assertTrue( $node_external->group );
+		$this->assertSame( 'wp-logo', $node_external->parent );
+		$this->assertSame( 'ab-sub-secondary', $node_external->meta['class'] );
+	}
+
+	/**
+	 * The secondary groups exist in the standard Toolbar, so items can be added to them.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_add_secondary_groups
+	 */
+	public function test_standard_admin_bar_includes_secondary_groups() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'top-secondary' ) );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'wp-logo-external' ) );
+		$this->assertSame( 'top-secondary', $wp_admin_bar->get_node( 'my-account' )->parent );
+	}
+
+	/**
+	 * The print styles that hide the Toolbar are added on the front end,
+	 * and the legacy action is removed.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_header_styles
+	 */
+	public function test_enqueue_admin_bar_header_styles_adds_print_style_on_front_end() {
+		$this->use_fresh_styles();
+
+		add_action( 'wp_head', 'wp_admin_bar_header' );
+
+		wp_enqueue_admin_bar_header_styles();
+
+		$this->assertFalse( has_action( 'wp_head', 'wp_admin_bar_header' ), 'The legacy action should be removed.' );
+		$this->assertContains( '@media print { #wpadminbar { display:none; } }', wp_styles()->get_data( 'admin-bar', 'after' ) );
+	}
+
+	/**
+	 * The print styles that hide the Toolbar are added in the admin,
+	 * and the legacy action is removed.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_header_styles
+	 */
+	public function test_enqueue_admin_bar_header_styles_adds_print_style_in_admin() {
+		$this->use_fresh_styles();
+
+		set_current_screen( 'dashboard' );
+		add_action( 'admin_head', 'wp_admin_bar_header' );
+
+		wp_enqueue_admin_bar_header_styles();
+
+		$this->assertFalse( has_action( 'admin_head', 'wp_admin_bar_header' ), 'The legacy action should be removed.' );
+		$this->assertContains( '@media print { #wpadminbar { display:none; } }', wp_styles()->get_data( 'admin-bar', 'after' ) );
+	}
+
+	/**
+	 * The print styles are not added when the legacy action was unhooked.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_header_styles
+	 */
+	public function test_enqueue_admin_bar_header_styles_does_nothing_when_legacy_action_is_unhooked() {
+		$this->use_fresh_styles();
+
+		remove_action( 'wp_head', 'wp_admin_bar_header' );
+
+		wp_enqueue_admin_bar_header_styles();
+
+		$this->assertEmpty( wp_styles()->get_data( 'admin-bar', 'after' ) );
+	}
+
+	/**
+	 * The bump styles that make room for the Toolbar are added,
+	 * and the legacy action is removed.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_bump_styles
+	 */
+	public function test_enqueue_admin_bar_bump_styles_adds_style_and_removes_legacy_action() {
+		$this->use_fresh_styles();
+
+		add_action( 'wp_head', '_admin_bar_bump_cb' );
+
+		wp_enqueue_admin_bar_bump_styles();
+
+		$after = implode( '', (array) wp_styles()->get_data( 'admin-bar', 'after' ) );
+
+		$this->assertFalse( has_action( 'wp_head', '_admin_bar_bump_cb' ), 'The legacy action should be removed.' );
+		$this->assertStringContainsString( '@media screen { html { margin-top: 32px !important; } }', $after );
+		$this->assertStringContainsString( '@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }', $after );
+	}
+
+	/**
+	 * The bump styles are not added when the legacy action was unhooked.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_bump_styles
+	 */
+	public function test_enqueue_admin_bar_bump_styles_does_nothing_when_legacy_action_is_unhooked() {
+		$this->use_fresh_styles();
+
+		remove_action( 'wp_head', '_admin_bar_bump_cb' );
+
+		wp_enqueue_admin_bar_bump_styles();
+
+		$this->assertEmpty( wp_styles()->get_data( 'admin-bar', 'after' ) );
+	}
+
+	/**
+	 * The bump styles are not added when the theme provides its own callback.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_enqueue_admin_bar_bump_styles
+	 */
+	public function test_enqueue_admin_bar_bump_styles_does_nothing_when_theme_uses_custom_callback() {
+		$this->use_fresh_styles();
+
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		add_theme_support( 'admin-bar', array( 'callback' => '__return_false' ) );
+		add_action( 'wp_head', '__return_false' );
+
+		wp_enqueue_admin_bar_bump_styles();
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertSame( 10, has_action( 'wp_head', '__return_false' ), 'The custom callback should be left alone.' );
+		$this->assertEmpty( wp_styles()->get_data( 'admin-bar', 'after' ) );
+	}
+
+	/**
+	 * The Toolbar is shown by default for users who have no stored preference.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_get_admin_bar_pref
+	 */
+	public function test_get_admin_bar_pref_defaults_to_true() {
+		// New users get a stored preference, so remove it.
+		delete_user_meta( self::$editor_id, 'show_admin_bar_front' );
+		$this->assertFalse( get_user_option( 'show_admin_bar_front', self::$editor_id ) );
+
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertTrue( _get_admin_bar_pref() );
+		$this->assertTrue( _get_admin_bar_pref( 'front', self::$editor_id ) );
+	}
+
+	/**
+	 * The stored preference of the current user is used.
+	 *
+	 * @ticket 66491
+	 *
+	 * @dataProvider data_get_admin_bar_pref_stored_values
+	 *
+	 * @covers ::_get_admin_bar_pref
+	 *
+	 * @param string $stored   Stored preference.
+	 * @param bool   $expected Expected result.
+	 */
+	public function test_get_admin_bar_pref_uses_stored_preference_of_current_user( $stored, $expected ) {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', $stored );
+		wp_set_current_user( self::$editor_id );
+
+		$this->assertSame( $expected, _get_admin_bar_pref() );
+		$this->assertSame( $expected, _get_admin_bar_pref( 'front' ) );
+	}
+
+	/**
+	 * Data provider for test_get_admin_bar_pref_uses_stored_preference_of_current_user().
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_admin_bar_pref_stored_values() {
+		return array(
+			'true'  => array( 'true', true ),
+			'false' => array( 'false', false ),
+		);
+	}
+
+	/**
+	 * The preference of a given user is used instead of the preference of the current user.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_get_admin_bar_pref
+	 */
+	public function test_get_admin_bar_pref_uses_preference_of_given_user() {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', 'false' );
+		wp_set_current_user( self::$admin_id );
+
+		$this->assertTrue( _get_admin_bar_pref(), 'The current user has no preference.' );
+		$this->assertFalse( _get_admin_bar_pref( 'front', self::$editor_id ) );
+	}
+
+	/**
+	 * Each context has its own preference.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::_get_admin_bar_pref
+	 */
+	public function test_get_admin_bar_pref_uses_preference_of_given_context() {
+		update_user_meta( self::$editor_id, 'show_admin_bar_front', 'false' );
+		update_user_meta( self::$editor_id, 'show_admin_bar_admin', 'true' );
+
+		$this->assertFalse( _get_admin_bar_pref( 'front', self::$editor_id ) );
+		$this->assertTrue( _get_admin_bar_pref( 'admin', self::$editor_id ) );
 	}
 
 	/**
