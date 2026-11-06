@@ -159,4 +159,41 @@ test.describe( 'Media library', () => {
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeHidden();
 	} );
+
+	test( 'edits attachment title, alternative text, and description', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'details' );
+		const title = `${ prefix }-updated-title`;
+		const altText = `${ prefix }-alt`;
+		const description = `${ prefix }-description`;
+
+		await admin.visitAdminPage( '/post.php', `post=${ id }&action=edit` );
+
+		await page.locator( '#title' ).fill( title );
+		await page.locator( '#attachment_alt' ).fill( altText );
+		await page.locator( '#attachment_content' ).fill( description );
+		await page
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
+
+		await expect( page.locator( '#message' ) ).toContainText(
+			'Media file updated.'
+		);
+		await expect( page.locator( '#title' ) ).toHaveValue( title );
+		await expect( page.locator( '#attachment_alt' ) ).toHaveValue( altText );
+		await expect( page.locator( '#attachment_content' ) ).toHaveValue(
+			description
+		);
+
+		const updated = await requestUtils.rest( {
+			path: `/wp/v2/media/${ id }`,
+			params: { context: 'edit' },
+		} );
+		expect( updated.title.raw ).toBe( title );
+		expect( updated.alt_text ).toBe( altText );
+		expect( updated.description.raw ).toBe( description );
+	} );
 } );
