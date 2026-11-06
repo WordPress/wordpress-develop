@@ -189,4 +189,52 @@ return array(
 				}
 			}
 		),
+
+	WP_Invariant::define( 'request-values-stay-literals' )
+		->describe( 'A value the request sent, where it appears in a query sent to MySQL, is inside one string literal or quoted identifier there: it adds no SQL of its own, whether or not the query went through wpdb::prepare(). Values shorter than 4 bytes, or without a quote, backslash or backtick, are not followed. Each value is reported once.' )
+		->include_test_callers()
+		->state(
+			static function () {
+				return array();
+			},
+			'run'
+		)
+		->before(
+			'wpdb::_do_query',
+			static function ( WP_Invariant_Call $call, array &$reported ) {
+				$sql = $call->arg( 'query' );
+				if ( ! is_string( $sql ) ) {
+					return;
+				}
+
+				$tokens = null;
+				foreach ( WP_Invariant_Request::values( "'\"\\`" ) as $value ) {
+					if ( isset( $reported[ $value ] ) ) {
+						continue;
+					}
+
+					$length = strlen( $value );
+					foreach ( WP_Invariant_Request::occurrences( $sql, $value ) as $at ) {
+						if ( null === $tokens ) {
+							$tokens = WP_Invariant_SQL_Lexer::tokens( $sql );
+						}
+
+						$inside = false;
+						foreach ( $tokens as $token ) {
+							if ( $token['start'] <= $at && $at + $length <= $token['end'] ) {
+								// Strictly inside the quotes, not including them.
+								$inside = ( 'string' === $token['type'] || 'ident' === $token['type'] ) && $token['start'] < $at && $at + $length < $token['end'];
+								break;
+							}
+						}
+
+						if ( ! $inside ) {
+							$reported[ $value ] = true;
+							$call->expect( false, 'The request value %s appears in a query outside a string literal: %s', $value, $sql );
+							continue 2;
+						}
+					}
+				}
+			}
+		),
 );
