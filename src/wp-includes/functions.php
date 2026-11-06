@@ -1282,6 +1282,7 @@ function wp_removable_query_args() {
 		'ids',
 		'locked',
 		'message',
+		'network_admin_email_updated',
 		'same',
 		'saved',
 		'settings-updated',
@@ -3353,6 +3354,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				true
 			)
 			) {
+				$type = false;
+				$ext  = false;
+			}
+		} elseif ( in_array( $real_mime, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			/*
+			 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to the
+			 * canonical font/ttf. PHP 8.6 bundles a libmagic version with this change, but PHP
+			 * builds that use the system libmagic can report either type, so both are accepted
+			 * for TrueType fonts.
+			 *
+			 * @link https://github.com/file/file/commit/6481672a8eb64c2758bf6429d9a76ee5a22174e9
+			 */
+			if ( ! in_array( $type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
 				$type = false;
 				$ext  = false;
 			}
@@ -7630,11 +7644,15 @@ function wp_is_stream( $path ) {
  *
  * @link https://www.php.net/manual/en/function.checkdate.php
  *
- * @param int    $month       Month number.
- * @param int    $day         Day number.
- * @param int    $year        Year number.
- * @param string $source_date The date to filter.
+ * @param int|string $month       Month number.
+ * @param int|string $day         Day number.
+ * @param int|string $year        Year number.
+ * @param string     $source_date The date to filter.
  * @return bool True if valid date, false if not valid date.
+ *
+ * @phpstan-param int|numeric-string $month
+ * @phpstan-param int|numeric-string $day
+ * @phpstan-param int|numeric-string $year
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
 	$checkdate = false;

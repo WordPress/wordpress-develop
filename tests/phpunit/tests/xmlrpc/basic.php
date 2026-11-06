@@ -324,6 +324,113 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a multicall entry returning a non-object result is not treated as an error.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_Server::multiCall
+	 *
+	 * @dataProvider data_multicall_with_non_object_result
+	 *
+	 * @param mixed $value The value the method returns.
+	 */
+	public function test_multicall_with_non_object_result( $value ): void {
+		$this->myxmlrpcserver->callbacks = array(
+			'test.echo' => array( $this, 'echo_args' ),
+		);
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array(
+				array(
+					'methodName' => 'test.echo',
+					'params'     => array( $value ),
+				),
+			)
+		);
+
+		$this->assertSame( array( array( $value ) ), $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_multicall_with_non_object_result(): array {
+		return array(
+			'string'           => array( 'IXR_Error' ),
+			'integer'          => array( 42 ),
+			'boolean'          => array( true ),
+			'non-struct array' => array( array( 'IXR_Error' ) ),
+		);
+	}
+
+	/**
+	 * Tests that the introspection server rejects a non-object argument for a date parameter.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_IntrospectionServer::call
+	 *
+	 * @dataProvider data_introspection_server_rejects_non_date_argument
+	 *
+	 * @param mixed $arg The argument passed for the date parameter.
+	 */
+	public function test_introspection_server_rejects_non_date_argument( $arg ): void {
+		$server = new IXR_IntrospectionServer();
+		$server->addCallback( 'test.echo', array( $this, 'echo_args' ), array( 'string', 'dateTime.iso8601' ), 'Echoes a date.' );
+
+		$result = $server->call( 'test.echo', array( $arg ) );
+
+		$this->assertIXRError( $result, 'A non-date argument should return an IXR_Error.' );
+		$this->assertSame( -32602, $result->code, 'The error code should indicate invalid method parameters.' );
+		$this->assertSame( 'server error. invalid method parameters', $result->message, 'The error message should indicate an invalid parameter type rather than a wrong parameter count.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_introspection_server_rejects_non_date_argument(): array {
+		return array(
+			'date string' => array( '20261030T12:00:00' ),
+			'class name'  => array( 'IXR_Date' ),
+			'integer'     => array( 1793361600 ),
+		);
+	}
+
+	/**
+	 * Tests that the introspection server accepts an IXR_Date argument for a date parameter.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_IntrospectionServer::call
+	 */
+	public function test_introspection_server_accepts_date_argument(): void {
+		$server = new IXR_IntrospectionServer();
+		$server->addCallback( 'test.echo', array( $this, 'echo_args' ), array( 'string', 'dateTime.iso8601' ), 'Echoes a date.' );
+
+		$date   = new IXR_Date( '20261030T12:00:00' );
+		$result = $server->call( 'test.echo', array( $date ) );
+
+		$this->assertSame( $date, $result );
+	}
+
+	/**
+	 * Tests that IXR_Value encodes IXR_Date and IXR_Base64 objects as their XML-RPC types, and strings as strings.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_Value::calculateType
+	 */
+	public function test_ixr_value_calculate_type(): void {
+		$this->assertSame( 'date', ( new IXR_Value( new IXR_Date( '20261030T12:00:00' ) ) )->calculateType(), 'An IXR_Date object should be typed as a date.' );
+		$this->assertSame( 'base64', ( new IXR_Value( new IXR_Base64( 'data' ) ) )->calculateType(), 'An IXR_Base64 object should be typed as base64.' );
+		$this->assertSame( 'string', ( new IXR_Value( 'IXR_Date' ) )->calculateType(), 'A string matching a class name should be typed as a string.' );
+	}
+
+	/**
 	 * @ticket 36586
 	 */
 	public function test_isStruct_on_non_numerically_indexed_array() {

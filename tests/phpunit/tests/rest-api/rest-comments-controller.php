@@ -5997,6 +5997,116 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A reaction speaks for its author, so being able to edit the post is not
+	 * enough to remove someone else's.
+	 *
+	 * @ticket 66447
+	 *
+	 * @dataProvider data_users_who_cannot_delete_another_users_reaction
+	 *
+	 * @param string $user Name of the static property holding the user ID.
+	 */
+	public function test_cannot_delete_another_users_reaction( string $user ): void {
+		$post_id     = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		wp_set_current_user( self::${$user} );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_comment( $reaction_id ), 'Reaction must still exist.' );
+	}
+
+	/**
+	 * Data provider for test_cannot_delete_another_users_reaction().
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_users_who_cannot_delete_another_users_reaction(): array {
+		return array(
+			'post author'   => array( 'author_id' ),
+			'administrator' => array( 'admin_id' ),
+		);
+	}
+
+	/**
+	 * Reactions on a resolved thread are frozen, like adding new ones, on the
+	 * root note and on its replies.
+	 *
+	 * @ticket 66447
+	 *
+	 * @dataProvider data_resolved_thread_targets
+	 *
+	 * @param bool $on_reply Whether the reaction is on a reply rather than the root note.
+	 */
+	public function test_cannot_delete_reaction_on_resolved_thread( bool $on_reply ): void {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$target  = $note_id;
+		if ( $on_reply ) {
+			$target = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_parent'   => $note_id,
+					'comment_type'     => 'note',
+					'comment_approved' => 0,
+					'user_id'          => self::$editor_id,
+					'comment_content'  => 'Test reply',
+				)
+			);
+		}
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $target,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => '2764',
+			)
+		);
+		wp_set_comment_status( $note_id, 'approve' );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_comment( $reaction_id ), 'Reaction must still exist.' );
+	}
+
+	/**
 	 * A reaction cannot be added to a trashed or spammed note, where it would
 	 * escape the trash cascade.
 	 *
@@ -6108,7 +6218,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Data provider for test_create_reaction_on_resolved_thread().
+	 * Data provider for test_create_reaction_on_resolved_thread() and
+	 * test_cannot_delete_reaction_on_resolved_thread().
 	 *
 	 * @return array[]
 	 */

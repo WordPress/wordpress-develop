@@ -219,11 +219,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/ms.php
 		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/ms.php
-		-
 			message: '#^Parameter \#3 \$value of function update_blog_status expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -330,11 +325,6 @@ parameters:
 			path: ../../../src/wp-admin/includes/user.php
 		-
 			message: '#^Parameter \#1 \$user of function wp_get_user_contact_methods expects WP_User\|null, stdClass given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/user.php
-		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/user.php
@@ -654,7 +644,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/author-template.php
 		-
-			message: '#^Parameter \#1 \$block of function filter_block_kses expects WP_Block_Parser_Block, array given\.$#'
+			message: '#^Parameter \#1 \$block of function filter_block_kses expects WP_Block_Parser_Block, array\<string, array\|string\|null\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
@@ -689,45 +679,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
 			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\<min, \-1\>\|int\<1, max\>\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Parameter \#2 \$day of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-manager.php
-		-
-			message: '#^Parameter \#2 \$parent_query of method WP_Date_Query\:\:get_sql_for_clause\(\) expects array, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-date-query.php
-		-
-			message: '#^Parameter \#2 \$timestamp of function gmdate expects int, false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-date-query.php
-		-
-			message: '#^Parameter \#2 \$value of method WP_Date_Query\:\:build_value\(\) expects array\|string, int given\.$#'
-			identifier: argument.type
-			count: 3
-			path: ../../../src/wp-includes/class-wp-date-query.php
-		-
-			message: '#^Parameter \#2 \$value of method WP_Date_Query\:\:build_value\(\) expects array\|string, int\|null given\.$#'
-			identifier: argument.type
-			count: 3
-			path: ../../../src/wp-includes/class-wp-date-query.php
 		-
 			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
 			identifier: argument.type
@@ -839,11 +794,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/comment.php
 		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/comment.php
-		-
 			message: '#^Parameter \#1 \$gmt_time of function spawn_cron expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
@@ -902,11 +852,6 @@ parameters:
 			message: '#^Parameter \#2 \$fallback_url of function wp_validate_redirect expects string, false given\.$#'
 			identifier: argument.type
 			count: 2
-			path: ../../../src/wp-includes/functions.php
-		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
 			message: '#^Parameter \#3 \$number of function _n expects int, string given\.$#'
@@ -1014,26 +959,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-load.php
 		-
-			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
-			message: '#^Parameter \#2 \$day of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
-			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, \(string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/ms-site.php
-		-
 			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1109,11 +1034,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$month of function wp_checkdate expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
 			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, stdClass given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1142,21 +1062,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function strlen expects string, int\<2, max\> given\.$#'
 			identifier: argument.type
 			count: 3
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#2 \$day of function wp_checkdate expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#3 \$year of function wp_checkdate expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:response_to_data\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
@@ -1292,11 +1197,6 @@ parameters:
 			message: '#^Parameter \#2 \$fallback_title of function sanitize_title expects string, int given\.$#'
 			identifier: argument.type
 			count: 2
-			path: ../../../src/wp-includes/taxonomy.php
-		-
-			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
 			message: '#^Parameter \#2 \$taxonomy of function wp_update_term_count expects string, null given\.$#'
