@@ -1514,7 +1514,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *     assert?: Closure( string, string ): void,
 	 * }>
 	 */
-	public function data_wp_hoist_late_printed_styles(): array {
+	public static function data_wp_hoist_late_printed_styles(): array {
 		$blocks_content = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator --><!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->';
 
 		$early_common_styles = array(
@@ -1718,7 +1718,7 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 					'BODY' => array(),
 				),
-				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+				'assert'            => static function ( string $buffer, string $filtered_buffer ) {
 					$block_separator_core_style_span = null;
 					$block_separator_custom_style_span = null;
 					$processor = new class( $filtered_buffer ) extends WP_HTML_Tag_Processor {
@@ -1743,9 +1743,9 @@ class Tests_Template extends WP_UnitTestCase {
 						}
 					}
 
-					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
-					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
-					$this->assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+					self::assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
+					self::assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
+					self::assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
 				},
 			),
 
@@ -1779,14 +1779,14 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 					'BODY' => array(),
 				),
-				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+				'assert'            => static function ( string $buffer, string $filtered_buffer ) {
 					$block_separator_inline_style_start_tag = '<style id="wp-block-separator-inline-css">';
 					$block_separator_custom_style           = '.wp-block-separator{ outline:solid 1px lime; }';
-					$this->assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
-					$this->assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
+					self::assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
+					self::assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
 					$block_separator_inline_style_position = strpos( $filtered_buffer, $block_separator_inline_style_start_tag );
 					$block_separator_custom_style_position = strpos( $filtered_buffer, $block_separator_custom_style );
-					$this->assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+					self::assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
 				},
 			),
 
