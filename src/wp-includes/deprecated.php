@@ -6488,7 +6488,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 	}
 
 	$suffix               = wp_scripts_get_suffix();
-	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+	$classic_theme_styles = ABSPATH . WPINC . "/css/dist/block-library/classic$suffix.css";
 
 	/*
 	 * This follows the pattern of get_block_editor_theme_styles,
