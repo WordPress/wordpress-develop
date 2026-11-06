@@ -191,20 +191,24 @@ class Tests_Blocks_RenderPostCommentsLink extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-comments-link' );
+		$original_block = $registry->get_registered( 'core/post-comments-link' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-comments-link' );
 		}
 
-		register_block_core_post_comments_link();
-		$block_type = $registry->get_registered( 'core/post-comments-link' );
+		try {
+			register_block_core_post_comments_link();
+			$block_type = $registry->get_registered( 'core/post-comments-link' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_comments_link', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-comments-link' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_comments_link', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
