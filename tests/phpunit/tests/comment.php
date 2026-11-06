@@ -978,6 +978,40 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66337
+	 *
+	 * @covers ::wp_new_comment
+	 */
+	public function test_wp_new_comment_should_approve_previously_approved_author_with_apostrophe_in_email() {
+		update_option( 'comment_moderation', 0 );
+		update_option( 'comment_previously_approved', 1 );
+		add_filter( 'wp_is_comment_flood', '__return_false' );
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Comment Author',
+				'comment_author_email' => "o'brien@example.com",
+				'comment_approved'     => 1,
+			)
+		);
+
+		$data = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Comment Author',
+			'comment_author_url'   => '',
+			'comment_author_email' => "o'brien@example.com",
+			'comment_type'         => '',
+			'comment_content'      => 'A second comment.',
+		);
+
+		$id = wp_new_comment( wp_slash( $data ) );
+
+		$this->assertSame( "o'brien@example.com", get_comment( $id )->comment_author_email );
+		$this->assertSame( '1', get_comment( $id )->comment_approved );
+	}
+
+	/**
 	 * @ticket 56244
 	 *
 	 * @covers ::wp_new_comment
