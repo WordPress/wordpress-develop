@@ -2350,6 +2350,289 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Tests that sending back the meta values from a response only requires
+	 * authorization for the fields that were changed.
+	 *
+	 * @ticket 48426
+	 */
+	public function test_update_meta_with_values_from_response_and_custom_authentication() {
+		register_post_meta(
+			'post',
+			'protected_boolean',
+			array(
+				'single'        => true,
+				'type'          => 'boolean',
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$meta     = $response->get_data()['meta'];
+
+		$meta['test_single'] = 'changed';
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( array( 'meta' => $meta ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Unchanged meta values should not require authorization.' );
+		$this->assertSame( 'changed', get_post_meta( self::$post_id, 'test_single', true ), 'The changed meta value should be saved.' );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, 'protected_boolean' ), 'The unchanged boolean meta value should not be saved.' );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, 'test_bad_auth' ), 'The unchanged string meta value should not be saved.' );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, 'test_bad_auth_multi' ), 'The unchanged multi meta value should not be saved.' );
+	}
+
+	/**
+	 * Tests that sending the default value of a meta key that has no stored value
+	 * does not require authorization.
+	 *
+	 * @ticket 48426
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
+	 */
+	public function test_update_meta_with_unchanged_default_value_and_custom_authentication( $type, $default_value, $alternative_value ) {
+		$meta_key = "protected_{$type}_default";
+
+		register_post_meta(
+			'post',
+			$meta_key,
+			array(
+				'single'        => true,
+				'type'          => $type,
+				'default'       => $default_value,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => $default_value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sending the default value should not require authorization.' );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, $meta_key ), 'The default value should not be saved without authorization.' );
+		$this->assertSame( $default_value, $response->get_data()['meta'][ $meta_key ], 'The response should contain the default value.' );
+	}
+
+	/**
+	 * Tests that changing a meta key that has no stored value away from its default
+	 * value still requires authorization.
+	 *
+	 * @ticket 48426
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
+	 */
+	public function test_update_meta_with_changed_default_value_and_custom_authentication( $type, $default_value, $alternative_value ) {
+		$meta_key = "protected_{$type}_default";
+
+		register_post_meta(
+			'post',
+			$meta_key,
+			array(
+				'single'        => true,
+				'type'          => $type,
+				'default'       => $default_value,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => $alternative_value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, $meta_key ), 'No value should be saved without authorization.' );
+	}
+
+	/**
+	 * Tests that sending the default value of a multi meta key that has no stored
+	 * values does not require authorization.
+	 *
+	 * @ticket 48426
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Ignored in this test.
+	 */
+	public function test_update_multi_meta_with_unchanged_default_value_and_custom_authentication( $type, $default_value, $alternative_value ) {
+		$meta_key = "protected_multi_{$type}_default";
+
+		register_post_meta(
+			'post',
+			$meta_key,
+			array(
+				'single'        => false,
+				'type'          => $type,
+				'default'       => $default_value,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => array( $default_value ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sending the default value should not require authorization.' );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, $meta_key ), 'The default value should not be saved without authorization.' );
+		$this->assertSame( array( $default_value ), $response->get_data()['meta'][ $meta_key ], 'The response should contain the default value.' );
+	}
+
+	/**
+	 * Tests that changing a multi meta key that has no stored values away from its
+	 * default value still requires authorization.
+	 *
+	 * @ticket 48426
+	 *
+	 * @dataProvider data_scalar_default_values
+	 *
+	 * @param string $type              Scalar type of default value: one of `boolean`, `integer`, `number`, or `string`.
+	 * @param mixed  $default_value     Appropriate default value for given type.
+	 * @param mixed  $alternative_value Appropriate value for given type that doesn't match the default value.
+	 */
+	public function test_update_multi_meta_with_changed_default_value_and_custom_authentication( $type, $default_value, $alternative_value ) {
+		$meta_key = "protected_multi_{$type}_default";
+
+		register_post_meta(
+			'post',
+			$meta_key,
+			array(
+				'single'        => false,
+				'type'          => $type,
+				'default'       => $default_value,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => array( $default_value, $alternative_value ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
+		$this->assertNull( get_metadata_raw( 'post', self::$post_id, $meta_key ), 'No values should be saved without authorization.' );
+	}
+
+	/**
+	 * Tests that sending the stored values of a multi meta key unchanged does not
+	 * require authorization.
+	 *
+	 * @ticket 48426
+	 */
+	public function test_update_multi_meta_with_unchanged_values_and_custom_authentication() {
+		add_post_meta( self::$post_id, 'test_bad_auth_multi', 'value1' );
+		add_post_meta( self::$post_id, 'test_bad_auth_multi', 'value2' );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'test_bad_auth_multi' => array( 'value1', 'value2' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Sending unchanged values should not require authorization.' );
+		$this->assertSame( array( 'value1', 'value2' ), get_post_meta( self::$post_id, 'test_bad_auth_multi', false ), 'The stored values should not change.' );
+	}
+
+	/**
+	 * Tests that deleting a meta key that has no stored value does not require
+	 * authorization.
+	 *
+	 * @ticket 48426
+	 *
+	 * @dataProvider data_delete_meta_with_no_stored_value_and_custom_authentication
+	 *
+	 * @param string     $meta_key     Meta key to delete.
+	 * @param array|null $delete_value Value used to delete the meta key.
+	 */
+	public function test_delete_meta_with_no_stored_value_and_custom_authentication( $meta_key, $delete_value ) {
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => $delete_value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Data provider for test_delete_meta_with_no_stored_value_and_custom_authentication().
+	 *
+	 * @return array[] Array of test parameters.
+	 */
+	public function data_delete_meta_with_no_stored_value_and_custom_authentication() {
+		return array(
+			'single with null'      => array( 'test_bad_auth', null ),
+			'multi with null'       => array( 'test_bad_auth_multi', null ),
+			'multi with empty list' => array( 'test_bad_auth_multi', array() ),
+		);
+	}
+
+	/**
 	 * @ticket 43392
 	 */
 	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_is_true() {
