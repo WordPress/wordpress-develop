@@ -181,9 +181,10 @@ class Tests_Blocks_RenderWidgetGroup extends WP_UnitTestCase {
 	public function test_should_not_render_a_heading_without_a_title( $attributes ) {
 		$block = $this->get_block( $attributes );
 
+		// The attributes are passed as they are, because the block removes the ones that are null when it prepares them.
 		$this->assertSame(
 			'<div class="wp-widget-group__inner-blocks"></div>',
-			render_block_core_widget_group( $block->attributes, '', $block )
+			render_block_core_widget_group( $attributes, '', $block )
 		);
 	}
 
@@ -324,13 +325,13 @@ class Tests_Blocks_RenderWidgetGroup extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the block is registered on init.
+	 * Tests that the block is registered with the render callback.
 	 *
 	 * @ticket 66514
 	 *
 	 * @covers ::register_block_core_widget_group
 	 */
-	public function test_should_register_the_block_on_init() {
+	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
 		$was_registered = $registry->is_registered( 'core/widget-group' );
 
