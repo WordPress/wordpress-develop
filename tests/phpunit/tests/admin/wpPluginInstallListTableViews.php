@@ -78,7 +78,9 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 	 */
 	private function call_protected( $table, $method ) {
 		$reflection = new ReflectionMethod( $table, $method );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		return $reflection->invoke( $table );
 	}
