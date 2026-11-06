@@ -51,7 +51,12 @@ class Tests_Functions_PluginPaths extends WP_UnitTestCase {
 
 		foreach ( $this->links as $link ) {
 			if ( is_link( $link ) ) {
-				unlink( $link );
+				// Windows removes a link to a directory like a directory.
+				if ( '\\' === DIRECTORY_SEPARATOR ) {
+					rmdir( $link );
+				} else {
+					unlink( $link );
+				}
 			}
 		}
 
@@ -168,7 +173,7 @@ class Tests_Functions_PluginPaths extends WP_UnitTestCase {
 	public function test_plugin_basename_should_use_the_registered_path_of_a_symbolic_link() {
 		global $wp_plugin_paths;
 
-		$wp_plugin_paths = array( WP_PLUGIN_DIR . '/linked-plugin' => '/real/location/linked-plugin' );
+		$wp_plugin_paths = array( wp_normalize_path( WP_PLUGIN_DIR ) . '/linked-plugin' => '/real/location/linked-plugin' );
 
 		$this->assertSame( 'linked-plugin/linked-plugin.php', plugin_basename( '/real/location/linked-plugin/linked-plugin.php' ) );
 		$this->assertSame( 'linked-plugin/includes/class.php', plugin_basename( '/real/location/linked-plugin/includes/class.php' ) );
@@ -185,8 +190,8 @@ class Tests_Functions_PluginPaths extends WP_UnitTestCase {
 		global $wp_plugin_paths;
 
 		$wp_plugin_paths = array(
-			WP_PLUGIN_DIR . '/short' => '/real/a',
-			WP_PLUGIN_DIR . '/long'  => '/real/a/b',
+			wp_normalize_path( WP_PLUGIN_DIR ) . '/short' => '/real/a',
+			wp_normalize_path( WP_PLUGIN_DIR ) . '/long'  => '/real/a/b',
 		);
 
 		$this->assertSame( 'long/plugin.php', plugin_basename( '/real/a/b/plugin.php' ) );
@@ -203,7 +208,7 @@ class Tests_Functions_PluginPaths extends WP_UnitTestCase {
 	public function test_plugin_basename_should_not_change_a_path_outside_of_the_registered_locations() {
 		global $wp_plugin_paths;
 
-		$wp_plugin_paths = array( WP_PLUGIN_DIR . '/linked-plugin' => '/real/location/linked-plugin' );
+		$wp_plugin_paths = array( wp_normalize_path( WP_PLUGIN_DIR ) . '/linked-plugin' => '/real/location/linked-plugin' );
 
 		$this->assertSame( 'other-plugin/other-plugin.php', plugin_basename( WP_PLUGIN_DIR . '/other-plugin/other-plugin.php' ) );
 	}
