@@ -1495,7 +1495,7 @@ final class WP_Customize_Widgets {
 			return null;
 		}
 
-		$instance = unserialize( $decoded );
+		$instance = unserialize( $decoded, array( 'allowed_classes' => false ) );
 		if ( false === $instance ) {
 			return null;
 		}
