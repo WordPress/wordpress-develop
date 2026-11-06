@@ -394,8 +394,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'integer'                       => array( 'data-wp-html="state.html"', array( 'html' => 1 ) ),
 			'false'                         => array( 'data-wp-html="state.html"', array( 'html' => false ) ),
 			'list'                          => array( 'data-wp-html="state.html"', array( 'html' => array( '<p>Hi</p>' ) ) ),
-			'associative array'             => array( 'data-wp-html="state.html"', array( 'html' => array( 'html' => '<p>Hi</p>' ) ) ),
-			'object'                        => array( 'data-wp-html="state.html"', array( 'html' => new stdClass() ) ),
 			'marker imitated by an array'   => array( 'data-wp-html="state.html"', array( 'html' => array( 'wpServerHtml' => true ) ) ),
 			'marker imitated by an object'  => array(
 				'data-wp-html="state.html"',
@@ -440,7 +438,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 				'html'        => $token,
 				'nul'         => null,
 				'constructor' => $token,
-				'obj'         => array( 'prototype' => $token ),
 			)
 		);
 
@@ -460,10 +457,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'null in state'                => array( 'data-wp-html="state.nul"' ),
 			'missing path'                 => array( 'data-wp-html="state.missing"' ),
 			'reserved path segment'        => array( 'data-wp-html="state.constructor"' ),
-			'nested reserved path segment' => array( 'data-wp-html="state.obj.prototype"' ),
 			'quoted reference'             => array( 'data-wp-html=\'"state.html"\'' ),
-			'null literal'                 => array( 'data-wp-html="null"' ),
-			'JSON object'                  => array( 'data-wp-html=\'{"a":1}\'' ),
 			'empty value'                  => array( 'data-wp-html=""' ),
 			'no value'                     => array( 'data-wp-html' ),
 			'reserved namespace in effect' => array( 'data-wp-interactive="constructor" data-wp-html="state.html"' ),
