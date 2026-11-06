@@ -276,7 +276,9 @@ for ( const { taxonomy, endpoint, label } of [
 
 				await admin.visitAdminPage(
 					'/edit-tags.php',
-					'taxonomy=category'
+					`taxonomy=category&s=${ encodeURIComponent(
+						defaults[ 0 ].name
+					) }`
 				);
 				await expect(
 					page.locator( `#tag-${ uncategorizedId }` )
@@ -285,7 +287,7 @@ for ( const { taxonomy, endpoint, label } of [
 					page
 						.locator( `#tag-${ uncategorizedId }` )
 						.getByRole( 'link', {
-							name: 'Uncategorized',
+							name: defaults[ 0 ].name,
 							exact: true,
 						} )
 				).toBeVisible();
@@ -297,10 +299,17 @@ for ( const { taxonomy, endpoint, label } of [
 
 				const remaining = await requestUtils.rest( {
 					path: '/wp/v2/categories',
-					params: { include: [ uncategorizedId ] },
+					params: {
+						include: [
+							uncategorizedId,
+							first.id,
+							second.id,
+						],
+					},
 				} );
-				expect( remaining ).toHaveLength( 1 );
-				expect( remaining[ 0 ].id ).toBe( uncategorizedId );
+				expect( remaining.map( ( term ) => term.id ) ).toEqual( [
+					uncategorizedId,
+				] );
 			} );
 		}
 	} );
