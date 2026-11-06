@@ -1520,4 +1520,134 @@
 		}
 	}
 };
+
+	/**
+	 * Returns the post ID and nonce of the image editor containing an element.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {HTMLElement} el An element inside the image editor.
+	 *
+	 * @return {Object} The post ID and the nonce of the editor.
+	 */
+	function getEditorContext( el ) {
+		var postid = parseInt( $( el ).closest( '.imgedit-wrap' ).data( 'postid' ), 10 );
+
+		return {
+			postid: postid,
+			nonce: $( '#imgedit-nonce-' + postid ).val()
+		};
+	}
+
+	/**
+	 * Runs the initialization of a server-rendered preview image once it has loaded.
+	 *
+	 * The attribute is removed first so that the image is initialized only once,
+	 * whether the load event or the check on DOM ready runs first.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {HTMLImageElement} img The preview image.
+	 *
+	 * @return {void}
+	 */
+	function previewLoaded( img ) {
+		if ( ! img.hasAttribute( 'data-imgedit-preview' ) ) {
+			return;
+		}
+
+		img.removeAttribute( 'data-imgedit-preview' );
+		imageEdit.imgLoaded( getEditorContext( img ).postid );
+	}
+
+	/*
+	 * The image editor markup carries no inline event handlers, so it keeps working
+	 * under a Content Security Policy without 'unsafe-inline'. Its controls are
+	 * bound here with delegated listeners instead.
+	 */
+	$( document )
+		.on( 'click', '[data-imgedit-open]', function() {
+			imageEdit.open( $( this ).data( 'postid' ), $( this ).attr( 'data-nonce' ) );
+		} )
+		.on( 'click', '.imgedit-wrap [data-imgedit-action]', function() {
+			var context = getEditorContext( this ),
+				value = $( this ).data( 'imgedit-value' );
+
+			switch ( $( this ).data( 'imgedit-action' ) ) {
+				case 'toggleCropTool':
+					imageEdit.toggleCropTool( context.postid, context.nonce, this );
+					break;
+				case 'handleCropToolClick':
+					imageEdit.handleCropToolClick( context.postid, context.nonce, this );
+					break;
+				case 'toggleControls':
+					imageEdit.toggleControls( this );
+					break;
+				case 'togglePopup':
+					imageEdit.togglePopup( this );
+					break;
+				case 'toggleHelp':
+					imageEdit.toggleHelp( this );
+					break;
+				case 'rotate':
+					imageEdit.rotate( value, context.postid, context.nonce, this );
+					break;
+				case 'flip':
+					imageEdit.flip( value, context.postid, context.nonce, this );
+					break;
+				case 'undo':
+					imageEdit.undo( context.postid, context.nonce, this );
+					break;
+				case 'redo':
+					imageEdit.redo( context.postid, context.nonce, this );
+					break;
+				case 'close':
+					imageEdit.close( context.postid, 1 );
+					break;
+				case 'save':
+					imageEdit.save( context.postid, context.nonce );
+					break;
+				case 'action':
+					imageEdit.action( context.postid, context.nonce, value );
+					break;
+			}
+		} )
+		.on( 'keydown', '.imgedit-wrap .imgedit-popup-menu button', function( event ) {
+			imageEdit.browsePopup( event, this );
+		} )
+		.on( 'blur', '.imgedit-wrap .imgedit-rotate, .imgedit-wrap .imgedit-popup-menu button', function() {
+			imageEdit.monitorPopup();
+		} )
+		.on( 'keyup blur', '.imgedit-wrap [data-imgedit-input]', function() {
+			var postid = getEditorContext( this ).postid,
+				value = $( this ).data( 'imgedit-value' );
+
+			switch ( $( this ).data( 'imgedit-input' ) ) {
+				case 'scale':
+					imageEdit.scaleChanged( postid, value, this );
+					break;
+				case 'ratio':
+					imageEdit.setRatioSelection( postid, value, this );
+					break;
+				case 'selection':
+					imageEdit.setNumSelection( postid, this );
+					break;
+			}
+		} );
+
+	// The load event does not bubble, so listen for it in the capture phase.
+	document.addEventListener( 'load', function( event ) {
+		if ( event.target instanceof HTMLImageElement ) {
+			previewLoaded( event.target );
+		}
+	}, true );
+
+	// A preview printed with the page may have loaded before this script ran.
+	$( function() {
+		$( 'img[data-imgedit-preview]' ).each( function() {
+			if ( this.complete && this.naturalWidth ) {
+				previewLoaded( this );
+			}
+		} );
+	} );
 })(jQuery);
