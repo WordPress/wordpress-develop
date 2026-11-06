@@ -86,6 +86,26 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the data of a plugin of the directory.
+	 *
+	 * @return array The plugin.
+	 */
+	private function get_plugin() {
+		return array(
+			'name'              => 'My Plugin',
+			'slug'              => 'my-plugin',
+			'version'           => '1.0',
+			'author'            => 'Jane Doe',
+			'short_description' => 'Does things.',
+			'rating'            => 80,
+			'num_ratings'       => 10,
+			'active_installs'   => 1000,
+			'last_updated'      => gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS ),
+			'icons'             => array( 'default' => 'https://example.org/default.png' ),
+		);
+	}
+
+	/**
 	 * Tests that the capability to install plugins is required for Ajax requests.
 	 *
 	 * @ticket 66554
@@ -99,14 +119,16 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 
 		$this->assertFalse( $table->ajax_user_can(), 'A user without the capability should not be allowed.' );
 
-		// Administrators cannot install plugins on a network, but super admins can.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
+		wp_set_current_user( $admin_id );
+
 		if ( is_multisite() ) {
+			$this->assertFalse( $table->ajax_user_can(), 'A site administrator should not be allowed on a network.' );
+
+			// Only super admins can install plugins on a network.
 			grant_super_admin( $admin_id );
 		}
-
-		wp_set_current_user( $admin_id );
 
 		try {
 			$this->assertTrue( $table->ajax_user_can(), 'A user with the capability should be allowed.' );
@@ -284,7 +306,8 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 	public function test_display_should_output_the_navigation_around_the_list() {
 		$GLOBALS['tab'] = 'popular';
 
-		$table = $this->get_table();
+		$table        = $this->get_table();
+		$table->items = array( $this->get_plugin() );
 		$table->set_pagination_args(
 			array(
 				'total_items' => 100,
@@ -298,6 +321,8 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 		$this->assertSame( 1, substr_count( $output, '<div class="tablenav bottom">' ), 'The navigation below the list should be output.' );
 		$this->assertStringContainsString( '<div class="wp-list-table widefat plugin-install">', $output, 'The classes of the table should be used.' );
 		$this->assertStringContainsString( '<div id="the-list">', $output, 'The list should be output.' );
+		$this->assertStringContainsString( 'plugin-card-my-plugin', $output, 'The rows of the plugins should be output.' );
+		$this->assertStringNotContainsString( 'No plugins found.', $output, 'The message for an empty list should not be output.' );
 		$this->assertLessThan( strpos( $output, 'id="the-list"' ), strpos( $output, 'tablenav top' ), 'The navigation should come before the list.' );
 		$this->assertGreaterThan( strpos( $output, 'id="the-list"' ), strpos( $output, 'tablenav bottom' ), 'The navigation should come after the list.' );
 	}
@@ -312,10 +337,14 @@ class Tests_Admin_wpPluginInstallListTableViews extends WP_UnitTestCase {
 	public function test_display_should_not_output_the_navigation_for_the_featured_plugins() {
 		$GLOBALS['tab'] = 'featured';
 
-		$output = get_echo( array( $this->get_table(), 'display' ) );
+		$table        = $this->get_table();
+		$table->items = array( $this->get_plugin() );
+
+		$output = get_echo( array( $table, 'display' ) );
 
 		$this->assertStringNotContainsString( 'tablenav', $output );
 		$this->assertStringContainsString( '<div id="the-list"', $output );
+		$this->assertStringContainsString( 'plugin-card-my-plugin', $output, 'The rows of the plugins should be output.' );
 	}
 
 	/**
