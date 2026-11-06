@@ -57,6 +57,9 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 		if ( ! $this->was_registered ) {
 			register_block_core_query();
 		}
+
+		// The block has its styles only when the assets are built, so the tests set them.
+		WP_Block_Type_Registry::get_instance()->get_registered( 'core/query' )->style_handles = array( 'wp-block-query' );
 	}
 
 	public function tear_down() {
