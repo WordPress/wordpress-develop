@@ -283,6 +283,7 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'wp_lang=es_ES', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -305,6 +306,7 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Aktion bestätigen', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'wp_lang=de_DE', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -327,6 +329,7 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringNotContainsString( 'wp_lang=', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -351,6 +354,7 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Confirm Action', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'wp_lang=en_US', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -370,6 +374,7 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Confirm Action', $mailer->get_sent()->subject );
+		$this->assertStringNotContainsString( 'wp_lang=', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -392,5 +397,31 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertStringContainsString( 'Confirmar la', $mailer->get_sent()->subject );
+		$this->assertStringNotContainsString( 'wp_lang=', $mailer->get_sent()->body );
+	}
+
+	/**
+	 * The confirmation URL should include the user's selected locale even when it matches the site's locale,
+	 * so the confirmation page keeps the user's language if the site's locale changes later.
+	 *
+	 * @ticket 44550
+	 * @group l10n
+	 */
+	public function test_should_send_user_request_email_in_user_locale_when_user_and_site_share_locale() {
+		update_option( 'WPLANG', 'de_DE' );
+		switch_to_locale( 'de_DE' );
+
+		update_user_meta( self::$test_user->ID, 'locale', 'de_DE' );
+		update_user_meta( self::$admin_user->ID, 'locale', 'es_ES' );
+
+		wp_set_current_user( self::$admin_user->ID );
+
+		$request_id = wp_create_user_request( self::$test_user->user_email, 'remove_personal_data' );
+
+		wp_send_user_request( $request_id );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertStringContainsString( 'Aktion bestätigen', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'wp_lang=de_DE', $mailer->get_sent()->body );
 	}
 }
