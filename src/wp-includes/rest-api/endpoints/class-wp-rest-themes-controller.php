@@ -93,7 +93,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		if ( in_array( '..', explode( '/', wp_normalize_path( $stylesheet ) ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_stylesheet',
-				__( 'Invalid theme stylesheet.' )
+				__( 'Invalid theme stylesheet.' ),
+				array( 'status' => 400 )
 			);
 		}
 
