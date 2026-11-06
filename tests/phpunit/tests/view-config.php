@@ -186,7 +186,10 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 		$config = wp_get_entity_view_config( 'postType', $post_type );
 		$date   = $this->get_form_field( $config, 'date' );
 
-		$this->assertTrue( null === $date || ! isset( $date['layout']['summary'] ) );
+		$this->assertFalse(
+			isset( $date['layout']['summary'] ),
+			"The `date` member of the $post_type form should not have a summary."
+		);
 	}
 
 	/**

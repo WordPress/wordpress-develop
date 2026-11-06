@@ -45,8 +45,8 @@ function wp_get_entity_view_config_hook_name( $kind, $name ) {
  * returns `false`.
  *
  * @since 7.1.0
- * @since 7.2.0 Shows a placeholder for an empty excerpt and a missing author.
- * @since 7.2.0 Summarizes the `date` panel with the `publish_date` field.
+ * @since 7.2.0 Shows a placeholder for an empty excerpt and a missing author,
+ *              and summarizes the `date` panel with the `publish_date` field.
  *
  * @return array The default form configuration.
  */
