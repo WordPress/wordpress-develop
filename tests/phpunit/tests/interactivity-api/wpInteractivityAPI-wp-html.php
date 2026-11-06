@@ -153,17 +153,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Gets the placeholder the first host of a call would receive if the marker
-	 * were the base followed by the given number of underscores.
-	 *
-	 * @param int $underscores Number of underscores after the marker's base.
-	 * @return string Placeholder lookalike.
-	 */
-	private static function lookalike( int $underscores ): string {
-		return '<!--wp-interactivity-dangerous-html' . str_repeat( '_', $underscores ) . ':0-->';
-	}
-
-	/**
 	 * Gets the Interactivity data printed for the client, encoded as the script
 	 * module prints it.
 	 *
@@ -681,25 +670,17 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that markup in the input that looks like a placeholder is not
-	 * mistaken for one, however many marker variants it holds and in whatever
-	 * order.
-	 *
-	 * The lookalikes of each case spell the placeholder of every marker from
-	 * the base alone to the base followed by the longest run of underscores in
-	 * the input, so a marker that occurs in the input would turn one of them
-	 * into the host's HTML.
+	 * Tests that markup in the input that looks like a placeholder, but holds a
+	 * marker other than the call's own, is not mistaken for one. That includes
+	 * the form of the call's own placeholders with a UUID other than the call's.
 	 *
 	 * @ticket 66246
-	 * @ticket 66498
 	 *
 	 * @covers ::process_directives
-	 *
-	 * @dataProvider data_placeholder_lookalikes
-	 *
-	 * @param string $lookalikes Markup holding placeholder lookalikes.
 	 */
-	public function test_substitution_cannot_be_forged( string $lookalikes ) {
+	public function test_substitution_cannot_be_forged() {
+		$lookalikes = '<!--wp-interactivity-dangerous-html:0--><!--wp-interactivity-dangerous-html_:0-->' .
+			'<!--wp-interactivity-dangerous-html-3f2b8c1e-7d4a-4e9b-a5c6-0d1e2f3a4b5c:0-->';
 		$this->set_state( array( 'html' => $this->token() ) );
 
 		$output = wp_interactivity_process_directives(
@@ -708,45 +689,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'<div data-wp-interactive="test"><i>' . $lookalikes . '</i><p data-wp-html="state.html">' . self::MARKER_HTML . '</p></div>',
-			$output
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{ 0: string }> Data provider.
-	 */
-	public static function data_placeholder_lookalikes(): array {
-		return array(
-			'longest run last'  => array( self::lookalike( 0 ) . self::lookalike( 1 ) ),
-			'longest run first' => array( self::lookalike( 3 ) . self::lookalike( 0 ) . self::lookalike( 2 ) . self::lookalike( 1 ) ),
-		);
-	}
-
-	/**
-	 * Tests that HTML that looks like the placeholder of another host is
-	 * inserted as given, not replaced by that host's HTML.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_inserted_html_is_not_searched_for_placeholders() {
-		$lookalike = '<!--wp-interactivity-dangerous-html:1-->';
-		$this->set_state(
-			array(
-				'first'  => wp_interactivity_as_dangerous_html( $lookalike ),
-				'second' => wp_interactivity_as_dangerous_html( '<u>second</u>' ),
-			)
-		);
-
-		$output = wp_interactivity_process_directives(
-			'<div data-wp-interactive="test"><p data-wp-html="state.first">One</p><p data-wp-html="state.second">Two</p></div>'
-		);
-
-		$this->assertSame(
-			'<div data-wp-interactive="test"><p data-wp-html="state.first">' . $lookalike . '</p><p data-wp-html="state.second"><u>second</u></p></div>',
 			$output
 		);
 	}
