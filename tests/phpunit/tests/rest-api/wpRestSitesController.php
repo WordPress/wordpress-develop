@@ -521,6 +521,25 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * The domain has no usable default, so it is required.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 */
+	public function test_create_item_requires_domain() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'path', '/no-domain/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_missing_callback_param', $response, 400 );
+		$this->assertSame( array( 'domain' ), $response->get_data()['data']['params'] );
+	}
+
+	/**
 	 * In a subdirectory install the path names the site, so it is required.
 	 *
 	 * @ticket 40365
@@ -2081,6 +2100,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'path with a query string' => array( '/with?query/', false ),
 			'path with a fragment'     => array( '/with#fragment/', false ),
 			'path with a double quote' => array( '/with"quote/', false ),
+			// PCRE's $ also matches before a final newline.
+			'trailing newline'         => array( "/trailing-newline/\n", false ),
 			// A site on these paths would take over the REST API, the login page or other files of the whole network.
 			'reserved name, uppercase' => array( '/WP-JSON/', false ),
 			'reserved name as parent'  => array( '/wp-admin/child/', false ),

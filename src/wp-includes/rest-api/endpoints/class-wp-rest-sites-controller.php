@@ -19,7 +19,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Whether the controller supports batching.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 * @var false
 	 */
 	protected $allow_batch = false;
@@ -27,7 +27,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Instance of a site meta fields object.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @var WP_REST_Site_Meta_Fields
 	 */
@@ -36,7 +36,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -48,7 +48,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the routes for the objects of the controller.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
 	public function register_routes() {
 
@@ -133,7 +133,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read sites.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has read access, error object otherwise.
@@ -153,7 +153,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * Sites are only readable from the main site, so the request runs with the
 	 * same plugins as the network admin.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
@@ -172,7 +172,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the schema of a user parameter, which accepts a user ID or "me".
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $description Parameter description.
 	 * @return array Parameter schema.
@@ -198,7 +198,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Resolves a user parameter to a user ID, "me" being the current user.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int|string $user A user ID or "me".
 	 * @return int User ID, 0 for "me" when logged out.
@@ -210,7 +210,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a list of site items.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
@@ -322,7 +322,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		/**
 		 * Filters arguments, before passing to WP_Site_Query, when querying sites via the REST API.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_site_query/
 		 * @param array           $prepared_args Array of arguments for WP_Site_Query.
@@ -401,7 +401,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Get the site, if the ID is valid.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int $id Supplied ID.
 	 * @return WP_Site|WP_Error Site object if ID is valid, WP_Error otherwise.
@@ -428,7 +428,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the IDs of the sites a user is a member of.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int|string $user_id User ID.
 	 * @return int[] Site IDs, empty when the user has none.
@@ -444,7 +444,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read the site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has read access for the item, error object otherwise.
@@ -476,7 +476,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a site belongs to the current network.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_Site $site Site object.
 	 * @return bool Whether the site is on the current network.
@@ -490,7 +490,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		 * Returning false blocks the site from being read, updated or deleted
 		 * via the REST API.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param bool    $in_network Whether the site belongs to the current network.
 		 * @param WP_Site $site       The site being checked.
@@ -502,7 +502,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
@@ -522,7 +522,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to create a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has access to create items, error object otherwise.
@@ -547,7 +547,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Creates a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
@@ -575,7 +575,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		 * Returning a WP_Error value from the filter will shortcircuit insertion and allow
 		 * skipping further processing.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param array|WP_Error  $prepared_site The prepared site data for wp_insert_site().
 		 * @param WP_REST_Request $request       Request used to insert the site.
@@ -602,7 +602,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a site is created or updated via the REST API.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param WP_Site         $site     Inserted or updated site object.
 		 * @param WP_REST_Request $request  Request object.
@@ -640,7 +640,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given REST request has access to update a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has access to update the item, error object otherwise.
@@ -684,7 +684,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Updates a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
@@ -759,7 +759,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to delete a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has access to delete the item, error object otherwise.
@@ -797,7 +797,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Deletes a site.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
@@ -840,7 +840,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a site is deleted via the REST API.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param WP_Site          $site     The deleted site data.
 		 * @param WP_REST_Response $response The response returned from the API.
@@ -854,7 +854,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares a single site output for response.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_Site         $site    Site object.
 	 * @param WP_REST_Request $request Request object.
@@ -974,7 +974,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		 *
 		 * Allows modification of the site right before it is returned.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param WP_REST_Response $response The response object.
 		 * @param WP_Site          $site     The original site object.
@@ -986,7 +986,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks a date against the site's timezone, wp_blogs stores GMT.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $date_gmt The date as it is stored, in GMT.
 	 * @param bool   $gmt      Optional. Whether to return the GMT date. Default false.
@@ -1007,7 +1007,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares the links for the request.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_Site $site Site object.
 	 * @return array Links for the given site.
@@ -1025,7 +1025,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the links for a site returned from the API.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param array   $links Links for the given site.
 		 * @param WP_Site $site  The site object.
@@ -1036,7 +1036,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares a single site to be inserted into the database.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return array|WP_Error Prepared site, otherwise WP_Error object.
@@ -1097,7 +1097,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		 *
 		 * Allows modification of the site right after it is prepared for the database.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param array           $prepared_site The prepared site data for `wp_insert_site`.
 		 * @param WP_REST_Request $request       The current request.
@@ -1108,7 +1108,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Validates that the `domain` parameter is a valid hostname or IP address.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed           $value   Value of the `domain` parameter.
 	 * @param WP_REST_Request $request The current request.
@@ -1140,7 +1140,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * (IPv4 or IPv6, unbracketed), optionally followed by a port number.
 	 * Brackets are not supported, so an IPv6 address can't carry a port.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $domain The domain to check.
 	 * @return bool True if `$domain` is a valid domain, otherwise false.
@@ -1184,7 +1184,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a string is a valid TCP/UDP port number (1-65535).
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $port The port to check.
 	 * @return bool True if `$port` is a valid port number, otherwise false.
@@ -1200,7 +1200,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * as hexadecimal, and PHP emits a warning for any other character, so
 	 * this keeps arbitrary domain input from tripping that on the way in.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $value The value to check.
 	 * @return bool True if `$value` only contains valid IP address characters, otherwise false.
@@ -1212,7 +1212,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Validates that the `path` parameter is a valid site path.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed           $value   Value of the `path` parameter.
 	 * @param WP_REST_Request $request The current request.
@@ -1255,7 +1255,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * Routes like `/wp-json/` are excluded as reserved names. The root path
 	 * `/` is valid too, for a site on its own domain.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $path The path to check.
 	 * @return bool True if `$path` is a valid site path, otherwise false.
@@ -1267,7 +1267,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		$base = preg_quote( strtolower( get_network()->path ), '#' );
 
-		if ( 1 !== preg_match( '#^' . $base . '([a-z0-9-]+)/$#', strtolower( $path ), $matches ) ) {
+		if ( 1 !== preg_match( '#^' . $base . '([a-z0-9-]+)/$#D', strtolower( $path ), $matches ) ) {
 			return false;
 		}
 
@@ -1280,7 +1280,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * When creating a site, the domain and path must not belong to any existing
 	 * site. When updating a site, they may only belong to the site being updated.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param array           $prepared_site The prepared site data for `wp_insert_site()`.
 	 * @param WP_REST_Request $request       The current request.
@@ -1325,7 +1325,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * A body or query `id` takes precedence over the URL, so without this check
 	 * a request to one site could read, change or delete another one.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param mixed           $value   The merged `id` parameter.
 	 * @param WP_REST_Request $request The current request.
@@ -1355,7 +1355,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * Checks the `meta` parameter before anything is written, so an invalid
 	 * value doesn't leave a half-created or half-updated site behind.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param WP_REST_Request $request The current request.
 	 * @return true|WP_Error True if the meta can be written, WP_Error otherwise.
@@ -1398,7 +1398,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the site's schema, conforming to JSON Schema.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return array
 	 */
@@ -1428,7 +1428,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'description' => __( 'Site domain.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'default'     => '',
+					'required'    => true,
 					// The wp_blogs.domain column is varchar(200), port included.
 					'maxLength'   => 200,
 					'arg_options' => array(
@@ -1561,7 +1561,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the query params for collections.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return array Sites collection parameters.
 	 */
@@ -1706,7 +1706,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		 * collection parameter to an internal WP_Site_Query parameter. Use the
 		 * `rest_site_query` filter to set WP_Site_Query parameters.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */
@@ -1716,7 +1716,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if the current user can edit sites.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return bool Whether the current user can edit sites.
 	 */
@@ -1727,7 +1727,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a site can be deleted.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int $site_id Site ID.
 	 * @return bool Whether the site can be deleted.
@@ -1739,7 +1739,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	/**
 	 * Checks that multisite is enabled, as this controller requires it.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return true|WP_Error True if multisite is enabled, WP_Error otherwise.
 	 */

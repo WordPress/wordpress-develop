@@ -11123,11 +11123,10 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "domain": {
-                            "default": "",
                             "description": "Site domain.",
                             "type": "string",
                             "maxLength": 200,
-                            "required": false
+                            "required": true
                         },
                         "path": {
                             "default": "/",
