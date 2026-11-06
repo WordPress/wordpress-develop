@@ -462,13 +462,7 @@ class WP_Debug_Data {
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$opcache_status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
 
-			if ( false === $opcache_status ) {
-				$fields['opcode_cache'] = array(
-					'label' => __( 'Opcode cache' ),
-					'value' => __( 'Disabled by configuration' ),
-					'debug' => 'not available',
-				);
-			} else {
+			if ( is_array( $opcache_status ) ) {
 				$fields['opcode_cache'] = array(
 					'label' => __( 'Opcode cache' ),
 					'value' => $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ),
@@ -526,6 +520,18 @@ class WP_Debug_Data {
 						'debug' => $opcache_status['cache_full'],
 					);
 				}
+			} elseif ( wp_opcache_is_enabled() ) {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Enabled (statistics unavailable due to server configuration)' ),
+					'debug' => true,
+				);
+			} else {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Disabled' ),
+					'debug' => false,
+				);
 			}
 		} else {
 			$fields['opcode_cache'] = array(
