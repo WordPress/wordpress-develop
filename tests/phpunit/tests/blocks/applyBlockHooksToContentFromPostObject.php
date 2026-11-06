@@ -239,4 +239,37 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 			"Hooked block added at 'first_child' position wasn't added to ignoredHookedBlocks metadata."
 		);
 	}
+
+	/**
+	 * @ticket 66236
+	 */
+	public function test_apply_block_hooks_to_content_from_post_object_returns_content_unchanged_if_no_hooked_blocks() {
+		// Remove the hooked blocks registered for this test class, and restore them afterwards.
+		$block_hooks = array();
+		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $name => $block_type ) {
+			if ( is_array( $block_type->block_hooks ) ) {
+				$block_hooks[ $name ]    = $block_type->block_hooks;
+				$block_type->block_hooks = array();
+			}
+		}
+
+		$block_parser_class_filter = new MockAction();
+		add_filter( 'block_parser_class', array( $block_parser_class_filter, 'filter' ) );
+
+		try {
+			$this->assertEmpty( get_hooked_blocks(), 'No blocks should be hooked for this test.' );
+			$this->assertFalse( has_filter( 'hooked_block_types' ), 'No hooked_block_types filter should be registered for this test.' );
+
+			// Two spaces after the block name, which a parse and serialize round trip would reduce to one.
+			$content = '<!-- wp:paragraph  --><p>Hello</p><!-- /wp:paragraph -->';
+			$actual  = apply_block_hooks_to_content_from_post_object( $content, self::$post );
+
+			$this->assertSame( $content, $actual, 'Content should be returned unchanged.' );
+			$this->assertSame( 0, $block_parser_class_filter->get_call_count(), 'Content should not be parsed.' );
+		} finally {
+			foreach ( $block_hooks as $name => $hooks ) {
+				WP_Block_Type_Registry::get_instance()->get_registered( $name )->block_hooks = $hooks;
+			}
+		}
+	}
 }
