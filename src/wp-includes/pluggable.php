@@ -77,8 +77,10 @@ if ( ! function_exists( 'get_userdata' ) ) :
 	 *
 	 * @since 0.71
 	 *
-	 * @param int $user_id User ID.
+	 * @param int|string $user_id User ID.
 	 * @return WP_User|false WP_User object on success, false on failure.
+	 *
+	 * @phpstan-param int|numeric-string $user_id
 	 */
 	function get_userdata( $user_id ) {
 		return get_user_by( 'id', $user_id );

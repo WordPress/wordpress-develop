@@ -5,6 +5,11 @@
  * @package WordPress
  */
 
+/**
+ * @global WP_Comment $comment Global comment object, set by the_comment().
+ */
+global $comment;
+
 header( 'Content-Type: ' . feed_content_type( 'atom' ) . '; charset=' . get_option( 'blog_charset' ), true );
 echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '" ?' . '>';
 
@@ -51,8 +56,8 @@ do_action( 'rss_tag_pre', 'atom-comments' );
 
 <?php if ( is_singular() ) : ?>
 	<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php comments_link_feed(); ?>" />
-	<link rel="self" type="application/atom+xml" href="<?php echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ?>" />
-	<id><?php echo esc_url( get_post_comments_feed_link( '', 'atom' ) ); ?></id>
+	<link rel="self" type="application/atom+xml" href="<?php echo esc_url( get_post_comments_feed_link( 0, 'atom' ) ); ?>" />
+	<id><?php echo esc_url( get_post_comments_feed_link( 0, 'atom' ) ); ?></id>
 <?php elseif ( is_search() ) : ?>
 	<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php echo home_url() . '?s=' . get_search_query(); ?>" />
 	<link rel="self" type="application/atom+xml" href="<?php echo get_search_comments_feed_link( '', 'atom' ); ?>" />

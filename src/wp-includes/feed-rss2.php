@@ -109,7 +109,7 @@ do_action( 'rss_tag_pre', 'rss2' );
 		<?php endif; ?>
 
 		<?php if ( get_comments_number() || comments_open() ) : ?>
-			<wfw:commentRss><?php echo esc_url( get_post_comments_feed_link( null, 'rss2' ) ); ?></wfw:commentRss>
+			<wfw:commentRss><?php echo esc_url( get_post_comments_feed_link( 0, 'rss2' ) ); ?></wfw:commentRss>
 			<slash:comments><?php echo get_comments_number(); ?></slash:comments>
 		<?php endif; ?>
 

@@ -5,6 +5,11 @@
  * @package WordPress
  */
 
+/**
+ * @global WP_Post $post Global post object, set by the_post().
+ */
+global $post;
+
 header( 'Content-Type: ' . feed_content_type( 'rdf' ) . '; charset=' . get_option( 'blog_charset' ), true );
 $more = 1;
 
