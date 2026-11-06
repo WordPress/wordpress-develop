@@ -4,7 +4,7 @@ require_once __DIR__ . '/class-basic-object.php';
 /**
  * Retrieves PHPUnit runner version.
  *
- * @return double The version number.
+ * @return string|int The version number, or 0 if PHPUnit is not loaded.
  */
 function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
@@ -90,14 +90,14 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 
 	if ( is_object( $callback ) ) {
 		// Closures are currently implemented as objects.
-		$callback = array( $callback, '' );
-	} else {
-		$callback = (array) $callback;
+		return 'spl_object_id:' . spl_object_id( $callback );
 	}
+
+	$callback = (array) $callback;
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $callback[0] ) . $callback[1];
+		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
@@ -298,6 +298,13 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	exit( 1 );
 }
 
+/*
+ * Permalink structure used by default in the test suite, matching the default
+ * for new installs. Tests that need plain permalinks should call
+ * `$this->set_permalink_structure( '' )`.
+ */
+define( 'WP_TESTS_DEFAULT_PERMALINK_STRUCTURE', '/%year%/%monthnum%/%day%/%postname%/' );
+
 /**
  * Set a permalink structure.
  *
@@ -307,7 +314,7 @@ function _wp_die_handler_exit( $message, $title, $args ) {
  * @since 4.2.0
  */
 function _set_default_permalink_structure_for_tests() {
-	update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	update_option( 'permalink_structure', WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 }
 
 /**
@@ -335,6 +342,17 @@ function _upload_dir_https( $uploads ) {
 	$uploads['baseurl'] = str_replace( 'http://', 'https://', $uploads['baseurl'] );
 
 	return $uploads;
+}
+
+/**
+ * Builds the upload base URL used throughout the test suite.
+ *
+ * @param string $path   Path/filename to append after the uploads URL. No leading slash needed.
+ * @param string $scheme URL scheme, 'http' or 'https'.
+ * @return string The upload URL.
+ */
+function _upload_get_url( $path = '', $scheme = 'http' ) {
+	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( UPLOADS ) . ltrim( $path, '/' );
 }
 
 /**

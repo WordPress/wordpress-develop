@@ -201,7 +201,7 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 		$this->assertSame( $sanitized_option_value, get_site_option( 'illegal_names' ) );
 	}
 
-	public function data_illegal_names() {
+	public static function data_illegal_names() {
 		return array(
 			array( array( '', 'Woo', '' ), array( 'Woo' ) ),
 			array( 'foo bar', array( 'foo', 'bar' ) ),
@@ -237,7 +237,7 @@ class Tests_Option_Multisite extends WP_UnitTestCase {
 		$this->assertSame( $sanitized_option_value, get_site_option( 'banned_email_domains' ) );
 	}
 
-	public function data_email_domains() {
+	public static function data_email_domains() {
 		return array(
 			array( array( 'woo', '', 'boo.com', 'foo.net.biz..' ), array( 'woo', 'boo.com' ) ),
 			array( "foo\nbar", array( 'foo', 'bar' ) ),

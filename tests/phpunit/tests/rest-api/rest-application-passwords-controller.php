@@ -1077,7 +1077,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 *
 	 * @return array
 	 */
-	public function data_wp_is_application_passwords_available() {
+	public static function data_wp_is_application_passwords_available() {
 		return array(
 			'availability not forced'   => array(
 				'expected' => 'default',

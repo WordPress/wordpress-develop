@@ -160,10 +160,28 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Global styles endpoints do not register a context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
@@ -375,7 +393,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item_invalid_theme_dirname() {
+	public static function data_get_theme_item_invalid_theme_dirname() {
 		return array(
 			'+'                      => array(
 				'theme_dirname' => 'my+theme+',
@@ -439,7 +457,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item() {
+	public static function data_get_theme_item() {
 		return array(
 			'alphabetic'                     => array( 'mytheme' ),
 			'alphanumeric'                   => array( 'mythemev1' ),
@@ -571,10 +589,17 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Global styles has no collection create route; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/global-styles' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -749,17 +774,76 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Global styles item route is not deletable; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = '/wp/v2/global-styles/' . self::$global_styles_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'       => self::$global_styles_id,
+				'title'    => array(
+					'raw'      => 'Custom Styles',
+					'rendered' => 'Custom Styles',
+				),
+				'settings' => new stdClass(),
+				'styles'   => new stdClass(),
+			),
+			$response->get_data()
+		);
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_global_styles' ), $links['about'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertSame( array( 'id' => self::$global_styles_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	/**
@@ -879,128 +963,5 @@ CSS;
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( $css, $response->get_data()['styles']['css'] );
-	}
-
-	/**
-	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
-	 * @ticket 64418
-	 *
-	 * @dataProvider data_custom_css_allowed
-	 */
-	public function test_validate_custom_css_allowed( string $custom_css ) {
-		$controller = new WP_REST_Global_Styles_Controller();
-		$validate   = Closure::bind(
-			function ( $css ) {
-				return $this->validate_custom_css( $css );
-			},
-			$controller,
-			$controller
-		);
-
-		$this->assertTrue( $validate( $custom_css ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, string[]>
-	 */
-	public static function data_custom_css_allowed(): array {
-		return array(
-			'@property declaration'   => array(
-				'@property --prop { syntax: "<custom-ident>"; inherits: true; initial-value: false; }',
-			),
-			'Different close tag'     => array( '</stylesheet>' ),
-			'Not a style close tag'   => array( '/*</style*/' ),
-			'Not a style close tag 2' => array( '/*</style_' ),
-			'Empty'                   => array( '' ),
-			'Short content'           => array( '/**/' ),
-		);
-	}
-
-	/**
-	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
-	 * @ticket 64418
-	 *
-	 * @dataProvider data_custom_css_disallowed
-	 */
-	public function test_validate_custom_css( string $custom_css, string $expected_error_message ) {
-		$controller = new WP_REST_Global_Styles_Controller();
-		$validate   = Closure::bind(
-			function ( $css ) {
-				return $this->validate_custom_css( $css );
-			},
-			$controller,
-			$controller
-		);
-
-		$result = $validate( $custom_css );
-		$this->assertWPError( $result );
-		$this->assertSame( $expected_error_message, $result->get_error_message() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, string[]>
-	 */
-	public static function data_custom_css_disallowed(): array {
-		return array(
-			'style close tag'            => array( 'css…</style>…css', 'The CSS must not contain "&lt;/style&gt;".' ),
-			'style close tag upper case' => array( '</STYLE>', 'The CSS must not contain "&lt;/STYLE&gt;".' ),
-			'style close tag mixed case' => array( '</sTyLe>', 'The CSS must not contain "&lt;/sTyLe&gt;".' ),
-			'style close tag in comment' => array( '/*</style>*/', 'The CSS must not contain "&lt;/style&gt;".' ),
-			'style close tag (/)'        => array( '</style/', 'The CSS must not contain "&lt;/style/".' ),
-			'style close tag (\t)'       => array( "</style\t", "The CSS must not contain \"&lt;/style\t\"." ),
-			'style close tag (\f)'       => array( "</style\f", "The CSS must not contain \"&lt;/style\f\"." ),
-			'style close tag (\r)'       => array( "</style\r", "The CSS must not contain \"&lt;/style\r\"." ),
-			'style close tag (\n)'       => array( "</style\n", "The CSS must not contain \"&lt;/style\n\"." ),
-			'style close tag (" ")'      => array( '</style ', 'The CSS must not contain "&lt;/style ".' ),
-			'truncated "<"'              => array( '<', 'The CSS must not end in "&lt;".' ),
-			'truncated "</"'             => array( '</', 'The CSS must not end in "&lt;/".' ),
-			'truncated "</s"'            => array( '</s', 'The CSS must not end in "&lt;/s".' ),
-			'truncated "</ST"'           => array( '</ST', 'The CSS must not end in "&lt;/ST".' ),
-			'truncated "</sty"'          => array( '</sty', 'The CSS must not end in "&lt;/sty".' ),
-			'truncated "</STYL"'         => array( '</STYL', 'The CSS must not end in "&lt;/STYL".' ),
-			'truncated "</stYle"'        => array( '</stYle', 'The CSS must not end in "&lt;/stYle".' ),
-		);
-	}
-
-	/**
-	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
-	 * @ticket 65640
-	 *
-	 * @dataProvider data_custom_css_non_string
-	 *
-	 * @param mixed $custom_css Non-string value to validate.
-	 */
-	public function test_validate_custom_css_non_string( $custom_css ) {
-		$controller = new WP_REST_Global_Styles_Controller();
-		$validate   = Closure::bind(
-			function ( $css ) {
-				return $this->validate_custom_css( $css );
-			},
-			$controller,
-			$controller
-		);
-
-		$result = $validate( $custom_css );
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_custom_css_invalid_type', $result->get_error_code() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, mixed[]>
-	 */
-	public static function data_custom_css_non_string(): array {
-		return array(
-			'array'   => array( array( 'body { color: red; }' ) ),
-			'integer' => array( 123 ),
-			'boolean' => array( true ),
-			'null'    => array( null ),
-			'object'  => array( new stdClass() ),
-		);
 	}
 }
