@@ -378,6 +378,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
 		$this->assertCount( 1, $this->notices, 'Expected no other notice.' );
 		$this->assertStringContainsString( 'wp_interactivity_as_dangerous_html()', $this->html_notice_messages()[0] );
+		$this->assertSame( array(), $this->announced_paths(), 'Expected no closure to run.' );
 	}
 
 	/**
@@ -408,6 +409,14 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			),
 			'negated token'                 => array( 'data-wp-html="!state.html"', array( 'html' => $token ) ),
 			'negated reserved path segment' => array( 'data-wp-html="test::!state.obj.constructor"', array( 'obj' => array( 'constructor' => $token ) ) ),
+			'doubly negated closure'        => array(
+				'data-wp-html="!!state.html"',
+				array(
+					'html' => static function () use ( $token ) {
+						return $token;
+					},
+				),
+			),
 			'string in context'             => array( 'data-wp-context=\'{"h":"<p>Hi</p>"}\' data-wp-html="context.h"', array() ),
 		);
 	}

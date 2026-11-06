@@ -1725,10 +1725,11 @@ final class WP_Interactivity_API {
 	 *
 	 * The reference is the raw attribute value, never decoded as JSON: an
 	 * optional `<namespace>::`, an optional `!` and a dot-separated path. It
-	 * resolves to `null` without being evaluated when it is empty, or when its
-	 * namespace or a segment of its path is a reserved word (`__proto__`,
-	 * `constructor` or `prototype`). The `!` applies after that, so
-	 * `!state.x.constructor` resolves to `true`.
+	 * resolves to `null` without being evaluated when its path is empty or
+	 * starts with a second `!`, which names no property, or when its namespace
+	 * or a segment of its path is a reserved word (`__proto__`, `constructor` or
+	 * `prototype`). The `!` applies after that, so `!state.x.constructor`
+	 * resolves to `true`.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1756,6 +1757,7 @@ final class WP_Interactivity_API {
 
 		if (
 			'' === $path ||
+			str_starts_with( $path, '!' ) ||
 			( null !== $namespace && self::is_reserved_word( $namespace ) ) ||
 			null !== array_find( explode( '.', $path ), fn( $segment ) => self::is_reserved_word( $segment ) )
 		) {
