@@ -41,10 +41,13 @@ function wp_should_skip_block_supports_serialization( $block_type, $feature_set,
  *
  * @since 7.3.0
  *
- * @param array      $block_attributes Block attributes.
- * @param array|null $supports         Optional. Supports to include: any of `background`, `color`,
- *                                     `border`, `shadow` and `spacing`. Default null, for all of them.
- * @return array Array with `class` and `style` keys, each present only when non-empty.
+ * @param array<string, mixed> $block_attributes Block attributes.
+ * @param string[]|null        $supports         Optional. Supports to include: any of `background`, `color`,
+ *                                               `border`, `shadow` and `spacing`. Unknown names are ignored.
+ *                                               Default null, for all of them.
+ * @return array<string, string> Array with `class` and `style` keys, each present only when non-empty.
+ *
+ * @phpstan-return array{ class?: non-empty-string, style?: non-empty-string }
  */
 function wp_get_block_supports_classes_and_styles( $block_attributes, $supports = null ) {
 	// Follows the style engine's group order.
