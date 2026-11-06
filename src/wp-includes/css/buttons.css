@@ -25,7 +25,6 @@ Button States
 Lock the state of a button by adding the name of the pseudoclass as
 an actual class (e.g. `.hover` for `:hover`).
 
-
 TABLE OF CONTENTS:
 ------------------
  1.0 - Button Layouts
@@ -36,9 +35,9 @@ TABLE OF CONTENTS:
 
 ---------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------------
-  1.0 - Button Layouts
----------------------------------------------------------------------------- */
+/**
+ * 1.0 Button Layouts
+ */
 
 .wp-core-ui .button,
 .wp-core-ui .button-primary,
@@ -58,16 +57,6 @@ TABLE OF CONTENTS:
 	border-radius: 2px;
 	white-space: nowrap;
 	box-sizing: border-box;
-}
-
-/* Remove the dotted border on :focus and the extra padding in Firefox */
-.wp-core-ui button::-moz-focus-inner,
-.wp-core-ui input[type="reset"]::-moz-focus-inner,
-.wp-core-ui input[type="button"]::-moz-focus-inner,
-.wp-core-ui input[type="submit"]::-moz-focus-inner {
-	border-width: 0;
-	border-style: none;
-	padding: 0;
 }
 
 /* Compact size - 32px, for space-constrained contexts */
@@ -141,9 +130,9 @@ TABLE OF CONTENTS:
 	width: auto;
 }
 
-/* ----------------------------------------------------------------------------
-  2.0 - Default Button Style
----------------------------------------------------------------------------- */
+/**
+ * 2.0 Default Button Style
+ */
 
 .wp-core-ui .button,
 .wp-core-ui .button-secondary {
@@ -173,7 +162,7 @@ TABLE OF CONTENTS:
 	color: var(--wp-admin-theme-color, #3858e9);
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
+	outline: 2px solid transparent;
 	/* Reset inherited offset from Gutenberg */
 	outline-offset: 0;
 }
@@ -241,7 +230,7 @@ TABLE OF CONTENTS:
 	color: var(--wp-admin-theme-color, #3858e9);
 	text-decoration: underline;
 	transition-property: border, background, color;
-	transition-duration: .05s;
+	transition-duration: 0.05s;
 	transition-timing-function: ease-in-out;
 }
 
@@ -273,10 +262,9 @@ TABLE OF CONTENTS:
 	background: transparent !important;
 }
 
-
-/* ----------------------------------------------------------------------------
-  3.0 - Primary Button Style
----------------------------------------------------------------------------- */
+/**
+ * 3.0 Primary Button Style
+ */
 
 .wp-core-ui .button-primary {
 	background: var(--wp-admin-theme-color, #3858e9);
@@ -301,7 +289,7 @@ TABLE OF CONTENTS:
 	box-shadow:
 		0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9),
 		inset 0 0 0 1px #fff;
-	outline: 1px solid transparent;
+	outline: 2px solid transparent;
 }
 
 .wp-core-ui .button-primary.active,
@@ -330,9 +318,9 @@ TABLE OF CONTENTS:
 	cursor: default;
 }
 
-/* ----------------------------------------------------------------------------
-  4.0 - Button Groups
----------------------------------------------------------------------------- */
+/**
+ * 4.0 Button Groups
+ */
 
 .wp-core-ui .button-group {
 	position: relative;
@@ -376,12 +364,11 @@ TABLE OF CONTENTS:
 	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20), 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
-/* ----------------------------------------------------------------------------
-  5.0 - Responsive Button Styles
----------------------------------------------------------------------------- */
+/**
+ * 5.0 Responsive Button Styles
+ */
 
 @media screen and (max-width: 782px) {
-
 	.wp-core-ui .button,
 	.wp-core-ui .button.button-large,
 	.wp-core-ui .button.button-compact,
@@ -427,7 +414,6 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles in Press This, Customizer */
-
 	.wp-core-ui.wp-customizer .button {
 		font-size: 13px;
 		line-height: 2.30769231; /* 30px */
@@ -446,11 +432,9 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles on Log in button on iframed login form */
-
 	.interim-login .button.button-large {
 		min-height: 32px;
 		line-height: 2.30769231; /* 30px */
 		padding: 0 12px;
 	}
-
 }

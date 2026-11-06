@@ -72,9 +72,9 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( $this->post_data['post_excerpt'], $result['post_excerpt'] );
 		$this->assertSame( $this->post_data['post_content'], $result['post_content'] );
 		$this->assertSame( url_to_postid( $result['link'] ), $this->post_id );
-		$this->assertEquals( $this->post_custom_field['id'], $result['custom_fields'][0]['id'] );
+		$this->assertSame( (string) $this->post_custom_field['id'], $result['custom_fields'][0]['id'] );
 		$this->assertSame( $this->post_custom_field['key'], $result['custom_fields'][0]['key'] );
-		$this->assertEquals( $this->post_custom_field['value'], $result['custom_fields'][0]['value'] );
+		$this->assertSame( (string) $this->post_custom_field['value'], $result['custom_fields'][0]['value'] );
 
 		remove_theme_support( 'post-thumbnails' );
 	}
@@ -144,7 +144,19 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsString( $result['post_mime_type'] );
 
 		$this->assertSame( 'page', $result['post_type'] );
-		$this->assertEquals( $parent_page_id, $result['post_parent'] );
+		$this->assertSame( (string) $parent_page_id, $result['post_parent'] );
 		$this->assertSame( 2, $result['menu_order'] );
+	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, 'post' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 }

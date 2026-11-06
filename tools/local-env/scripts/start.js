@@ -4,16 +4,10 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
-const { copyFileSync, existsSync } = require( 'node:fs' );
 
-// Copy the default .env file when one is not present.
-if ( ! existsSync( '.env' ) ) {
-	copyFileSync( '.env.example', '.env' );
-}
+local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
-
-const composeFiles = local_env_utils.get_compose_files();
 
 // Check if the Docker service is running.
 try {
@@ -32,18 +26,19 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
 
-spawnSync(
-	'docker',
-	[
-		'compose',
-		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
-		'up',
-		'--quiet-pull',
-		'-d',
-		...containers,
-	],
-	{ stdio: 'inherit' }
-);
+// `up` pulls any image that is missing, so it is re-attempted for the same reasons as `env:pull`.
+const up = local_env_utils.compose_with_retry( [ 'up', '--quiet-pull', '-d', ...containers ], 3 );
+
+// No signal is exempt here, unlike in `docker.js`: `env:start` runs `composer update -W` next, and
+// that must not run against containers that never came up.
+if ( up.status !== 0 ) {
+	const reason = up.signal ? `It was terminated by ${ up.signal }.` : up.error?.message ?? '';
+
+	console.error( `Could not start the Docker containers. ${ reason }`.trim() );
+
+	// `status` is null when Docker could not be spawned at all, or was killed by a signal.
+	process.exit( up.status ?? 1 );
+}
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
@@ -97,4 +92,15 @@ if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 		],
 		{ stdio: 'inherit' }
 	);
+}
+
+// `composer update` reaches repo.packagist.org, so it is re-attempted for the same reasons as `up`.
+const composer = local_env_utils.compose_with_retry( [ 'run', '-T', '--rm', 'php', 'composer', 'update', '-W', ...process.argv.slice( 2 ) ], 3 );
+
+if ( composer.status !== 0 ) {
+	console.error( '\nThere was an error while running PHP Composer update.' );
+	console.error( 'This is often caused by network issues or Packagist.org downtime.' );
+	console.error( 'Please check your internet connection and try again.' );
+
+	process.exit( composer.status ?? 1 );
 }
