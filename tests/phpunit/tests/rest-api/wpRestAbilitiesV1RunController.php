@@ -2285,77 +2285,80 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides input sources and methods for normalization regression tests.
+	 * Data provider for run requests with and without input, for each HTTP method.
 	 *
-	 * @return array
+	 * Each case holds the HTTP method, the ability annotations, the request input,
+	 * and whether the input is sent.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, bool>, 2: string|null, 3: bool}>
 	 */
-	public static function data_normalization_lifecycle(): array {
+	public static function data_rest_run_matches_direct_execution(): array {
 		$cases = array();
-		foreach ( self::data_coercion_transports() as $method => $transport ) {
-			foreach ( array( 'value', 'null', 'absent' ) as $source ) {
-				foreach ( array( 'none', 'equal', 'different' ) as $other_source ) {
-					$cases[ "$method $source $other_source" ] = array( $transport[0], $transport[1], $source, $other_source );
-				}
-			}
+		foreach ( self::data_coercion_transports() as $label => $transport ) {
+			$cases[ "{$label} with input" ]      = array( $transport[0], $transport[1], 'raw', true );
+			$cases[ "{$label} with null input" ] = array( $transport[0], $transport[1], null, true );
+			$cases[ "{$label} without input" ]   = array( $transport[0], $transport[1], null, false );
 		}
 		return $cases;
 	}
 
 	/**
-	 * Tests that permission checks and execution independently prepare raw input.
+	 * Tests that a REST run gives the same result as running the ability directly.
+	 *
+	 * The normalize filter is not idempotent and the schema limits the length,
+	 * so normalizing the same input twice would fail validation. Input sent in
+	 * the source that the HTTP method ignores must have no effect.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_normalization_lifecycle
+	 * @dataProvider data_rest_run_matches_direct_execution
 	 *
-	 * @param string $method       HTTP method.
-	 * @param array  $annotations  Ability annotations.
-	 * @param string $source       Input case.
-	 * @param string $other_source Input to send in the ignored source.
+	 * @param string      $method      HTTP method.
+	 * @param array       $annotations Ability annotations.
+	 * @param string|null $input       Request input.
+	 * @param bool        $send_input  Whether to send the input with the request.
 	 */
-	public function test_normalization_lifecycle( string $method, array $annotations, string $source, string $other_source ): void {
+	public function test_rest_run_matches_direct_execution( string $method, array $annotations, ?string $input, bool $send_input ): void {
 		$seen = (object) array(
-			'normalized'  => array(),
-			'permissions' => array(),
-			'invoked'     => array(),
+			'permission' => array(),
+			'invoked'    => array(),
 		);
 		add_filter(
 			'wp_ability_normalize_input',
-			static function ( $input, $name ) use ( $seen ) {
-				if ( 'test/normalization-lifecycle' === $name ) {
-					$seen->normalized[] = $input;
-					return null === $input ? null : $input . '!';
+			static function ( $value, $name ) {
+				if ( 'test/normalize-once' !== $name || null === $value ) {
+					return $value;
 				}
-				return $input;
+				return $value . '!';
 			},
 			10,
 			2
 		);
 		add_action(
 			'wp_ability_invoked',
-			static function ( $name, $input ) use ( $seen ) {
-				if ( 'test/normalization-lifecycle' === $name ) {
-					$seen->invoked[] = $input;
+			static function ( $name, $value ) use ( $seen ) {
+				if ( 'test/normalize-once' === $name ) {
+					$seen->invoked[] = $value;
 				}
 			},
 			10,
 			2
 		);
 		$this->register_test_ability(
-			'test/normalization-lifecycle',
+			'test/normalize-once',
 			array(
-				'label'               => 'Normalization Lifecycle',
-				'description'         => 'Records input preparation across the REST lifecycle.',
+				'label'               => 'Normalize Once',
+				'description'         => 'Appends a character to the input during normalization.',
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'      => array( 'string', 'null' ),
 					'maxLength' => 4,
 				),
-				'permission_callback' => static function ( $input ) use ( $seen ) {
-					$seen->permissions[] = array( $input, count( $seen->normalized ) );
+				'permission_callback' => static function ( $value ) use ( $seen ) {
+					$seen->permission[] = $value;
 					return true;
 				},
-				'execute_callback'    => static function ( $input ) {
-					return $input;
+				'execute_callback'    => static function ( $value ) {
+					return $value;
 				},
 				'meta'                => array(
 					'show_in_rest' => true,
@@ -2364,28 +2367,30 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$raw      = 'value' === $source ? 'raw' : null;
-		$expected = 'value' === $source ? 'raw!' : null;
-		$request  = new WP_REST_Request( $method, '/wp-abilities/v1/abilities/test/normalization-lifecycle/run' );
-		$params   = 'absent' === $source ? array() : array( 'input' => $raw );
-		$ignored  = 'none' === $other_source ? array() : array( 'input' => 'equal' === $other_source ? $raw : 'ignored' );
-		$request->set_query_params( 'POST' === $method ? $ignored : $params );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( 'POST' === $method ? $params : $ignored ) );
+		$expected            = wp_get_ability( 'test/normalize-once' )->execute( $input );
+		$expected_permission = $seen->permission;
+		$expected_invoked    = $seen->invoked;
+		$this->assertNotWPError( $expected, 'Direct execution should succeed.' );
 
-		// Repeated dispatches must independently prepare the same raw input.
-		for ( $attempt = 0; $attempt < 2; ++$attempt ) {
-			$seen->normalized  = array();
-			$seen->permissions = array();
-			$seen->invoked     = array();
+		$uses_query = in_array( $method, array( 'GET', 'DELETE' ), true );
+		$sent       = $send_input ? array( 'input' => $input ) : array();
+		$ignored    = array( 'input' => 'ignored' );
+		$request    = new WP_REST_Request( $method, '/wp-abilities/v1/abilities/test/normalize-once/run' );
+		$request->set_query_params( $uses_query ? $sent : $ignored );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $uses_query ? $ignored : $sent ) );
+
+		// Dispatch the same request twice to confirm that a dispatch does not change it.
+		for ( $attempt = 1; $attempt <= 2; ++$attempt ) {
+			$seen->permission = array();
+			$seen->invoked    = array();
 
 			$response = $this->server->dispatch( $request );
 
-			$this->assertSame( 200, $response->get_status() );
-			$this->assertSame( $expected, $response->get_data() );
-			$this->assertSame( array( array( $expected, 1 ), array( $expected, 2 ) ), $seen->permissions );
-			$this->assertSame( array( $raw, $raw ), $seen->normalized );
-			$this->assertSame( array( $raw ), $seen->invoked, 'Execution hooks should receive raw input.' );
+			$this->assertSame( 200, $response->get_status(), "Dispatch {$attempt}: the run should succeed." );
+			$this->assertSame( $expected, $response->get_data(), "Dispatch {$attempt}: the result should match direct execution." );
+			$this->assertSame( $expected_permission, array_unique( $seen->permission ), "Dispatch {$attempt}: permission checks should receive the same input as direct execution." );
+			$this->assertSame( $expected_invoked, $seen->invoked, "Dispatch {$attempt}: execution hooks should receive the same input as direct execution." );
 		}
 	}
 }

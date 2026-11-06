@@ -149,7 +149,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * Checks if a given request has permission to execute a specific ability.
 	 *
 	 * @since 6.9.0
-	 * @since 7.2.0 Prepares raw request input without a separate REST sanitization pass.
+	 * @since 7.2.0 Prepares the input read from the raw request.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
@@ -234,13 +234,10 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Returns run input unchanged for backward compatibility.
 	 *
-	 * Input preparation is handled by `check_ability_permissions()` and
-	 * `WP_Ability::execute()`. This method is no longer registered as the
-	 * input argument sanitizer.
+	 * This method is no longer registered as the input argument sanitizer.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 Returns the input unchanged.
-	 * @deprecated 7.2.0
+	 * @deprecated 7.2.0 Input is prepared by `check_ability_permissions()` and `WP_Ability::execute()`.
 	 *
 	 * @param mixed           $input   Raw input extracted from the request.
 	 * @param WP_REST_Request $request Unused. The request object.
@@ -289,7 +286,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 				'description'       => __( 'Input parameters for the ability execution.' ),
 				'type'              => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
 				'default'           => null,
-				// Keep raw input for the permission check and execution; disable default REST coercion.
+				// Keep the raw input for the permission check and execution. This disables default REST coercion.
 				'sanitize_callback' => null,
 			),
 		);
