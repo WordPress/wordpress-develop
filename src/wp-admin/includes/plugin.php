@@ -32,6 +32,10 @@
  *          activated on a single site when Multisite is enabled.
  *     Requires at least: Optional. Specify the minimum required WordPress version.
  *     Requires PHP: Optional. Specify the minimum required PHP version.
+ *     Uninstall Notification: Optional. A short message shown to the user on the
+ *          "Delete Plugin" confirmation screen, for example explaining how to
+ *          export or keep data before the plugin is removed. A limited set of
+ *          HTML tags is allowed (a, abbr, acronym, code, em, strong).
  *     * / # Remove the space to close comment.
  *
  * The first 8 KB of the file will be pulled in and if the plugin data is not
@@ -46,6 +50,7 @@
  * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
  * @since 5.8.0 Added support for `Update URI` header.
  * @since 6.5.0 Added support for `Requires Plugins` header.
+ * @since 7.3.0 Added support for `Uninstall Notification` header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -54,41 +59,43 @@
  * @return array {
  *     Plugin data. Values will be empty if not supplied by the plugin.
  *
- *     @type string $Name            Name of the plugin. Should be unique.
- *     @type string $PluginURI       Plugin URI.
- *     @type string $Version         Plugin version.
- *     @type string $Description     Plugin description.
- *     @type string $Author          Plugin author's name.
- *     @type string $AuthorURI       Plugin author's website address (if set).
- *     @type string $TextDomain      Plugin textdomain.
- *     @type string $DomainPath      Plugin's relative directory path to .mo files.
- *     @type bool   $Network         Whether the plugin can only be activated network-wide.
- *     @type string $RequiresWP      Minimum required version of WordPress.
- *     @type string $RequiresPHP     Minimum required version of PHP.
- *     @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
- *     @type string $RequiresPlugins Comma separated list of dot org plugin slugs.
- *     @type string $Title           Title of the plugin and link to the plugin's site (if set).
- *     @type string $AuthorName      Plugin author's name.
+ *     @type string $Name                  Name of the plugin. Should be unique.
+ *     @type string $PluginURI             Plugin URI.
+ *     @type string $Version               Plugin version.
+ *     @type string $Description           Plugin description.
+ *     @type string $Author                Plugin author's name.
+ *     @type string $AuthorURI             Plugin author's website address (if set).
+ *     @type string $TextDomain            Plugin textdomain.
+ *     @type string $DomainPath            Plugin's relative directory path to .mo files.
+ *     @type bool   $Network               Whether the plugin can only be activated network-wide.
+ *     @type string $RequiresWP            Minimum required version of WordPress.
+ *     @type string $RequiresPHP           Minimum required version of PHP.
+ *     @type string $UpdateURI             ID of the plugin for update purposes, should be a URI.
+ *     @type string $RequiresPlugins       Comma separated list of dot org plugin slugs.
+ *     @type string $UninstallNotification Message shown to the user before the plugin is deleted.
+ *     @type string $Title                 Title of the plugin and link to the plugin's site (if set).
+ *     @type string $AuthorName            Plugin author's name.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'            => 'Plugin Name',
-		'PluginURI'       => 'Plugin URI',
-		'Version'         => 'Version',
-		'Description'     => 'Description',
-		'Author'          => 'Author',
-		'AuthorURI'       => 'Author URI',
-		'TextDomain'      => 'Text Domain',
-		'DomainPath'      => 'Domain Path',
-		'Network'         => 'Network',
-		'RequiresWP'      => 'Requires at least',
-		'RequiresPHP'     => 'Requires PHP',
-		'UpdateURI'       => 'Update URI',
-		'RequiresPlugins' => 'Requires Plugins',
+		'Name'                  => 'Plugin Name',
+		'PluginURI'             => 'Plugin URI',
+		'Version'               => 'Version',
+		'Description'           => 'Description',
+		'Author'                => 'Author',
+		'AuthorURI'             => 'Author URI',
+		'TextDomain'            => 'Text Domain',
+		'DomainPath'            => 'Domain Path',
+		'Network'               => 'Network',
+		'RequiresWP'            => 'Requires at least',
+		'RequiresPHP'           => 'Requires PHP',
+		'UpdateURI'             => 'Update URI',
+		'RequiresPlugins'       => 'Requires Plugins',
+		'UninstallNotification' => 'Uninstall Notification',
 		// Site Wide Only is deprecated in favor of Network.
-		'_sitewide'       => 'Site Wide Only',
+		'_sitewide'             => 'Site Wide Only',
 	);
 
 	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
@@ -124,6 +131,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * Sanitizes plugin data, optionally adds markup, optionally translates.
  *
  * @since 2.7.0
+ * @since 7.3.0 The `UninstallNotification` field is translated and sanitized.
  *
  * @see get_plugin_data()
  *
@@ -142,6 +150,11 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 	// Sanitize the plugin filename to a WP_PLUGIN_DIR relative path.
 	$plugin_file = plugin_basename( $plugin_file );
 
+	// Plugin data may come from a cache populated before this header existed.
+	if ( ! isset( $plugin_data['UninstallNotification'] ) ) {
+		$plugin_data['UninstallNotification'] = '';
+	}
+
 	// Translate fields.
 	if ( $translate ) {
 		$textdomain = $plugin_data['TextDomain'];
@@ -157,7 +170,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 			$textdomain = 'default';
 		}
 		if ( $textdomain ) {
-			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
+			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version', 'UninstallNotification' ) as $field ) {
 				if ( ! empty( $plugin_data[ $field ] ) ) {
 					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 					$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
@@ -191,6 +204,8 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 	$plugin_data['Description'] = wp_kses( $plugin_data['Description'], $allowed_tags );
 	$plugin_data['Version']     = wp_kses( $plugin_data['Version'], $allowed_tags );
 
+	$plugin_data['UninstallNotification'] = wp_kses( $plugin_data['UninstallNotification'], $allowed_tags );
+
 	$plugin_data['PluginURI'] = esc_url( $plugin_data['PluginURI'] );
 	$plugin_data['AuthorURI'] = esc_url( $plugin_data['AuthorURI'] );
 
@@ -208,6 +223,8 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		}
 
 		$plugin_data['Description'] = wptexturize( $plugin_data['Description'] );
+
+		$plugin_data['UninstallNotification'] = wptexturize( $plugin_data['UninstallNotification'] );
 
 		if ( $plugin_data['Author'] ) {
 			$plugin_data['Description'] .= sprintf(

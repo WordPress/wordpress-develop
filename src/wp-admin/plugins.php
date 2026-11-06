@@ -382,14 +382,33 @@ if ( $action ) {
 						$data_to_delete = false;
 
 						foreach ( $plugin_info as $plugin ) {
+							echo '<li>';
+
 							if ( $plugin['is_uninstallable'] ) {
 								/* translators: 1: Plugin name, 2: Plugin author. */
-								echo '<li>', sprintf( __( '%1$s by %2$s (will also <strong>delete its data</strong>)' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] . '</em>' ), '</li>';
+								printf( __( '%1$s by %2$s (will also <strong>delete its data</strong>)' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] . '</em>' );
 								$data_to_delete = true;
 							} else {
 								/* translators: 1: Plugin name, 2: Plugin author. */
-								echo '<li>', sprintf( _x( '%1$s by %2$s', 'plugin' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] ) . '</em>', '</li>';
+								printf( _x( '%1$s by %2$s', 'plugin' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] . '</em>' );
 							}
+
+							if ( ! empty( $plugin['UninstallNotification'] ) ) {
+								wp_admin_notice(
+									sprintf(
+										/* translators: 1: Plugin name, 2: Message from the plugin author. */
+										__( '<strong>Note from %1$s:</strong> %2$s' ),
+										$plugin['Name'],
+										$plugin['UninstallNotification']
+									),
+									array(
+										'type' => 'info',
+										'additional_classes' => array( 'inline', 'uninstall-notification' ),
+									)
+								);
+							}
+
+							echo '</li>';
 						}
 
 						?>
