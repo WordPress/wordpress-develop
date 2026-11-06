@@ -69,6 +69,12 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @dataProvider data_start_el_with_empty_attributes
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
+		/*
+		 * A rolled back post ID may be reused by a later test, for example, with SQLite.
+		 * Don't omit the ID attribute for a menu item ID that was already used.
+		 */
+		remove_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once' );
+
 		$output     = '';
 		$post_id    = self::factory()->post->create();
 		$post_title = get_the_title( $post_id );

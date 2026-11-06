@@ -4,18 +4,30 @@ const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
-const { readFileSync, writeFileSync } = require( 'fs' );
+const { mkdirSync, readFileSync, rmSync, writeFileSync } = require( 'fs' );
 const local_env_utils = require( './utils' );
 
 local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
 
+const is_sqlite = process.env.LOCAL_DB_TYPE === 'sqlite';
+
+// The SQLite database files of the site and of the tests, which always run from `src`.
+const sqlite_site_dir = `${ process.env.LOCAL_DIR }/wp-content/database`;
+const sqlite_tests_dir = 'src/wp-content/database';
+
+if ( is_sqlite ) {
+	// SQLite creates a missing database file, but not its directory.
+	mkdirSync( sqlite_site_dir, { recursive: true } );
+	mkdirSync( sqlite_tests_dir, { recursive: true } );
+}
+
 // Create wp-config.php. This verifies the database connection, so retrying it keeps
 // `env:install` working on its own, without `env:start` having waited for the mysql
-// container to report healthy first.
+// container to report healthy first. SQLite needs no connection check.
 wp_cli_retry(
-	`config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"`,
+	`config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"${ is_sqlite ? ' --skip-check' : '' }`,
 	{
 		// Initialising a cold database volume takes well over the 3 second web server timeout
 		// used below, and longer still on a loaded CI runner.
@@ -25,6 +37,11 @@ wp_cli_retry(
 		hint: `Check the container logs with 'npm run env:logs mysql'.`,
 	}
 );
+
+if ( is_sqlite ) {
+	wp_cli( `config set DB_ENGINE sqlite --type=constant` );
+	wp_cli( `config set DB_PATH /var/www/${ sqlite_site_dir }/.ht.sqlite --type=constant` );
+}
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -36,13 +53,19 @@ wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE}
 wp_cli( `config set WP_DEVELOPMENT_MODE ${process.env.LOCAL_WP_DEVELOPMENT_MODE} --type=constant` );
 
 // Read in wp-tests-config-sample.php, edit it to work with our config, then write it to wp-tests-config.php.
-const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
+let testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 	.replace( 'youremptytestdbnamehere', 'wordpress_develop_tests' )
 	.replace( 'yourusernamehere', 'root' )
 	.replace( 'yourpasswordhere', 'password' )
 	.replace( 'localhost', 'mysql' )
 	.replace( `'WP_TESTS_DOMAIN', 'example.org'`, `'WP_TESTS_DOMAIN', '${process.env.LOCAL_WP_TESTS_DOMAIN}'` )
 	.concat( `\ndefine( 'FS_METHOD', 'direct' );\n` );
+
+if ( is_sqlite ) {
+	testConfig = testConfig
+		.replace( `// define( 'DB_ENGINE', 'sqlite' );`, `define( 'DB_ENGINE', 'sqlite' );` )
+		.replace( `// define( 'DB_PATH',`, `define( 'DB_PATH',` );
+}
 
 writeFileSync( 'wp-tests-config.php', testConfig );
 
@@ -57,7 +80,14 @@ wait_on( {
 		process.exit( 1 );
 	} )
 	.then( () => {
-		wp_cli( 'db reset --yes --defaults' );
+		if ( is_sqlite ) {
+			// Delete the SQLite database file with its journal files.
+			for ( const suffix of [ '', '-journal', '-shm', '-wal' ] ) {
+				rmSync( `${ sqlite_site_dir }/.ht.sqlite${ suffix }`, { force: true } );
+			}
+		} else {
+			wp_cli( 'db reset --yes --defaults' );
+		}
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
 		wp_cli( `rewrite structure '/%year%/%monthnum%/%postname%/'` );

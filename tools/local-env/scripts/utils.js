@@ -44,6 +44,8 @@ const local_env_utils = {
 			...local_env_utils.get_compose_files()
 				.map( ( composeFile ) => [ '-f', composeFile ] )
 				.flat(),
+			// With SQLite, the MySQL container may still run from before, so it needs to be stopped too.
+			...( process.env.LOCAL_DB_TYPE === 'sqlite' && 'down' === args[0] ? [ '--profile', 'mysql' ] : [] ),
 			...args,
 		];
 
@@ -90,6 +92,10 @@ const local_env_utils = {
 	 */
 	get_compose_files: function() {
 		const composeFiles = [ 'docker-compose.yml' ];
+
+		if ( process.env.LOCAL_DB_TYPE === 'sqlite' ) {
+			composeFiles.push( 'tools/local-env/docker-compose.sqlite.yml' );
+		}
 
 		if ( existsSync( 'docker-compose.override.yml' ) ) {
 			composeFiles.push( 'docker-compose.override.yml' );

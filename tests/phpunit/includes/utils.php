@@ -637,6 +637,7 @@ class WpdbExposedMethodsForTesting extends wpdb {
 		$this->dbpassword = $wpdb->dbpassword;
 		$this->dbname     = $wpdb->dbname;
 		$this->dbhost     = $wpdb->dbhost;
+		$this->dbengine   = $wpdb->dbengine;
 	}
 
 	public function __call( $name, $arguments ) {

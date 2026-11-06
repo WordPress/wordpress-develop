@@ -43,6 +43,9 @@ define( 'WEEK_IN_SECONDS', 7 * DAY_IN_SECONDS );
 define( 'MONTH_IN_SECONDS', 30 * DAY_IN_SECONDS );
 define( 'YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS );
 
+// Set in wp-config.php for the SQLite database engine.
+define( 'DB_PATH', WP_CONTENT_DIR . '/database/.ht.sqlite' );
+
 /** @see wp_set_lang_dir() */
 define( 'WP_LANG_DIR', WP_CONTENT_DIR . '/languages' );
 
