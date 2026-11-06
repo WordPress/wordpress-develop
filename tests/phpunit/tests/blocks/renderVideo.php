@@ -135,10 +135,11 @@ class Tests_Blocks_RenderVideo extends WP_UnitTestCase {
 	 */
 	public static function data_content_without_a_video() {
 		return array(
-			'empty content'        => array( '' ),
-			'text'                 => array( 'Not a video' ),
-			'another element'      => array( '<figure class="wp-block-video"><audio src="a.mp3" autoplay></audio></figure>' ),
-			'a video in a comment' => array( '<figure class="wp-block-video"></figure>' ),
+			'empty content'            => array( '' ),
+			'text'                     => array( 'Not a video' ),
+			'another element'          => array( '<figure class="wp-block-video"><audio src="a.mp3" autoplay></audio></figure>' ),
+			'a figure without a video' => array( '<figure class="wp-block-video"></figure>' ),
+			'a video in a comment'     => array( '<figure class="wp-block-video"><!-- <video autoplay src="video.mp4"></video> --></figure>' ),
 		);
 	}
 
