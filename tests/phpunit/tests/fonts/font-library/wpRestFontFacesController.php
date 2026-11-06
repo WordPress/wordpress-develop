@@ -463,7 +463,20 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function test_create_item_with_multiple_font_files() {
 		wp_set_current_user( self::$admin_id );
-		$files = $this->setup_font_file_upload( array( 'ttf', 'otf', 'woff', 'woff2' ) );
+
+		$formats = array( 'ttf', 'otf', 'woff', 'woff2' );
+
+		/*
+		 * Some libmagic versions cannot detect TrueType fonts and report them as
+		 * application/octet-stream, which causes the upload to be rejected.
+		 *
+		 * @link https://github.com/php/php-src/issues/25051
+		 */
+		if ( 'application/octet-stream' === finfo_file( finfo_open( FILEINFO_MIME_TYPE ), DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf' ) ) {
+			$formats = array_diff( $formats, array( 'ttf' ) );
+		}
+
+		$files = $this->setup_font_file_upload( $formats );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
 		$request->set_param( 'theme_json_version', WP_REST_Font_Faces_Controller::LATEST_THEME_JSON_VERSION_SUPPORTED );
@@ -488,7 +501,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		$this->check_file_meta( $data['id'], $data['font_face_settings']['src'] );
 
 		$settings = $data['font_face_settings'];
-		$this->assertCount( 4, $settings['src'], 'There should be 4 items in the font_face_settings::src data.' );
+		$this->assertCount( count( $files ), $settings['src'], 'There should be one item in the font_face_settings::src data for each uploaded file.' );
 	}
 
 	/**
