@@ -429,20 +429,24 @@ class Tests_Blocks_RenderPostExcerpt extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-excerpt' );
+		$original_block = $registry->get_registered( 'core/post-excerpt' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-excerpt' );
 		}
 
-		register_block_core_post_excerpt();
-		$block_type = $registry->get_registered( 'core/post-excerpt' );
+		try {
+			register_block_core_post_excerpt();
+			$block_type = $registry->get_registered( 'core/post-excerpt' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_excerpt', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-excerpt' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_excerpt', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
