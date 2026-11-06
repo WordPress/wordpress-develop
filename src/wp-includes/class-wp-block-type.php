@@ -302,7 +302,7 @@ class WP_Block_Type {
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
-	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
+	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, `view_script_module_ids`, and `view_style_handles` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -339,6 +339,7 @@ class WP_Block_Type {
 	 *     @type string[]      $editor_script_handles    Block type editor only script handles.
 	 *     @type string[]      $script_handles           Block type front end and editor script handles.
 	 *     @type string[]      $view_script_handles      Block type front end only script handles.
+	 *     @type string[]      $view_script_module_ids   Block type front end only script module IDs.
 	 *     @type string[]      $editor_style_handles     Block type editor only style handles.
 	 *     @type string[]      $style_handles            Block type front end and editor style handles.
 	 *     @type string[]      $view_style_handles       Block type front end only style handles.
