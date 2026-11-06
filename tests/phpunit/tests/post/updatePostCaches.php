@@ -134,48 +134,84 @@ class Tests_Post_UpdatePostCaches extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the terms are cached for the post types of the posts when the post type is `any`, an empty value, or a list.
+	 * Registers a post type with a taxonomy of its own, and creates a post of that type with a term.
+	 *
+	 * @return int ID of the post.
+	 */
+	private function create_post_with_another_post_type_and_taxonomy() {
+		register_post_type( 'foo-cache-type', array( 'public' => true ) );
+		register_taxonomy( 'foo-cache-tax', 'foo-cache-type' );
+
+		$post_id = self::factory()->post->create( array( 'post_type' => 'foo-cache-type' ) );
+		$term    = self::factory()->term->create_and_get( array( 'taxonomy' => 'foo-cache-tax' ) );
+		wp_set_object_terms( $post_id, array( $term->term_id ), 'foo-cache-tax' );
+
+		wp_cache_delete( $post_id, 'posts' );
+		wp_cache_delete( $post_id, 'foo-cache-tax_relationships' );
+		wp_cache_delete( $post_id, 'category_relationships' );
+
+		return $post_id;
+	}
+
+	public function tear_down() {
+		unregister_taxonomy( 'foo-cache-tax' );
+		unregister_post_type( 'foo-cache-type' );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests which terms are cached for each post type argument, for posts of two post types with different taxonomies.
 	 *
 	 * @ticket 66495
 	 *
 	 * @dataProvider data_post_types
 	 *
-	 * @param string|string[] $post_type Post type argument.
+	 * @param string|string[]|false $post_type          Post type argument.
+	 * @param bool                  $caches_categories  Whether the categories of the post are cached.
+	 * @param bool                  $caches_other_terms Whether the terms of the other post type are cached.
 	 */
-	public function test_should_cache_the_terms_for_any_post_type_argument( $post_type ) {
-		$posts = $this->empty_the_caches();
+	public function test_should_cache_the_terms_of_the_post_types_that_apply( $post_type, $caches_categories, $caches_other_terms ) {
+		$other_post_id = $this->create_post_with_another_post_type_and_taxonomy();
+		$posts         = $this->empty_the_caches();
+		$posts[]       = get_post( $other_post_id );
 
 		update_post_caches( $posts, $post_type );
 
-		$this->assertNotFalse( wp_cache_get( self::$post_ids[0], 'category_relationships' ) );
+		$categories = wp_cache_get( self::$post_ids[0], 'category_relationships' );
+		$other      = wp_cache_get( $other_post_id, 'foo-cache-tax_relationships' );
+
+		if ( $caches_categories ) {
+			$this->assertNotFalse( $categories, 'The categories of the post should be cached.' );
+		} else {
+			$this->assertFalse( $categories, 'The categories of the post should not be cached.' );
+		}
+
+		if ( $caches_other_terms ) {
+			$this->assertNotFalse( $other, 'The terms of the other post type should be cached.' );
+			$this->assertCount( 1, $other );
+		} else {
+			$this->assertFalse( $other, 'The terms of the other post type should not be cached.' );
+		}
 	}
 
 	/**
 	 * Data provider.
 	 *
+	 * The post types of the posts are `post` and `foo-cache-type`.
+	 *
 	 * @return array[]
 	 */
 	public static function data_post_types() {
 		return array(
-			'post'  => array( 'post' ),
-			'any'   => array( 'any' ),
-			'empty' => array( '' ),
-			'false' => array( false ),
-			'list'  => array( array( 'post', 'page' ) ),
+			'any'                 => array( 'any', true, true ),
+			'empty'               => array( '', true, true ),
+			'false'               => array( false, true, true ),
+			'list of both'        => array( array( 'post', 'foo-cache-type' ), true, true ),
+			'post only'           => array( 'post', true, false ),
+			'other type only'     => array( 'foo-cache-type', false, true ),
+			'list of other type'  => array( array( 'foo-cache-type' ), false, true ),
+			'a type without them' => array( 'page', false, false ),
 		);
-	}
-
-	/**
-	 * Tests that the terms of the post type that is given are the ones that are cached.
-	 *
-	 * @ticket 66495
-	 */
-	public function test_should_cache_the_terms_of_the_post_type_that_is_given() {
-		$posts = $this->empty_the_caches();
-
-		// The categories are not taxonomies of pages, so they are not cached for this post type.
-		update_post_caches( $posts, 'page' );
-
-		$this->assertFalse( wp_cache_get( self::$post_ids[0], 'category_relationships' ) );
 	}
 }
