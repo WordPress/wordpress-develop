@@ -1016,6 +1016,44 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the feed check does not apply before the main query has been run.
+	 *
+	 * @ticket 63693
+	 *
+	 * @covers ::wp_should_load_separate_core_block_assets
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 * @covers ::_wp_is_non_frontend_request_for_block_assets
+	 */
+	public function test_block_assets_functions_ignore_feed_before_query_is_run() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		$GLOBALS['wp_query']->is_feed = true;
+
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Feed check should be skipped before the wp action.' );
+		$this->assertTrue( wp_should_load_block_assets_on_demand(), 'Feed check should be skipped before the wp action.' );
+
+		do_action( 'wp' );
+
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Feeds should not load separate assets.' );
+		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Feeds should not load assets on demand.' );
+	}
+
+	/**
+	 * Tests that a REST endpoint request disables loading block assets separately and on demand.
+	 *
+	 * @ticket 63693
+	 *
+	 * @covers ::wp_should_load_separate_core_block_assets
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_assets_functions_return_false_for_rest_endpoint() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		add_filter( 'wp_is_rest_endpoint', '__return_true' );
+
+		$this->assertFalse( wp_should_load_separate_core_block_assets() );
+		$this->assertFalse( wp_should_load_block_assets_on_demand() );
+	}
+
+	/**
 	 * Tests that a theme in the custom test data theme directory is recognized.
 	 *
 	 * @ticket 18298
