@@ -338,14 +338,14 @@ function get_the_author_posts_link() {
 	/* translators: %s: Author's display name. */
 	$title = sprintf( __( 'Posts by %s' ), $author );
 
-	$url = get_author_posts_url( $authordata->ID, $authordata->user_nicename );
+	$sanitized_url = sanitize_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ), array( 'http', 'https' ) );
 
-	if ( '' === $url || 'http://' === $url ) {
+	if ( empty( $sanitized_url ) || 'http://' === $sanitized_url ) {
 		$link = $author;
 	} else {
 		$link = sprintf(
 			'<a href="%1$s" rel="author">%2$s</a>',
-			esc_url( $url ),
+			esc_attr( $sanitized_url ),
 			$author
 		);
 	}
