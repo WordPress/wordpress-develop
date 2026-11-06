@@ -36,6 +36,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43329
+	 * @ticket 60564
 	 *
 	 * @covers ::download_url
 	 */
@@ -45,6 +46,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$error = download_url( 'test_download_url_non_200' );
 
 		$this->assertWPError( $error );
+		$this->assertSame( 'http_418', $error->get_error_code() );
 		$this->assertSame(
 			array(
 				'code' => 418,
@@ -82,6 +84,108 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	public function __return_5() {
 		return 5;
+	}
+
+	/**
+	 * Tests that the error code of a non-200 response reflects the actual HTTP status code.
+	 *
+	 * @ticket 60564
+	 * @dataProvider data_download_url_should_use_the_response_code_in_the_error_code
+	 *
+	 * @covers ::download_url
+	 *
+	 * @param int|string $response_code       The HTTP status code returned by the mocked request.
+	 * @param string     $expected_error_code The expected `WP_Error` code.
+	 */
+	public function test_download_url_should_use_the_response_code_in_the_error_code( $response_code, $expected_error_code ) {
+		$filter = static function ( $response, $parsed_args ) use ( $response_code ) {
+			file_put_contents( $parsed_args['filename'], 'Error body' );
+
+			return array(
+				'response' => array(
+					'code'    => $response_code,
+					'message' => 'Error message',
+				),
+			);
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 2 );
+
+		$error = download_url( 'test_download_url_non_200' );
+
+		remove_filter( 'pre_http_request', $filter );
+
+		$this->assertWPError( $error );
+		$this->assertSame( $expected_error_code, $error->get_error_code() );
+		$this->assertSame( 'Error message', $error->get_error_message() );
+		$this->assertSame(
+			array(
+				'code' => $response_code,
+				'body' => 'Error body',
+			),
+			$error->get_error_data()
+		);
+	}
+
+	/**
+	 * Data provider for test_download_url_should_use_the_response_code_in_the_error_code().
+	 *
+	 * @return array[]
+	 */
+	public function data_download_url_should_use_the_response_code_in_the_error_code() {
+		return array(
+			'403 Forbidden'             => array(
+				'response_code'       => 403,
+				'expected_error_code' => 'http_403',
+			),
+			'404 Not Found'             => array(
+				'response_code'       => 404,
+				'expected_error_code' => 'http_404',
+			),
+			'406 Not Acceptable'        => array(
+				'response_code'       => 406,
+				'expected_error_code' => 'http_406',
+			),
+			'500 Internal Server Error' => array(
+				'response_code'       => 500,
+				'expected_error_code' => 'http_500',
+			),
+			'503 Service Unavailable'   => array(
+				'response_code'       => 503,
+				'expected_error_code' => 'http_503',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a response without a status code keeps the historical `http_404` error code.
+	 *
+	 * A `pre_http_request` filter may short-circuit the request with a response
+	 * that carries no `response` array at all, in which case
+	 * `wp_remote_retrieve_response_code()` returns an empty string.
+	 *
+	 * @ticket 60564
+	 *
+	 * @covers ::download_url
+	 */
+	public function test_download_url_should_fall_back_to_http_404_without_a_response_code() {
+		$filter = static function ( $response, $parsed_args ) {
+			file_put_contents( $parsed_args['filename'], 'Error body' );
+
+			return array(
+				'headers' => array(),
+				'body'    => '',
+			);
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 2 );
+
+		$error = download_url( 'test_download_url_non_200' );
+
+		remove_filter( 'pre_http_request', $filter );
+
+		$this->assertWPError( $error );
+		$this->assertSame( 'http_404', $error->get_error_code() );
 	}
 
 	/**
