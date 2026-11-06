@@ -94,6 +94,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			$query_args['category'] = $request['category'];
 		}
 
+		if ( ! empty( $request['categories'] ) ) {
+			$query_args['categories'] = $request['categories'];
+		}
+
 		if ( ! empty( $request['namespace'] ) ) {
 			$query_args['namespace'] = $request['namespace'];
 		}
@@ -212,6 +216,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			'label'                 => $ability->get_label(),
 			'description'           => $ability->get_description(),
 			'category'              => $ability->get_category(),
+			'categories'            => $ability->get_categories(),
 			'required_capabilities' => $ability->get_required_capabilities(),
 			'input_schema'          => wp_prepare_json_schema_for_client( $ability->get_input_schema() ),
 			'output_schema'         => wp_prepare_json_schema_for_client( $ability->get_output_schema() ),
@@ -251,6 +256,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `meta.public` property.
 	 * @since 7.2.0 Added the `required_capabilities` property.
+	 * @since 7.2.0 Added the `categories` property.
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
@@ -281,6 +287,15 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'category'              => array(
 					'description' => __( 'Ability category this ability belongs to.' ),
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'categories'            => array(
+					'description' => __( 'Ability categories this ability belongs to.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'string',
+					),
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
@@ -348,6 +363,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
 	 * @since 7.2.0 Added the `has_required_capabilities` parameter.
+	 * @since 7.2.0 Added the `categories` parameter.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
@@ -371,6 +387,15 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => 'rest_validate_request_arg',
+			),
+			'categories'                => array(
+				'description'       => __( 'Limit results to abilities belonging to any of the specified ability categories.' ),
+				'type'              => 'array',
+				'items'             => array(
+					'type' => 'string',
+				),
+				'sanitize_callback' => 'wp_parse_slug_list',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'namespace'                 => array(

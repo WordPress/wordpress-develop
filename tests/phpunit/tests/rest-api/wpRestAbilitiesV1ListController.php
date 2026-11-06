@@ -330,11 +330,12 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 8, $data, 'Response should contain all fields.' );
+		$this->assertCount( 9, $data, 'Response should contain all fields.' );
 		$this->assertSame( 'test/calculator', $data['name'] );
 		$this->assertSame( 'Calculator', $data['label'] );
 		$this->assertSame( 'Performs basic calculations', $data['description'] );
 		$this->assertSame( 'math', $data['category'] );
+		$this->assertSame( array( 'math' ), $data['categories'] );
 		$this->assertSame( array(), $data['required_capabilities'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
@@ -377,10 +378,11 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
+		$this->assertCount( 4, $data, 'Response should only contain the fields for embed context.' );
 		$this->assertSame( 'test/calculator', $data['name'] );
 		$this->assertSame( 'Calculator', $data['label'] );
 		$this->assertSame( 'math', $data['category'] );
+		$this->assertSame( array( 'math' ), $data['categories'] );
 	}
 
 	/**
@@ -669,7 +671,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$properties = $schema['properties'];
 
 		// Assert the count of properties to catch when new keys are added
-		$this->assertCount( 8, $properties, 'Schema should have exactly 8 properties. If this fails, update this test to include the new property.' );
+		$this->assertCount( 9, $properties, 'Schema should have exactly 9 properties. If this fails, update this test to include the new property.' );
 
 		// Check all expected properties exist
 		$this->assertArrayHasKey( 'name', $properties );
@@ -679,6 +681,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'output_schema', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
+		$this->assertArrayHasKey( 'categories', $properties );
 		$this->assertArrayHasKey( 'required_capabilities', $properties );
 	}
 
@@ -696,6 +699,25 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'public', $meta_properties );
 		$this->assertSame( 'boolean', $meta_properties['public']['type'] );
+	}
+
+	/**
+	 * Test that the item schema declares the `categories` property.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_get_schema_declares_categories(): void {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities' );
+		$response = $this->server->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'categories', $properties );
+		$this->assertSame( 'array', $properties['categories']['type'] );
+		$this->assertSame( array( 'type' => 'string' ), $properties['categories']['items'] );
+		$this->assertSame( array( 'view', 'edit', 'embed' ), $properties['categories']['context'] );
+		$this->assertTrue( $properties['categories']['readonly'] );
 	}
 
 	/**
@@ -872,6 +894,94 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
 		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
+	}
+
+	/**
+	 * Test filtering abilities by categories.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_by_categories(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'categories', array( 'math', 'system' ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+
+		$ability_names = wp_list_pluck( $data, 'name' );
+		$this->assertContains( 'test/calculator', $ability_names );
+		$this->assertContains( 'test/system-info', $ability_names );
+	}
+
+	/**
+	 * Test filtering abilities by comma-separated categories string.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_by_categories_comma_separated(): void {
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'categories', 'math,system' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+
+		$ability_names = wp_list_pluck( $data, 'name' );
+		$this->assertContains( 'test/calculator', $ability_names );
+		$this->assertContains( 'test/system-info', $ability_names );
+	}
+
+	/**
+	 * Test filtering ability assigned to multiple categories.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_filter_ability_with_multiple_categories(): void {
+		$this->register_test_ability(
+			'test/multi-category-ability',
+			array(
+				'label'               => 'Multi Category Ability',
+				'description'         => 'Ability belonging to multiple categories.',
+				'categories'          => array( 'general', 'math' ),
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array( 'show_in_rest' => true ),
+			)
+		);
+
+		// Filter by secondary category.
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'category', 'math' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'test/multi-category-ability', $ability_names );
+
+		// Filter by primary category.
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'category', 'general' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'test/multi-category-ability', $ability_names );
+
+		// Check response item structure.
+		$item_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/multi-category-ability' );
+		$item_response = $this->server->dispatch( $item_request );
+		$this->assertSame( 200, $item_response->get_status() );
+		$item_data = $item_response->get_data();
+		$this->assertSame( 'general', $item_data['category'] );
+		$this->assertSame( array( 'general', 'math' ), $item_data['categories'] );
+
+		wp_unregister_ability( 'test/multi-category-ability' );
 	}
 
 	/**

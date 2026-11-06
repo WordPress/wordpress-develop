@@ -84,12 +84,20 @@ class WP_Ability {
 	protected $description;
 
 	/**
-	 * The ability category.
+	 * The primary ability category.
 	 *
 	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $category;
+
+	/**
+	 * The ability categories.
+	 *
+	 * @since 7.2.0
+	 * @var list<string>
+	 */
+	protected $categories = array();
 
 	/**
 	 * The optional ability input schema.
@@ -158,7 +166,8 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The ability category slug this ability belongs to.
+	 *     @type string               $category              Optional. The primary ability category slug this ability belongs to.
+	 *     @type list<string>         $categories            Optional. The list of ability category slugs this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -233,7 +242,8 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The ability category slug this ability belongs to.
+	 *     @type string               $category              Optional. The primary ability category slug this ability belongs to.
+	 *     @type list<string>         $categories            Optional. The list of ability category slugs this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -270,7 +280,8 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The ability category slug this ability belongs to.
+	 *     @type string               $category              The primary ability category slug this ability belongs to.
+	 *     @type list<string>         $categories            The list of ability category slugs this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -316,11 +327,43 @@ class WP_Ability {
 			);
 		}
 
-		if ( empty( $args['category'] ) || ! is_string( $args['category'] ) ) {
+		$categories = array();
+
+		if ( isset( $args['category'] ) ) {
+			if ( ! is_string( $args['category'] ) || '' === trim( $args['category'] ) ) {
+				throw new InvalidArgumentException(
+					__( 'The ability properties must contain a `category` string.' )
+				);
+			}
+			$categories[] = trim( $args['category'] );
+		}
+
+		if ( isset( $args['categories'] ) ) {
+			if ( ! is_array( $args['categories'] ) || empty( $args['categories'] ) ) {
+				throw new InvalidArgumentException(
+					__( 'The ability properties `categories` must be a non-empty array of strings.' )
+				);
+			}
+
+			foreach ( $args['categories'] as $cat ) {
+				if ( ! is_string( $cat ) || '' === trim( $cat ) ) {
+					throw new InvalidArgumentException(
+						__( 'The ability properties `categories` must contain only non-empty strings.' )
+					);
+				}
+				$categories[] = trim( $cat );
+			}
+		}
+
+		if ( empty( $categories ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a `category` string.' )
 			);
 		}
+
+		$categories         = array_values( array_unique( $categories ) );
+		$args['categories'] = $categories;
+		$args['category']   = $categories[0];
 
 		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the execute_callback.
 		if ( get_class( $this ) === self::class && ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) ) {
@@ -451,15 +494,39 @@ class WP_Ability {
 	}
 
 	/**
-	 * Retrieves the ability category for the ability.
+	 * Retrieves the primary ability category for the ability.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string The ability category for the ability.
+	 * @return string The primary ability category for the ability.
 	 */
 	public function get_category(): string {
 		return $this->category;
 	}
+
+	/**
+	 * Retrieves all ability categories for the ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return list<string> The ability category slugs for the ability.
+	 */
+	public function get_categories(): array {
+		return $this->categories;
+	}
+
+	/**
+	 * Checks whether the ability belongs to a specific category.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $category The ability category slug to check.
+	 * @return bool True if the ability belongs to the category, false otherwise.
+	 */
+	public function has_category( string $category ): bool {
+		return in_array( $category, $this->categories, true );
+	}
+
 
 	/**
 	 * Retrieves the input schema for the ability.
