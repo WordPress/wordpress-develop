@@ -1,0 +1,290 @@
+<?php
+/**
+ * @group block-supports
+ *
+ * @ticket 66468
+ *
+ * @covers ::wp_render_transform_support
+ */
+class Tests_Block_Supports_WpRenderTransformSupport extends WP_UnitTestCase {
+	/**
+	 * @var string|null
+	 */
+	private $test_block_name;
+
+	public function set_up() {
+		parent::set_up();
+		$this->test_block_name = null;
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+	}
+
+	public function tear_down() {
+		if ( $this->test_block_name ) {
+			unregister_block_type( $this->test_block_name );
+		}
+		$this->test_block_name = null;
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+		parent::tear_down();
+	}
+
+	/**
+	 * Registers a block for testing transform support.
+	 *
+	 * @param array $supports  Transform block support configuration.
+	 * @param array $selectors Optional block selectors.
+	 */
+	private function register_transform_block( $supports, $selectors = array() ) {
+		$this->test_block_name = 'test/transform-block';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'transform' => $supports ),
+				'selectors'   => $selectors,
+			)
+		);
+	}
+
+	/**
+	 * Renders a test block with a rotation.
+	 *
+	 * @param mixed $rotate Rotation value.
+	 * @return string Rendered block content.
+	 */
+	private function render_rotated_block( $rotate ) {
+		return wp_render_transform_support(
+			'<div class="wp-block-test-transform-block" style="color:red"><img src="x.png" /></div>',
+			array(
+				'blockName' => $this->test_block_name,
+				'attrs'     => array(
+					'style' => array(
+						'transform' => array( 'rotate' => $rotate ),
+					),
+				),
+			)
+		);
+	}
+
+	public function test_rotation_is_added_to_the_wrapper_inline_style() {
+		$this->register_transform_block( array( 'rotate' => true ) );
+
+		$this->assertSame(
+			'<div class="wp-block-test-transform-block" style="color:red;rotate:15deg;"><img src="x.png" /></div>',
+			$this->render_rotated_block( '15deg' )
+		);
+	}
+
+	public function test_rotation_is_output_under_the_transform_feature_selector() {
+		$this->register_transform_block(
+			array( 'rotate' => true ),
+			array( 'transform' => '.wp-block-test-transform-block img' )
+		);
+
+		$actual = $this->render_rotated_block( '0.25turn' );
+
+		$this->assertMatchesRegularExpression(
+			'/^<div class="wp-block-test-transform-block (wp-transform-[a-z0-9]+)" style="color:red"><img src="x.png" \/><\/div>$/',
+			$actual
+		);
+		preg_match( '/wp-transform-[a-z0-9]+/', $actual, $matches );
+		$this->assertSame(
+			'.' . $matches[0] . ' img{rotate:0.25turn;}',
+			wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) )
+		);
+	}
+
+	/**
+	 * Renders a test block with transform styles.
+	 *
+	 * @param array $transform Transform styles.
+	 * @return string Rendered block content.
+	 */
+	private function render_transformed_block( $transform ) {
+		return wp_render_transform_support(
+			'<div class="wp-block-test-transform-block" style="color:red"><img src="x.png" /></div>',
+			array(
+				'blockName' => $this->test_block_name,
+				'attrs'     => array(
+					'style' => array( 'transform' => $transform ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @dataProvider data_translation_is_added_to_the_wrapper_inline_style
+	 *
+	 * @param array  $transform    Transform styles.
+	 * @param string $expected_css Expected inline CSS after the existing style.
+	 */
+	public function test_translation_is_added_to_the_wrapper_inline_style( $transform, $expected_css ) {
+		$this->register_transform_block(
+			array(
+				'rotate'    => true,
+				'translate' => true,
+			)
+		);
+
+		$this->assertSame(
+			'<div class="wp-block-test-transform-block" style="color:red;' . $expected_css . '"><img src="x.png" /></div>',
+			$this->render_transformed_block( $transform )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_translation_is_added_to_the_wrapper_inline_style() {
+		return array(
+			'both axes'       => array(
+				array(
+					'translate' => array(
+						'x' => '10px',
+						'y' => '-50%',
+					),
+				),
+				'translate:10px -50%;',
+			),
+			'missing axis'    => array( array( 'translate' => array( 'y' => '2rem' ) ), 'translate:0 2rem;' ),
+			'unknown z axis'  => array(
+				array(
+					'translate' => array(
+						'x' => '1px',
+						'z' => '5px',
+					),
+				),
+				'translate:1px 0;',
+			),
+			'with a rotation' => array(
+				array(
+					'rotate'    => '15deg',
+					'translate' => array( 'x' => '1em' ),
+				),
+				'rotate:15deg;translate:1em 0;',
+			),
+		);
+	}
+
+	public function test_translation_and_rotation_are_output_under_the_transform_feature_selector() {
+		$this->register_transform_block(
+			array(
+				'rotate'    => true,
+				'translate' => true,
+			),
+			array( 'transform' => '.wp-block-test-transform-block img' )
+		);
+
+		$actual = $this->render_transformed_block(
+			array(
+				'rotate'    => '0.25turn',
+				'translate' => array( 'x' => '-4px' ),
+			)
+		);
+
+		preg_match( '/wp-transform-[a-z0-9]+/', $actual, $matches );
+		$this->assertStringContainsString( 'style="color:red"', $actual );
+		$this->assertSame(
+			'.' . $matches[0] . ' img{rotate:0.25turn;translate:-4px 0;}',
+			wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) )
+		);
+	}
+
+	public function test_translation_skip_serialization_keeps_the_rotation() {
+		$this->register_transform_block(
+			array(
+				'rotate'                          => true,
+				'translate'                       => true,
+				'__experimentalSkipSerialization' => array( 'translate' ),
+			)
+		);
+
+		$this->assertSame(
+			'<div class="wp-block-test-transform-block" style="color:red;rotate:15deg;"><img src="x.png" /></div>',
+			$this->render_transformed_block(
+				array(
+					'rotate'    => '15deg',
+					'translate' => array( 'x' => '10px' ),
+				)
+			)
+		);
+	}
+
+	/**
+	 * @dataProvider data_block_content_is_unchanged_for_translate
+	 *
+	 * @param array $supports  Transform block support configuration.
+	 * @param mixed $translate Offset value.
+	 */
+	public function test_block_content_is_unchanged_for_translate( $supports, $translate ) {
+		$this->register_transform_block( $supports );
+
+		$this->assertSame(
+			'<div class="wp-block-test-transform-block" style="color:red"><img src="x.png" /></div>',
+			$this->render_transformed_block( array( 'translate' => $translate ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_block_content_is_unchanged_for_translate() {
+		return array(
+			'no translate support' => array( array( 'rotate' => true ), array( 'x' => '10px' ) ),
+			'skip all'             => array(
+				array(
+					'translate'                       => true,
+					'__experimentalSkipSerialization' => true,
+				),
+				array( 'x' => '10px' ),
+			),
+			'string value'         => array( array( 'translate' => true ), '10px 20px' ),
+			'invalid axis'         => array( array( 'translate' => true ), array( 'x' => 'calc(1px + 2px)' ) ),
+			'z only'               => array( array( 'translate' => true ), array( 'z' => '5px' ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_unchanged_block_content
+	 *
+	 * @param array $supports Transform block support configuration.
+	 * @param mixed $rotate   Rotation value.
+	 */
+	public function test_block_content_is_unchanged( $supports, $rotate ) {
+		$this->register_transform_block( $supports, array( 'transform' => '.wp-block-test-transform-block img' ) );
+
+		$this->assertSame(
+			'<div class="wp-block-test-transform-block" style="color:red"><img src="x.png" /></div>',
+			$this->render_rotated_block( $rotate )
+		);
+		$this->assertEmpty( wp_style_engine_get_stylesheet_from_context( 'block-supports', array() ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unchanged_block_content() {
+		return array(
+			'no rotate support'  => array( array( 'scale' => true ), '15deg' ),
+			'skip serialization' => array(
+				array(
+					'rotate'                          => true,
+					'__experimentalSkipSerialization' => array( 'rotate' ),
+				),
+				'15deg',
+			),
+			'no rotation'        => array( array( 'rotate' => true ), null ),
+			'invalid rotation'   => array( array( 'rotate' => true ), 'calc(10deg + 5deg)' ),
+		);
+	}
+}

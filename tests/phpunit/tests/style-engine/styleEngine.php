@@ -26,6 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 64974
 	 * @ticket 65037
 	 * @ticket 66094
+	 * @ticket 66468
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -361,6 +362,100 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				'expected_output' => array(
 					'classnames' => 'has-text-color',
 				),
+			),
+
+			'inline_valid_transform_rotate_style'          => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => '-0.25turn',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'rotate:-0.25turn;',
+					'declarations' => array(
+						'rotate' => '-0.25turn',
+					),
+				),
+			),
+
+			'inline_invalid_transform_rotate_style'        => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => '1 0 0 45deg',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
+			'inline_newline_transform_rotate_style'        => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'rotate' => "45deg\n",
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
+			'inline_valid_transform_translate_style'       => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'translate' => array(
+							'x' => '-50%',
+							'y' => '1.5rem',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'translate:-50% 1.5rem;',
+					'declarations' => array(
+						'translate' => '-50% 1.5rem',
+					),
+				),
+			),
+
+			'inline_partial_transform_translate_style'     => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'translate' => array(
+							'y' => '10px',
+							'z' => '5px',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'translate:0 10px;',
+					'declarations' => array(
+						'translate' => '0 10px',
+					),
+				),
+			),
+
+			'inline_invalid_transform_translate_style'     => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'translate' => array(
+							'x' => '10px',
+							'y' => 'calc(1px + 2px)',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
+			),
+
+			'inline_newline_transform_translate_style'     => array(
+				'block_styles'    => array(
+					'transform' => array(
+						'translate' => array( 'x' => "10px\n" ),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(),
 			),
 
 			'valid_classnames_deduped'                     => array(

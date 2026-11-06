@@ -3135,6 +3135,374 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 60343
 	 * @ticket 61165
 	 */
+	/**
+	 * Tests that block transforms output the individual `rotate` property, under
+	 * feature selectors, for block styles, block states and block style variations.
+	 *
+	 * @ticket 66468
+	 */
+	public function test_get_stylesheet_outputs_rotate_for_block_styles_states_and_variations() {
+		register_block_type(
+			'test/rotate-feature',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'      => '.wp-block-test-rotate-feature',
+					'transform' => '.wp-block-test-rotate-feature img',
+				),
+			)
+		);
+		register_block_style(
+			'test/rotate-feature',
+			array(
+				'name'  => 'tilted',
+				'label' => 'Tilted',
+			)
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/rotate-feature' => array(
+							'transform'  => array( 'rotate' => '0.25turn' ),
+							'@mobile'    => array(
+								'transform' => array( 'rotate' => '0' ),
+							),
+							'variations' => array(
+								'tilted' => array(
+									'transform' => array( 'rotate' => '-5deg' ),
+								),
+							),
+						),
+						'core/button'         => array(
+							':hover'  => array(
+								'transform' => array( 'rotate' => '3deg' ),
+							),
+							'@mobile' => array(
+								':hover' => array(
+									'transform' => array( 'rotate' => '6deg' ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+		unregister_block_style( 'test/rotate-feature', 'tilted' );
+		unregister_block_type( 'test/rotate-feature' );
+
+		$this->assertStringContainsString( ':root :where(.wp-block-test-rotate-feature img){rotate: 0.25turn;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-test-rotate-feature img){rotate: 0;}}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-rotate-feature.is-style-tilted img){rotate: -5deg;}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-button .wp-block-button__link:hover){rotate: 3deg;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-button .wp-block-button__link:hover){rotate: 6deg;}}', $css );
+		$this->assertStringNotContainsString( 'transform', $css );
+	}
+
+	/**
+	 * Tests that a rotation that is not a single angle is not output.
+	 *
+	 * @ticket 66468
+	 *
+	 * @dataProvider data_get_stylesheet_skips_invalid_rotate_values
+	 *
+	 * @param mixed $rotate Rotation value.
+	 */
+	public function test_get_stylesheet_skips_invalid_rotate_values( $rotate ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'transform' => array( 'rotate' => $rotate ),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$this->assertStringNotContainsString( 'rotate', $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_skips_invalid_rotate_values() {
+		return array(
+			'bare number' => array( '45' ),
+			'calc()'      => array( 'calc(10deg + 5deg)' ),
+			'var()'       => array( 'var(--angle)' ),
+			'axis list'   => array( 'x 45deg' ),
+			'number type' => array( 45 ),
+		);
+	}
+
+	/**
+	 * Tests that transform styles are kept for blocks and block style variations
+	 * only, and that the transform setting is kept at every level.
+	 *
+	 * @ticket 66468
+	 */
+	public function test_sanitize_keeps_transform_styles_for_blocks_and_variations_only() {
+		register_block_style(
+			'core/image',
+			array(
+				'name'  => 'tilted',
+				'label' => 'Tilted',
+			)
+		);
+		$rotate     = array( 'rotate' => '15deg' );
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'rotate' => false ),
+					'blocks'    => array(
+						'core/image' => array(
+							'transform' => array( 'rotate' => true ),
+						),
+					),
+				),
+				'styles'   => array(
+					'transform' => $rotate,
+					'elements'  => array(
+						'link' => array( 'transform' => $rotate ),
+					),
+					'blocks'    => array(
+						'core/image' => array(
+							'transform'  => $rotate,
+							'variations' => array(
+								'tilted' => array( 'transform' => $rotate ),
+							),
+						),
+					),
+				),
+			)
+		);
+		unregister_block_style( 'core/image', 'tilted' );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'rotate' => false ),
+					'blocks'    => array(
+						'core/image' => array(
+							'transform' => array( 'rotate' => true ),
+						),
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/image' => array(
+							'transform'  => $rotate,
+							'variations' => array(
+								'tilted' => array( 'transform' => $rotate ),
+							),
+						),
+					),
+				),
+			),
+			$theme_json->get_raw_data()
+		);
+	}
+
+	/**
+	 * Tests that block offsets output the individual `translate` property, with
+	 * `0` for a missing axis, for block styles, states and style variations, and
+	 * combine with a rotation.
+	 *
+	 * @ticket 66467
+	 */
+	public function test_get_stylesheet_outputs_translate_for_block_styles_states_and_variations() {
+		register_block_type(
+			'test/translate-feature',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'      => '.wp-block-test-translate-feature',
+					'transform' => '.wp-block-test-translate-feature img',
+				),
+			)
+		);
+		register_block_style(
+			'test/translate-feature',
+			array(
+				'name'  => 'raised',
+				'label' => 'Raised',
+			)
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/translate-feature' => array(
+							'transform'  => array(
+								'rotate'    => '5deg',
+								'translate' => array(
+									'x' => '10px',
+									'y' => '-50%',
+								),
+							),
+							'@mobile'    => array(
+								'transform' => array( 'translate' => array( 'x' => '0' ) ),
+							),
+							'variations' => array(
+								'raised' => array(
+									'transform' => array( 'translate' => array( 'y' => '-1rem' ) ),
+								),
+							),
+						),
+						'core/button'            => array(
+							':hover'  => array(
+								'transform' => array( 'translate' => array( 'y' => '-4px' ) ),
+							),
+							'@mobile' => array(
+								':hover' => array(
+									'transform' => array( 'translate' => array( 'x' => '2px' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+		unregister_block_style( 'test/translate-feature', 'raised' );
+		unregister_block_type( 'test/translate-feature' );
+
+		$this->assertStringContainsString( ':root :where(.wp-block-test-translate-feature img){rotate: 5deg;translate: 10px -50%;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-test-translate-feature img){translate: 0 0;}}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-translate-feature.is-style-raised img){translate: 0 -1rem;}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-button .wp-block-button__link:hover){translate: 0 -4px;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-button .wp-block-button__link:hover){translate: 2px 0;}}', $css );
+		$this->assertStringNotContainsString( 'transform', $css );
+	}
+
+	/**
+	 * Tests that an offset with an axis that is not a single length or percentage is not output.
+	 *
+	 * @ticket 66467
+	 *
+	 * @dataProvider data_get_stylesheet_skips_invalid_translate_values
+	 *
+	 * @param mixed $translate Offset value.
+	 */
+	public function test_get_stylesheet_skips_invalid_translate_values( $translate ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'transform' => array( 'translate' => $translate ),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$this->assertStringNotContainsString( 'translate', $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_skips_invalid_translate_values() {
+		return array(
+			'string'      => array( '10px 20px' ),
+			'bare number' => array( array( 'x' => '10' ) ),
+			'calc()'      => array( array( 'x' => 'calc(1px + 2px)' ) ),
+			'var()'       => array( array( 'y' => 'var(--offset)' ) ),
+			'list'        => array( array( 'x' => '1px 2px' ) ),
+			'angle'       => array( array( 'x' => '5deg' ) ),
+			'number type' => array( array( 'x' => 10 ) ),
+			'z only'      => array( array( 'z' => '5px' ) ),
+		);
+	}
+
+	/**
+	 * Tests that sanitizing keeps the `x` and `y` offset axes only, and drops an
+	 * offset that is not an object.
+	 *
+	 * @ticket 66467
+	 */
+	public function test_sanitize_keeps_translate_axes_only() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'translate' => false ),
+				),
+				'styles'   => array(
+					'elements' => array(
+						'link' => array( 'transform' => array( 'translate' => array( 'x' => '1px' ) ) ),
+					),
+					'blocks'   => array(
+						'core/image' => array(
+							'transform' => array(
+								'translate' => array(
+									'x' => '10px',
+									'z' => '5px',
+								),
+							),
+						),
+						'core/group' => array(
+							'transform' => array( 'translate' => '10px 20px' ),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'translate' => false ),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/image' => array(
+							'transform' => array(
+								'translate' => array( 'x' => '10px' ),
+							),
+						),
+					),
+				),
+			),
+			$theme_json->get_raw_data()
+		);
+	}
+
 	public function test_get_stylesheet_custom_root_selector() {
 		$theme_json = new WP_Theme_JSON(
 			array(
