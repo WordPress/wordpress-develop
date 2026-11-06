@@ -179,17 +179,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		 * REST sanitization skips absent parameters, so prepare null input here.
 		 */
 		if ( null === $input ) {
-			$input = $ability->normalize_input( $input );
-			if ( is_wp_error( $input ) ) {
-				return $this->ensure_error_status( $input, 400 );
-			}
-
-			$is_valid = $ability->validate_input( $input );
-			if ( is_wp_error( $is_valid ) ) {
-				return $this->ensure_error_status( $is_valid, 400 );
-			}
-
-			$input = $ability->coerce_input( $input );
+			$input = $ability->prepare_input( $input );
 			if ( is_wp_error( $input ) ) {
 				return $this->ensure_error_status( $input, 400 );
 			}
@@ -253,20 +243,18 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * Sanitizes the run input by preparing it for the ability.
 	 *
 	 * Registered as the `input` argument `sanitize_callback`, so it runs before the
-	 * permission callback. The input is normalized, validated, and coerced to the
-	 * ability's input schema, so `check_ability_permissions()` can use it as is.
-	 * When any step fails, the request is rejected before permissions are checked.
+	 * permission callback. `check_ability_permissions()` can then use the prepared
+	 * input as is. When preparation fails, the request is rejected before
+	 * permissions are checked.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 Normalizes the input before validation and coercion, and returns a `WP_Error` when any step fails.
+	 * @since 7.2.0 Prepares the input with `WP_Ability::prepare_input()`, and returns a `WP_Error` when it fails.
 	 *
-	 * @see WP_Ability::normalize_input()
-	 * @see WP_Ability::validate_input()
-	 * @see WP_Ability::coerce_input()
+	 * @see WP_Ability::prepare_input()
 	 *
 	 * @param mixed           $input   Raw input extracted from the request.
 	 * @param WP_REST_Request $request The request object.
-	 * @return mixed|WP_Error Prepared input, or `WP_Error` when normalization, validation, or coercion fails.
+	 * @return mixed|WP_Error Prepared input, or `WP_Error` when preparation fails.
 	 */
 	public function sanitize_input_for_ability( $input, $request ) {
 		/*
@@ -295,18 +283,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $input;
 		}
 
-		$normalized = $ability->normalize_input( $input );
-		if ( is_wp_error( $normalized ) ) {
-			return $normalized;
-		}
-
-		// Validate before coercion so sanitization cannot rescue invalid input.
-		$is_valid = $ability->validate_input( $normalized );
-		if ( is_wp_error( $is_valid ) ) {
-			return $is_valid;
-		}
-
-		return $ability->coerce_input( $normalized );
+		return $ability->prepare_input( $input );
 	}
 
 	/**
