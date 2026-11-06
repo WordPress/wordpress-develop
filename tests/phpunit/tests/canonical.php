@@ -43,15 +43,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Tears down the test fixture.
-	 */
-	public function tear_down() {
-		unregister_post_type( 'wp_tests_private' );
-
-		parent::tear_down();
-	}
-
-	/**
 	 * Register custom post type for tests.
 	 *
 	 * Register non publicly queryable post type with public set to true.
