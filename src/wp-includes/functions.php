@@ -1282,6 +1282,7 @@ function wp_removable_query_args() {
 		'ids',
 		'locked',
 		'message',
+		'network_admin_email_updated',
 		'same',
 		'saved',
 		'settings-updated',
@@ -7630,11 +7631,15 @@ function wp_is_stream( $path ) {
  *
  * @link https://www.php.net/manual/en/function.checkdate.php
  *
- * @param int    $month       Month number.
- * @param int    $day         Day number.
- * @param int    $year        Year number.
- * @param string $source_date The date to filter.
+ * @param int|string $month       Month number.
+ * @param int|string $day         Day number.
+ * @param int|string $year        Year number.
+ * @param string     $source_date The date to filter.
  * @return bool True if valid date, false if not valid date.
+ *
+ * @phpstan-param int|numeric-string $month
+ * @phpstan-param int|numeric-string $day
+ * @phpstan-param int|numeric-string $year
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
 	$checkdate = false;

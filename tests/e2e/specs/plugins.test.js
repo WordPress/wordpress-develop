@@ -6,6 +6,15 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const plugin = 'e2e-test-plugin/e2e-test-plugin';
 const pluginName = 'E2E Test Plugin';
 
+function pluginRow( page ) {
+	return page.getByRole( 'row' ).filter( {
+		has: page.getByRole( 'checkbox', {
+			name: `Select ${ pluginName }`,
+			exact: true,
+		} ),
+	} );
+}
+
 async function uploadPlugin( admin, page, version ) {
 	await admin.visitAdminPage( 'plugin-install.php' );
 	await page
@@ -21,38 +30,38 @@ async function uploadPlugin( admin, page, version ) {
 		.click();
 }
 
-test.describe( 'Plugin management', () => {
-	let ownsPlugin;
+async function deletePlugin( requestUtils ) {
+	const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
+	const installed = plugins.find( ( item ) => item.plugin === plugin );
+	if ( ! installed ) {
+		return;
+	}
+	if ( installed.status !== 'inactive' ) {
+		await requestUtils.rest( {
+			method: 'PUT',
+			path: `/wp/v2/plugins/${ plugin }`,
+			data: { status: 'inactive' },
+		} );
+	}
+	await requestUtils.rest( {
+		method: 'DELETE',
+		path: `/wp/v2/plugins/${ plugin }`,
+	} );
+}
 
+test.describe( 'Plugin management', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		// The fixture slug requires an environment not shared with another test run.
-		ownsPlugin = false;
+		// An interrupted run can leave the fixture plugin installed.
+		await deletePlugin( requestUtils );
 		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
 		expect( plugins.map( ( item ) => item.plugin ) ).not.toContain(
 			plugin
 		);
-		ownsPlugin = true;
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( ! ownsPlugin ) {
-			return;
-		}
-		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
-		const installed = plugins.find( ( item ) => item.plugin === plugin );
-		if ( installed ) {
-			if ( installed.status !== 'inactive' ) {
-				await requestUtils.rest( {
-					method: 'PUT',
-					path: `/wp/v2/plugins/${ plugin }`,
-					data: { status: 'inactive' },
-				} );
-			}
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/plugins/${ plugin }`,
-			} );
-		}
+		await deletePlugin( requestUtils );
 	} );
 
 	test( 'uploads, activates and deactivates a plugin', async ( {
@@ -65,7 +74,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin installed successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		const row = page.locator( `tr[data-plugin="${ plugin }.php"]` );
+		const row = pluginRow( page );
 		await expect( row ).toContainText( 'Version 1.0' );
 		await row
 			.getByRole( 'link', {
@@ -134,9 +143,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin updated successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		await expect(
-			page.locator( `tr[data-plugin="${ plugin }.php"]` )
-		).toContainText( 'Version 2.0' );
+		await expect( pluginRow( page ) ).toContainText( 'Version 2.0' );
 		expect(
 			(
 				await requestUtils.rest( {
@@ -156,7 +163,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin installed successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		const row = page.locator( `tr[data-plugin="${ plugin }.php"]` );
+		const row = pluginRow( page );
 		await Promise.all( [
 			page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
 				expect( dialog.type() ).toBe( 'confirm' );
@@ -169,9 +176,11 @@ test.describe( 'Plugin management', () => {
 				} )
 				.click(),
 		] );
-		await expect( page.locator( '.plugin-deleted-tr' ) ).toContainText(
-			`${ pluginName } was successfully deleted.`
-		);
+		await expect(
+			page.getByRole( 'row' ).filter( {
+				hasText: `${ pluginName } was successfully deleted.`,
+			} )
+		).toBeVisible();
 		await page.reload();
 		await expect( row ).toHaveCount( 0 );
 		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
