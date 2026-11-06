@@ -1523,6 +1523,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 			$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 			$this->assertArrayHasKey( 'stylesheet', $response->get_data()['data']['params'] );
+			$this->assertSame( 'rest_invalid_stylesheet', $response->get_data()['data']['details']['stylesheet']['code'] );
 		}
 	}
 
@@ -1537,6 +1538,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'multiple parents with trailing slash' => array( '../../' ),
 			'parent at beginning'                  => array( '../theme' ),
 			'parent in middle'                     => array( 'subdir/../theme' ),
+			'parent at end'                        => array( 'subdir/..' ),
 			'backslash separators'                 => array( '..\\..\\' ),
 			'encoded forward slashes'              => array( '..%2f..%2f' ),
 			'encoded dots'                         => array( '%2e%2e' ),
