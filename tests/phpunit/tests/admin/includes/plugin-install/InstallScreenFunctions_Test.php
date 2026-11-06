@@ -140,9 +140,12 @@ class Admin_Includes_Plugin_Install_InstallScreenFunctions_Test extends WP_UnitT
 
 		$this->assertEquals( (object) $this->api_response, get_site_transient( 'poptags_' . md5( serialize( $args ) ) ), 'The tags should be cached.' );
 
-		$expires = (int) get_site_option( '_site_transient_timeout_poptags_' . md5( serialize( $args ) ) );
+		// With an external object cache, the lifetime is kept by the cache and not in the options.
+		if ( ! wp_using_ext_object_cache() ) {
+			$expires = (int) get_site_option( '_site_transient_timeout_poptags_' . md5( serialize( $args ) ) );
 
-		$this->assertEqualsWithDelta( time() + ( 3 * HOUR_IN_SECONDS ), $expires, 10, 'The tags should be cached for three hours.' );
+			$this->assertEqualsWithDelta( time() + ( 3 * HOUR_IN_SECONDS ), $expires, 10, 'The tags should be cached for three hours.' );
+		}
 
 		$this->api_response = array();
 
