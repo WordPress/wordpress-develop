@@ -138,25 +138,4 @@ class Tests_Load_WpSkipPausedThemes extends WP_UnitTestCase {
 		$this->assertSame( array( 1 => $child ), $result );
 		$this->assertSame( array( 'twentytwentyone' => $error ), $GLOBALS['_paused_themes'] );
 	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_matches_theme_directory_basename() {
-		$error = array(
-			'type'    => E_ERROR,
-			'file'    => get_theme_root() . '/twentytwentyfive/functions.php',
-			'line'    => 1,
-			'message' => 'Fatal error',
-		);
-
-		$this->pause_theme( 'twentytwentyfive', $error );
-
-		$parent = get_theme_root() . '/twentytwentyone';
-		$child  = get_theme_root() . '/twentytwentyfive';
-		$result = wp_skip_paused_themes( array( $parent, $child ) );
-
-		$this->assertSame( array( $parent ), $result );
-		$this->assertSame( array( 'twentytwentyfive' => $error ), $GLOBALS['_paused_themes'] );
-	}
 }

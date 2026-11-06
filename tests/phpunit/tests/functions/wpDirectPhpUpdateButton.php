@@ -29,28 +29,6 @@ class Tests_Functions_WpDirectPhpUpdateButton extends WP_UnitTestCase {
 		add_filter(
 			'wp_direct_php_update_url',
 			static function () {
-				return 'https://example.com/update-php';
-			}
-		);
-
-		ob_start();
-		wp_direct_php_update_button();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'button-container', $output );
-		$this->assertStringContainsString( 'https://example.com/update-php', $output );
-		$this->assertStringContainsString( 'button-primary', $output );
-		$this->assertStringContainsString( 'target="_blank"', $output );
-		$this->assertStringContainsString( 'dashicons-external', $output );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_escapes_direct_update_url_in_output() {
-		add_filter(
-			'wp_direct_php_update_url',
-			static function () {
 				return 'https://example.com/update-php?foo=bar&baz=1';
 			}
 		);
@@ -59,9 +37,10 @@ class Tests_Functions_WpDirectPhpUpdateButton extends WP_UnitTestCase {
 		wp_direct_php_update_button();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString(
-			esc_url( 'https://example.com/update-php?foo=bar&baz=1' ),
-			$output
-		);
+		$this->assertStringContainsString( 'button-container', $output );
+		$this->assertStringContainsString( 'href="https://example.com/update-php?foo=bar&#038;baz=1"', $output );
+		$this->assertStringContainsString( 'button-primary', $output );
+		$this->assertStringContainsString( 'target="_blank"', $output );
+		$this->assertStringContainsString( 'dashicons-external', $output );
 	}
 }

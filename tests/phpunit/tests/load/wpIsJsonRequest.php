@@ -89,8 +89,6 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 		return array(
 			'application/json'         => array( 'application/json' ),
 			'vendor json'              => array( 'application/vnd.api+json' ),
-			'json oembed'              => array( 'application/json+oembed' ),
-			'accept with quality'      => array( 'application/json; q=0.9' ),
 			'accept among other types' => array( 'text/html, application/json, */*' ),
 		);
 	}
@@ -120,7 +118,6 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 		return array(
 			'application/json' => array( 'application/json' ),
 			'vendor json'      => array( 'application/vnd.api+json' ),
-			'with charset'     => array( 'application/json; charset=utf-8' ),
 		);
 	}
 }

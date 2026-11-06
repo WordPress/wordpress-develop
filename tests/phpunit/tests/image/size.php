@@ -256,7 +256,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_constrain_size_for_editor_invalid_size() {
+	public static function data_constrain_size_for_editor_invalid_size() {
 		return array(
 			'null'         => array( null ),
 			'false'        => array( false ),

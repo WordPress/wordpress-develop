@@ -109,35 +109,32 @@ class WP_Block_Parser {
 
 		// Handle the cases when no more tokens exist.
 		if ( ! $processor->next_delimiter() ) {
-			// if not in a block then flush output.
+			/*
+			 * Most documents will end with all blocks properly closed.
+			 * In these cases, all that’s necessary is to flush the output.
+			 * There is probably a terminating newline.
+			 */
 			if ( 0 === $stack_depth ) {
 				$this->add_freeform();
 				return false;
 			}
 
 			/*
-			 * Otherwise we have a problem
-			 * This is an error
+			 * However, if blocks remain open it means there were missing
+			 * closing block delimiters. The post may have been truncated,
+			 * for example, but some amount of corruption produced a malformed
+			 * document.
 			 *
-			 * we have options
-			 * - treat it all as freeform text
-			 * - assume an implicit closer (easiest when not nesting)
+			 * The spec parser considers this a parse error and returns a long
+			 * freeform block containing the full span of text from the input
+			 * document from the start of the un-closed block.
+			 *
+			 * This parser, however, is making a different pragmatic choice: it
+			 * will implicitly close any remaining open blocks, as if the closers
+			 * were provided. This ensures recovery of as much of the provided
+			 * block structure as is possible.
 			 */
-
-			// for the easy case we'll assume an implicit closer.
-			if ( 1 === $stack_depth ) {
-				$this->add_block_from_stack();
-				return false;
-			}
-
-			/*
-			 * for the nested case where it's more difficult we'll
-			 * have to assume that multiple closers are missing
-			 * and so we'll collapse the whole stack piecewise
-			 */
-			while ( 0 < count( $this->stack ) ) {
-				$this->add_block_from_stack();
-			}
+			$this->implicitly_close_and_add_all_open_blocks();
 			return false;
 		}
 
@@ -225,11 +222,14 @@ class WP_Block_Parser {
 				 * otherwise we're nested and we have to close out the current
 				 * block and add it as a new innerBlock to the parent
 				 */
-				$stack_top                        = array_pop( $this->stack );
-				$html                             = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
-				$stack_top->block->innerHTML     .= $html;
-				$stack_top->block->innerContent[] = $html;
-				$stack_top->prev_offset           = $start_offset + $token_length;
+				$stack_top              = array_pop( $this->stack );
+				$html                   = substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
+				$stack_top->prev_offset = $start_offset + $token_length;
+
+				if ( '' !== $html ) {
+					$stack_top->block->innerHTML     .= $html;
+					$stack_top->block->innerContent[] = $html;
+				}
 
 				$this->add_inner_block(
 					$stack_top->block,
@@ -319,7 +319,7 @@ class WP_Block_Parser {
 	 * @param null|int $length How many bytes of document text to output.
 	 */
 	public function add_freeform( $length = null ) {
-		$length = $length ?? strlen( $this->document ) - $this->offset;
+		$length ??= strlen( $this->document ) - $this->offset;
 
 		if ( 0 === $length ) {
 			return;
@@ -345,7 +345,7 @@ class WP_Block_Parser {
 		$parent->block->innerBlocks[] = (array) $block;
 		$html                         = substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
 
-		if ( ! empty( $html ) ) {
+		if ( '' !== $html ) {
 			$parent->block->innerHTML     .= $html;
 			$parent->block->innerContent[] = $html;
 		}
@@ -370,7 +370,7 @@ class WP_Block_Parser {
 			? substr( $this->document, $prev_offset, $end_offset - $prev_offset )
 			: substr( $this->document, $prev_offset );
 
-		if ( ! empty( $html ) ) {
+		if ( '' !== $html ) {
 			$stack_top->block->innerHTML     .= $html;
 			$stack_top->block->innerContent[] = $html;
 		}
@@ -386,6 +386,64 @@ class WP_Block_Parser {
 		}
 
 		$this->output[] = (array) $stack_top->block;
+	}
+
+	/**
+	 * Closes all open blocks and adds remaining blocks and freeform content to the output list.
+	 *
+	 * @internal
+	 * @since 7.2.0
+	 */
+	public function implicitly_close_and_add_all_open_blocks(): void {
+		$last_closed_block = null;
+		$last_opener_at    = strlen( $this->document );
+		$last_leading_html = null;
+
+		/**
+		 * There is a stack of open blocks, starting with a top-level block,
+		 * and where each successive item in the stack is a child of that block.
+		 * There are also spans of HTML content between the block delimiters.
+		 *
+		 * As the stack is collapsed, any HTML segments within that block must
+		 * be collected into it, before closing and appending to its parent’s
+		 * inner blocks array.
+		 */
+		while ( null !== ( $stack_top = array_pop( $this->stack ) ) ) {
+			/*
+			 * Since there is no open inner block on the top-most block on the stack,
+			 * the first iteration’s remaining HTML span will be from the last `prev_offset`
+			 * until the end of the document. For each containing parent, it will run from
+			 * the `prev_offset` until the opening of the block that was just closed.
+			 */
+			$html_length = $last_opener_at - $stack_top->prev_offset;
+			if ( 0 !== $html_length ) {
+				$html = substr( $this->document, $stack_top->prev_offset, $html_length );
+
+				$stack_top->block->innerHTML     .= $html;
+				$stack_top->block->innerContent[] = $html;
+			}
+
+			if ( isset( $last_closed_block ) ) {
+				$stack_top->block->innerContent[] = null;
+				$stack_top->block->innerBlocks[]  = (array) $last_closed_block;
+			}
+
+			$last_closed_block = $stack_top->block;
+			$last_opener_at    = $stack_top->token_start;
+			$last_leading_html = $stack_top->leading_html_start;
+		}
+
+		// Collect any HTML preceding the outermost open block.
+		if ( isset( $last_leading_html ) && $last_opener_at > $last_leading_html ) {
+			$html           = substr( $this->document, $last_leading_html, $last_opener_at - $last_leading_html );
+			$this->output[] = (array) $this->freeform( $html );
+		}
+
+		if ( isset( $last_closed_block ) ) {
+			$this->output[] = (array) $last_closed_block;
+		}
+
+		$this->offset = strlen( $this->document );
 	}
 }
 
