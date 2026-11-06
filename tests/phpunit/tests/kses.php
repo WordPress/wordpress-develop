@@ -1287,6 +1287,7 @@ EOF;
 	 * @ticket 64974
 	 * @ticket 65832
 	 * @ticket 64972
+	 * @ticket 66387
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1539,14 +1540,144 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGB color values are not allowed.
+			// RGB color values are allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
-				'expected' => '',
+				'expected' => 'color: rgb( 100, 100, 100 )',
 			),
-			// RGBA color values are not allowed.
+			// RGBA color values are allowed.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'expected' => 'color: rgb( 100, 100, 100, .4 )',
+			),
+			// Allow rgba() in box-shadow.
+			array(
+				'css'      => 'box-shadow: 1px 1px 1px rgba(0,0,0,0.5)',
+				'expected' => 'box-shadow: 1px 1px 1px rgba(0,0,0,0.5)',
+			),
+			// Allow color functions in a multi-layer box-shadow.
+			array(
+				'css'      => 'box-shadow: 6px 6px 9px rgb(0 0 0 / 20%), 0 0 0 1px hsl(0 0% 0%)',
+				'expected' => 'box-shadow: 6px 6px 9px rgb(0 0 0 / 20%), 0 0 0 1px hsl(0 0% 0%)',
+			),
+			// Allow nested color functions.
+			array(
+				'css'      => 'color: color-mix(in srgb, rgb(0 0 0) 50%, hsl(0 0% 100%))',
+				'expected' => 'color: color-mix(in srgb, rgb(0 0 0) 50%, hsl(0 0% 100%))',
+			),
+			// Allow var() inside a relative color.
+			array(
+				'css'      => 'color: rgb(from var(--brand) r g b / 50%)',
+				'expected' => 'color: rgb(from var(--brand) r g b / 50%)',
+			),
+			// Allow calc() inside rgb().
+			array(
+				'css'      => 'color: rgb(calc(255 * 0.5) 0 0)',
+				'expected' => 'color: rgb(calc(255 * 0.5) 0 0)',
+			),
+			// Allow uppercase color function names.
+			array(
+				'css'      => 'color: RGB(0,0,0)',
+				'expected' => 'color: RGB(0,0,0)',
+			),
+			// Allow oklch().
+			array(
+				'css'      => 'color: oklch(70% 0.1 200)',
+				'expected' => 'color: oklch(70% 0.1 200)',
+			),
+			// Allow hex colors in color-mix().
+			array(
+				'css'      => 'color: color-mix(in srgb, #fff 50%, #000)',
+				'expected' => 'color: color-mix(in srgb, #fff 50%, #000)',
+			),
+			// Allow hex colors in light-dark().
+			array(
+				'css'      => 'color: light-dark(#fff, #000)',
+				'expected' => 'color: light-dark(#fff, #000)',
+			),
+			// Allow color() with a color space.
+			array(
+				'css'      => 'color: color(display-p3 1 0 0)',
+				'expected' => 'color: color(display-p3 1 0 0)',
+			),
+			// Allow four levels of nested color functions.
+			array(
+				'css'      => 'color: light-dark(color-mix(in srgb, rgb(from hsl(200 50% 40%) r g b) 50%, #fff), #000)',
+				'expected' => 'color: light-dark(color-mix(in srgb, rgb(from hsl(200 50% 40%) r g b) 50%, #fff), #000)',
+			),
+			// Allow color functions nested up to the pass limit.
+			array(
+				'css'      => 'color: ' . str_repeat( 'rgb(', 4 ) . '0' . str_repeat( ')', 4 ),
+				'expected' => 'color: ' . str_repeat( 'rgb(', 4 ) . '0' . str_repeat( ')', 4 ),
+			),
+			// Color functions may not contain other functions.
+			array(
+				'css'      => 'color: rgb(foo(1) 0 0)',
+				'expected' => '',
+			),
+			// Color functions may not be wrapped in an unknown function.
+			array(
+				'css'      => 'color: foo(rgb(0 0 0))',
+				'expected' => '',
+			),
+			// Color functions may not contain a closing curly bracket.
+			array(
+				'css'      => 'color: rgb(0 } 0)',
+				'expected' => '',
+			),
+			// Color functions may not contain comments.
+			array(
+				'css'      => 'color: rgb(0 /* x */ 0)',
+				'expected' => '',
+			),
+			// Color functions may not contain a backslash.
+			array(
+				'css'      => 'color: rgb(0 \\30 0)',
+				'expected' => '',
+			),
+			// Color functions must be closed.
+			array(
+				'css'      => 'color: rgb(0 0 0',
+				'expected' => '',
+			),
+			// Color function names must match exactly.
+			array(
+				'css'      => 'color: x-rgb(0 0 0)',
+				'expected' => '',
+			),
+			// Color functions may not be nested beyond the pass limit.
+			array(
+				'css'      => 'color: ' . str_repeat( 'rgb(', 5 ) . '0' . str_repeat( ')', 5 ),
+				'expected' => '',
+			),
+			// A comment after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) /* x */',
+				'expected' => '',
+			),
+			// A backslash after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) \\30',
+				'expected' => '',
+			),
+			// A parenthesis after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) (',
+				'expected' => '',
+			),
+			// An ampersand after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) &',
+				'expected' => '',
+			),
+			// An equals sign after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) =',
+				'expected' => '',
+			),
+			// A closing curly bracket after a color function is not allowed.
+			array(
+				'css'      => 'color: rgb(0 0 0) }',
 				'expected' => '',
 			),
 			// Allow min().
@@ -2330,17 +2461,43 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => 'height: expression( body.scrollTop + 50 + "px" )',
 			),
-			// RGB color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			// RGB color values are still allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
 				'expected' => 'color: rgb( 100, 100, 100 )',
 			),
-			// RGBA color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			// RGBA color values are still allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
 				'expected' => 'color: rgb( 100, 100, 100, .4 )',
 			),
 		);
+	}
+
+	/**
+	 * Tests that a safecss_filter_attr_allow_css filter can reject an allowed color function.
+	 *
+	 * @ticket 66387
+	 */
+	public function test_safecss_filter_attr_filter_can_reject_color_functions() {
+		add_filter( 'safecss_filter_attr_allow_css', '__return_false' );
+
+		$result = safecss_filter_attr( 'color: rgb(0 0 0)' );
+
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_false' );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Tests that the style engine keeps a box-shadow containing rgba().
+	 *
+	 * @ticket 66387
+	 */
+	public function test_style_engine_keeps_box_shadow_with_rgba() {
+		$styles = wp_style_engine_get_styles( array( 'shadow' => '1px 1px 1px rgba(0,0,0,0.5)' ) );
+
+		$this->assertSame( 'box-shadow:1px 1px 1px rgba(0,0,0,0.5);', $styles['css'] ?? '' );
 	}
 
 	/**
