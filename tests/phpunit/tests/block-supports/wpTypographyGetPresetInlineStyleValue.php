@@ -34,7 +34,8 @@ class Tests_Block_Supports_WpTypographyGetPresetInlineStyleValue extends WP_Unit
 			'text decoration'       => array( 'var:preset|text-decoration|underline', 'text-decoration', 'var(--wp--preset--text-decoration--underline);' ),
 			'font family'           => array( 'var:preset|font-family|system-sans', 'font-family', 'var(--wp--preset--font-family--system-sans);' ),
 			'slug in camel case'    => array( 'var:preset|font-family|systemSans', 'font-family', 'var(--wp--preset--font-family--system-sans);' ),
-			'slug with a number'    => array( 'var:preset|font-size|x-large', 'font-size', 'var(--wp--preset--font-size--x-large);' ),
+			'slug with a hyphen'    => array( 'var:preset|font-size|x-large', 'font-size', 'var(--wp--preset--font-size--x-large);' ),
+			'slug with a number'    => array( 'var:preset|font-size|size-2', 'font-size', 'var(--wp--preset--font-size--size-2);' ),
 			'slug with underscores' => array( 'var:preset|font-size|extra_large', 'font-size', 'var(--wp--preset--font-size--extra-large);' ),
 			'slug with spaces'      => array( 'var:preset|font-size|extra large', 'font-size', 'var(--wp--preset--font-size--extra-large);' ),
 		);
