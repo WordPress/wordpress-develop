@@ -1554,6 +1554,11 @@ final class WP_Interactivity_API {
 	 * risks of marking HTML as trusted. An element with only unique-ID entries
 	 * keeps its content as written.
 	 *
+	 * HTML that closes the element, or that the browser moves out of it, such
+	 * as a `div` in a `p`, is still written as given. The browser places the part
+	 * that escapes after the element, where the client hydrates it as ordinary
+	 * markup although the server did not process its directives.
+	 *
 	 * A value other than a token or `null` raises a notice. A reference that
 	 * resolves to nothing does not.
 	 *
