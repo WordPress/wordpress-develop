@@ -128,6 +128,7 @@ class Tests_Rewrite_GetPermastructs extends WP_UnitTestCase {
 		$wp_rewrite->search_base         = 'changed';
 		$wp_rewrite->feed_base           = 'changed';
 		$wp_rewrite->comments_base       = 'changed';
+		$wp_rewrite->root                = 'changed/';
 		$wp_rewrite->permalink_structure = '/index.php/%postname%/';
 
 		$this->assertSame( $first, $wp_rewrite->$method(), 'The structure should not change after it was built.' );
