@@ -80,6 +80,7 @@ final class WP_Invariant_Types {
 	const STRING_PATH         = 64;
 	const STRING_FILE         = 128;
 	const STRING_INVALID_UTF8 = 256;
+	const STRING_NUMERIC      = 512;
 
 	/**
 	 * Property of an int, as a bit: it is zero.
@@ -528,6 +529,8 @@ final class WP_Invariant_Types {
 	 *   `../`, without a NUL, a newline, `<` or `://`.
 	 * - STRING_FILE: it is probably a file path, and a file or directory exists there.
 	 * - STRING_INVALID_UTF8: it is not valid UTF-8.
+	 * - STRING_NUMERIC: it is a numeric string, as is_numeric() reads it, such as
+	 *   `'42'`, `'-1.5'`, `'1e3'` or `' 7'`.
 	 *
 	 * It uses no PCRE function, which would change what preg_last_error() returns
 	 * to the WordPress code being called.
@@ -545,7 +548,7 @@ final class WP_Invariant_Types {
 			return self::with_file( $value, self::$remembered[ $value ] );
 		}
 
-		$properties = 0;
+		$properties = is_numeric( $value ) ? self::STRING_NUMERIC : 0;
 
 		// Every token other than text starts with `<`.
 		if ( false !== strpos( $value, '<' ) && class_exists( 'WP_HTML_Tag_Processor', false ) ) {

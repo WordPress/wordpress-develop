@@ -158,6 +158,12 @@ class Tests_Invariants_Types extends TestCase {
 		return array(
 			'empty'                      => array( '', array( 'empty' ) ),
 			'plain'                      => array( 'post', array( 'non-empty' ) ),
+			'an integer'                 => array( '42', array( 'numeric' ) ),
+			'a decimal'                  => array( '-1.5', array( 'numeric' ) ),
+			'an exponent'                => array( '1e3', array( 'numeric' ) ),
+			'a number with a space'      => array( ' 7', array( 'numeric' ) ),
+			'hexadecimal'                => array( '0x1A', array( 'non-empty' ) ),
+			'a number and letters'       => array( '12abc', array( 'non-empty' ) ),
 			'a tag'                      => array( '<p>x</p>', array( 'html' ) ),
 			'a comment'                  => array( 'a <!-- b --> c', array( 'html' ) ),
 			'a less-than sign'           => array( 'a < b', array( 'non-empty' ) ),
@@ -217,7 +223,7 @@ class Tests_Invariants_Types extends TestCase {
 	public function test_widened_strings_are_counted_by_their_properties_from_the_first() {
 		self::load_html_api();
 
-		$values = array( '', '', '<b>', 'it\'s', 'post' );
+		$values = array( '', '', '<b>', 'it\'s', 'post', '42' );
 		for ( $i = 0; $i < WP_Invariant_Types::STRING_LITERALS; $i++ ) {
 			$values[] = "value-{$i}";
 		}
@@ -227,6 +233,7 @@ class Tests_Invariants_Types extends TestCase {
 				'string [empty]'     => 2,
 				'string [html]'      => 1,
 				'string [slash]'     => 1,
+				'string [numeric]'   => 1,
 				'string [non-empty]' => 11,
 			),
 			$this->slot( ...$values )

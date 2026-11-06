@@ -267,6 +267,7 @@ wp_kses()  src/wp-includes/kses.php:979
   - Once ints and strings are no longer literals, they are counted by their properties, from the first one seen, such as `int [zero]`, `string [html slash]` or `string [non-empty]`:
     - `zero` and `non-zero` ints.
     - `empty` strings, and `non-empty` ones, which is shown only when none of the other tags is, since each implies it.
+    - `numeric`: it is a numeric string, as `is_numeric()` reads it, such as `'42'`, `'-1.5'`, `'1e3'` or `' 7'`, but not `'0x1A'`.
     - `html`: the Tag Processor finds a token in it other than text. A tag cut off by the end of the string is text.
     - `ref`: it holds an HTML character reference which decodes in text, such as `&amp;` or a legacy `&amp`.
     - `url`: `Uri\WhatWg\Url::parse()` accepts it without a base, so it is an absolute URL. That includes `mailto:` and `a:b`, and Windows paths such as `C:\x`, whose drive letter is a scheme.

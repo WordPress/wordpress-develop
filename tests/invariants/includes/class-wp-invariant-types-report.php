@@ -22,6 +22,7 @@ final class WP_Invariant_Types_Report {
 	 */
 	const STRING_TAGS = array(
 		WP_Invariant_Types::STRING_EMPTY        => 'empty',
+		WP_Invariant_Types::STRING_NUMERIC      => 'numeric',
 		WP_Invariant_Types::STRING_HTML         => 'html',
 		WP_Invariant_Types::STRING_REFERENCE    => 'ref',
 		WP_Invariant_Types::STRING_URL          => 'url',
@@ -482,6 +483,7 @@ final class WP_Invariant_Types_Report {
 			'',
 			'- `zero` and `non-zero` ints.',
 			'- `empty` and `non-empty` strings. `non-empty` is shown only for a string with none of the properties below, each of which implies it.',
+			'- `numeric`: it is a numeric string, as `is_numeric()` reads it, such as `\'42\'` or `\'-1.5\'`.',
 			'- `html`: the HTML API finds markup in it, which is anything but text.',
 			'- `ref`: it holds an HTML character reference, such as `&amp;`.',
 			'- `url`: it parses as an absolute WHATWG URL.',
