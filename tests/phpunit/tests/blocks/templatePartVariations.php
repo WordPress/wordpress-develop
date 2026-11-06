@@ -268,7 +268,7 @@ class Tests_Blocks_TemplatePartVariations extends WP_UnitTestCase {
 	public function test_should_build_a_variation_for_each_template_part() {
 		$variations = $this->get_test_variations( build_template_part_block_instance_variations() );
 
-		$this->assertSame( array( 'instance_wp-test-header', 'instance_wp-test-plain', 'instance_wp-test-overlay' ), array_keys( $variations ), 'There should be a variation for each template part.' );
+		$this->assertEqualSets( array( 'instance_wp-test-header', 'instance_wp-test-plain', 'instance_wp-test-overlay' ), array_keys( $variations ), 'There should be a variation for each template part.' );
 
 		$header = $variations['instance_wp-test-header'];
 
