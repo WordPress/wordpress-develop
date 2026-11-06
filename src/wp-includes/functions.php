@@ -9473,6 +9473,40 @@ function wp_admin_notice( $message, $args = array() ) {
 }
 
 /**
+ * Sets whether to display admin screen notices.
+ *
+ * @since 7.2.0
+ *
+ * @param bool $show Optional. Whether to display admin screen notices. Default true.
+ */
+function wp_show_admin_notices( $show = true ) {
+	global $wp_show_admin_notices;
+
+	$wp_show_admin_notices = (bool) $show;
+}
+
+/**
+ * Determines whether admin screen notices should be displayed.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True if admin notices should be displayed, false otherwise.
+ */
+function wp_should_show_admin_notices() {
+	global $wp_show_admin_notices;
+	$show = isset( $wp_show_admin_notices ) ? (bool) $wp_show_admin_notices : true;
+
+	/**
+	 * Filters whether to display admin screen notices.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $show Whether to display admin screen notices. Default true.
+	 */
+	return (bool) apply_filters( 'show_admin_notices', $show );
+}
+
+/**
  * Checks if a mime type is for a HEIC/HEIF image.
  *
  * @since 6.7.0

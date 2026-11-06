@@ -1246,6 +1246,8 @@ if ( 'upgrade-core' === $action ) {
 		do_undismiss_core_update();
 	}
 
+	wp_show_admin_notices( false );
+
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	if ( 'do-core-reinstall' === $action ) {
 		$reinstall = true;
@@ -1290,6 +1292,8 @@ if ( 'upgrade-core' === $action ) {
 	// Used in the HTML title tag.
 	$title = __( 'Update Plugins' );
 
+	wp_show_admin_notices( false );
+
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<div class="wrap">
@@ -1330,6 +1334,8 @@ if ( 'upgrade-core' === $action ) {
 
 	// Used in the HTML title tag.
 	$title = __( 'Update Themes' );
+
+	wp_show_admin_notices( false );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
@@ -1382,6 +1388,8 @@ if ( 'upgrade-core' === $action ) {
 		wp_redirect( add_query_arg( 'translation_updates', 'deferred', self_admin_url( 'update-core.php' ) ) );
 		exit;
 	}
+
+	wp_show_admin_notices( false );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
