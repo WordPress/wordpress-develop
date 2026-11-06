@@ -25,6 +25,13 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 	private $original_interactivity;
 
 	/**
+	 * Original style handles of the block type, when it was registered.
+	 *
+	 * @var string[]
+	 */
+	private $original_style_handles = array();
+
+	/**
 	 * Whether the Query block was registered before the test.
 	 *
 	 * @var bool
@@ -43,6 +50,10 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 
 		$this->was_registered = WP_Block_Type_Registry::get_instance()->is_registered( 'core/query' );
 
+		if ( $this->was_registered ) {
+			$this->original_style_handles = WP_Block_Type_Registry::get_instance()->get_registered( 'core/query' )->style_handles;
+		}
+
 		if ( ! $this->was_registered ) {
 			register_block_core_query();
 		}
@@ -53,6 +64,9 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 
 		if ( ! $this->was_registered ) {
 			unregister_block_type( 'core/query' );
+		} else {
+			// The tests remove the styles from the block type that is registered.
+			WP_Block_Type_Registry::get_instance()->get_registered( 'core/query' )->style_handles = $this->original_style_handles;
 		}
 
 		wp_dequeue_style( 'wp-block-query' );
@@ -341,7 +355,8 @@ class Tests_Blocks_RenderQuery extends WP_UnitTestCase {
 	public function test_should_not_change_the_styles_when_they_are_enqueued() {
 		wp_enqueue_style( 'wp-block-query' );
 
-		$block = new WP_Block( $this->parsed_block( 'core/query' ) );
+		$block                            = new WP_Block( $this->parsed_block( 'core/query' ) );
+		$block->block_type->style_handles = array( 'wp-block-query' );
 
 		render_block_core_query( array(), '<div></div>', $block );
 
