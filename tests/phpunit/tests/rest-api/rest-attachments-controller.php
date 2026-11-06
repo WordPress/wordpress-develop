@@ -1211,6 +1211,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Tests that spaces in attachment URLs are encoded, matching wp_prepare_attachment_for_js().
 	 *
+	 * @ticket 66531
+	 *
 	 * @requires function imagejpeg
 	 */
 	public function test_get_item_encodes_spaces_in_source_urls() {
