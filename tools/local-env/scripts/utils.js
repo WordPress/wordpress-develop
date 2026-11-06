@@ -37,8 +37,10 @@ const local_env_utils = {
 		try {
 			process.loadEnvFile( join( repo_root, '.env' ) );
 		} catch ( e ) {
-			// A missing .env was already reported by ensure_env_file(), and the scripts can still
-			// run with their defaults, so this is never a reason to refuse to run a command.
+			/*
+			 * The script should still run when the .env file is missing, falling back to the defined
+			 * default values. Missing .env files are already detected and noted by ensure_env_file().
+			 */
 			if ( e.code !== 'ENOENT' ) {
 				console.warn( `Could not load the .env file. ${ e.message }` );
 			}
