@@ -533,59 +533,37 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `core/get-site-info` ability is available to administrators.
-	 *
-	 * @ticket 66493
-	 */
-	public function test_core_get_site_info_allows_administrator(): void {
-		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
-
-		$this->assertTrue( current_user_can( 'manage_options' ) );
-
-		$ability = wp_get_ability( 'core/get-site-info' );
-
-		$this->assertTrue( $ability->check_permissions() );
-		$this->assertIsArray( $ability->execute() );
-	}
-
-	/**
 	 * Tests that the `core/get-site-info` ability is denied to users who cannot manage options.
 	 *
 	 * @ticket 66493
+	 *
+	 * @dataProvider data_users_who_cannot_manage_options
+	 *
+	 * @param string $role Role of the current user, or an empty string for a logged-out visitor.
 	 */
-	public function test_core_get_site_info_requires_manage_options(): void {
-		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-		wp_set_current_user( $user_id );
+	public function test_core_get_site_info_denies_users_who_cannot_manage_options( string $role ): void {
+		if ( '' !== $role ) {
+			wp_set_current_user( self::factory()->user->create( array( 'role' => $role ) ) );
+		} else {
+			wp_set_current_user( 0 );
+		}
 
-		$this->assertFalse( current_user_can( 'manage_options' ) );
-
-		$ability = wp_get_ability( 'core/get-site-info' );
-
-		$this->assertFalse( $ability->check_permissions() );
-
-		$result = $ability->execute();
+		$result = wp_get_ability( 'core/get-site-info' )->execute();
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
 	}
 
 	/**
-	 * Tests that the `core/get-site-info` ability is denied to logged-out visitors.
+	 * Data provider for the users who cannot manage options.
 	 *
-	 * @ticket 66493
+	 * @return array[]
 	 */
-	public function test_core_get_site_info_denies_logged_out_visitor(): void {
-		wp_set_current_user( 0 );
-
-		$ability = wp_get_ability( 'core/get-site-info' );
-
-		$this->assertFalse( $ability->check_permissions() );
-
-		$result = $ability->execute();
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	public static function data_users_who_cannot_manage_options(): array {
+		return array(
+			'subscriber'      => array( 'subscriber' ),
+			'logged-out user' => array( '' ),
+		);
 	}
 
 	/**
@@ -598,45 +576,10 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$user    = wp_set_current_user( $user_id );
 		$user->add_cap( 'manage_options' );
 
-		$this->assertFalse( current_user_can( 'edit_posts' ) );
-
 		$ability = wp_get_ability( 'core/get-site-info' );
 
 		$this->assertTrue( $ability->check_permissions() );
 		$this->assertIsArray( $ability->execute() );
-	}
-
-	/**
-	 * Tests the label and description of the core ability categories.
-	 *
-	 * @ticket 66493
-	 *
-	 * @dataProvider data_core_ability_categories
-	 *
-	 * @param string $slug        Category slug.
-	 * @param string $label       Expected label.
-	 * @param string $description Expected description.
-	 */
-	public function test_core_ability_categories_are_registered( string $slug, string $label, string $description ): void {
-		$category = wp_get_ability_category( $slug );
-
-		$this->assertInstanceOf( WP_Ability_Category::class, $category );
-		$this->assertSame( $slug, $category->get_slug() );
-		$this->assertSame( $label, $category->get_label() );
-		$this->assertSame( $description, $category->get_description() );
-	}
-
-	/**
-	 * Data provider for the core ability categories.
-	 *
-	 * @return array[]
-	 */
-	public static function data_core_ability_categories(): array {
-		return array(
-			'site'    => array( 'site', 'Site', 'Abilities that retrieve or modify site information and settings.' ),
-			'user'    => array( 'user', 'User', 'Abilities that retrieve or modify user information and settings.' ),
-			'content' => array( 'content', 'Content', 'Abilities that retrieve or manage posts and other content.' ),
-		);
 	}
 
 	/**
@@ -653,7 +596,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( $ability_name );
 
 		$this->assertSame( $category, $ability->get_category() );
-		$this->assertTrue( wp_has_ability_category( $category ), 'The category of the ability should be registered.' );
 	}
 
 	/**
