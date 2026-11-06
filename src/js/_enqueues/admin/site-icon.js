@@ -117,17 +117,37 @@
 		// When an image is selected, run a callback.
 		frame.on( 'select', function () {
 			// Grab the selected attachment.
-			var attachment = frame.state().get( 'selection' ).first();
+			var attachment = frame.state().get( 'selection' ).first(),
+				size = $el.data( 'size' );
 
 			if (
-				attachment.attributes.height === $el.data( 'size' ) &&
-				$el.data( 'size' ) === attachment.attributes.width
+				attachment.attributes.height === size &&
+				size === attachment.attributes.width
 			) {
-				switchToUpdate( attachment.attributes );
-				frame.close();
-
-				// Set the value of the hidden input to the attachment id.
-				$hiddenDataField.val( attachment.id );
+				/*
+				 * The image doesn't need cropping, but it still goes through the crop
+				 * request so that the site icon and its additional sizes are created.
+				 */
+				wp.ajax
+					.post( 'crop-image', {
+						nonce: attachment.get( 'nonces' ).edit,
+						id: attachment.id,
+						context: 'site-icon',
+						cropDetails: {
+							x1: 0,
+							y1: 0,
+							width: size,
+							height: size,
+							dst_width: size,
+							dst_height: size,
+						},
+					} )
+					.done( function ( croppedImage ) {
+						frame.trigger( 'cropped', croppedImage );
+					} )
+					.fail( function () {
+						frame.trigger( 'content:error:crop' );
+					} );
 			} else {
 				frame.setState( 'cropper' );
 			}
