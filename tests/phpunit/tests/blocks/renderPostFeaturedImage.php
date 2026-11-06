@@ -486,20 +486,24 @@ class Tests_Blocks_RenderPostFeaturedImage extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_render_callback() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-featured-image' );
+		$original_block = $registry->get_registered( 'core/post-featured-image' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-featured-image' );
 		}
 
-		register_block_core_post_featured_image();
-		$block_type = $registry->get_registered( 'core/post-featured-image' );
+		try {
+			register_block_core_post_featured_image();
+			$block_type = $registry->get_registered( 'core/post-featured-image' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_featured_image', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-featured-image' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_featured_image', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
