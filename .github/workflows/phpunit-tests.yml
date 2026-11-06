@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-26.04 ]
         php: [ '5.6', '7.0', '7.4', '8.0', '8.1' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7' ]
@@ -53,20 +53,20 @@ jobs:
           - php: '8.1'
             allow-errors: true
           # Include jobs for PHP 7.4 with memcached.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
             multisite: false
             memcached: true
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
             multisite: true
             memcached: true
           # Report the results of the PHP 7.4 without memcached job.
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
@@ -102,7 +102,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ test-php, slack-notifications ]
