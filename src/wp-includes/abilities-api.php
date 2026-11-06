@@ -227,7 +227,8 @@ declare( strict_types = 1 );
  *
  * The permission callback determines whether the ability can be executed and
  * must return a boolean or `WP_Error`. When called through `WP_Ability::execute()`,
- * it receives the same prepared input as the execute callback. Common use cases
+ * it receives the same normalized, validated, and coerced input as the execute
+ * callback. Common use cases
  * include checking user capabilities, validating API keys, or verifying system
  * state. In the example above, every execution requires `edit_posts`, and the
  * callback only adds the check that depends on the input:
