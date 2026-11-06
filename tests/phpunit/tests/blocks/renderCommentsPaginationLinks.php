@@ -65,12 +65,12 @@ class Tests_Blocks_RenderCommentsPaginationLinks extends WP_UnitTestCase {
 	/**
 	 * Renders a block of the pagination.
 	 *
-	 * @param string $function   Name of the render function.
+	 * @param string $callback_name   Name of the render function.
 	 * @param array  $attributes Attributes of the block.
 	 * @param array  $context    Context of the block.
 	 * @return string The rendered block.
 	 */
-	private function render( $function, $attributes = array(), $context = null ) {
+	private function render( $callback_name, $attributes = array(), $context = null ) {
 		$block = new WP_Block(
 			array(
 				'blockName'    => 'core/comments-pagination',
@@ -83,7 +83,7 @@ class Tests_Blocks_RenderCommentsPaginationLinks extends WP_UnitTestCase {
 
 		$block->context = null === $context ? array( 'postId' => self::$post_id ) : $context;
 
-		return $function( $attributes, '', $block );
+		return $callback_name( $attributes, '', $block );
 	}
 
 	/**
@@ -118,12 +118,12 @@ class Tests_Blocks_RenderCommentsPaginationLinks extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_functions_that_need_a_post
 	 *
-	 * @param string $function Name of the render function.
+	 * @param string $callback_name Name of the render function.
 	 */
-	public function test_should_render_nothing_without_a_post( $function ) {
+	public function test_should_render_nothing_without_a_post( $callback_name ) {
 		$this->go_to_page( 1 );
 
-		$this->assertSame( '', $this->render( $function, array(), array() ) );
+		$this->assertSame( '', $this->render( $callback_name, array(), array() ) );
 	}
 
 	/**
@@ -339,10 +339,10 @@ class Tests_Blocks_RenderCommentsPaginationLinks extends WP_UnitTestCase {
 	 * @dataProvider data_blocks
 	 *
 	 * @param string $name     Name of the block.
-	 * @param string $function Name of the function that registers the block.
+	 * @param string $callback_name Name of the function that registers the block.
 	 * @param string $callback Name of the render callback.
 	 */
-	public function test_should_register_the_blocks_with_the_render_callbacks( $name, $function, $callback ) {
+	public function test_should_register_the_blocks_with_the_render_callbacks( $name, $callback_name, $callback ) {
 		$registry       = WP_Block_Type_Registry::get_instance();
 		$was_registered = $registry->is_registered( $name );
 
@@ -350,7 +350,7 @@ class Tests_Blocks_RenderCommentsPaginationLinks extends WP_UnitTestCase {
 			unregister_block_type( $name );
 		}
 
-		$function();
+		$callback_name();
 		$block_type = $registry->get_registered( $name );
 
 		if ( ! $was_registered ) {
