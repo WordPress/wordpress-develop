@@ -413,25 +413,6 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 	}
 
 	/**
-	 * Tests that the `skip_to_balanced_tag_closer` method keeps the content when
-	 * it receives no new content.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::skip_to_balanced_tag_closer
-	 */
-	public function test_skip_to_balanced_tag_closer_keeps_the_content_without_new_content() {
-		$content = '<div><span data-wp-text="state.text">Text</span></div><i>After</i>';
-		$p       = new WP_Interactivity_API_Directives_Processor( $content );
-		$p->next_tag();
-
-		$this->assertTrue( $p->skip_to_balanced_tag_closer() );
-		$this->assertSame( 'DIV', $p->get_tag() );
-		$this->assertTrue( $p->is_tag_closer() );
-		$this->assertSame( $content, $p->get_updated_html() );
-	}
-
-	/**
 	 * Tests that the `skip_to_balanced_tag_closer` method reports a missing
 	 * closer tag and replaces nothing.
 	 *

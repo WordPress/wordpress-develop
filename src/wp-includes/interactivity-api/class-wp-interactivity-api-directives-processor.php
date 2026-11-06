@@ -87,8 +87,8 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	}
 
 	/**
-	 * Moves to the matching closer tag of the current opener tag, skipping the
-	 * content between them, and optionally replaces that content.
+	 * Moves to the matching closer tag of the current opener tag and replaces
+	 * the content between them.
 	 *
 	 * The matching closer tag is found as in
 	 * {@see WP_Interactivity_API_Directives_Processor::next_balanced_tag_closer_tag()}.
@@ -101,16 +101,11 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * @access private
 	 *
-	 * @param string|null $new_content Optional. The markup to replace the content between the matching tags
-	 *                                 with, or null to keep the content. Default null.
+	 * @param string $new_content The markup to replace the content between the matching tags with.
 	 * @return bool Whether the matching closer tag was found. When it is not found, the cursor is at the end
 	 *              of the HTML and nothing is replaced.
 	 */
-	public function skip_to_balanced_tag_closer( ?string $new_content = null ): bool {
-		if ( null === $new_content ) {
-			return $this->next_balanced_tag_closer_tag();
-		}
-
+	public function skip_to_balanced_tag_closer( string $new_content ): bool {
 		$bookmarks = $this->get_balanced_tag_bookmarks();
 		if ( ! $bookmarks ) {
 			return false;

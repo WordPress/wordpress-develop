@@ -1607,9 +1607,7 @@ final class WP_Interactivity_API {
 
 		$host_entry = array_find( $entries, fn( $entry ) => null === $entry['unique_id'] );
 		if ( null === $host_entry ) {
-			if ( $p->has_and_visits_its_closer_tag() ) {
-				$p->skip_to_balanced_tag_closer();
-			}
+			$p->next_balanced_tag_closer_tag();
 			return;
 		}
 
