@@ -98,10 +98,13 @@ module.exports = function(grunt) {
 			'.github/workflows/install-testing.yml',
 			'.github/workflows/test-and-zip-default-themes.yml',
 			'.github/workflows/install-testing.yml',
+			'.github/workflows/plugin-compatibility.yml',
 			'.github/workflows/slack-notifications.yml',
 			'.github/workflows/test-coverage.yml',
 			'.github/workflows/test-old-branches.yml',
-			'.github/workflows/upgrade-testing.yml'
+			'.github/workflows/upgrade-testing.yml',
+			// Tooling used only by the workflows above.
+			'tools/plugin-compatibility'
 		],
 
 		// Prepend `dir` to `file`, and keep `!` in place.
