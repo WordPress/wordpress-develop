@@ -984,6 +984,7 @@ class WP_Theme_JSON {
 	 * Processes pseudo-selectors for any node (block or variation).
 	 *
 	 * @since 7.0.0
+	 * @since 7.3.0 Added the `$default_node` parameter.
 	 *
 	 * @param array      $node            The node data (block or variation).
 	 * @param string     $base_selector   The base selector.
@@ -991,9 +992,10 @@ class WP_Theme_JSON {
 	 * @param string     $block_name      The block name.
 	 * @param array|null $block_metadata  Metadata about the block to get styles for.
 	 * @param array|null $style_variation Style variation metadata.
+	 * @param array|null $default_node    For a breakpoint node, the node outside the breakpoint.
 	 * @return array Array of pseudo-selector declarations.
 	 */
-	private function process_pseudo_selectors( $node, $base_selector, $settings, $block_name, $block_metadata = null, $style_variation = null ) {
+	private function process_pseudo_selectors( $node, $base_selector, $settings, $block_name, $block_metadata = null, $style_variation = null, $default_node = null ) {
 		$pseudo_declarations = array();
 		$add_declarations    = static function ( $selector, $declarations ) use ( &$pseudo_declarations ) {
 			if ( empty( $declarations ) ) {
@@ -1044,7 +1046,11 @@ class WP_Theme_JSON {
 
 				$combined_selector = static::append_to_selector( $base_selector, $pseudo_selector );
 				$declarations      = static::compute_style_properties( $pseudo_node, $settings, null, null );
-				$declarations      = self::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $base_styles );
+				// Mirror of `get_state_base_styles()`: the default pseudo-state comes nearest.
+				$pseudo_base  = is_array( $default_node[ $pseudo_selector ] ?? null )
+					? array_merge( array( $default_node[ $pseudo_selector ] ), $base_styles )
+					: $base_styles;
+				$declarations = self::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $pseudo_base );
 				$add_declarations( $combined_selector, $declarations );
 			}
 		}
@@ -4046,8 +4052,11 @@ class WP_Theme_JSON {
 	 * Returns the style objects a state node layers over, nearest first.
 	 *
 	 * Drops the path's state keys (e.g. `@mobile`) from the innermost outward.
+	 * A breakpoint pseudo-state (e.g. `@mobile` `:hover`) also layers over the
+	 * default pseudo-state.
 	 *
 	 * @since 7.2.0
+	 * @since 7.3.0 Includes the default pseudo-state for a breakpoint pseudo-state.
 	 *
 	 * @param string[]             $path     Path to the node within the theme.json tree.
 	 * @param array<string, mixed> $tree     The theme.json tree to read from.
@@ -4058,6 +4067,21 @@ class WP_Theme_JSON {
 		$state_keys  = self::get_style_state_keys( $settings );
 		$base_path   = $path;
 		$base_styles = array();
+
+		// A breakpoint pseudo-state is output after the default pseudo-state, so that comes nearest.
+		$count = count( $path );
+		if (
+			$count >= 2 &&
+			in_array( $path[ $count - 1 ], array_merge( ...array_values( static::VALID_BLOCK_PSEUDO_SELECTORS ) ), true ) &&
+			array_key_exists( $path[ $count - 2 ], static::get_viewport_media_queries( $settings['viewport'] ?? null ) )
+		) {
+			$default_pseudo_path = $path;
+			unset( $default_pseudo_path[ $count - 2 ] );
+			$layer = _wp_array_get( $tree, array_values( $default_pseudo_path ) );
+			if ( is_array( $layer ) ) {
+				$base_styles[] = $layer;
+			}
+		}
 
 		foreach ( array_reverse( array_keys( $path ) ) as $index ) {
 			if ( ! in_array( $path[ $index ], $state_keys, true ) ) {
@@ -4260,7 +4284,7 @@ class WP_Theme_JSON {
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
 					}
 
-					$breakpoint_pseudo_declarations = $this->process_pseudo_selectors( $breakpoint_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
+					$breakpoint_pseudo_declarations = $this->process_pseudo_selectors( $breakpoint_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation, $style_variation_node );
 					foreach ( $breakpoint_pseudo_declarations as $pseudo_selector => $pseudo_declarations ) {
 						if ( empty( $pseudo_declarations ) ) {
 							continue;
