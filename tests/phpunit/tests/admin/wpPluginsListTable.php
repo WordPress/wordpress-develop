@@ -449,6 +449,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 */
 	private function call_protected( $method, array $args = array() ) {
 		$reflection = new ReflectionMethod( $this->table, $method );
+		$reflection->setAccessible( true );
 
 		return $reflection->invokeArgs( $this->table, $args );
 	}
