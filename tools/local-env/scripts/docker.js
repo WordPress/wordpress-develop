@@ -1,12 +1,10 @@
 /* jshint node:true */
 
-const dotenv = require( 'dotenv' );
-const dotenvExpand = require( 'dotenv-expand' );
 const local_env_utils = require( './utils' );
 
 local_env_utils.ensure_env_file();
 
-dotenvExpand.expand( dotenv.config() );
+local_env_utils.load_env();
 
 // Use Xdebug to generate HTML code coverage reports, unless PCOV is enabled and Xdebug is not.
 if (

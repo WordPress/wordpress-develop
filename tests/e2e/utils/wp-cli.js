@@ -30,7 +30,7 @@ export function wpCli( args, options = {} ) {
 		{
 			encoding: 'utf-8',
 			...options,
-			env: { ...process.env, ...options.env, DOTENV_CONFIG_QUIET: 'true' },
+			env: { ...process.env, ...options.env },
 		}
 	);
 }
