@@ -33,13 +33,18 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = listTable.locator( '.row-title' );
-		await expect( posts ).toHaveCount( 1 );
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		await expect( posts.first() ).toHaveText( title );
+		const postLink = listTable.getByRole( 'link', {
+			name: title,
+			exact: true,
+		} );
+		await expect( postLink ).toBeVisible();
 
-		await posts.first().hover();
+		await postLink.hover();
 		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
 		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
 		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
@@ -87,7 +92,13 @@ test.describe( 'Edit Posts', () => {
 		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
-		await pageUtils.pressKeys( 'Tab', { times: 2 } )
+		await pageUtils.pressKeys( 'Tab', { times: 2 } );
+		await expect(
+			page.getByRole( 'button', {
+				name: `Quick edit “${ title }” inline`,
+				exact: true,
+			} )
+		).toBeFocused();
 		await page.keyboard.press( 'Enter' );
 
 		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
@@ -100,18 +111,23 @@ test.describe( 'Edit Posts', () => {
 		await expect( page.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = listTable.locator( '.row-title' );
-		await expect( posts ).toHaveCount( 1 );
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		await expect( posts.first() ).toHaveText( `${ title } Edited` );
+		await expect(
+			listTable.getByRole( 'link', {
+				name: `${ title } Edited`,
+				exact: true,
+			} )
+		).toBeVisible();
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
 		admin,
 		editor,
 		page,
-		pageUtils
 	} ) => {
 		const title = 'Test Title';
 		await admin.createNewPost( { title } );
@@ -121,12 +137,13 @@ test.describe( 'Edit Posts', () => {
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
-
-		// Tab to the Trash button and press Enter to delete the post.
-		await pageUtils.pressKeys( 'Tab', { times: 3 } )
-		await page.keyboard.press( 'Enter' );
+		await listTable.getByRole( 'link', { name: title, exact: true } ).hover();
+		await listTable
+			.getByRole( 'link', {
+				name: `Move “${ title }” to the Trash`,
+				exact: true,
+			} )
+			.click();
 
 		await expect(
 			page.getByRole( 'cell', { name: 'No posts found.' } )
@@ -163,16 +180,9 @@ test( 'bulk edits only the selected posts', async ( {
 				.check();
 		}
 		await page
-			.getByRole( 'combobox', {
-				name: 'Select bulk action',
-				exact: true,
-			} )
-			.first()
+			.locator( '#bulk-action-selector-top' )
 			.selectOption( 'edit' );
-		await page
-			.getByRole( 'button', { name: 'Apply', exact: true } )
-			.first()
-			.click();
+		await page.locator( '#doaction' ).click();
 		const bulkEdit = page.getByRole( 'region', {
 			name: 'Bulk Edit',
 			exact: true,

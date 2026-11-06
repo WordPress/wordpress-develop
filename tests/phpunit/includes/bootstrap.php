@@ -580,13 +580,14 @@ trait WP_PHPUnit_Default_Group_Filter_Methods {
 	}
 }
 
+// PHPUnit 10 and later have no TestListener interface, so the filter is not declared there.
 if ( version_compare( tests_get_phpunit_version(), '6.0', '<' ) ) {
 	class WP_PHPUnit_Default_Group_Filter implements PHPUnit_Framework_TestListener {
 		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
 			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
 		}
 	}
-} else {
+} elseif ( interface_exists( 'PHPUnit\Framework\TestListener' ) ) {
 	class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
 		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
 			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
