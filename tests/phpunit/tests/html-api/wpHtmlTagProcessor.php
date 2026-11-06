@@ -2691,6 +2691,7 @@ HTML;
 	/**
 	 * @ticket 59209
 	 * @ticket 65846
+	 * @ticket 65967
 	 *
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 *
@@ -2742,6 +2743,8 @@ HTML;
 			'Decimal reference without semicolon'     => array( "<div class='a&#32b'>", array( 'a', 'b' ) ),
 			'Hex reference without semicolon'         => array( "<div class='a&#x20g'>", array( 'a', 'g' ) ),
 			'Bare ampersand'                          => array( "<div class='&'>", array( '&' ) ),
+			'Numeric-looking names stay distinct'     => array( "<div class='123 0123 1e3 -0 0'>", array( '123', '0123', '1e3', '-0', '0' ) ),
+			'Numeric duplicates collapse'             => array( "<div class='123 123'>", array( '123' ) ),
 		);
 	}
 
@@ -2798,6 +2801,33 @@ HTML;
 			'Class with newline separator' => array( "<div class='one\ntwo\n'>", 'two', true ),
 			'False duplicate attribute'    => array( '<img class=dog class=cat>', 'cat', false ),
 		);
+	}
+
+	/**
+	 * Ensures that add_class() and remove_class() match class names which are
+	 * canonical integer strings, such as "123", and only those.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers WP_HTML_Tag_Processor::add_class
+	 * @covers WP_HTML_Tag_Processor::remove_class
+	 */
+	public function test_add_class_and_remove_class_match_numeric_class_names() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="123 abc 123">' );
+		$processor->next_tag();
+		$processor->remove_class( '123' );
+
+		$this->assertSame( '<div class="abc">', $processor->get_updated_html(), 'Failed to remove class name "123".' );
+
+		$processor = new WP_HTML_Tag_Processor( '<div class="123 0123 1e3">' );
+		$processor->next_tag();
+		$processor->add_class( '123' );
+
+		$this->assertSame( '<div class="123 0123 1e3">', $processor->get_updated_html(), 'Added a second copy of class name "123".' );
+
+		$processor->remove_class( '0123' );
+
+		$this->assertSame( '<div class="123 1e3">', $processor->get_updated_html(), 'Did not remove class name "0123" alone.' );
 	}
 
 	/**
