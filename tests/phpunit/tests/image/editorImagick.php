@@ -612,12 +612,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$saved = $imagick_image_editor->save( $temp_file );
 
+		$this->assertNotWPError( $saved );
+
 		if ( $temp_file !== $saved['path'] ) {
 			unlink( $saved['path'] );
 		}
 		unlink( $temp_file );
 
-		$this->assertNotWPError( $saved );
 		$this->assertSame( $temp_file, $saved['path'] );
 	}
 
@@ -681,6 +682,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ),
 			'WordPress should support PDFs when native Imagick can render the fixture.'
 		);
+
+		// A fallback size is required to generate the full PDF preview.
+		// Keep the thumbnail, but omit unused medium and large images.
+		$preview_sizes = static function () {
+			return array( 'thumbnail' );
+		};
+		add_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
 
 		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );

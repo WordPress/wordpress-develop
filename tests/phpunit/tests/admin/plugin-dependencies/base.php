@@ -137,7 +137,8 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$reflected_members[ $method ]->setAccessible( true );
 		}
-		$value = self::$reflected_members[ $method ]->invokeArgs( self::$instance, $args );
+		$object = self::$reflected_members[ $method ]->isStatic() ? null : self::$instance;
+		$value  = self::$reflected_members[ $method ]->invokeArgs( $object, $args );
 		if ( PHP_VERSION_ID < 80100 ) {
 			self::$reflected_members[ $method ]->setAccessible( false );
 		}

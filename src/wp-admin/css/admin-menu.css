@@ -303,8 +303,7 @@ div.wp-menu-image::before {
 }
 
 #adminmenu div.wp-menu-image {
-	color: #a7aaad;
-	color: rgba(240, 246, 252, 0.6);
+	color: #c3c4c7;
 	transition: color 0.1s ease-in-out;
 }
 
@@ -482,7 +481,7 @@ ul#adminmenu > li.current > a.current::after {
 	position: relative;
 	overflow: visible;
 	background: none;
-	color: #a7aaad;
+	color: #c3c4c7;
 	cursor: pointer;
 }
 
@@ -811,12 +810,10 @@ li#wp-admin-bar-menu-toggle {
 		display: block;
 		padding: 0;
 		overflow: hidden;
-		outline: none;
 		text-decoration: none;
-		border: 1px solid transparent;
 		background: none;
-		height: 44px;
-		margin-left: -1px;
+		height: 46px;
+		box-sizing: border-box;
 	}
 
 	.wp-responsive-open #wpadminbar #wp-admin-bar-menu-toggle a {
@@ -827,17 +824,13 @@ li#wp-admin-bar-menu-toggle {
 		display: block;
 	}
 
-	#wpadminbar #wp-admin-bar-menu-toggle a:hover {
-		border: 1px solid transparent;
-	}
-
 	#wpadminbar #wp-admin-bar-menu-toggle .ab-icon {
 		display: flex;
 		align-items: center;
 		float: left;
 		margin: 0;
-		height: 44px;
-		width: 50px;
+		height: 46px;
+		width: 52px;
 		padding: 0;
 		border: none;
 		box-sizing: border-box;

@@ -37,14 +37,9 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
-	public function tear_down() {
-		unregister_taxonomy( 'test_taxonomy' );
-		unregister_taxonomy( 'private_taxonomy' );
-		unregister_taxonomy( 'non_queryable_tax' );
-		unregister_taxonomy( 'public_taxonomy' );
-		unregister_taxonomy( 'non_queryable_taxonomy' );
-
-		parent::tear_down();
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
 	}
 
 	/**
@@ -323,7 +318,7 @@ class Tests_Sitemaps_wpSitemapsTaxonomies extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ lowercase-string&truthy-string }>
 	 */
-	public function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
+	public static function data_sitemap_does_not_404_for_valid_sitemap_subtypes(): array {
 		return array(
 			'category'              => array( 'category' ),
 			'valid custom taxonomy' => array( 'valid_custom_taxonomy' ),
