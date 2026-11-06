@@ -130,7 +130,9 @@ class WP_Meta_Query {
 	 *         @type string          $type_key    MySQL data type that the meta_key column will be CAST to for
 	 *                                            comparisons. Accepts 'BINARY' for case-sensitive regular expression
 	 *                                            comparisons. Default is ''.
-	 *         @type string|string[] $value       Meta value or values to filter by.
+	 *         @type string|string[] $value       Meta value or values to filter by. When $compare is set to
+	 *                                            'REGEXP', 'NOT REGEXP', or 'RLIKE', the value is used as a raw MySQL regular
+	 *                                            expression and should not be wrapped in delimiters such as '/'.
 	 *         @type string          $compare     MySQL operator used for comparing the $value. Accepts:
 	 *                                            - '='
 	 *                                            - '!='
