@@ -3070,6 +3070,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66421
+	 */
+	public function test_return_url_with_upload_theme_action() {
+		$this->manager->set_return_url( admin_url( 'update.php?action=upload-theme&package=123&overwrite=update-theme' ) );
+		$this->assertSame( admin_url( 'themes.php' ), $this->manager->get_return_url() );
+	}
+
+	/**
 	 * Test get_autofocus()/set_autofocus() methods.
 	 *
 	 * @see WP_Customize_Manager::get_autofocus()
