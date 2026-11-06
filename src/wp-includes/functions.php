@@ -3795,7 +3795,33 @@ function wp_nonce_ays( $action ) {
 			wp_logout_url( $redirect_to )
 		);
 	} else {
-		$html = __( 'The link you followed has expired.' );
+		if ( wp_is_post_max_size_exceeded() ) {
+			/*
+			 * PHP discards all POST data, including the nonce, when the request
+			 * body is larger than post_max_size. Report the real cause instead
+			 * of claiming the link has expired.
+			 */
+			$response_code = 413;
+
+			$html = sprintf(
+				/* translators: %s: Maximum request size allowed by the server, e.g. "8 MB". */
+				__( 'The submitted data is larger than the server allows. The uploaded file must be smaller than %s.' ),
+				size_format( wp_convert_hr_to_bytes( ini_get( 'post_max_size' ) ) )
+			);
+
+			// Name the relevant directive, as raising upload_max_filesize alone does not help.
+			if ( ! is_multisite() ) {
+				$html .= ' ' . sprintf(
+					/* translators: 1: post_max_size, 2: php.ini, 3: upload_max_filesize */
+					__( 'This limit is set by the %1$s directive in %2$s. Increasing %3$s alone will not fix this.' ),
+					'<code>post_max_size</code>',
+					'<code>php.ini</code>',
+					'<code>upload_max_filesize</code>'
+				);
+			}
+		} else {
+			$html = __( 'The link you followed has expired.' );
+		}
 
 		if ( wp_get_referer() ) {
 			$wp_http_referer = remove_query_arg( 'updated', wp_get_referer() );
@@ -3811,6 +3837,36 @@ function wp_nonce_ays( $action ) {
 	}
 
 	wp_die( $html, $title, $response_code );
+}
+
+/**
+ * Determines whether the current request body exceeded the post_max_size limit.
+ *
+ * When a POST request is larger than the post_max_size PHP directive, PHP
+ * silently discards the request body, leaving both $_POST and $_FILES empty.
+ * Any nonce sent with the request is lost as well.
+ *
+ * @since 7.3.0
+ *
+ * @return bool True if the request body was discarded because it was too large, false otherwise.
+ */
+function wp_is_post_max_size_exceeded() {
+	if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) ) {
+		return false;
+	}
+
+	if ( ! empty( $_POST ) || ! empty( $_FILES ) || empty( $_SERVER['CONTENT_LENGTH'] ) ) {
+		return false;
+	}
+
+	$post_max_size = wp_convert_hr_to_bytes( ini_get( 'post_max_size' ) );
+
+	// A value of 0 disables the limit.
+	if ( $post_max_size <= 0 ) {
+		return false;
+	}
+
+	return (int) $_SERVER['CONTENT_LENGTH'] > $post_max_size;
 }
 
 /**
