@@ -200,8 +200,10 @@
 					percent: file.percent,
 				};
 
-				// Early mime type scanning for images, as wp-plupload.js does,
-				// for the formats the pipeline processes.
+				/*
+				 * Early mime type scanning for images, as wp-plupload.js does,
+				 * for the formats the pipeline processes.
+				 */
 				const subtype = pipeline.getImageSubtype( file.name );
 				if ( subtype ) {
 					attributes.type = 'image';

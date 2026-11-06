@@ -38,9 +38,11 @@ window.wp = window.wp || {};
 
 	const imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
 
-	// Image subtypes the pipeline processes. Keep in sync with
-	// CLIENT_SIDE_SUPPORTED_MIME_TYPES and HEIC_MIME_TYPES in the
-	// upload-media package.
+	/*
+	 * Image subtypes the pipeline processes. Keep in sync with
+	 * CLIENT_SIDE_SUPPORTED_MIME_TYPES and HEIC_MIME_TYPES in the
+	 * upload-media package.
+	 */
 	const IMAGE_SUBTYPES = [ 'jpeg', 'png', 'gif', 'webp', 'avif', 'heic', 'heif' ];
 
 	/**
