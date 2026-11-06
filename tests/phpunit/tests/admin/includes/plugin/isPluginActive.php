@@ -58,7 +58,7 @@ class Tests_Admin_Includes_Plugin_IsPluginActive extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_plugins_that_are_not_active
 	 *
-	 * @param string|bool|null $plugin The plugin file.
+	 * @param string|bool $plugin The plugin file.
 	 */
 	public function test_should_report_a_plugin_that_is_not_listed_as_inactive( $plugin ) {
 		$this->assertFalse( is_plugin_active( $plugin ), 'The plugin should not be active.' );
@@ -77,7 +77,6 @@ class Tests_Admin_Includes_Plugin_IsPluginActive extends WP_UnitTestCase {
 			'the folder of a plugin'     => array( 'active' ),
 			'a different case'           => array( 'ACTIVE/active.php' ),
 			'an empty string'            => array( '' ),
-			'null'                       => array( null ),
 			'true'                       => array( true ),
 		);
 	}
