@@ -762,6 +762,8 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *
  * @access private
  * @since 4.0.0
+ * @since 7.2.0 The error handler receives an error code as its third argument, and the
+ *              default handler returns it as `error_code`.
  *
  * @see wp_handle_upload_error
  *
@@ -792,8 +794,13 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  * @param string      $action    Expected value for `$_POST['action']`.
  * @return array {
  *     On success, returns an associative array of file attributes.
- *     On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
- *     or `array( 'error' => $message )`.
+ *     On failure, returns `$overrides['upload_error_handler']( &$file, $message, $code )`
+ *     or `array( 'error' => $message, 'error_code' => $code )`. `$code` is one of
+ *     'upload_prefilter_error', 'upload_invalid_form', 'upload_err_ini_size',
+ *     'upload_err_form_size', 'upload_err_partial', 'upload_err_no_file',
+ *     'upload_err_no_tmp_dir', 'upload_err_cant_write', 'upload_err_extension',
+ *     'upload_php_error', 'upload_failed_test', 'upload_empty_file',
+ *     'upload_invalid_file_type', 'upload_dir_error' or 'upload_move_failed'.
  *
  *     @type string $file Filename of the newly-uploaded file.
  *     @type string $url  URL of the newly-uploaded file.
@@ -801,13 +808,19 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  * }
  *
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
- *                |array{ error: non-empty-string }
+ *                |array{ error: non-empty-string, error_code?: non-empty-string }
  */
 function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// The default error handler.
 	if ( ! function_exists( 'wp_handle_upload_error' ) ) {
-		function wp_handle_upload_error( &$file, $message ) {
-			return array( 'error' => $message );
+		function wp_handle_upload_error( &$file, $message, $code = '' ) {
+			$error = array( 'error' => $message );
+
+			if ( '' !== $code ) {
+				$error['error_code'] = $code;
+			}
+
+			return $error;
 		}
 	}
 
@@ -870,7 +883,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// You may have had one or more 'wp_handle_upload_prefilter' functions error out the file. Handle that gracefully.
 	if ( isset( $file['error'] ) && ! is_numeric( $file['error'] ) && $file['error'] ) {
-		return call_user_func_array( $upload_error_handler, array( &$file, $file['error'] ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, $file['error'], 'upload_prefilter_error' ) );
 	}
 
 	// Install user overrides. Did we mention that this voids your warranty?
@@ -911,6 +924,17 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		);
 	}
 
+	// Codes for the same errors, passed to the error handler so callers can tell them apart.
+	$upload_error_codes = array(
+		UPLOAD_ERR_INI_SIZE   => 'upload_err_ini_size',
+		UPLOAD_ERR_FORM_SIZE  => 'upload_err_form_size',
+		UPLOAD_ERR_PARTIAL    => 'upload_err_partial',
+		UPLOAD_ERR_NO_FILE    => 'upload_err_no_file',
+		UPLOAD_ERR_NO_TMP_DIR => 'upload_err_no_tmp_dir',
+		UPLOAD_ERR_CANT_WRITE => 'upload_err_cant_write',
+		UPLOAD_ERR_EXTENSION  => 'upload_err_extension',
+	);
+
 	// All tests are on by default. Most can be turned off by $overrides[{test_name}] = false;
 	$test_form = $overrides['test_form'] ?? true;
 	$test_size = $overrides['test_size'] ?? true;
@@ -921,18 +945,18 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// A correct form post will pass this test.
 	if ( $test_form && ( ! isset( $_POST['action'] ) || $_POST['action'] !== $action ) ) {
-		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Invalid form submission.' ) ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Invalid form submission.' ), 'upload_invalid_form' ) );
 	}
 
 	// A successful upload will pass this test. It makes no sense to override this one.
 	if ( isset( $file['error'] ) && $file['error'] > 0 ) {
-		return call_user_func_array( $upload_error_handler, array( &$file, $upload_error_strings[ $file['error'] ] ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, $upload_error_strings[ $file['error'] ], $upload_error_codes[ $file['error'] ] ?? 'upload_php_error' ) );
 	}
 
 	// A properly uploaded file will pass this test. There should be no reason to override this one.
 	$test_uploaded_file = 'wp_handle_upload' === $action ? is_uploaded_file( $file['tmp_name'] ) : @is_readable( $file['tmp_name'] );
 	if ( ! $test_uploaded_file ) {
-		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Specified file failed upload test.' ) ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, __( 'Specified file failed upload test.' ), 'upload_failed_test' ) );
 	}
 
 	$test_file_size = 'wp_handle_upload' === $action ? $file['size'] : filesize( $file['tmp_name'] );
@@ -950,7 +974,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 			);
 		}
 
-		return call_user_func_array( $upload_error_handler, array( &$file, $error_msg ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, $error_msg, 'upload_empty_file' ) );
 	}
 
 	// A correct MIME type will pass this test. Override $mimes or use the upload_mimes filter.
@@ -966,7 +990,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		}
 
 		if ( ( ! $type || ! $ext ) && ! current_user_can( 'unfiltered_upload' ) ) {
-			return call_user_func_array( $upload_error_handler, array( &$file, __( 'Sorry, you are not allowed to upload this file type.' ) ) );
+			return call_user_func_array( $upload_error_handler, array( &$file, __( 'Sorry, you are not allowed to upload this file type.' ), 'upload_invalid_file_type' ) );
 		}
 
 		if ( ! $type ) {
@@ -982,7 +1006,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 */
 	$uploads = wp_upload_dir( $time );
 	if ( ! ( $uploads && false === $uploads['error'] ) ) {
-		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
+		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'], 'upload_dir_error' ) );
 	}
 
 	$filename = wp_unique_filename( $uploads['path'], $file['name'], $unique_filename_callback );
@@ -1036,7 +1060,8 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 					/* translators: %s: Destination file path. */
 					__( 'The uploaded file could not be moved to %s.' ),
 					$error_path
-				)
+				),
+				'upload_move_failed'
 			);
 		}
 	}
@@ -1097,7 +1122,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  * @return array See _wp_handle_upload() for return value.
  *
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
- *                |array{ error: non-empty-string }
+ *                |array{ error: non-empty-string, error_code?: non-empty-string }
  */
 function wp_handle_upload( &$file, $overrides = false, $time = null ) {
 	/*
@@ -1127,7 +1152,7 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  * @return array See _wp_handle_upload() for return value.
  *
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: non-empty-string }
- *                |array{ error: non-empty-string }
+ *                |array{ error: non-empty-string, error_code?: non-empty-string }
  */
 function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 	/*

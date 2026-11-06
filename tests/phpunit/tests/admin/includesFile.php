@@ -518,4 +518,99 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
 	}
+
+	/**
+	 * @ticket 66374
+	 *
+	 * @dataProvider data_wp_handle_sideload_returns_error_code
+	 *
+	 * @param string   $expected_code Expected error code.
+	 * @param callable $setup         Callback that prepares the failure. Receives the temporary file path.
+	 * @param string   $name          File name to sideload.
+	 */
+	public function test_wp_handle_sideload_returns_error_code( $expected_code, $setup, $name ) {
+		$tmp = wp_tempnam( $name );
+		copy( DIR_TESTDATA . '/images/canola.jpg', $tmp );
+		$cleanup = $setup( $tmp );
+
+		$file   = array(
+			'name'     => $name,
+			'tmp_name' => $tmp,
+		);
+		$result = wp_handle_sideload( $file, array( 'test_form' => false ) );
+
+		if ( file_exists( $tmp ) ) {
+			unlink( $tmp );
+		}
+		if ( is_string( $cleanup ) && is_dir( $cleanup ) ) {
+			rmdir( $cleanup );
+		}
+
+		$this->assertArrayHasKey( 'error', $result, 'The sideload should fail.' );
+		$this->assertSame( $expected_code, $result['error_code'] ?? null, 'The error code should identify the failed check.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_handle_sideload_returns_error_code() {
+		return array(
+			'prefilter'    => array(
+				'upload_prefilter_error',
+				static function () {
+					add_filter(
+						'wp_handle_sideload_prefilter',
+						static function ( $file ) {
+							$file['error'] = 'Rejected by a plugin.';
+							return $file;
+						}
+					);
+				},
+				'canola.jpg',
+			),
+			'empty file'   => array(
+				'upload_empty_file',
+				static function ( $tmp ) {
+					file_put_contents( $tmp, '' );
+				},
+				'canola.jpg',
+			),
+			'file type'    => array(
+				'upload_invalid_file_type',
+				static function () {},
+				'canola.exe',
+			),
+			'uploads dir'  => array(
+				'upload_dir_error',
+				static function () {
+					add_filter(
+						'upload_dir',
+						static function ( $uploads ) {
+							$uploads['path'] = DIR_TESTDATA . '/images/canola.jpg/subdir';
+							return $uploads;
+						}
+					);
+				},
+				'canola.jpg',
+			),
+			'move failure' => array(
+				'upload_move_failed',
+				static function () {
+					$uploads = wp_upload_dir();
+					$blocked = $uploads['path'] . '/blocked-destination.jpg';
+					wp_mkdir_p( $blocked );
+					add_filter(
+						'wp_unique_filename',
+						static function () {
+							return 'blocked-destination.jpg';
+						}
+					);
+					return $blocked;
+				},
+				'canola.jpg',
+			),
+		);
+	}
 }
