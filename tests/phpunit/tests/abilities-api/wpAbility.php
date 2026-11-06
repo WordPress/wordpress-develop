@@ -2866,4 +2866,274 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $ability->check_permissions() );
 	}
+
+	/**
+	 * Tests that an unknown property is reported and ignored.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::__construct
+	 */
+	public function test_unknown_property_is_reported_and_ignored() {
+		$messages = array();
+
+		add_action(
+			'doing_it_wrong_run',
+			static function ( $the_method, $message ) use ( &$messages ) {
+				$messages[ $the_method ] = $message;
+			},
+			10,
+			2
+		);
+
+		$this->setExpectedIncorrectUsage( 'WP_Ability::__construct' );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge( self::$test_ability_properties, array( 'unknown_property' => 'value' ) )
+		);
+
+		$this->assertFalse( property_exists( $ability, 'unknown_property' ), 'The unknown property should be ignored.' );
+		$this->assertSame( 'Calculator', $ability->get_label(), 'The known properties should still be set.' );
+		$this->assertArrayHasKey( 'WP_Ability::__construct', $messages );
+		$this->assertStringContainsString( '<code>unknown_property</code>', $messages['WP_Ability::__construct'] );
+		$this->assertStringContainsString( '<code>' . self::$test_ability_name . '</code>', $messages['WP_Ability::__construct'] );
+	}
+
+	/**
+	 * Tests that the category is required.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @dataProvider data_invalid_categories
+	 *
+	 * @param array<string, mixed> $overrides The properties to merge into the test ability properties.
+	 */
+	public function test_category_is_required( array $overrides ) {
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties must contain a `category` string.' );
+
+		new WP_Ability( self::$test_ability_name, array_merge( self::$test_ability_properties, $overrides ) );
+	}
+
+	/**
+	 * Data provider for categories that are not valid.
+	 *
+	 * @return array<string, array{0: array<string, mixed>}>
+	 */
+	public static function data_invalid_categories(): array {
+		return array(
+			'an empty string' => array( array( 'category' => '' ) ),
+			'null'            => array( array( 'category' => null ) ),
+			'an integer'      => array( array( 'category' => 5 ) ),
+			'an array'        => array( array( 'category' => array( 'math' ) ) ),
+		);
+	}
+
+	/**
+	 * Tests that the category is required when the property is missing.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_category_is_required_when_missing() {
+		$args = self::$test_ability_properties;
+		unset( $args['category'] );
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties must contain a `category` string.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that input is rejected when the ability has no input schema.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::validate_input
+	 */
+	public function test_input_without_an_input_schema_is_rejected() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$result = $ability->validate_input( 'value' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_missing_input_schema', $result->get_error_code() );
+		$this->assertSame(
+			'Ability "test/calculator" does not define an input schema required to validate the provided input.',
+			$result->get_error_message()
+		);
+		$this->assertTrue( $ability->validate_input( null ), 'No input is valid without an input schema.' );
+	}
+
+	/**
+	 * Tests that executing an ability with input but no input schema returns an error.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::execute
+	 */
+	public function test_execute_with_input_and_no_input_schema_returns_an_error() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$result = $ability->execute( 'value' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_missing_input_schema', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that a filter can reject input with `false`.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::validate_input
+	 */
+	public function test_validate_input_filter_returning_false_rejects_the_input() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'input_schema'  => array( 'type' => 'integer' ),
+					'output_schema' => array( 'type' => 'integer' ),
+				)
+			)
+		);
+
+		$this->assertTrue( $ability->validate_input( 5 ), 'The input should be valid without the filter.' );
+
+		add_filter( 'wp_ability_validate_input', '__return_false' );
+
+		$result = $ability->validate_input( 5 );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+		$this->assertSame( 'Invalid input.', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that a filter can reject output with `false`.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::validate_output
+	 */
+	public function test_validate_output_filter_returning_false_rejects_the_output() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'output_schema'    => array( 'type' => 'integer' ),
+					'execute_callback' => static function (): int {
+						return 7;
+					},
+				)
+			)
+		);
+
+		$this->assertSame( 7, $ability->execute(), 'The output should be valid without the filter.' );
+
+		add_filter( 'wp_ability_validate_output', '__return_false' );
+
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
+		$this->assertSame( 'Invalid output.', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that an ability of a custom class without an execute callback returns an error.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::do_execute
+	 */
+	public function test_execute_without_a_valid_execute_callback_returns_an_error() {
+		$args = self::$test_ability_properties;
+		unset( $args['execute_callback'] );
+
+		$result = $this->create_custom_class_ability( $args )->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_execute_callback', $result->get_error_code() );
+		$this->assertSame( 'Ability "test/calculator" does not have a valid execute callback.', $result->get_error_message() );
+	}
+
+	/**
+	 * Tests that a permission callback error is reported but not shown to the caller.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::execute
+	 */
+	public function test_permission_callback_error_is_reported_and_not_leaked() {
+		$executed = false;
+		$messages = array();
+
+		add_action(
+			'doing_it_wrong_run',
+			static function ( $the_method, $message ) use ( &$messages ) {
+				$messages[ $the_method ] = $message;
+			},
+			10,
+			2
+		);
+
+		$this->setExpectedIncorrectUsage( 'WP_Ability::execute' );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'permission_callback' => static function () {
+						return new WP_Error( 'secret_reason', 'A secret reason.' );
+					},
+					'execute_callback'    => static function () use ( &$executed ) {
+						$executed = true;
+						return 1;
+					},
+				)
+			)
+		);
+
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+		$this->assertStringNotContainsString( 'secret', $result->get_error_message(), 'The reason should not be shown to the caller.' );
+		$this->assertFalse( $executed, 'The ability should not run.' );
+		$this->assertSame( 'A secret reason.', $messages['WP_Ability::execute'] );
+	}
+
+	/**
+	 * Tests that an ability cannot be serialized or unserialized.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability::__sleep
+	 * @covers WP_Ability::__wakeup
+	 */
+	public function test_ability_cannot_be_serialized_or_unserialized() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		try {
+			serialize( $ability );
+			$this->fail( 'Serializing an ability should throw an exception.' );
+		} catch ( LogicException $e ) {
+			$this->assertSame( 'WP_Ability should never be serialized.', $e->getMessage() );
+		}
+
+		$this->expectException( LogicException::class );
+		$this->expectExceptionMessage( 'WP_Ability should never be unserialized.' );
+
+		unserialize( 'O:10:"WP_Ability":0:{}' );
+	}
 }
