@@ -160,6 +160,25 @@ test.describe( 'Media library', () => {
 		await expect( audioTile ).toBeHidden();
 	} );
 
+	test( 'searches for an existing image', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'search' );
+		const title = `${ prefix }-search`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( title ) }`
+		);
+		const row = page.locator( `#post-${ id }` );
+		await expect( row ).toBeVisible();
+		await expect(
+			row.getByRole( 'link', { name: title, exact: true } )
+		).toBeVisible();
+	} );
+
 	test( 'shows an empty result when searching for missing media', async ( {
 		admin,
 		page,
