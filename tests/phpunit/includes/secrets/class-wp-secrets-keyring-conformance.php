@@ -3,7 +3,7 @@
  * Conformance suite for WP_Secrets_Keyring implementations.
  *
  * Extend this, return a keyring from keyring(), and the contract every keyring is
- * held to gets checked against it. "implements WP_Secrets_Keyring" is a claim PHP
+ * held to gets checked against it. "extends WP_Secrets_Keyring" is a claim PHP
  * can verify about method names and nothing else – it cannot tell you that
  * wrap() is non-deterministic, that unwrap() rejects tampering instead of
  * silently returning garbage bytes, or that failure is reported as WP_Error
