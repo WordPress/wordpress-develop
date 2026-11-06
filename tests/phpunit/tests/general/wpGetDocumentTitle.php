@@ -234,6 +234,17 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( 'September 22, 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @ticket 66489
+	 */
+	public function test_week_title() {
+		update_option( 'start_of_week', 1 );
+
+		$this->go_to( '?m=2015&w=39' );
+
+		$this->assertSame( sprintf( 'September 21, 2015 &#8211; September 27, 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
+	}
+
 	public function test_404_title() {
 		$this->go_to( '?m=404' );
 
