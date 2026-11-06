@@ -20,34 +20,42 @@ class Tests_Blocks_RenderAccordionItem extends WP_UnitTestCase {
 	const ITEM = '<div class="wp-block-accordion-item"><h3 class="wp-block-accordion-heading"><button class="wp-block-accordion-heading__toggle">Title</button></h3><div class="wp-block-accordion-panel"><img src="a.jpg" alt=""><p>Text</p></div></div>';
 
 	/**
-	 * The original state of the interactivity API.
+	 * The properties of the interactivity API that the tests change, with their original values.
 	 *
 	 * @var array
 	 */
-	private $original_state;
+	private $original_properties = array();
 
 	public function set_up() {
 		parent::set_up();
 
-		$property = new ReflectionProperty( WP_Interactivity_API::class, 'state_data' );
-
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
+		foreach ( array( 'state_data', 'derived_state_closures' ) as $name ) {
+			$this->original_properties[ $name ] = $this->get_interactivity_property( $name )->getValue( wp_interactivity() );
 		}
-
-		$this->original_state = $property->getValue( wp_interactivity() );
 	}
 
 	public function tear_down() {
-		$property = new ReflectionProperty( WP_Interactivity_API::class, 'state_data' );
+		foreach ( $this->original_properties as $name => $value ) {
+			$this->get_interactivity_property( $name )->setValue( wp_interactivity(), $value );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Returns a private property of the interactivity API.
+	 *
+	 * @param string $name The name of the property.
+	 * @return ReflectionProperty The property.
+	 */
+	private function get_interactivity_property( $name ) {
+		$property = new ReflectionProperty( WP_Interactivity_API::class, $name );
 
 		if ( PHP_VERSION_ID < 80100 ) {
 			$property->setAccessible( true );
 		}
 
-		$property->setValue( wp_interactivity(), $this->original_state );
-
-		parent::tear_down();
+		return $property;
 	}
 
 	/**
