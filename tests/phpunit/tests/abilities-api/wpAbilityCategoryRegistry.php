@@ -805,6 +805,8 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 */
 	public function test_get_instance_creates_the_registry_and_fires_the_init_action(): void {
 		$property = new ReflectionProperty( WP_Ability_Categories_Registry::class, 'instance' );
+		$property->setAccessible( true );
+
 		$original = $property->getValue();
 		$received = array();
 
