@@ -3099,4 +3099,251 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertCount( $result['pagination']['total'], $result['items'], 'The default page size should hold every fixture user on the first page.' );
 		$this->assertSame( 1, $result['pagination']['total_pages'], 'The default page size should fit every fixture user on one page.' );
 	}
+
+	/**
+	 * The profile fields of a user are returned with their values to a caller who can edit the user.
+	 *
+	 * @ticket 66549
+	 */
+	public function test_profile_fields_are_returned_with_their_values_to_a_caller_who_can_edit_the_user(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'         => 'subscriber',
+				'description'  => 'Writes about tests.',
+				'user_url'     => 'https://example.org/tester',
+				'first_name'   => 'Tess',
+				'last_name'    => 'Tester',
+				'nickname'     => 'tt',
+				'display_name' => 'Tess Tester',
+			)
+		);
+		update_user_meta( $user_id, 'locale', 'de_DE' );
+
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( $user_id ) ),
+				'fields' => array( 'id', 'name', 'description', 'url', 'first_name', 'last_name', 'nickname', 'locale' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The lookup should succeed.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'          => $user_id,
+					'name'        => 'Tess Tester',
+					'description' => 'Writes about tests.',
+					'url'         => 'https://example.org/tester',
+					'first_name'  => 'Tess',
+					'last_name'   => 'Tester',
+					'nickname'    => 'tt',
+					'locale'      => 'de_DE',
+				),
+			),
+			$result['items'],
+			'Each requested profile field should be returned with its value.'
+		);
+	}
+
+	/**
+	 * The public profile fields of another user are returned, but the private ones are not.
+	 *
+	 * @ticket 66549
+	 */
+	public function test_private_profile_fields_are_omitted_for_a_caller_who_cannot_edit_the_user(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'        => 'author',
+				'description' => 'Writes about tests.',
+				'user_url'    => 'https://example.org/public-tester',
+				'first_name'  => 'Pat',
+				'last_name'   => 'Public',
+				'nickname'    => 'pp',
+			)
+		);
+		update_user_meta( $user_id, 'locale', 'de_DE' );
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( $user_id ) ),
+				'fields' => array( 'id', 'description', 'url', 'first_name', 'last_name', 'nickname', 'locale' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The lookup should succeed.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'          => $user_id,
+					'description' => 'Writes about tests.',
+					'url'         => 'https://example.org/public-tester',
+				),
+			),
+			$result['items'],
+			'Only the public profile fields should be returned.'
+		);
+	}
+
+	/**
+	 * Returns the ID of the subscriber fixture in forms that are not PHP integers.
+	 *
+	 * Input that reaches the execute callback without validation can carry such values.
+	 *
+	 * @return array<string, array{0: string}> The name of the form, as the key.
+	 */
+	public static function data_user_ids_that_are_not_integers(): array {
+		return array(
+			'a digit string'   => array( 'digits' ),
+			'a float'          => array( 'float' ),
+			'a decimal string' => array( 'decimal' ),
+			'a signed string'  => array( 'signed' ),
+		);
+	}
+
+	/**
+	 * The execute callback honors an ID that is not a PHP integer but is a whole number.
+	 *
+	 * @ticket 66549
+	 *
+	 * @dataProvider data_user_ids_that_are_not_integers
+	 *
+	 * @param string $form The form of the ID to send.
+	 */
+	public function test_execute_callback_honors_an_id_that_is_not_an_integer( string $form ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+
+		$id      = self::$fixture_ids['subscriber'];
+		$forms   = array(
+			'digits'  => (string) $id,
+			'float'   => (float) $id,
+			'decimal' => $id . '.0',
+			'signed'  => '+' . $id,
+		);
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where'  => array( 'ids' => array( $forms[ $form ] ) ),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The lookup should succeed.' );
+		$this->assertSame( array( array( 'id' => $id ) ), $result['items'], 'The ID should resolve the user.' );
+	}
+
+	/**
+	 * The execute callback rejects an ID that is a number but not a usable ID.
+	 *
+	 * A fraction, a number below 1 and a float beyond the range where floats hold every integer
+	 * are dropped instead of being rounded into the ID of another user.
+	 *
+	 * @ticket 66549
+	 *
+	 * @dataProvider data_user_ids_that_are_not_usable
+	 *
+	 * @param float|string $id The ID to send.
+	 */
+	public function test_execute_callback_rejects_an_id_that_is_not_usable( $id ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute( array( 'where' => array( 'ids' => array( $id ) ) ) );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'users_invalid_filter', $result->get_error_code() );
+	}
+
+	/**
+	 * Data provider for IDs that are not usable.
+	 *
+	 * @return array<string, array{0: float|string}>
+	 */
+	public static function data_user_ids_that_are_not_usable(): array {
+		return array(
+			'a fraction'                     => array( 2.5 ),
+			'a float below 1'                => array( 0.0 ),
+			'a negative float'               => array( -3.0 ),
+			'a float beyond the exact range' => array( 1.0E+20 ),
+			'a negative digit string'        => array( '-3' ),
+			'a word'                         => array( 'abc' ),
+		);
+	}
+
+	/**
+	 * A row that is not a user is skipped.
+	 *
+	 * A query filter can change the fields the query returns, so the ability reads only the rows
+	 * that are users.
+	 *
+	 * @ticket 66549
+	 */
+	public function test_rows_that_are_not_users_are_skipped(): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		add_action(
+			'pre_get_users',
+			static function ( WP_User_Query $query ): void {
+				$query->set( 'fields', 'ID' );
+			}
+		);
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( self::$fixture_ids['subscriber'] ) ),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame( array(), $result['items'], 'A row that is not a user should be skipped.' );
+	}
+
+	/**
+	 * A registration date that cannot be parsed is reported as null.
+	 *
+	 * @ticket 66549
+	 */
+	public function test_registered_date_that_cannot_be_parsed_is_reported_as_null(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		// Keep a date that cannot be stored in the database in the user cache, which the query reads the user from.
+		$data                  = WP_User::get_data_by( 'id', $user_id );
+		$data->user_registered = 'not a date';
+		wp_cache_set( $user_id, $data, 'users' );
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( $user_id ) ),
+				'fields' => array( 'id', 'registered' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame(
+			array(
+				'site' => null,
+				'gmt'  => null,
+			),
+			$result['items'][0]['registered'],
+			'A date that cannot be parsed should be reported as null.'
+		);
+	}
 }
