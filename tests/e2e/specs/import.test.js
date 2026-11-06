@@ -79,10 +79,10 @@ test.describe( 'Import', () => {
 			.click();
 
 		await expect(
-			page.getByRole( 'link', {
-				name: `Run ${ IMPORTER_NAME }`,
-				exact: true,
-			} )
+			page.locator(
+				`a[data-slug="${ IMPORTER_SLUG }"].activate-now`,
+				{ hasText: 'Run Importer' }
+			)
 		).toBeVisible( { timeout: 180_000 } );
 
 		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
