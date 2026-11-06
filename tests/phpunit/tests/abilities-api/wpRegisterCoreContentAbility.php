@@ -6750,4 +6750,259 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $by_id, 'An author with published posts on the site should be filterable by ID without being a member.' );
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_id['items'], 'id' ), 'The ID should return the author\'s posts on the site.' );
 	}
+
+	/**
+	 * An inherited post whose parents loop back to it is denied.
+	 *
+	 * A query filter adds the `inherit` status, which no input can request, so the posts reach
+	 * the read check. Walking the parents must stop at the first post it has seen.
+	 *
+	 * @ticket 66549
+	 * @since 7.2.0
+	 */
+	public function test_inherited_post_with_a_parent_loop_is_denied(): void {
+		global $wpdb;
+
+		$this->register_inherit_post_type();
+
+		$first_id  = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_cpt',
+				'post_status' => 'inherit',
+			)
+		);
+		$second_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_cpt',
+				'post_status' => 'inherit',
+				'post_parent' => $first_id,
+			)
+		);
+
+		// Make the parents loop: the first post is the child of the second one.
+		$wpdb->update( $wpdb->posts, array( 'post_parent' => $second_id ), array( 'ID' => $first_id ) );
+		clean_post_cache( $first_id );
+
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type' => 'inherit_cpt',
+					'ids'  => array( $first_id ),
+				),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A loop of parents should not fail the query.' );
+		$this->assertSame( 1, $result['pagination']['total'], 'Precondition: the query filter should add the inherited post.' );
+		$this->assertSame( array(), $result['items'], 'A post whose parents loop should be denied.' );
+	}
+
+	/**
+	 * An inherited post is denied when its parent is of a post type that is not exposed.
+	 *
+	 * @ticket 66549
+	 * @since 7.2.0
+	 */
+	public function test_inherited_post_with_a_parent_of_a_post_type_that_is_not_exposed_is_denied(): void {
+		register_post_type(
+			'unexposed_cpt',
+			array(
+				'public' => true,
+			)
+		);
+		$this->register_inherit_post_type();
+
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'unexposed_cpt',
+				'post_status' => 'publish',
+			)
+		);
+		$child_id  = self::factory()->post->create(
+			array(
+				'post_type'   => 'inherit_cpt',
+				'post_status' => 'inherit',
+				'post_parent' => $parent_id,
+			)
+		);
+
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type' => 'inherit_cpt',
+					'ids'  => array( $child_id ),
+				),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame( 1, $result['pagination']['total'], 'Precondition: the query filter should add the inherited post.' );
+		$this->assertSame( array(), $result['items'], 'A parent of a post type that is not exposed should not make the post readable.' );
+
+		unregister_post_type( 'unexposed_cpt' );
+	}
+
+	/**
+	 * A post with a status that is not registered is denied, even to an administrator.
+	 *
+	 * A query filter adds the status, which no input can request, so the post reaches the read check,
+	 * and the status is removed after the query.
+	 *
+	 * @ticket 66549
+	 * @since 7.2.0
+	 */
+	public function test_post_with_a_status_that_is_not_registered_is_denied(): void {
+		global $wp_post_statuses;
+
+		register_post_status( 'unregistered_later', array( 'public' => false ) );
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'unregistered_later' ) );
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				$query->set( 'post_status', array( 'publish', 'unregistered_later' ) );
+			}
+		);
+
+		// Remove the status once the query has run, as a plugin that is deactivated would.
+		add_filter(
+			'the_posts',
+			static function ( $posts ) {
+				unset( $GLOBALS['wp_post_statuses']['unregistered_later'] );
+
+				return $posts;
+			}
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		try {
+			$result = wp_get_ability( 'core/content-query' )->execute(
+				array(
+					'where' => array(
+						'type' => 'post',
+						'ids'  => array( $post_id ),
+					),
+				)
+			);
+		} finally {
+			unset( $wp_post_statuses['unregistered_later'] );
+		}
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame( 1, $result['pagination']['total'], 'Precondition: the query filter should add the post.' );
+		$this->assertSame( array(), $result['items'], 'A post with a status that is not registered should be denied.' );
+	}
+
+	/**
+	 * A post whose status is not a string is denied.
+	 *
+	 * @ticket 66549
+	 * @since 7.2.0
+	 */
+	public function test_post_with_a_status_that_is_not_a_string_is_denied(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$input   = array(
+			'where'  => array(
+				'type' => 'post',
+				'ids'  => array( $post_id ),
+			),
+			'fields' => array( 'id' ),
+		);
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $ability->execute( $input )['items'], 'id' ), 'Precondition: the post should be returned.' );
+
+		add_filter( 'get_post_status', '__return_false' );
+
+		$result = $ability->execute( $input );
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame( array(), $result['items'], 'A post without a usable status should be denied.' );
+	}
+
+	/**
+	 * Returns IDs that the execute callback reads from a value that is not a list.
+	 *
+	 * @return array<string, array{0: string}> The name of the form, as the key.
+	 */
+	public static function data_ids_that_are_not_a_list(): array {
+		return array(
+			'an integer' => array( 'integer' ),
+			'a float'    => array( 'float' ),
+		);
+	}
+
+	/**
+	 * The execute callback reads a single ID that is not in a list.
+	 *
+	 * Schema validation accepts a single value for `ids`, and coercion turns it into a list, so
+	 * the value only reaches the callback as it is when the input is not validated first.
+	 *
+	 * @ticket 66549
+	 * @dataProvider data_ids_that_are_not_a_list
+	 * @since 7.2.0
+	 *
+	 * @param string $form The form of the ID to send.
+	 */
+	public function test_execute_callback_reads_a_single_id_that_is_not_in_a_list( string $form ): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->login_as( 'administrator' );
+
+		$forms   = array(
+			'integer' => $post_id,
+			'float'   => (float) $post_id,
+		);
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => $forms[ $form ],
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should not fail.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['items'], 'id' ), 'The single ID should select the post.' );
+	}
+
+	/**
+	 * The execute callback rejects `ids` that are neither a list nor a number nor a string.
+	 *
+	 * @ticket 66549
+	 * @since 7.2.0
+	 */
+	public function test_execute_callback_rejects_ids_that_are_not_a_list_a_number_or_a_string(): void {
+		$this->login_as( 'administrator' );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type' => 'post',
+					'ids'  => true,
+				),
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code() );
+	}
 }
