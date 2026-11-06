@@ -736,6 +736,666 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The edit link on the front end points to the screen for editing the queried post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_links_to_edit_screen_for_queried_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$page_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$editor_id,
+				'post_type'   => 'page',
+			)
+		);
+
+		$expected = array(
+			array( $post_id, 'Edit Post' ),
+			array( $page_id, 'Edit Page' ),
+		);
+
+		foreach ( $expected as list( $id, $title ) ) {
+			$GLOBALS['wp_the_query']->queried_object = get_post( $id );
+
+			$wp_admin_bar = $this->get_standard_admin_bar();
+			$node_edit    = $wp_admin_bar->get_node( 'edit' );
+
+			$this->assertNotNull( $node_edit, "The edit node should exist for post $id." );
+			$this->assertSame( $title, $node_edit->title );
+			$this->assertSame( get_edit_post_link( $id ), $node_edit->href );
+			$this->assertSame( 'core-admin/pencil', $node_edit->icon );
+		}
+	}
+
+	/**
+	 * The edit link on the front end is not added when the user cannot edit the queried post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_is_not_added_without_edit_capability() {
+		$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$post_id       = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		wp_set_current_user( $subscriber_id );
+
+		$GLOBALS['wp_the_query']->queried_object = get_post( $post_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'edit' ) );
+	}
+
+	/**
+	 * The edit link on the front end is not added for a post type hidden from the Toolbar.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_is_not_added_for_post_type_not_shown_in_admin_bar() {
+		register_post_type(
+			'foo-hidden',
+			array(
+				'public'            => true,
+				'show_in_admin_bar' => false,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$editor_id,
+				'post_type'   => 'foo-hidden',
+			)
+		);
+
+		$GLOBALS['wp_the_query']->queried_object = get_post( $post_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_edit    = $wp_admin_bar->get_node( 'edit' );
+
+		unregister_post_type( 'foo-hidden' );
+
+		$this->assertNull( $node_edit );
+	}
+
+	/**
+	 * The edit link on the front end is not added when nothing is queried.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_is_not_added_without_queried_object() {
+		wp_set_current_user( self::$editor_id );
+
+		$GLOBALS['wp_the_query']->queried_object = null;
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'edit' ) );
+	}
+
+	/**
+	 * The edit link on the front end points to the screen for editing the queried term.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_links_to_edit_screen_for_queried_term() {
+		wp_set_current_user( self::$editor_id );
+
+		$term = get_term( self::factory()->category->create(), 'category' );
+
+		$GLOBALS['wp_the_query']->queried_object = $term;
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_edit    = $wp_admin_bar->get_node( 'edit' );
+
+		$this->assertNotNull( $node_edit );
+		$this->assertSame( 'Edit Category', $node_edit->title );
+		$this->assertSame( get_edit_term_link( $term->term_id, 'category' ), $node_edit->href );
+	}
+
+	/**
+	 * The edit link on the front end is not added when the user cannot edit the queried term.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_is_not_added_for_term_without_edit_capability() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$GLOBALS['wp_the_query']->queried_object = get_term( self::factory()->category->create(), 'category' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'edit' ) );
+	}
+
+	/**
+	 * The edit link on the front end points to the screen for editing the queried user.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_links_to_edit_screen_for_queried_user() {
+		wp_set_current_user( self::$admin_id );
+
+		// On multisite, only super admins can edit users.
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+
+		$GLOBALS['wp_the_query']->queried_object = get_userdata( self::$editor_id );
+
+		$wp_admin_bar  = $this->get_standard_admin_bar();
+		$node_edit     = $wp_admin_bar->get_node( 'edit' );
+		$expected_link = get_edit_user_link( self::$editor_id );
+
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+
+		$this->assertNotNull( $node_edit );
+		$this->assertSame( 'Edit User', $node_edit->title );
+		$this->assertNotSame( '', $expected_link );
+		$this->assertSame( $expected_link, $node_edit->href );
+	}
+
+	/**
+	 * The edit link on the front end is not added when the user cannot edit the queried user.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_on_front_end_is_not_added_for_user_without_edit_capability() {
+		wp_set_current_user( self::$editor_id );
+
+		$GLOBALS['wp_the_query']->queried_object = get_userdata( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'edit' ) );
+	}
+
+	/**
+	 * The "View Post" link is added on the screen for editing a published post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_links_to_published_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		$GLOBALS['post'] = get_post( $post_id );
+		set_current_screen( 'post' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+		$node_preview = $wp_admin_bar->get_node( 'preview' );
+
+		unset( $GLOBALS['post'] );
+
+		$this->assertNotNull( $node_view );
+		$this->assertSame( 'View Post', $node_view->title );
+		$this->assertSame( get_permalink( $post_id ), $node_view->href );
+		$this->assertNull( $node_preview, 'A published post should not have a preview link.' );
+	}
+
+	/**
+	 * The "Preview" link is added on the screen for editing a draft post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_links_to_preview_of_draft_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$editor_id,
+				'post_status' => 'draft',
+			)
+		);
+
+		$GLOBALS['post'] = get_post( $post_id );
+		set_current_screen( 'post' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+		$node_preview = $wp_admin_bar->get_node( 'preview' );
+
+		unset( $GLOBALS['post'] );
+
+		$this->assertNull( $node_view, 'A draft post should not have a view link.' );
+		$this->assertNotNull( $node_preview );
+		$this->assertSame( 'View Post', $node_preview->title );
+		$this->assertSame( esc_url( get_preview_post_link( $post_id ) ), $node_preview->href );
+		$this->assertSame( 'wp-preview-' . $post_id, $node_preview->meta['target'] );
+	}
+
+	/**
+	 * No view link is added on the screen for adding a new post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_has_no_view_link_when_adding_a_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$GLOBALS['post'] = get_post( self::factory()->post->create( array( 'post_author' => self::$editor_id ) ) );
+		set_current_screen( 'post-new' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+		$node_preview = $wp_admin_bar->get_node( 'preview' );
+
+		unset( $GLOBALS['post'] );
+
+		$this->assertNull( $node_view );
+		$this->assertNull( $node_preview );
+	}
+
+	/**
+	 * The "View Post" link is added on the Comments screen for a single post.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_links_to_post_on_comments_screen_for_single_post() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		$GLOBALS['post_id'] = $post_id;
+		set_current_screen( 'edit-comments' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+
+		unset( $GLOBALS['post_id'] );
+
+		$this->assertNotNull( $node_view );
+		$this->assertSame( 'View Post', $node_view->title );
+		$this->assertSame( get_permalink( $post_id ), $node_view->href );
+	}
+
+	/**
+	 * The view link is added on the screen for editing a publicly viewable term.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_links_to_publicly_viewable_term() {
+		wp_set_current_user( self::$editor_id );
+
+		$term = get_term( self::factory()->category->create(), 'category' );
+
+		$GLOBALS['tag'] = $term;
+		set_current_screen( 'term' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+
+		unset( $GLOBALS['tag'] );
+
+		$this->assertNotNull( $node_view );
+		$this->assertSame( 'View Category', $node_view->title );
+		$this->assertSame( get_term_link( $term ), $node_view->href );
+	}
+
+	/**
+	 * The view link is not added on the screen for editing a term that is not publicly viewable.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_has_no_view_link_for_term_that_is_not_publicly_viewable() {
+		register_taxonomy( 'foo-private', 'post', array( 'public' => false ) );
+
+		wp_set_current_user( self::$editor_id );
+
+		$term = get_term( self::factory()->term->create( array( 'taxonomy' => 'foo-private' ) ), 'foo-private' );
+
+		$GLOBALS['tag'] = $term;
+		set_current_screen( 'term' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+
+		unset( $GLOBALS['tag'] );
+		unregister_taxonomy( 'foo-private' );
+
+		$this->assertNull( $node_view );
+	}
+
+	/**
+	 * The "View User" link is added on the screen for editing a user.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_menu
+	 */
+	public function test_edit_menu_in_admin_links_to_user_archive() {
+		wp_set_current_user( self::$admin_id );
+
+		$GLOBALS['user_id'] = self::$editor_id;
+		set_current_screen( 'user-edit' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_view    = $wp_admin_bar->get_node( 'view' );
+
+		unset( $GLOBALS['user_id'] );
+
+		$this->assertNotNull( $node_view );
+		$this->assertSame( 'View User', $node_view->title );
+		$this->assertSame( get_author_posts_url( self::$editor_id ), $node_view->href );
+	}
+
+	/**
+	 * The "Edit Site" link is added on the front end of a block theme for users who can edit theme options.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_site_menu
+	 */
+	public function test_edit_site_menu_links_to_site_editor_for_block_theme() {
+		global $_wp_current_template_id;
+
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+
+		wp_set_current_user( self::$admin_id );
+		$_wp_current_template_id = 'block-theme//index';
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'site-editor' );
+
+		unset( $GLOBALS['_wp_current_template_id'] );
+		switch_theme( $original_stylesheet );
+
+		$this->assertNotNull( $node_site );
+		$this->assertSame( 'Edit Site', $node_site->title );
+		$this->assertSame( 'core-admin/brush', $node_site->icon );
+		$this->assertSame(
+			add_query_arg(
+				array(
+					'postType' => 'wp_template',
+					'postId'   => 'block-theme//index',
+					'canvas'   => 'edit',
+				),
+				admin_url( 'site-editor.php' )
+			),
+			$node_site->href
+		);
+	}
+
+	/**
+	 * The "Edit Site" link is not added when a classic theme is active.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_site_menu
+	 */
+	public function test_edit_site_menu_is_not_added_for_classic_theme() {
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'default' );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'site-editor' );
+
+		switch_theme( $original_stylesheet );
+
+		$this->assertNull( $node_site );
+	}
+
+	/**
+	 * The "Edit Site" link is not added for users who cannot edit theme options.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_site_menu
+	 */
+	public function test_edit_site_menu_is_not_added_without_edit_theme_options_capability() {
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'site-editor' );
+
+		switch_theme( $original_stylesheet );
+
+		$this->assertNull( $node_site );
+	}
+
+	/**
+	 * The "Edit Site" link is not added in the admin.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_edit_site_menu
+	 */
+	public function test_edit_site_menu_is_not_added_in_admin() {
+		$original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+
+		wp_set_current_user( self::$admin_id );
+		set_current_screen( 'dashboard' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_site    = $wp_admin_bar->get_node( 'site-editor' );
+
+		switch_theme( $original_stylesheet );
+
+		$this->assertNull( $node_site );
+	}
+
+	/**
+	 * The appearance group is always added, but has no items for users without theme capabilities.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_has_no_items_without_theme_capabilities() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_group   = $wp_admin_bar->get_node( 'appearance' );
+
+		$this->assertNotNull( $node_group );
+		$this->assertTrue( $node_group->group );
+		$this->assertSame( 'site-name', $node_group->parent );
+
+		foreach ( array( 'themes', 'widgets', 'menus', 'background', 'header' ) as $id ) {
+			$this->assertNull( $wp_admin_bar->get_node( $id ), "The $id node should not exist." );
+		}
+	}
+
+	/**
+	 * The Themes link is added for users who can switch themes.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_links_to_themes_for_users_who_can_switch_themes() {
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_themes  = $wp_admin_bar->get_node( 'themes' );
+
+		$this->assertNotNull( $node_themes );
+		$this->assertSame( 'appearance', $node_themes->parent );
+		$this->assertSame( 'Themes', $node_themes->title );
+		$this->assertSame( admin_url( 'themes.php' ), $node_themes->href );
+	}
+
+	/**
+	 * The Widgets and Menus links are added when the theme supports widgets.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_includes_widgets_and_menus_when_theme_supports_widgets() {
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		unset( $_wp_theme_features['menus'] );
+		add_theme_support( 'widgets' );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_widgets = $wp_admin_bar->get_node( 'widgets' );
+		$node_menus   = $wp_admin_bar->get_node( 'menus' );
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertNotNull( $node_widgets );
+		$this->assertSame( 'appearance', $node_widgets->parent );
+		$this->assertSame( admin_url( 'widgets.php' ), $node_widgets->href );
+		$this->assertNotNull( $node_menus );
+		$this->assertSame( 'appearance', $node_menus->parent );
+		$this->assertSame( admin_url( 'nav-menus.php' ), $node_menus->href );
+	}
+
+	/**
+	 * Only the Menus link is added when the theme supports menus but not widgets.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_includes_only_menus_when_theme_supports_menus_but_not_widgets() {
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		unset( $_wp_theme_features['widgets'] );
+		add_theme_support( 'menus' );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_widgets = $wp_admin_bar->get_node( 'widgets' );
+		$node_menus   = $wp_admin_bar->get_node( 'menus' );
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertNull( $node_widgets );
+		$this->assertNotNull( $node_menus );
+	}
+
+	/**
+	 * Neither the Widgets nor the Menus link is added when the theme supports neither.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_excludes_widgets_and_menus_when_theme_supports_neither() {
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		unset( $_wp_theme_features['widgets'], $_wp_theme_features['menus'] );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_widgets = $wp_admin_bar->get_node( 'widgets' );
+		$node_menus   = $wp_admin_bar->get_node( 'menus' );
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertNull( $node_widgets );
+		$this->assertNull( $node_menus );
+	}
+
+	/**
+	 * The Background and Header links are added when the theme supports them,
+	 * and are hidden when the Customizer is available.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_includes_background_and_header_when_theme_supports_them() {
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		add_theme_support( 'custom-background' );
+		add_theme_support( 'custom-header' );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_background = $wp_admin_bar->get_node( 'background' );
+		$node_header     = $wp_admin_bar->get_node( 'header' );
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertNotNull( $node_background );
+		$this->assertSame( 'appearance', $node_background->parent );
+		$this->assertSame( 'Background', $node_background->title );
+		$this->assertSame( admin_url( 'themes.php?page=custom-background' ), $node_background->href );
+		$this->assertSame( 'hide-if-customize', $node_background->meta['class'] );
+
+		$this->assertNotNull( $node_header );
+		$this->assertSame( 'appearance', $node_header->parent );
+		$this->assertSame( 'Header', $node_header->title );
+		$this->assertSame( admin_url( 'themes.php?page=custom-header' ), $node_header->href );
+		$this->assertSame( 'hide-if-customize', $node_header->meta['class'] );
+	}
+
+	/**
+	 * The Background and Header links are not added when the theme does not support them.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_appearance_menu
+	 */
+	public function test_appearance_menu_excludes_background_and_header_when_theme_does_not_support_them() {
+		global $_wp_theme_features;
+
+		$original_features = $_wp_theme_features;
+		unset( $_wp_theme_features['custom-background'], $_wp_theme_features['custom-header'] );
+
+		wp_set_current_user( self::$admin_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$has_nodes    = null !== $wp_admin_bar->get_node( 'background' ) || null !== $wp_admin_bar->get_node( 'header' );
+
+		$_wp_theme_features = $original_features;
+
+		$this->assertFalse( $has_nodes );
+	}
+
+	/**
 	 * @ticket 39082
 	 * @group ms-required
 	 * @dataProvider data_my_sites_network_menu_items
