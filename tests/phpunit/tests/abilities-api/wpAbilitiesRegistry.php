@@ -761,4 +761,26 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$unfiltered_ability = $this->registry->register( 'test/another-ability', self::$test_ability_args );
 		$this->assertNotSame( $filtered_ability->get_label(), $unfiltered_ability->get_label(), 'The filter incorrectly modified the args for an ability it should not have.' );
 	}
+
+	/**
+	 * Tests that the registry cannot be serialized or unserialized.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Abilities_Registry::__sleep
+	 * @covers WP_Abilities_Registry::__wakeup
+	 */
+	public function test_registry_cannot_be_serialized_or_unserialized() {
+		try {
+			serialize( $this->registry );
+			$this->fail( 'Serializing the registry should throw an exception.' );
+		} catch ( LogicException $e ) {
+			$this->assertSame( 'WP_Abilities_Registry should never be serialized.', $e->getMessage() );
+		}
+
+		$this->expectException( LogicException::class );
+		$this->expectExceptionMessage( 'WP_Abilities_Registry should never be unserialized.' );
+
+		unserialize( 'O:21:"WP_Abilities_Registry":0:{}' );
+	}
 }

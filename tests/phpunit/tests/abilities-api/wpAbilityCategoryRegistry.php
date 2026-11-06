@@ -715,4 +715,119 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 
 		$this->assertSame( $instance1, $instance2 );
 	}
+
+	/**
+	 * Test that the category registry cannot be serialized or unserialized.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability_Categories_Registry::__sleep
+	 * @covers WP_Ability_Categories_Registry::__wakeup
+	 */
+	public function test_category_registry_cannot_be_serialized_or_unserialized(): void {
+		try {
+			serialize( $this->registry );
+			$this->fail( 'Serializing the registry should throw an exception.' );
+		} catch ( LogicException $e ) {
+			$this->assertSame( 'WP_Ability_Categories_Registry should never be serialized.', $e->getMessage() );
+		}
+
+		$this->expectException( LogicException::class );
+		$this->expectExceptionMessage( 'WP_Ability_Categories_Registry should never be unserialized.' );
+
+		unserialize( 'O:30:"WP_Ability_Categories_Registry":0:{}' );
+	}
+
+	/**
+	 * Test that a category cannot be created without a slug.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability_Category::__construct
+	 */
+	public function test_category_constructor_empty_slug(): void {
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability category slug cannot be empty.' );
+
+		new WP_Ability_Category(
+			'',
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations.',
+			)
+		);
+	}
+
+	/**
+	 * Test that the registry is not created before the `init` action has fired.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability_Categories_Registry::get_instance
+	 */
+	public function test_get_instance_before_init_returns_null(): void {
+		global $wp_actions;
+
+		$original_init_count = $wp_actions['init'] ?? null;
+		unset( $wp_actions['init'] );
+
+		$messages = array();
+
+		add_action(
+			'doing_it_wrong_run',
+			static function ( $the_method, $message ) use ( &$messages ) {
+				$messages[ $the_method ] = $message;
+			},
+			10,
+			2
+		);
+
+		$this->setExpectedIncorrectUsage( 'WP_Ability_Categories_Registry::get_instance' );
+
+		try {
+			$instance = WP_Ability_Categories_Registry::get_instance();
+		} finally {
+			if ( null !== $original_init_count ) {
+				$wp_actions['init'] = $original_init_count;
+			}
+		}
+
+		$this->assertNull( $instance );
+		$this->assertStringContainsString( '<code>init</code>', $messages['WP_Ability_Categories_Registry::get_instance'] );
+	}
+
+	/**
+	 * Test that the registry is created once and fires the action to register categories.
+	 *
+	 * @ticket 66549
+	 *
+	 * @covers WP_Ability_Categories_Registry::get_instance
+	 */
+	public function test_get_instance_creates_the_registry_and_fires_the_init_action(): void {
+		$property = new ReflectionProperty( WP_Ability_Categories_Registry::class, 'instance' );
+		$original = $property->getValue();
+		$received = array();
+
+		$property->setValue( null, null );
+
+		add_action(
+			'wp_abilities_api_categories_init',
+			static function ( $registry ) use ( &$received ) {
+				$received[] = $registry;
+			}
+		);
+
+		try {
+			$instance = WP_Ability_Categories_Registry::get_instance();
+			$again    = WP_Ability_Categories_Registry::get_instance();
+		} finally {
+			$property->setValue( null, $original );
+		}
+
+		$this->assertInstanceOf( WP_Ability_Categories_Registry::class, $instance );
+		$this->assertSame( $instance, $again, 'The registry should be created once.' );
+		$this->assertNotSame( $original, $instance, 'A new registry should be created.' );
+		$this->assertCount( 1, $received, 'The action should fire once.' );
+		$this->assertSame( $instance, $received[0], 'The action should receive the registry.' );
+	}
 }
