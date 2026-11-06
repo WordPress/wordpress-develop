@@ -1862,6 +1862,91 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that TrueType fonts are accepted whether font/ttf or font/sfnt is expected.
+	 *
+	 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to font/ttf.
+	 * Expecting each type in turn ensures that whichever one libmagic reports, a file is also
+	 * accepted when the other is expected.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @dataProvider data_wp_check_filetype_and_ext_with_ttf_mime_types
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 *
+	 * @param string $mime_type The mime type expected for TTF files.
+	 */
+	public function test_wp_check_filetype_and_ext_accepts_either_ttf_mime_type( $mime_type ) {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$detected_type = finfo_file( finfo_open( FILEINFO_MIME_TYPE ), $file );
+		if ( ! in_array( $detected_type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			$this->markTestSkipped( "This version of libmagic detects TrueType fonts as {$detected_type}." );
+		}
+
+		$filter = static function ( $mimes ) use ( $mime_type ) {
+			$mimes['ttf'] = $mime_type;
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => 'ttf',
+			'type'            => $mime_type,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_check_filetype_and_ext_with_ttf_mime_types() {
+		return array(
+			'font/ttf'  => array( 'font/ttf' ),
+			'font/sfnt' => array( 'font/sfnt' ),
+		);
+	}
+
+	/**
+	 * Tests that a font file of another format is rejected when named with a .ttf extension.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 */
+	public function test_wp_check_filetype_and_ext_rejects_other_font_formats_as_ttf() {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.woff';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$filter = static function ( $mimes ) {
+			$mimes['ttf'] = 'font/ttf';
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => false,
+			'type'            => false,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
+	}
+
+	/**
 	 * Test file path validation
 	 *
 	 * @ticket 42016
