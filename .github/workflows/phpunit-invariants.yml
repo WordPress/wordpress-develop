@@ -187,15 +187,27 @@ jobs:
       - name: Run the self-tests of the invariant support code
         run: npm run test:php:invariants:self-tests
 
+      - name: Run the canaries, which break each security invariant on purpose
+        run: npm run test:php:invariants:canaries
+
       - name: Run PHPUnit tests with the invariants
         run: npm run test:php:invariants -- --verbose
         env:
           # Also count the types every WordPress function is given and returns, for the types report.
           WP_INVARIANTS_TYPES: 1
 
+      # The AJAX tests are a group of their own, which the main run leaves out, as phpunit.xml.dist does.
+      - name: Run the AJAX tests with the invariants
+        if: ${{ success() || failure() }}
+        run: npm run test:php:invariants -- --verbose --group ajax --log-junit tests/phpunit/build/logs/invariants-ajax-junit.xml
+        env:
+          WP_INVARIANTS_REPORT_NAME: invariants-ajax
+
       - name: Show the test which was running
         if: ${{ failure() || cancelled() }}
-        run: cat tests/phpunit/build/logs/invariants-current-test.txt 2> /dev/null || echo 'No test was running.'
+        run: |
+          cat tests/phpunit/build/logs/invariants-current-test.txt 2> /dev/null || echo 'No test was running.'
+          cat tests/phpunit/build/logs/invariants-ajax-current-test.txt 2> /dev/null || true
 
       - name: Add the invariant report to the summary
         if: ${{ always() }}
@@ -209,6 +221,10 @@ jobs:
           if [[ -f tests/phpunit/build/logs/invariants-types-summary.md ]]; then
             cat tests/phpunit/build/logs/invariants-types-summary.md >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [[ -f tests/phpunit/build/logs/invariants-ajax.md ]]; then
+            echo '# AJAX tests' >> "$GITHUB_STEP_SUMMARY"
+            cat tests/phpunit/build/logs/invariants-ajax.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload the invariant report
         if: ${{ always() }}
@@ -218,7 +234,7 @@ jobs:
           path: |
             tests/phpunit/build/logs/invariants*.json
             tests/phpunit/build/logs/invariants*.md
-            tests/phpunit/build/logs/invariants-junit.xml
+            tests/phpunit/build/logs/invariants*-junit.xml
           if-no-files-found: warn
 
       - name: Ensure version-controlled files are not modified or deleted

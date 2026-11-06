@@ -13,9 +13,10 @@ Violations are reported only; they never fail a test. The [`PHPUnit Invariants`]
 - `specs/`: the invariants, in one file for each area of WordPress, such as `post.php` or `wpdb.php`.
 - `gameshark.php`: the file the extension loads at the start of every PHP process, before PHPUnit and WordPress. It returns the hooks of every invariant in `specs/`.
 - `bootstrap.php` and `phpunit.xml.dist`: run the WordPress test suite with the invariants. The test suites and groups are the same as in `phpunit.xml.dist` at the root of the repository.
-- `includes/`: the support code. `WP_Invariant` defines invariants, `WP_Invariant_Call` is what their checks receive, and `WP_Invariant_SQL_Lexer` compares the structure of queries and of `wpdb::prepare()` templates.
+- `includes/`: the support code. `WP_Invariant` defines invariants, `WP_Invariant_Call` is what their checks receive, and `WP_Invariant_SQL_Lexer` compares the structure of queries and of `wpdb::prepare()` templates. `WP_Invariant_Request` finds what the request sent, and `WP_Invariant_Security` reads addresses, serialized data and files as an attacker would use them.
 - `includes/oracles/`: the independent parsers. `WP_Invariant_Browser` reads HTML, URLs and XML as browsers and XML parsers do; `WP_Invariant_MySQL` parses queries with the [MySQL parser](https://github.com/WordPress/sqlite-database-integration/tree/trunk/packages/mysql-parser) from `WordPress/sqlite-database-integration`; `WP_Invariant_HTML_API` finds where the syntax of HTML is with WordPress's own tag processor.
 - `self-tests/`: tests of the support code, with fixtures standing in for WordPress. They need the extension, but not WordPress or a database.
+- `canaries/`: tests which break each security invariant on purpose, with WordPress loaded, and check that it is reported. Each has a twin which does the same safely, and checks that nothing is.
 - `bin/install-gameshark.sh`: builds the extension in the PHP container of the local Docker environment.
 - `DEPENDENCIES`: the commits of the extension and of `sqlite-database-integration`, for the MySQL parser. Both are checked out in `.invariants/`, which git ignores.
 
@@ -41,7 +42,11 @@ npm run test:php:invariants -- --group post
 
 The report is written to `tests/phpunit/build/logs/invariants.md` and `invariants.json`. Set `WP_INVARIANTS_REPORT_DIR` to write it somewhere else.
 
-To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml,filesystem npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest. To load the MySQL parser from somewhere else, set `WP_INVARIANTS_MYSQL_PARSER` to its `packages/mysql-parser/src` directory.
+To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml,filesystem,output,secrets,uploads,archives,serialize,random npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest.
+
+The AJAX tests are a group which the main run leaves out, as `phpunit.xml.dist` does. Run them on their own, with a report of their own: `WP_INVARIANTS_REPORT_NAME=invariants-ajax npm run test:php:invariants -- --group ajax`. The security invariants which look at request handlers, in `specs/request.php`, mostly find their handlers there.
+
+`npm run test:php:invariants:canaries` runs the canaries. They need a database, as the suite does. To load the MySQL parser from somewhere else, set `WP_INVARIANTS_MYSQL_PARSER` to its `packages/mysql-parser/src` directory.
 
 To stop at a violation with its full stack, set `WP_INVARIANTS_THROW=1`. A check which throws then breaks the code under test, so only use it to investigate one invariant.
 
@@ -152,6 +157,10 @@ An invariant which finds places in WordPress, rather than calls, such as `pcre/m
 | `WP_Invariant::property( $instance, $declaring, $name )` | A private or protected property, read with reflection, which runs none of the object's code. `$declaring` is the class which declares it. `specs/html.php` reads where the tag processor's current tag is. |
 | `WP_Invariant::methods_in( $directory, $pattern )` | The `Class::method` names declared in a directory's PHP files whose names match a pattern, read from their tokens without loading them, as targets for a spec file. `specs/rest.php` hooks every core REST permission check this way. |
 | `WP_Invariant::has_callbacks( $hook )` | Whether a filter or action has callbacks, read from `$wp_filter` without running anything. Checks use it to stay quiet when a test filters what they check. |
+| `WP_Invariant_Request::values( $characters )` | The values the request sent, which hold any of some characters: the strings in `$_GET`, `$_POST`, `$_COOKIE` and `$_REQUEST`, the URI, query string and headers, and the parameters of the REST requests being dispatched, as sent and unslashed, of at least 4 bytes. `WP_Invariant_Request::occurrences()` finds where one appears. |
+| `WP_Invariant::frame_mark( $function )` and `WP_Invariant::running( $mark, $function )` | A scope for the run of a call, such as an AJAX handler's `do_action()`, without an after hook, which would not run when the call throws. `specs/request.php` and `specs/archives.php` keep stacks of them. |
+| `WP_Invariant::resolve_path()`, `path_inside()`, `path_resolves_inside()` and `directory_forms()` | Paths with `..` and symbolic links resolved, and whether they are inside some directories. |
+| `WP_Invariant::functions_calling( $directories, $callee )` and `WP_Invariant::cached()` | The functions whose own code calls a function, read from tokens, as targets; and a cache of such a result, kept while the source has not changed, for the processes of separate-process tests. |
 
 ### Asking an oracle
 
@@ -198,7 +207,7 @@ For example, `specs/capabilities.php` records what `map_meta_cap()` returned, by
 
 ### Hooks on built-in functions
 
-Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php`, `specs/xml.php` and `specs/filesystem.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
+Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php`, `specs/xml.php`, `specs/filesystem.php`, `specs/output.php`, `specs/secrets.php`, `specs/uploads.php`, `specs/archives.php`, `specs/serialize.php` and `specs/random.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
 
 ### Keep checks cheap
 
@@ -209,6 +218,29 @@ A hook on a function which runs often, such as `get_post`, runs millions of time
 - A spec file which fails to load is a fatal error in every PHP process, and the PHPUnit bootstrap refuses to run the suite.
 - A check which throws is reported as a hook error, and the code under test carries on.
 - A target which is never called, which is what a misspelled target looks like, is listed in the report under "Hooks which never ran".
+
+## Security invariants
+
+Some invariants follow what the request sent, what happened earlier in the request, or real secrets, which static analysis and unit tests miss:
+
+| Invariant | What it catches |
+| --- | --- |
+| `output/request-values-stay-text` | Reflected XSS: a request value which holds HTML syntax where WordPress printed it, as the HTML API reads the whole output, including the HTML in JSON responses. |
+| `wpdb/request-values-stay-literals` | SQL injection without `wpdb::prepare()`: a request value outside a string literal in a query. It needs MySQL. |
+| `http/validated-urls-stay-external` | SSRF: a URL `wp_http_validate_url()` accepts whose host, as a WHATWG URL parser reads it, differs from the one it checked, or is internal in any IPv4 or IPv6 form. |
+| `secrets/never-sent` | Secret disclosure: a salt, password hash, reset or request key, session token, auth cookie or application password in a REST or JSON response, printed HTML, a `wp_die()` message, a header or the error log. |
+| `request/writes-check-a-nonce` | CSRF: a function which changes state, run in an AJAX, admin-post or admin action handler before a nonce check passed there. |
+| `request/writes-check-a-capability` | Missing authorization: the same, before a capability check passed, and REST callbacks which run as another user than their permission check. |
+| `uploads/nothing-executable` | Malicious uploads: a file in the uploads directory whose name or contents could run as code, such as `photo.php.jpg`. |
+| `archives/extract-inside-destination` | Zip slip: a write outside the directory `unzip_file()` or `copy_dir()` was given. |
+| `serialize/no-foreign-objects` | PHP object injection: serialized objects of classes with magic methods which this run did not serialize, or request values, given to `unserialize()`. |
+| `kses/stored-html-is-filtered` | Stored XSS: post, comment, term or user description HTML stored unfiltered while kses filters that field. |
+| `random/secrets-use-csprng` | Predictable secrets: `mt_rand()` and the like inside functions which make secrets. |
+| `sanitize/idempotent` | Sanitizers which change their own output, which lets a value pass a check made between two sanitizations. |
+| `multisite/blog-restored` | Data written to the wrong site: a function which returns while still switched to another site. It runs only in multisite runs, with `WP_MULTISITE=1`. |
+| `mail/no-header-injection` | Email header injection through addresses, subjects or headers with line breaks. |
+
+The canaries check that each of these is reported, except `http/validated-urls-stay-external`, `sanitize/idempotent` and `multisite/blog-restored`, which only WordPress itself could break.
 
 ## Types report
 

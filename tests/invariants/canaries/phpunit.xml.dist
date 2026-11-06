@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+	Runs the canaries: tests which break each security invariant on purpose, with WordPress loaded,
+	to show the invariant reports it. See ../README.md.
+-->
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		bootstrap="../bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		>
+	<testsuites>
+		<testsuite name="canaries">
+			<directory suffix=".php">tests</directory>
+		</testsuite>
+	</testsuites>
+	<php>
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
+	<extensions>
+		<extension class="WP_Invariant_PHPUnit_Extension">
+			<arguments>
+				<string>invariants-canaries</string>
+			</arguments>
+		</extension>
+	</extensions>
+</phpunit>
