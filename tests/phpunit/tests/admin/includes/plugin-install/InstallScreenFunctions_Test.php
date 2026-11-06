@@ -277,7 +277,7 @@ class Admin_Includes_Plugin_Install_InstallScreenFunctions_Test extends WP_UnitT
 		$this->assertStringContainsString( 'If you have a plugin in a .zip format, you may install or update it by uploading it here.', $output );
 		$this->assertStringContainsString( 'enctype="multipart/form-data"', $output );
 		$this->assertStringContainsString( 'action="' . esc_url( self_admin_url( 'update.php?action=upload-plugin' ) ) . '"', $output );
-		$this->assertStringContainsString( 'name="_wpnonce"', $output, 'The nonce should be output.' );
+		$this->assertStringContainsString( 'name="_wpnonce" value="' . wp_create_nonce( 'plugin-upload' ) . '"', $output, 'The nonce for the action of the upload should be output.' );
 		$this->assertStringContainsString( '<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />', $output );
 		$this->assertStringContainsString( 'name="install-plugin-submit"', $output );
 		$this->assertStringContainsString( 'value="Install Now"', $output );
