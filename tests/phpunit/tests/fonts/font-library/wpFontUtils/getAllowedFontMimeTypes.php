@@ -32,6 +32,8 @@ class Tests_Fonts_WpFontUtils_GetAllowedFontMimeTypes extends WP_UnitTestCase {
 
 		$this->assertSame( $extension, $filetype['ext'], 'The font file extension should be accepted.' );
 		$this->assertSame( $mimes[ $extension ], $filetype['type'], 'The font file mime type should match the allowed mime type.' );
+
+		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 	}
 
 	/**
