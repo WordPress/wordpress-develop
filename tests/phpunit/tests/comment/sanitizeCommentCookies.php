@@ -125,7 +125,7 @@ class Tests_Comment_SanitizeCommentCookies extends WP_UnitTestCase {
 	 *
 	 * @param string $cookie   Name of the cookie, without the hash.
 	 * @param string $filter   Filter of the field.
-	 * @param string $filtered Value that the filter returns.
+	 * @param string $filtered Slashed value that the filter returns, so that the order of the filter and of the unslashing is tested.
 	 * @param string $expected Expected value of the cookie.
 	 */
 	public function test_should_apply_the_filter_of_each_field( $cookie, $filter, $filtered, $expected ) {
@@ -154,9 +154,9 @@ class Tests_Comment_SanitizeCommentCookies extends WP_UnitTestCase {
 	 */
 	public static function data_cookie_filters() {
 		return array(
-			'name'  => array( 'comment_author_', 'pre_comment_author_name', 'Filtered "Name"', 'Filtered &quot;Name&quot;' ),
-			'email' => array( 'comment_author_email_', 'pre_comment_author_email', 'filtered"@example.org', 'filtered&quot;@example.org' ),
-			'url'   => array( 'comment_author_url_', 'pre_comment_author_url', 'https://filtered.example.org/?a="b"', 'https://filtered.example.org/?a="b"' ),
+			'name'  => array( 'comment_author_', 'pre_comment_author_name', 'Filtered \\"Name\\"', 'Filtered &quot;Name&quot;' ),
+			'email' => array( 'comment_author_email_', 'pre_comment_author_email', 'filtered\\"@example.org', 'filtered&quot;@example.org' ),
+			'url'   => array( 'comment_author_url_', 'pre_comment_author_url', 'https://filtered.example.org/?a=\\"b\\"', 'https://filtered.example.org/?a="b"' ),
 		);
 	}
 
