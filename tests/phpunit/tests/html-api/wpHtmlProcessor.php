@@ -897,6 +897,35 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that CDATA sections remain available inside SVG HTML integration points.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_sections_in_svg_html_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><foreignObject><![CDATA[foo]]></foreignObject></svg>'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find the foreignObject element under test.'
+		);
+		$this->assertSame( 'svg', $processor->get_namespace(), 'Found the wrong namespace for the foreignObject element.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should remain available at an SVG HTML integration point.'
+		);
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'A CDATA section at an integration point is processed in the current insertion mode and reports the same namespace as a text node there.'
+		);
+		$this->assertSame( 'foo', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
 	 * Ensures that the processor correctly adjusts the namespace
 	 * for elements inside MathML integration points.
 	 *
@@ -953,6 +982,512 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'html',
 			$processor->get_namespace(),
 			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that CDATA sections remain available inside MathML HTML integration points.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_sections_in_mathml_html_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<math><annotation-xml encoding="text/html"><![CDATA[x]]></annotation-xml></math>'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag( 'ANNOTATION-XML' ),
+			'Failed to find the ANNOTATION-XML element under test.'
+		);
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should remain available at a MathML HTML integration point.'
+		);
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'A CDATA section at an integration point is processed in the current insertion mode and reports the same namespace as a text node there.'
+		);
+		$this->assertSame( 'x', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
+	 * Ensures that CDATA parsing context is restored after leaving an HTML child.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_context_restored_after_html_child_of_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><foreignObject><p>HTML</p><![CDATA[SVG]]></foreignObject></svg>'
+		);
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Failed to find the P element under test.' );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element closer under test.'
+		);
+		$this->assertTrue( $processor->is_tag_closer(), 'Expected to stop on the P element closer.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'CDATA should be available again after leaving an HTML child of an integration point.'
+		);
+		$this->assertSame( 'SVG', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
+	 * Ensures that seeking restores the CDATA parsing context.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_seek_restores_cdata_context() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<svg><title><![CDATA[title]]></title><path></path></svg>'
+		);
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->set_bookmark( 'title' ), 'Failed to bookmark the TITLE element.' );
+		$this->assertTrue( $processor->next_tag( 'PATH' ), 'Failed to advance beyond the bookmarked TITLE element.' );
+		$this->assertTrue( $processor->seek( 'title' ), 'Failed to seek back to the bookmarked TITLE element.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section after seeking.' );
+		$this->assertSame(
+			'#cdata-section',
+			$processor->get_token_name(),
+			'Seeking should restore the CDATA parsing context at an integration point.'
+		);
+		$this->assertSame( 'title', $processor->get_modifiable_text(), 'Found incorrect CDATA content after seeking.' );
+	}
+
+	/**
+	 * Ensures that NULL bytes in a CDATA section at an HTML integration point are removed.
+	 *
+	 * Character tokens at an integration point are processed in the current
+	 * insertion mode, where a NULL character token is ignored.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_at_integration_point_removes_null_bytes() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><title><![CDATA[a\0b]]></title></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( 'html', $processor->get_namespace(), 'A character token at an integration point should report the HTML namespace.' );
+		$this->assertSame( 'ab', $processor->get_modifiable_text(), 'NULL bytes should be removed from a CDATA section at an integration point.' );
+	}
+
+	/**
+	 * Ensures that NULL bytes in a CDATA section in foreign content are replaced.
+	 *
+	 * Character tokens in foreign content are processed by the rules for
+	 * parsing tokens in foreign content, where a NULL character token is
+	 * replaced by U+FFFD REPLACEMENT CHARACTER.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_in_foreign_content_replaces_null_bytes() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><![CDATA[a\0b]]></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'SVG' ), 'Failed to find the SVG element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( 'svg', $processor->get_namespace(), 'A character token in foreign content should report the foreign namespace.' );
+		$this->assertSame( "a\u{FFFD}b", $processor->get_modifiable_text(), 'NULL bytes should be replaced in a CDATA section in foreign content.' );
+	}
+
+	/**
+	 * Ensures that a CDATA section holding only NULL bytes is ignored at an integration point.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_of_only_null_bytes_is_ignored_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( "<svg><title><![CDATA[\0]]><b></b></title></svg>" );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the token after the ignored CDATA section.' );
+		$this->assertSame( 'B', $processor->get_tag(), 'A CDATA section of only NULL bytes should be ignored at an integration point.' );
+	}
+
+	/**
+	 * Ensures that an empty CDATA section is ignored at an integration point.
+	 *
+	 * A CDATA section is a run of character tokens, so an empty section
+	 * emits no token at all.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_empty_cdata_section_is_ignored_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title><![CDATA[]]><b></b></title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the token after the ignored CDATA section.' );
+		$this->assertSame( 'B', $processor->get_tag(), 'An empty CDATA section should be ignored at an integration point.' );
+	}
+
+	/**
+	 * Ensures that an empty CDATA section in foreign content is still visited.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_empty_cdata_section_in_foreign_content_is_visited() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><![CDATA[]]></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'SVG' ), 'Failed to find the SVG element under test.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $processor->get_token_name(), 'An empty CDATA section in foreign content should be visited.' );
+		$this->assertSame( '', $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+	}
+
+	/**
+	 * Ensures that text and CDATA sections at an integration point report the same namespace.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_character_tokens_at_integration_point_share_namespace() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title>a<![CDATA[b]]>c</title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+
+		$expected = array(
+			array( '#text', 'a' ),
+			array( '#cdata-section', 'b' ),
+			array( '#text', 'c' ),
+		);
+		foreach ( $expected as list( $token_name, $text ) ) {
+			$this->assertTrue( $processor->next_token(), "Failed to find the expected {$token_name} token." );
+			$this->assertSame( $token_name, $processor->get_token_name(), 'Found the wrong token.' );
+			$this->assertSame( $text, $processor->get_modifiable_text(), "Found incorrect {$token_name} content." );
+			$this->assertSame( 'html', $processor->get_namespace(), "A {$token_name} token at an integration point should report the HTML namespace." );
+		}
+	}
+
+	/**
+	 * Ensures that consecutive CDATA sections at an integration point are each recognized.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_consecutive_cdata_sections_at_integration_point() {
+		$processor = WP_HTML_Processor::create_fragment( '<svg><title><![CDATA[a]]><![CDATA[b]]></title></svg>' );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		foreach ( array( 'a', 'b' ) as $text ) {
+			$this->assertTrue( $processor->next_token(), 'Failed to find the expected CDATA section.' );
+			$this->assertSame( '#cdata-section', $processor->get_token_name(), 'Failed to find the expected CDATA section.' );
+			$this->assertSame( $text, $processor->get_modifiable_text(), 'Found incorrect CDATA content.' );
+		}
+	}
+
+	/**
+	 * Ensures that a CDATA section at an integration point follows the text node rules for active formatting elements.
+	 *
+	 * The B element is closed by the P closer but remains in the list of active
+	 * formatting elements, so the character tokens that follow must reconstruct
+	 * it: the tree is `<p><b>x</b></p><b>y</b>`. Reconstruction is not yet
+	 * supported by the HTML Processor (see #61576), so parsing must stop at the
+	 * CDATA section exactly as it stops at the same content in a text node,
+	 * instead of inserting the section outside the B element.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_character_tokens_requiring_reconstruction_at_integration_point
+	 *
+	 * @param string $html Fragment whose final character tokens require reconstruction.
+	 */
+	public function test_cdata_section_at_integration_point_stops_when_reconstruction_is_required( string $html ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element under test.'
+		);
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'P',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to find the P element closer under test.'
+		);
+		$this->assertTrue( $processor->is_tag_closer(), 'Expected to stop on the P element closer.' );
+
+		$this->assertFalse( $processor->next_token(), 'Should have stopped at the character tokens requiring reconstruction.' );
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_UNSUPPORTED,
+			$processor->get_last_error(),
+			'Should have reported unsupported markup instead of inserting the character tokens outside the formatting element.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_character_tokens_requiring_reconstruction_at_integration_point() {
+		return array(
+			'Text node'     => array( '<svg><foreignObject><p><b>x</p>y</foreignObject></svg>' ),
+			'CDATA section' => array( '<svg><foreignObject><p><b>x</p><![CDATA[y]]></foreignObject></svg>' ),
+			'MathML text'   => array( '<math><mtext><p><b>x</p>y</mtext></math>' ),
+			'MathML CDATA'  => array( '<math><mtext><p><b>x</p><![CDATA[y]]></mtext></math>' ),
+		);
+	}
+
+	/**
+	 * Ensures that a whitespace-only CDATA section at an integration point keeps the insertion mode after the body.
+	 *
+	 * In the "after body" and "after after body" insertion modes, whitespace-only
+	 * character tokens are processed using the rules for "in body" and the
+	 * insertion mode is kept, while any other token switches the insertion mode
+	 * back to "in body". Foreign content stays open after the BODY closer, so
+	 * character tokens at an integration point reach these modes.
+	 *
+	 * The comment after the foreign content is processed in the kept mode, where
+	 * comments are not supported. If a whitespace-only CDATA section switched the
+	 * mode, the comment would be inserted into the BODY element instead.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_whitespace_character_tokens_at_integration_point_after_body
+	 *
+	 * @param string $html       Document whose foreign content is still open when the body is closed.
+	 * @param string $token_name Name of the whitespace-only character token in the document.
+	 */
+	public function test_whitespace_character_token_at_integration_point_after_body_keeps_insertion_mode( string $html, string $token_name ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$this->assertTrue( $processor->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $processor->next_token(), "Failed to find the expected {$token_name} token." );
+		$this->assertSame( $token_name, $processor->get_token_name(), 'Found the wrong token after the TITLE element.' );
+		$this->assertSame( ' ', $processor->get_modifiable_text(), 'Found the wrong whitespace content.' );
+
+		$visited = array();
+		while ( $processor->next_token() ) {
+			$visited[] = $processor->get_token_name();
+		}
+
+		$this->assertSame(
+			WP_HTML_Processor::ERROR_UNSUPPORTED,
+			$processor->get_last_error(),
+			'Should have stopped at the comment after the body instead of inserting it into the BODY element.'
+		);
+		$this->assertNotContains( '#comment', $visited, 'Should not have inserted the comment after the body into the BODY element.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_whitespace_character_tokens_at_integration_point_after_body() {
+		return array(
+			'After body, text'        => array( '<svg><g></body><title> </title></g></svg><!--c-->', '#text' ),
+			'After body, CDATA'       => array( '<svg><g></body><title><![CDATA[ ]]></title></g></svg><!--c-->', '#cdata-section' ),
+			'After after body, text'  => array( '<svg><g></body></html><title> </title></g></svg><!--c-->', '#text' ),
+			'After after body, CDATA' => array( '<svg><g></body></html><title><![CDATA[ ]]></title></g></svg><!--c-->', '#cdata-section' ),
+		);
+	}
+
+	/**
+	 * Ensures that a CDATA section of whitespace and NULL bytes at an integration point switches the insertion mode after the body.
+	 *
+	 * In the "after body" and "after after body" insertion modes only
+	 * whitespace character tokens keep the insertion mode; a NULL character
+	 * token is "anything else" and switches the insertion mode back to
+	 * "in body", where it is ignored. The equivalent text is subdivided into
+	 * whitespace and NULL tokens, so its NULL token switches the mode; a CDATA
+	 * section is one token and must switch the mode the same way.
+	 *
+	 * The comment after the foreign content shows which mode was in effect:
+	 * "in body" inserts it into the BODY element, while the after-body modes
+	 * stop because comments are not supported there.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_cdata_sections_of_whitespace_and_null_bytes_after_body
+	 *
+	 * @param string $closers Tag closers that select the insertion mode before the foreign content ends.
+	 * @param string $content Whitespace and NULL bytes to place inside the CDATA section and the text.
+	 */
+	public function test_cdata_section_of_whitespace_and_null_bytes_at_integration_point_after_body_switches_insertion_mode( string $closers, string $content ) {
+		$cdata = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title><![CDATA[{$content}]]></title></g></svg><!--c-->" );
+		$text  = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title>{$content}</title></g></svg><!--c-->" );
+
+		$this->assertTrue( $cdata->next_tag( 'TITLE' ), 'Failed to find the TITLE element under test.' );
+		$this->assertTrue( $cdata->next_token(), 'Failed to find the expected CDATA section.' );
+		$this->assertSame( '#cdata-section', $cdata->get_token_name(), 'Found the wrong token after the TITLE element.' );
+		$this->assertSame(
+			str_replace( array( "\0", "\r" ), array( '', "\n" ), $content ),
+			$cdata->get_modifiable_text(),
+			'Should have removed the NULL bytes from the CDATA section and normalized its newlines.'
+		);
+
+		$comment_breadcrumbs = null;
+		while ( $cdata->next_token() ) {
+			if ( '#comment' === $cdata->get_token_name() ) {
+				$comment_breadcrumbs = $cdata->get_breadcrumbs();
+			}
+		}
+
+		$text_comment_breadcrumbs = null;
+		while ( $text->next_token() ) {
+			if ( '#comment' === $text->get_token_name() ) {
+				$text_comment_breadcrumbs = $text->get_breadcrumbs();
+			}
+		}
+
+		$this->assertNull( $text->get_last_error(), 'The equivalent text should have parsed without error.' );
+		$this->assertNull( $cdata->get_last_error(), 'Should have switched to the "in body" insertion mode and inserted the comment.' );
+		$this->assertSame( array( 'HTML', 'BODY', '#comment' ), $text_comment_breadcrumbs, 'The equivalent text should have inserted the comment into the BODY element.' );
+		$this->assertSame( $text_comment_breadcrumbs, $comment_breadcrumbs, 'Should have inserted the comment where the equivalent text inserts it.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_cdata_sections_of_whitespace_and_null_bytes_after_body() {
+		$cases = array();
+		foreach ( array(
+			'After body'       => '</body>',
+			'After after body' => '</body></html>',
+		) as $mode => $closers ) {
+			foreach ( array(
+				'leading NULL'    => "\0 ",
+				'trailing NULL'   => " \0",
+				'surrounded NULL' => " \0 ",
+				'every kind'      => " \t\n\f\r\0",
+			) as $name => $content ) {
+				$cases[ "{$mode}, {$name}" ] = array( $closers, $content );
+			}
+		}
+		return $cases;
+	}
+
+	/**
+	 * Ensures that an empty CDATA section at an integration point keeps the insertion mode after the body.
+	 *
+	 * A CDATA section is a run of character tokens, so an empty section
+	 * emits no token and no insertion mode processes anything for it. In
+	 * the "after body" and "after after body" insertion modes any token
+	 * other than whitespace switches the insertion mode back to "in body";
+	 * an empty section must not, because there is no token to switch it.
+	 *
+	 * The comment after the foreign content shows which mode was in effect:
+	 * "in body" inserts it into the BODY element, while the after-body modes
+	 * stop because comments are not supported there. The document with the
+	 * empty section must stop exactly as the document without it does.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_empty_cdata_sections_after_body
+	 *
+	 * @param string $closers Tag closers that select the insertion mode before the foreign content ends.
+	 */
+	public function test_empty_cdata_section_at_integration_point_after_body_keeps_insertion_mode( string $closers ) {
+		$cdata   = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title><![CDATA[]]></title></g></svg><!--c-->" );
+		$control = WP_HTML_Processor::create_full_parser( "<svg><g>{$closers}<title></title></g></svg><!--c-->" );
+
+		$cdata_visited = array();
+		while ( $cdata->next_token() ) {
+			$cdata_visited[] = $cdata->get_token_name();
+		}
+
+		$control_visited = array();
+		while ( $control->next_token() ) {
+			$control_visited[] = $control->get_token_name();
+		}
+
+		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $control->get_last_error(), 'The document without the CDATA section should have stopped at the comment after the body.' );
+		$this->assertSame( $control->get_last_error(), $cdata->get_last_error(), 'Should have stopped at the comment after the body as the document without the CDATA section does.' );
+		$this->assertSame(
+			$control->get_unsupported_exception()->getMessage(),
+			$cdata->get_unsupported_exception()->getMessage(),
+			'Should have stopped for the same reason as the document without the CDATA section.'
+		);
+		$this->assertSame( $control_visited, $cdata_visited, 'Should have visited the same tokens as the document without the CDATA section.' );
+		$this->assertNotContains( '#comment', $cdata_visited, 'Should not have inserted the comment after the body into the BODY element.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_empty_cdata_sections_after_body() {
+		return array(
+			'After body'       => array( '</body>' ),
+			'After after body' => array( '</body></html>' ),
+		);
+	}
+
+	/**
+	 * Ensures that a CDATA section at an integration point changes the frameset-ok flag the way its text would.
+	 *
+	 * In the "in body" insertion mode whitespace and NULL character tokens
+	 * leave the frameset-ok flag alone, while any other character token sets
+	 * it to "not ok". A CDATA section of whitespace and NULL bytes is one
+	 * token, and must not be treated as generic text.
+	 *
+	 * The processor stops at a FRAMESET start tag in the "in body" insertion
+	 * mode unless the frameset-ok flag is "not ok", in which case the tag is
+	 * ignored. The equivalent text is parsed alongside to show the expected
+	 * outcome.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_cdata_sections_and_frameset_ok
+	 *
+	 * @param string $content         Content of the CDATA section and of the equivalent text.
+	 * @param bool   $is_frameset_ok  Whether the FRAMESET start tag after the content should stop the processor.
+	 */
+	public function test_cdata_section_at_integration_point_changes_frameset_ok_like_text( string $content, bool $is_frameset_ok ) {
+		$cdata = WP_HTML_Processor::create_full_parser( "<svg><title><![CDATA[{$content}]]></title></svg><frameset>" );
+		$text  = WP_HTML_Processor::create_full_parser( "<svg><title>{$content}</title></svg><frameset>" );
+
+		while ( $cdata->next_token() ) {
+			continue;
+		}
+		while ( $text->next_token() ) {
+			continue;
+		}
+
+		if ( $is_frameset_ok ) {
+			$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $text->get_last_error(), 'The equivalent text should have left frameset-ok set and stopped at the FRAMESET tag.' );
+			$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $cdata->get_last_error(), 'Should have left frameset-ok set and stopped at the FRAMESET tag.' );
+			$this->assertSame( 'Cannot process non-ignored FRAMESET tags.', $cdata->get_unsupported_exception()->getMessage(), 'Should have stopped at the FRAMESET tag.' );
+		} else {
+			$this->assertNull( $text->get_last_error(), 'The equivalent text should have cleared frameset-ok so that the FRAMESET tag is ignored.' );
+			$this->assertNull( $cdata->get_last_error(), 'Should have cleared frameset-ok so that the FRAMESET tag is ignored.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_cdata_sections_and_frameset_ok() {
+		return array(
+			'Whitespace'               => array( ' ', true ),
+			'NULL bytes'               => array( "\0\0", true ),
+			'Whitespace and NULL byte' => array( " \0 ", true ),
+			'Text'                     => array( 'x', false ),
+			'Text with NULL byte'      => array( " \0x ", false ),
 		);
 	}
 
