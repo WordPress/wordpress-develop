@@ -10649,7 +10649,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * default selectors.
 	 *
 	 * {@see WP_Theme_JSON::get_block_selectors()} reads the feature level selectors with
-	 * `static::`, so a subclass can override them.
+	 * `static::`, so a subclass can override them. The subclass has an empty constructor, so
+	 * that creating it does not fill the shared blocks metadata cache with its feature level
+	 * selectors, which would affect later tests.
 	 *
 	 * @ticket 65817
 	 *
@@ -10662,6 +10664,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'color'      => 'root',
 					'typography' => 'typography',
 				);
+
+				public function __construct() {}
 			}
 		);
 		$block_type = new WP_Block_Type(
