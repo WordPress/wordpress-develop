@@ -454,21 +454,20 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 */
 	public static function data_references_that_resolve_to_nothing(): array {
 		return array(
-			'null in state'                => array( 'data-wp-html="state.nul"' ),
-			'missing path'                 => array( 'data-wp-html="state.missing"' ),
-			'reserved path segment'        => array( 'data-wp-html="state.constructor"' ),
-			'quoted reference'             => array( 'data-wp-html=\'"state.html"\'' ),
-			'empty value'                  => array( 'data-wp-html=""' ),
-			'no value'                     => array( 'data-wp-html' ),
-			'reserved namespace in effect' => array( 'data-wp-interactive="constructor" data-wp-html="state.html"' ),
+			'null in state'         => array( 'data-wp-html="state.nul"' ),
+			'missing path'          => array( 'data-wp-html="state.missing"' ),
+			'reserved path segment' => array( 'data-wp-html="state.constructor"' ),
+			'quoted reference'      => array( 'data-wp-html=\'"state.html"\'' ),
+			'empty value'           => array( 'data-wp-html=""' ),
+			'no value'              => array( 'data-wp-html' ),
 		);
 	}
 
 	/**
 	 * Tests that a reference whose evaluation fails empties the host with only
-	 * the notice of the evaluation: a derived-state closure that throws, and a
-	 * host processed apart from the `data-wp-interactive` element that gives it
-	 * its namespace.
+	 * the notice of the evaluation: a derived-state closure that throws, a host
+	 * processed apart from the `data-wp-interactive` element that gives it its
+	 * namespace, and a host whose `data-wp-interactive` names a reserved word.
 	 *
 	 * @ticket 66246
 	 *
@@ -501,14 +500,59 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 */
 	public static function data_references_whose_evaluation_fails(): array {
 		return array(
-			'throwing closure' => array(
+			'throwing closure'   => array(
 				'<div data-wp-interactive="test"><div data-wp-html="state.throws">' . self::CHILDREN . '</div></div>',
 				'<div data-wp-interactive="test"><div data-wp-html="state.throws"></div></div>',
 			),
-			'no namespace'     => array(
+			'no namespace'       => array(
 				'<div data-wp-html="state.html">' . self::CHILDREN . '</div>',
 				'<div data-wp-html="state.html"></div>',
 			),
+			'reserved namespace' => array(
+				'<div data-wp-interactive="constructor"><div data-wp-html="state.html">' . self::CHILDREN . '</div></div>',
+				'<div data-wp-interactive="constructor"><div data-wp-html="state.html"></div></div>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a host under a `data-wp-interactive` directive that names no
+	 * namespace is emptied, with only the notice of the missing namespace, even
+	 * though an enclosing one names a namespace. Other directives there still
+	 * resolve in the enclosing namespace.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_islands_that_name_no_namespace
+	 *
+	 * @param string $island The attributes of the inner `data-wp-interactive` element.
+	 */
+	public function test_host_under_an_island_that_names_no_namespace_is_emptied( string $island ) {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::evaluate' );
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		$output = wp_interactivity_process_directives(
+			$this->page( '<div ' . $island . '><p data-wp-html="state.html">' . self::CHILDREN . '</p><span data-wp-text="state.text">x</span></div>' )
+		);
+
+		$this->assertSame(
+			$this->processed_page( '<div ' . $island . '><p data-wp-html="state.html"></p><span data-wp-text="state.text">processed</span></div>' ),
+			$output
+		);
+		$this->assertSame( array( 'WP_Interactivity_API::evaluate' ), array_column( $this->notices, 'source' ), 'Expected only the notice of the missing namespace.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }> Data provider.
+	 */
+	public static function data_islands_that_name_no_namespace(): array {
+		return array(
+			'no value'                   => array( 'data-wp-interactive' ),
+			'object without a namespace' => array( 'data-wp-interactive=\'{"a":1}\'' ),
 		);
 	}
 

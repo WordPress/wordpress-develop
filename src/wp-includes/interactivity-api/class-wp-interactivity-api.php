@@ -140,6 +140,24 @@ final class WP_Interactivity_API {
 	private $namespace_stack = null;
 
 	/**
+	 * Stack of the namespaces that `data-wp-interactive` directives name, in
+	 * step with the namespace stack, as the client reads them.
+	 *
+	 * This is only available during directive processing, otherwise it is `null`.
+	 *
+	 * Unlike the namespace stack, an entry never falls back to an enclosing
+	 * namespace. It is `null` when the directive names none: the attribute has
+	 * no value or an empty one, its JSON object holds no string `namespace`, or
+	 * the namespace is `__proto__`, `constructor` or `prototype`. Only
+	 * `data-wp-html` reads it, as the client resolves every directive.
+	 *
+	 * @since 7.2.0
+	 * @var array<string|null>|null
+	 * @phpstan-var list<string|null>|null
+	 */
+	private $island_namespace_stack = null;
+
+	/**
 	 * Stack of contexts defined by `data-wp-context` directives, in
 	 * the order they are processed.
 	 *
@@ -501,8 +519,9 @@ final class WP_Interactivity_API {
 			return $html;
 		}
 
-		$this->namespace_stack = array();
-		$this->context_stack   = array();
+		$this->namespace_stack        = array();
+		$this->island_namespace_stack = array();
+		$this->context_stack          = array();
 
 		/*
 		 * The trusted HTML of `data-wp-html` hosts never takes part in the
@@ -520,8 +539,9 @@ final class WP_Interactivity_API {
 
 		$result = $this->_process_directives( $html );
 
-		$this->namespace_stack = null;
-		$this->context_stack   = null;
+		$this->namespace_stack        = null;
+		$this->island_namespace_stack = null;
+		$this->context_stack          = null;
 
 		$placeholders            = $this->html_placeholders;
 		$this->html_placeholders = array();
@@ -560,8 +580,9 @@ final class WP_Interactivity_API {
 		 * Save the current size for each stack to restore them in case
 		 * the processing finds unbalanced tags.
 		 */
-		$namespace_stack_size = count( $this->namespace_stack );
-		$context_stack_size   = count( $this->context_stack );
+		$namespace_stack_size        = count( $this->namespace_stack );
+		$island_namespace_stack_size = count( $this->island_namespace_stack );
+		$context_stack_size          = count( $this->context_stack );
 
 		while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			$tag_name = $p->get_tag();
@@ -708,6 +729,7 @@ final class WP_Interactivity_API {
 		if ( $unbalanced ) {
 			// Reset the namespace and context stacks to their previous values.
 			array_splice( $this->namespace_stack, $namespace_stack_size );
+			array_splice( $this->island_namespace_stack, $island_namespace_stack_size );
 			array_splice( $this->context_stack, $context_stack_size );
 		}
 
@@ -1092,14 +1114,16 @@ final class WP_Interactivity_API {
 	 * stack so that it's available for the nested interactivity elements.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Also records the namespace that the directive itself names, for `data-wp-html`.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
 	 */
 	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
-		// When exiting tags, it removes the last namespace from the stack.
+		// When exiting tags, it removes the last namespace from the stacks.
 		if ( 'exit' === $mode ) {
 			array_pop( $this->namespace_stack );
+			array_pop( $this->island_namespace_stack );
 			return;
 		}
 
@@ -1115,6 +1139,7 @@ final class WP_Interactivity_API {
 		 * contained a valid namespace.
 		 */
 		$new_namespace = null;
+		$decoded_json  = null;
 		if ( is_string( $attribute_value ) && ! empty( $attribute_value ) ) {
 			$decoded_json = json_decode( $attribute_value, true );
 			if ( is_array( $decoded_json ) ) {
@@ -1126,6 +1151,16 @@ final class WP_Interactivity_API {
 		$this->namespace_stack[] = ( $new_namespace && 1 === preg_match( '/^([\w\-_\/]+)/', $new_namespace ) )
 			? $new_namespace
 			: end( $this->namespace_stack );
+
+		// The client reads a JSON object only when the value starts with `{`, and keeps any other value as given.
+		$island_namespace = is_string( $attribute_value ) ? $attribute_value : null;
+		if ( is_array( $decoded_json ) && 1 === preg_match( '/^\s*\{/', $attribute_value ) ) {
+			$island_namespace = is_string( $decoded_json['namespace'] ?? null ) ? $decoded_json['namespace'] : null;
+		}
+		if ( '' === $island_namespace || ( null !== $island_namespace && self::is_reserved_word( $island_namespace ) ) ) {
+			$island_namespace = null;
+		}
+		$this->island_namespace_stack[] = $island_namespace;
 	}
 
 	/**
@@ -1727,12 +1762,14 @@ final class WP_Interactivity_API {
 	 * Resolves the reference of a `data-wp-html` directive as the client does.
 	 *
 	 * The reference is the raw attribute value, never decoded as JSON: an
-	 * optional `<namespace>::`, an optional `!` and a dot-separated path. It
-	 * resolves to `null` without being evaluated when its path is empty or
-	 * starts with a second `!`, which names no property, or when its namespace
-	 * or a segment of its path is a reserved word (`__proto__`, `constructor` or
-	 * `prototype`). The `!` applies after that, so `!state.x.constructor`
-	 * resolves to `true`.
+	 * optional `<namespace>::`, an optional `!` and a dot-separated path.
+	 * Without `<namespace>::`, the namespace is the one that the nearest
+	 * `data-wp-interactive` directive names, never one inherited from a further
+	 * one. When it names none, the reference resolves to `null`. It also
+	 * resolves to `null`, without being evaluated, when its path is empty or
+	 * starts with a second `!`, which names no property, or when a segment of
+	 * its path is a reserved word (`__proto__`, `constructor` or `prototype`).
+	 * The `!` applies after that, so `!state.x.constructor` resolves to `true`.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1747,8 +1784,7 @@ final class WP_Interactivity_API {
 		if ( 1 === preg_match( self::NAMESPACED_VALUE_REGEX, $reference, $matches ) ) {
 			list( , $namespace, $path ) = $matches;
 		} else {
-			$namespace = array_last( $this->namespace_stack ?? array() );
-			$namespace = is_string( $namespace ) ? $namespace : null;
+			$namespace = array_last( $this->island_namespace_stack ?? array() );
 			$path      = $reference;
 		}
 
@@ -1761,7 +1797,6 @@ final class WP_Interactivity_API {
 		if (
 			'' === $path ||
 			str_starts_with( $path, '!' ) ||
-			( null !== $namespace && self::is_reserved_word( $namespace ) ) ||
 			null !== array_find( explode( '.', $path ), fn( $segment ) => self::is_reserved_word( $segment ) )
 		) {
 			$value = null;
