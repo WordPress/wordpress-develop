@@ -24,6 +24,9 @@
  * - Up to STRING_LITERALS distinct strings shorter than STRING_LENGTH bytes are
  *   counted as literals, such as `'post'`. A longer string, or one more distinct
  *   string, widens the slot to `string`.
+ * - Every int and string is also counted by its properties, such as whether an
+ *   int is zero, or a string holds HTML, so that widened slots can be reported
+ *   by them. See string_properties().
  * - An array is `array{}` when empty, a `list<…>` of the types of its first
  *   LIST_SAMPLE elements, or a record of its keys and the types of their values.
  *   Arrays with more than RECORD_KEYS elements, or a slot whose records have had
@@ -66,6 +69,46 @@ final class WP_Invariant_Types {
 	const LIST_SAMPLE = 16;
 
 	/**
+	 * Properties of a string, as bits. See string_properties().
+	 */
+	const STRING_EMPTY        = 1;
+	const STRING_HTML         = 2;
+	const STRING_REFERENCE    = 4;
+	const STRING_SLASH        = 8;
+	const STRING_UNSLASH      = 16;
+	const STRING_URL          = 32;
+	const STRING_PATH         = 64;
+	const STRING_FILE         = 128;
+	const STRING_INVALID_UTF8 = 256;
+
+	/**
+	 * Property of an int, as a bit: it is zero.
+	 */
+	const INT_ZERO = 1;
+
+	/**
+	 * The special schemes of WHATWG URLs, whose URLs have no opaque path.
+	 */
+	const SPECIAL_SCHEMES = array(
+		'ftp'   => true,
+		'file'  => true,
+		'http'  => true,
+		'https' => true,
+		'ws'    => true,
+		'wss'   => true,
+	);
+
+	/**
+	 * Strings this long, or shorter, have their properties remembered.
+	 */
+	const REMEMBERED_LENGTH = 256;
+
+	/**
+	 * Most strings whose properties are remembered at once.
+	 */
+	const REMEMBERED_STRINGS = 8192;
+
+	/**
 	 * Index of the counts of calls from WordPress, and from tests.
 	 */
 	const CORE = 0;
@@ -98,6 +141,20 @@ final class WP_Invariant_Types {
 	 * @var bool[]
 	 */
 	private static $test_files = array();
+
+	/**
+	 * The properties of strings classified recently, by string.
+	 *
+	 * @var int[]
+	 */
+	private static $remembered = array();
+
+	/**
+	 * Whether each first segment of an absolute path is a directory at the root of the file system.
+	 *
+	 * @var bool[]
+	 */
+	private static $root_directories = array();
 
 	/**
 	 * Returns the functions and methods to profile, from a cache when the files have not changed.
@@ -372,13 +429,15 @@ final class WP_Invariant_Types {
 	 * Returns literals which have counted nothing yet.
 	 *
 	 * @return array `widened`, whether they are no longer counted apart; `total`, the counts of all
-	 *               values; and `values`, the counts of each value until widened.
+	 *               values; `values`, the counts of each value until widened; and `properties`, the
+	 *               counts of all values by their properties, as bits.
 	 */
 	private static function empty_literals() {
 		return array(
-			'widened' => false,
-			'total'   => array( 0, 0 ),
-			'values'  => array(),
+			'widened'    => false,
+			'total'      => array( 0, 0 ),
+			'values'     => array(),
+			'properties' => array(),
 		);
 	}
 
@@ -391,11 +450,11 @@ final class WP_Invariant_Types {
 	 */
 	public static function add_to_slot( array &$slot, $value, $kind ) {
 		if ( is_int( $value ) ) {
-			self::add_literal( $slot['ints'], $value, $kind, self::INT_LITERALS, true );
+			self::add_literal( $slot['ints'], $value, $kind, self::INT_LITERALS, true, 0 === $value ? self::INT_ZERO : 0 );
 			return;
 		}
 		if ( is_string( $value ) ) {
-			self::add_literal( $slot['strings'], $value, $kind, self::STRING_LITERALS, strlen( $value ) < self::STRING_LENGTH );
+			self::add_literal( $slot['strings'], $value, $kind, self::STRING_LITERALS, strlen( $value ) < self::STRING_LENGTH, self::string_properties( $value ) );
 			return;
 		}
 
@@ -435,14 +494,19 @@ final class WP_Invariant_Types {
 	/**
 	 * Counts an int or string in a slot's literals of its type.
 	 *
-	 * @param array      $literals The slot's literals, from empty_literals().
-	 * @param int|string $value    The value.
-	 * @param int        $kind     self::CORE or self::TEST.
-	 * @param int        $limit    Most distinct values to count apart.
-	 * @param bool       $fits     Whether the value may be a literal at all.
+	 * @param array      $literals   The slot's literals, from empty_literals().
+	 * @param int|string $value      The value.
+	 * @param int        $kind       self::CORE or self::TEST.
+	 * @param int        $limit      Most distinct values to count apart.
+	 * @param bool       $fits       Whether the value may be a literal at all.
+	 * @param int        $properties The value's properties, as bits.
 	 */
-	private static function add_literal( array &$literals, $value, $kind, $limit, $fits ) {
+	private static function add_literal( array &$literals, $value, $kind, $limit, $fits, $properties ) {
 		++$literals['total'][ $kind ];
+		if ( ! isset( $literals['properties'][ $properties ] ) ) {
+			$literals['properties'][ $properties ] = array( 0, 0 );
+		}
+		++$literals['properties'][ $properties ][ $kind ];
 		if ( $literals['widened'] ) {
 			return;
 		}
@@ -456,6 +520,184 @@ final class WP_Invariant_Types {
 			$literals['widened'] = true;
 			$literals['values']  = array();
 		}
+	}
+
+	/**
+	 * Returns the properties of a string, as bits.
+	 *
+	 * - STRING_EMPTY: it is empty, and has no other properties.
+	 * - STRING_HTML: the HTML API's Tag Processor finds a token in it other than
+	 *   text. A tag which the end of the string cuts off is text.
+	 * - STRING_REFERENCE: it holds a character reference which decodes in text,
+	 *   such as `&amp;` or a legacy `&amp`.
+	 * - STRING_SLASH: wp_slash() would change it, as it holds a quote, a backslash or NUL.
+	 * - STRING_UNSLASH: wp_unslash() would change it, as it holds a backslash.
+	 * - STRING_URL: it parses as an absolute WHATWG URL.
+	 * - STRING_PATH: it is probably a file path: an absolute path whose first
+	 *   segment is a directory at the root of the file system, a Windows path
+	 *   starting with a drive letter, or a relative one starting with `./` or
+	 *   `../`, without a NUL, a newline, `<` or `://`.
+	 * - STRING_FILE: it is probably a file path, and a file or directory exists there.
+	 * - STRING_INVALID_UTF8: it is not valid UTF-8.
+	 *
+	 * It uses no PCRE function, which would change what preg_last_error() returns
+	 * to the WordPress code being called.
+	 *
+	 * @param string $value A string.
+	 * @return int Bits.
+	 */
+	public static function string_properties( $value ) {
+		if ( '' === $value ) {
+			return self::STRING_EMPTY;
+		}
+
+		$length = strlen( $value );
+		if ( $length <= self::REMEMBERED_LENGTH && isset( self::$remembered[ $value ] ) ) {
+			return self::with_file( $value, self::$remembered[ $value ] );
+		}
+
+		$properties = 0;
+
+		// Every token other than text starts with `<`.
+		if ( false !== strpos( $value, '<' ) && class_exists( 'WP_HTML_Tag_Processor', false ) ) {
+			$processor = new WP_HTML_Tag_Processor( $value );
+			while ( $processor->next_token() ) {
+				if ( '#text' !== $processor->get_token_type() ) {
+					$properties |= self::STRING_HTML;
+					break;
+				}
+			}
+		}
+
+		$at = strpos( $value, '&' );
+		if ( false !== $at && class_exists( 'WP_HTML_Decoder', false ) && isset( $GLOBALS['html5_named_character_references'] ) ) {
+			while ( false !== $at ) {
+				if ( null !== WP_HTML_Decoder::read_character_reference( 'data', $value, $at ) ) {
+					$properties |= self::STRING_REFERENCE;
+					break;
+				}
+				$at = strpos( $value, '&', $at + 1 );
+			}
+		}
+
+		if ( false !== strpbrk( $value, "'\"\\\0" ) ) {
+			$properties |= self::STRING_SLASH;
+			if ( false !== strpos( $value, '\\' ) ) {
+				$properties |= self::STRING_UNSLASH;
+			}
+		}
+
+		if ( self::parses_as_url( $value ) ) {
+			$properties |= self::STRING_URL;
+		}
+
+		if ( self::looks_like_path( $value, $length ) ) {
+			$properties |= self::STRING_PATH;
+		}
+
+		if ( function_exists( 'mb_check_encoding' ) ? ! mb_check_encoding( $value, 'UTF-8' ) : ( function_exists( 'wp_is_valid_utf8' ) && ! wp_is_valid_utf8( $value ) ) ) {
+			$properties |= self::STRING_INVALID_UTF8;
+		}
+
+		if ( $length <= self::REMEMBERED_LENGTH ) {
+			if ( count( self::$remembered ) >= self::REMEMBERED_STRINGS ) {
+				self::$remembered = array();
+			}
+			self::$remembered[ $value ] = $properties;
+		}
+
+		return self::with_file( $value, $properties );
+	}
+
+	/**
+	 * Adds STRING_FILE to the properties of a path when something exists there now.
+	 *
+	 * It is not remembered, as tests create and remove files.
+	 *
+	 * @param string $value      A string.
+	 * @param int    $properties Its other properties, as bits.
+	 * @return int Bits.
+	 */
+	private static function with_file( $value, $properties ) {
+		if ( ( $properties & self::STRING_PATH ) && @file_exists( $value ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Only to look; WordPress's own calls report their warnings.
+			$properties |= self::STRING_FILE;
+		}
+
+		return $properties;
+	}
+
+	/**
+	 * Returns whether a string parses as an absolute WHATWG URL.
+	 *
+	 * Only a string which starts with a scheme and `:`, after what the parser
+	 * removes from it, is given to the parser. A URL with a scheme which is not
+	 * special and an opaque path, such as `mailto:a@example.org`, always parses,
+	 * so it is not given to the parser either: PHP 8.5's parser keeps the memory
+	 * of each such URL until the request ends.
+	 *
+	 * @param string $value A non-empty string.
+	 * @return bool
+	 */
+	private static function parses_as_url( $value ) {
+		if ( ! class_exists( 'Uri\WhatWg\Url', false ) ) {
+			return false;
+		}
+
+		$url = ltrim( $value, "\x00..\x20" );
+		if ( false !== strpbrk( $url, "\t\n\r" ) ) {
+			$url = str_replace( array( "\t", "\n", "\r" ), '', $url );
+		}
+
+		$colon = strpos( $url, ':' );
+		if ( false === $colon || 0 === $colon || ! ctype_alpha( $url[0] ) ) {
+			return false;
+		}
+		if ( strspn( $url, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-.', 0, $colon ) !== $colon ) {
+			return false;
+		}
+
+		$scheme = strtolower( substr( $url, 0, $colon ) );
+		if ( ! isset( self::SPECIAL_SCHEMES[ $scheme ] ) && ( ! isset( $url[ $colon + 1 ] ) || '/' !== $url[ $colon + 1 ] ) ) {
+			return true;
+		}
+
+		return null !== Uri\WhatWg\Url::parse( $value );
+	}
+
+	/**
+	 * Returns whether a string is probably a file path, as string_properties() describes.
+	 *
+	 * @param string $value  A non-empty string.
+	 * @param int    $length Its length.
+	 * @return bool
+	 */
+	private static function looks_like_path( $value, $length ) {
+		if ( $length > PHP_MAXPATHLEN || false !== strpbrk( $value, "\0\n\r<" ) || false !== strpos( $value, '://' ) ) {
+			return false;
+		}
+
+		if ( 0 === strpos( $value, './' ) || 0 === strpos( $value, '../' ) ) {
+			return true;
+		}
+
+		if ( $length >= 3 && ':' === $value[1] && ( '\\' === $value[2] || '/' === $value[2] ) && ctype_alpha( $value[0] ) ) {
+			return true;
+		}
+
+		// An absolute path, but not a URL path such as `/wp-admin/`, or a network path.
+		if ( '/' !== $value[0] || ( $length > 1 && '/' === $value[1] ) ) {
+			return false;
+		}
+
+		$segment = substr( $value, 1, strcspn( $value, '/', 1 ) );
+		if ( '' === $segment || '.' === $segment || '..' === $segment ) {
+			return false;
+		}
+		if ( ! isset( self::$root_directories[ $segment ] ) ) {
+			self::$root_directories[ $segment ] = @is_dir( "/{$segment}" ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Only to look.
+		}
+
+		return self::$root_directories[ $segment ];
 	}
 
 	/**
@@ -681,6 +923,9 @@ final class WP_Invariant_Types {
 	 */
 	private static function merge_literals( array $into, array $other, $limit ) {
 		$into['total'] = self::add_counts( $into['total'], $other['total'] );
+		foreach ( $other['properties'] as $properties => $counts ) {
+			$into['properties'][ $properties ] = isset( $into['properties'][ $properties ] ) ? self::add_counts( $into['properties'][ $properties ], $counts ) : $counts;
+		}
 		if ( ! $into['widened'] && ! $other['widened'] ) {
 			foreach ( $other['values'] as $value => $counts ) {
 				$into['values'][ $value ] = isset( $into['values'][ $value ] ) ? self::add_counts( $into['values'][ $value ], $counts ) : $counts;

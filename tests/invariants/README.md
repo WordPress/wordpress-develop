@@ -232,6 +232,16 @@ wp_kses()  src/wp-includes/kses.php:979
   - `true` and `false` are shown apart until both are seen, then as `bool`.
   - Up to 4 distinct ints are shown as literals, such as `0` or `-1`. A fifth distinct int makes them all `int`. Floats are always `float`.
   - Up to 10 distinct strings shorter than 32 bytes are shown as literals, such as `'post'`. Another distinct string, or a longer one, makes them all `string`.
+  - Once ints and strings are no longer literals, they are counted by their properties, from the first one seen, such as `int [zero]`, `string [html slash]` or `string [non-empty]`:
+    - `zero` and `non-zero` ints.
+    - `empty` strings, and `non-empty` ones, which is shown only when none of the other tags is, since each implies it.
+    - `html`: the Tag Processor finds a token in it other than text. A tag cut off by the end of the string is text.
+    - `ref`: it holds an HTML character reference which decodes in text, such as `&amp;` or a legacy `&amp`.
+    - `url`: `Uri\WhatWg\Url::parse()` accepts it without a base, so it is an absolute URL. That includes `mailto:` and `a:b`, and Windows paths such as `C:\x`, whose drive letter is a scheme.
+    - `slash`: `wp_slash()` would change it. `unslash`: `wp_unslash()` would change it, which implies `slash`.
+    - `path`: it is probably a file path, but nothing is there. `file`: it is probably a file path, and a file or directory is there, at the time of the call. A path is an absolute one whose first segment is a directory at `/`, such as `/var/www/…`, so not `/wp-admin/`; a Windows path starting with a drive letter; or a relative one starting with `./` or `../`. It has no NUL, newline, `<` or `://`.
+    - `-utf8`: it is not valid UTF-8. Strings are assumed to be valid otherwise.
+  - Literals have no tags, and strings and ints inside arrays are not tagged.
   - An array is `array{}` when empty, `list<…>` with the types of its first 16 elements, or a record such as `array{post_type: string, paged?: int}` of its first-level keys, where `?` marks a key some arrays did not have. Past 64 keys, it is `array`.
   - A stdClass object is a record of its properties, like an array, and other objects are their class.
   - `(not passed)` counts calls which left out an optional parameter, and `(extra)` counts arguments beyond the declared parameters of a function without a variadic one.

@@ -87,11 +87,25 @@ class Tests_Invariants_Types extends TestCase {
 		);
 
 		$values[] = 3;
-		$this->assertTypes( array( 'int' => 6 ), $this->slot( ...$values ), 'A fifth distinct int makes them all int.' );
+		$this->assertTypes(
+			array(
+				'int [zero]'     => 2,
+				'int [non-zero]' => 4,
+			),
+			$this->slot( ...$values ),
+			'A fifth distinct int makes them all int, counted by whether they are zero.'
+		);
 
 		$slot = $this->slot( ...$values );
 		WP_Invariant_Types::add_to_slot( $slot, 0, WP_Invariant_Types::CORE );
-		$this->assertTypes( array( 'int' => 7 ), $slot, 'Once widened, ints seen before are int too.' );
+		$this->assertTypes(
+			array(
+				'int [zero]'     => 3,
+				'int [non-zero]' => 4,
+			),
+			$slot,
+			'Once widened, ints seen before are int too.'
+		);
 	}
 
 	public function test_floats_are_never_literals() {
@@ -117,12 +131,106 @@ class Tests_Invariants_Types extends TestCase {
 		for ( $i = 0; $i < WP_Invariant_Types::STRING_LITERALS; $i++ ) {
 			$values[] = "value-{$i}";
 		}
-		$this->assertTypes( array( 'string' => 13 ), $this->slot( ...$values ) );
+		$this->assertTypes( array( 'string [non-empty]' => 13 ), $this->slot( ...$values ) );
 	}
 
 	public function test_strings_are_literals_until_one_is_too_long() {
-		$this->assertTypes( array( 'string' => 2 ), $this->slot( 'short', str_repeat( 'x', WP_Invariant_Types::STRING_LENGTH ) ) );
+		$this->assertTypes( array( 'string [non-empty]' => 2 ), $this->slot( 'short', str_repeat( 'x', WP_Invariant_Types::STRING_LENGTH ) ) );
 		$this->assertTypes( array( "'" . str_repeat( 'x', 31 ) . "'" => 1 ), $this->slot( str_repeat( 'x', 31 ) ) );
+	}
+
+	/**
+	 * @dataProvider data_string_properties
+	 *
+	 * @param string   $value    A string.
+	 * @param string[] $expected Its tags.
+	 */
+	public function test_strings_are_tagged_by_their_most_specific_properties( $value, array $expected ) {
+		self::load_html_api();
+
+		$this->assertSame( $expected, WP_Invariant_Types_Report::tags( 'string', WP_Invariant_Types::string_properties( $value ) ) );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_string_properties() {
+		return array(
+			'empty'                      => array( '', array( 'empty' ) ),
+			'plain'                      => array( 'post', array( 'non-empty' ) ),
+			'a tag'                      => array( '<p>x</p>', array( 'html' ) ),
+			'a comment'                  => array( 'a <!-- b --> c', array( 'html' ) ),
+			'a less-than sign'           => array( 'a < b', array( 'non-empty' ) ),
+			'a tag cut off'              => array( 'a <p', array( 'non-empty' ) ),
+			'a character reference'      => array( 'x &amp; y', array( 'ref' ) ),
+			'a legacy reference'         => array( 'x &amp y', array( 'ref' ) ),
+			'an ampersand'               => array( 'AT&T', array( 'non-empty' ) ),
+			'a quote'                    => array( "it's", array( 'slash' ) ),
+			'a backslash'                => array( 'a\\b', array( 'unslash' ) ),
+			'a URL'                      => array( 'https://example.org/', array( 'url' ) ),
+			'a URL without an authority' => array( 'mailto:a@example.org', array( 'url' ) ),
+			'a URL with a newline'       => array( "java\nscript:x", array( 'url' ) ),
+			'a URL with a bad host'      => array( 'https://[nope/', array( 'non-empty' ) ),
+			'a URL path'                 => array( '/wp-admin/', array( 'non-empty' ) ),
+			'a file'                     => array( __FILE__, array( 'file' ) ),
+			'a path to nothing'          => array( __DIR__ . '/missing.php', array( 'path' ) ),
+			'a relative path'            => array( './missing.php', array( 'path' ) ),
+			'a Windows path, and a URL'  => array( 'C:\\missing.php', array( 'url', 'path', 'unslash' ) ),
+			'a stream wrapper'           => array( 'phar://' . __FILE__, array( 'url' ) ),
+			'invalid UTF-8'              => array( "\xFF", array( '-utf8' ) ),
+			'markup with a quote'        => array( "<p>it's</p>", array( 'html', 'slash' ) ),
+			'markup with every property' => array( "<a href=\"x\">&amp;\\\xFF</a>", array( 'html', 'ref', 'unslash', '-utf8' ) ),
+		);
+	}
+
+	public function test_a_path_is_looked_at_on_every_call() {
+		$file = tempnam( sys_get_temp_dir(), 'types' );
+		$this->assertSame( array( 'file' ), WP_Invariant_Types_Report::tags( 'string', WP_Invariant_Types::string_properties( $file ) ) );
+
+		unlink( $file );
+		$this->assertSame( array( 'path' ), WP_Invariant_Types_Report::tags( 'string', WP_Invariant_Types::string_properties( $file ) ), 'Whether a file exists is not remembered.' );
+	}
+
+	public function test_urls_with_opaque_paths_do_not_use_up_memory() {
+		$before = memory_get_usage();
+		for ( $i = 0; $i < 5000; $i++ ) {
+			$this->assertSame( WP_Invariant_Types::STRING_URL, WP_Invariant_Types::string_properties( "mailto:{$i}" . str_repeat( 'x', WP_Invariant_Types::REMEMBERED_LENGTH ) ) );
+		}
+
+		$this->assertLessThan( 200000, memory_get_usage() - $before, 'PHP 8.5 keeps the memory of each URL with an opaque path which it parses.' );
+	}
+
+	public function test_classifying_strings_leaves_the_pcre_error_alone() {
+		self::load_html_api();
+
+		$limit = ini_get( 'pcre.backtrack_limit' );
+		ini_set( 'pcre.backtrack_limit', '1' );
+		preg_match( '/(?:\D+|<\d+>)*[!?]/', 'foobar foobar foobar' );
+		ini_set( 'pcre.backtrack_limit', $limit );
+		$this->assertSame( PREG_BACKTRACK_LIMIT_ERROR, preg_last_error() );
+
+		WP_Invariant_Types::string_properties( '<p class="x">it&#39;s at https://example.org/</p>' . uniqid() );
+		$this->assertSame( PREG_BACKTRACK_LIMIT_ERROR, preg_last_error() );
+		preg_match( '/^/', '' );
+	}
+
+	public function test_widened_strings_are_counted_by_their_properties_from_the_first() {
+		self::load_html_api();
+
+		$values = array( '', '', '<b>', 'it\'s', 'post' );
+		for ( $i = 0; $i < WP_Invariant_Types::STRING_LITERALS; $i++ ) {
+			$values[] = "value-{$i}";
+		}
+
+		$this->assertTypes(
+			array(
+				'string [empty]'     => 2,
+				'string [html]'      => 1,
+				'string [slash]'     => 1,
+				'string [non-empty]' => 11,
+			),
+			$this->slot( ...$values )
+		);
 	}
 
 	public function test_scalars_objects_and_resources_are_their_types() {
@@ -207,12 +315,21 @@ class Tests_Invariants_Types extends TestCase {
 
 		$this->assertTypes(
 			array(
-				'string'                     => 12,
+				'string [non-empty]'         => 12,
 				'array{x?: int, y?: string}' => 2,
 				'bool'                       => 2,
-				'int'                        => 5,
+				'int [non-zero]'             => 5,
 			),
 			WP_Invariant_Types::merge_slots( $first, $second )
+		);
+
+		$this->assertTypes(
+			array(
+				'int [zero]'     => 2,
+				'int [non-zero]' => 4,
+			),
+			WP_Invariant_Types::merge_slots( $this->slot( 0, 1, 2 ), $this->slot( 0, 3, 4 ) ),
+			'Properties are counted across processes, and their literals widen together.'
 		);
 
 		$this->assertTypes(
@@ -322,6 +439,18 @@ class Tests_Invariants_Types extends TestCase {
 			),
 			$data['functions']['wp_invariants_types_fixture']['calls']
 		);
+	}
+
+	/**
+	 * Loads the HTML API, which WordPress would have loaded, for WP_Invariant_Types::string_properties().
+	 */
+	private static function load_html_api() {
+		$directory = dirname( __DIR__, 4 ) . '/src/wp-includes';
+		require_once "{$directory}/class-wp-token-map.php";
+		require_once "{$directory}/html-api/html5-named-character-references.php";
+		foreach ( array( 'class-wp-html-attribute-token.php', 'class-wp-html-span.php', 'class-wp-html-text-replacement.php', 'class-wp-html-decoder.php', 'class-wp-html-doctype-info.php', 'class-wp-html-tag-processor.php' ) as $file ) {
+			require_once "{$directory}/html-api/{$file}";
+		}
 	}
 
 	/**

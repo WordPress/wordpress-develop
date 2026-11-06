@@ -18,6 +18,32 @@
 final class WP_Invariant_Types_Report {
 
 	/**
+	 * Tags for the properties of strings, in the order they are shown.
+	 */
+	const STRING_TAGS = array(
+		WP_Invariant_Types::STRING_EMPTY        => 'empty',
+		WP_Invariant_Types::STRING_HTML         => 'html',
+		WP_Invariant_Types::STRING_REFERENCE    => 'ref',
+		WP_Invariant_Types::STRING_URL          => 'url',
+		WP_Invariant_Types::STRING_FILE         => 'file',
+		WP_Invariant_Types::STRING_PATH         => 'path',
+		WP_Invariant_Types::STRING_UNSLASH      => 'unslash',
+		WP_Invariant_Types::STRING_SLASH        => 'slash',
+		WP_Invariant_Types::STRING_INVALID_UTF8 => '-utf8',
+	);
+
+	/**
+	 * Properties of strings which imply another, which is then not shown.
+	 *
+	 * Every property but `empty` implies `non-empty`, which is shown only when a
+	 * non-empty string has no other.
+	 */
+	const STRING_IMPLIES = array(
+		WP_Invariant_Types::STRING_UNSLASH => WP_Invariant_Types::STRING_SLASH,
+		WP_Invariant_Types::STRING_FILE    => WP_Invariant_Types::STRING_PATH,
+	);
+
+	/**
 	 * Writes the report, after merging in what separate processes collected.
 	 *
 	 * @param string   $directory Directory for the report files.
@@ -305,7 +331,9 @@ final class WP_Invariant_Types_Report {
 
 		$ints = $slot['ints'];
 		if ( $ints['widened'] ) {
-			$rows[] = self::row( 'int', $ints['total'] );
+			foreach ( $ints['properties'] as $properties => $counts ) {
+				$rows[] = self::row( 'int', $counts, self::tags( 'int', $properties ) );
+			}
 		} else {
 			foreach ( $ints['values'] as $value => $counts ) {
 				$rows[] = self::row( (string) $value, $counts );
@@ -314,7 +342,9 @@ final class WP_Invariant_Types_Report {
 
 		$strings = $slot['strings'];
 		if ( $strings['widened'] ) {
-			$rows[] = self::row( 'string', $strings['total'] );
+			foreach ( $strings['properties'] as $properties => $counts ) {
+				$rows[] = self::row( 'string', $counts, self::tags( 'string', $properties ) );
+			}
 		} else {
 			foreach ( $strings['values'] as $value => $counts ) {
 				$rows[] = self::row( var_export( (string) $value, true ), $counts );
@@ -322,6 +352,34 @@ final class WP_Invariant_Types_Report {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Returns the tags for properties of ints or strings, leaving out those which others imply.
+	 *
+	 * @param string $kind       `int` or `string`.
+	 * @param int    $properties Bits, from WP_Invariant_Types.
+	 * @return string[] Such as `array( 'html', 'slash' )`, `array( 'non-empty' )` or `array( 'zero' )`.
+	 */
+	public static function tags( $kind, $properties ) {
+		if ( 'int' === $kind ) {
+			return array( ( $properties & WP_Invariant_Types::INT_ZERO ) ? 'zero' : 'non-zero' );
+		}
+
+		foreach ( self::STRING_IMPLIES as $property => $implied ) {
+			if ( $properties & $property ) {
+				$properties &= ~$implied;
+			}
+		}
+
+		$tags = array();
+		foreach ( self::STRING_TAGS as $property => $tag ) {
+			if ( $properties & $property ) {
+				$tags[] = $tag;
+			}
+		}
+
+		return array() === $tags ? array( 'non-empty' ) : $tags;
 	}
 
 	/**
@@ -347,16 +405,22 @@ final class WP_Invariant_Types_Report {
 	/**
 	 * Makes a row.
 	 *
-	 * @param string $type   Type.
-	 * @param int[]  $counts From WordPress, and from tests.
+	 * @param string   $type       Type.
+	 * @param int[]    $counts     From WordPress, and from tests.
+	 * @param string[] $properties Tags for the properties of the values, from tags(), if any.
 	 * @return array
 	 */
-	private static function row( $type, array $counts ) {
-		return array(
-			'type'  => $type,
+	private static function row( $type, array $counts, array $properties = array() ) {
+		$row = array(
+			'type'  => array() === $properties ? $type : $type . ' [' . implode( ' ', $properties ) . ']',
 			'core'  => $counts[0],
 			'tests' => $counts[1],
 		);
+		if ( array() !== $properties ) {
+			$row['properties'] = $properties;
+		}
+
+		return $row;
 	}
 
 	/**
@@ -413,6 +477,17 @@ final class WP_Invariant_Types_Report {
 				WP_Invariant_Types::STRING_LITERALS,
 				WP_Invariant_Types::STRING_LENGTH
 			),
+			'',
+			'Once they are no longer literals, ints and strings are counted by their properties:',
+			'',
+			'- `zero` and `non-zero` ints.',
+			'- `empty` and `non-empty` strings. `non-empty` is shown only for a string with none of the properties below, each of which implies it.',
+			'- `html`: the HTML API finds markup in it, which is anything but text.',
+			'- `ref`: it holds an HTML character reference, such as `&amp;`.',
+			'- `url`: it parses as an absolute WHATWG URL.',
+			'- `path`: it is probably a file path, but nothing is there. `file`: it is probably a file path, and a file or directory is there.',
+			'- `slash`: `wp_slash()` would change it. `unslash`: `wp_unslash()` would change it, and so would `wp_slash()`.',
+			'- `-utf8`: it is not valid UTF-8.',
 		);
 
 		// Functions come first, then the methods of each class, each under a heading.
