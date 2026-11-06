@@ -31,6 +31,8 @@ const SERIAL_SPECS = [
 	'media-library-client-side-upload.test.js',
 	'media-modal-client-side-upload.test.js',
 	'media-new-client-side-upload.test.js',
+	// Saves the whole General Settings form, as general-settings.test.js does.
+	'general-settings-invalid-timezone.test.js',
 ];
 
 const config = defineConfig( {
