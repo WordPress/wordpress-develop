@@ -161,18 +161,20 @@ class Tests_Blocks_RenderPostTimeToRead extends WP_UnitTestCase {
 	 */
 	public static function data_minutes() {
 		return array(
-			'a short post'                  => array( 10, array(), '1 minute' ),
-			'a post that needs a minute'    => array( 189, array(), '1 minute' ),
-			'a post that needs two minutes' => array( 378, array(), '2 minutes' ),
-			'the default reading speed'     => array( 945, array(), '5 minutes' ),
-			'a post that needs ten minutes' => array( 1890, array(), '10 minutes' ),
-			'a range that is rounded'       => array( 900, array( 'displayAsRange' => true ), '4–6 minutes' ),
-			'a speed'                       => array( 600, array( 'averageReadingSpeed' => 100 ), '6 minutes' ),
-			'a speed and a short post'      => array( 5, array( 'averageReadingSpeed' => 100 ), '1 minute' ),
-			'the time as the display mode'  => array( 378, array( 'displayMode' => 'time' ), '2 minutes' ),
-			'a range'                       => array( 945, array( 'displayAsRange' => true ), '4–6 minutes' ),
-			'a range for a short post'      => array( 10, array( 'displayAsRange' => true ), '1–2 minutes' ),
-			'a range with a speed'          => array(
+			'a short post'                       => array( 10, array(), '1 minute' ),
+			'a post that needs a minute'         => array( 189, array(), '1 minute' ),
+			'a post that needs two minutes'      => array( 378, array(), '2 minutes' ),
+			'the default reading speed'          => array( 945, array(), '5 minutes' ),
+			'a post rounded up to two minutes'   => array( 300, array(), '2 minutes' ),
+			'a post rounded down to two minutes' => array( 400, array(), '2 minutes' ),
+			'a post that needs ten minutes'      => array( 1890, array(), '10 minutes' ),
+			'a range that is rounded'            => array( 900, array( 'displayAsRange' => true ), '4–6 minutes' ),
+			'a speed'                            => array( 600, array( 'averageReadingSpeed' => 100 ), '6 minutes' ),
+			'a speed and a short post'           => array( 5, array( 'averageReadingSpeed' => 100 ), '1 minute' ),
+			'the time as the display mode'       => array( 378, array( 'displayMode' => 'time' ), '2 minutes' ),
+			'a range'                            => array( 945, array( 'displayAsRange' => true ), '4–6 minutes' ),
+			'a range for a short post'           => array( 10, array( 'displayAsRange' => true ), '1–2 minutes' ),
+			'a range with a speed'               => array(
 				600,
 				array(
 					'displayAsRange'      => true,
@@ -291,20 +293,24 @@ class Tests_Blocks_RenderPostTimeToRead extends WP_UnitTestCase {
 	 */
 	public function test_should_register_the_block_with_the_callbacks() {
 		$registry       = WP_Block_Type_Registry::get_instance();
-		$was_registered = $registry->is_registered( 'core/post-time-to-read' );
+		$original_block = $registry->get_registered( 'core/post-time-to-read' );
 
-		if ( $was_registered ) {
+		if ( $original_block ) {
 			unregister_block_type( 'core/post-time-to-read' );
 		}
 
-		register_block_core_post_time_to_read();
-		$block_type = $registry->get_registered( 'core/post-time-to-read' );
+		try {
+			register_block_core_post_time_to_read();
+			$block_type = $registry->get_registered( 'core/post-time-to-read' );
 
-		if ( ! $was_registered ) {
+			$this->assertInstanceOf( WP_Block_Type::class, $block_type );
+			$this->assertSame( 'render_block_core_post_time_to_read', $block_type->render_callback );
+		} finally {
 			unregister_block_type( 'core/post-time-to-read' );
-		}
 
-		$this->assertInstanceOf( WP_Block_Type::class, $block_type );
-		$this->assertSame( 'render_block_core_post_time_to_read', $block_type->render_callback );
+			if ( $original_block ) {
+				$registry->register( $original_block );
+			}
+		}
 	}
 }
