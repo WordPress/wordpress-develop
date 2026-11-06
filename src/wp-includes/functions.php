@@ -3313,7 +3313,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				 * than rejecting a legitimate audio file whose major types don't match.
 				 */
 				$cross_container_types = array(
-					'audio/mpeg' => array( 'video/mp4' ),
+					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
 				);
 
 				if ( empty( $cross_container_types[ $type ] )
