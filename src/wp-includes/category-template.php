@@ -43,6 +43,8 @@ function get_category_link( $category ) {
  * @param bool   $nicename    Optional. Whether to use nice name for display. Default false.
  * @param array  $deprecated  Not used.
  * @return string|WP_Error A list of category parents on success, WP_Error on failure.
+ *
+ * @phpstan-param array{} $deprecated
  */
 function get_category_parents( $category_id, $link = false, $separator = '/', $nicename = false, $deprecated = array() ) {
 
@@ -534,6 +536,8 @@ function wp_dropdown_categories( $args = '' ) {
  * }
  * @return void|string|false Void if 'echo' argument is true, HTML list of categories if 'echo' is false.
  *                           False if the taxonomy does not exist.
+ *
+ * @phpstan-return ( $args is array{ echo: false|0, ... } ? string|false : false|void )
  */
 function wp_list_categories( $args = '' ) {
 	$defaults = array(
@@ -710,8 +714,16 @@ function wp_list_categories( $args = '' ) {
  *                             associated with the taxonomy.
  *     @type bool   $echo      Whether or not to echo the return value. Default true.
  * }
- * @return void|string|string[] Void if 'echo' argument is true, or on failure. Otherwise, tag cloud
- *                              as a string or an array, depending on 'format' argument.
+ * @return string|string[]|null|void Tag cloud as a string, or as an array when the 'format'
+ *                                   argument is 'array'. Null on failure. Nothing when 'echo' is
+ *                                   true and 'format' is not 'array'.
+ * @phpstan-return (
+ *     $args is array{ format: 'array', ... }
+ *         ? string[]|null
+ *         : ( $args is array{ echo: false|0|''|'0', ... }
+ *             ? string|null
+ *             : ( $args is ''|'0'|array ? void : string|string[]|null ) )
+ * )
  */
 function wp_tag_cloud( $args = '' ) {
 	$defaults = array(
@@ -745,7 +757,7 @@ function wp_tag_cloud( $args = '' ) {
 	); // Always query top tags.
 
 	if ( empty( $tags ) || is_wp_error( $tags ) ) {
-		return;
+		return null;
 	}
 
 	foreach ( $tags as $key => $tag ) {
@@ -756,7 +768,7 @@ function wp_tag_cloud( $args = '' ) {
 		}
 
 		if ( is_wp_error( $link ) ) {
-			return;
+			return null;
 		}
 
 		$tags[ $key ]->link = $link;
@@ -807,40 +819,42 @@ function default_topic_count_scale( $count ) {
  * @param string|array $args {
  *     Optional. Array or string of arguments for generating a tag cloud.
  *
- *     @type int      $smallest                   Smallest font size used to display tags. Paired
- *                                                with the value of `$unit`, to determine CSS text
- *                                                size unit. Default 8 (pt).
- *     @type int      $largest                    Largest font size used to display tags. Paired
- *                                                with the value of `$unit`, to determine CSS text
- *                                                size unit. Default 22 (pt).
- *     @type string   $unit                       CSS text size unit to use with the `$smallest`
- *                                                and `$largest` values. Accepts any valid CSS text
- *                                                size unit. Default 'pt'.
- *     @type int      $number                     The number of tags to return. Accepts any
- *                                                positive integer or zero to return all.
- *                                                Default 0.
- *     @type string   $format                     Format to display the tag cloud in. Accepts 'flat'
- *                                                (tags separated with spaces), 'list' (tags displayed
- *                                                in an unordered list), or 'array' (returns an array).
- *                                                Default 'flat'.
- *     @type string   $separator                  HTML or text to separate the tags. Default "\n" (newline).
- *     @type string   $orderby                    Value to order tags by. Accepts 'name' or 'count'.
- *                                                Default 'name'. The {@see 'tag_cloud_sort'} filter
- *                                                can also affect how tags are sorted.
- *     @type string   $order                      How to order the tags. Accepts 'ASC' (ascending),
- *                                                'DESC' (descending), or 'RAND' (random). Default 'ASC'.
- *     @type int|bool $filter                     Whether to enable filtering of the final output
- *                                                via {@see 'wp_generate_tag_cloud'}. Default 1.
- *     @type array    $topic_count_text           Nooped plural text from _n_noop() to supply to
- *                                                tag counts. Default null.
- *     @type callable $topic_count_text_callback  Callback used to generate nooped plural text for
- *                                                tag counts based on the count. Default null.
- *     @type callable $topic_count_scale_callback Callback used to determine the tag count scaling
- *                                                value. Default default_topic_count_scale().
- *     @type bool|int $show_count                 Whether to display the tag counts. Default 0. Accepts
- *                                                0, 1, or their bool equivalents.
+ *     @type int|float $smallest                   Smallest font size used to display tags. Paired
+ *                                                 with the value of `$unit`, to determine CSS text
+ *                                                 size unit. Default 8 (pt).
+ *     @type int|float $largest                    Largest font size used to display tags. Paired
+ *                                                 with the value of `$unit`, to determine CSS text
+ *                                                 size unit. Default 22 (pt).
+ *     @type string    $unit                       CSS text size unit to use with the `$smallest`
+ *                                                 and `$largest` values. Accepts any valid CSS text
+ *                                                 size unit. Default 'pt'.
+ *     @type int       $number                     The number of tags to return. Accepts any
+ *                                                 positive integer or zero to return all.
+ *                                                 Default 0.
+ *     @type string    $format                     Format to display the tag cloud in. Accepts 'flat'
+ *                                                 (tags separated with spaces), 'list' (tags displayed
+ *                                                 in an unordered list), or 'array' (returns an array).
+ *                                                 Default 'flat'.
+ *     @type string    $separator                  HTML or text to separate the tags. Default "\n" (newline).
+ *     @type string    $orderby                    Value to order tags by. Accepts 'name' or 'count'.
+ *                                                 Default 'name'. The {@see 'tag_cloud_sort'} filter
+ *                                                 can also affect how tags are sorted.
+ *     @type string    $order                      How to order the tags. Accepts 'ASC' (ascending),
+ *                                                 'DESC' (descending), or 'RAND' (random). Default 'ASC'.
+ *     @type int|bool  $filter                     Whether to enable filtering of the final output
+ *                                                 via {@see 'wp_generate_tag_cloud'}. Default 1.
+ *     @type array     $topic_count_text           Nooped plural text from _n_noop() to supply to
+ *                                                 tag counts. Default null.
+ *     @type callable  $topic_count_text_callback  Callback used to generate nooped plural text for
+ *                                                 tag counts based on the count. Default null.
+ *     @type callable  $topic_count_scale_callback Callback used to determine the tag count scaling
+ *                                                 value. Default default_topic_count_scale().
+ *     @type bool|int  $show_count                 Whether to display the tag counts. Default 0. Accepts
+ *                                                 0, 1, or their bool equivalents.
  * }
  * @return string|string[] Tag cloud as a string or an array, depending on 'format' argument.
+ *
+ * @phpstan-return ( $args is array{ format: 'array', ... } ? array<int, string> : string )
  */
 function wp_generate_tag_cloud( $tags, $args = '' ) {
 	$defaults = array(
@@ -882,7 +896,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	} elseif ( isset( $args['single_text'] ) && isset( $args['multiple_text'] ) ) {
 		// If no callback exists, look for the old-style single_text and multiple_text arguments.
 		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] );
+		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] ); // @phpstan-ignore argument.type, argument.type (These are runtime values, so there is nothing to extract for translation.)
 	} else {
 		// This is the default for when no callback, plural, or argument is passed in.
 		/* translators: %s: Number of items (tags). */
@@ -956,7 +970,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	 * - when the tag count is displayed (for example when users check the checkbox in the
 	 *   Tag Cloud widget), regardless of the tags font size
 	 */
-	if ( $args['show_count'] || 0 !== $font_spread ) {
+	if ( $args['show_count'] || $font_spread > 0 ) {
 		$aria_label = true;
 	}
 
@@ -1230,7 +1244,7 @@ function get_the_tag_list( $before = '', $sep = '', $after = '', $post_id = 0 ) 
  */
 function the_tags( $before = null, $sep = ', ', $after = '' ) {
 	if ( null === $before ) {
-		$before = __( 'Tags: ' );
+		$before = __( 'Tags:' ) . ' ';
 	}
 
 	$the_tags = get_the_tag_list( $before, $sep, $after );

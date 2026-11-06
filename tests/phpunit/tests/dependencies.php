@@ -154,7 +154,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_provider_get_etag() {
+	public static function data_provider_get_etag() {
 		return array(
 			'should accept one dependency'              => array(
 				'load'               => array(
@@ -176,8 +176,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @ticket 58433
 	 * @ticket 61485
+	 * @ticket 57548
 	 *
 	 * @covers WP_Dependencies::get_etag
+	 *
+	 * @expectedDeprecated WP_Dependencies::get_etag
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *
@@ -210,8 +213,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @ticket 58433
 	 * @ticket 61485
+	 * @ticket 57548
 	 *
 	 * @covers WP_Dependencies::get_etag
+	 *
+	 * @expectedDeprecated WP_Dependencies::get_etag
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *
@@ -224,7 +230,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		// Modify global to avoid tests needing to change with each new version of WordPress.
 		$original_wp_version = $wp_version;
 		$wp_version          = '6.7';
-		$instance            = wp_scripts();
+		$instance            = wp_styles();
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.

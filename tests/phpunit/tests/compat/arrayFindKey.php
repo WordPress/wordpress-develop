@@ -34,7 +34,7 @@ class Test_Compat_arrayFindKey extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_find_key(): array {
+	public static function data_array_find_key(): array {
 		return array(
 			'empty array'          => array(
 				'expected' => null,

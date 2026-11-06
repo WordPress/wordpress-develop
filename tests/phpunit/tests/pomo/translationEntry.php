@@ -45,8 +45,8 @@ class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( $entry_baba->key(), $entry_baba_plural->key() );
-		$this->assertNotEquals( $entry_baba->key(), $entry_baba_ctxt->key() );
-		$this->assertNotEquals( $entry_baba_plural->key(), $entry_baba_ctxt->key() );
-		$this->assertNotEquals( $entry_baba->key(), $entry_dyado->key() );
+		$this->assertNotSame( $entry_baba->key(), $entry_baba_ctxt->key() );
+		$this->assertNotSame( $entry_baba_plural->key(), $entry_baba_ctxt->key() );
+		$this->assertNotSame( $entry_baba->key(), $entry_dyado->key() );
 	}
 }
