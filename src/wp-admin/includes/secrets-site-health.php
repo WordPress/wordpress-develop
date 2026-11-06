@@ -10,9 +10,8 @@
 /**
  * Registers the Secrets API's Site Health tests.
  *
- * No settings screen – the proposal defers that to 7.3 – but the health signal an
- * operator needs to notice a broken key, a weak key source, or a pending rotation is
- * in scope now.
+ * There is no settings screen for secrets, so these tests are how an operator
+ * notices a broken key, a weak key source, or a pending rotation.
  *
  * @since 7.2.0
  *
@@ -89,7 +88,7 @@ function wp_secrets_site_health_uses_keyring( WP_Secrets_Provider $provider ): b
 }
 
 /**
- * Site Health test: is the site key defined, and in the recommended form?
+ * Tests whether the site key is defined, and in the recommended form.
  *
  * @since 7.2.0
  *
@@ -120,6 +119,7 @@ function wp_secrets_site_health_test_key_source(): array {
 
 	$keyring    = _wp_secrets_get_key_manager()->get_keyring();
 	$key_source = $keyring->get_key_source();
+	$key_status = $keyring instanceof WP_Secrets_Config_Key_Provider ? $keyring->get_key_status() : null;
 
 	// The broken keyring's description is translated, so check its class rather than its text.
 	if ( $keyring instanceof WP_Secrets_Broken_Keyring ) {
@@ -173,7 +173,7 @@ function wp_secrets_site_health_test_key_source(): array {
 		wp_secrets_memzero( $root_key );
 	}
 
-	if ( str_contains( $key_source, 'legacy interpretation' ) ) {
+	if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY === $key_status ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API key is not in the recommended form' ),
@@ -187,8 +187,8 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( str_contains( $key_source, 'not defined' ) || str_contains( $key_source, 'not usable' ) ) {
-		$is_defined = str_contains( $key_source, 'not usable' );
+	if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNDEFINED === $key_status || WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status ) {
+		$is_defined = WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status;
 		$example    = sprintf( "define( 'WP_SECRETS_KEY', '%s' );", base64_encode( random_bytes( 32 ) ) );
 
 		return wp_secrets_site_health_result(
@@ -218,7 +218,7 @@ function wp_secrets_site_health_test_key_source(): array {
 }
 
 /**
- * Site Health test: does every stored secret still decrypt?
+ * Tests whether every stored secret still decrypts.
  *
  * Network secrets are included only for a super admin on a multisite install –
  * never shown to a site administrator who is not one.
@@ -322,7 +322,7 @@ function wp_secrets_site_health_find_undecryptable( bool $network ) {
 }
 
 /**
- * Site Health test: are any secrets flagged as needing rotation?
+ * Tests whether any secrets are flagged as needing rotation.
  *
  * @since 7.2.0
  *

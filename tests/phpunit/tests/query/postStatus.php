@@ -88,17 +88,6 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		self::register_custom_post_objects();
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'foo_pt' );
-		unregister_post_type( 'wptests_pt1' );
-		unregister_post_type( 'wptests_pt2' );
-		_unregister_post_status( 'foo' );
-		_unregister_post_status( 'foo_ps' );
-		_unregister_post_status( 'privatefoo' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Register custom post types and statuses used in multiple tests.
 	 *

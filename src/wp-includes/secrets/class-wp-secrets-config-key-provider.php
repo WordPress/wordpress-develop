@@ -62,6 +62,38 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	const KNOWN_PLACEHOLDER = 'put your unique phrase here';
 
 	/**
+	 * WP_SECRETS_KEY is not defined.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	const KEY_STATUS_UNDEFINED = 'undefined';
+
+	/**
+	 * WP_SECRETS_KEY is defined, but empty, the placeholder, or equal to a key or salt.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	const KEY_STATUS_UNUSABLE = 'unusable';
+
+	/**
+	 * WP_SECRETS_KEY is the base64 encoding of 32 bytes, the recommended form.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	const KEY_STATUS_BASE64 = 'base64';
+
+	/**
+	 * WP_SECRETS_KEY is usable but in another form, so it is hashed to 32 bytes.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	const KEY_STATUS_LEGACY = 'legacy';
+
+	/**
 	 * The authentication keys and salts that wp-config-sample.php defines.
 	 *
 	 * @since 7.2.0
@@ -193,6 +225,28 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	}
 
 	/**
+	 * Reports the state of WP_SECRETS_KEY.
+	 *
+	 * Site Health and wp_is_secrets_api_available() use this rather than the text of
+	 * get_key_source(), which is translated.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string One of the KEY_STATUS_* constants.
+	 */
+	public function get_key_status(): string {
+		if ( ! defined( 'WP_SECRETS_KEY' ) ) {
+			return self::KEY_STATUS_UNDEFINED;
+		}
+
+		if ( ! $this->is_usable_key_value( WP_SECRETS_KEY, $this->get_auth_constant_values() ) ) {
+			return self::KEY_STATUS_UNUSABLE;
+		}
+
+		return $this->is_canonical_base64_32( WP_SECRETS_KEY ) ? self::KEY_STATUS_BASE64 : self::KEY_STATUS_LEGACY;
+	}
+
+	/**
 	 * Describes the active key source, for Site Health.
 	 *
 	 * @since 7.2.0
@@ -200,17 +254,23 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @return string
 	 */
 	public function get_key_source(): string {
-		if ( ! defined( 'WP_SECRETS_KEY' ) ) {
-			return 'WP_SECRETS_KEY is not defined';
-		}
+		switch ( $this->get_key_status() ) {
+			case self::KEY_STATUS_UNDEFINED:
+				/* translators: %s: WP_SECRETS_KEY */
+				return sprintf( __( '%s is not defined' ), 'WP_SECRETS_KEY' );
 
-		if ( ! $this->is_usable_key_value( WP_SECRETS_KEY, $this->get_auth_constant_values() ) ) {
-			return 'WP_SECRETS_KEY is defined but not usable';
-		}
+			case self::KEY_STATUS_UNUSABLE:
+				/* translators: %s: WP_SECRETS_KEY */
+				return sprintf( __( '%s is defined but not usable' ), 'WP_SECRETS_KEY' );
 
-		return $this->is_canonical_base64_32( WP_SECRETS_KEY )
-			? 'WP_SECRETS_KEY (base64-encoded 32 bytes)'
-			: 'WP_SECRETS_KEY (legacy interpretation, hashed as an opaque string)';
+			case self::KEY_STATUS_BASE64:
+				/* translators: %s: WP_SECRETS_KEY */
+				return sprintf( __( '%s (base64-encoded 32 bytes)' ), 'WP_SECRETS_KEY' );
+
+			default:
+				/* translators: %s: WP_SECRETS_KEY */
+				return sprintf( __( '%s (legacy interpretation, hashed as an opaque string)' ), 'WP_SECRETS_KEY' );
+		}
 	}
 
 	/**

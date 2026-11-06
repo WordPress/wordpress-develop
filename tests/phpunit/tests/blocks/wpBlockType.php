@@ -444,7 +444,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_block_version() {
+	public static function data_block_version() {
 		return array(
 			// Null.
 			array( null, 0 ),
