@@ -3342,6 +3342,12 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				$type = false;
 				$ext  = false;
 			}
+		} elseif ( 'text/html' === $real_mime ) {
+			// CSV files can contain HTML in their fields.
+			if ( 'text/csv' !== $type ) {
+				$type = false;
+				$ext  = false;
+			}
 		} elseif ( 'text/rtf' === $real_mime ) {
 			// Special casing for RTF files.
 			if ( ! in_array(
