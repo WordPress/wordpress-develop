@@ -187,6 +187,80 @@ class Tests_Post_SanitizePostField extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the content keeps its HTML in the edit context when the user can use the visual editor.
+	 *
+	 * @ticket 66495
+	 */
+	public function test_should_keep_the_html_of_the_content_for_the_visual_editor() {
+		add_filter( 'user_can_richedit', '__return_true' );
+
+		$this->assertSame(
+			'Fish &amp; <b>Chips</b> "q"',
+			sanitize_post_field( 'post_content', 'Fish &amp; <b>Chips</b> "q"', 1, 'edit' )
+		);
+	}
+
+	/**
+	 * Tests that the content is formatted for a text area in the edit context when the user cannot use the visual editor.
+	 *
+	 * @ticket 66495
+	 */
+	public function test_should_format_the_content_for_a_text_area_without_the_visual_editor() {
+		add_filter( 'user_can_richedit', '__return_false' );
+
+		$this->assertSame(
+			'Fish &amp;amp; &lt;b&gt;Chips&lt;/b&gt; &quot;q&quot;',
+			sanitize_post_field( 'post_content', 'Fish &amp; <b>Chips</b> "q"', 1, 'edit' )
+		);
+	}
+
+	/**
+	 * Tests that the visual editor only changes the content, and not the other text fields.
+	 *
+	 * @ticket 66495
+	 *
+	 * @dataProvider data_fields_formatted_to_edit
+	 *
+	 * @param string $field Name of the field.
+	 */
+	public function test_should_format_other_text_fields_for_a_text_area_with_the_visual_editor( $field ) {
+		add_filter( 'user_can_richedit', '__return_true' );
+
+		$this->assertSame(
+			'Fish &amp;amp; &lt;b&gt;Chips&lt;/b&gt; &quot;q&quot;',
+			sanitize_post_field( $field, 'Fish &amp; <b>Chips</b> "q"', 1, 'edit' )
+		);
+	}
+
+	/**
+	 * Tests that the filters of the content run in the edit context, before the content is formatted.
+	 *
+	 * @ticket 66495
+	 */
+	public function test_should_apply_the_edit_filters_of_the_content_before_formatting_it() {
+		add_filter( 'user_can_richedit', '__return_false' );
+
+		$calls = array();
+		foreach ( array( 'edit_post_content', 'content_edit_pre' ) as $hook ) {
+			add_filter(
+				$hook,
+				static function ( $value, $post_id ) use ( &$calls, $hook ) {
+					$calls[] = array( $hook, $post_id );
+
+					return $value . '<i>' . $hook . '</i>';
+				},
+				10,
+				2
+			);
+		}
+
+		$result = sanitize_post_field( 'post_content', 'text', 7, 'edit' );
+
+		$this->assertSame( array( array( 'edit_post_content', 7 ), array( 'content_edit_pre', 7 ) ), $calls );
+		$this->assertSame( 'text&lt;i&gt;edit_post_content&lt;/i&gt;&lt;i&gt;content_edit_pre&lt;/i&gt;', $result, 'The result of the filters should be formatted.' );
+	}
+
+	/**
 	 * Tests that other fields are escaped for use in an attribute in the edit context.
 	 *
 	 * An attribute keeps an entity that is already there, instead of encoding its ampersand again.
