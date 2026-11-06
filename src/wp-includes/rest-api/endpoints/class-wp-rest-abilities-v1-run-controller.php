@@ -179,17 +179,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		 * REST sanitization skips absent parameters, so prepare null input here.
 		 */
 		if ( null === $input ) {
-			$input = $ability->normalize_input( $input );
-			if ( is_wp_error( $input ) ) {
-				return $this->ensure_error_status( $input, 400 );
-			}
-
-			$is_valid = $ability->validate_input( $input );
-			if ( is_wp_error( $is_valid ) ) {
-				return $this->ensure_error_status( $is_valid, 400 );
-			}
-
-			$input = $ability->coerce_input( $input );
+			$input = $this->prepare_input_for_ability( $ability, $input );
 			if ( is_wp_error( $input ) ) {
 				return $this->ensure_error_status( $input, 400 );
 			}
@@ -274,7 +264,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		 * so they get a 404 or 405 error instead of an input error.
 		 */
 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
-		if ( ! $ability instanceof WP_Ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
+		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return $input;
 		}
 
@@ -295,18 +285,31 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $input;
 		}
 
-		$normalized = $ability->normalize_input( $input );
-		if ( is_wp_error( $normalized ) ) {
-			return $normalized;
+		return $this->prepare_input_for_ability( $ability, $input );
+	}
+
+	/**
+	 * Normalizes, validates, and coerces input for an ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Ability $ability The ability to prepare input for.
+	 * @param mixed      $input   Input to prepare.
+	 * @return mixed|WP_Error Prepared input, or `WP_Error` when normalization, validation, or coercion fails.
+	 */
+	private function prepare_input_for_ability( WP_Ability $ability, $input ) {
+		$input = $ability->normalize_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $input;
 		}
 
 		// Validate before coercion so sanitization cannot rescue invalid input.
-		$is_valid = $ability->validate_input( $normalized );
+		$is_valid = $ability->validate_input( $input );
 		if ( is_wp_error( $is_valid ) ) {
 			return $is_valid;
 		}
 
-		return $ability->coerce_input( $normalized );
+		return $ability->coerce_input( $input );
 	}
 
 	/**
