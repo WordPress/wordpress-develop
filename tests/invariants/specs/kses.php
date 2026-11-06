@@ -54,6 +54,57 @@ $escaped_tag = static function ( $html, $from ) {
 	return null;
 };
 
+/*
+ * Returns what makes HTML unsafe which kses would filter out of it: an element
+ * or comment it removes, an event handler attribute, or a URL with a scheme it
+ * does not allow. Returns null when kses would only change what is harmless.
+ */
+$unsafe_html = static function ( $html, $filtered ) {
+	$before = WP_Invariant_HTML_API::markup( $html );
+	$after  = WP_Invariant_HTML_API::markup( $filtered );
+	if ( null === $before || null === $after ) {
+		return null;
+	}
+	foreach ( $before as $kind => $count ) {
+		if ( $count > ( isset( $after[ $kind ] ) ? $after[ $kind ] : 0 ) ) {
+			return "it has {$kind} markup, which kses removes";
+		}
+	}
+
+	$uri_attributes = wp_kses_uri_attributes();
+	$protocols      = wp_allowed_protocols();
+	$processor      = new WP_HTML_Tag_Processor( $html );
+	while ( $processor->next_tag() ) {
+		$handlers = $processor->get_attribute_names_with_prefix( 'on' );
+		if ( ! empty( $handlers ) ) {
+			return sprintf( 'its %s tag has the event handler %s', $processor->get_tag(), $handlers[0] );
+		}
+		foreach ( $uri_attributes as $attribute ) {
+			$url = $processor->get_attribute( $attribute );
+			if ( is_string( $url ) && wp_kses_bad_protocol( $url, $protocols ) !== $url ) {
+				return sprintf( 'its %s tag has the URL %s, with a scheme kses does not allow', $processor->get_tag(), $url );
+			}
+		}
+	}
+
+	return null;
+};
+
+/*
+ * Whether test code called an API which stores what it is given without
+ * filtering it, by design, such as wp_insert_comment(), which wp_new_comment()
+ * calls once it has filtered the comment.
+ */
+$raw_from_tests = static function () {
+	foreach ( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) as $frame ) {
+		if ( 'wp_insert_comment' === $frame['function'] && ! isset( $frame['class'] ) ) {
+			return isset( $frame['file'] ) && WP_Invariant::is_test_file( $frame['file'] );
+		}
+	}
+
+	return false;
+};
+
 return array(
 	WP_Invariant::define( 'input-not-escaped' )
 		->describe( 'wp_kses() is given HTML, not escaped HTML: the text of its content has no escaped tag or comment, such as &lt;p or &#60;/p. Markup escaped before it is filtered shows up as text. Attribute values, and the contents of elements such as TEXTAREA, are escaped as they should be, and are left out.' )
@@ -176,6 +227,75 @@ return array(
 				$outputs[ $key ][ $output ] = true;
 				if ( count( $outputs[ $key ] ) > 256 ) {
 					unset( $outputs[ $key ][ array_key_first( $outputs[ $key ] ) ] );
+				}
+			}
+		),
+
+	WP_Invariant::define( 'stored-html-is-filtered' )
+		->describe( 'While WordPress filters a field with kses, which it does for users without unfiltered_html, what it stores in that field is already safe by kses: wp_kses() would remove no element or comment from it, and it has no event handler attribute and no URL with a scheme kses does not allow. Attributes WordPress adds after kses, such as rel on links in comments, do not count, and neither do comments tests store with wp_insert_comment(), which stores what it is given. That holds for the content, excerpt and title of posts, the content of comments, the descriptions of terms and the description of users, however they reach the database. Each path through WordPress is reported once for each field.' )
+		->state(
+			static function () {
+				return array();
+			},
+			'run'
+		)
+		->before_each(
+			array( 'wpdb::insert', 'wpdb::update' ),
+			static function ( WP_Invariant_Call $call, array &$reported ) use ( $unsafe_html, $raw_from_tests ) {
+				$wpdb  = $call->self();
+				$table = $call->arg( 'table' );
+				$data  = $call->arg( 'data' );
+				if ( ! is_array( $data ) || ! is_string( $table ) ) {
+					return;
+				}
+
+				// Fields kses filters as they are saved: field => the filter which saves it.
+				$fields = array();
+				if ( $table === $wpdb->posts ) {
+					$fields = array(
+						'post_content' => 'content_save_pre',
+						'post_excerpt' => 'excerpt_save_pre',
+						'post_title'   => 'title_save_pre',
+					);
+				} elseif ( $table === $wpdb->comments ) {
+					$fields = array( 'comment_content' => 'pre_comment_content' );
+				} elseif ( $table === $wpdb->term_taxonomy ) {
+					$fields = array( 'description' => 'pre_term_description' );
+				} elseif ( $table === $wpdb->usermeta ) {
+					$where = 'wpdb::update' === $call->target() ? $call->arg( 'where' ) : $data;
+					if ( is_array( $where ) && isset( $where['meta_key'] ) && 'description' === $where['meta_key'] ) {
+						$fields = array( 'meta_value' => 'pre_user_description' );
+					}
+				}
+
+				foreach ( $fields as $field => $filter ) {
+					if ( ! isset( $data[ $field ] ) || ! is_string( $data[ $field ] ) || false === strpbrk( $data[ $field ], '<>&' ) ) {
+						continue;
+					}
+
+					// wp_filter_kses() filters for the filter it runs in, and wp_filter_post_kses() as post content.
+					if ( false !== has_filter( $filter, 'wp_filter_post_kses' ) ) {
+						$context = 'post';
+					} elseif ( false !== has_filter( $filter, 'wp_filter_kses' ) ) {
+						$context = $filter;
+					} else {
+						continue;
+					}
+
+					$value    = $data[ $field ];
+					$filtered = wp_kses( $value, $context );
+					$unsafe   = $filtered === $value ? null : $unsafe_html( $value, $filtered );
+					if ( null === $unsafe || $raw_from_tests() ) {
+						continue;
+					}
+
+					$path = implode( ' < ', $call->stack( 4 ) );
+					if ( isset( $reported[ "{$table}.{$field} {$path}" ] ) ) {
+						continue;
+					}
+					$reported[ "{$table}.{$field} {$path}" ] = true;
+
+					$call->expect( false, '%s stored HTML in %s.%s which kses would filter, while the %s filter applies kses: %s. It stored %s', $call->target(), $table, $field, $filter, $unsafe, $value );
 				}
 			}
 		),
