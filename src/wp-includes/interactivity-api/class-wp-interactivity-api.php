@@ -53,6 +53,15 @@ final class WP_Interactivity_API {
 	);
 
 	/**
+	 * Matches a directive value that names its namespace, as in
+	 * `myPlugin::state.foo`, capturing the namespace and the rest of the value.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	private const NAMESPACED_VALUE_REGEX = '/^([\w\/-]+)::(.+)$/D';
+
+	/**
 	 * Holds the initial state of the different Interactivity API stores.
 	 *
 	 * This state is used during the server directive processing. Then, it is
@@ -652,7 +661,15 @@ final class WP_Interactivity_API {
 				'attributes' => $element_attrs,
 			);
 
+			$is_content_consumed = false;
+
 			foreach ( $modes as $mode => $should_run ) {
+				// An element whose content was consumed is completed as at its closer tag.
+				if ( 'exit' === $mode && $is_content_consumed ) {
+					array_pop( $tag_stack );
+					$should_run = true;
+				}
+
 				if ( ! $should_run ) {
 					continue;
 				}
@@ -671,6 +688,16 @@ final class WP_Interactivity_API {
 						: array( $this, self::$directive_processors[ $directive_prefix ] );
 
 					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
+
+					/*
+					 * A processor that consumes the content of the element it enters
+					 * leaves the cursor on the element's closer tag, where no other
+					 * processor enters. `data-wp-each` completes its `template` itself.
+					 */
+					if ( 'enter' === $mode && $p->is_tag_closer() ) {
+						$is_content_consumed = 'data-wp-each' !== $directive_prefix;
+						break;
+					}
 				}
 			}
 
@@ -1518,18 +1545,25 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the `data-wp-html` directive.
 	 *
-	 * It sets the content of the current HTML element to the HTML of the token
-	 * that its associated reference resolves to. The HTML is written as given and
-	 * the directives inside it are not processed. See
-	 * {@see wp_interactivity_as_dangerous_html()} for the risks of marking HTML
-	 * as trusted.
+	 * It renders the element as the client hydrates it. The client never
+	 * processes the content of an element that carries a `data-wp-html` entry
+	 * without a suffix, so no directive inside that content is processed here
+	 * either. The entry without a unique ID then decides the content: the HTML
+	 * of the token its reference resolves to, written as given, or nothing for
+	 * any other value. See {@see wp_interactivity_as_dangerous_html()} for the
+	 * risks of marking HTML as trusted. An element with only unique-ID entries
+	 * keeps its content as written.
 	 *
-	 * The element is left as it would be without the directive, and a notice
-	 * reports the reason, when the reference does not resolve to a token, the
-	 * element cannot hold content, or the element also carries `data-wp-text` or,
-	 * for a `template`, `data-wp-each`. A reference that resolves to `null`
-	 * declines without a notice. Only the entry without a suffix or a unique ID
-	 * is processed.
+	 * A value other than a token or `null` raises a notice. A reference that
+	 * resolves to nothing does not.
+	 *
+	 * The element is processed as if it had no `data-wp-html` directive when
+	 * the client ignores the directive: when the element also carries
+	 * `data-wp-text`, `data-wp-each` or `data-wp-router-region`, which raises a
+	 * notice, or when its entries all have a suffix or are dropped by the
+	 * client. A void element is left as it is, with a notice. An element whose
+	 * content is text, such as `textarea`, keeps that text for a token, with a
+	 * notice, and is emptied for any other value.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1541,22 +1575,40 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		// Get the first valid `data-wp-html` entry without suffix or unique ID.
-		$valid_entry = array_find(
-			$this->get_directive_entries( $p, 'html' ),
-			fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] && ! empty( $entry['value'] )
-		);
-
-		if ( null === $valid_entry ) {
+		$entries = $this->get_client_directives( $p, 'html' );
+		if ( empty( $entries ) ) {
 			return;
 		}
 
-		/*
-		 * The structural reasons decline without evaluating the reference, so
-		 * their notice does not depend on the value and no derived state runs
-		 * for a result that would be discarded.
-		 */
-		if ( ! $p->has_and_visits_its_closer_tag() ) {
+		foreach ( array( 'text', 'each', 'router-region' ) as $conflicting_prefix ) {
+			if ( ! empty( $this->get_client_directives( $p, $conflicting_prefix ) ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: The directive combined with data-wp-html, such as data-wp-text. */
+						__( 'The "data-wp-html" directive cannot be combined with the "%s" directive on the same element. The "data-wp-html" directive is ignored.' ),
+						esc_html( 'data-wp-' . $conflicting_prefix )
+					),
+					'7.2.0'
+				);
+				return;
+			}
+		}
+
+		$entries = array_filter( $entries, fn( $entry ) => null === $entry['suffix'] );
+		if ( empty( $entries ) ) {
+			return;
+		}
+
+		$host_entry = array_find( $entries, fn( $entry ) => null === $entry['unique_id'] );
+		if ( null === $host_entry ) {
+			if ( $p->has_and_visits_its_closer_tag() ) {
+				$p->skip_to_balanced_tag_closer();
+			}
+			return;
+		}
+
+		if ( WP_HTML_Processor::is_void( $p->get_tag() ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
@@ -1569,43 +1621,37 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		$combined_directive = null;
-		if ( array_find( $this->get_directive_entries( $p, 'text' ), fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] ) ) {
-			$combined_directive = 'data-wp-text';
-		} elseif ( 'TEMPLATE' === $p->get_tag() && ! empty( $this->get_directive_entries( $p, 'each' ) ) ) {
-			$combined_directive = 'data-wp-each';
+		$result = $this->resolve_html_reference( $host_entry['value'] );
+		$html   = WP_Interactivity_Dangerous_HTML::get_html( $result );
+
+		if ( null === $html && null !== $result ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The "data-wp-html" directive requires a reference that resolves to the value returned by wp_interactivity_as_dangerous_html(). Other values, such as strings of HTML, are not rendered and the content of the element is removed.' ),
+				'7.2.0'
+			);
 		}
-		if ( null !== $combined_directive ) {
+
+		if ( ! $p->has_and_visits_its_closer_tag() ) {
+			if ( null === $html ) {
+				$p->set_modifiable_text( '' );
+				return;
+			}
+
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					/* translators: %s: The directive combined with data-wp-html, such as data-wp-text. */
-					__( 'The "data-wp-html" directive cannot be combined with the "%s" directive on the same element. The "data-wp-html" directive is ignored.' ),
-					esc_html( $combined_directive )
+					/* translators: %s: The HTML tag name of the element, in lowercase. */
+					__( 'The "data-wp-html" directive cannot render HTML in a <%s> element because its content is text. The content of the element is left as it is.' ),
+					esc_html( strtolower( $p->get_tag() ) )
 				),
 				'7.2.0'
 			);
 			return;
 		}
 
-		/*
-		 * An entry value that is not a string is a JSON literal written in the
-		 * markup, which no store property can be named by, so it is not evaluated.
-		 */
-		$result = is_string( $valid_entry['value'] ) ? $this->evaluate( $valid_entry ) : $valid_entry['value'];
-
-		// Unresolved references and `null` values keep the element as it is, as they do in the client.
-		if ( null === $result ) {
-			return;
-		}
-
-		$html = WP_Interactivity_Dangerous_HTML::get_html( $result );
 		if ( null === $html ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'The "data-wp-html" directive requires a reference that resolves to the value returned by wp_interactivity_as_dangerous_html(). Other values, such as strings of HTML, are not rendered and the element is left as it is.' ),
-				'7.2.0'
-			);
+			$p->skip_to_balanced_tag_closer( '' );
 			return;
 		}
 
@@ -1615,9 +1661,126 @@ final class WP_Interactivity_API {
 		 * processors, and the marker in it occurs nowhere in the input.
 		 */
 		$placeholder = '<!--' . $this->html_placeholder_marker . ':' . count( $this->html_placeholders ) . '-->';
-		if ( $p->set_raw_content_between_balanced_tags( $placeholder ) ) {
+		if ( $p->skip_to_balanced_tag_closer( $placeholder ) ) {
 			$this->html_placeholders[ $placeholder ] = $html;
 		}
+	}
+
+	/**
+	 * Gets the directives with the given prefix on the current element that the
+	 * client keeps.
+	 *
+	 * The client drops a directive when a reserved word (`__proto__`,
+	 * `constructor` or `prototype`) is any `--`-separated part of its suffix or
+	 * its unique ID, ignoring case and leading and trailing dashes, or when its
+	 * value names a reserved word as its namespace.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
+	 * @param string                                    $prefix The directive prefix, such as `html`.
+	 * @return array[] The directives, in the order of the element's attributes, with their raw values.
+	 * @phpstan-return list<array{
+	 *     suffix: non-empty-string|null,
+	 *     unique_id: non-empty-string|null,
+	 *     value: string|true,
+	 * }>
+	 */
+	private function get_client_directives( WP_Interactivity_API_Directives_Processor $p, string $prefix ): array {
+		$directives = array();
+		foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' . $prefix ) ?? array() as $attribute_name ) {
+			$parsed_directive = $this->parse_directive_name( $attribute_name );
+			if ( null === $parsed_directive || $prefix !== $parsed_directive['prefix'] ) {
+				continue;
+			}
+
+			$name_parts = null === $parsed_directive['suffix'] ? array() : explode( '--', $parsed_directive['suffix'] );
+			if ( null !== $parsed_directive['unique_id'] ) {
+				$name_parts[] = $parsed_directive['unique_id'];
+			}
+			foreach ( $name_parts as $name_part ) {
+				if ( self::is_reserved_word( strtolower( trim( $name_part, '-' ) ) ) ) {
+					continue 2;
+				}
+			}
+
+			$value = $p->get_attribute( $attribute_name );
+			if ( is_string( $value ) && 1 === preg_match( self::NAMESPACED_VALUE_REGEX, $value, $matches ) && self::is_reserved_word( $matches[1] ) ) {
+				continue;
+			}
+
+			$directives[] = array(
+				'suffix'    => $parsed_directive['suffix'],
+				'unique_id' => $parsed_directive['unique_id'],
+				'value'     => $value,
+			);
+		}
+		return $directives;
+	}
+
+	/**
+	 * Resolves the reference of a `data-wp-html` directive as the client does.
+	 *
+	 * The reference is the raw attribute value, never decoded as JSON: an
+	 * optional `<namespace>::`, an optional `!` and a dot-separated path. It
+	 * resolves to `null` without being evaluated when it is empty, or when its
+	 * namespace or a segment of its path is a reserved word (`__proto__`,
+	 * `constructor` or `prototype`). The `!` applies after that, so
+	 * `!state.x.constructor` resolves to `true`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|true $reference The attribute value. It is `true` when the attribute has no value.
+	 * @return mixed The value the reference resolves to, or `null` if it resolves to nothing.
+	 */
+	private function resolve_html_reference( $reference ) {
+		if ( ! is_string( $reference ) ) {
+			return null;
+		}
+
+		if ( 1 === preg_match( self::NAMESPACED_VALUE_REGEX, $reference, $matches ) ) {
+			list( , $namespace, $path ) = $matches;
+		} else {
+			$namespace = array_last( $this->namespace_stack ?? array() );
+			$namespace = is_string( $namespace ) ? $namespace : null;
+			$path      = $reference;
+		}
+
+		$should_negate_value = false;
+		if ( str_starts_with( $path, '!' ) ) {
+			$path                = substr( $path, 1 );
+			$should_negate_value = '' !== $path;
+		}
+
+		if (
+			'' === $path ||
+			( null !== $namespace && self::is_reserved_word( $namespace ) ) ||
+			null !== array_find( explode( '.', $path ), fn( $segment ) => self::is_reserved_word( $segment ) )
+		) {
+			$value = null;
+		} else {
+			$value = $this->evaluate(
+				array(
+					'namespace' => $namespace,
+					'value'     => $path,
+				)
+			);
+		}
+
+		return $should_negate_value ? ! $value : $value;
+	}
+
+	/**
+	 * Checks whether a name is one the client never resolves or keeps as a
+	 * directive name part, because it would reach the prototype of an object.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $name The name.
+	 * @return bool Whether the name is `__proto__`, `constructor` or `prototype`.
+	 */
+	private static function is_reserved_word( string $name ): bool {
+		return '__proto__' === $name || 'constructor' === $name || 'prototype' === $name;
 	}
 
 	/**
