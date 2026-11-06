@@ -133,9 +133,9 @@ class Tests_Feed_WpSimplePieSanitizeKses extends WP_UnitTestCase {
 	 */
 	public static function data_maybe_html_that_is_html() {
 		return array(
-			'named entity'   => array( 'a &amp; b <b>c</b>', 'a &amp; b <b>c</b>' ),
-			'decimal entity' => array( 'a &#8217; <b>c</b>', "a \u{2019} <b>c</b>" ),
-			'hex entity'     => array( 'a &#x27; <i>c</i>', "a ' <i>c</i>" ),
+			'named entity'   => array( 'a &amp; b', 'a &amp; b' ),
+			'decimal entity' => array( 'a &#8217; <b>c', "a \u{2019} <b>c" ),
+			'hex entity'     => array( 'a &#x27; <i>c', "a ' <i>c" ),
 			'closing tag'    => array( 'text </b><script>alert( 1 );</script>', 'text </b>' ),
 		);
 	}
