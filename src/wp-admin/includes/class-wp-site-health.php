@@ -7,6 +7,8 @@
  * @since 5.2.0
  */
 
+require_once __DIR__ . '/secrets-site-health.php';
+
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
@@ -77,9 +79,7 @@ class WP_Site_Health {
 	 * @return WP_Site_Health|null
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new WP_Site_Health();
-		}
+		self::$instance ??= new WP_Site_Health();
 
 		return self::$instance;
 	}
@@ -527,7 +527,6 @@ class WP_Site_Health {
 
 		$has_default_theme   = false;
 		$has_unused_themes   = false;
-		$show_unused_themes  = true;
 		$using_default_theme = false;
 
 		// Populate a list of all themes available in the install.
@@ -621,7 +620,7 @@ class WP_Site_Health {
 			}
 		}
 
-		if ( $has_unused_themes && $show_unused_themes && ! is_multisite() ) {
+		if ( $has_unused_themes && ! is_multisite() ) {
 
 			// This is a child theme, so we want to be a bit more explicit in our messages.
 			if ( $active_theme->parent() ) {

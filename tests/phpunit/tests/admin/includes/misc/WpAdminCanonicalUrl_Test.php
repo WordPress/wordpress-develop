@@ -57,7 +57,7 @@ class Tests_Admin_Includes_Misc_WpAdminCanonicalUrl_Test extends WP_UnitTestCase
 	 *     expected:    string
 	 * }>
 	 */
-	public function data_wp_admin_canonical_url(): array {
+	public static function data_wp_admin_canonical_url(): array {
 		return array(
 			'no removable query args'       => array(
 				'server_vars' => array(

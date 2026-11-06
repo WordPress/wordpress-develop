@@ -28,7 +28,7 @@ class Tests_Admin_Includes_Misc_WpMakeThemeFileTree_Test extends WP_UnitTestCase
 	 *     expected:      array<string, string|array>,
 	 * }>
 	 */
-	public function data_wp_make_theme_file_tree(): array {
+	public static function data_wp_make_theme_file_tree(): array {
 		return array(
 			'empty list'         => array(
 				'allowed_files' => array(),

@@ -13,9 +13,52 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
-      # Any change to a JavaScript file should run tests.
-      - '**.js'
-      # These files configure npm and the task runner. Changes could affect the outcome.
+      - '**'
+      # Documentation, repository metadata, and local environment configuration.
+      - '!**.md'
+      - '!.devcontainer/**'
+      - '!.editorconfig'
+      - '!.env.example'
+      - '!.git-blame-ignore-revs'
+      - '!.gitignore'
+      - '!.mailmap'
+      - '!docker-compose.yml'
+      - '!jsdoc.conf.json'
+      - '!typings/**'
+      - '!wp-cli.yml'
+      # File types that the JavaScript tests do not exercise.
+      - '!**.crt'
+      - '!**.css'
+      - '!**.dat'
+      - '!**.dist'
+      - '!**.html'
+      - '!**.jpg'
+      - '!**.json'
+      - '!**.map'
+      - '!**.mo'
+      - '!**.neon'
+      - '!**.pem'
+      - '!**.php'
+      - '!**.png'
+      - '!**.po'
+      - '!**.scss'
+      - '!**.svg'
+      - '!**.txt'
+      - '!**.webp'
+      - '!**.woff2'
+      - '!**.xml'
+      - '!**.yaml'
+      - '!**.yml'
+      # JavaScript outside the QUnit suite and related tooling is not exercised.
+      - '!tests/e2e/**.js'
+      - '!tests/performance/**.js'
+      - '!tools/**'
+      - '!.eslintrc-jsdoc.js'
+      - '!.prettierrc.js'
+      - '!eslint.config.js'
+      # Other workflows do not affect these tests.
+      - '!.github/**'
+      # Re-include configuration, tests, tools, and workflows used here.
       - 'package*.json'
       - '.npmrc'
       - '.nvmrc'
@@ -24,22 +67,18 @@ on:
       - 'tools/gutenberg/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
-      # This file configures ESLint. Changes could affect the outcome.
-      - '.eslintignore'
-      # This file configures JSHint. Changes could affect the outcome.
       - '.jshintrc'
-      # Any change to the QUnit directory should run tests.
       - 'tests/qunit/**'
-      # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/javascript-tests.yml'
       - '.github/workflows/reusable-javascript-tests.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

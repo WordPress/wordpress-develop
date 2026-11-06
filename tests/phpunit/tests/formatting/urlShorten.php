@@ -17,7 +17,7 @@ class Tests_Formatting_UrlShorten extends WP_UnitTestCase {
 		$this->assertSame( $expected, url_shorten( $url ) );
 	}
 
-	public function data_url_shorten() {
+	public static function data_url_shorten() {
 		// When shortened, the URL is cut to ( $length - 3 ) characters before '&hellip;' is appended.
 		return array(
 			'escaped slashes are not stripped' => array(
@@ -60,7 +60,7 @@ class Tests_Formatting_UrlShorten extends WP_UnitTestCase {
 		$this->assertSame( $expected, url_shorten( $url, $length ) );
 	}
 
-	public function data_url_shorten_custom_length() {
+	public static function data_url_shorten_custom_length() {
 		// The URL below is 41 characters long after cleaning.
 		$url = 'http://wordpress.org/about/philosophy/#decisions';
 
