@@ -35,6 +35,13 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	public function tear_down() {
 		$this->registry = null;
 
+		$block_styles_registry = WP_Block_Styles_Registry::get_instance();
+		foreach ( array( 'core/example', 'core/other' ) as $block_name ) {
+			if ( $block_styles_registry->is_registered( $block_name, 'fancy' ) ) {
+				$block_styles_registry->unregister( $block_name, 'fancy' );
+			}
+		}
+
 		global $wp_styles, $wp_scripts, $wp_script_modules;
 		$wp_styles         = null;
 		$wp_scripts        = null;
@@ -1602,5 +1609,121 @@ HTML
 		$this->assertSame( 2, $pre_render_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
+	}
+
+	/**
+	 * Tests that rendering a block enqueues the stylesheet of a block style registered with a style handle.
+	 *
+	 * @ticket 55184
+	 *
+	 * @covers WP_Block::render
+	 */
+	public function test_render_enqueues_block_style_handle() {
+		add_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		$this->registry->register( 'core/example', array() );
+		wp_register_style( 'example-fancy-style', 'https://example.com/fancy.css' );
+		register_block_style(
+			'core/example',
+			array(
+				'name'         => 'fancy',
+				'label'        => 'Fancy',
+				'style_handle' => 'example-fancy-style',
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->a<!-- /wp:example -->' );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertTrue( wp_style_is( 'example-fancy-style', 'enqueued' ) );
+	}
+
+	/**
+	 * Tests that a block style handle registered after the block renders is still enqueued.
+	 *
+	 * Block themes render the template before `wp_head()`, so themes may register the
+	 * stylesheet after the block has rendered.
+	 *
+	 * @ticket 55184
+	 *
+	 * @covers WP_Block::render
+	 */
+	public function test_render_enqueues_block_style_handle_registered_after_render() {
+		add_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		$this->registry->register( 'core/example', array() );
+		register_block_style(
+			'core/example',
+			array(
+				'name'         => 'fancy',
+				'label'        => 'Fancy',
+				'style_handle' => 'example-fancy-style',
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->a<!-- /wp:example -->' );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertFalse( wp_style_is( 'example-fancy-style', 'enqueued' ), 'The style should not be enqueued before it is registered.' );
+
+		wp_register_style( 'example-fancy-style', 'https://example.com/fancy.css' );
+
+		$this->assertTrue( wp_style_is( 'example-fancy-style', 'enqueued' ), 'The style should be enqueued once it is registered.' );
+	}
+
+	/**
+	 * Tests that rendering a block does not enqueue the block style handles of other block types.
+	 *
+	 * @ticket 55184
+	 *
+	 * @covers WP_Block::render
+	 */
+	public function test_render_does_not_enqueue_block_style_handle_of_other_block() {
+		add_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		$this->registry->register( 'core/example', array() );
+		wp_register_style( 'other-fancy-style', 'https://example.com/fancy.css' );
+		register_block_style(
+			'core/other',
+			array(
+				'name'         => 'fancy',
+				'label'        => 'Fancy',
+				'style_handle' => 'other-fancy-style',
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->a<!-- /wp:example -->' );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertFalse( wp_style_is( 'other-fancy-style', 'enqueued' ) );
+	}
+
+	/**
+	 * Tests that rendering a block does not enqueue block style handles when block assets do not load on demand.
+	 *
+	 * In that case enqueue_block_styles_assets() enqueues them, and a theme dequeuing a handle should be respected.
+	 *
+	 * @ticket 55184
+	 *
+	 * @covers WP_Block::render
+	 */
+	public function test_render_does_not_enqueue_block_style_handle_when_not_loading_on_demand() {
+		add_filter( 'should_load_block_assets_on_demand', '__return_false' );
+		$this->registry->register( 'core/example', array() );
+		wp_register_style( 'example-fancy-style', 'https://example.com/fancy.css' );
+		register_block_style(
+			'core/example',
+			array(
+				'name'         => 'fancy',
+				'label'        => 'Fancy',
+				'style_handle' => 'example-fancy-style',
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->a<!-- /wp:example -->' );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertFalse( wp_style_is( 'example-fancy-style', 'enqueued' ) );
 	}
 }
