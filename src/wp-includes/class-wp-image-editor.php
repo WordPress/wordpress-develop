@@ -581,10 +581,12 @@ abstract class WP_Image_Editor {
 			$contents = ob_get_contents();
 
 			/*
-			 * file_put_contents() returns false when the stream cannot be opened or the image cannot be fully written.
-			 * As of PHP 8.6, it also returns false when flushing or closing the stream fails. Some stream wrappers only
-			 * send the data at that point (for example, when uploading to remote storage), so the image was not saved.
-			 * This matches how WP_Image_Editor_Imagick::write_image() writes to streams.
+			 * file_put_contents() returns false if the stream cannot be opened, or if fewer
+			 * bytes are written than the image contains.
+			 *
+			 * As of PHP 8.6, false is also returned when flushing or closing the stream fails.
+			 * For stream wrappers that only send data on flush or close, such a failure means
+			 * the image was never saved.
 			 */
 			if ( false === file_put_contents( $filename, $contents ) ) {
 				$result = false;
