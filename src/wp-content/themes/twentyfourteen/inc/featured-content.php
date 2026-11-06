@@ -287,8 +287,8 @@ class Featured_Content {
 	 */
 	public static function hide_featured_term( $terms, $taxonomies, $args ) {
 
-		// This filter is only appropriate on the front end.
-		if ( is_admin() ) {
+		// This filter is only appropriate on the front end, not in the admin or REST API.
+		if ( is_admin() || ( function_exists( 'wp_is_serving_rest_request' ) && wp_is_serving_rest_request() ) ) {
 			return $terms;
 		}
 
@@ -334,8 +334,8 @@ class Featured_Content {
 	 */
 	public static function hide_the_featured_term( $terms, $id, $taxonomy ) {
 
-		// This filter is only appropriate on the front end.
-		if ( is_admin() ) {
+		// This filter is only appropriate on the front end, not in the admin or REST API.
+		if ( is_admin() || ( function_exists( 'wp_is_serving_rest_request' ) && wp_is_serving_rest_request() ) ) {
 			return $terms;
 		}
 
@@ -352,7 +352,7 @@ class Featured_Content {
 		$settings = self::get_setting();
 		foreach ( $terms as $order => $term ) {
 			if ( ( $settings['tag-id'] === $term->term_id || $settings['tag-name'] === $term->name ) && 'post_tag' === $term->taxonomy ) {
-				unset( $terms[ $term->term_id ] );
+				unset( $terms[ $order ] );
 			}
 		}
 
