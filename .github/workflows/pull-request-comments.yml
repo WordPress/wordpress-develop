@@ -23,7 +23,7 @@ jobs:
   # Comments on a pull request when the author is a first time contributor.
   post-welcome-message:
     name: Post a welcome comment for first-time contributors
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       issues: write
       pull-requests: write
@@ -115,7 +115,7 @@ jobs:
   # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
   playground-details:
     name: Comment on a pull request with Playground details
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       issues: write
       pull-requests: write
@@ -219,7 +219,7 @@ jobs:
   # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
     name: Manage Trac ticket reminders for pull requests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       issues: write
       pull-requests: write
