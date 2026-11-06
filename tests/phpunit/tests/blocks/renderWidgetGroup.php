@@ -33,7 +33,9 @@ class Tests_Blocks_RenderWidgetGroup extends WP_UnitTestCase {
 		$this->original_sidebar_being_rendered = isset( $_sidebar_being_rendered ) ? $_sidebar_being_rendered : null;
 
 		$wp_registered_sidebars = array();
-		unset( $GLOBALS['_sidebar_being_rendered'] );
+
+		// No sidebar is being rendered. The block reads the value as an array key, so it should not be null.
+		$GLOBALS['_sidebar_being_rendered'] = '';
 	}
 
 	public function tear_down() {
