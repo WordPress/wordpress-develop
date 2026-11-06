@@ -961,7 +961,9 @@ hr.wp-block-separator.is-style-dots::before {
 	line-height: 1.1;
 }
 
+.editor-styles-wrapper .wp-block-button__link:focus,
 .editor-styles-wrapper .wp-block-button__link:hover,
+.editor-styles-wrapper .wp-block-file__button:focus,
 .editor-styles-wrapper .wp-block-file__button:hover {
 	text-decoration: underline;
 }
