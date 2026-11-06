@@ -953,9 +953,12 @@ class WP_Ability {
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
 	 * @since 7.2.0 Coerces validated input before permission checks and execution.
+	 * @since 7.2.0 Sets `callback_executed` in the error data when output validation fails.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
+	 *                        When the output fails validation, the callback has already run,
+	 *                        so the error data has `callback_executed` set to true.
 	 */
 	public function execute( $input = null ) {
 		/**
@@ -1054,6 +1057,15 @@ class WP_Ability {
 
 		$is_valid = $this->validate_output( $result );
 		if ( is_wp_error( $is_valid ) ) {
+			// The callback has already run and may have changed something, so tell the caller.
+			$error_data = $is_valid->get_error_data();
+			$is_valid->add_data(
+				array_merge(
+					is_array( $error_data ) ? $error_data : array(),
+					array( 'callback_executed' => true )
+				)
+			);
+
 			return $is_valid;
 		}
 
