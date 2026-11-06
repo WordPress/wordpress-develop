@@ -57,16 +57,12 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the uncategorized fallback category is registered by core.
+	 * Tests that core does not register an uncategorized fallback category.
 	 *
 	 * @ticket 65569
 	 */
-	public function test_uncategorized_category_is_registered(): void {
-		$category = wp_get_ability_category( 'uncategorized' );
-
-		$this->assertInstanceOf( WP_Ability_Category::class, $category );
-		$this->assertSame( 'Uncategorized', $category->get_label() );
-		$this->assertSame( 'Abilities that have not been assigned to a specific category.', $category->get_description() );
+	public function test_uncategorized_category_is_not_registered(): void {
+		$this->assertFalse( wp_has_ability_category( 'uncategorized' ) );
 	}
 
 	/**
