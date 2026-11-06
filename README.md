@@ -146,7 +146,9 @@ npm run test:coverage
 
 The command will generate three coverage reports in HTML, PHP, and text formats, saving them in the `coverage` folder.
 
-**Note:** xDebug is required to generate a code coverage report, which can slow down PHPUnit significantly. Passing selection-based options such as `--group` or `--filter` can decrease the overall time required but will result in an incomplete report.
+**Note:** A code coverage driver is required to generate a code coverage report. By default, xDebug is used, which can slow down PHPUnit significantly. PCOV is a faster alternative that is available for PHP 7.4 and higher. To use it, set `LOCAL_PHP_PCOV` to `true` and `LOCAL_PHP_XDEBUG` to `false` in your `.env` file.
+
+Passing selection-based options such as `--group` or `--filter` can decrease the overall time required but will result in an incomplete report.
 
 #### To restart the development environment
 
