@@ -1,4 +1,4 @@
-/* globals wp */
+/* globals wp, sinon */
 /* jshint qunit: true */
 /* eslint-env qunit */
 
@@ -102,6 +102,78 @@
 				5,
 				'removing from the mirrored query decrements totalAttachments'
 			);
+		}
+	);
+
+	QUnit.module( 'wp.media.ajax total attachments', {
+		beforeEach: function () {
+			var env = this;
+
+			// Stand-in for the request; respond() answers it with 5 attachments on the server.
+			this.ajax = sinon.stub( jQuery, 'ajax' ).callsFake( function ( options ) {
+				var jqXHR = jQuery.Deferred();
+
+				jqXHR.getResponseHeader = function ( name ) {
+					return 'X-WP-Total' === name ? '5' : null;
+				};
+
+				env.respond = function () {
+					jqXHR.resolveWith( options.context, [ { success: true, data: [] } ] );
+				};
+
+				return jqXHR;
+			} );
+		},
+		afterEach: function () {
+			this.ajax.restore();
+		}
+	} );
+
+	/*
+	 * Trac #57488: when the library's query request resolves while files are
+	 * still uploading, the uploading attachments are already in the collection
+	 * but not yet counted by the server, so the total must include them.
+	 */
+	QUnit.test(
+		'the server total counts attachments that are still uploading (Trac #57488)',
+		function ( assert ) {
+			var Attachment = wp.media.model.Attachment,
+				query = new wp.media.model.Attachments();
+
+			query.add( [
+				new Attachment( { uploading: true, filename: 'one.jpg' } ),
+				new Attachment( { uploading: true, filename: 'two.jpg' } ),
+				new Attachment( { id: 3, uploading: false } )
+			] );
+
+			wp.media.ajax( {
+				context: query,
+				data: { action: 'query-attachments', query: {} }
+			} );
+			this.respond();
+
+			assert.strictEqual(
+				query.totalAttachments,
+				7,
+				'the total is the server total plus the two attachments still uploading'
+			);
+		}
+	);
+
+	QUnit.test(
+		'the server total is used as is when nothing is uploading (Trac #57488)',
+		function ( assert ) {
+			var query = new wp.media.model.Attachments();
+
+			query.add( new wp.media.model.Attachment( { id: 3 } ) );
+
+			wp.media.ajax( {
+				context: query,
+				data: { action: 'query-attachments', query: {} }
+			} );
+			this.respond();
+
+			assert.strictEqual( query.totalAttachments, 5, 'the total is the server total' );
 		}
 	);
 } )();
