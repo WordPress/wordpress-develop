@@ -49,16 +49,6 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * Tear down after each test.
-	 */
-	public function tear_down() {
-		unregister_post_type( 'wptests_pt_public' );
-		unregister_post_type( 'wptests_pt_private' );
-
-		parent::tear_down();
-	}
-
 	public function test_get_and_set() {
 		$users = new WP_User_Query();
 

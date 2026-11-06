@@ -271,8 +271,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->reset_post_statuses();
 			$this->reset__SERVER();
 
-			if ( $wp_rewrite->permalink_structure ) {
-				$this->set_permalink_structure( '' );
+			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+				$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+			} else {
+				// Discard endpoints and extra rules added by previous tests.
+				$wp_rewrite->init();
 			}
 		}
 
@@ -286,6 +289,31 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		) {
 			add_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX, 3 );
 		}
+	}
+
+	/**
+	 * Returns the default-excluded groups that apply to a test and were not explicitly requested.
+	 *
+	 * @param string[] $groups Test groups.
+	 * @return string[] Matching excluded groups.
+	 */
+	public static function get_default_excluded_groups_for_test( array $groups ) {
+		$default_excluded_groups = WP_PHPUnit_Util_Getopt::get_skipped_groups();
+
+		foreach ( $groups as $group ) {
+			if ( WP_PHPUnit_Util_Getopt::is_group_requested( $group ) ) {
+				return array();
+			}
+		}
+
+		return array_values(
+			array_filter(
+				$groups,
+				static function ( $group ) use ( $default_excluded_groups ) {
+					return in_array( $group, $default_excluded_groups, true );
+				}
+			)
+		);
 	}
 
 	/**
@@ -318,8 +346,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
 		 * remains synchronized with the restored database option for subsequent class fixtures.
 		 */
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
-			$this->set_permalink_structure( '' );
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		}
 
 		$wpdb->query( 'ROLLBACK' );

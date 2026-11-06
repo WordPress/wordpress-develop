@@ -535,6 +535,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 	 * @ticket 34073
 	 */
 	public function test_comment_permalinks_should_be_correct_when_using_default_display_callback_with_default_comment_page_oldest() {
+		$this->set_permalink_structure( '' );
+
 		$now       = time();
 		$p         = self::factory()->post->create();
 		$comment_1 = self::factory()->comment->create(
@@ -620,6 +622,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 	 * @ticket 34073
 	 */
 	public function test_comment_permalinks_should_be_correct_when_using_default_display_callback_with_default_comment_page_newest() {
+		$this->set_permalink_structure( '' );
+
 		$now       = time();
 		$p         = self::factory()->post->create();
 		$comment_1 = self::factory()->comment->create(

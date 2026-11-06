@@ -4,7 +4,7 @@ PHPStan is a static analysis tool for PHP that checks your code for errors witho
 
 ## Running the tests
 
-PHPStan requires PHP and Composer dependencies to be installed.
+PHPStan requires PHP and Composer dependencies to be installed. Since there is no `composer.lock`, run `composer update` after pulling changes to `composer.json`, such as the addition of a PHPStan extension, or PHPStan will fail to load the configuration.
 
 If you don't already have an environment ready, you can set one up by following [these instructions](https://github.com/WordPress/wordpress-develop/blob/master/README.md).
 
@@ -54,9 +54,55 @@ Some errors cannot be ignored, and so cannot be reported as warnings either. The
 
 ## The PHPStan configuration
 
-The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist).
+The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist). It sets the standards the code is held to: the rule level, the baselines, the errors ignored as not actionable, and the [strict rules](#strict-rules) enabled. It includes [`base.neon`](base.neon), which configures what PHPStan needs to know to analyze the codebase at all, such as the [WordPress-specific extensions](#wordpress-specific-extensions), the paths analyzed, and the supported PHP versions.
 
-You can create a local copy at `phpstan.neon` to override the default configuration.
+To override the default configuration, create a `phpstan.neon` file in the repository root, which PHPStan reads in place of `phpstan.neon.dist`. Include `phpstan.neon.dist` in it rather than copying it, so the override only states what it changes and keeps up with changes to the default configuration. For example, to analyze at a stricter rule level:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	level: 10
+```
+
+### Strict rules
+
+`phpstan.neon.dist` enables only the rules from [phpstan-strict-rules](https://github.com/phpstan/phpstan-strict-rules) which the code already complies with, registering each one individually. It does not include the package's `rules.neon`, since that file also makes several PHPStan parameters stricter, such as `checkDynamicProperties` and `reportMaybesInMethodSignatures`, even when its rules are disabled.
+
+To work toward complying with more of them, include `rules.neon` in your `phpstan.neon`. It enables every rule and makes those parameters stricter, unless `strictRules.allRules` is set to `false`, in which case only the rules set to `true` are enabled but the parameters are still made stricter. Either way, disable the rules `phpstan.neon.dist` already registers, or each error they report is reported twice:
+
+```neon
+includes:
+	- phpstan.neon.dist
+	- vendor/phpstan/phpstan-strict-rules/rules.neon
+
+parameters:
+	strictRules:
+		allRules: false
+		disallowedLooseComparison: true
+		overwriteVariablesWithLoop: true
+
+		# Already registered in phpstan.neon.dist.
+		disallowedBacktick: false
+		disallowedShortTernary: false
+		closureUsesThis: false
+		matchingInheritedMethodNames: false
+```
+
+The rules for `while` and `do`-`while` conditions are only enabled with [bleeding edge](https://phpstan.org/blog/what-is-bleeding-edge) (as are those for unary `+` and `-` operands), so `booleansInConditions: true` alone does not cover loops. Set `booleansInLoopConditions: true` to enable them without it.
+
+### Seeing every error
+
+The baselines and other ignored errors cannot be removed by leaving out an include, but a key ending in `!` replaces the value it would otherwise be merged with. So to see every error, including those the baselines suppress:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	ignoreErrors!: []
+```
 
 For more information about configuring PHPStan, see the [PHPStan documentation's Config reference](https://phpstan.org/config-reference).
 
