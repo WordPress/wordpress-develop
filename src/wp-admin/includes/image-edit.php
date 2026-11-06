@@ -599,7 +599,7 @@ function _flip_image_resource( $img, $horz, $vert ) {
 	 * @link https://core.trac.wordpress.org/ticket/66113
 	 */
 	imageresolution( $img, 96, 96 );
-	imageinterlace( $img, false );
+	imageinterlace( $img, 0 );
 
 	if ( ! $horz && ! $vert ) {
 		return $img;

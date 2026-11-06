@@ -469,7 +469,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		 * @link https://core.trac.wordpress.org/ticket/66113
 		 */
 		imageresolution( $this->image, 96, 96 );
-		imageinterlace( $this->image, false );
+		imageinterlace( $this->image, 0 );
 
 		if ( ! $horz && ! $vert ) {
 			return true;
