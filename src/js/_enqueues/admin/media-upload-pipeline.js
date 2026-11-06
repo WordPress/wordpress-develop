@@ -440,14 +440,25 @@ window.wp = window.wp || {};
 	/**
 	 * Whether a file is an image the client-side pipeline can process.
 	 *
-	 * A HEIC file is also matched by its extension, since browsers on
-	 * platforms without a HEIC codec may give it no type at all.
+	 * A file whose type is missing from the allowed types the page was
+	 * rendered with is left to the server, which can allow it for a single
+	 * request (see partitionBatch()). A HEIC file is also matched by its
+	 * extension, since browsers on platforms without a HEIC codec may give
+	 * it no type at all.
 	 *
 	 * @param {plupload.File} file A file added to the plupload queue.
 	 * @return {boolean} True when the pipeline should take the file.
 	 */
 	function isPipelineFile( file ) {
 		const type = ( file.type || '' ).toLowerCase();
+		const allowedTypes = settings.allowedMimeTypes;
+		if (
+			type &&
+			allowedTypes &&
+			! Object.values( allowedTypes ).includes( type )
+		) {
+			return false;
+		}
 		if (
 			type.startsWith( 'image/' ) &&
 			IMAGE_SUBTYPES.includes( type.slice( 6 ) )
@@ -467,7 +478,8 @@ window.wp = window.wp || {};
 	 * classic: the pipeline would do nothing for it but upload it, and
 	 * would check its type against the allowed types the page was rendered
 	 * with instead of the uploader's own filters, which a plugin can extend
-	 * for a single frame. Audio also keeps the title and description that
+	 * for a single frame. For the same reason an image of a type the page
+	 * was not rendered with stays classic, so the server decides. Audio also keeps the title and description that
 	 * media_handle_upload() derives from its ID3 tags, which the REST
 	 * endpoint does not. JPEG and PNG images stay classic too while
 	 * plupload's own client-side resize is enabled (the "Scale images"
