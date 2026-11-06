@@ -28,6 +28,7 @@ class Tests_Blocks_WpResolveBlockIconPath extends WP_UnitTestCase {
 	/**
 	 * Tests that a `file:` icon is replaced with the contents of the SVG file.
 	 *
+	 * @ticket 66564
 	 * @covers ::wp_resolve_block_icon_path
 	 */
 	public function test_file_icon_is_resolved_to_svg_contents() {
@@ -42,6 +43,7 @@ class Tests_Blocks_WpResolveBlockIconPath extends WP_UnitTestCase {
 	/**
 	 * Tests that a `file:` icon in object form is resolved while its colors are preserved.
 	 *
+	 * @ticket 66564
 	 * @covers ::wp_resolve_block_icon_path
 	 */
 	public function test_file_icon_in_object_form_is_resolved_and_keeps_colors() {
@@ -57,6 +59,7 @@ class Tests_Blocks_WpResolveBlockIconPath extends WP_UnitTestCase {
 	/**
 	 * Tests that an icon that is not a file path is left alone.
 	 *
+	 * @ticket 66564
 	 * @covers ::wp_resolve_block_icon_path
 	 */
 	public function test_dashicon_slug_is_left_untouched() {
@@ -69,6 +72,7 @@ class Tests_Blocks_WpResolveBlockIconPath extends WP_UnitTestCase {
 	/**
 	 * Tests that a `file:` icon pointing at a missing file is left alone.
 	 *
+	 * @ticket 66564
 	 * @covers ::wp_resolve_block_icon_path
 	 * @expectedIncorrectUsage wp_resolve_block_icon_path
 	 */
@@ -81,6 +85,7 @@ class Tests_Blocks_WpResolveBlockIconPath extends WP_UnitTestCase {
 	/**
 	 * Tests that sanitizing an icon keeps the case of SVG names and removes unsafe markup.
 	 *
+	 * @ticket 66564
 	 * @covers ::wp_sanitize_svg_icon
 	 */
 	public function test_sanitized_icon_keeps_svg_name_case() {
