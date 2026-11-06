@@ -131,6 +131,7 @@
 				}
 
 				postbox.prevAll( '.postbox:visible' ).eq( 0 ).before( postbox );
+				$document.trigger( 'postbox-moved', postbox );
 				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
@@ -145,6 +146,7 @@
 				}
 
 				postbox.nextAll( '.postbox:visible' ).eq( 0 ).after( postbox );
+				$document.trigger( 'postbox-moved', postbox );
 				button.trigger( 'focus' );
 				postboxes.updateOrderButtonsProperties();
 				postboxes.save_order( postboxes.page );
@@ -193,6 +195,7 @@
 				$( detachedPostbox ).prependTo( '#' + sortablesIds[ sortablesIndex + 1 ] );
 			}
 
+			$document.trigger( 'postbox-moved', postbox );
 			postboxes._mark_area();
 			button.focus();
 			postboxes.updateOrderButtonsProperties();
