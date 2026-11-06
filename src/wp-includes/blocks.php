@@ -663,6 +663,11 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$settings = array_merge( $settings, $args );
 
+	// Asset handles need a block name even when it is only provided in the arguments.
+	if ( empty( $metadata['name'] ) && ! empty( $settings['name'] ) ) {
+		$metadata['name'] = $settings['name'];
+	}
+
 	$script_fields = array(
 		'editorScript' => 'editor_script_handles',
 		'script'       => 'script_handles',
