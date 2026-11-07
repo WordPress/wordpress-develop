@@ -658,7 +658,9 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 
 			// Rejected for other reasons, asserted so the comment ending is not what rescues them.
 			'Exclamation ending, no JSON'      => array( '<!-- wp:a --!><!-- "} -->', array() ),
-			'Opening inside a dashed comment'  => array( '<!---<!-- wp:a {"k":1} -->', array() ),
+
+			// As in the official block parser, a `<!--` which is not a delimiter does not hide a later one.
+			'Opening inside a dashed comment'  => array( '<!---<!-- wp:a {"k":1} -->', array( 'core/a' ) ),
 
 			// Delimiters which stay inside one comment are unaffected.
 			'Plain delimiter'                  => array( '<!-- wp:a -->', array( 'core/a' ) ),
@@ -675,12 +677,12 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that a comment whose JSON attributes are rejected is skipped whole.
+	 * Verifies that a `<!--` which is not a delimiter does not hide a later delimiter.
 	 *
-	 * A block delimiter is a single HTML comment. When the content after the JSON
-	 * attributes rules out a delimiter, the scan resumes after that comment, not one
-	 * byte later, so a `<!--` inside the comment's text is not treated as the start
-	 * of another delimiter.
+	 * When a candidate is rejected, the scan resumes after its `<!--`, not after the
+	 * next `-->`, as in the official block parser. A `<!--` inside a SCRIPT element or
+	 * an attribute value does not start an HTML comment, so skipping to the next `-->`
+	 * would swallow the delimiter ending there.
 	 *
 	 * @ticket 66138
 	 *
@@ -689,7 +691,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 * @param string   $html        Document to scan.
 	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
 	 */
-	public function test_skips_the_whole_comment_when_the_json_attributes_are_rejected( string $html, array $block_types ): void {
+	public function test_finds_delimiters_after_a_rejected_comment_opening( string $html, array $block_types ): void {
 		$processor = new WP_Block_Processor( $html );
 
 		$found = array();
@@ -711,15 +713,58 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_comments_with_rejected_json_attributes(): array {
 		return array(
-			// A `<!--` inside the comment's text does not start a delimiter.
-			'Opening inside the comment'      => array( '<!-- wp:a {x <!-- wp:b -->', array() ),
-			'Void opening inside the comment' => array( '<!-- wp:a {x <!-- wp:b /-->', array() ),
-			'Closer inside the comment'       => array( '<!-- wp:a {x <!-- /wp:b -->', array() ),
+			// A delimiter after a rejected `<!--` is found, as in the official block parser.
+			'Opening inside the comment'      => array( '<!-- wp:a {x <!-- wp:b -->', array( 'core/b' ) ),
+			'Void opening inside the comment' => array( '<!-- wp:a {x <!-- wp:b /-->', array( 'core/b' ) ),
+			'Closer inside the comment'       => array( '<!-- wp:a {x <!-- /wp:b -->', array( 'core/b' ) ),
+			'Opening inside a SCRIPT element' => array( '<!-- wp:html --><script>"<!--"</script><!-- /wp:html -->', array( 'core/html', 'core/html' ) ),
+			'Opening inside an attribute'     => array( '<!-- wp:html --><a title="<!--">x</a><!-- /wp:html -->', array( 'core/html', 'core/html' ) ),
 
 			// A delimiter in a later comment is still found.
 			'Delimiter in the next comment'   => array( '<!-- wp:a {x --><!-- wp:b -->', array( 'core/b' ) ),
 			'Content after the JSON'          => array( '<!-- wp:a {"k":1} x --><!-- wp:b -->', array( 'core/b' ) ),
 			'Valid delimiter first'           => array( '<!-- wp:a {"k":1} --><!-- wp:b {y -->', array( 'core/a' ) ),
+		);
+	}
+
+	/**
+	 * Verifies that many rejected candidates inside one HTML comment are scanned in linear time.
+	 *
+	 * Each rejected candidate resumes the scan right after its `<!--`, so every candidate
+	 * which follows shares the same comment end. Searching for that end again for each
+	 * of them would take quadratic time: about 20 seconds for these documents.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_many_rejected_candidates_in_one_comment
+	 *
+	 * @param string $html Document with many rejected candidates and no delimiters.
+	 */
+	public function test_scans_many_rejected_candidates_in_linear_time( string $html ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$started_at = microtime( true );
+		$found      = array();
+		while ( $processor->next_delimiter() ) {
+			$found[] = $processor->get_printable_block_type();
+		}
+		$elapsed = microtime( true ) - $started_at;
+
+		$this->assertSame( array(), $found, 'Should have found no delimiters.' );
+		$this->assertNull( $processor->get_last_error(), 'Should have completed without reporting an error.' );
+		$this->assertLessThan( 1.0, $elapsed, 'Should have scanned the document in linear time.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_many_rejected_candidates_in_one_comment(): array {
+		return array(
+			'Content after the name'          => array( str_repeat( '<!-- wp:a x', 20000 ) . '-->' ),
+			'Content after the name, bang'    => array( str_repeat( '<!-- wp:a x', 20000 ) . '--!>' ),
+			'Unclosed JSON before whitespace' => array( str_repeat( '<!-- wp:a {', 10000 ) . str_repeat( ' ', 100000 ) . '-->' ),
 		);
 	}
 
