@@ -13,7 +13,7 @@ class Tests_Functions_WpIsHeicImageMimeType extends WP_UnitTestCase {
 	/**
 	 * Tests that valid HEIC and HEIF mime types return true.
 	 *
-	 * @ticket 65819
+	 * @ticket 66624
 	 *
 	 * @dataProvider data_valid_heic_mime_types
 	 *
@@ -40,7 +40,7 @@ class Tests_Functions_WpIsHeicImageMimeType extends WP_UnitTestCase {
 	/**
 	 * Tests that non-HEIC mime types return false.
 	 *
-	 * @ticket 65819
+	 * @ticket 66624
 	 *
 	 * @dataProvider data_non_heic_mime_types
 	 *
