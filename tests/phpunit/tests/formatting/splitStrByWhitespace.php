@@ -12,7 +12,7 @@ class Tests_Formatting_SplitStrByWhitespace extends WP_UnitTestCase {
 	/**
 	 * Tests that text shorter than goal is returned in a single chunk.
 	 *
-	 * @ticket 65819
+	 * @ticket 66621
 	 */
 	public function test_split_str_by_whitespace_short_string() {
 		$text   = 'Short string';
@@ -24,7 +24,7 @@ class Tests_Formatting_SplitStrByWhitespace extends WP_UnitTestCase {
 	/**
 	 * Tests splitting text at whitespace boundary near goal.
 	 *
-	 * @ticket 65819
+	 * @ticket 66621
 	 */
 	public function test_split_str_by_whitespace_splits_at_boundary() {
 		$text   = 'The quick brown fox jumps over the lazy dog';
@@ -38,7 +38,7 @@ class Tests_Formatting_SplitStrByWhitespace extends WP_UnitTestCase {
 	/**
 	 * Tests handling of various whitespace characters (tabs, newlines, carriage returns).
 	 *
-	 * @ticket 65819
+	 * @ticket 66621
 	 */
 	public function test_split_str_by_whitespace_various_whitespace() {
 		$text   = "Line one\nLine two\r\nLine three\tTabbed line";
@@ -51,7 +51,7 @@ class Tests_Formatting_SplitStrByWhitespace extends WP_UnitTestCase {
 	/**
 	 * Tests handling when a word without whitespace is longer than the goal.
 	 *
-	 * @ticket 65819
+	 * @ticket 66621
 	 */
 	public function test_split_str_by_whitespace_word_longer_than_goal() {
 		$text   = 'Supercalifragilisticexpialidocious and more words';
