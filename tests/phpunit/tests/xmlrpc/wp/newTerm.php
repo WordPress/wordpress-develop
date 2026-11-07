@@ -48,6 +48,46 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( __( 'Sorry, you are not allowed to create terms in this taxonomy.' ), $result->message );
 	}
 
+	/**
+	 * Tests that a term name that is not a string or number returns an error instead of causing a fatal error.
+	 *
+	 * @ticket 66108
+	 *
+	 * @dataProvider data_invalid_term_name
+	 *
+	 * @param mixed $name The term name to send.
+	 */
+	public function test_invalid_term_name( $name ): void {
+		$this->make_user_by_role( 'editor' );
+
+		$result = $this->myxmlrpcserver->wp_newTerm(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'taxonomy' => 'category',
+					'name'     => $name,
+				),
+			)
+		);
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( 'Invalid term name.', $result->message );
+	}
+
+	/**
+	 * Data provider for {@see self::test_invalid_term_name()}.
+	 *
+	 * @return array<truthy-string, array{ mixed }>
+	 */
+	public function data_invalid_term_name(): array {
+		return array(
+			'array'   => array( array( 'foo' ) ),
+			'boolean' => array( true ),
+		);
+	}
+
 	public function test_empty_term() {
 		$this->make_user_by_role( 'editor' );
 
