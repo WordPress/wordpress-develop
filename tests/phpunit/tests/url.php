@@ -357,6 +357,48 @@ class Tests_URL extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 28521
+	 *
+	 * @covers ::set_url_scheme
+	 * @covers ::get_home_url
+	 * @covers ::_wp_force_ssl_url
+	 */
+	public function test_force_ssl_sets_local_url_schemes_to_https() {
+		$forced_ssl       = force_ssl();
+		$forced_admin     = force_ssl_admin();
+		$server_https     = $_SERVER['HTTPS'] ?? null;
+		$_SERVER['HTTPS'] = 'off';
+		force_ssl_admin( false );
+		force_ssl( true );
+
+		try {
+			$http_home  = home_url( '/foo/', 'http' );
+			$https_home = home_url( '/foo/', 'https' );
+
+			$this->assertSame( $https_home, set_url_scheme( $http_home ) );
+			$this->assertSame( $https_home, set_url_scheme( $http_home, 'admin' ) );
+			$this->assertSame( $https_home, home_url( '/foo/' ) );
+			$this->assertSame( $https_home, network_home_url( '/foo/' ) );
+			$this->assertSame( $http_home, home_url( '/foo/', 'http' ) );
+			$this->assertSame( $https_home, _wp_force_ssl_url( $http_home ) );
+			$this->assertSame( 'https://example.org/foo/', _wp_force_ssl_url( '//example.org/foo/' ) );
+			$this->assertSame( 'http://example.com/foo/', _wp_force_ssl_url( 'http://example.com/foo/' ) );
+			$this->assertSame( '/foo/', _wp_force_ssl_url( '/foo/' ) );
+
+			force_ssl( false );
+			$this->assertSame( $http_home, _wp_force_ssl_url( $http_home ) );
+		} finally {
+			force_ssl( $forced_ssl );
+			force_ssl_admin( $forced_admin );
+			if ( null === $server_https ) {
+				unset( $_SERVER['HTTPS'] );
+			} else {
+				$_SERVER['HTTPS'] = $server_https;
+			}
+		}
+	}
+
+	/**
 	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post() {
