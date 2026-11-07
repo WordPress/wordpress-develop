@@ -18,7 +18,7 @@ class Tests_Formatting_TranslateSmiley extends WP_UnitTestCase {
 	/**
 	 * Tests that empty matches return an empty string.
 	 *
-	 * @ticket 65819
+	 * @ticket 66611
 	 */
 	public function test_translate_smiley_empty_matches() {
 		$this->assertSame( '', translate_smiley( array() ) );
@@ -27,7 +27,7 @@ class Tests_Formatting_TranslateSmiley extends WP_UnitTestCase {
 	/**
 	 * Tests converting an image-based smiley into an img element.
 	 *
-	 * @ticket 65819
+	 * @ticket 66611
 	 */
 	public function test_translate_smiley_converts_image_smiley() {
 		$actual = translate_smiley( array( ':mrgreen:' ) );
@@ -42,7 +42,7 @@ class Tests_Formatting_TranslateSmiley extends WP_UnitTestCase {
 	/**
 	 * Tests that smilies representing unicode emoji are returned as the emoji string.
 	 *
-	 * @ticket 65819
+	 * @ticket 66611
 	 */
 	public function test_translate_smiley_returns_emoji_unmodified() {
 		$actual = translate_smiley( array( ':-)' ) );
@@ -53,7 +53,7 @@ class Tests_Formatting_TranslateSmiley extends WP_UnitTestCase {
 	/**
 	 * Tests that the smilies_src filter modifies the smiley image URL.
 	 *
-	 * @ticket 65819
+	 * @ticket 66611
 	 */
 	public function test_translate_smiley_filter_smilies_src() {
 		add_filter(
