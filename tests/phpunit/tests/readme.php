@@ -1,7 +1,9 @@
 <?php
 /**
- * Validate recommended versions for dependencies referenced in `readme.html`,
- * based on external site support pages.
+ * Validate recommended versions for dependencies referenced in `readme.html`.
+ *
+ * Declaration checks run offline. Freshness checks against vendor support pages
+ * remain in `external-http` as intentional live coverage.
  *
  * @group readme
  */
@@ -26,9 +28,13 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Remains in external-http: intentional live check that the recommended PHP
+	 * version is still listed on php.net. Declaration presence is covered offline.
+	 *
 	 * @coversNothing
 	 *
 	 * @group external-http
+	 * @ticket 63914
 	 */
 	public function test_readme_php_version() {
 		// This test is designed to only run on trunk.
@@ -46,9 +52,14 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Remains in external-http: intentional live check that the recommended MySQL
+	 * version is still within its extended support window. Declaration presence
+	 * is covered offline.
+	 *
 	 * @coversNothing
 	 *
 	 * @group external-http
+	 * @ticket 63914
 	 */
 	public function test_readme_mysql_version() {
 		// This test is designed to only run on trunk.
@@ -84,9 +95,14 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Remains in external-http: intentional live check that the recommended
+	 * MariaDB version is still listed and not past EOL. Declaration presence
+	 * is covered offline.
+	 *
 	 * @coversNothing
 	 *
 	 * @group external-http
+	 * @ticket 63914
 	 */
 	public function test_readme_mariadb_version() {
 		// This test is designed to only run on trunk.
