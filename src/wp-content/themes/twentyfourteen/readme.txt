@@ -46,9 +46,9 @@ License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
 Lato Font
-Copyright (c) 2010-2011 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name "Lato".
+Copyright (c) 2010-2015, Łukasz Dziedzic (dziedzic@typoland.com), with Reserved Font Name Lato.
 License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
-Source: https://fontsource.org/fonts/lato
+Source: https://www.latofonts.com/
 
 Photos from Stocksnap, used in block patterns.
 License: CC0
