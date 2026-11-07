@@ -22,6 +22,8 @@ wp-tests-config.php
 /build
 /gutenberg
 /tests/phpunit/build
+# The gameshark PHP extension, the MySQL parser, and their builds, for tests/invariants.
+/.invariants
 /wp-cli.local.yml
 /phpstan.neon
 /*.tsbuildinfo
