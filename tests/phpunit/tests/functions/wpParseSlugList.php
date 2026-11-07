@@ -16,7 +16,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	 * @dataProvider data_wp_parse_slug_list
 	 * @dataProvider data_unexpected_input
 	 *
-	 * @param mixed[]|string $input_list
+	 * @param mixed[]|string|int $input_list
 	 * @param array<string> $expected
 	 */
 	public function test_wp_parse_slug_list( $input_list, array $expected ): void {
@@ -37,9 +37,9 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: array<string> }>
+	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<string> }>
 	 */
-	public function data_wp_parse_slug_list(): array {
+	public static function data_wp_parse_slug_list(): array {
 		return array(
 			'regular'                    => array(
 				'input_list' => 'apple,banana,carrot,dog',
@@ -75,6 +75,18 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 				'input_list' => array( 'apple ', 'banana carrot', 'd o g' ),
 				'expected'   => array( 'apple', 'banana-carrot', 'd-o-g' ),
 			),
+			'positive int'               => array(
+				'input_list' => 5,
+				'expected'   => array( '5' ),
+			),
+			'negative int'               => array(
+				'input_list' => -5,
+				'expected'   => array( '5' ),
+			),
+			'zero'                       => array(
+				'input_list' => 0,
+				'expected'   => array( '0' ),
+			),
 			'passed assoc array'         => array(
 				'input_list' => array(
 					'one'   => 'foo',
@@ -93,9 +105,9 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ input_list: mixed[]|string, expected: array<string> }>
+	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<string> }>
 	 */
-	public function data_unexpected_input(): array {
+	public static function data_unexpected_input(): array {
 		return array(
 			'string with commas' => array(
 				'input_list' => '1,2,string with spaces',

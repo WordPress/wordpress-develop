@@ -98,7 +98,7 @@ function wp_embed_defaults( $url = '' ) {
  *
  * @see WP_oEmbed
  *
- * @param string $url  The URL that should be embedded.
+ * @param string       $url  The URL that should be embedded.
  * @param array|string $args {
  *     Optional. Additional arguments for retrieving embed HTML. Default empty.
  *
@@ -264,8 +264,8 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
  * @since 3.6.0
  *
  * @param array  $matches The RegEx matches from the provided regex when calling wp_embed_register_handler().
- * @param array  $attr Embed attributes.
- * @param string $url The original URL that was matched by the regex.
+ * @param array  $attr    Embed attributes.
+ * @param string $url     The original URL that was matched by the regex.
  * @param array  $rawattr The original unmodified attributes.
  * @return string The embed HTML.
  */
@@ -582,9 +582,11 @@ function get_oembed_response_data( $post, $width ) {
 	 * @param array $min_max_width {
 	 *     Minimum and maximum widths for the oEmbed response.
 	 *
-	 *     @type int $min Minimum width. Default 200.
-	 *     @type int $max Maximum width. Default 600.
+	 *     @type int $min Minimum width. Default 200. Required.
+	 *     @type int $max Maximum width. Default 600. Required.
 	 * }
+	 *
+	 * @phpstan-param array{ min: positive-int, max: positive-int } $min_max_width
 	 */
 	$min_max_width = apply_filters(
 		'oembed_min_max_width',
@@ -594,7 +596,6 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
 	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
@@ -676,7 +677,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		}
 
 		if ( $site && get_current_blog_id() !== (int) $site->blog_id ) {
-			switch_to_blog( $site->blog_id );
+			switch_to_blog( (int) $site->blog_id );
 			$switched_blog = true;
 		}
 	}

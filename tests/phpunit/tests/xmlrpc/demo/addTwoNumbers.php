@@ -30,7 +30,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<string, int[]>
 	 */
-	public function data_valid_integers(): array {
+	public static function data_valid_integers(): array {
 		return array(
 			'two positive integers'         => array( 3, 5, 8 ),
 			'positive and negative integer' => array( 10, -3, 7 ),
@@ -68,7 +68,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<string, array<mixed>>
 	 */
-	public function data_invalid_arguments(): array {
+	public static function data_invalid_arguments(): array {
 		return array(
 			'first argument is string'          => array( 'abc', 5, 'Should fail when first argument is a string.' ),
 			'second argument is string'         => array( 3, 'abc', 'Should fail when second argument is a string.' ),
@@ -148,7 +148,7 @@ class Tests_XMLRPC_demo_addTwoNumbers extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<string, array<mixed>>
 	 */
-	public function data_too_many_arguments(): array {
+	public static function data_too_many_arguments(): array {
 		return array(
 			'three arguments' => array( array( 3, 5, 100 ), 'Should fail with three arguments.' ),
 			'four arguments'  => array( array( 10, 20, 30, 40 ), 'Should fail with four arguments.' ),
