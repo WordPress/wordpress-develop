@@ -28,6 +28,14 @@
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
  * @since 7.2.0 Added support for typography.textShadow.
+ *
+ * @phpstan-type Style_Definition array{
+ *     property_keys?: array{ default: string, individual?: string },
+ *     path: non-empty-list<string>,
+ *     css_vars?: array<string, string>,
+ *     classnames?: array<string, string|true>,
+ *     value_func?: callable( mixed, array<string, mixed>, array<mixed> ): array<string, string>,
+ * }
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -59,7 +67,8 @@ final class WP_Style_Engine {
 	 * @since 6.1.0
 	 * @since 7.1.0 Added `background.gradient` property.
 	 * @since 7.2.0 Added `background.backgroundClip` property.
-	 * @var array
+	 * @var array<string, array<string, array>>
+	 * @phpstan-var array<string, array<string, Style_Definition>>
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
 		'background' => array(
@@ -499,8 +508,8 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $block_styles The style object.
-	 * @param array $options      {
+	 * @param array<string, mixed> $block_styles The style object.
+	 * @param array                $options      {
 	 *     Optional. An array of options. Default empty array.
 	 *
 	 *     @type bool        $convert_vars_to_classnames Whether to skip converting incoming CSS var patterns,
@@ -572,7 +581,7 @@ final class WP_Style_Engine {
 	 * @param array  $style_definition A single style definition from {@see self::BLOCK_STYLE_DEFINITIONS_METADATA}.
 	 * @return string[] An array of CSS classnames, or empty array if there are none.
 	 *
-	 * @phpstan-param array{ classnames?: array<string, string|true>, ... } $style_definition
+	 * @phpstan-param Style_Definition $style_definition
 	 * @phpstan-return list<string>
 	 */
 	protected static function get_classnames( $style_value, $style_definition ) {
@@ -620,10 +629,16 @@ final class WP_Style_Engine {
 	 *                                            to `var( --wp--preset--* )` values. Default false.
 	 * }
 	 * @return string[] An associative array of CSS definitions, e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+	 *
+	 * @phpstan-param Style_Definition $style_definition
 	 */
 	protected static function get_css_declarations( $style_value, $style_definition, $options = array() ) {
 		if ( isset( $style_definition['value_func'] ) && is_callable( $style_definition['value_func'] ) ) {
 			return call_user_func( $style_definition['value_func'], $style_value, $style_definition, $options );
+		}
+
+		if ( ! isset( $style_definition['property_keys'] ) ) {
+			return array();
 		}
 
 		$css_declarations     = array();
@@ -692,7 +707,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param array $style_value                    A single raw style value from `$block_styles` array.
+	 * @param mixed $style_value                    A single raw style value from `$block_styles` array.
 	 * @param array $individual_property_definition A single style definition from {@see self::BLOCK_STYLE_DEFINITIONS_METADATA}
 	 *                                              representing an individual property of a CSS property,
 	 *                                              e.g. 'top' in 'border-top'.
@@ -704,6 +719,8 @@ final class WP_Style_Engine {
 	 *                                            to `var( --wp--preset--* )` values. Default false.
 	 * }
 	 * @return string[] An associative array of CSS definitions, e.g. `array( "$property" => "$value", "$property" => "$value" )`.
+	 *
+	 * @phpstan-param Style_Definition $individual_property_definition
 	 */
 	protected static function get_individual_property_css_declarations( $style_value, $individual_property_definition, $options = array() ) {
 		if ( ! is_array( $style_value ) || empty( $style_value ) || empty( $individual_property_definition['path'] ) ) {
@@ -728,9 +745,8 @@ final class WP_Style_Engine {
 				continue;
 			}
 
-			// Build a path to the individual rules in definitions.
-			$style_definition_path = array( $definition_group_key, $css_property );
-			$style_definition      = _wp_array_get( static::BLOCK_STYLE_DEFINITIONS_METADATA, $style_definition_path, null );
+			// Get the corresponding style definition from the same group, e.g. `border.color`.
+			$style_definition = static::BLOCK_STYLE_DEFINITIONS_METADATA[ $definition_group_key ][ $css_property ] ?? null;
 
 			if ( $style_definition && isset( $style_definition['property_keys']['individual'] ) ) {
 				// Set a CSS var if there is a valid preset value.
@@ -756,9 +772,12 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param array $style_value      A single raw style value from $block_styles array.
+	 * @param mixed $style_value      A single raw style value from $block_styles array.
 	 * @param array $style_definition A single style definition from {@see self::BLOCK_STYLE_DEFINITIONS_METADATA}.
 	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 *
+	 * @phpstan-param Style_Definition $style_definition
+	 * @phpstan-return array<string, string>
 	 */
 	protected static function get_url_or_value_css_declaration( $style_value, $style_definition ) {
 		if ( empty( $style_value ) ) {
@@ -770,7 +789,7 @@ final class WP_Style_Engine {
 		if ( isset( $style_definition['property_keys']['default'] ) ) {
 			$value = null;
 
-			if ( ! empty( $style_value['url'] ) ) {
+			if ( is_array( $style_value ) && ! empty( $style_value['url'] ) && is_string( $style_value['url'] ) ) {
 				$value = "url('" . $style_value['url'] . "')";
 			} elseif ( is_string( $style_value ) ) {
 				$value = $style_value;
@@ -792,10 +811,11 @@ final class WP_Style_Engine {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $style_value      A single raw style value from $block_styles array.
-	 * @param array  $style_definition A single style definition from {@see self::BLOCK_STYLE_DEFINITIONS_METADATA}.
+	 * @param mixed $style_value      A single raw style value from $block_styles array.
+	 * @param array $style_definition A single style definition from {@see self::BLOCK_STYLE_DEFINITIONS_METADATA}.
 	 * @return array<string, string> An associative array of CSS definitions, mapping properties to values.
 	 *
+	 * @phpstan-param Style_Definition $style_definition
 	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	protected static function get_background_clip_css_declarations( $style_value, $style_definition ) {
