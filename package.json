@@ -55,7 +55,6 @@
 		"@wordpress/prettier-config": "4.51.0",
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
-		"cssnano": "7.1.9",
 		"dotenv": "17.4.2",
 		"dotenv-expand": "13.0.0",
 		"grunt": "1.6.2",

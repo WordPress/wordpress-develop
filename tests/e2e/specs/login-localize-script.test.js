@@ -1,24 +1,13 @@
 /**
- * External dependencies
+ * Internal dependencies
  */
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
-
-/**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 
 test.describe( 'Localize Script on wp-login.php', () => {
-	const muPlugins = join(
-		process.cwd(),
-		process.env.LOCAL_DIR ?? 'src',
-		'wp-content/mu-plugins'
-	);
-	const muPluginFile = join( muPlugins, 'login-test.php' );
-
-	test.beforeAll( async () => {
-		const muPluginCode = `<?php
+	test( 'should localize script', async ( { page, muPlugin } ) => {
+		await muPlugin.write(
+			'login-test.php',
+			`<?php
 		add_action(
 			'login_enqueue_scripts',
 			function() {
@@ -30,19 +19,9 @@ test.describe( 'Localize Script on wp-login.php', () => {
 				]
 			  );
 			}
-		  );`;
+		  );`
+		);
 
-		if ( ! existsSync( muPlugins ) ) {
-			mkdirSync( muPlugins, { recursive: true } );
-		}
-		writeFileSync( muPluginFile, muPluginCode );
-	} );
-
-	test.afterAll( async () => {
-		unlinkSync( muPluginFile );
-	} );
-
-	test( 'should localize script', async ( { page } ) => {
 		await page.goto( '/wp-login.php' );
 		await expect(
 			page.getByRole( 'button', { name: 'Log In', exact: true } )
