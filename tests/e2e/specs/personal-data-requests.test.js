@@ -44,7 +44,9 @@ for ( const { label, screen, confirmationLabel, usernamePrefix } of [
 		test.afterEach( async ( { admin, page, requestUtils } ) => {
 			try {
 				await admin.visitAdminPage( screen, `s=${ email }` );
-				const row = page.getByRole( 'row' ).filter( { hasText: email } );
+				const row = page
+					.getByRole( 'row' )
+					.filter( { hasText: email } );
 				if ( await row.count() ) {
 					await row.first().getByRole( 'checkbox' ).check();
 					await page
