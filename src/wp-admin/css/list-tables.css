@@ -1532,7 +1532,6 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	border-radius: 8px;
 	box-sizing: border-box;
 	overflow: hidden;
-	container-type: inline-size; /* ticket #64686 */
 }
 
 @media screen and (min-width: 1600px) {
@@ -1556,6 +1555,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 		"actions actions";
 	column-gap: 20px;
 	row-gap: 4px;
+	position: relative;
 	padding: 16px;
 	flex: 1 1 auto; /* ticket #64686: grow to fill the card so the action row anchors to the same height across cards in a row */
 }
@@ -1574,14 +1574,24 @@ div.action-links,
 /* ticket #64686: icon spans info group via grid; DOM order matches focus order */
 .plugin-card .plugin-icon {
 	grid-area: icon;
-	align-self: start;
+	width: 128px;
+	height: 128px;
+}
+
+/* ticket #64686: stretch the title link over the icon so clicking the icon opens the details modal */
+.plugin-card .name a::after {
+	content: "";
+	position: absolute;
+	inset-block-start: 16px;
+	inset-inline-start: 16px;
+	width: 128px;
+	height: 128px;
 }
 
 .plugin-card-info {
 	grid-area: info;
 	display: flex;
 	flex-direction: column;
-	min-width: 0;
 }
 
 .plugin-card .desc {
@@ -1657,7 +1667,6 @@ div.action-links,
 
 /* ticket #64686: wrap naturally so long, translated button labels never overlap */
 .plugin-action-buttons {
-	margin: 0;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -1665,16 +1674,10 @@ div.action-links,
 }
 
 .plugin-action-buttons li {
-	display: block;
 	margin: 0;
 }
 
-.plugin-action-buttons li .button {
-	margin-right: 0;
-}
-
 .plugin-card-bottom {
-	clear: both;
 	padding: 16px;
 	background-color: #f6f7f7;
 	border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -1754,13 +1757,6 @@ div.action-links,
 	margin: 20px 20px 0;
 }
 
-.plugin-card .plugin-icon {
-	width: 128px;
-	height: 128px;
-	margin: 0;
-	cursor: pointer; /* ticket #64686 */
-}
-
 .no-plugin-results {
 	color: #646970; /* same as no themes and no media */
 	font-size: 18px;
@@ -1798,12 +1794,6 @@ div.action-links,
 
 /* =Media Queries
 -------------------------------------------------------------- */
-
-@media screen and (max-width: 1100px) and (min-width: 782px), (max-width: 480px) {
-	.plugin-card .desc p:first-of-type {
-		margin-top: 0;
-	}
-}
 
 @media screen and (max-width: 782px) {
 	/* WP List Table Options & Filters */
