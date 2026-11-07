@@ -12,7 +12,7 @@ class Tests_Formatting_MakeClickableRelAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that external HTTP and HTTPS links receive rel="nofollow".
 	 *
-	 * @ticket 65819
+	 * @ticket 66620
 	 */
 	public function test_make_clickable_rel_attr_external_urls() {
 		$this->assertSame( ' rel="nofollow"', _make_clickable_rel_attr( 'https://external.example.com/test' ) );
@@ -22,7 +22,7 @@ class Tests_Formatting_MakeClickableRelAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that internal links receive no rel attribute.
 	 *
-	 * @ticket 65819
+	 * @ticket 66620
 	 */
 	public function test_make_clickable_rel_attr_internal_urls() {
 		$internal_url = home_url( '/some-page/' );
@@ -33,7 +33,7 @@ class Tests_Formatting_MakeClickableRelAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that non-http/https schemes receive no rel attribute.
 	 *
-	 * @ticket 65819
+	 * @ticket 66620
 	 */
 	public function test_make_clickable_rel_attr_non_http_schemes() {
 		$this->assertSame( '', _make_clickable_rel_attr( 'mailto:user@example.com' ) );
@@ -44,7 +44,7 @@ class Tests_Formatting_MakeClickableRelAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that ugc is included when within the comment_text filter context.
 	 *
-	 * @ticket 65819
+	 * @ticket 66620
 	 */
 	public function test_make_clickable_rel_attr_in_comment_context() {
 		$actual = '';
@@ -65,7 +65,7 @@ class Tests_Formatting_MakeClickableRelAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that the make_clickable_rel filter can modify the rel value.
 	 *
-	 * @ticket 65819
+	 * @ticket 66620
 	 */
 	public function test_make_clickable_rel_attr_filter() {
 		add_filter(
