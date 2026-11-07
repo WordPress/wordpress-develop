@@ -160,6 +160,46 @@ test.describe( 'Media library', () => {
 		await expect( audioTile ).toBeHidden();
 	} );
 
+	test( 'searches for an existing image', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'search' );
+		const title = `${ prefix }-search`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( title ) }`
+		);
+		const row = page.locator( `#post-${ id }` );
+		await expect( row ).toBeVisible();
+		await expect(
+			row.getByRole( 'link', { name: title, exact: true } )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for missing media', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		// Ensure the library is not empty so ignoring search cannot vacuously pass.
+		await upload( requestUtils, 'present' );
+		const missing = `${ prefix }-missing-${ randomUUID() }`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( missing ) }`
+		);
+		await expect(
+			page.getByRole( 'cell', {
+				name: 'No media files found.',
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
+
 	test( 'edits attachment title, alternative text, and description', async ( {
 		admin,
 		page,
@@ -172,9 +212,9 @@ test.describe( 'Media library', () => {
 
 		await admin.visitAdminPage( '/post.php', `post=${ id }&action=edit` );
 
-		await page.locator( '#title' ).fill( title );
-		await page.locator( '#attachment_alt' ).fill( altText );
-		await page.locator( '#attachment_content' ).fill( description );
+		await page.getByLabel( 'Add title' ).fill( title );
+		await page.getByLabel( 'Alternative Text' ).fill( altText );
+		await page.getByLabel( 'Description' ).fill( description );
 		await page
 			.getByRole( 'button', { name: 'Update', exact: true } )
 			.click();
@@ -182,9 +222,11 @@ test.describe( 'Media library', () => {
 		await expect( page.locator( '#message' ) ).toContainText(
 			'Media file updated.'
 		);
-		await expect( page.locator( '#title' ) ).toHaveValue( title );
-		await expect( page.locator( '#attachment_alt' ) ).toHaveValue( altText );
-		await expect( page.locator( '#attachment_content' ) ).toHaveValue(
+		await expect( page.getByLabel( 'Add title' ) ).toHaveValue( title );
+		await expect( page.getByLabel( 'Alternative Text' ) ).toHaveValue(
+			altText
+		);
+		await expect( page.getByLabel( 'Description' ) ).toHaveValue(
 			description
 		);
 

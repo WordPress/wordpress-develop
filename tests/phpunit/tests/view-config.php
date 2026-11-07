@@ -204,7 +204,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_post_types_with_excerpt_in_form() {
+	public static function data_post_types_with_excerpt_in_form() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
@@ -268,7 +268,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_post_types_with_author_in_form() {
+	public static function data_post_types_with_author_in_form() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
