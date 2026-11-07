@@ -31,7 +31,7 @@ class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 	/**
 	 * Tests returning taxonomy names by default.
 	 *
-	 * @ticket 65819
+	 * @ticket 66622
 	 */
 	public function test_get_taxonomies_for_attachments_default_names() {
 		$taxonomies = get_taxonomies_for_attachments();
@@ -44,7 +44,7 @@ class Tests_Media_GetTaxonomiesForAttachments extends WP_UnitTestCase {
 	/**
 	 * Tests returning taxonomy objects when output is 'objects'.
 	 *
-	 * @ticket 65819
+	 * @ticket 66622
 	 */
 	public function test_get_taxonomies_for_attachments_objects_output() {
 		$taxonomies = get_taxonomies_for_attachments( 'objects' );
