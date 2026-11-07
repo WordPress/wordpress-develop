@@ -1056,9 +1056,15 @@ class WP_User_Query {
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
+		/*
+		 * An array of fields is fetched as objects, anything else as a list of values.
+		 * The SQL can be identical for both, so keep them in separate cache entries.
+		 */
+		$format = is_array( $this->query_vars['fields'] ) ? 'objects' : 'values';
+
 		$key = md5( $sql );
 
-		return "get_users:$key";
+		return "get_users:$format:$key";
 	}
 
 	/**
