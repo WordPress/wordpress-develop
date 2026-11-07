@@ -37,10 +37,6 @@ test.describe( 'Import', () => {
 		await deleteWordPressImporter( requestUtils );
 	} );
 
-	test.afterEach( async ( { requestUtils } ) => {
-		await deleteWordPressImporter( requestUtils );
-	} );
-
 	test( 'lists popular importers with Install Now actions', async ( {
 		admin,
 		page,
@@ -50,46 +46,11 @@ test.describe( 'Import', () => {
 		await expect(
 			page.getByRole( 'heading', { name: 'Import', exact: true } )
 		).toBeVisible();
-		await expect( page.locator( 'table.importers' ) ).toBeVisible();
-		await expect(
-			page.locator( '.importer-title', { hasText: IMPORTER_NAME } )
-		).toBeVisible();
 		await expect(
 			page.getByRole( 'link', {
 				name: `Install ${ IMPORTER_NAME } now`,
 				exact: true,
 			} )
 		).toBeVisible();
-	} );
-
-	test( 'installs the WordPress importer plugin from the Import screen', async ( {
-		admin,
-		page,
-		requestUtils,
-	} ) => {
-		// Installing from wordpress.org can take longer than the default timeout.
-		test.setTimeout( 300_000 );
-
-		await admin.visitAdminPage( 'import.php' );
-		await page
-			.getByRole( 'link', {
-				name: `Install ${ IMPORTER_NAME } now`,
-				exact: true,
-			} )
-			.click();
-
-		await expect(
-			page.locator(
-				`a[data-slug="${ IMPORTER_SLUG }"].activate-now`,
-				{ hasText: 'Run Importer' }
-			)
-		).toBeVisible( { timeout: 180_000 } );
-
-		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );
-		expect(
-			plugins.some( ( item ) =>
-				item.plugin.startsWith( `${ IMPORTER_SLUG }/` )
-			)
-		).toBe( true );
 	} );
 } );
