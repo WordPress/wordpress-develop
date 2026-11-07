@@ -764,11 +764,8 @@ module.exports = function(grunt) {
 			},
 			'gutenberg-styles': {
 				options: {
-					process: function( content, srcpath ) {
-						if ( path.basename( srcpath ) !== 'registry.php' ) {
-							return content;
-						}
-
+					noProcess: [ '**/*', '!**/registry.php' ],
+					process: function( content ) {
 						/*
 						 * Gutenberg's generated style registry does not currently
 						 * meet Core's PHP coding standards. Format its known keys
