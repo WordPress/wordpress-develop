@@ -1209,6 +1209,49 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that spaces in attachment URLs are encoded, matching wp_prepare_attachment_for_js().
+	 *
+	 * @ticket 66531
+	 *
+	 * @requires function imagejpeg
+	 */
+	public function test_get_item_encodes_spaces_in_source_urls() {
+		add_filter( 'upload_dir', array( $this, 'upload_dir_with_space' ) );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$js_data  = wp_prepare_attachment_for_js( $attachment_id );
+
+		$this->assertStringContainsString( '/my%20uploads/', $data['source_url'] );
+		$this->assertSame( $js_data['url'], $data['source_url'] );
+		$this->assertNotEmpty( $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
+
+		foreach ( $data['media_details']['sizes'] as $size => $size_data ) {
+			$this->assertStringNotContainsString( ' ', $size_data['source_url'], "The {$size} size URL contains a space." );
+
+			if ( isset( $js_data['sizes'][ $size ] ) ) {
+				$this->assertSame( $js_data['sizes'][ $size ]['url'], $size_data['source_url'], "The {$size} size URL does not match." );
+			}
+		}
+	}
+
+	/**
+	 * Puts uploads in a subdirectory whose name contains a space.
+	 *
+	 * @param array $uploads Upload directory data.
+	 * @return array Filtered upload directory data.
+	 */
+	public function upload_dir_with_space( $uploads ) {
+		$uploads['subdir'] = '/my uploads';
+		$uploads['path']   = $uploads['basedir'] . $uploads['subdir'];
+		$uploads['url']    = $uploads['baseurl'] . $uploads['subdir'];
+		return $uploads;
+	}
+
+	/**
 	 * @ticket 65251
 	 */
 	public function test_get_item_sizes_empty_sizes_is_object() {
