@@ -3151,7 +3151,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$new_allowed_options[ $option_group ][] = $option_name;
 
 	if ( ! empty( $args['sanitize_callback'] ) ) {
-		add_filter( "sanitize_option_{$option_name}", $args['sanitize_callback'] );
+		add_filter( "sanitize_option_{$option_name}", $args['sanitize_callback'], 10, 2 );
 	}
 	if ( array_key_exists( 'default', $args ) ) {
 		add_filter( "default_option_{$option_name}", 'filter_default_option', 10, 3 );
