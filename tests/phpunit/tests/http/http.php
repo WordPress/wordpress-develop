@@ -698,6 +698,117 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips cookies without a name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 *
+	 * @dataProvider data_normalize_cookies_skips_cookie_without_name
+	 *
+	 * @param array<int|string, WP_Http_Cookie|scalar> $nameless_cookie Single cookie without a name.
+	 */
+	public function test_normalize_cookies_skips_cookie_without_name( array $nameless_cookie ): void {
+		$cookies           = $nameless_cookie;
+		$cookies['flavor'] = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( $cookies );
+
+		$this->assertSame( array( 'flavor' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_normalize_cookies_skips_cookie_without_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<int|string, WP_Http_Cookie|scalar> }>
+	 */
+	public function data_normalize_cookies_skips_cookie_without_name(): array {
+		return array(
+			'null name from array'             => array( array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ) ),
+			'empty name and value from header' => array( array( new WP_Http_Cookie( '=' ) ) ),
+			'non-scalar name'                  => array(
+				array(
+					new WP_Http_Cookie(
+						array( // @phpstan-ignore argument.type (Intentionally passing an invalid name.)
+							'name'  => array( 'foo' ),
+							'value' => 'foo',
+						)
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty name, per RFC 6265bis.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 *
+	 * @dataProvider data_normalize_cookies_sends_cookie_with_empty_name
+	 *
+	 * @param array<int|string, WP_Http_Cookie|scalar> $cookies Single cookie with an empty name.
+	 */
+	public function test_normalize_cookies_sends_cookie_with_empty_name( array $cookies ): void {
+		$cookie_jar = WP_Http::normalize_cookies( $cookies );
+
+		$this->assertSame( array( '' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[''] );
+		$this->assertSame( '=foo', $cookie_jar['']->format_for_header() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_normalize_cookies_sends_cookie_with_empty_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<int|string, WP_Http_Cookie|scalar> }>
+	 */
+	public function data_normalize_cookies_sends_cookie_with_empty_name(): array {
+		return array(
+			'empty name from header'  => array( array( new WP_Http_Cookie( '=foo' ) ) ),
+			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
+			'empty scalar name'       => array( array( '' => 'foo' ) ),
+			'whitespace scalar name'  => array( array( " \t " => 'foo' ) ),
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} trims surrounding whitespace from cookie names.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_trims_cookie_name(): void {
+		// The constructor trims the name, so add the whitespace afterward.
+		$cookie       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+		$cookie->name = " \tflavor ";
+
+		$cookie_jar = WP_Http::normalize_cookies(
+			array(
+				$cookie,
+				' texture ' => 'chewy',
+			)
+		);
+
+		$this->assertSame( array( 'flavor', 'texture' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
+		$this->assertSame( 'flavor=chocolate-chip', $cookie_jar['flavor']->format_for_header() );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['texture'] );
+		$this->assertSame( 'texture=chewy', $cookie_jar['texture']->format_for_header() );
+	}
+
+	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie without a value, as {@see WP_Http_Cookie::getHeaderValue()} does.
 	 *
 	 * @covers WP_Http::normalize_cookies
@@ -767,5 +878,144 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
 		$this->assertSame( 'flavor=', $cookie_jar['flavor']->format_for_header() );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} skips objects that are not cookies.
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_skips_non_cookie_objects(): void {
+		$args = array(
+			'cookies' => array(
+				'flavor' => 'chocolate-chip',
+				'other'  => new stdClass(),
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip' ), $args['headers'] );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} includes objects of other classes that provide a header value.
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_includes_other_cookie_classes(): void {
+		$custom_cookie = new class() {
+			public function getHeaderValue(): string { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+				return 'texture=chewy';
+			}
+		};
+
+		$args = array(
+			'cookies' => array(
+				'flavor' => 'chocolate-chip',
+				'custom' => $custom_cookie,
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} omits cookies that cannot be sent.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_omits_unsendable_cookies(): void {
+		$args = array(
+			'cookies' => array(
+				new WP_Http_Cookie( '=; path=/' ),
+				new WP_Http_Cookie( '=abc; path=/' ),
+				'flavor'  => 'chocolate-chip',
+				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
+				'texture' => 'chewy',
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		// A cookie with an empty name is still sent, per RFC 6265bis.
+		$this->assertSame( array( 'cookie' => '=abc; flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} does not set an empty Cookie header when no cookie can be sent.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_without_sendable_cookies(): void {
+		$args = array(
+			'headers' => array(
+				'accept' => 'text/html',
+				'cookie' => 'replaced=1',
+			),
+			'cookies' => array(
+				new WP_Http_Cookie( '=; path=/' ),
+				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		// As when cookies are sent, the cookies replace any Cookie header supplied.
+		$this->assertSame( array( 'accept' => 'text/html' ), $args['headers'] );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::processHeaders()} keeps cookies with an empty name, but ignores those with neither a name nor a value.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::processHeaders
+	 */
+	public function test_process_headers_ignores_cookies_without_name_or_value(): void {
+		$headers = "HTTP/1.1 200 OK\r\nSet-Cookie: novalue\r\nSet-Cookie: =abc; path=/\r\nSet-Cookie: =; path=/\r\nSet-Cookie: flavor=chocolate-chip\r\n";
+
+		$processed = WP_Http::processHeaders( $headers, 'https://example.org/' );
+
+		$this->assertIsArray( $processed['cookies'] );
+		$this->assertSame(
+			array( '=novalue', '=abc', 'flavor=chocolate-chip' ),
+			array_map(
+				static function ( WP_Http_Cookie $cookie ): string {
+					return $cookie->getHeaderValue();
+				},
+				$processed['cookies']
+			)
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_HTTP_Requests_Response::get_cookies()} keeps cookies with an empty name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_HTTP_Requests_Response::get_cookies
+	 */
+	public function test_requests_response_get_cookies_keeps_cookies_with_empty_name(): void {
+		$requests_response          = new WpOrg\Requests\Response();
+		$requests_response->cookies = new WpOrg\Requests\Cookie\Jar(
+			array(
+				''       => new WpOrg\Requests\Cookie( '', 'abc' ),
+				'flavor' => new WpOrg\Requests\Cookie( 'flavor', 'chocolate-chip' ),
+			)
+		);
+
+		$cookies = ( new WP_HTTP_Requests_Response( $requests_response ) )->get_cookies();
+
+		$this->assertCount( 2, $cookies );
+		$this->assertSame( '', $cookies[0]->name );
+		$this->assertSame( 'abc', $cookies[0]->value );
+		$this->assertSame( 'flavor', $cookies[1]->name );
 	}
 }
