@@ -13,7 +13,7 @@ class Tests_Link_NavigationMarkup extends WP_UnitTestCase {
 	/**
 	 * Tests default markup structure and attributes.
 	 *
-	 * @ticket 65819
+	 * @ticket 66612
 	 */
 	public function test_navigation_markup_default_structure() {
 		$links  = '<span class="page-numbers current">1</span><a class="page-numbers" href="#2">2</a>';
@@ -28,7 +28,7 @@ class Tests_Link_NavigationMarkup extends WP_UnitTestCase {
 	/**
 	 * Tests navigation markup with custom class, screen reader text, and aria label.
 	 *
-	 * @ticket 65819
+	 * @ticket 66612
 	 */
 	public function test_navigation_markup_custom_arguments() {
 		$links  = '<a href="#next">Next</a>';
@@ -43,7 +43,7 @@ class Tests_Link_NavigationMarkup extends WP_UnitTestCase {
 	/**
 	 * Tests that aria-label defaults to screen reader text when aria-label is empty.
 	 *
-	 * @ticket 65819
+	 * @ticket 66612
 	 */
 	public function test_navigation_markup_aria_label_falls_back_to_screen_reader_text() {
 		$links  = '<a href="#prev">Previous</a>';
@@ -56,7 +56,7 @@ class Tests_Link_NavigationMarkup extends WP_UnitTestCase {
 	/**
 	 * Tests that navigation_markup_template filter modifies the markup and receives class parameter.
 	 *
-	 * @ticket 65819
+	 * @ticket 66612
 	 */
 	public function test_navigation_markup_template_filter() {
 		$passed_template  = '';
@@ -85,7 +85,7 @@ class Tests_Link_NavigationMarkup extends WP_UnitTestCase {
 	/**
 	 * Tests that CSS class is sanitized with sanitize_html_class.
 	 *
-	 * @ticket 65819
+	 * @ticket 66612
 	 */
 	public function test_navigation_markup_sanitizes_html_class() {
 		$links  = '<a href="#page">Page</a>';
