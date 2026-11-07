@@ -189,38 +189,77 @@ test.describe( 'User management', () => {
 	} );
 
 	test( 'prevents an administrator from changing their own role to subscriber', async ( {
-		admin,
-		page,
+		browser,
 		requestUtils,
+		baseURL,
 	} ) => {
-		const currentUser = await requestUtils.rest( {
-			path: '/wp/v2/users/me',
-			params: { context: 'edit' },
+		// Use a disposable administrator so a regression cannot demote the shared
+		// suite account and break cleanup or later tests.
+		const username = `${ prefix }-self-role`;
+		const password = randomUUID();
+		usernames.push( username );
+		const disposable = await requestUtils.createUser( {
+			username,
+			email: `${ username }@example.org`,
+			password,
+			roles: [ 'administrator' ],
 		} );
-		expect( currentUser.roles ).toContain( 'administrator' );
 
-		await admin.visitAdminPage( '/profile.php' );
-		await expect(
-			page.getByLabel( 'Role', { exact: true } )
-		).toHaveCount( 0 );
-
-		await admin.visitAdminPage( '/users.php' );
-		await page
-			.locator( `#user-${ currentUser.id }` )
-			.getByRole( 'checkbox' )
-			.check();
-		// Top/bottom role controls share an accessible name, so use the top control ID.
-		await page.locator( '#new_role' ).selectOption( 'subscriber' );
-		await page.locator( '#changeit' ).click();
-		await expect( page.locator( '#message.error' ) ).toContainText(
-			'You cannot change your own role to one that does not allow managing other users. Your role was not changed.'
-		);
-
-		const stillAdmin = await requestUtils.rest( {
-			path: '/wp/v2/users/me',
-			params: { context: 'edit' },
+		const context = await browser.newContext( {
+			storageState: { cookies: [], origins: [] },
 		} );
-		expect( stillAdmin.roles ).toContain( 'administrator' );
+		try {
+			const page = await context.newPage();
+			await page.goto( new URL( 'wp-login.php', baseURL ).href );
+			const usernameField = page.getByLabel(
+				'Username or Email Address',
+				{ exact: true }
+			);
+			await expect( usernameField ).toBeFocused();
+			await usernameField.fill( username );
+			await page
+				.getByLabel( 'Password', { exact: true } )
+				.fill( password );
+			await page
+				.getByRole( 'button', { name: 'Log In', exact: true } )
+				.click();
+			await expect(
+				page.getByRole( 'heading', {
+					name: 'Dashboard',
+					exact: true,
+				} )
+			).toBeVisible();
+
+			await page.goto( new URL( 'wp-admin/profile.php', baseURL ).href );
+			await expect(
+				page.getByLabel( 'Role', { exact: true } )
+			).toHaveCount( 0 );
+
+			await page.goto(
+				new URL(
+					`wp-admin/users.php?s=${ encodeURIComponent( username ) }`,
+					baseURL
+				).href
+			);
+			await page
+				.locator( `#user-${ disposable.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+			// Top/bottom role controls share an accessible name, so use the top control ID.
+			await page.locator( '#new_role' ).selectOption( 'subscriber' );
+			await page.locator( '#changeit' ).click();
+			await expect( page.locator( '#message.error' ) ).toContainText(
+				'You cannot change your own role to one that does not allow managing other users. Your role was not changed.'
+			);
+
+			const stillAdmin = await requestUtils.rest( {
+				path: `/wp/v2/users/${ disposable.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( stillAdmin.roles ).toContain( 'administrator' );
+		} finally {
+			await context.close();
+		}
 	} );
 
 	test( 'searches for an existing user', async ( {
