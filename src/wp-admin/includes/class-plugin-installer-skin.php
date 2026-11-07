@@ -170,6 +170,23 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
 		} elseif ( ! current_user_can( 'activate_plugin', $plugin_file ) || is_plugin_active( $plugin_file ) ) {
 			unset( $install_actions['activate_plugin'] );
+		} else {
+			// Do not offer a link that activate_plugin() would reject, for example when required plugins are missing.
+			wp_clean_plugins_cache( false ); // The list of installed plugins may not include the new plugin yet.
+			$requirements = validate_plugin_requirements( $plugin_file );
+
+			if ( is_wp_error( $requirements ) ) {
+				unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
+
+				wp_admin_notice(
+					$requirements->get_error_message(),
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'inline' ),
+						'paragraph_wrap'     => false,
+					)
+				);
+			}
 		}
 
 		/**
