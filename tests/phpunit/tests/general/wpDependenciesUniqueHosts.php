@@ -34,7 +34,7 @@ class Tests_General_WpDependenciesUniqueHosts extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty queue returns an empty array.
 	 *
-	 * @ticket 65819
+	 * @ticket 66613
 	 */
 	public function test_wp_dependencies_unique_hosts_empty() {
 		$this->assertSame( array(), wp_dependencies_unique_hosts() );
@@ -43,7 +43,7 @@ class Tests_General_WpDependenciesUniqueHosts extends WP_UnitTestCase {
 	/**
 	 * Tests extracting unique hosts from queued scripts and styles.
 	 *
-	 * @ticket 65819
+	 * @ticket 66613
 	 */
 	public function test_wp_dependencies_unique_hosts_extracts_hosts() {
 		$_SERVER['SERVER_NAME'] = 'example.org';
@@ -59,7 +59,7 @@ class Tests_General_WpDependenciesUniqueHosts extends WP_UnitTestCase {
 	/**
 	 * Tests that duplicate hosts across scripts and styles are deduplicated.
 	 *
-	 * @ticket 65819
+	 * @ticket 66613
 	 */
 	public function test_wp_dependencies_unique_hosts_deduplicates_hosts() {
 		$_SERVER['SERVER_NAME'] = 'example.org';
@@ -76,7 +76,7 @@ class Tests_General_WpDependenciesUniqueHosts extends WP_UnitTestCase {
 	/**
 	 * Tests that hosts matching $_SERVER['SERVER_NAME'] are excluded.
 	 *
-	 * @ticket 65819
+	 * @ticket 66613
 	 */
 	public function test_wp_dependencies_unique_hosts_excludes_local_server_name() {
 		$_SERVER['SERVER_NAME'] = 'local.example.org';
@@ -92,7 +92,7 @@ class Tests_General_WpDependenciesUniqueHosts extends WP_UnitTestCase {
 	/**
 	 * Tests that relative URLs without a host are ignored.
 	 *
-	 * @ticket 65819
+	 * @ticket 66613
 	 */
 	public function test_wp_dependencies_unique_hosts_ignores_relative_urls() {
 		wp_enqueue_script( 'relative-script', '/wp-includes/js/script.js', array(), null );
