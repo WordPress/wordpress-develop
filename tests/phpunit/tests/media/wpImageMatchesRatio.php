@@ -12,7 +12,7 @@ class Tests_Media_WpImageMatchesRatio extends WP_UnitTestCase {
 	/**
 	 * Tests matching ratio with identical dimensions.
 	 *
-	 * @ticket 65819
+	 * @ticket 66619
 	 */
 	public function test_wp_image_matches_ratio_identical_dimensions() {
 		$this->assertTrue( wp_image_matches_ratio( 800, 600, 800, 600 ) );
@@ -21,7 +21,7 @@ class Tests_Media_WpImageMatchesRatio extends WP_UnitTestCase {
 	/**
 	 * Tests matching ratio for proportionally scaled images.
 	 *
-	 * @ticket 65819
+	 * @ticket 66619
 	 */
 	public function test_wp_image_matches_ratio_scaled_proportional() {
 		// Both 4:3 aspect ratio, source larger than target.
@@ -37,7 +37,7 @@ class Tests_Media_WpImageMatchesRatio extends WP_UnitTestCase {
 	/**
 	 * Tests non-matching aspect ratios.
 	 *
-	 * @ticket 65819
+	 * @ticket 66619
 	 */
 	public function test_wp_image_matches_ratio_different_aspect_ratios() {
 		// 16:9 vs 4:3.
@@ -50,7 +50,7 @@ class Tests_Media_WpImageMatchesRatio extends WP_UnitTestCase {
 	/**
 	 * Tests that dimensions within 1px difference are considered a match.
 	 *
-	 * @ticket 65819
+	 * @ticket 66619
 	 */
 	public function test_wp_image_matches_ratio_within_one_pixel_tolerance() {
 		// 300x200 scaled to width 150 yields 150x100.
@@ -62,7 +62,7 @@ class Tests_Media_WpImageMatchesRatio extends WP_UnitTestCase {
 	/**
 	 * Tests that dimensions exceeding 1px tolerance return false.
 	 *
-	 * @ticket 65819
+	 * @ticket 66619
 	 */
 	public function test_wp_image_matches_ratio_beyond_tolerance() {
 		// 300x200 scaled to width 150 yields 150x100.
