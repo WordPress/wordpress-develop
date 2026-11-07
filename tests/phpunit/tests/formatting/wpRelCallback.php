@@ -12,7 +12,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests adding a rel attribute to an anchor that does not have one.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_adds_rel_to_link() {
 		$matches = array( '<a href="https://example.com">', 'href="https://example.com"' );
@@ -24,7 +24,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests merging a new rel value with an existing rel attribute.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_merges_with_existing_rel() {
 		$matches = array( '<a href="https://example.com" rel="external">', 'href="https://example.com" rel="external"' );
@@ -36,7 +36,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests that existing rel values are not duplicated.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_does_not_duplicate_existing_rel() {
 		$matches = array( '<a href="https://example.com" rel="nofollow ugc">', 'href="https://example.com" rel="nofollow ugc"' );
@@ -48,7 +48,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests that nofollow is stripped when the link is internal.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_removes_nofollow_for_internal_links() {
 		$home_url = home_url( '/test-page/' );
@@ -61,7 +61,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests that internal links keep existing rel and can add other rel values like ugc.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_preserves_other_rel_for_internal_links() {
 		$home_url = home_url( '/internal/' );
@@ -74,7 +74,7 @@ class Tests_Formatting_WpRelCallback extends WP_UnitTestCase {
 	/**
 	 * Tests handling of valueless attributes on the anchor.
 	 *
-	 * @ticket 65819
+	 * @ticket 66610
 	 */
 	public function test_wp_rel_callback_handles_valueless_attributes() {
 		$matches = array( '<a href="https://example.com" download rel="opener">', 'href="https://example.com" download rel="opener"' );
