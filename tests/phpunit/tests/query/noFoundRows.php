@@ -109,7 +109,7 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 	 *
 	 * @ticket 65817
 	 */
-	public function test_max_num_pages_is_not_negative_when_found_posts_is_filtered_negative() {
+	public function test_found_posts_and_max_num_pages_are_not_negative_when_found_posts_is_filtered_negative() {
 		self::factory()->post->create_many( 3 );
 
 		add_filter(
