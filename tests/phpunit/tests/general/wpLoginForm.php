@@ -13,7 +13,7 @@ class Tests_General_WpLoginForm extends WP_UnitTestCase {
 	/**
 	 * Tests returning the login form HTML when 'echo' is false.
 	 *
-	 * @ticket 65819
+	 * @ticket 66616
 	 */
 	public function test_wp_login_form_returns_markup_when_echo_false() {
 		$form = wp_login_form( array( 'echo' => false ) );
@@ -29,7 +29,7 @@ class Tests_General_WpLoginForm extends WP_UnitTestCase {
 	/**
 	 * Tests that the form echoes its output and returns null when 'echo' is true (the default).
 	 *
-	 * @ticket 65819
+	 * @ticket 66616
 	 */
 	public function test_wp_login_form_echoes_output_by_default() {
 		ob_start();
@@ -43,7 +43,7 @@ class Tests_General_WpLoginForm extends WP_UnitTestCase {
 	/**
 	 * Tests custom labels, IDs, and form attributes.
 	 *
-	 * @ticket 65819
+	 * @ticket 66616
 	 */
 	public function test_wp_login_form_custom_ids_and_labels() {
 		$args = array(
@@ -73,7 +73,7 @@ class Tests_General_WpLoginForm extends WP_UnitTestCase {
 	/**
 	 * Tests setting required attributes on username and password fields.
 	 *
-	 * @ticket 65819
+	 * @ticket 66616
 	 */
 	public function test_wp_login_form_required_attributes() {
 		$form = wp_login_form(
@@ -91,7 +91,7 @@ class Tests_General_WpLoginForm extends WP_UnitTestCase {
 	/**
 	 * Tests login_form_top, login_form_middle, and login_form_bottom filters.
 	 *
-	 * @ticket 65819
+	 * @ticket 66616
 	 */
 	public function test_wp_login_form_filters() {
 		add_filter(
