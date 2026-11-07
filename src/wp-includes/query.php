@@ -1484,17 +1484,17 @@ function wp_random_content_redirect(): void {
 		return;
 	}
 
+	nocache_headers();
+
+	if ( ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, follow' );
+	}
+
 	$location = get_permalink( $wp_query->post );
 
 	// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
 	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
 		return;
-	}
-
-	nocache_headers();
-
-	if ( ! headers_sent() ) {
-		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
 	if ( wp_safe_redirect( $location, 302 ) ) {
