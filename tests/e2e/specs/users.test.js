@@ -154,4 +154,165 @@ test.describe( 'User management', () => {
 			users[ 2 ].id,
 		] );
 	} );
+
+	test( 'changes another user role from the edit screen', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const username = `${ prefix }-role`;
+		usernames.push( username );
+		const user = await requestUtils.createUser( {
+			username,
+			email: `${ username }@example.org`,
+			password: randomUUID(),
+			roles: [ 'subscriber' ],
+		} );
+
+		await admin.visitAdminPage( '/user-edit.php', `user_id=${ user.id }` );
+		const roleField = page.getByLabel( 'Role', { exact: true } );
+		await expect( roleField ).toHaveValue( 'subscriber' );
+		await roleField.selectOption( 'editor' );
+		await page
+			.getByRole( 'button', { name: 'Update User', exact: true } )
+			.click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'User updated.'
+		);
+		await expect( roleField ).toHaveValue( 'editor' );
+
+		const updated = await requestUtils.rest( {
+			path: `/wp/v2/users/${ user.id }`,
+			params: { context: 'edit' },
+		} );
+		expect( updated.roles ).toEqual( [ 'editor' ] );
+	} );
+
+	test( 'prevents an administrator from changing their own role to subscriber', async ( {
+		browser,
+		requestUtils,
+		baseURL,
+	} ) => {
+		// Use a disposable administrator so a regression cannot demote the shared
+		// suite account and break cleanup or later tests.
+		const username = `${ prefix }-self-role`;
+		const password = randomUUID();
+		usernames.push( username );
+		const disposable = await requestUtils.createUser( {
+			username,
+			email: `${ username }@example.org`,
+			password,
+			roles: [ 'administrator' ],
+		} );
+
+		const context = await browser.newContext( {
+			storageState: { cookies: [], origins: [] },
+		} );
+		try {
+			const page = await context.newPage();
+			await page.goto( new URL( 'wp-login.php', baseURL ).href );
+			const usernameField = page.getByLabel(
+				'Username or Email Address',
+				{ exact: true }
+			);
+			await expect( usernameField ).toBeFocused();
+			await usernameField.fill( username );
+			await page
+				.getByLabel( 'Password', { exact: true } )
+				.fill( password );
+			await page
+				.getByRole( 'button', { name: 'Log In', exact: true } )
+				.click();
+			await expect(
+				page.getByRole( 'heading', {
+					name: 'Dashboard',
+					exact: true,
+				} )
+			).toBeVisible();
+
+			await page.goto( new URL( 'wp-admin/profile.php', baseURL ).href );
+			await expect(
+				page.getByLabel( 'Role', { exact: true } )
+			).toHaveCount( 0 );
+
+			await page.goto(
+				new URL(
+					`wp-admin/users.php?s=${ encodeURIComponent( username ) }`,
+					baseURL
+				).href
+			);
+			await page
+				.locator( `#user-${ disposable.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+			// Top/bottom role controls share an accessible name, so use the top control ID.
+			await page.locator( '#new_role' ).selectOption( 'subscriber' );
+			await page.locator( '#changeit' ).click();
+			await expect( page.locator( '#message.error' ) ).toContainText(
+				'You cannot change your own role to one that does not allow managing other users. Your role was not changed.'
+			);
+
+			const stillAdmin = await requestUtils.rest( {
+				path: `/wp/v2/users/${ disposable.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( stillAdmin.roles ).toContain( 'administrator' );
+		} finally {
+			await context.close();
+		}
+	} );
+
+	test( 'searches for an existing user', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const username = `${ prefix }-search`;
+		usernames.push( username );
+		const user = await requestUtils.createUser( {
+			username,
+			email: `${ username }@example.org`,
+			password: randomUUID(),
+			roles: [ 'subscriber' ],
+		} );
+
+		await admin.visitAdminPage(
+			'/users.php',
+			`s=${ encodeURIComponent( username ) }`
+		);
+		const row = page.locator( `#user-${ user.id }` );
+		await expect( row ).toBeVisible();
+		await expect(
+			row.getByRole( 'link', { name: username, exact: true } )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for a missing user', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		// Ensure at least one non-matching user exists so ignoring `s` cannot
+		// vacuously pass with an empty users table.
+		const present = `${ prefix }-present`;
+		usernames.push( present );
+		await requestUtils.createUser( {
+			username: present,
+			email: `${ present }@example.org`,
+			password: randomUUID(),
+			roles: [ 'subscriber' ],
+		} );
+		const missing = `${ prefix }-missing-${ randomUUID().slice( 0, 8 ) }`;
+
+		await admin.visitAdminPage(
+			'/users.php',
+			`s=${ encodeURIComponent( missing ) }`
+		);
+		await expect(
+			page.getByRole( 'cell', {
+				name: 'No users found.',
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
 } );
