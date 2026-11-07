@@ -12,7 +12,7 @@ class Tests_Formatting_WptexturizePrimes extends WP_UnitTestCase {
 	/**
 	 * Tests prime replacement for single quotes after numbers.
 	 *
-	 * @ticket 65819
+	 * @ticket 66609
 	 */
 	public function test_wptexturize_primes_single_quote() {
 		$prime       = '&#8242;';
@@ -28,7 +28,7 @@ class Tests_Formatting_WptexturizePrimes extends WP_UnitTestCase {
 	/**
 	 * Tests double prime replacement for double quotes after numbers.
 	 *
-	 * @ticket 65819
+	 * @ticket 66609
 	 */
 	public function test_wptexturize_primes_double_quote() {
 		$prime       = '&#8243;';
@@ -44,7 +44,7 @@ class Tests_Formatting_WptexturizePrimes extends WP_UnitTestCase {
 	/**
 	 * Tests that text without the needle character is returned unchanged.
 	 *
-	 * @ticket 65819
+	 * @ticket 66609
 	 */
 	public function test_wptexturize_primes_without_matching_needle() {
 		$text = 'Text without any quotes at all.';
@@ -55,7 +55,7 @@ class Tests_Formatting_WptexturizePrimes extends WP_UnitTestCase {
 	/**
 	 * Tests closing quote disambiguation when numbers with primes are inside quotations.
 	 *
-	 * @ticket 65819
+	 * @ticket 66609
 	 */
 	public function test_wptexturize_primes_inside_quotations() {
 		$prime       = '&#8242;';
@@ -71,7 +71,7 @@ class Tests_Formatting_WptexturizePrimes extends WP_UnitTestCase {
 	/**
 	 * Tests that quotes not preceded by numbers become closing quotes.
 	 *
-	 * @ticket 65819
+	 * @ticket 66609
 	 */
 	public function test_wptexturize_primes_normal_quotes_become_closing_quotes() {
 		$prime       = '&#8243;';
