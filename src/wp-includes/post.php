@@ -7998,6 +7998,24 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
  * @return string The date of the last post, or false on failure.
  */
 function get_lastpostdate( $timezone = 'server', $post_type = 'any' ) {
+	/**
+	 * Pre-filter the return value of get_lastpostdate() before the query is run.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string|false $lastpostdate The most recent time that a post was published,
+	 *                                   in 'Y-m-d H:i:s' format, or false. Returning anything
+	 *                                   other than false will short-circuit the function.
+	 * @param string       $timezone     Location to use for getting the post published date.
+	 *                                   See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string       $post_type    The post type to check.
+	 */
+	$lastpostdate = apply_filters( 'pre_get_lastpostdate', false, $timezone, $post_type );
+
+	if ( false !== $lastpostdate ) {
+		return $lastpostdate;
+	}
+
 	$lastpostdate = _get_last_post_time( $timezone, 'date', $post_type );
 
 	/**
