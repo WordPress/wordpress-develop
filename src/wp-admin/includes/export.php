@@ -38,16 +38,15 @@ define( 'WXR_VERSION', '1.2' );
  *                              type is supplied but `can_export` is disabled, then 'posts' will be exported
  *                              instead. When 'all' is supplied, only post types with `can_export` enabled will
  *                              be exported. Default 'all'.
- *     @type string $author     Author to export content for. Only used when `$content` is 'post', 'page', or
- *                              'attachment'. Accepts false (all) or a specific author ID. Default false (all).
+ *     @type string $author     Author to export content for. Not used when `$content` is 'all'.
+ *                              Accepts false (all) or a specific author ID. Default false (all).
  *     @type string $category   Category (slug) to export content for. Used only when `$content` is 'post'. If
  *                              set, only post content assigned to `$category` will be exported. Accepts false
  *                              or a specific category slug. Default is false (all categories).
- *     @type string $start_date Start date to export content from. Expected date format is 'Y-m-d'. Used only
- *                              when `$content` is 'post', 'page' or 'attachment'. Default false (since the
- *                              beginning of time).
- *     @type string $end_date   End date to export content to. Expected date format is 'Y-m-d'. Used only when
- *                              `$content` is 'post', 'page' or 'attachment'. Default false (latest publish date).
+ *     @type string $start_date Start date to export content from. Expected date format is 'Y-m-d'.
+ *                              Not used when `$content` is 'all'. Default false (since the beginning of time).
+ *     @type string $end_date   End date to export content to. Expected date format is 'Y-m-d'.
+ *                              Not used when `$content` is 'all'. Default false (latest publish date).
  *     @type string $status     Post status to export posts for. Used only when `$content` is 'post' or 'page'.
  *                              Accepts false (all statuses except 'auto-draft'), or a specific status, i.e.
  *                              'publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit', or
@@ -127,7 +126,7 @@ function export_wp( $args = array() ) {
 		}
 	}
 
-	if ( in_array( $args['content'], array( 'post', 'page', 'attachment' ), true ) ) {
+	if ( 'all' !== $args['content'] ) {
 		if ( $args['author'] ) {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_author = %d", $args['author'] );
 		}
