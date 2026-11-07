@@ -228,6 +228,16 @@ final class WP_Invariant_Call {
 	}
 
 	/**
+	 * Returns the function or method whose own code made the call.
+	 *
+	 * @return string|null As `name` or `Class::name`, or null when the call was made outside any function.
+	 */
+	public function caller_function() {
+		$frames = $this->frames();
+		return isset( $frames[1] ) ? self::frame_function( $frames[1] ) : null;
+	}
+
+	/**
 	 * Returns how deep the call is: the number of frames from the target's own frame outward.
 	 *
 	 * A call the target made is one deeper. Invariants use this to tell which call,

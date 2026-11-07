@@ -2,6 +2,10 @@
 /**
  * Invariants of wp_kses(), checked against how a browser reads its output.
  *
+ * These hook htmlspecialchars() and htmlentities(), built-in PHP functions,
+ * which slows down every call to a built-in function. Leave them out with
+ * WP_INVARIANTS_SKIP=kses.
+ *
  * @package WordPress
  * @subpackage UnitTests
  */
@@ -105,23 +109,74 @@ $raw_from_tests = static function () {
 	return false;
 };
 
+
+// What HTML escaping functions returned in the running test with escaped markup in it: output => function.
+$escaped = WP_Invariant::shared( 'kses/escaped' );
+
+// Most outputs kept; past that, the oldest are forgotten.
+$most_escaped = 200;
+
+// PHP's and WordPress's functions which escape HTML.
+$escapers = array(
+	'htmlspecialchars' => true,
+	'htmlentities'     => true,
+	'esc_html'         => true,
+	'esc_attr'         => true,
+	'esc_textarea'     => true,
+	'esc_xml'          => true,
+	'_wp_specialchars' => true,
+);
+
 return array(
 	WP_Invariant::define( 'input-not-escaped' )
-		->describe( 'wp_kses() is given HTML, not escaped HTML: the text of its content has no escaped tag or comment, such as &lt;p or &#60;/p. Markup escaped before it is filtered shows up as text. Attribute values, and the contents of elements such as TEXTAREA, are escaped as they should be, and are left out.' )
+		->describe( 'wp_kses() is given HTML, not HTML which WordPress escaped first: the text of its content has no escaped tag or comment, such as &lt;p or &#60;/p, which an HTML escaping function returned, whether PHP\'s htmlspecialchars() or htmlentities(), or WordPress\'s esc_html(), esc_attr(), esc_textarea(), esc_xml() or _wp_specialchars(). Markup escaped before it is filtered shows up as text. Escaped markup which content arrived with, as a user may type it, is left out, as are attribute values and the contents of elements such as TEXTAREA, which are escaped as they should be.' )
+		->after_each(
+			array_keys( $escapers ),
+			static function ( WP_Invariant_Call $call ) use ( $escaped, $escaped_tag, $most_escaped ) {
+				$output = $call->return_value();
+				if ( ! is_string( $output ) || false === strpos( $output, '&' ) || null === $escaped_tag( $output, 0 ) ) {
+					return;
+				}
+
+				if ( ! isset( $escaped->outputs ) ) {
+					$escaped->outputs = array();
+				}
+				unset( $escaped->outputs[ $output ] );
+				$escaped->outputs[ $output ] = $call->target();
+				if ( count( $escaped->outputs ) > $most_escaped ) {
+					unset( $escaped->outputs[ array_key_first( $escaped->outputs ) ] );
+				}
+			}
+		)
 		->before(
 			'wp_kses',
-			static function ( WP_Invariant_Call $call ) use ( $escaped_tag ) {
+			static function ( WP_Invariant_Call $call ) use ( $escaped, $escaped_tag ) {
 				$content = $call->arg( 'content' );
-				if ( ! is_string( $content ) || false === strpos( $content, '&' ) ) {
+				if ( empty( $escaped->outputs ) || ! is_string( $content ) || false === strpos( $content, '&' ) ) {
 					return;
 				}
 
 				$texts = null;
 				for ( $found = $escaped_tag( $content, 0 ); null !== $found; $found = $escaped_tag( $content, $found[0] + 1 ) ) {
+					// Only escaped markup an escaping function returned counts, wherever it appears in the content.
+					$escaper = null;
+					foreach ( $escaped->outputs as $output => $function ) {
+						$output = (string) $output;
+						foreach ( WP_Invariant_Request::occurrences( $content, $output ) as $at ) {
+							if ( $found[0] >= $at && $found[0] < $at + strlen( $output ) ) {
+								$escaper = $function;
+								break 2;
+							}
+						}
+					}
+					if ( null === $escaper ) {
+						continue;
+					}
+
 					$texts = null === $texts ? WP_Invariant_HTML_API::texts( $content ) : $texts;
 					foreach ( (array) $texts as $text ) {
 						if ( $found[0] >= $text[0] && $found[0] < $text[1] ) {
-							$call->expect( false, 'wp_kses() was given the escaped markup %s at byte %d of %s', $found[1], $found[0], substr( $content, max( 0, $found[0] - 40 ), 120 ) );
+							$call->expect( false, 'wp_kses() was given the escaped markup %s, which %s() escaped, at byte %d of %s', $found[1], $escaper, $found[0], substr( $content, max( 0, $found[0] - 40 ), 120 ) );
 							return;
 						}
 					}

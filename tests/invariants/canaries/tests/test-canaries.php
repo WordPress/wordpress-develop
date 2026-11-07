@@ -243,6 +243,31 @@ class Tests_Invariants_Canaries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_safely
+	 *
+	 * @param bool $safely Whether to do it safely.
+	 */
+	public function test_kses_input_not_escaped( $safely ) {
+		wp_invariants_canary_kses_escaped( ! $safely );
+
+		$this->assertViolated( 'kses/input-not-escaped', ! $safely );
+	}
+
+	public function test_pcre_matches_no_html_syntax() {
+		wp_invariants_canary_regex_html();
+
+		$this->assertViolated( 'pcre/matches-no-html-syntax' );
+	}
+
+	public function test_pcre_matches_no_html_syntax_leaves_out_known_parsers() {
+		wpautop( "<p>Hello</p>\n\n<div class=\"x\">World</div>" );
+		wptexturize( '<p class="a">"Quoted" text</p>' );
+		wp_html_split( '<p class="a">Hello</p><!-- c -->' );
+
+		$this->assertViolated( 'pcre/matches-no-html-syntax', false );
+	}
+
+	/**
 	 * Registers a REST route of the canaries, as REST routes are registered, on rest_api_init.
 	 *
 	 * @param string $route Route, such as `/user`.

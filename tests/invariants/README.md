@@ -42,7 +42,7 @@ npm run test:php:invariants -- --group post
 
 The report is written to `tests/phpunit/build/logs/invariants.md` and `invariants.json`. Set `WP_INVARIANTS_REPORT_DIR` to write it somewhere else.
 
-To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml,filesystem,output,secrets,uploads,archives,serialize,random npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest.
+To leave out spec files, set `WP_INVARIANTS_SKIP` to their names, without `.php`: `WP_INVARIANTS_SKIP=pcre,xml,filesystem,kses,output,secrets,uploads,archives,serialize,random npm run test:php:invariants` runs without the invariants which hook built-in PHP functions, which are the slowest.
 
 The AJAX tests are a group which the main run leaves out, as `phpunit.xml.dist` does. Run them on their own, with a report of their own: `WP_INVARIANTS_REPORT_NAME=invariants-ajax npm run test:php:invariants -- --group ajax`. The security invariants which look at request handlers, in `specs/request.php`, mostly find their handlers there.
 
@@ -207,7 +207,7 @@ For example, `specs/capabilities.php` records what `map_meta_cap()` returned, by
 
 ### Hooks on built-in functions
 
-Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php`, `specs/xml.php`, `specs/filesystem.php`, `specs/output.php`, `specs/secrets.php`, `specs/uploads.php`, `specs/archives.php`, `specs/serialize.php` and `specs/random.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
+Once any built-in PHP function has a hook, the extension looks at every call to a built-in function, which slows down the whole suite. Keep invariants on built-in functions in their own spec files, such as `specs/pcre.php`, `specs/xml.php`, `specs/filesystem.php`, `specs/kses.php`, `specs/output.php`, `specs/secrets.php`, `specs/uploads.php`, `specs/archives.php`, `specs/serialize.php` and `specs/random.php`, so that `WP_INVARIANTS_SKIP` can leave them out.
 
 ### Keep checks cheap
 

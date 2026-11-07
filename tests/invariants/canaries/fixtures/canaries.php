@@ -138,3 +138,23 @@ function wp_invariants_canary_rest_change() {
 	update_option( 'wp_invariants_canary', 'changed' );
 	return array( 'changed' => true );
 }
+
+/**
+ * Filters markup with kses after escaping it, or filters text which arrived with escaped markup in it.
+ *
+ * @param bool $escape Whether to escape markup first, which turns it into text.
+ * @return string
+ */
+function wp_invariants_canary_kses_escaped( $escape ) {
+	$content = $escape ? esc_html( '<p>Hello</p>' ) : 'Use &lt;p&gt; for paragraphs.';
+	return wp_kses( $content, 'post' );
+}
+
+/**
+ * Matches a tag in HTML with a regular expression.
+ *
+ * @return int
+ */
+function wp_invariants_canary_regex_html() {
+	return preg_match( '~<p>~', '<p>Hello</p>', $matches );
+}

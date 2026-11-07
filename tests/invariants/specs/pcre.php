@@ -63,6 +63,14 @@ $on_syntax = static function ( $pattern, $subject, $offset, $limit ) {
 	return null;
 };
 
+
+// Functions known to parse HTML with regular expressions.
+$known_parsers = array(
+	'wpautop'       => true,
+	'wptexturize'   => true,
+	'wp_html_split' => true,
+);
+
 return array(
 	WP_Invariant::define( 'no-silent-failure' )
 		->describe( 'No PCRE function fails: none runs out of backtracking or recursion, or is given invalid UTF-8 for a /u pattern. Those failures return null or false, which callers rarely check.' )
@@ -89,7 +97,7 @@ return array(
 		),
 
 	WP_Invariant::define( 'matches-no-html-syntax' )
-		->describe( 'Regular expressions in WordPress do not parse HTML: no match or group which a PCRE function returns starts where the HTML API finds a tag, a tag name, an attribute, an attribute value, a comment or a DOCTYPE, unless the pattern would start there without that syntax, as `^.` or `\w+` would. So no replacement or split starts there either. Each place in WordPress is reported once.' )
+		->describe( 'Regular expressions in WordPress do not parse HTML: no match or group which a PCRE function returns starts where the HTML API finds a tag, a tag name, an attribute, an attribute value, a comment or a DOCTYPE, unless the pattern would start there without that syntax, as `^.` or `\w+` would. So no replacement or split starts there either. The PCRE calls wpautop(), wptexturize() and wp_html_split() make themselves are left out: they are known to parse HTML this way. Each place in WordPress is reported once.' )
 		->state(
 			static function () {
 				return array();
@@ -98,7 +106,7 @@ return array(
 		)
 		->after_each(
 			array( 'preg_match', 'preg_match_all', 'preg_replace', 'preg_replace_callback', 'preg_replace_callback_array', 'preg_split' ),
-			static function ( WP_Invariant_Call $call, array &$reported ) use ( $on_syntax ) {
+			static function ( WP_Invariant_Call $call, array &$reported ) use ( $on_syntax, $known_parsers ) {
 				// A call which failed found nothing, and the error must stay for its caller to read.
 				if ( PREG_NO_ERROR !== preg_last_error() ) {
 					return;
@@ -123,6 +131,11 @@ return array(
 				$caller = $call->caller();
 				$site   = $caller['file'] . ':' . $caller['line'];
 				if ( isset( $reported[ $site ] ) || ! WP_Invariant::is_core_file( $caller['file'] ) ) {
+					return;
+				}
+
+				// Functions known to parse HTML with regular expressions, whose own calls are not reported.
+				if ( isset( $known_parsers[ (string) $call->caller_function() ] ) ) {
 					return;
 				}
 
