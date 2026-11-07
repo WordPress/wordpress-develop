@@ -12,7 +12,7 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	/**
 	 * Tests frontend logged-out settings behavior.
 	 *
-	 * @ticket 65819
+	 * @ticket 66614
 	 */
 	public function test_wp_heartbeat_settings_frontend_logged_out() {
 		wp_set_current_user( 0 );
@@ -28,7 +28,7 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	/**
 	 * Tests frontend logged-in settings behavior with valid nonce.
 	 *
-	 * @ticket 65819
+	 * @ticket 66614
 	 */
 	public function test_wp_heartbeat_settings_frontend_logged_in() {
 		$user_id = self::factory()->user->create();
@@ -44,7 +44,7 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	/**
 	 * Tests that existing settings are preserved.
 	 *
-	 * @ticket 65819
+	 * @ticket 66614
 	 */
 	public function test_wp_heartbeat_settings_preserves_custom_settings() {
 		wp_set_current_user( 0 );
