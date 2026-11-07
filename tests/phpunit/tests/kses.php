@@ -382,6 +382,114 @@ EOF;
 		}
 	}
 
+	/**
+	 * Tests that a colon after a path, query or fragment is not treated as a protocol.
+	 *
+	 * @ticket 41304
+	 *
+	 * @covers ::wp_kses_bad_protocol
+	 *
+	 * @dataProvider data_wp_kses_bad_protocol_should_keep_colon_after_path_query_or_fragment
+	 *
+	 * @param string $url URL to check.
+	 */
+	public function test_wp_kses_bad_protocol_should_keep_colon_after_path_query_or_fragment( $url ) {
+		$this->assertSame( $url, wp_kses_bad_protocol( $url, wp_allowed_protocols() ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_bad_protocol_should_keep_colon_after_path_query_or_fragment() {
+		return array(
+			'footnote fragment'               => array( '#fn:1' ),
+			'fragment'                        => array( '#section:2' ),
+			'path and fragment'               => array( '/page#section:2' ),
+			'relative path'                   => array( 'path/to:file' ),
+			'query'                           => array( 'images?q=tbn:abc' ),
+			'text fragment'                   => array( '#:~:text=highlight' ),
+			'query and text fragment'         => array( '/page?a=1&b=2#:~:text=highlight' ),
+			'protocol-relative URL with port' => array( '//example.org:8080/' ),
+			'semicolon before fragment'       => array( 'path;#section:2' ),
+			'feed URL with port'              => array( 'feed://example.org:8080/' ),
+		);
+	}
+
+	/**
+	 * Tests that a fragment containing a colon is kept when only other protocols are allowed.
+	 *
+	 * @ticket 41304
+	 *
+	 * @covers ::wp_kses_bad_protocol
+	 */
+	public function test_wp_kses_bad_protocol_should_keep_fragment_with_colon_when_only_mailto_is_allowed() {
+		$this->assertSame( '#fn:1', wp_kses_bad_protocol( '#fn:1', array( 'mailto' ) ) );
+	}
+
+	/**
+	 * Tests that a protocol is still removed when a path, query or fragment follows it.
+	 *
+	 * @ticket 41304
+	 *
+	 * @covers ::wp_kses_bad_protocol
+	 *
+	 * @dataProvider data_wp_kses_bad_protocol_should_strip_protocol_before_path_query_or_fragment
+	 *
+	 * @param string $url      URL to check.
+	 * @param string $expected Expected result.
+	 */
+	public function test_wp_kses_bad_protocol_should_strip_protocol_before_path_query_or_fragment( $url, $expected ) {
+		$this->assertSame( $expected, wp_kses_bad_protocol( $url, wp_allowed_protocols() ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_bad_protocol_should_strip_protocol_before_path_query_or_fragment() {
+		return array(
+			'colon before fragment'         => array( 'javascript:alert(1)#x', 'alert(1)#x' ),
+			'colon before path'             => array( 'javascript:alert(1)//x', 'alert(1)//x' ),
+			'decimal entity colon'          => array( 'javascript&#58;alert(1)/x', 'alert(1)/x' ),
+			'hex entity colon'              => array( 'javascript&#x3a;alert(1)?x', 'alert(1)?x' ),
+			'named entity colon'            => array( 'javascript&colon;alert(1)#x', 'alert(1)#x' ),
+			'decimal entity in scheme'      => array( '&#106;avascript:alert(1)', 'alert(1)' ),
+			'hex entity in scheme'          => array( 'java&#x73;cript:alert(1)', 'alert(1)' ),
+			'encoded number sign in scheme' => array( 'java&#35;script:alert(1)', 'alert(1)' ),
+			'escaped entity in scheme'      => array( '&amp;#106;avascript:alert(1)', 'alert(1)' ),
+		);
+	}
+
+	/**
+	 * Tests that wp_kses_post() keeps links whose fragment contains a colon.
+	 *
+	 * @ticket 41304
+	 *
+	 * @covers ::wp_kses_post
+	 */
+	public function test_wp_kses_post_should_keep_footnote_link() {
+		$html = '<a href="#fn:1">1</a>';
+
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Tests that wp_kses_post() treats a decoded number sign before the colon as a relative link.
+	 *
+	 * @ticket 41304
+	 *
+	 * @covers ::wp_kses_post
+	 */
+	public function test_wp_kses_post_should_keep_encoded_number_sign_before_colon_as_relative_link() {
+		$this->assertEqualHTML(
+			'<a href="java#script:alert(1)">x</a>',
+			wp_kses_post( '<a href="java&#35;script:alert(1)">x</a>' )
+		);
+	}
+
 	public function test_hackers_attacks() {
 		$xss = simplexml_load_file( DIR_TESTDATA . '/formatting/xssAttacks.xml' );
 		foreach ( $xss->attack as $attack ) {

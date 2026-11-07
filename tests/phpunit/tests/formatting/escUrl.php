@@ -311,4 +311,12 @@ EOT;
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 	}
+
+	/**
+	 * @ticket 41304
+	 */
+	public function test_colon_after_fragment_or_query() {
+		$this->assertSame( '#fn:1', esc_url( '#fn:1' ), 'A colon in a fragment should be kept.' );
+		$this->assertSame( '?page=a:b', esc_url( '?page=a:b' ), 'A colon in a query should be kept.' );
+	}
 }
