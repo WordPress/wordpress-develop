@@ -4139,6 +4139,52 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the sideload endpoint reads the dimensions of a JPEG XL sub-size.
+	 *
+	 * @ticket 52788
+	 */
+	public function test_sideload_reads_the_dimensions_of_a_jxl_sub_size(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// A 200x150 codestream header (height 150, 4:3 ratio), padded so the file is not truncated.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jxl' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=sideload-test.jxl' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( "\xFF\x0A\xA8\xB4\x01\x00" . str_repeat( "\x00", 64 ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'Uploading a JXL should succeed.' );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$attachment_id = $data['id'];
+		$this->assertIsInt( $attachment_id );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id, true );
+		$this->assertIsArray( $metadata );
+		$this->assertSame( 200, $metadata['width'] ?? null, 'The attachment should record the JXL width.' );
+		$this->assertSame( 150, $metadata['height'] ?? null, 'The attachment should record the JXL height.' );
+
+		// A 64x16 codestream header (div8 set, height 16, ratio 0, width 64).
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jxl' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=sideload-test-64x16.jxl' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( "\xFF\x0A\x03\x0E\x00" . str_repeat( "\x00", 64 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$sub_size = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading a JXL sub-size should succeed.' );
+		$this->assertIsArray( $sub_size );
+		$this->assertSame( 'image/jxl', $sub_size['mime_type'], 'The sub-size should stay JXL.' );
+		$this->assertSame( 64, $sub_size['width'], 'The sub-size width should come from the codestream header.' );
+		$this->assertSame( 16, $sub_size['height'], 'The sub-size height should come from the codestream header.' );
+	}
+
+	/**
 	 * Tests that sideloading scaled image requires authentication.
 	 *
 	 * @ticket 64737

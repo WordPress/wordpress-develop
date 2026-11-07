@@ -2922,7 +2922,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * Validate raster sub-sizes before storing them. Two companion sizes
 		 * are exempt because wp_getimagesize() may not be able to read the
 		 * file at all: the 'animated_video' companion of an animated GIF is a
-		 * video (MP4/WebM), and a source-format original (e.g. a HEIC or JXL
+		 * video (MP4/WebM), and a source-format original (e.g. a HEIC
 		 * kept next to its JPEG derivative) may be an unreadable format. Their
 		 * dimensions are neither validated nor recorded. The
 		 * 'animated_video_poster' companion is a real image, so it is still
