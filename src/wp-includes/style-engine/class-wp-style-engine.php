@@ -687,7 +687,7 @@ final class WP_Style_Engine {
 
 				$individual_property = sprintf( $style_property_keys['individual'], _wp_to_kebab_case( $key ) );
 
-				if ( $individual_property && static::is_valid_style_value( $value ) ) {
+				if ( $individual_property && is_string( $value ) && static::is_valid_style_value( $value ) ) {
 					$css_declarations[ $individual_property ] = $value;
 				}
 			}
@@ -695,7 +695,10 @@ final class WP_Style_Engine {
 			return $css_declarations;
 		}
 
-		$css_declarations[ $style_property_keys['default'] ] = $style_value;
+		// CSS declarations only accept string values.
+		if ( is_string( $style_value ) ) {
+			$css_declarations[ $style_property_keys['default'] ] = $style_value;
+		}
 		return $css_declarations;
 	}
 
@@ -751,7 +754,8 @@ final class WP_Style_Engine {
 		$css_declarations        = array();
 
 		foreach ( $style_value as $css_property => $value ) {
-			if ( empty( $value ) ) {
+			// CSS declarations only accept string values.
+			if ( empty( $value ) || ! is_string( $value ) ) {
 				continue;
 			}
 
@@ -760,7 +764,7 @@ final class WP_Style_Engine {
 
 			if ( $style_definition && isset( $style_definition['property_keys']['individual'] ) ) {
 				// Set a CSS var if there is a valid preset value.
-				if ( is_string( $value ) && str_contains( $value, 'var:' )
+				if ( str_contains( $value, 'var:' )
 					&& ! $should_skip_css_vars && ! empty( $individual_property_definition['css_vars'] )
 				) {
 					$value = static::get_css_var_value( $value, $individual_property_definition['css_vars'] );
