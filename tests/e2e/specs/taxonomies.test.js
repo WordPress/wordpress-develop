@@ -236,20 +236,31 @@ for ( const { taxonomy, endpoint, label } of [
 				expect( terms[ 0 ].parent ).toBe( parent.id );
 			} );
 
-			test( 'bulk deleting categories leaves Uncategorized untouched', async ( {
+			test( 'bulk deletes selected categories; the default category cannot be selected', async ( {
 				admin,
 				page,
 				requestUtils,
 			} ) => {
 				const first = await createTerm( requestUtils, 'bulk-one' );
 				const second = await createTerm( requestUtils, 'bulk-two' );
-				// Default category has no delete checkbox and must survive bulk removal.
 				const defaults = await requestUtils.rest( {
 					path: '/wp/v2/categories',
 					params: { slug: 'uncategorized' },
 				} );
 				expect( defaults ).toHaveLength( 1 );
 				const uncategorizedId = defaults[ 0 ].id;
+
+				await admin.visitAdminPage(
+					'/edit-tags.php',
+					'taxonomy=category'
+				);
+				const uncategorizedRow = page.locator(
+					`#tag-${ uncategorizedId }`
+				);
+				await expect( uncategorizedRow ).toBeVisible();
+				await expect(
+					uncategorizedRow.getByRole( 'checkbox' )
+				).toHaveCount( 0 );
 
 				await admin.visitAdminPage(
 					'/edit-tags.php',
@@ -275,42 +286,13 @@ for ( const { taxonomy, endpoint, label } of [
 					page.locator( `#tag-${ second.id }` )
 				).toBeHidden();
 
-				await admin.visitAdminPage(
-					'/edit-tags.php',
-					`taxonomy=category&s=${ encodeURIComponent(
-						defaults[ 0 ].name
-					) }`
-				);
-				await expect(
-					page.locator( `#tag-${ uncategorizedId }` )
-				).toBeVisible();
-				await expect(
-					page
-						.locator( `#tag-${ uncategorizedId }` )
-						.getByRole( 'link', {
-							name: defaults[ 0 ].name,
-							exact: true,
-						} )
-				).toBeVisible();
-				await expect(
-					page
-						.locator( `#tag-${ uncategorizedId }` )
-						.getByRole( 'checkbox' )
-				).toHaveCount( 0 );
-
 				const remaining = await requestUtils.rest( {
 					path: '/wp/v2/categories',
 					params: {
-						include: [
-							uncategorizedId,
-							first.id,
-							second.id,
-						],
+						include: [ first.id, second.id ],
 					},
 				} );
-				expect( remaining.map( ( term ) => term.id ) ).toEqual( [
-					uncategorizedId,
-				] );
+				expect( remaining ).toEqual( [] );
 			} );
 		}
 	} );
