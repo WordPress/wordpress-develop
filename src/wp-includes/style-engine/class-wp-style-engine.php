@@ -482,11 +482,21 @@ final class WP_Style_Engine {
 	 *                                                                    or a CSS nested @rule, such as `@media (min-width: 80rem)`
 	 *                                                                    or `@layer module`.
 	 */
-	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ) {
+	public static function store_css_rule( $store_name, $css_selector, $css_declarations, $rules_group = '' ): void {
 		if ( empty( $store_name ) || empty( $css_selector ) || empty( $css_declarations ) ) {
 			return;
 		}
-		static::get_store( $store_name )->add_rule( $css_selector, $rules_group )->add_declarations( $css_declarations );
+
+		$store = static::get_store( $store_name );
+		if ( ! $store ) {
+			return;
+		}
+
+		// The rule is null when the selector is only whitespace.
+		$rule = $store->add_rule( $css_selector, $rules_group );
+		if ( $rule ) {
+			$rule->add_declarations( $css_declarations );
+		}
 	}
 
 	/**
