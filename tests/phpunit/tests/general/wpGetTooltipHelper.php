@@ -13,7 +13,7 @@ class Tests_General_WpGetTooltipHelper extends WP_UnitTestCase {
 	/**
 	 * Tests that empty or whitespace content returns an empty string.
 	 *
-	 * @ticket 65819
+	 * @ticket 66618
 	 */
 	public function test_wp_get_tooltip_helper_empty_content() {
 		$this->assertSame( '', wp_get_tooltip_helper( '' ) );
@@ -23,7 +23,7 @@ class Tests_General_WpGetTooltipHelper extends WP_UnitTestCase {
 	/**
 	 * Tests default tooltip markup and attributes.
 	 *
-	 * @ticket 65819
+	 * @ticket 66618
 	 */
 	public function test_wp_get_tooltip_helper_default_structure() {
 		$markup = wp_get_tooltip_helper( 'Help text content.' );
@@ -39,7 +39,7 @@ class Tests_General_WpGetTooltipHelper extends WP_UnitTestCase {
 	/**
 	 * Tests toggletip type markup and attributes.
 	 *
-	 * @ticket 65819
+	 * @ticket 66618
 	 */
 	public function test_wp_get_tooltip_helper_toggletip_type() {
 		$markup = wp_get_tooltip_helper(
@@ -60,7 +60,7 @@ class Tests_General_WpGetTooltipHelper extends WP_UnitTestCase {
 	/**
 	 * Tests using custom button markup.
 	 *
-	 * @ticket 65819
+	 * @ticket 66618
 	 */
 	public function test_wp_get_tooltip_helper_custom_button() {
 		$custom_button = '<button type="button" class="my-custom-btn"><span>Click</span></button>';
@@ -77,7 +77,7 @@ class Tests_General_WpGetTooltipHelper extends WP_UnitTestCase {
 	/**
 	 * Tests custom class, id, and icon arguments.
 	 *
-	 * @ticket 65819
+	 * @ticket 66618
 	 */
 	public function test_wp_get_tooltip_helper_custom_class_id_icon() {
 		$markup = wp_get_tooltip_helper(
