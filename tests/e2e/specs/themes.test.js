@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
@@ -145,5 +150,49 @@ test.describe( 'Theme management', () => {
 		expect(
 			themes.find( ( theme ) => theme.status === 'active' ).stylesheet
 		).toBe( previousTheme );
+	} );
+
+	test( 'searches for an installed theme', async ( { admin, page } ) => {
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		await search.fill( themeName );
+
+		const details = page.getByRole( 'button', {
+			name: `View Theme Details for ${ themeName }`,
+			exact: true,
+		} );
+		await expect( details ).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for a missing theme', async ( {
+		admin,
+		page,
+	} ) => {
+		// Fixture theme from beforeEach keeps the library non-empty so ignoring
+		// search cannot vacuously pass.
+		const missing = `e2e-missing-theme-${ randomUUID().slice( 0, 8 ) }`;
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		await search.fill( missing );
+
+		await expect(
+			page.getByText( 'No themes found. Try a different search.', {
+				exact: true,
+			} )
+		).toBeVisible();
+		await expect(
+			page.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+		).toHaveCount( 0 );
 	} );
 } );
