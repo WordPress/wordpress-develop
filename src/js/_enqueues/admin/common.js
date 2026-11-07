@@ -1789,34 +1789,38 @@ $( function() {
 					return;
 				}
 
-				var focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], event.target );
-				var focusIsInSidebar = $.contains( $( '#adminmenuwrap' )[0], event.target );
+				var toggleButton     = $( '#wp-admin-bar-menu-toggle' )[0];
+				var sidebar          = $( '#adminmenumain' )[0] || $( '#adminmenuwrap' )[0];
+				var focusIsInToggle  = toggleButton && ( toggleButton === event.target || $.contains( toggleButton, event.target ) );
+				var focusIsInSidebar = sidebar && ( sidebar === event.target || $.contains( sidebar, event.target ) );
 
 				if ( ! focusIsInToggle && ! focusIsInSidebar ) {
-					$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+					$wpwrap.removeClass( 'wp-responsive-open' );
+					$( '#wp-admin-bar-menu-toggle a' ).attr( 'aria-expanded', 'false' );
 				}
 			} );
 
 			// Close sidebar when a keypress completes outside of toggle and sidebar.
 			$( document ).on( 'keyup', function( event ) {
-				var toggleButton   = $( '#wp-admin-bar-menu-toggle' )[0];
+				var toggleButton = $( '#wp-admin-bar-menu-toggle' )[0];
 				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
-				    return;
+					return;
 				}
 				if ( 27 === event.keyCode ) {
-					$( toggleButton ).trigger( 'click.wp-responsive' );
-					$( toggleButton ).find( 'a' ).trigger( 'focus' );
+					$wpwrap.removeClass( 'wp-responsive-open' );
+					$( toggleButton ).find( 'a' ).attr( 'aria-expanded', 'false' ).trigger( 'focus' );
 				} else {
 					if ( 9 === event.keyCode ) {
-						var sidebar        = $( '#adminmenuwrap' )[0];
+						var sidebar        = $( '#adminmenumain' )[0] || $( '#adminmenuwrap' )[0];
 						var focusedElement = event.relatedTarget || document.activeElement;
 						// A brief delay is required to allow focus to switch to another element.
 						setTimeout( function() {
-							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
-							var focusIsInSidebar = $.contains( sidebar, focusedElement );
+							var focusIsInToggle  = toggleButton && ( toggleButton === focusedElement || $.contains( toggleButton, focusedElement ) );
+							var focusIsInSidebar = sidebar && ( sidebar === focusedElement || $.contains( sidebar, focusedElement ) );
 
 							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
-								$( toggleButton ).trigger( 'click.wp-responsive' );
+								$wpwrap.removeClass( 'wp-responsive-open' );
+								$( toggleButton ).find( 'a' ).attr( 'aria-expanded', 'false' );
 							}
 						}, 10 );
 					}
