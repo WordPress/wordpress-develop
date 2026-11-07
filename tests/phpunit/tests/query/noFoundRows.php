@@ -104,8 +104,8 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures {@see WP_Query::$max_num_pages} is not negative when the
-	 * {@see 'found_posts'} filter returns a negative count.
+	 * Ensures {@see WP_Query::$found_posts} and {@see WP_Query::$max_num_pages}
+	 * are not negative when the {@see 'found_posts'} filter returns a negative count.
 	 *
 	 * @ticket 65817
 	 */
@@ -126,7 +126,7 @@ class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( -5, $q->found_posts, 'Expected the filtered found_posts value to be kept.' );
+		$this->assertSame( 0, $q->found_posts, 'Expected found_posts to be clamped to zero.' );
 		$this->assertSame( 0, $q->max_num_pages, 'Expected max_num_pages to be clamped to zero.' );
 	}
 

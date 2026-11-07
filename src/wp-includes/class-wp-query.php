@@ -3733,7 +3733,7 @@ class WP_Query {
 		 *
 		 * @phpstan-param int<0, max> $found_posts
 		 */
-		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
+		$this->found_posts = max( 0, (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) ) );
 
 		if ( ! empty( $limits ) ) {
 			$this->max_num_pages = max( 0, (int) ceil( $this->found_posts / (int) $query_vars['posts_per_page'] ) );
