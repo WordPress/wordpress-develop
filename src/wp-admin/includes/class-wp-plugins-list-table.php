@@ -62,7 +62,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$status = sanitize_key( $_REQUEST['plugin_status'] );
 		}
 
-		if ( isset( $_REQUEST['s'] ) ) {
+		if ( isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ) {
 			$_SERVER['REQUEST_URI'] = add_query_arg( 's', wp_unslash( $_REQUEST['s'] ) );
 		}
 
@@ -449,7 +449,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	public function no_items() {
 		global $plugins;
 
-		if ( ! empty( $_REQUEST['s'] ) ) {
+		if ( ! empty( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ) {
 			$s = esc_html( urldecode( wp_unslash( $_REQUEST['s'] ) ) );
 
 			/* translators: %s: Plugin search term. */
