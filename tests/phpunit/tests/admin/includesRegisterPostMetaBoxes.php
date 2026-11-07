@@ -34,6 +34,13 @@ class Tests_Admin_includesRegisterPostMetaBoxes extends WP_UnitTestCase {
 	private $original_thumbnail_support;
 
 	/**
+	 * The original features of the post types.
+	 *
+	 * @var array
+	 */
+	private $original_post_type_features;
+
+	/**
 	 * Creates the administrator.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
@@ -47,8 +54,9 @@ class Tests_Admin_includesRegisterPostMetaBoxes extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		$this->original_meta_boxes        = $GLOBALS['wp_meta_boxes'] ?? array();
-		$this->original_thumbnail_support = $GLOBALS['_wp_theme_features']['post-thumbnails'] ?? null;
+		$this->original_meta_boxes         = $GLOBALS['wp_meta_boxes'] ?? array();
+		$this->original_thumbnail_support  = $GLOBALS['_wp_theme_features']['post-thumbnails'] ?? null;
+		$this->original_post_type_features = $GLOBALS['_wp_post_type_features'] ?? array();
 
 		$GLOBALS['wp_meta_boxes'] = array();
 
@@ -56,7 +64,8 @@ class Tests_Admin_includesRegisterPostMetaBoxes extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$GLOBALS['wp_meta_boxes'] = $this->original_meta_boxes;
+		$GLOBALS['wp_meta_boxes']          = $this->original_meta_boxes;
+		$GLOBALS['_wp_post_type_features'] = $this->original_post_type_features;
 
 		if ( null === $this->original_thumbnail_support ) {
 			unset( $GLOBALS['_wp_theme_features']['post-thumbnails'] );
@@ -78,6 +87,15 @@ class Tests_Admin_includesRegisterPostMetaBoxes extends WP_UnitTestCase {
 	 */
 	private function register( $post ) {
 		set_current_screen( $post->post_type );
+
+		// The scripts and the styles that the function enqueues need to be registered.
+		if ( ! wp_script_is( 'image-edit', 'registered' ) ) {
+			wp_register_script( 'image-edit', '/image-edit.js' );
+		}
+
+		if ( ! wp_style_is( 'imgareaselect', 'registered' ) ) {
+			wp_register_style( 'imgareaselect', '/imgareaselect.css' );
+		}
 
 		register_and_do_post_meta_boxes( $post );
 
