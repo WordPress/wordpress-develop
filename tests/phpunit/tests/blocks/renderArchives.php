@@ -213,8 +213,8 @@ class Tests_Blocks_RenderArchives extends WP_UnitTestCase {
 		$this->assertSame( 'archive-dropdown', $select['name'] );
 		$this->assertStringContainsString( '>Archives</label>', $markup );
 		$this->assertStringContainsString( '<option value="">Select Month</option>', $markup );
-		$this->assertMatchesRegularExpression( "/<option value='http:\\/\\/example.org\\/2021\\/05\\/'> May 2021 <\\/option>/", $markup );
-		$this->assertMatchesRegularExpression( "/<option value='http:\\/\\/example.org\\/2020\\/03\\/'> March 2020 <\\/option>/", $markup );
+		$this->assertStringContainsString( "<option value='" . get_month_link( 2021, 5 ) . "'> May 2021 </option>", $markup );
+		$this->assertStringContainsString( "<option value='" . get_month_link( 2020, 3 ) . "'> March 2020 </option>", $markup );
 		$this->assertStringNotContainsString( '<ul', $markup );
 	}
 
@@ -294,7 +294,7 @@ class Tests_Blocks_RenderArchives extends WP_UnitTestCase {
 			$received
 		);
 		$this->assertStringContainsString( '<option value="">Select Year</option>', $markup );
-		$this->assertStringContainsString( "<option value='http://example.org/2021/'> 2021 &nbsp;(1)</option>", $markup );
+		$this->assertStringContainsString( "<option value='" . get_year_link( 2021 ) . "'> 2021 &nbsp;(1)</option>", $markup );
 	}
 
 	/**
