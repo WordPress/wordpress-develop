@@ -403,7 +403,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $style_value  A single CSS preset value.
+	 * @param mixed  $style_value  A single CSS preset value.
 	 * @param string $property_key The CSS property that is the second element of the preset string.
 	 *                             Used for matching.
 	 * @return string The slug, or empty string if not found.
@@ -448,7 +448,7 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $style_value A single CSS preset value.
+	 * @param mixed $style_value A single raw style value.
 	 * @return bool
 	 */
 	protected static function is_valid_style_value( $style_value ) {
@@ -567,10 +567,13 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string $style_value      A single raw style value or CSS preset property
+	 * @param mixed  $style_value      A single raw style value or CSS preset property
 	 *                                 from the `$block_styles` array.
 	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
 	 * @return string[] An array of CSS classnames, or empty array if there are none.
+	 *
+	 * @phpstan-param array{ classnames?: array<string, string|true>, ... } $style_definition
+	 * @phpstan-return list<string>
 	 */
 	protected static function get_classnames( $style_value, $style_definition ) {
 		if ( empty( $style_value ) ) {
