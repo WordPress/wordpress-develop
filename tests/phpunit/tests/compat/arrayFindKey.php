@@ -5,7 +5,7 @@
  *
  * @covers ::array_find_key
  */
-class Test_Compat_arrayFindKey extends WP_UnitTestCase {
+class Tests_Compat_arrayFindKey extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_find_key() is always available (either from PHP or WP).
