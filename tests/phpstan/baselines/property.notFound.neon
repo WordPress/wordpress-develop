@@ -244,11 +244,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentytwentyone/inc/menu-functions.php
 		-
-			message: '#^Access to an undefined property WP_Post_Type\:\:\$capabilities\.$#'
-			identifier: property.notFound
-			count: 1
-			path: ../../../src/wp-includes/capabilities.php
-		-
 			message: '#^Access to an undefined property WP_Term\:\:\$link\.$#'
 			identifier: property.notFound
 			count: 2
