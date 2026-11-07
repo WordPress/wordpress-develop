@@ -3886,6 +3886,10 @@ img {
 	margin: 0;
 }
 
+.row-actions .nesting-limit-reached {
+	color: #646970;
+}
+
 @media only screen and (max-width: 599px) {
 	.my-sites li {
 		min-height: 0;
