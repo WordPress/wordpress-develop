@@ -32,7 +32,7 @@ class Tests_General_AddThickbox extends WP_UnitTestCase {
 	/**
 	 * Tests that thickbox script and style are enqueued.
 	 *
-	 * @ticket 65819
+	 * @ticket 66615
 	 */
 	public function test_add_thickbox_enqueues_assets() {
 		wp_default_scripts( $GLOBALS['wp_scripts'] );
@@ -47,7 +47,7 @@ class Tests_General_AddThickbox extends WP_UnitTestCase {
 	/**
 	 * Tests that network admin action is not hooked when not in network admin.
 	 *
-	 * @ticket 65819
+	 * @ticket 66615
 	 */
 	public function test_add_thickbox_does_not_hook_network_admin_head_by_default() {
 		add_thickbox();
