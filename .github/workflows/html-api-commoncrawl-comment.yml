@@ -1,0 +1,152 @@
+# Manages the pull request side of html-api-commoncrawl.yml.
+#
+# Pull requests from forks cannot be written to by the workflows they trigger, so this removes the request label and
+# posts the report from here instead.
+name: HTML API CommonCrawl Comments
+
+on:
+  pull_request_target:
+    types: [ 'labeled' ]
+    branches:
+      - trunk
+      - '6.[4-9]'
+      - '[7-9].[0-9]'
+    paths:
+      - 'src/wp-includes/html-api/**'
+      - 'src/wp-includes/class-wp-token-map.php'
+      - 'src/wp-includes/kses.php'
+      - 'tools/html-api-commoncrawl/**'
+      - '.github/workflows/html-api-commoncrawl.yml'
+      - '.github/workflows/html-api-commoncrawl-comment.yml'
+  workflow_run:
+    workflows: [ 'HTML API CommonCrawl Analysis' ]
+    types:
+      - completed
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Removes the label which requested the analysis, so that it can be applied again to request another one.
+  remove-label:
+    name: Remove the analysis request label
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    timeout-minutes: 5
+    if: ${{ github.event_name == 'pull_request_target' && github.event.label.name == 'html-api-commoncrawl' }}
+    steps:
+      - name: Remove the label
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            await github.rest.issues.removeLabel( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              name: 'html-api-commoncrawl',
+            } );
+
+  # Leaves the report on the pull request, replacing the report from any earlier analysis.
+  comment:
+    name: Comment with the analysis report
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
+    timeout-minutes: 5
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      ( github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'workflow_dispatch' )
+    steps:
+      - name: Download the report
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            } );
+
+            const artifact = artifacts.data.artifacts.find( ( artifact ) => artifact.name === 'html-api-commoncrawl-comment' );
+
+            const download = await github.rest.actions.downloadArtifact( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifact.id,
+              archive_format: 'zip',
+            } );
+
+            fs.writeFileSync( `${ process.env.RUNNER_TEMP }/comment.zip`, Buffer.from( download.data ) );
+
+      - name: Unzip the report
+        run: unzip "$RUNNER_TEMP/comment.zip" -d "$RUNNER_TEMP/comment"
+
+      - name: Leave or replace the report comment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+            const marker = '<!-- html-api-commoncrawl-report -->';
+
+            const issue_number = Number( fs.readFileSync( `${ process.env.RUNNER_TEMP }/comment/NR`, 'utf8' ) );
+            const body = fs.readFileSync( `${ process.env.RUNNER_TEMP }/comment/report.md`, 'utf8' );
+
+            if ( ! Number.isInteger( issue_number ) || issue_number < 1 ) {
+              core.setFailed( 'The report does not name a pull request.' );
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get( { owner, repo, pull_number: issue_number } );
+
+            /*
+             * The report and the pull request number come from a workflow run which the pull request
+             * itself controls, so only comment on the pull request whose branch triggered the run.
+             * Manual runs can only be started by people with write access.
+             */
+            if (
+              run.event === 'pull_request' &&
+              ( pr.head.repo?.full_name !== run.head_repository.full_name || pr.head.ref !== run.head_branch )
+            ) {
+              core.setFailed( `Pull request #${ issue_number } did not trigger this workflow run.` );
+              return;
+            }
+
+            if ( pr.state !== 'open' ) {
+              core.info( 'The pull request has been closed. No comment will be left.' );
+              return;
+            }
+
+            // Search every page of comments for an earlier report, stopping at the first match.
+            let existing;
+            for await ( const { data: comments } of github.paginate.iterator( github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            } ) ) {
+              existing = comments.find( ( comment ) =>
+                comment.user.login === 'github-actions[bot]' && comment.body.startsWith( marker )
+              );
+              if ( existing ) {
+                break;
+              }
+            }
+
+            if ( existing ) {
+              await github.rest.issues.updateComment( { owner, repo, comment_id: existing.id, body } );
+              core.notice( `Replaced the report comment: ${ existing.html_url }` );
+              return;
+            }
+
+            const { data: comment } = await github.rest.issues.createComment( { owner, repo, issue_number, body } );
+            core.notice( `Left the report comment: ${ comment.html_url }` );
