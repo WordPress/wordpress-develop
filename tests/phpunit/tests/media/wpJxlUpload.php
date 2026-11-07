@@ -136,6 +136,30 @@ class Tests_Media_wpJxlUpload extends WP_UnitTestCase {
 			'rotated'           => array( self::CODESTREAM_64X16_ROTATED, 16, 64 ),
 			'jxlc container'    => array( $this->container( self::CODESTREAM_200X150 ), 200, 150 ),
 			'jxlp container'    => array( $this->container( self::CODESTREAM_200X150, 'jxlp' ), 200, 150 ),
+			'split codestream'  => array(
+				// The codestream split across two `jxlp` boxes, with an `Exif` box in between.
+				self::CONTAINER_SIGNATURE
+					. "\x00\x00\x00\x0Fjxlp\x00\x00\x00\x00\xFF\x0A\x03"
+					. "\x00\x00\x00\x0CExif\x00\x00\x00\x00"
+					. "\x00\x00\x00\x0Ejxlp\x80\x00\x00\x01\x0E\x00",
+				64,
+				16,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 64915
+	 */
+	public function test_get_jxl_info_fails_for_a_truncated_codestream(): void {
+		$path = $this->create_temp_file( "\xFF\x0A" );
+
+		$this->assertSame(
+			array(
+				'width'  => false,
+				'height' => false,
+			),
+			wp_get_jxl_info( $path )
 		);
 	}
 
