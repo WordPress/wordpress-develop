@@ -12,7 +12,7 @@ class Tests_Media_WpGetImageEditorOutputFormat extends WP_UnitTestCase {
 	/**
 	 * Tests default output format mappings for HEIC/HEIF images.
 	 *
-	 * @ticket 65819
+	 * @ticket 66623
 	 */
 	public function test_wp_get_image_editor_output_format_defaults() {
 		$expected = array(
@@ -30,7 +30,7 @@ class Tests_Media_WpGetImageEditorOutputFormat extends WP_UnitTestCase {
 	/**
 	 * Tests that the image_editor_output_format filter modifies mappings and passes arguments.
 	 *
-	 * @ticket 65819
+	 * @ticket 66623
 	 */
 	public function test_wp_get_image_editor_output_format_filter() {
 		$passed_filename  = '';
