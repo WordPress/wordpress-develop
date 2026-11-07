@@ -313,7 +313,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertCount( $size + 1, $GLOBALS['wp_theme_directories'] );
 
 		foreach ( $GLOBALS['wp_theme_directories'] as $dir ) {
-			$this->assertNotEquals( '/', substr( $dir, -1 ) );
+			$this->assertNotSame( '/', substr( $dir, -1 ) );
 		}
 
 		rmdir( WP_CONTENT_DIR . '/themes/foo' );
