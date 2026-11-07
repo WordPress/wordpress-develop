@@ -28,11 +28,12 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Remains in external-http: intentional live check that the recommended PHP
-	 * version is still listed on php.net. Declaration presence is covered offline.
+	 * Tests that the recommended PHP version in readme.html is still supported.
+	 *
+	 * Remains in external-http: this is intentional live coverage against php.net.
+	 * Declaration presence is covered offline by test_readme_contains_recommended_versions().
 	 *
 	 * @coversNothing
-	 *
 	 * @group external-http
 	 * @ticket 63914
 	 */
@@ -52,12 +53,13 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Remains in external-http: intentional live check that the recommended MySQL
-	 * version is still within its extended support window. Declaration presence
-	 * is covered offline.
+	 * Tests that the recommended MySQL version in readme.html is still supported.
+	 *
+	 * Remains in external-http: this is intentional live coverage against the
+	 * vendor support data. Declaration presence is covered offline by
+	 * test_readme_contains_recommended_versions().
 	 *
 	 * @coversNothing
-	 *
 	 * @group external-http
 	 * @ticket 63914
 	 */
@@ -95,12 +97,13 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Remains in external-http: intentional live check that the recommended
-	 * MariaDB version is still listed and not past EOL. Declaration presence
-	 * is covered offline.
+	 * Tests that the recommended MariaDB version in readme.html is still supported.
+	 *
+	 * Remains in external-http: this is intentional live coverage against the
+	 * MariaDB release API. Declaration presence is covered offline by
+	 * test_readme_contains_recommended_versions().
 	 *
 	 * @coversNothing
-	 *
 	 * @group external-http
 	 * @ticket 63914
 	 */
