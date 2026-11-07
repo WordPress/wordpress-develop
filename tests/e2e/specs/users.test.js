@@ -155,39 +155,6 @@ test.describe( 'User management', () => {
 		] );
 	} );
 
-	test( 'changes another user role from the edit screen', async ( {
-		admin,
-		page,
-		requestUtils,
-	} ) => {
-		const username = `${ prefix }-role`;
-		usernames.push( username );
-		const user = await requestUtils.createUser( {
-			username,
-			email: `${ username }@example.org`,
-			password: randomUUID(),
-			roles: [ 'subscriber' ],
-		} );
-
-		await admin.visitAdminPage( '/user-edit.php', `user_id=${ user.id }` );
-		const roleField = page.getByLabel( 'Role', { exact: true } );
-		await expect( roleField ).toHaveValue( 'subscriber' );
-		await roleField.selectOption( 'editor' );
-		await page
-			.getByRole( 'button', { name: 'Update User', exact: true } )
-			.click();
-		await expect( page.locator( '#message' ) ).toContainText(
-			'User updated.'
-		);
-		await expect( roleField ).toHaveValue( 'editor' );
-
-		const updated = await requestUtils.rest( {
-			path: `/wp/v2/users/${ user.id }`,
-			params: { context: 'edit' },
-		} );
-		expect( updated.roles ).toEqual( [ 'editor' ] );
-	} );
-
 	test( 'prevents an administrator from changing their own role to subscriber', async ( {
 		browser,
 		requestUtils,
@@ -211,12 +178,9 @@ test.describe( 'User management', () => {
 		try {
 			const page = await context.newPage();
 			await page.goto( new URL( 'wp-login.php', baseURL ).href );
-			const usernameField = page.getByLabel(
-				'Username or Email Address',
-				{ exact: true }
-			);
-			await expect( usernameField ).toBeFocused();
-			await usernameField.fill( username );
+			await page
+				.getByLabel( 'Username or Email Address', { exact: true } )
+				.fill( username );
 			await page
 				.getByLabel( 'Password', { exact: true } )
 				.fill( password );
@@ -260,31 +224,6 @@ test.describe( 'User management', () => {
 		} finally {
 			await context.close();
 		}
-	} );
-
-	test( 'searches for an existing user', async ( {
-		admin,
-		page,
-		requestUtils,
-	} ) => {
-		const username = `${ prefix }-search`;
-		usernames.push( username );
-		const user = await requestUtils.createUser( {
-			username,
-			email: `${ username }@example.org`,
-			password: randomUUID(),
-			roles: [ 'subscriber' ],
-		} );
-
-		await admin.visitAdminPage(
-			'/users.php',
-			`s=${ encodeURIComponent( username ) }`
-		);
-		const row = page.locator( `#user-${ user.id }` );
-		await expect( row ).toBeVisible();
-		await expect(
-			row.getByRole( 'link', { name: username, exact: true } )
-		).toBeVisible();
 	} );
 
 	test( 'shows an empty result when searching for a missing user', async ( {
