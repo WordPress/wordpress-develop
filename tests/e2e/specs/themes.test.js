@@ -159,13 +159,23 @@ test.describe( 'Theme management', () => {
 			exact: true,
 		} );
 		await expect( search ).toBeVisible();
+		const themeDetailsButtons = page.getByRole( 'button', {
+			name: /View Theme Details for /,
+		} );
+		// Confirm search starts from a broader results set before filtering.
+		await expect
+			.poll( async () => themeDetailsButtons.count() )
+			.toBeGreaterThan( 1 );
 		await search.fill( themeName );
 
-		const details = page.getByRole( 'button', {
-			name: `View Theme Details for ${ themeName }`,
-			exact: true,
-		} );
-		await expect( details ).toBeVisible();
+		// Wait for the debounced filter, then require a single matching result.
+		await expect( themeDetailsButtons ).toHaveCount( 1 );
+		await expect(
+			page.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+		).toBeVisible();
 	} );
 
 	test( 'shows an empty result when searching for a missing theme', async ( {
@@ -183,15 +193,16 @@ test.describe( 'Theme management', () => {
 		await expect( search ).toBeVisible();
 		await search.fill( missing );
 
-		await expect(
-			page.getByText( 'No themes found. Try a different search.', {
-				exact: true,
-			} )
-		).toBeVisible();
+		// Scope to the empty-state paragraph; the same copy is also spoken via
+		// wp.a11y.speak() into a live region.
+		const emptyState = page.locator( 'p.no-themes' );
+		await expect( emptyState ).toBeVisible();
+		await expect( emptyState ).toHaveText(
+			'No themes found. Try a different search.'
+		);
 		await expect(
 			page.getByRole( 'button', {
-				name: `View Theme Details for ${ themeName }`,
-				exact: true,
+				name: /View Theme Details for /,
 			} )
 		).toHaveCount( 0 );
 	} );
