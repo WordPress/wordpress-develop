@@ -299,13 +299,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system.', $this->transport ) );
 		}
 
-		// Disable all transports aside from this one.
-		foreach ( array( 'curl', 'streams', 'fsockopen' ) as $t ) {
-			remove_filter( "use_{$t}_transport", '__return_false' );  // Just strip them all...
-			if ( $t !== $this->transport ) {
-				add_filter( "use_{$t}_transport", '__return_false' ); // ...and add it back if need be.
-			}
-		}
+		// WP_Http::request() uses Requests directly; force the transport this
+		// subclass is meant to cover. The empty() check leaves tests that set
+		// their own transport (e.g. the parent-domain cookie mock) alone.
+		add_action( 'requests-requests.before_request', array( $this, 'force_requests_transport' ), 10, 5 );
 
 		if ( self::$file_stream_fixture_url ) {
 			$this->file_stream_url = self::$file_stream_fixture_url;
@@ -973,6 +970,27 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
+	}
+
+	/**
+	 * Forces Requests to use the transport this subclass is covering.
+	 *
+	 * The legacy use_{$t}_transport filters are only consulted by
+	 * WP_Http_Curl::test() / WP_Http_Streams::test(). Requests picks its own
+	 * transport unless options['transport'] is set.
+	 *
+	 * @param string       $url     Request URL.
+	 * @param array        $headers Request headers.
+	 * @param string|array $data    Request data.
+	 * @param string       $type    HTTP method.
+	 * @param array        $options Request options (passed by reference).
+	 */
+	public function force_requests_transport( $url, $headers, $data, $type, &$options ) {
+		if ( empty( $options['transport'] ) ) {
+			$options['transport'] = 'curl' === $this->transport
+				? \WpOrg\Requests\Transport\Curl::class
+				: \WpOrg\Requests\Transport\Fsockopen::class;
+		}
 	}
 
 	/**
