@@ -451,4 +451,141 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 405, $result->code );
 	}
+
+	/**
+	 * Tests that a regular user password is refused during an XML-RPC request.
+	 *
+	 * @ticket 62789
+	 *
+	 * @covers ::wp_authenticate_username_password
+	 * @covers ::wp_authenticate_email_password
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @dataProvider data_login_identifiers
+	 *
+	 * @param string $identifier Whether to log in with the username or the email address.
+	 */
+	public function test_xmlrpc_request_refuses_regular_password( string $identifier ): void {
+		define( 'XMLRPC_REQUEST', true );
+
+		$user = get_userdata( $this->make_user_by_role( 'subscriber' ) );
+
+		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $user->$identifier, 'subscriber' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+	}
+
+	/**
+	 * Tests that a regular user password is refused during an XML-RPC request
+	 * when the user also has an application password.
+	 *
+	 * @ticket 62789
+	 *
+	 * @covers ::wp_authenticate_username_password
+	 * @covers ::wp_authenticate_email_password
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @dataProvider data_login_identifiers
+	 *
+	 * @param string $identifier Whether to log in with the username or the email address.
+	 */
+	public function test_xmlrpc_request_refuses_regular_password_when_application_passwords_are_in_use( string $identifier ): void {
+		define( 'XMLRPC_REQUEST', true );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$user = get_userdata( $this->make_user_by_role( 'subscriber' ) );
+
+		WP_Application_Passwords::create_new_application_password( $user->ID, array( 'name' => 'phpunit' ) );
+
+		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $user->$identifier, 'subscriber' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+	}
+
+	/**
+	 * Tests that an application password is accepted during an XML-RPC request.
+	 *
+	 * @ticket 62789
+	 *
+	 * @covers ::wp_authenticate_application_password
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @dataProvider data_login_identifiers
+	 *
+	 * @param string $identifier Whether to log in with the username or the email address.
+	 */
+	public function test_xmlrpc_request_accepts_application_password( string $identifier ): void {
+		define( 'XMLRPC_REQUEST', true );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$user = get_userdata( $this->make_user_by_role( 'subscriber' ) );
+
+		list( $application_password ) = WP_Application_Passwords::create_new_application_password( $user->ID, array( 'name' => 'phpunit' ) );
+
+		$result = $this->myxmlrpcserver->wp_getUsersBlogs( array( $user->$identifier, $application_password ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertCount( 1, $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public static function data_login_identifiers(): array {
+		return array(
+			'username'      => array( 'user_login' ),
+			'email address' => array( 'user_email' ),
+		);
+	}
+
+	/**
+	 * Tests that a custom authentication callback still works during an XML-RPC request.
+	 *
+	 * @ticket 62789
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_xmlrpc_request_allows_custom_authentication(): void {
+		define( 'XMLRPC_REQUEST', true );
+
+		$user_id = $this->make_user_by_role( 'subscriber' );
+
+		add_filter(
+			'authenticate',
+			static function ( $user, $username, $password ) use ( $user_id ) {
+				return 'custom-token' === $password ? get_userdata( $user_id ) : $user;
+			},
+			30,
+			3
+		);
+
+		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 'subscriber', 'custom-token' ) );
+	}
+
+	/**
+	 * Tests that a regular user password still works outside of an XML-RPC request.
+	 *
+	 * @ticket 62789
+	 *
+	 * @covers ::wp_authenticate
+	 */
+	public function test_regular_password_is_accepted_outside_xmlrpc_request(): void {
+		$this->make_user_by_role( 'subscriber' );
+
+		$this->assertFalse( defined( 'XMLRPC_REQUEST' ), 'XMLRPC_REQUEST should not be defined in this test.' );
+		$this->assertInstanceOf( WP_User::class, wp_authenticate( 'subscriber', 'subscriber' ) );
+	}
 }
