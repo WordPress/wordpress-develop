@@ -27,9 +27,13 @@ test.describe( 'Profile', () => {
 		try {
 			await admin.visitAdminPage( 'profile.php' );
 
-			await page.locator( '#first_name' ).fill( firstName );
-			await page.locator( '#last_name' ).fill( lastName );
-			await page.locator( '#nickname' ).fill( nickname );
+			await page
+				.getByLabel( 'First Name', { exact: true } )
+				.fill( firstName );
+			await page
+				.getByLabel( 'Last Name', { exact: true } )
+				.fill( lastName );
+			await page.getByLabel( 'Nickname (required)' ).fill( nickname );
 			await page
 				.getByRole( 'button', { name: 'Update Profile', exact: true } )
 				.click();
@@ -37,11 +41,15 @@ test.describe( 'Profile', () => {
 			await expect( page.locator( '#message' ) ).toContainText(
 				'Profile updated.'
 			);
-			await expect( page.locator( '#first_name' ) ).toHaveValue(
-				firstName
+			await expect(
+				page.getByLabel( 'First Name', { exact: true } )
+			).toHaveValue( firstName );
+			await expect(
+				page.getByLabel( 'Last Name', { exact: true } )
+			).toHaveValue( lastName );
+			await expect( page.getByLabel( 'Nickname (required)' ) ).toHaveValue(
+				nickname
 			);
-			await expect( page.locator( '#last_name' ) ).toHaveValue( lastName );
-			await expect( page.locator( '#nickname' ) ).toHaveValue( nickname );
 
 			const updated = await requestUtils.rest( {
 				path: '/wp/v2/users/me',
