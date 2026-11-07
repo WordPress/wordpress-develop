@@ -92,5 +92,29 @@
 
 	} );
 
+	QUnit.test( 'Quick search announces the number of results with the right plural form.', function( assert ) {
+		var spoken = [],
+			$wrapper = $( '<div class="accordion-section-content"><div class="tabs-panel"><ul class="categorychecklist"></ul></div><p class="button-controls"><input type="checkbox" class="select-all" /></p></div>' ),
+			$panel = $wrapper.find( '.tabs-panel' ),
+			a11y,
+			speak;
+
+		// Mock wp.a11y.speak() to record what is announced.
+		window.wp = window.wp || {};
+		a11y = window.wp.a11y = window.wp.a11y || {};
+		speak = a11y.speak;
+		a11y.speak = function( message ) {
+			spoken.push( message );
+		};
+
+		try {
+			wpNavMenu.processQuickSearchQueryResponse( '<li>First</li>', {}, $panel );
+			wpNavMenu.processQuickSearchQueryResponse( '<li>First</li><li>Second</li>', {}, $panel );
+		} finally {
+			a11y.speak = speak;
+		}
+
+		assert.deepEqual( spoken, [ '1 result found.', '2 results found.' ] );
+	} );
 
 } )( window.QUnit, jQuery );
