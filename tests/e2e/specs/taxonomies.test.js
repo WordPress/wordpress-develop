@@ -172,7 +172,8 @@ for ( const { taxonomy, endpoint, label } of [
 			// Ensure at least one non-matching term exists so ignoring `s` cannot
 			// vacuously pass with an empty taxonomy table.
 			await createTerm( requestUtils, 'present' );
-			const missing = `${ prefix }-missing-${ randomUUID().slice( 0, 8 ) }`;
+			const suffix = randomUUID().slice( 0, 8 );
+			const missing = `${ prefix }-missing-${ suffix }`;
 			await admin.visitAdminPage(
 				'/edit-tags.php',
 				`taxonomy=${ taxonomy }&s=${ encodeURIComponent( missing ) }`
