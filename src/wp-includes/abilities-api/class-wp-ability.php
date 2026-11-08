@@ -563,6 +563,76 @@ class WP_Ability {
 	}
 
 	/**
+	 * Coerces validated input to the types declared in the input schema.
+	 *
+	 * Also applies schema format sanitization, such as stripping tags for
+	 * `text-field` and sanitizing URLs for `uri`, using `rest_sanitize_value_from_schema()`.
+	 *
+	 * Call `validate_input()` before this method. Coercing unvalidated input can
+	 * remove unknown properties or cast invalid values, hiding validation errors.
+	 * This method does not apply defaults or run input validation filters.
+	 *
+	 * If sanitization produces an error, including in a nested value, an invalid
+	 * input error is returned to prevent execution with uncoerced values.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_Ability::validate_input()
+	 *
+	 * @param mixed $input Validated ability input.
+	 * @return mixed|WP_Error Coerced input, or `WP_Error` when it cannot be safely coerced.
+	 */
+	public function coerce_input( $input ) {
+		$schema = $this->get_input_schema();
+		if ( null === $input || empty( $schema ) ) {
+			return $input;
+		}
+
+		$sanitized = rest_sanitize_value_from_schema( $input, $schema, 'input' );
+
+		// Values unique before coercion can collide after casting, even in nested arrays.
+		$error = self::get_input_error( $sanitized );
+		if ( is_wp_error( $error ) ) {
+			return new WP_Error(
+				'ability_invalid_input',
+				sprintf(
+					/* translators: %1$s ability name, %2$s error message. */
+					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					$this->name,
+					$error->get_error_message()
+				)
+			);
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Retrieves the first WP_Error in a sanitized value.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value The value to inspect.
+	 * @return WP_Error|null The first error found, or null if the value contains no errors.
+	 */
+	private static function get_input_error( $value ): ?WP_Error {
+		if ( is_wp_error( $value ) ) {
+			return $value;
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $item ) {
+				$error = self::get_input_error( $item );
+				if ( is_wp_error( $error ) ) {
+					return $error;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Validates input data against the input schema.
 	 *
 	 * @since 6.9.0
@@ -681,8 +751,20 @@ class WP_Ability {
 	/**
 	 * Checks whether the ability has the necessary permissions.
 	 *
-	 * Please note that input is not automatically validated against the input schema.
-	 * Use `validate_input()` method to validate input before calling this method if needed.
+	 * This method does not prepare the input. Use `execute()` to run the full ability
+	 * lifecycle, which prepares the input before calling this method.
+	 *
+	 * When calling this method directly, prepare the input in the same order as
+	 * `execute()`, and stop if any step returns a `WP_Error`:
+	 *
+	 *  1. `normalize_input()` applies the schema default and returns the input.
+	 *  2. `validate_input()` checks the input against the schema and returns `true`.
+	 *  3. `coerce_input()` converts values to the schema types and returns the input
+	 *     to pass to this method.
+	 *
+	 * Skipping these steps means the permission callback may receive different input
+	 * than it does during `execute()`, such as a missing schema default or a string
+	 * instead of an integer.
 	 *
 	 * The checks run in this order:
 	 *
@@ -698,9 +780,13 @@ class WP_Ability {
 	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
 	 * @since 7.2.0 Added the `required_capabilities` check.
 	 *
-	 * @see validate_input()
+	 * @see WP_Ability::normalize_input()
+	 * @see WP_Ability::validate_input()
+	 * @see WP_Ability::coerce_input()
+	 * @see WP_Ability::execute()
 	 *
-	 * @param mixed $input Optional. The valid input data for permission checking. Default `null`.
+	 * @param mixed $input Optional. The normalized, validated, and coerced input data for permission checking.
+	 *                     Default `null`.
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
@@ -860,12 +946,13 @@ class WP_Ability {
 	}
 
 	/**
-	 * Executes the ability after input validation and running a permission check.
+	 * Executes the ability after input validation, coercion, and a permission check.
 	 * Before returning the return value, it also validates the output.
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
+	 * @since 7.2.0 Coerces validated input before permission checks and execution.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
@@ -925,6 +1012,11 @@ class WP_Ability {
 			return $is_valid;
 		}
 
+		$input = $this->coerce_input( $input );
+		if ( is_wp_error( $input ) ) {
+			return $input;
+		}
+
 		$has_permissions = $this->check_permissions( $input );
 		if ( true !== $has_permissions ) {
 			if ( is_wp_error( $has_permissions ) ) {
@@ -950,7 +1042,7 @@ class WP_Ability {
 		 * @since 7.1.0 Added the `$ability` parameter.
 		 *
 		 * @param string     $ability_name The name of the ability.
-		 * @param mixed      $input        The input data for the ability.
+		 * @param mixed      $input        The validated and coerced input data for the ability.
 		 * @param WP_Ability $ability      The ability instance.
 		 */
 		do_action( 'wp_before_execute_ability', $this->name, $input, $this );
@@ -972,7 +1064,7 @@ class WP_Ability {
 		 * @since 7.1.0 Added the `$ability` parameter.
 		 *
 		 * @param string     $ability_name The name of the ability.
-		 * @param mixed      $input        The input data for the ability.
+		 * @param mixed      $input        The validated and coerced input data for the ability.
 		 * @param mixed      $result       The result of the ability execution.
 		 * @param WP_Ability $ability      The ability instance.
 		 */
