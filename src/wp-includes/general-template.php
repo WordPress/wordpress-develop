@@ -4148,17 +4148,29 @@ function wp_preload_resources() {
 		}
 
 		$attributes = $resource;
-		if ( isset( $resource['href'] ) ) {
-			$href = $resource['href'];
+
+		// An href which is not a string or which uses a disallowed protocol is unusable.
+		$href = '';
+		if ( isset( $resource['href'] ) && is_string( $resource['href'] ) ) {
+			$href = sanitize_url( $resource['href'], array( 'http', 'https' ) );
+		}
+
+		if ( '' !== $href ) {
 			if ( isset( $unique_resources[ $href ] ) ) {
 				continue;
 			}
+			$attributes['href']        = $href;
 			$unique_resources[ $href ] = $attributes;
 			// Media can use imagesrcset and not href.
-		} elseif ( isset( $resource['as'], $resource['imagesrcset'] ) && 'image' === $resource['as'] ) {
+		} elseif (
+			isset( $resource['as'], $resource['imagesrcset'] ) &&
+			'image' === $resource['as'] &&
+			is_string( $resource['imagesrcset'] )
+		) {
 			if ( isset( $unique_resources[ $resource['imagesrcset'] ] ) ) {
 				continue;
 			}
+			unset( $attributes['href'] );
 			$unique_resources[ $resource['imagesrcset'] ] = $attributes;
 		} else {
 			continue;
@@ -4221,10 +4233,6 @@ function wp_preload_resources() {
 				( ! isset( $unique_resource['as'] ) || ( 'image' !== $unique_resource['as'] ) || ! isset( $unique_resource['imagesrcset'] ) )
 			) {
 				continue;
-			}
-
-			if ( 'href' === $resource_key && is_string( $resource_value ) ) {
-				$resource_value = sanitize_url( $resource_value, array( 'http', 'https' ) );
 			}
 
 			$processor->set_attribute( $resource_key, $resource_value );
