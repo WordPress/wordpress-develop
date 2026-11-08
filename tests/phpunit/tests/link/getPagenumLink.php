@@ -41,8 +41,6 @@ class Tests_Link_GetPagenumLink extends WP_UnitTestCase {
 	 * @ticket 8847
 	 */
 	public function test_get_pagenum_link_case_insensitivity() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		add_filter( 'home_url', array( $this, 'get_pagenum_link_cb' ) );
 		$_SERVER['REQUEST_URI'] = '/woohoo';
 		$paged                  = get_pagenum_link( 2 );

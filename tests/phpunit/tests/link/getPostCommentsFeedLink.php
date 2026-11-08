@@ -4,8 +4,9 @@
  * @covers ::get_post_comments_feed_link
  */
 class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
-
 	public function test_post_link() {
+		$this->set_permalink_structure( '' );
+
 		$post_id = self::factory()->post->create();
 
 		$link     = get_post_comments_feed_link( $post_id );
@@ -21,8 +22,6 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_post_pretty_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$post_id = self::factory()->post->create();
 
 		$link     = get_post_comments_feed_link( $post_id );
@@ -32,6 +31,8 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_attachment_link() {
+		$this->set_permalink_structure( '' );
+
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
@@ -55,8 +56,6 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_attachment_pretty_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$post_id       = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -81,8 +80,6 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_attachment_no_name_pretty_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
@@ -100,6 +97,8 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_unattached_link() {
+		$this->set_permalink_structure( '' );
+
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
 			0,
@@ -122,8 +121,6 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	}
 
 	public function test_unattached_pretty_link() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$attachment_id = self::factory()->attachment->create_object(
 			'image.jpg',
 			0,
@@ -143,8 +140,6 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 	 * @ticket 52814
 	 */
 	public function test_nonexistent_page() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		// Use the largest integer to ensure the post does not exist.
 		$post_id = PHP_INT_MAX;
 		$link    = get_post_comments_feed_link( $post_id );

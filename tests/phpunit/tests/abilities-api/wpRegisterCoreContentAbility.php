@@ -5194,7 +5194,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_query_link_primes_the_parents_page_permalinks_read(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
-		$this->set_permalink_structure( '/%postname%/' );
 
 		$ids = array();
 		for ( $i = 0; $i < 3; $i++ ) {

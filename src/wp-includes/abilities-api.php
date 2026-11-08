@@ -52,10 +52,9 @@
  *     }
  *     add_action( 'wp_abilities_api_init', 'my_plugin_register_abilities' );
  *
- * Use a category to group related abilities and improve discoverability. The
- * `data-export` category must be registered first with `wp_register_ability_category()`
+ * Every ability requires a category to group related abilities and improve discoverability.
+ * The `data-export` category must be registered first with `wp_register_ability_category()`
  * on `wp_abilities_api_categories_init`, or the ability registration fails.
- * Abilities that omit `category` fall back to the built-in `uncategorized` category.
  *
  * Once registered, abilities can be checked, retrieved, and managed:
  *
@@ -148,9 +147,11 @@ declare( strict_types = 1 );
  *
  * ### Categories
  *
- * Abilities can be organized into categories. If no category is provided, the ability is
- * assigned to the built-in `uncategorized` category. Custom categories must be registered
- * before the abilities that reference them:
+ * Every ability must specify a registered category. Categories group related abilities
+ * so clients can discover and retrieve relevant subsets. Plugins can reuse an existing
+ * category when appropriate, including categories registered by core. Custom categories must be
+ * registered on `wp_abilities_api_categories_init` before abilities that reference them
+ * are registered on `wp_abilities_api_init`:
  *
  *     function my_plugin_register_categories(): void {
  *         wp_register_ability_category(
@@ -199,9 +200,10 @@ declare( strict_types = 1 );
  * #### Execute Callback
  *
  * The execute callback performs the ability's core functionality. It receives
- * the normalized, validated input when an input schema is defined, and no arguments
- * otherwise. It returns either a result or `WP_Error` on failure. Exceptions thrown
- * by execute or permission callbacks are caught and converted to a `WP_Error`.
+ * the normalized, validated, and coerced input when an input schema is defined,
+ * and no arguments otherwise. It returns either a result or `WP_Error` on failure.
+ * Exceptions thrown by execute or permission callbacks are caught and converted
+ * to a `WP_Error`.
  *
  *     function my_plugin_analyze_text( string $input ): string|WP_Error {
  *         $score = My_Plugin::perform_sentiment_analysis( $input );
@@ -224,12 +226,12 @@ declare( strict_types = 1 );
  * For an ability that everyone may execute, use `__return_true` as the callback
  * with no required capabilities.
  *
- * The permission callback determines whether the ability can be executed.
- * It receives the same input as the execute callback and must return a
- * boolean or `WP_Error`. Common use cases include checking user capabilities,
- * validating API keys, or verifying system state. In the example above, every
- * execution requires `edit_posts`, and the callback only adds the check that
- * depends on the input:
+ * The permission callback determines whether the ability can be executed and
+ * must return a boolean or `WP_Error`. When called through `WP_Ability::execute()`,
+ * it receives the same normalized, validated, and coerced input as the execute
+ * callback. Common use cases include checking user capabilities, validating API
+ * keys, or verifying system state. In the example above, every execution requires
+ * `edit_posts`, and the callback only adds the check that depends on the input:
  *
  *     function my_plugin_can_analyze_text( string $input ): bool|WP_Error {
  *         // Only administrators can analyze long texts.
@@ -241,9 +243,13 @@ declare( strict_types = 1 );
  *
  * ### Execution Lifecycle
  *
- * Call `WP_Ability::execute()` to normalize and validate input, check permissions,
- * invoke the execute callback, and validate output. It returns the result or a
- * `WP_Error` on failure. Custom ability classes can override this behavior.
+ * Call `WP_Ability::execute()` to normalize, validate, and coerce input, check
+ * permissions, invoke the execute callback, and validate output. It returns the
+ * result or a `WP_Error` on failure. Custom ability classes can override this
+ * behavior.
+ *
+ * Integrations that call `WP_Ability::check_permissions()` directly must prepare
+ * the input first. See `WP_Ability::check_permissions()` for the required steps.
  *
  * Hooks run in this order, and processing stops at the first failure:
  *
@@ -251,7 +257,9 @@ declare( strict_types = 1 );
  *  2. `wp_pre_execute_ability` filter, which can short-circuit the rest of execution.
  *  3. `wp_ability_normalize_input`, `wp_ability_validate_input`, and
  *     `wp_ability_permission_result` filters. The input validation filter runs only
- *     when a non-empty input schema is defined.
+ *     when a non-empty input schema is defined. Input coercion has no filter. It runs
+ *     between validation and the permission check, only when a non-empty input
+ *     schema is defined.
  *  4. `wp_before_execute_ability` action.
  *  5. `wp_ability_execute_result` and `wp_ability_validate_output` filters.
  *  6. `wp_after_execute_ability` action.
@@ -279,7 +287,6 @@ declare( strict_types = 1 );
  *
  * @since 6.9.0
  * @since 7.1.0 Added the `public` meta argument.
- * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
  * @since 7.2.0 Added the `required_capabilities` argument.
  *
  * @see WP_Abilities_Registry::register()
@@ -297,9 +304,9 @@ declare( strict_types = 1 );
  *     @type string               $label                 Required. The human-readable label for the ability.
  *     @type string               $description           Required. A detailed description of what the ability does
  *                                                       and when it should be used.
- *     @type string               $category              Optional. The ability category slug this ability belongs to.
- *                                                       Defaults to `uncategorized`. Custom categories must be registered
- *                                                       via `wp_register_ability_category()` before registering the ability.
+ *     @type string               $category              Required. The registered ability category slug this ability belongs to.
+ *                                                       Custom categories must be registered via
+ *                                                       `wp_register_ability_category()` before registering the ability.
  *     @type callable             $execute_callback      Required. A callback function to execute when the ability is invoked.
  *                                                       Receives optional mixed input data and must return either a result
  *                                                       value (any type) or a `WP_Error` object on failure.
@@ -700,10 +707,8 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * Registers a new ability category.
  *
  * Ability categories provide a way to organize and group related abilities for better
- * discoverability and management. Custom categories must be registered before abilities
- * that reference them. Abilities that omit a category are assigned to the built-in
- * `uncategorized` category, which is intended as an escape hatch for simple or transitional
- * registrations.
+ * discoverability and management. Every ability requires a registered category.
+ * Custom categories must be registered before abilities that reference them.
  *
  * Ability categories must be registered on the `wp_abilities_api_categories_init` action hook.
  *
