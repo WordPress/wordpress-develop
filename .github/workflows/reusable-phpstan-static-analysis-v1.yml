@@ -1,0 +1,312 @@
+##
+# A reusable workflow that runs PHP Static Analysis tests.
+#
+# This workflow is used by `trunk` and branches >= 7.0.
+##
+name: PHP Static Analysis
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs PHP static analysis tests.
+  #
+  # Violations are reported inline with annotations. For pull requests, the results are also uploaded
+  # as an artifact, which the PHPStan Pull Request Comments workflow summarizes in a comment.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies.
+  # - Make Composer packages available globally.
+  # - Builds WordPress.
+  # - Configures caching for PHPStan static analysis scans.
+  # - Runs PHPStan static analysis.
+  # - Reports the results as annotations.
+  # - Uploads the results as an artifact (pull requests only).
+  # - Checks for errors that cannot be reported as warnings, such as out-of-date baselines.
+  # - Saves the PHPStan result cache.
+  # - Ensures version-controlled files are not modified or deleted.
+  phpstan:
+    name: Run PHP static analysis
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      # For a pull request, the parents of the merge commit are fetched too, to find the files that the base branch
+      # has changed since the pull request branched from it.
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none
+
+      - name: General debug information
+        run: |
+          composer --version
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
+
+      # The directory holds more than the analysis results. PHPStan also stores what it read out of
+      # each source file there, the docblocks and signatures it found, keyed by that file's contents
+      # and nothing else. The extensions in `tests/phpstan` change what reading a file yields without
+      # changing the file: a parser node visitor rewrites a docblock in the syntax tree, and the bytes
+      # on disk stay as they were. A cache written before one of them changed therefore answers with
+      # what the old code saw, and the analysis silently runs against types no longer derived.
+      #
+      # Keying on the configuration and the extensions keeps a run from restoring a cache that
+      # predates either. The baselines are left out of the key: they only decide which reported errors
+      # are ignored, PHPStan invalidates the results cache on a configuration change by itself, and
+      # including them would discard the whole cache every time one is regenerated.
+      #
+      # The cache is renamed rather than only prefixed, because the key this replaces restored on
+      # `phpstan-result-cache-`, which every key below still begins with. A branch that has not
+      # merged this commit yet runs the workflow it has, and that workflow would prefix-match the
+      # caches written here: it would analyse without the extensions against reflection derived with
+      # them. A name of its own leaves those runs restoring only their own caches.
+      - name: Cache PHP Static Analysis scan cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache # This is defined in the base.neon file.
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          restore-keys: |
+            phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
+
+      - name: Run PHP static analysis tests
+        id: phpstan
+        run: |
+          # The report is written to a file for the steps below, which turn it into annotations,
+          # the pull request comment, and a check for errors that cannot be reported as warnings.
+          # Only the report goes to standard output; the debug output goes to standard error, so
+          # it stays in the log without corrupting the JSON.
+          #
+          # The step shell exits on the first failing command, which would also end the step on
+          # the status of 1 that PHPStan uses for reporting errors. Capture the status instead.
+          status=0
+          composer run phpstan -- -vvv --error-format=json > "${RUNNER_TEMP}/phpstan-report.json" || status=$?
+
+          # PHPStan exits 1 when it has errors to report, which is the expected case here and
+          # is what the annotations are for. Anything higher means it did not finish at all.
+          if [ "${status}" -gt 1 ]; then
+            echo "::error title=PHPStan did not complete::The analysis exited with status ${status}, so the code was not fully checked. This is a failure of the run itself rather than a problem found in the code."
+            exit "${status}"
+          fi
+
+      # Errors are annotated as warnings, so that they are visible on the pull request without
+      # failing the run. The exception is an error that PHPStan does not allow to be ignored,
+      # such as an out-of-date baseline entry, or one that is not specific to a file. These are
+      # annotated as errors instead, and the run fails on them in the check further below.
+      #
+      # The results are also written out for the PHPStan Pull Request Comments workflow, which
+      # runs with the permissions needed to comment on the pull request. Only the facts are
+      # passed along: the comment is composed there, since a pull request can change anything
+      # that runs here.
+      - name: Report the analysis results
+        id: report
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+
+            const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, 'utf8' ) );
+            const workspace = `${ process.env.GITHUB_WORKSPACE }/`;
+
+            const errors = [];
+            for ( const [ absolutePath, file ] of Object.entries( report.files ) ) {
+              const relativePath = absolutePath.startsWith( workspace ) ? absolutePath.slice( workspace.length ) : absolutePath;
+              for ( const message of file.messages ) {
+                errors.push( {
+                  file: relativePath,
+                  line: message.line ?? null,
+                  message: message.message,
+                  identifier: message.identifier ?? null,
+                  tip: message.tip ?? null,
+                  ignorable: message.ignorable,
+                } );
+              }
+            }
+
+            // Errors that are not specific to a file, such as an `ignoreErrors` entry without a
+            // path that no longer matches. These cannot be ignored either.
+            for ( const message of report.errors ) {
+              errors.push( { file: null, line: null, message, identifier: null, tip: null, ignorable: false } );
+            }
+
+            for ( const error of errors ) {
+              const properties = { title: error.identifier ? `PHPStan: ${ error.identifier }` : 'PHPStan' };
+              if ( error.file ) {
+                properties.file = error.file;
+              }
+              if ( error.line ) {
+                properties.startLine = error.line;
+              }
+              const message = error.tip ? `${ error.message }\n${ error.tip }` : error.message;
+              if ( error.ignorable ) {
+                core.warning( message, properties );
+              } else {
+                core.error( message, properties );
+              }
+            }
+
+            // Tips are left out of the results, since they are only shown in the annotations, next to the code.
+            //
+            // The commit analyzed is the pull request merged into its base branch, whose second parent is the head
+            // commit. The files with errors that differ between the two are those the base branch has changed, in
+            // which the line numbers reported can be off in the head commit.
+            if ( context.eventName === 'pull_request' ) {
+              let changedInBase = [];
+              try {
+                const filesWithErrors = new Set( errors.map( ( error ) => error.file ) );
+                changedInBase = require( 'child_process' )
+                  .execFileSync( 'git', [ 'diff', '--name-only', '--no-renames', 'HEAD^2', 'HEAD' ], { encoding: 'utf8' } )
+                  .split( '\n' )
+                  .filter( ( file ) => filesWithErrors.has( file ) );
+              } catch ( error ) {
+                core.warning( `The files changed in the base branch could not be found: ${ error.message }` );
+              }
+              fs.mkdirSync( `${ process.env.RUNNER_TEMP }/phpstan-results`, { recursive: true } );
+              fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
+                pull_request: context.payload.pull_request.number,
+                changed_in_base: changedInBase,
+                errors: errors.map( ( { tip, ...error } ) => error ),
+              } ) );
+            }
+
+      # Uploads the results for the PHPStan Pull Request Comments workflow, which keeps a comment on the
+      # pull request up to date with them.
+      - name: Upload the analysis results as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ github.event_name == 'pull_request' && steps.report.outcome == 'success' }}
+        with:
+          name: phpstan-results
+          path: ${{ runner.temp }}/phpstan-results/
+
+      # Some errors cannot be ignored, so they cannot be reported as warnings either. Most often
+      # this is an ignored error that no longer occurs, or occurs a different number of times,
+      # which is reported under an `ignore.*` identifier. That is not something to fix in the
+      # code: the usual cause is that the error *was* fixed, leaving a baseline describing a state
+      # that no longer exists.
+      #
+      # Such an error is reported without a line number, so its annotation is not shown alongside
+      # the changes in the pull request, and one that is not specific to a file has nowhere to be
+      # shown at all. A passing run would let it go unnoticed, so fail the run on it instead, and
+      # say what to do about it.
+      #
+      # Detection is on PHPStan's own `ignorable` flag rather than on the identifier or message.
+      - name: Check for errors that cannot be reported as warnings
+        if: ${{ !cancelled() }}
+        env:
+          BASELINES_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}/tests/phpstan/baselines
+          README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
+        run: |
+          # This step runs even when the analysis above it failed, in which case the report may
+          # never have been written. That failure is reported there, so there is nothing to add
+          # here beyond staying quiet about a file that was never going to exist.
+          report="${RUNNER_TEMP}/phpstan-report.json"
+          if [ ! -f "${report}" ]; then
+            exit 0
+          fi
+
+          # Errors that are not specific to a file are listed separately from the rest, and are
+          # never ignorable.
+          unignorable=$( jq '[ .files[].messages[] | select( .ignorable | not ) ] + .errors | length' "${report}" )
+          if [ "${unignorable}" -eq 0 ]; then
+            exit 0
+          fi
+
+          # Whether the errors include ignore errors decides what to say about them, but not whether to
+          # fail: every error that reaches this point fails the run. Ignore errors concern an ignore
+          # configuration that no longer describes the code. They are `ignore.unmatched`, where a
+          # pattern matched nothing at all, and `ignore.count`, where it matched a different number of
+          # times than the entry records. The `ignore.` prefix is matched rather than those two names
+          # so that any later addition to the group is caught as well. Any other error that cannot be
+          # ignored is something regenerating the baselines would not help with, so it is reported
+          # plainly instead.
+          ignore_errors=$( jq '[ .files[].messages[] | select( .identifier // "" | startswith( "ignore." ) ) ] | length' "${report}" )
+
+          # The summary is Markdown, and its code spans and fences are written literally, so the
+          # heredoc is quoted to keep the backticks out of the shell's hands. The links are
+          # written in reference style for the same reason: the URLs are the only part needing
+          # a variable, so defining them afterwards keeps the whole of the prose in here.
+          #
+          # A newline renders as a line break rather than a space, so each paragraph is one
+          # line however long that makes it, and the rendered summary wraps to its own width.
+          baselines_summary=$( cat <<'SUMMARY'
+          ## PHPStan baselines are out of date
+
+          An ignored error no longer occurs, or occurs a different number of times, so PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.
+
+          **If you fixed the error, this is expected.** Each baseline entry records an exact count for a specific file, so that a new occurrence of an already baselined error is reported rather than absorbed. That same exactness means fixing one leaves the baseline describing a state that no longer exists. There is nothing to fix in the code; the baselines just need to catch up.
+
+          Regenerate them and commit the result:
+
+          ```bash
+          npm run typecheck:php:baselines
+          ```
+
+          or, outside the Docker environment:
+
+          ```bash
+          composer phpstan:baselines
+          ```
+
+          That rewrites the files under [`tests/phpstan/baselines`][baselines], deletes any whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`.
+
+          Where the report names an `@phpstan-ignore` annotation in the code rather than a baseline entry, remove that annotation instead; regenerating will not clear it.
+
+          See [`tests/phpstan/README.md`][readme] for details.
+
+          SUMMARY
+          )
+
+          if [ "${ignore_errors}" -gt 0 ]; then
+            {
+              printf '%s\n\n' "${baselines_summary}"
+              echo "[baselines]: ${BASELINES_URL}"
+              echo "[readme]: ${README_URL}"
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
+          else
+            echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
+          fi
+
+          exit 1
+
+      - name: "Save result cache"
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        if: ${{ !cancelled() }}
+        with:
+          path: .cache
+          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -101,11 +101,12 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'php'                => $php_version,
 		'locale'             => $locale,
 		'mysql'              => $mysql_version,
-		'local_package'      => isset( $wp_local_package ) ? $wp_local_package : '',
+		'local_package'      => $wp_local_package ?? '',
 		'blogs'              => $num_blogs,
 		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'myisam_tables'      => array(),
 		'extensions'         => array_combine( $extensions, array_map( 'phpversion', $extensions ) ),
 		'platform_flags'     => array(
 			'os'   => PHP_OS,
@@ -113,6 +114,39 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		),
 		'image_support'      => array(),
 	);
+
+	// Check for default tables using the MyISAM engine.
+	$table_names   = implode( "','", $wpdb->tables() );
+	$myisam_tables = $wpdb->get_results(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+			"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
+			DB_NAME,
+			'MyISAM'
+		),
+		OBJECT_K
+	);
+
+	if ( ! empty( $myisam_tables ) ) {
+		$all_unprefixed_tables = $wpdb->tables( 'all', false );
+
+		// Including the table prefix is not necessary.
+		$unprefixed_myisam_tables = array_reduce(
+			array_keys( $myisam_tables ),
+			function ( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
+				foreach ( $all_unprefixed_tables as $unprefixed ) {
+					if ( str_ends_with( $prefixed_myisam_table, $unprefixed ) ) {
+						$carry[] = $unprefixed;
+						break;
+					}
+				}
+				return $carry;
+			},
+			array()
+		);
+
+		$query['myisam_tables'] = $unprefixed_myisam_tables;
+	}
 
 	if ( function_exists( 'gd_info' ) ) {
 		$gd_info = gd_info();
@@ -545,7 +579,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			foreach ( $update->translations as $translation ) {
 				if ( isset( $translation['language'], $translation['package'] ) ) {
 					$translation['type'] = 'plugin';
-					$translation['slug'] = isset( $update->slug ) ? $update->slug : $update->id;
+					$translation['slug'] = $update->slug ?? $update->id;
 
 					$updates->translations[] = $translation;
 				}
@@ -822,7 +856,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			foreach ( $update->translations as $translation ) {
 				if ( isset( $translation['language'], $translation['package'] ) ) {
 					$translation['type'] = 'theme';
-					$translation['slug'] = isset( $update->theme ) ? $update->theme : $update->id;
+					$translation['slug'] = $update->theme ?? $update->id;
 
 					$new_update->translations[] = $translation;
 				}
@@ -884,6 +918,145 @@ function wp_get_translation_updates() {
 	}
 
 	return $updates;
+}
+
+/**
+ * Gets a stable identifier for a translation update.
+ *
+ * @since 7.2.0
+ *
+ * @param array|object $update Translation update data.
+ * @return string Translation update identifier.
+ */
+function wp_get_translation_update_id( $update ) {
+	$update = (object) $update;
+
+	return md5(
+		wp_json_encode(
+			array(
+				'type'     => $update->type ?? '',
+				'slug'     => $update->slug ?? '',
+				'language' => $update->language ?? '',
+				'version'  => $update->version ?? '',
+			)
+		)
+	);
+}
+
+/**
+ * Gets translation updates keyed by their stable identifiers.
+ *
+ * @since 7.2.0
+ *
+ * @param object[]|null $updates Optional. Translation update objects. Default null.
+ * @return object[] Translation updates keyed by identifier.
+ */
+function wp_get_translation_updates_by_id( $updates = null ) {
+	if ( null === $updates ) {
+		$updates = wp_get_translation_updates();
+	}
+
+	$translation_updates = array();
+
+	foreach ( (array) $updates as $update ) {
+		$translation_updates[ wp_get_translation_update_id( $update ) ] = (object) $update;
+	}
+
+	return $translation_updates;
+}
+
+/**
+ * Gets deferred translation updates.
+ *
+ * Deferred updates remain available but are skipped by background updates by default.
+ * Explicit updates, including WP-CLI, can still install them. Successful installation
+ * through Language_Pack_Upgrader clears the matching deferral; failure leaves it unchanged.
+ *
+ * @since 7.2.0
+ *
+ * @param object[]|null $updates Optional. Translation update objects used to filter deferred updates
+ *                               to currently available updates. Default null.
+ * @return array[] Deferred translation updates keyed by identifier.
+ */
+function wp_get_deferred_translation_updates( $updates = null ) {
+	$stored_updates = get_site_option( 'deferred_translation_updates', array() );
+
+	if ( ! is_array( $stored_updates ) ) {
+		return array();
+	}
+
+	$deferred_updates = array();
+
+	foreach ( $stored_updates as $stored_update ) {
+		if ( ! is_array( $stored_update ) ) {
+			continue;
+		}
+
+		$stored_update = (object) array(
+			'type'     => $stored_update['type'] ?? '',
+			'slug'     => $stored_update['slug'] ?? '',
+			'language' => $stored_update['language'] ?? '',
+			'version'  => $stored_update['version'] ?? '',
+		);
+
+		$deferred_updates[ wp_get_translation_update_id( $stored_update ) ] = (array) $stored_update;
+	}
+
+	if ( null !== $updates ) {
+		$deferred_updates = array_intersect_key( $deferred_updates, wp_get_translation_updates_by_id( $updates ) );
+	}
+
+	return $deferred_updates;
+}
+
+/**
+ * Determines whether a translation update has been deferred.
+ *
+ * @since 7.2.0
+ *
+ * @param array|object $update           Translation update data.
+ * @param array[]|null $deferred_updates Optional. Deferred translation updates keyed by identifier.
+ *                                       Default null.
+ * @return bool Whether the translation update has been deferred.
+ */
+function wp_is_translation_update_deferred( $update, $deferred_updates = null ) {
+	if ( null === $deferred_updates ) {
+		$deferred_updates = wp_get_deferred_translation_updates();
+	}
+
+	return isset( $deferred_updates[ wp_get_translation_update_id( $update ) ] );
+}
+
+/**
+ * Stores deferred translation updates.
+ *
+ * @since 7.2.0
+ *
+ * @param object[]|array[] $updates Translation updates to defer.
+ * @return void
+ */
+function wp_set_deferred_translation_updates( $updates ) {
+	$deferred_updates = array();
+
+	foreach ( (array) $updates as $update ) {
+		$update = (object) $update;
+
+		$translation_update = array(
+			'type'     => $update->type ?? '',
+			'slug'     => $update->slug ?? '',
+			'language' => $update->language ?? '',
+			'version'  => $update->version ?? '',
+		);
+
+		$deferred_updates[ wp_get_translation_update_id( $translation_update ) ] = $translation_update;
+	}
+
+	if ( empty( $deferred_updates ) ) {
+		delete_site_option( 'deferred_translation_updates' );
+		return;
+	}
+
+	update_site_option( 'deferred_translation_updates', $deferred_updates );
 }
 
 /**

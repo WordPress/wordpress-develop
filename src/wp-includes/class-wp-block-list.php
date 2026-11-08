@@ -10,6 +10,9 @@
  * Class representing a list of block instances.
  *
  * @since 5.5.0
+ *
+ * @phpstan-implements Iterator<int, WP_Block>
+ * @phpstan-implements ArrayAccess<int, WP_Block>
  */
 #[AllowDynamicProperties]
 class WP_Block_List implements Iterator, ArrayAccess, Countable {
@@ -67,7 +70,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetexists.php
 	 *
-	 * @param string $offset Offset of block to check for.
+	 * @param int $offset Offset of block to check for.
 	 * @return bool Whether block exists.
 	 */
 	#[ReturnTypeWillChange]
@@ -82,8 +85,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetget.php
 	 *
-	 * @param string $offset Offset of block value to retrieve.
-	 * @return mixed|null Block value if exists, or null.
+	 * @param int $offset Offset of block value to retrieve.
+	 * @return WP_Block|null Block value if exists, or null.
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
@@ -105,8 +108,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetset.php
 	 *
-	 * @param string $offset Offset of block value to set.
-	 * @param mixed  $value Block value.
+	 * @param int|null       $offset Offset of block value to set, or null to append.
+	 * @param array|WP_Block $value  Block value.
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -124,7 +127,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetunset.php
 	 *
-	 * @param string $offset Offset of block value to unset.
+	 * @param int $offset Offset of block value to unset.
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
@@ -150,7 +153,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/iterator.current.php
 	 *
-	 * @return mixed Current element.
+	 * @return WP_Block|null Current element.
 	 */
 	#[ReturnTypeWillChange]
 	public function current() {
@@ -164,7 +167,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @link https://www.php.net/manual/en/iterator.key.php
 	 *
-	 * @return mixed Key of the current element.
+	 * @return int|null Key of the current element.
 	 */
 	#[ReturnTypeWillChange]
 	public function key() {
