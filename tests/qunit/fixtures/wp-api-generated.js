@@ -760,6 +760,51 @@ mockedApiResponse.Schema = {
                                     ],
                                     "readonly": true
                                 },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
                                     "type": "boolean",
@@ -1043,6 +1088,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -1482,6 +1572,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -1971,6 +2106,51 @@ mockedApiResponse.Schema = {
                                     ],
                                     "readonly": true
                                 },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
                                     "type": "boolean",
@@ -2226,6 +2406,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -2632,6 +2857,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -4975,6 +5245,51 @@ mockedApiResponse.Schema = {
                                     ],
                                     "readonly": true
                                 },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
                                     "type": "boolean",
@@ -5188,6 +5503,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -5557,6 +5917,51 @@ mockedApiResponse.Schema = {
                                         "edit"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -7546,6 +7951,51 @@ mockedApiResponse.Schema = {
                                     ],
                                     "readonly": true
                                 },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
                                     "type": "boolean",
@@ -7726,6 +8176,51 @@ mockedApiResponse.Schema = {
                                         "embed"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",
@@ -8063,6 +8558,51 @@ mockedApiResponse.Schema = {
                                         "embed"
                                     ],
                                     "readonly": true
+                                },
+                                "blocks": {
+                                    "description": "Blocks parsed from the content. Only returned when requested with _fields.",
+                                    "type": "array",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true,
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "description": "Block name, or null for freeform content.",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "attributes": {
+                                                "description": "Attributes stored in the block delimiter.",
+                                                "type": "object"
+                                            },
+                                            "inner_blocks": {
+                                                "description": "Nested blocks, in the same shape.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "inner_html": {
+                                                "description": "Block HTML without its inner blocks.",
+                                                "type": "string"
+                                            },
+                                            "inner_content": {
+                                                "description": "HTML chunks, with null where each inner block goes.",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                                 "protected": {
                                     "description": "Whether the content is protected with a password.",

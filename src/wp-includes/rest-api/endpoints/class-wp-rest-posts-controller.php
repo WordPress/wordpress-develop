@@ -2012,6 +2012,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['content']['block_version'] = block_version( $post->post_content );
 		}
 
+		// Parsing adds to every response, so blocks are only returned when requested by name.
+		if (
+			'edit' === $request['context'] &&
+			rest_is_field_included( 'content.blocks', $fields ) &&
+			( is_string( $request['_fields'] ) || is_array( $request['_fields'] ) ) &&
+			in_array( 'content.blocks', wp_parse_list( $request['_fields'] ), true )
+		) {
+			$data['content']['blocks'] = $this->prepare_blocks_for_response( parse_blocks( $post->post_content ) );
+		}
+
 		if ( rest_is_field_included( 'excerpt', $fields ) ) {
 			if ( isset( $request['excerpt_length'] ) ) {
 				$excerpt_length          = $request['excerpt_length'];
@@ -2211,6 +2221,44 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function protected_title_format() {
 		return '%s';
+	}
+
+	/**
+	 * Converts parsed blocks to the shape returned in `content.blocks`.
+	 *
+	 * Keys match the public properties of `WP_Block`. Whitespace-only freeform
+	 * blocks between top-level blocks are dropped.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $parsed_blocks Blocks as returned by `parse_blocks()`.
+	 * @return list<array<string, mixed>> Block data.
+	 */
+	protected function prepare_blocks_for_response( array $parsed_blocks ): array {
+		$blocks = array();
+
+		foreach ( $parsed_blocks as $parsed_block ) {
+			if ( ! is_array( $parsed_block ) ) {
+				continue;
+			}
+
+			$name       = isset( $parsed_block['blockName'] ) && is_string( $parsed_block['blockName'] ) ? $parsed_block['blockName'] : null;
+			$inner_html = isset( $parsed_block['innerHTML'] ) && is_string( $parsed_block['innerHTML'] ) ? $parsed_block['innerHTML'] : '';
+
+			if ( null === $name && '' === trim( $inner_html ) ) {
+				continue;
+			}
+
+			$blocks[] = array(
+				'name'          => $name,
+				'attributes'    => (object) ( isset( $parsed_block['attrs'] ) && is_array( $parsed_block['attrs'] ) ? $parsed_block['attrs'] : array() ),
+				'inner_blocks'  => $this->prepare_blocks_for_response( isset( $parsed_block['innerBlocks'] ) && is_array( $parsed_block['innerBlocks'] ) ? $parsed_block['innerBlocks'] : array() ),
+				'inner_html'    => $inner_html,
+				'inner_content' => isset( $parsed_block['innerContent'] ) && is_array( $parsed_block['innerContent'] ) ? $parsed_block['innerContent'] : array(),
+			);
+		}
+
+		return $blocks;
 	}
 
 	/**
@@ -2667,6 +2715,39 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'type'        => 'integer',
 								'context'     => array( 'edit' ),
 								'readonly'    => true,
+							),
+							'blocks'        => array(
+								'description' => __( 'Blocks parsed from the content. Only returned when requested with _fields.' ),
+								'type'        => 'array',
+								'context'     => array( 'edit' ),
+								'readonly'    => true,
+								'items'       => array(
+									'type'       => 'object',
+									'properties' => array(
+										'name'          => array(
+											'description' => __( 'Block name, or null for freeform content.' ),
+											'type'        => array( 'string', 'null' ),
+										),
+										'attributes'    => array(
+											'description' => __( 'Attributes stored in the block delimiter.' ),
+											'type'        => 'object',
+										),
+										'inner_blocks'  => array(
+											'description' => __( 'Nested blocks, in the same shape.' ),
+											'type'        => 'array',
+											'items'       => array( 'type' => 'object' ),
+										),
+										'inner_html'    => array(
+											'description' => __( 'Block HTML without its inner blocks.' ),
+											'type'        => 'string',
+										),
+										'inner_content' => array(
+											'description' => __( 'HTML chunks, with null where each inner block goes.' ),
+											'type'        => 'array',
+											'items'       => array( 'type' => array( 'string', 'null' ) ),
+										),
+									),
+								),
 							),
 							'protected'     => array(
 								'description' => __( 'Whether the content is protected with a password.' ),
