@@ -244,27 +244,27 @@
 	line-height: 1.138888889;
 }
 
-.editor-styles-wrapper h2,
+.editor-styles-wrapper h2.wp-block-post-title,
 .editor-styles-wrapper .heading-size-2 {
 	font-size: 32px;
 }
 
-.editor-styles-wrapper h3,
+.editor-styles-wrapper h3.wp-block-post-title,
 .editor-styles-wrapper .heading-size-3 {
 	font-size: 28px;
 }
 
-.editor-styles-wrapper h4,
+.editor-styles-wrapper h4.wp-block-post-title,
 .editor-styles-wrapper .heading-size-4 {
 	font-size: 24px;
 }
 
-.editor-styles-wrapper h5,
+.editor-styles-wrapper h5.wp-block-post-title,
 .editor-styles-wrapper .heading-size-5 {
 	font-size: 21px;
 }
 
-.editor-styles-wrapper h6,
+.editor-styles-wrapper h6.wp-block-post-title,
 .editor-styles-wrapper .heading-size-6 {
 	font-size: 16px;
 	letter-spacing: 0.03125em;
