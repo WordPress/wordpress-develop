@@ -117,6 +117,7 @@ class Tests_Term_GetTheTermList extends WP_UnitTestCase {
 		$result = get_the_term_list( self::$post_id, 'post_tag' );
 
 		$this->assertWPError( $result );
+		$this->assertSame( 'invalid_term', $result->get_error_code() );
 	}
 
 	/**

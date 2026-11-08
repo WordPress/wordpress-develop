@@ -11,8 +11,6 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->set_permalink_structure( '/%postname%/' );
-
 		/*
 		 * Priming the server re-registers the sitemap query vars. tear_down()
 		 * replaces the $wp global with a fresh WP instance, which carries only
@@ -46,7 +44,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_sitemap_requests(): array {
+	public static function data_sitemap_requests(): array {
 		return array(
 			'index'                     => array( '/?sitemap=index' ),
 			'posts provider'            => array( '/?sitemap=posts&sitemap-subtype=post' ),

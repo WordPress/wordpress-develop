@@ -1,22 +1,28 @@
 <?php
 /**
+ * @ticket 66187
+ *
  * @group secrets
  */
 class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_valid_names
+	 * Ensure that wp_secrets_validate_name() accepts well-formed namespaced names up to the max length.
+	 *
+	 * @covers ::wp_secrets_validate_name
+	 *
+	 * @dataProvider data_accepts_valid_names
 	 *
 	 * @param string $name A name that must be accepted.
 	 */
 	public function test_accepts_valid_names( $name ): void {
-		$this->assertTrue( wp_secrets_validate_name( $name ) );
+		$this->assertTrue( wp_secrets_validate_name( $name ), 'A well-formed namespaced name should be accepted.' );
 	}
 
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_valid_names(): array {
+	public static function data_accepts_valid_names(): array {
 		return array(
 			'simple'                      => array( 'myplugin/api-key' ),
 			'single character segments'   => array( 'a/b' ),
@@ -30,61 +36,25 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_invalid_names
+	 * Ensure that wp_secrets_validate_name() rejects malformed, overlong and wrongly cased names.
+	 *
+	 * @covers ::wp_secrets_validate_name
+	 *
+	 * @dataProvider data_rejects_invalid_names
 	 *
 	 * @param string $name A name that must be rejected.
 	 */
 	public function test_rejects_invalid_names( $name ): void {
 		$result = wp_secrets_validate_name( $name );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
-	}
-
-	/**
-	 * An unnamespaced name is accepted, but reports through _doing_it_wrong().
-	 * It exists so code written against the Displace prototype – whose keyspace
-	 * was flat – can be ported one call site at a time rather than all at once.
-	 * See docs/decisions/0005-namespaces-are-not-access-control.md for the consequence.
-	 *
-	 * @dataProvider data_unnamespaced_names
-	 *
-	 * @param string $name An unnamespaced name that must be accepted.
-	 */
-	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ): void {
-		$this->setExpectedIncorrectUsage( 'wp_secrets_validate_name' );
-
-		$this->assertTrue( wp_secrets_validate_name( $name ) );
+		$this->assertWPError( $result, 'An invalid name should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An invalid name should be reported with the invalid name error code.' );
 	}
 
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_unnamespaced_names(): array {
-		return array(
-			'simple'      => array( 'api_key' ),
-			'with hyphen' => array( 'api-key' ),
-			'digits'      => array( 'key2' ),
-			'at the max'  => array( str_repeat( 'a', WP_SECRETS_MAX_NAME_LENGTH ) ),
-		);
-	}
-
-	/**
-	 * The unnamespaced form relaxes the "exactly one slash" rule, not the
-	 * character rules – an unnamespaced name is still held to the same segment
-	 * pattern as a namespaced one.
-	 */
-	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {
-		$result = wp_secrets_validate_name( 'Not_A_Valid_Name' );
-
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
-	}
-
-	/**
-	 * @return array<string, array{0: string}>
-	 */
-	public function data_invalid_names(): array {
+	public static function data_rejects_invalid_names(): array {
 		return array(
 			'empty string'                 => array( '' ),
 			'two slashes'                  => array( 'too/many/slashes' ),
@@ -103,5 +73,48 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 			'non-ascii'                    => array( 'plügin/key' ),
 			'one character over the max'   => array( str_repeat( 'a', 85 ) . '/' . str_repeat( 'b', 87 ) ),
 		);
+	}
+
+	/**
+	 * An unnamespaced name is accepted, but reports through _doing_it_wrong().
+	 * It exists so existing code that uses flat names can be ported one call site
+	 * at a time rather than all at once.
+	 *
+	 * @covers ::wp_secrets_validate_name
+	 *
+	 * @dataProvider data_accepts_an_unnamespaced_name_but_reports_it
+	 *
+	 * @param string $name An unnamespaced name that must be accepted.
+	 */
+	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ): void {
+		$this->setExpectedIncorrectUsage( 'wp_secrets_validate_name' );
+
+		$this->assertTrue( wp_secrets_validate_name( $name ), 'An unnamespaced name should be accepted.' );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_accepts_an_unnamespaced_name_but_reports_it(): array {
+		return array(
+			'simple'      => array( 'api_key' ),
+			'with hyphen' => array( 'api-key' ),
+			'digits'      => array( 'key2' ),
+			'at the max'  => array( str_repeat( 'a', WP_SECRETS_MAX_NAME_LENGTH ) ),
+		);
+	}
+
+	/**
+	 * The unnamespaced form relaxes the "exactly one slash" rule, not the
+	 * character rules – an unnamespaced name is still held to the same segment
+	 * pattern as a namespaced one.
+	 *
+	 * @covers ::wp_secrets_validate_name
+	 */
+	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {
+		$result = wp_secrets_validate_name( 'Not_A_Valid_Name' );
+
+		$this->assertWPError( $result, 'An unnamespaced name with invalid characters should be rejected with a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'An unnamespaced name with invalid characters should be reported as an invalid name.' );
 	}
 }

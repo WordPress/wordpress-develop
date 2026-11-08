@@ -496,7 +496,7 @@ class WP_Duotone {
 
 		$hsla = self::colord_clamp_hsla(
 			array(
-				'h' => self::colord_parse_hue( $match[1], $match[2] ),
+				'h' => self::colord_parse_hue( (float) $match[1], $match[2] ),
 				's' => (float) $match[3],
 				'l' => (float) $match[4],
 				'a' => '' === $match[5] ? 1 : (float) $match[5] / ( $match[6] ? 100 : 1 ),
@@ -1279,9 +1279,7 @@ class WP_Duotone {
 	public static function add_editor_settings( $settings ) {
 		$global_styles_presets = self::get_all_global_styles_presets();
 		if ( ! empty( $global_styles_presets ) ) {
-			if ( ! isset( $settings['styles'] ) ) {
-				$settings['styles'] = array();
-			}
+			$settings['styles'] ??= array();
 
 			$settings['styles'][] = array(
 				// For the editor we can add all of the presets by default.

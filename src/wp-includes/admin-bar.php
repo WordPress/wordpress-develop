@@ -116,6 +116,25 @@ function wp_admin_bar_render() {
 }
 
 /**
+ * Returns inline SVG markup wrapped for use as an admin bar node icon.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $icon_name Namespaced icon name, e.g. 'core-admin/wordpress'.
+ * @return string Admin bar icon markup, or empty string if the icon is not found.
+ */
+function _wp_admin_bar_icon( $icon_name ) {
+	$icon = wp_get_icon( $icon_name );
+
+	if ( '' === $icon ) {
+		return '';
+	}
+
+	return '<span class="ab-icon svg-icon" aria-hidden="true">' . $icon . '</span>';
+}
+
+/**
  * Adds the WordPress logo menu.
  *
  * @since 3.3.0
@@ -136,7 +155,11 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 
 	$wp_logo_menu_args = array(
 		'id'    => 'wp-logo',
-		'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' .
+		/*
+		 * Dashicons back-compat: the icon is part of the title, so that a plugin that replaces
+		 * the title with its own logo does not also get the WordPress logo.
+		 */
+		'title' => _wp_admin_bar_icon( 'core-admin/wordpress' ) . '<span class="screen-reader-text">' .
 				/* translators: Hidden accessibility text. */
 				__( 'About WordPress' ) .
 			'</span>',
@@ -242,7 +265,8 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
 		$wp_admin_bar->add_node(
 			array(
 				'id'    => 'menu-toggle',
-				'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="screen-reader-text">' .
+				'icon'  => 'core-admin/menu',
+				'title' => '<span class="screen-reader-text">' .
 						/* translators: Hidden accessibility text. */
 						__( 'Menu' ) .
 					'</span>',
@@ -286,7 +310,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => '<span class="display-name">' . $display_name . '</span>' . $avatar,
+			'icon'   => empty( $avatar ) ? 'core-admin/people' : false,
+			'title'  => '<span class="display-name user-display-name">' . esc_html( $display_name ) . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
@@ -335,14 +360,13 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	}
 
 	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $display_name . '</span>' );
+	$howdy = sprintf( __( 'Howdy, %s' ), "<span class='user-display-name'>" . esc_html( $display_name ) . '</span>' );
 
 	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= '<span class="howdy">' . $howdy . '</span>';
+	$user_info .= "<span class='display-name howdy'>" . $howdy . '</span>';
 
-	if ( $display_name !== $current_user->user_login ) {
-		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
-	}
+	$username_hidden = ( $display_name === $current_user->user_login ) ? ' hidden' : '';
+	$user_info      .= "<span class='username'{$username_hidden}>" . esc_html( $current_user->user_login ) . '</span>';
 
 	if ( false !== $profile_url ) {
 		$user_info .= "<span class='display-name edit-profile'>" . __( 'Edit Profile' ) . '</span>';
@@ -423,11 +447,14 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		}
 	}
 
+	$links_to_home = is_admin() || ! current_user_can( 'read' );
+
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
+			'icon'  => $links_to_home ? 'core-admin/home' : 'core-admin/dashboard',
 			'title' => $title,
-			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
+			'href'  => $links_to_home ? home_url( '/' ) : admin_url(),
 			'meta'  => $meta,
 		)
 	);
@@ -510,6 +537,7 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Edit Site' ),
 			'href'  => add_query_arg(
 				array(
@@ -565,6 +593,7 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'customize',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Customize' ),
 			'href'  => $customize_url,
 			'meta'  => array(
@@ -602,6 +631,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'my-sites',
+			'icon'  => 'core-admin/sites',
 			'title' => __( 'My Sites' ),
 			'href'  => $my_sites_url,
 		)
@@ -712,6 +742,8 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
+	$default_blavatar = '<div class="blavatar">' . wp_get_icon( 'core-admin/wordpress', array( 'size' => 16 ) ) . '</div>';
+
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
@@ -723,7 +755,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
 			);
 		} else {
-			$blavatar = '<div class="blavatar"></div>';
+			$blavatar = $default_blavatar;
 		}
 
 		$blogname = $blog->blogname;
@@ -937,6 +969,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $post_type_object->labels->edit_item,
 						'href'  => $edit_post_link,
 					)
@@ -949,6 +982,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $tax->labels->edit_item,
 						'href'  => $edit_term_link,
 					)
@@ -960,6 +994,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => __( 'Edit User' ),
 						'href'  => $edit_user_link,
 					)
@@ -992,7 +1027,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$is_apple_os     = (bool) preg_match( "/{$apple_pattern}/i", $_SERVER['HTTP_USER_AGENT'] ?? '' );
 	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
 	$title           = sprintf(
-		'<span class="ab-icon" aria-hidden="true"></span><span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
@@ -1025,6 +1060,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
+			'icon'  => 'core-admin/search',
 			'title' => $title,
 			'href'  => '#',
 			'meta'  => array(
@@ -1089,11 +1125,12 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		return;
 	}
 
-	$title = '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">' . _x( 'New', 'admin bar menu group label' ) . '</span>';
+	$title = '<span class="ab-label">' . _x( 'New', 'admin bar menu group label' ) . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'new-content',
+			'icon'  => 'core-admin/plus',
 			'title' => $title,
 			'href'  => admin_url( array_key_first( $actions ) ),
 			'meta'  => array(
@@ -1147,14 +1184,14 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 		number_format_i18n( $awaiting_mod )
 	);
 
-	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
 	$title  = '<span class="ab-label awaiting-mod pending-count count-' . $awaiting_mod . '" aria-hidden="true">' . number_format_i18n( $awaiting_mod ) . '</span>';
 	$title .= '<span class="screen-reader-text comments-in-moderation-text">' . $awaiting_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'comments',
-			'title' => $icon . $title,
+			'icon'  => 'core-admin/comment',
+			'title' => $title,
 			'href'  => admin_url( 'edit-comments.php' ),
 		)
 	);
@@ -1262,14 +1299,14 @@ function wp_admin_bar_updates_menu( $wp_admin_bar ) {
 		number_format_i18n( $update_data['counts']['total'] )
 	);
 
-	$icon   = '<span class="ab-icon" aria-hidden="true"></span>';
 	$title  = '<span class="ab-label" aria-hidden="true">' . number_format_i18n( $update_data['counts']['total'] ) . '</span>';
 	$title .= '<span class="screen-reader-text updates-available-text">' . $updates_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'updates',
-			'title' => $icon . $title,
+			'icon'  => 'core-admin/update',
+			'title' => $title,
 			'href'  => network_admin_url( 'update-core.php' ),
 		)
 	);
@@ -1288,6 +1325,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	}
 
 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
+	$form .= _wp_admin_bar_icon( 'core-admin/search' );
 	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
 	$form .= '<label for="adminbar-search" class="screen-reader-text">' .
 			/* translators: Hidden accessibility text. */

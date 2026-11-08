@@ -33,13 +33,18 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = listTable.locator( '.row-title' );
-		await expect( posts ).toHaveCount( 1 );
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		await expect( posts.first() ).toHaveText( title );
+		const postLink = listTable.getByRole( 'link', {
+			name: title,
+			exact: true,
+		} );
+		await expect( postLink ).toBeVisible();
 
-		await posts.first().hover();
+		await postLink.hover();
 		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
 		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
 		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
@@ -61,17 +66,11 @@ test.describe( 'Edit Posts', () => {
 		// Click the post title (edit) link
 		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
 
-		// Wait for the editor iframe to load, and switch to it as the active content frame.
-		await page
-				.frameLocator( '[name=editor-canvas]' )
-				.locator( 'body > *' )
-				.first()
-				.waitFor();
-
 		const editorPostTitle = editor.canvas.getByRole( 'textbox', { name: 'Add title' } );
 
 		// Expect title field to be in the editor with correct title shown.
-		await expect( editorPostTitle ).toBeVisible();
+		// The editor iframe can take a while to load.
+		await expect( editorPostTitle ).toBeVisible( { timeout: 15_000 } );
 		await expect( editorPostTitle ).toHaveText( title );
 	} );
 
@@ -93,7 +92,13 @@ test.describe( 'Edit Posts', () => {
 		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
-		await pageUtils.pressKeys( 'Tab', { times: 2 } )
+		await pageUtils.pressKeys( 'Tab', { times: 2 } );
+		await expect(
+			page.getByRole( 'button', {
+				name: `Quick edit “${ title }” inline`,
+				exact: true,
+			} )
+		).toBeFocused();
 		await page.keyboard.press( 'Enter' );
 
 		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
@@ -106,18 +111,23 @@ test.describe( 'Edit Posts', () => {
 		await expect( page.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = listTable.locator( '.row-title' );
-		await expect( posts ).toHaveCount( 1 );
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		await expect( posts.first() ).toHaveText( `${ title } Edited` );
+		await expect(
+			listTable.getByRole( 'link', {
+				name: `${ title } Edited`,
+				exact: true,
+			} )
+		).toBeVisible();
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
 		admin,
 		editor,
 		page,
-		pageUtils
 	} ) => {
 		const title = 'Test Title';
 		await admin.createNewPost( { title } );
@@ -127,15 +137,91 @@ test.describe( 'Edit Posts', () => {
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
-
-		// Tab to the Trash button and press Enter to delete the post.
-		await pageUtils.pressKeys( 'Tab', { times: 3 } )
-		await page.keyboard.press( 'Enter' );
+		await listTable.getByRole( 'link', { name: title, exact: true } ).hover();
+		await listTable
+			.getByRole( 'link', {
+				name: `Move “${ title }” to the Trash`,
+				exact: true,
+			} )
+			.click();
 
 		await expect(
 			page.getByRole( 'cell', { name: 'No posts found.' } )
 		).toBeVisible();
 	} );
+} );
+
+test( 'bulk edits only the selected posts', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	const posts = [];
+	const titlePrefix = `Bulk edit ${ Date.now() }`;
+
+	try {
+		for ( const suffix of [ 'first', 'second', 'control' ] ) {
+			posts.push(
+				await requestUtils.createPost( {
+					title: `${ titlePrefix } ${ suffix }`,
+					status: 'publish',
+				} )
+			);
+		}
+
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: titlePrefix } ).toString()
+		);
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await page
+				.locator( `#post-${ post.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+		}
+		await page
+			.locator( '#bulk-action-selector-top' )
+			.selectOption( 'edit' );
+		await page.locator( '#doaction' ).click();
+		const bulkEdit = page.getByRole( 'region', {
+			name: 'Bulk Edit',
+			exact: true,
+		} );
+		await bulkEdit
+			.getByRole( 'combobox', { name: 'Status', exact: true } )
+			.selectOption( 'draft' );
+		await bulkEdit
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'2 posts updated.'
+		);
+
+		await page.reload();
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await expect(
+				page
+					.locator( `#post-${ post.id }` )
+					.getByText( 'Draft', { exact: true } )
+			).toBeVisible();
+			const savedPost = await requestUtils.rest( {
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( savedPost.status ).toBe( 'draft' );
+		}
+		const control = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ posts[ 2 ].id }`,
+			params: { context: 'edit' },
+		} );
+		expect( control.status ).toBe( 'publish' );
+	} finally {
+		for ( const post of posts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { force: true },
+			} );
+		}
+	}
 } );

@@ -74,9 +74,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -325,7 +325,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
+        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8', '12.3' ]
         multisite: [ false, true ]
         memcached: [ false ]
         # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP and MariaDB version above.
@@ -354,13 +354,13 @@ jobs:
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.8'
+          db-version: '12.3'
           multisite: false
           memcached: true
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.8'
+          db-version: '12.3'
           multisite: true
           memcached: true
     with:
@@ -383,8 +383,6 @@ jobs:
   #
   # Because upstream support for innovation releases is dropped when a new one is released (including security updates),
   # only the most recent innovation version is tested.
-  #
-  # MariaDB does not currently have a supported innovation release.
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
@@ -412,7 +410,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '12.1' ]
+        db-version: [ '26.10', '13.0' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -423,8 +421,10 @@ jobs:
 
         exclude:
           # Exclude version combinations that don't exist.
+          - db-type: 'mariadb'
+            db-version: '26.10'
           - db-type: 'mysql'
-            db-version: '12.1'
+            db-version: '13.0'
           # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
           - full-matrix: false
             php: '8.1'
@@ -520,7 +520,7 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.4', '8.4' ]
-        db-version: [ '9.7', '11.8' ]
+        db-version: [ '9.7', '12.3' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ false ]
 
@@ -531,7 +531,7 @@ jobs:
             db-type: 'mysql'
             multisite: true
           - php: '8.4'
-            db-version: '11.8'
+            db-version: '12.3'
             db-type: 'mariadb'
             multisite: true
           # Test with memcached.
@@ -549,7 +549,7 @@ jobs:
         exclude:
           # Exclude PHP versions that are not supported by the database versions.
           - db-type: 'mysql'
-            db-version: '11.8'
+            db-version: '12.3'
           - db-type: 'mariadb'
             db-version: '9.7'
 
@@ -588,13 +588,13 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '8.6' ]
-        db-version: [ '9.7', '11.8' ]
+        db-version: [ '9.7', '12.3' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ true, false ]
 
         exclude:
           - db-type: 'mysql'
-            db-version: '11.8'
+            db-version: '12.3'
           - db-type: 'mariadb'
             db-version: '9.7'
 

@@ -4669,6 +4669,24 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "author": {
+                            "description": "Limit result set to posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "author_exclude": {
+                            "description": "Ensure result set excludes posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
                             "type": "string",
@@ -4970,6 +4988,11 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "excerpt": {
                             "description": "The excerpt for the post.",
                             "type": "object",
@@ -5177,6 +5200,11 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "excerpt": {
@@ -5541,6 +5569,11 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "excerpt": {
@@ -12756,6 +12789,12 @@ mockedApiResponse.Schema = {
                             },
                             "additionalProperties": true,
                             "required": false
+                        },
+                        "has_required_capabilities": {
+                            "description": "Limit results to abilities whose required capabilities the current user has. Abilities without required capabilities are always included. Permission callbacks don't run, so an included ability can still deny execution.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
                         }
                     }
                 }
@@ -13043,6 +13082,72 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/view-config"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/entity-actions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "minLength": 1,
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "minLength": 1,
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/entity-actions"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/entity-fields": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/entity-fields"
                     }
                 ]
             }
@@ -13422,9 +13527,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13454,9 +13557,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13488,9 +13589,7 @@ mockedApiResponse.revision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.postAutosaves = [
@@ -13515,9 +13614,7 @@ mockedApiResponse.postAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13549,9 +13646,7 @@ mockedApiResponse.autosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.PagesCollection = [
@@ -13720,9 +13815,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13752,9 +13845,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13786,9 +13877,7 @@ mockedApiResponse.pageRevision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.pageAutosaves = [
@@ -13813,9 +13902,7 @@ mockedApiResponse.pageAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13847,9 +13934,7 @@ mockedApiResponse.pageAutosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.MediaCollection = [
