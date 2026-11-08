@@ -583,6 +583,11 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			$prepared->app_id = $request['app_id'];
 		}
 
+		$prepared->expires = null;
+		if ( isset( $request['expires'] ) && null !== $request['expires'] ) {
+			$prepared->expires = rest_parse_date( $request['expires'] );
+		}
+
 		/**
 		 * Filters an application password before it is inserted via the REST API.
 		 *
@@ -619,6 +624,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			'created'   => gmdate( 'Y-m-d\TH:i:s', $item['created'] ),
 			'last_used' => $item['last_used'] ? gmdate( 'Y-m-d\TH:i:s', $item['last_used'] ) : null,
 			'last_ip'   => $item['last_ip'] ? $item['last_ip'] : null,
+			'expires'   => ! empty( $item['expires'] ) ? gmdate( 'Y-m-d\TH:i:s', $item['expires'] ) : null,
 		);
 
 		if ( isset( $item['new_password'] ) ) {
@@ -848,6 +854,12 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'format'      => 'ip',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
+				),
+				'expires'   => array(
+					'description' => __( 'The GMT date the application password expires.' ),
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
 				),
 			),
 		);
