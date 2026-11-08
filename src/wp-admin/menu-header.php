@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -111,7 +111,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$class[] = esc_attr( $item[4] );
 		}
 
-		$class     = $class ? ' class="' . implode( ' ', $class ) . '"' : '';
+		$class     = ' class="' . implode( ' ', $class ) . '"';
 		$id        = ! empty( $item[5] ) ? ' id="' . preg_replace( '|[^a-zA-Z0-9_:.]|', '-', $item[5] ) . '"' : '';
 		$img       = '';
 		$img_style = '';
@@ -125,10 +125,17 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases.
+		 * as special cases. Namespaced icon names are rendered as inline SVG, or leave the
+		 * menu image empty if the icon is not found. Any other value is treated as an image URL.
+		 *
+		 * Dashicons back-compat: the `$menu` global keeps the Dashicons of the menu items,
+		 * including the core ones. Dashicons with a registered replacement icon are only
+		 * mapped to it here, when the menu is rendered, and other Dashicons are rendered
+		 * with the Dashicons font.
 		 */
 		if ( ! empty( $item[6] ) ) {
-			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$icon_name = WP_Icons_Registry::get_instance()->get_admin_icon_name_for_dashicon( $item[6] ) ?? $item[6];
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
@@ -137,6 +144,24 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
+			} elseif ( wp_is_valid_icon_name( $icon_name ) ) {
+				$img  = '<br />';
+				$icon = wp_get_icon( $icon_name );
+				if ( '' !== $icon ) {
+					$img       = $icon;
+					$img_class = ' dashicons-before svg-icon';
+				} elseif ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+					_doing_it_wrong(
+						__FUNCTION__,
+						sprintf(
+							/* translators: 1: Icon name, 2: Admin menu item slug. */
+							__( 'The icon "%1$s" of the admin menu item "%2$s" is not registered.' ),
+							$icon_name,
+							$item[2]
+						),
+						'7.2.0'
+					);
+				}
 			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
@@ -282,9 +307,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	}
 
 	echo '<li id="collapse-menu" class="hide-if-no-js">' .
-		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main menu' ) . '" aria-expanded="true">' .
-		'<span class="collapse-button-icon" aria-hidden="true"></span>' .
-		'<span class="collapse-button-label">' . __( 'Collapse menu' ) . '</span>' .
+		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main Menu' ) . '" aria-expanded="true">' .
+		'<span class="collapse-button-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/chevron-left' ) . '</span>' .
+		'<span class="collapse-button-label">' . __( 'Collapse Menu' ) . '</span>' .
 		'</button></li>';
 }
 

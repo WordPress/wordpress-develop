@@ -12,6 +12,11 @@ on:
         description: 'The status of the calling workflow'
         type: string
         required: true
+      version:
+        description: 'The WordPress version being tested, added to the workflow name in the message.'
+        type: string
+        required: false
+        default: ''
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK:
         description: 'The Slack webhook URL for a successful build.'
@@ -60,7 +65,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -130,11 +135,12 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
           retry-exempt-status-codes: 418
+          result-encoding: string
           script: |
             const commit_details = await github.rest.repos.getCommit({
               owner: context.repo.owner,
@@ -143,21 +149,14 @@ jobs:
             });
             return commit_details.data.commit.message;
 
-      - name: Prepare commit message.
-        id: commit-message
-        run: |
-          # shellcheck disable=SC2016
-          COMMIT_MESSAGE="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1' | sed 's/`/\\`/g' | sed 's/\"/\\\\\\"/g' | sed 's/\$/\\$/g')"
-          echo "commit_message_escaped=${COMMIT_MESSAGE}" >> "$GITHUB_OUTPUT"
-        env:
-          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && fromJson( steps.current-commit-message.outputs.result ) || github.event.head_commit.message }}
-
       - name: Construct payload and store as an output
         id: create-payload
         run: |
+          COMMIT_MSG="$(echo "${COMMIT_MSG_RAW}" | awk 'NR==1')"
+          WORKFLOW_NAME="${GITHUB_WORKFLOW}${VERSION:+ (WordPress ${VERSION})}"
           PAYLOAD="$( jq \
             -n \
-            --arg workflow_name "${GITHUB_WORKFLOW}" \
+            --arg workflow_name "${WORKFLOW_NAME}" \
             --arg ref_name "${CURRENT_BRANCH}" \
             --arg run_url "https://github.com/WordPress/wordpress-develop/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}" \
             --arg commit_message "${COMMIT_MSG}" \
@@ -165,20 +164,21 @@ jobs:
           )"
           echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
         env:
-          COMMIT_MSG: ${{ steps.commit-message.outputs.commit_message_escaped }}
+          COMMIT_MSG_RAW: ${{ ( github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ) && steps.current-commit-message.outputs.result || github.event.head_commit.message }}
+          VERSION: ${{ inputs.version }}
 
   # Posts notifications when a workflow fails.
   failure:
     name: Failure notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
@@ -189,13 +189,13 @@ jobs:
     name: Fixed notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ contains( fromJson( '["failure", "cancelled", "none"]' ), needs.prepare.outputs.previous_conclusion ) && inputs.calling_status == 'success' && success() }}
 
     steps:
       - name: Post failure notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
@@ -206,13 +206,13 @@ jobs:
     name: Success notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
     if: ${{ inputs.calling_status == 'success' && success() }}
 
     steps:
       - name: Post success notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
@@ -223,13 +223,13 @@ jobs:
     name: Cancelled notifications
     permissions: {}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
+    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack
-        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           webhook-type: webhook-trigger
           webhook: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}

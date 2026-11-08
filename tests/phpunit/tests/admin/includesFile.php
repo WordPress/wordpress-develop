@@ -110,7 +110,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_download_url_should_respect_filename_from_content_disposition_header() {
+	public static function data_download_url_should_respect_filename_from_content_disposition_header() {
 		return array(
 			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
 			'path traversal'   => array( 'filter_content_disposition_header_with_filename_with_path_traversal' ),
@@ -143,7 +143,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_save_to_temp_directory_when_getting_filename_from_content_disposition_header() {
+	public static function data_save_to_temp_directory_when_getting_filename_from_content_disposition_header() {
 		return array(
 			'valid parameters' => array( 'filter_content_disposition_header_with_filename' ),
 		);
@@ -228,7 +228,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_download_url_should_reject_filename_from_invalid_content_disposition_header() {
+	public static function data_download_url_should_reject_filename_from_invalid_content_disposition_header() {
 		return array(
 			'no context'        => array( 'filter_content_disposition_header_with_filename_without_context' ),
 			'inline context'    => array( 'filter_content_disposition_header_with_filename_with_inline_context' ),
@@ -310,7 +310,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_download_url_empty_url() {
+	public static function data_download_url_empty_url() {
 		return array(
 			'null'         => array( null ),
 			'false'        => array( false ),
@@ -388,5 +388,134 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Test that `download_url()` properly handles setting the file name when set using
+	 * the content type header on URLs with no file extension.
+	 *
+	 * @dataProvider data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @covers ::download_url
+	 * @ticket 54738
+	 *
+	 * @param callable $filter    A callback containing a fake Content-Type header.
+	 * @param string   $extension The expected file extension to match.
+	 */
+	public function test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined( $filter, $extension ) {
+		add_filter( 'pre_http_request', $filter );
+
+		$filename = download_url( 'url_with_content_type_header' );
+		$this->assertStringEndsWith( $extension, $filename );
+		$this->assertFileExists( $filename );
+		$this->unlink( $filename );
+	}
+
+	/**
+	 * Data provider for test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @see test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined()
+	 *
+	 * @ticket 54738
+	 *
+	 * @return Generator
+	 */
+	public static function data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined() {
+		yield 'Content-Type header in the response' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/jpeg',
+					),
+				);
+			},
+			'.jpg',
+		);
+
+		yield 'Invalid Content-Type header' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => '../../filename-from-content-disposition-header.txt',
+					),
+				);
+			},
+			'.tmp',
+		);
+
+		yield 'Valid content type but not supported mime type' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/x-xbm',
+					),
+				);
+			},
+			'.tmp',
+		);
+	}
+
+	/**
+	 * @ticket 66129
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_edit_theme_plugin_file
+	 */
+	public function test_wp_edit_theme_plugin_file_runs_loopback_check_for_network_active_plugin() {
+		$user_id = self::factory()->user->create();
+		grant_super_admin( $user_id );
+		wp_set_current_user( $user_id );
+
+		$plugin = 'hello.php';
+		$this->assertNull( activate_plugin( $plugin, '', true ) );
+
+		$loopback_requested = false;
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $parsed_args, string $url ) use ( &$loopback_requested ) {
+				$query_string = wp_parse_url( $url, PHP_URL_QUERY );
+				if ( ! is_string( $query_string ) ) {
+					return $preempt;
+				}
+				wp_parse_str( $query_string, $query_args );
+				if ( ! isset( $query_args['wp_scrape_key'] ) || ! is_string( $query_args['wp_scrape_key'] ) ) {
+					return $preempt;
+				}
+
+				$loopback_requested = true;
+				return array(
+					'body'     => sprintf( '###### wp_scraping_result_start:%1$s ######true###### wp_scraping_result_end:%1$s ######', $query_args['wp_scrape_key'] ),
+					'response' => array( 'code' => 200 ),
+				);
+			},
+			10,
+			3
+		);
+
+		$content = file_get_contents( WP_PLUGIN_DIR . '/' . $plugin );
+		$this->assertIsString( $content, "Expected $plugin to exist on disk." );
+
+		$this->assertTrue(
+			wp_edit_theme_plugin_file(
+				array(
+					'plugin'     => $plugin,
+					'file'       => $plugin,
+					'newcontent' => $content,
+					'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+				)
+			)
+		);
+
+		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
 	}
 }

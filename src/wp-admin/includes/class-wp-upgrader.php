@@ -73,11 +73,11 @@ class WP_Upgrader {
 	 * This is set by WP_Upgrader::install_package(), only when the package is installed
 	 * successfully. It will then be an array, unless a WP_Error is returned by the
 	 * {@see 'upgrader_post_install'} filter. In that case, the WP_Error will be assigned to
-	 * it.
+	 * it. Until then, it is an empty array, or null in subclasses which redeclare it.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var array|WP_Error $result {
+	 * @var array|WP_Error|null $result {
 	 *     @type string $source             The full path to the source the files were installed from.
 	 *     @type string $source_files       List of all the files in the source directory.
 	 *     @type string $destination        The full path to the installation destination folder.
@@ -292,30 +292,32 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Downloads a package.
+	 * Downloads a package for a WordPress core, plugin, theme, or translation upgrade.
 	 *
 	 * @since 2.8.0
 	 * @since 5.2.0 Added the `$check_signatures` parameter.
 	 * @since 5.5.0 Added the `$hook_extra` parameter.
 	 *
-	 * @param string $package          The URI of the package. If this is the full path to an
-	 *                                 existing local file, it will be returned untouched.
+	 * @param string $package          The URI of the package. May be a remote URL or local file path. If this is the full
+	 *                                 path to an existing local file, it will be returned untouched.
 	 * @param bool   $check_signatures Whether to validate file signatures. Default false.
 	 * @param array  $hook_extra       Extra arguments to pass to the filter hooks. Default empty array.
 	 * @return string|WP_Error The full path to the downloaded package file, or a WP_Error object.
 	 */
 	public function download_package( $package, $check_signatures = false, $hook_extra = array() ) {
 		/**
-		 * Filters whether to return the package.
+		 * Filters whether to download a package for a WordPress core, plugin, theme, or translation upgrade.
+		 *
+		 * Return a non-false value to short-circuit the download and return that value instead.
 		 *
 		 * @since 3.7.0
 		 * @since 5.5.0 Added the `$hook_extra` parameter.
 		 *
-		 * @param bool        $reply      Whether to bail without returning the package.
-		 *                                Default false.
-		 * @param string      $package    The package file name.
-		 * @param WP_Upgrader $upgrader   The WP_Upgrader instance.
-		 * @param array       $hook_extra Extra arguments passed to hooked filters.
+		 * @param false|string|WP_Error $reply      Whether to short-circuit the download, the path to the downloaded package,
+		 *                                          or a WP_Error object. Default false.
+		 * @param string                $package    The package URI. May be a remote URL or local file path.
+		 * @param WP_Upgrader           $upgrader   The WP_Upgrader instance.
+		 * @param array                 $hook_extra Extra arguments passed to hooked filters.
 		 */
 		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this, $hook_extra );
 		if ( false !== $reply ) {
@@ -342,6 +344,21 @@ class WP_Upgrader {
 	}
 
 	/**
+	 * Builds an unpredictable name for the directory a package is unpacked into.
+	 *
+	 * @since 7.1.4
+	 *
+	 * @param string $package The full local path or URI of the package.
+	 * @return string The directory name, without a path.
+	 */
+	private function get_working_dir_name( $package ) {
+		// Strip off any .tmp or .zip suffixes.
+		$name = basename( basename( $package, '.tmp' ), '.zip' );
+
+		return $name . '-' . wp_generate_password( 16, false );
+	}
+
+	/**
 	 * Unpacks a compressed package file.
 	 *
 	 * @since 2.8.0
@@ -364,16 +381,32 @@ class WP_Upgrader {
 
 		$upgrade_folder = $wp_filesystem->wp_content_dir() . 'upgrade/';
 
-		// Clean up contents of upgrade directory beforehand.
+		// Clean up contents of upgrade directory beforehand, keeping its index.php.
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
+				if ( 'index.php' === $file['name'] ) {
+					continue;
+				}
+
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
 		}
 
-		// We need a working directory - strip off any .tmp or .zip suffixes.
-		$working_dir = $upgrade_folder . basename( basename( $package, '.tmp' ), '.zip' );
+		/*
+		 * The upgrade directory is web-served. Keep it from being listed, as core does
+		 * for wp-content and its plugins and themes directories, so the name of the
+		 * working directory created below cannot be discovered from a directory index.
+		 */
+		if ( ! $wp_filesystem->is_dir( $upgrade_folder ) ) {
+			$wp_filesystem->mkdir( $upgrade_folder, FS_CHMOD_DIR );
+		}
+		if ( ! $wp_filesystem->exists( $upgrade_folder . 'index.php' ) ) {
+			$wp_filesystem->put_contents( $upgrade_folder . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+		}
+
+		// We need a working directory.
+		$working_dir = $upgrade_folder . $this->get_working_dir_name( $package );
 
 		// Clean up working directory.
 		if ( $wp_filesystem->is_dir( $working_dir ) ) {
@@ -403,7 +436,6 @@ class WP_Upgrader {
 	 * Flattens the results of WP_Filesystem_Base::dirlist() for iterating over.
 	 *
 	 * @since 4.9.0
-	 * @access protected
 	 *
 	 * @param array  $nested_files Array of files as returned by WP_Filesystem_Base::dirlist().
 	 * @param string $path         Relative path to prepend to child nodes. Optional.
@@ -486,7 +518,7 @@ class WP_Upgrader {
 	 * @since 6.2.0 Use move_dir() instead of copy_dir() when possible.
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem        WordPress filesystem subclass.
-	 * @global array              $wp_theme_directories
+	 * @global string[]           $wp_theme_directories
 	 *
 	 * @param array|string $args {
 	 *     Optional. Array or string of arguments for installing a package. Default empty array.
@@ -520,7 +552,6 @@ class WP_Upgrader {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		// These were previously extract()'d.
 		$source            = $args['source'];
 		$destination       = $args['destination'];
 		$clear_destination = $args['clear_destination'];
@@ -528,7 +559,7 @@ class WP_Upgrader {
 		/*
 		 * Give the upgrade an additional 300 seconds (5 minutes) to ensure the install
 		 * doesn't prematurely timeout having used up the maximum script execution time
-		 * upacking and downloading in WP_Upgrader->run().
+		 * downloading and unpacking in WP_Upgrader->run().
 		 */
 		if ( function_exists( 'set_time_limit' ) ) {
 			set_time_limit( 300 );
@@ -591,12 +622,12 @@ class WP_Upgrader {
 		 * Filters the source file location for the upgrade package.
 		 *
 		 * @since 2.8.0
-		 * @since 4.4.0 The $hook_extra parameter became available.
+		 * @since 4.4.0 The `$hook_extra` parameter became available.
 		 *
-		 * @param string      $source        File source location.
-		 * @param string      $remote_source Remote file source location.
-		 * @param WP_Upgrader $upgrader      WP_Upgrader instance.
-		 * @param array       $hook_extra    Extra arguments passed to hooked filters.
+		 * @param string|WP_Error $source        File source location or a WP_Error object.
+		 * @param string          $remote_source Remote file source location.
+		 * @param WP_Upgrader     $upgrader      WP_Upgrader instance.
+		 * @param array           $hook_extra    Extra arguments passed to hooked filters.
 		 */
 		$source = apply_filters( 'upgrader_source_selection', $source, $remote_source, $this, $args['hook_extra'] );
 
@@ -1008,23 +1039,36 @@ class WP_Upgrader {
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			WP_Filesystem();
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+
+			ob_start();
+			$credentials = request_filesystem_credentials( '' );
+			ob_end_clean();
+
+			if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+				wp_trigger_error( __FUNCTION__, __( 'Could not access filesystem.' ) );
+				return;
+			}
 		}
 
 		$file = $wp_filesystem->abspath() . '.maintenance';
+
 		if ( $enable ) {
 			if ( ! wp_doing_cron() ) {
 				$this->skin->feedback( 'maintenance_start' );
 			}
+
 			// Create maintenance file to signal that we are upgrading.
 			$maintenance_string = '<?php $upgrading = ' . time() . '; ?>';
 			$wp_filesystem->delete( $file );
 			$wp_filesystem->put_contents( $file, $maintenance_string, FS_CHMOD_FILE );
-		} elseif ( ! $enable && $wp_filesystem->exists( $file ) ) {
+		} elseif ( $wp_filesystem->exists( $file ) ) {
 			if ( ! wp_doing_cron() ) {
 				$this->skin->feedback( 'maintenance_end' );
 			}
+
 			$wp_filesystem->delete( $file );
 		}
 	}

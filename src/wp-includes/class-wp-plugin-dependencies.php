@@ -159,7 +159,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 		foreach ( $dependents as $dependent ) {
@@ -200,11 +200,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependency plugin slugs.
 	 */
 	public static function get_dependencies( $plugin_file ) {
-		if ( isset( self::$dependencies[ $plugin_file ] ) ) {
-			return self::$dependencies[ $plugin_file ];
-		}
-
-		return array();
+		return self::$dependencies[ $plugin_file ] ?? array();
 	}
 
 	/**
@@ -235,7 +231,7 @@ class WP_Plugin_Dependencies {
 			return false;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
@@ -354,12 +350,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function get_dependency_data( $slug ) {
 		$dependency_api_data = self::get_dependency_api_data();
-
-		if ( isset( $dependency_api_data[ $slug ] ) ) {
-			return $dependency_api_data[ $slug ];
-		}
-
-		return false;
+		return $dependency_api_data[ $slug ] ?? false;
 	}
 
 	/**
@@ -442,6 +433,8 @@ class WP_Plugin_Dependencies {
 	 * Checks plugin dependencies after a plugin is installed via AJAX.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @return never
 	 */
 	public static function check_plugin_dependencies_during_ajax() {
 		check_ajax_referer( 'updates' );
@@ -495,7 +488,7 @@ class WP_Plugin_Dependencies {
 			wp_send_json_success( $status );
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$inactive_dependencies = array();
 		foreach ( $dependencies as $dependency ) {
@@ -544,7 +537,7 @@ class WP_Plugin_Dependencies {
 			return self::$plugins;
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		self::$plugins = get_plugins();
 
 		return self::$plugins;
@@ -652,13 +645,13 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 *
-	 * @return array|void An array of dependency API data, or void on early exit.
+	 * @return array|null An array of dependency API data, or null on early exit.
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
 
 		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
-			return;
+			return null;
 		}
 
 		if ( is_array( self::$dependency_api_data ) ) {

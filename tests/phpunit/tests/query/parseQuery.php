@@ -5,61 +5,39 @@
  */
 class Tests_Query_ParseQuery extends WP_UnitTestCase {
 	/**
-	 * @ticket 29736
+	 * Data provider for test_parse_query_s_type.
+	 *
+	 * @return array[]
 	 */
-	public function test_parse_query_s_array() {
-		$q = new WP_Query();
-		$q->parse_query(
-			array(
-				's' => array( 'foo' ),
-			)
+	public static function data_parse_query_s_types() {
+		return array(
+			'array input returns empty string' => array( array( 'foo' ), '' ),
+			'string input returns string'      => array( 'foo', 'foo' ),
+			'float input returns float'        => array( 3.5, 3.5 ),
+			'int input returns int'            => array( 3, 3 ),
+			'bool input returns bool'          => array( true, true ),
 		);
-
-		$this->assertSame( '', $q->query_vars['s'] );
 	}
 
-	public function test_parse_query_s_string() {
+	/**
+	 * Tests that WP_Query::parse_query() handles various types for the 's' parameter.
+	 *
+	 * @ticket 29736
+	 *
+	 * @dataProvider data_parse_query_s_types
+	 *
+	 * @param mixed $input    The value to pass as 's'.
+	 * @param mixed $expected The expected value of query_vars['s'].
+	 */
+	public function test_parse_query_s_type( $input, $expected ) {
 		$q = new WP_Query();
 		$q->parse_query(
 			array(
-				's' => 'foo',
+				's' => $input,
 			)
 		);
 
-		$this->assertSame( 'foo', $q->query_vars['s'] );
-	}
-
-	public function test_parse_query_s_float() {
-		$q = new WP_Query();
-		$q->parse_query(
-			array(
-				's' => 3.5,
-			)
-		);
-
-		$this->assertSame( 3.5, $q->query_vars['s'] );
-	}
-
-	public function test_parse_query_s_int() {
-		$q = new WP_Query();
-		$q->parse_query(
-			array(
-				's' => 3,
-			)
-		);
-
-		$this->assertSame( 3, $q->query_vars['s'] );
-	}
-
-	public function test_parse_query_s_bool() {
-		$q = new WP_Query();
-		$q->parse_query(
-			array(
-				's' => true,
-			)
-		);
-
-		$this->assertTrue( $q->query_vars['s'] );
+		$this->assertSame( $expected, $q->query_vars['s'] );
 	}
 
 	/**
@@ -232,5 +210,81 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertEmpty( $q->query_vars['attachment_id'] );
+	}
+
+	/**
+	 * Tests that a fatal error is not thrown when a hierarchical taxonomy query var
+	 * passed to wp_basename() in ::parse_tax_query() is an array instead of a string.
+	 *
+	 * The message that we should not see:
+	 * `TypeError: urldecode(): Argument #1 ($string) must be of type string, array given`.
+	 *
+	 * @ticket 64870
+	 */
+	public function test_parse_query_hierarchical_taxonomy_query_var_array() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'query_var' => 'wptests_tax',
+				'rewrite'   => array( 'hierarchical' => true ),
+				'public'    => true,
+			)
+		);
+
+		$q = new WP_Query(
+			array(
+				'wptests_tax' => array( 'term-a', 'term-b' ),
+			)
+		);
+
+		unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertIsArray( $q->posts );
+	}
+
+	/**
+	 * Tests that a secondary query can be `is_home` while serving a REST request.
+	 *
+	 * Runs in a separate process because constants cannot be redefined.
+	 *
+	 * @ticket 50213
+	 *
+	 * @covers WP_Query::parse_query
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_secondary_query_during_rest_request_can_be_home() {
+		define( 'REST_REQUEST', true );
+
+		$query = new WP_Query();
+		$query->parse_query( array() );
+
+		$this->assertFalse( $query->is_main_query(), 'Precondition: the query must not be the main query.' );
+		$this->assertTrue( $query->is_home );
+	}
+
+	/**
+	 * Tests that the main query is not `is_home` while serving a REST request.
+	 *
+	 * Runs in a separate process because constants cannot be redefined.
+	 *
+	 * @ticket 50213
+	 *
+	 * @covers WP_Query::parse_query
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_main_query_during_rest_request_is_not_home() {
+		define( 'REST_REQUEST', true );
+
+		$query                   = new WP_Query();
+		$GLOBALS['wp_the_query'] = $query;
+		$query->parse_query( array() );
+
+		$this->assertTrue( $query->is_main_query(), 'Precondition: the query must be the main query.' );
+		$this->assertFalse( $query->is_home );
 	}
 }
