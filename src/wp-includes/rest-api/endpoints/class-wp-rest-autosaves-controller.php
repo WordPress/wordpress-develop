@@ -302,12 +302,14 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	}
 
 	/**
-	 * Gets a collection of autosaves using wp_get_post_autosave.
+	 * Gets a collection of autosaves for the parent post.
 	 *
-	 * Contains the user's autosave, for empty if it doesn't exist.
+	 * WordPress stores at most one autosave per author, so this contains one
+	 * entry per author who has autosaved the parent post, newest first.
 	 *
 	 * @since 5.0.0
-	 * @since 7.3.0 Added support for the `author` parameter.
+	 * @since 7.3.0 Autosaves are queried directly rather than filtered out of
+	 *              every revision of the parent. Added the `author` parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -326,50 +328,43 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$response  = array();
 		$parent_id = $parent->ID;
 
+		$query_args = array(
+			'post_type'        => 'revision',
+			'post_status'      => 'inherit',
+			'post_parent'      => $parent_id,
+			// Unlike `name`, this does not make the query singular.
+			'post_name__in'    => array( $parent_id . '-autosave-v1' ),
+			'orderby'          => array(
+				'date' => 'DESC',
+				'ID'   => 'DESC',
+			),
+			'posts_per_page'   => -1,
+			// Matches the isolation of the wp_get_post_revisions() lookup this replaces.
+			'suppress_filters' => true,
+		);
+
 		if ( ! empty( $request['author'] ) ) {
-			$autosaves = get_posts(
-				array(
-					'post_type'        => 'revision',
-					'post_status'      => 'inherit',
-					'post_parent'      => $parent_id,
-					'name'             => $parent_id . '-autosave-v1',
-					'author__in'       => $request['author'],
-					'orderby'          => array(
-						'date' => 'DESC',
-						'ID'   => 'DESC',
-					),
-					'posts_per_page'   => -1,
-					'suppress_filters' => false,
-				)
-			);
-
-			// Each author has at most one autosave; keep only the newest if not.
-			$seen_authors = array();
-
-			foreach ( $autosaves as $autosave ) {
-				if ( in_array( $autosave->post_author, $seen_authors, true ) ) {
-					continue;
-				}
-				$seen_authors[] = $autosave->post_author;
-
-				$data       = $this->prepare_item_for_response( $autosave, $request );
-				$response[] = $this->prepare_response_for_collection( $data );
-			}
-
-			return rest_ensure_response( $response );
+			$query_args['author__in'] = $request['author'];
 		}
 
-		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
+		$autosaves = get_posts( $query_args );
 
-		foreach ( $revisions as $revision ) {
-			if ( str_contains( $revision->post_name, "{$parent_id}-autosave" ) ) {
-				$data       = $this->prepare_item_for_response( $revision, $request );
-				$response[] = $this->prepare_response_for_collection( $data );
+		// Each author has at most one autosave; keep only the newest if not.
+		$seen_authors = array();
+
+		foreach ( $autosaves as $autosave ) {
+			if ( in_array( $autosave->post_author, $seen_authors, true ) ) {
+				continue;
 			}
+			$seen_authors[] = $autosave->post_author;
+
+			$data       = $this->prepare_item_for_response( $autosave, $request );
+			$response[] = $this->prepare_response_for_collection( $data );
 		}
 
 		return rest_ensure_response( $response );
 	}
+
 
 
 	/**
@@ -543,6 +538,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Retrieves the query params for the autosaves collection.
 	 *
 	 * @since 5.0.0
+	 * @since 7.3.0 Added the `author` parameter.
 	 *
 	 * @return array Collection parameters.
 	 */
