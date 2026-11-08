@@ -54,19 +54,8 @@ test.describe( 'Classic Menus', () => {
 		).toBeVisible();
 
 		// Assign the menu to the theme's primary location and save.
-		const primaryMenu = page.getByRole( 'checkbox', {
-			name: 'Primary menu',
-		} );
-		// Use the keyboard to avoid the focus-induced scroll described in #65684.
-		await primaryMenu.focus();
-		await page.keyboard.press( 'Space' );
-		await expect( primaryMenu ).toBeChecked();
-
-		// Activate via keyboard: the sticky footer bar can shift on focus
-		// and swallow the first pointer click at certain window heights.
-		// See https://core.trac.wordpress.org/ticket/65684.
-		await page.locator( '#save_menu_footer' ).focus();
-		await page.keyboard.press( 'Enter' );
+		await page.getByRole( 'checkbox', { name: 'Primary menu' } ).check();
+		await page.locator( '#save_menu_footer' ).click();
 
 		// The location assignment persists.
 		await expect
@@ -102,12 +91,7 @@ test.describe( 'Classic Menus', () => {
 
 		// Deleting asks for confirmation.
 		page.on( 'dialog', ( dialog ) => dialog.accept() );
-
-		// Activate via keyboard: the sticky footer bar can shift on focus
-		// and swallow the first pointer click at certain window heights.
-		// See https://core.trac.wordpress.org/ticket/65684.
-		await page.getByRole( 'link', { name: 'Delete Menu' } ).focus();
-		await page.keyboard.press( 'Enter' );
+		await page.getByRole( 'link', { name: 'Delete Menu' } ).click();
 
 		// With the only menu gone, the screen returns to the create form.
 		await expect(
