@@ -67,14 +67,14 @@ $title = __( 'Authorize Application' );
 
 $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
 $app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
-$success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
+$success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : '';
 
 if ( ! empty( $_REQUEST['reject_url'] ) ) {
 	$reject_url = $_REQUEST['reject_url'];
 } elseif ( $success_url ) {
 	$reject_url = add_query_arg( 'success', 'false', $success_url );
 } else {
-	$reject_url = null;
+	$reject_url = '';
 }
 
 $user = wp_get_current_user();
