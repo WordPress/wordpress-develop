@@ -212,4 +212,72 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		$this->assertFalse( get_lastcommentmodified() );
 	}
+
+	/**
+	 * Tests that a comment type added via the 'default_excluded_comment_types' filter
+	 * does not move the last comment modified date.
+	 *
+	 * @ticket 65537
+	 *
+	 * @dataProvider data_internal_comment_types_are_excluded
+	 *
+	 * @param string $timezone Timezone argument to pass to get_lastcommentmodified().
+	 * @param string $expected Expected date.
+	 */
+	public function test_filtered_excluded_comment_type_is_excluded( string $timezone, string $expected ): void {
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'review';
+				return $types;
+			}
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_type'     => 'review',
+				'comment_date'     => '2020-01-01 11:00:00',
+				'comment_date_gmt' => '2020-01-01 10:00:00',
+			)
+		);
+
+		$modified = get_lastcommentmodified( $timezone );
+
+		$this->assertIsString( $modified );
+		$this->assertSame( strtotime( $expected ), strtotime( $modified ) );
+	}
+
+	/**
+	 * Tests that emptying the excluded comment types lets notes move the date.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_empty_excluded_comment_types_includes_notes(): void {
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		self::factory()->comment->create(
+			array(
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_type'     => 'note',
+				'comment_date'     => '2020-01-01 11:00:00',
+				'comment_date_gmt' => '2020-01-01 10:00:00',
+			)
+		);
+
+		$modified = get_lastcommentmodified( 'gmt' );
+
+		$this->assertIsString( $modified );
+		$this->assertSame( strtotime( '2020-01-01 10:00:00' ), strtotime( $modified ) );
+	}
 }

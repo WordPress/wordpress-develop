@@ -402,6 +402,8 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
  * @since 7.2.0 The 'note' and 'reaction' comment types are excluded from the query.
+ * @since 7.2.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -419,19 +421,23 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		return $comment_modified_date;
 	}
 
+	$type_not_in = wp_get_excluded_comment_types_clause();
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $type_not_in is prepared.
 	switch ( $timezone ) {
 		case 'gmt':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1'$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1'$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1'", $add_seconds_server ) . "$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 	}
+	// phpcs:enable
 
 	if ( $comment_modified_date ) {
 		wp_cache_set( $key, $comment_modified_date, 'timeinfo' );
