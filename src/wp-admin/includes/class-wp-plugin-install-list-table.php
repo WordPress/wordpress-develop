@@ -742,7 +742,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			}
 			?>
 			<div class="plugin-card-top">
-				<?php // Decorative icon; aria-hidden and placed first for DOM/focus order. See #64686. ?>
 				<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" aria-hidden="true" />
 				<div class="plugin-card-info">
 					<div class="name column-name">
