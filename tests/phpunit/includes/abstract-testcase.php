@@ -566,7 +566,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * survive into the next test. Registering a comment type creates no hooks, rewrite
 	 * rules, or meta boxes, so dropping the registry is complete cleanup.
 	 */
-	protected function reset_comment_types() {
+	protected function reset_comment_types(): void {
 		$GLOBALS['wp_comment_types'] = array();
 
 		create_initial_comment_types();
