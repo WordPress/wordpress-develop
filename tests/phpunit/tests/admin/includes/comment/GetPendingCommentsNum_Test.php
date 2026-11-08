@@ -62,18 +62,17 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 		$this->make_pending( $post_id );
 		$this->make_pending( $post_id, 'review' );
 
-		// 'review' is counted by default.
-		$this->assertSame( 2, get_pending_comments_num( $post_id ) );
+		$this->assertSame( 2, get_pending_comments_num( $post_id ), 'A custom type should be counted by default.' );
 
-		$filter = static function ( $types ) {
-			$types[] = 'review';
-			return $types;
-		};
-		add_filter( 'default_excluded_comment_types', $filter );
-		$num = get_pending_comments_num( $post_id );
-		remove_filter( 'default_excluded_comment_types', $filter );
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( $types ) {
+				$types[] = 'review';
+				return $types;
+			}
+		);
 
-		$this->assertSame( 1, $num );
+		$this->assertSame( 1, get_pending_comments_num( $post_id ), 'A filtered type should not be counted.' );
 	}
 
 	/**
@@ -85,13 +84,11 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id, 'note' );
 
-		$this->assertSame( 0, get_pending_comments_num( $post_id ) );
+		$this->assertSame( 0, get_pending_comments_num( $post_id ), 'A note should not be counted by default.' );
 
 		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
-		$num = get_pending_comments_num( $post_id );
-		remove_filter( 'default_excluded_comment_types', '__return_empty_array' );
 
-		$this->assertSame( 1, $num );
+		$this->assertSame( 1, get_pending_comments_num( $post_id ), 'A note should be counted once nothing is excluded.' );
 	}
 
 	/**
@@ -107,10 +104,8 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 		$this->make_pending( $post_id, 'note' );
 
 		add_filter( 'default_excluded_comment_types', '__return_false' );
-		$num = get_pending_comments_num( $post_id );
-		remove_filter( 'default_excluded_comment_types', '__return_false' );
 
-		$this->assertSame( 1, $num );
+		$this->assertSame( 1, get_pending_comments_num( $post_id ) );
 	}
 
 	/**
@@ -126,7 +121,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 
 		$counts = get_pending_comments_num( array( $post_a, $post_b ) );
 
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				$post_a => 1,
 				$post_b => 2,

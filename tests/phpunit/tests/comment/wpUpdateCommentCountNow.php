@@ -105,20 +105,19 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		// Without exclusion, both approved comments are counted.
-		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		$this->assertSame( '2', get_comments_number( $post_id ) );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The unfiltered count should be updated.' );
+		$this->assertSame( '2', get_comments_number( $post_id ), 'Both approved comments should be counted without the filter.' );
 
-		// Excluding 'review' through the same filter that hides it from queries drops it from the count.
-		$filter = static function ( $types ) {
-			$types[] = 'review';
-			return $types;
-		};
-		add_filter( 'default_excluded_comment_types', $filter );
-		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		remove_filter( 'default_excluded_comment_types', $filter );
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( $types ) {
+				$types[] = 'review';
+				return $types;
+			}
+		);
 
-		$this->assertSame( '1', get_comments_number( $post_id ) );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The filtered count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'The filtered type should drop out of the count.' );
 	}
 
 	/**
@@ -140,16 +139,13 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 			)
 		);
 
-		// By default the 'note' type is excluded.
-		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		$this->assertSame( '0', get_comments_number( $post_id ) );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The default count should be updated.' );
+		$this->assertSame( '0', get_comments_number( $post_id ), 'A note should not be counted by default.' );
 
-		// A plugin that clears the excluded set causes notes to be counted.
 		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
-		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		remove_filter( 'default_excluded_comment_types', '__return_empty_array' );
 
-		$this->assertSame( '1', get_comments_number( $post_id ) );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The unfiltered count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
 	}
 
 	/**
@@ -172,10 +168,9 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		);
 
 		add_filter( 'default_excluded_comment_types', '__return_false' );
-		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
-		remove_filter( 'default_excluded_comment_types', '__return_false' );
 
-		$this->assertSame( '1', get_comments_number( $post_id ) );
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
 	}
 
 	public function _return_100() {

@@ -219,8 +219,8 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$q = new WP_Query();
 		$q->query( $args );
 
-		$this->assertTrue( $q->is_comment_feed() );
-		$this->assertFalse( $q->is_singular() );
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertFalse( $q->is_singular(), 'The query should not be singular.' );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
 		$this->assertNotContains( $private_id, $comment_ids, 'Comments feed should not include excluded types.' );
@@ -250,8 +250,8 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( $q->is_comment_feed() );
-		$this->assertTrue( $q->is_archive() );
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertTrue( $q->is_archive(), 'The query should be an archive.' );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
 		$this->assertNotContains( $private_id, $comment_ids, 'Archive comments feed should not include excluded types.' );
@@ -263,7 +263,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 */
 	public function test_single_comment_feed_should_exclude_filtered_types(): void {
 		$post = get_post( self::$post_ids[0] );
-		$this->assertInstanceOf( WP_Post::class, $post );
+		$this->assertInstanceOf( WP_Post::class, $post, 'The fixture post should exist.' );
 
 		$private_id = self::factory()->comment->create(
 			array(
@@ -285,8 +285,8 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( $q->is_comment_feed() );
-		$this->assertTrue( $q->is_singular() );
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertTrue( $q->is_singular(), 'The query should be singular.' );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
 		$this->assertNotContains( $private_id, $comment_ids, 'Singular comments feed should not include excluded types.' );

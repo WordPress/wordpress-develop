@@ -312,7 +312,7 @@ OPTIONS;
 		$_REQUEST['comment_type'] = $comment_type;
 		$this->table->prepare_items();
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( $regular_comment_id ),
 			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
 		);
@@ -362,7 +362,7 @@ OPTIONS;
 		$_REQUEST['comment_type'] = 'private';
 		$this->table->prepare_items();
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( $private_comment_id ),
 			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
 		);
@@ -449,7 +449,7 @@ OPTIONS;
 		$_REQUEST['comment_type'] = array( 'private' );
 		$this->table->prepare_items();
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( $regular_comment_id ),
 			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
 			'An array request should be treated as no type filter and keep the excluded type hidden.'

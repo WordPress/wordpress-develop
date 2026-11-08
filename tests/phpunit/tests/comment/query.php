@@ -5768,23 +5768,16 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
 	public function test_default_excluded_comment_types_filter_receives_default_and_instance() {
-		$filter_args = array();
-
-		add_filter(
-			'default_excluded_comment_types',
-			static function ( $types, $query ) use ( &$filter_args ) {
-				$filter_args = array( $types, $query );
-				return $types;
-			},
-			10,
-			2
-		);
+		$filter = new MockAction();
+		add_filter( 'default_excluded_comment_types', array( $filter, 'filter' ), 10, 2 );
 
 		$query = new WP_Comment_Query();
 		$query->query( array( 'fields' => 'ids' ) );
 
+		$filter_args = $filter->get_args()[0];
+
 		$this->assertSame( array( 'note' ), $filter_args[0], 'The filter should receive the default note type.' );
-		$this->assertInstanceOf( WP_Comment_Query::class, $filter_args[1], 'The filter should receive the query instance.' );
+		$this->assertSame( $query, $filter_args[1], 'The filter should receive the query instance.' );
 	}
 
 	/**
@@ -5875,13 +5868,16 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array( $comments['pingback'] ), array_map( 'intval', $found ) );
+		$this->assertSameSets(
+			array( $comments['pingback'] ),
+			array_map( 'intval', $found ),
+			'An explicit request for pingbacks should still find them.'
+		);
 
-		// The alias excludes nothing from a default query either.
 		$query = new WP_Comment_Query();
 		$found = $query->query( array( 'fields' => 'ids' ) );
 
-		$this->assertContains( $comments['pingback'], $found );
+		$this->assertContains( $comments['pingback'], $found, 'The alias should exclude nothing from a default query.' );
 	}
 
 	/**
@@ -5914,13 +5910,12 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( $comments['pingback'], $found );
+		$this->assertContains( $comments['pingback'], $found, 'Requesting the pings alias should return pingbacks.' );
 
-		// A default query, which does not request the type, still excludes it.
 		$query = new WP_Comment_Query();
 		$found = $query->query( array( 'fields' => 'ids' ) );
 
-		$this->assertNotContains( $comments['pingback'], $found );
+		$this->assertNotContains( $comments['pingback'], $found, 'A default query should still exclude pingbacks.' );
 	}
 
 	/**
@@ -5961,11 +5956,45 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'note', 'private' ),
 			wp_get_default_excluded_comment_types(),
 			'Only the scalar comment types should survive normalization.'
 		);
+	}
+
+	/**
+	 * A table-qualified column is quoted one identifier per part, so the clause stays
+	 * valid when the query joins other tables.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_excluded_comment_types_clause
+	 */
+	public function test_excluded_comment_types_clause_quotes_a_qualified_column(): void {
+		global $wpdb;
+
+		$this->assertSame(
+			" AND `comment_type` NOT IN ( 'note' )",
+			wp_get_excluded_comment_types_clause(),
+			'The default column should be quoted as an identifier.'
+		);
+		$this->assertSame(
+			" AND `{$wpdb->comments}`.`comment_type` NOT IN ( 'note' )",
+			wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" ),
+			'Each part of a qualified column should be quoted separately.'
+		);
+	}
+
+	/**
+	 * Nothing is added to the query when no comment types are excluded.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_excluded_comment_types_clause
+	 */
+	public function test_excluded_comment_types_clause_is_empty_without_excluded_types(): void {
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		$this->assertSame( '', wp_get_excluded_comment_types_clause() );
 	}
 
 	/**
@@ -6058,20 +6087,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comments
 	 */
 	public function test_default_excluded_comment_types_filter_runs_once_per_query() {
-		$runs = 0;
-
-		add_filter(
-			'default_excluded_comment_types',
-			static function ( array $types ) use ( &$runs ): array {
-				++$runs;
-				return $types;
-			}
-		);
+		$filter = new MockAction();
+		add_filter( 'default_excluded_comment_types', array( $filter, 'filter' ) );
 
 		$query = new WP_Comment_Query();
 		$query->query( array( 'fields' => 'ids' ) );
 
-		$this->assertSame( 1, $runs, 'The filter should run once for a single query.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The filter should run once for a single query.' );
 	}
 
 	/**
