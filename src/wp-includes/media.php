@@ -1589,7 +1589,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 		if ( wp_image_matches_ratio( $image_width, $image_height, $image['width'], $image['height'] ) ) {
 			// Add the URL, descriptor, and value to the sources array to be returned.
 			$source = array(
-				'url'        => $image_baseurl . $image['file'],
+				'url'        => wp_get_image_cdn_url( $image_baseurl . $image['file'] ),
 				'descriptor' => 'w',
 				'value'      => $image['width'],
 			);
@@ -2053,6 +2053,9 @@ function wp_filter_content_tags( $content, $context = null ) {
 			if ( $attachment_id > 0 && ! str_contains( $filtered_image, ' srcset=' ) ) {
 				$filtered_image = wp_img_tag_add_srcset_and_sizes_attr( $filtered_image, $context, $attachment_id );
 			}
+
+			// Serve the image from a registered CDN if applicable.
+			$filtered_image = wp_img_tag_add_image_cdn_src( $filtered_image );
 
 			// Add loading optimization attributes if applicable.
 			$filtered_image = wp_img_tag_add_loading_optimization_attrs( $filtered_image, $context );
@@ -7026,102 +7029,160 @@ function wp_is_cross_origin_isolated_request(): bool {
 
 
 /**
- * Registers an image CDN handler for one or more mime types.
+ * Registers a CDN to serve uploaded images of one or more mime types.
  *
- * Media URLs for each mime type are rewritten using the prefix of the CDN registered for it.
- * Where more than one CDN is registered for a mime type, the last one registered is used.
- * Registering a handle again replaces all of its previous mappings.
+ * Each mime type maps to a base URL that replaces the uploads base URL in image URLs,
+ * keeping the rest of the path. For example, with an uploads base URL of
+ * `https://example.com/wp-content/uploads` and a CDN base URL of `https://cdn.example.net/`,
+ * `https://example.com/wp-content/uploads/2026/11/photo.jpg` becomes
+ * `https://cdn.example.net/2026/11/photo.jpg`.
+ *
+ * Registering a handle again replaces all of its previous mappings. When a mime type is
+ * already served by another CDN, the last one registered is used.
+ *
+ * Example:
+ *
+ *     wp_register_image_cdn(
+ *         'my-cdn',
+ *         array(
+ *             'image/jpeg' => 'https://cdn.example.net/',
+ *             'image/webp' => 'https://cdn.example.net/',
+ *         )
+ *     );
  *
  * @since 7.3.0
- *
- * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
  *
  * @param string                $handle     Unique handle for the CDN.
- * @param array<string, string> $mime_types Map of mime types to the URL prefix to use for each. An empty
- *                                          array removes all mappings for the handle.
+ * @param array<string, string> $mime_types Map of image mime types to the CDN base URL for each.
+ * @return bool True if at least one mime type was registered, false otherwise.
  */
-function wp_register_mime_cdn_handler( string $handle, array $mime_types ): void {
-	wp_unregister_cdn_handler( $handle );
-
-	/** @var array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers */
-	global $wp_mime_cdn_handlers;
-
-	if ( ! is_array( $wp_mime_cdn_handlers ) ) {
-		$wp_mime_cdn_handlers = array();
-	}
-
-	foreach ( $mime_types as $mime_type => $prefix ) {
-		$wp_mime_cdn_handlers[ $mime_type ] = array(
-			'handle' => $handle,
-			'prefix' => $prefix,
-		);
-	}
+function wp_register_image_cdn( string $handle, array $mime_types ): bool {
+	return WP_Image_CDN_Registry::get_instance()->register( $handle, $mime_types );
 }
 
 /**
- * Gets the CDN handler registered for a mime type.
+ * Unregisters a CDN, removing it from every mime type it serves.
  *
  * @since 7.3.0
  *
- * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
- *
- * @param string $mime_type The mime type to get the CDN handler for.
- * @return array{handle: string, prefix: string}|null The CDN handle and URL prefix, or null if none is registered.
- */
-function wp_get_mime_cdn_mapping( string $mime_type ): ?array {
-	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
-	global $wp_mime_cdn_handlers;
-
-	return $wp_mime_cdn_handlers[ $mime_type ] ?? null;
-}
-
-/**
- * Removes all mime type mappings for a CDN handler.
- *
- * @since 7.3.0
- *
- * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
- *
- * @param string $handle The handle for the CDN.
+ * @param string $handle The CDN handle.
  * @return bool True if any mapping was removed, false otherwise.
  */
-function wp_unregister_cdn_handler( string $handle ): bool {
-	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
-	global $wp_mime_cdn_handlers;
-
-	if ( empty( $wp_mime_cdn_handlers ) ) {
-		return false;
-	}
-
-	$removed = false;
-	foreach ( $wp_mime_cdn_handlers as $mime_type => $cdn_handler ) {
-		if ( $cdn_handler['handle'] === $handle ) {
-			unset( $wp_mime_cdn_handlers[ $mime_type ] );
-			$removed = true;
-		}
-	}
-
-	return $removed;
+function wp_unregister_image_cdn( string $handle ): bool {
+	return WP_Image_CDN_Registry::get_instance()->unregister( $handle );
 }
 
 /**
- * Removes the CDN handler for a mime type.
+ * Removes the CDN for a single image mime type.
  *
  * @since 7.3.0
  *
- * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
- *
- * @param string $mime_type The mime type to remove the CDN handler for.
+ * @param string $mime_type The image mime type.
  * @return bool True if the mapping was removed, false if none was registered.
  */
-function wp_unregister_mime_cdn_handler( string $mime_type ): bool {
-	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
-	global $wp_mime_cdn_handlers;
+function wp_unregister_image_cdn_for_mime_type( string $mime_type ): bool {
+	return WP_Image_CDN_Registry::get_instance()->unregister_mime_type( $mime_type );
+}
 
-	if ( ! isset( $wp_mime_cdn_handlers[ $mime_type ] ) ) {
-		return false;
+/**
+ * Gets the CDN registered for an image mime type.
+ *
+ * @since 7.3.0
+ *
+ * @param string $mime_type The image mime type.
+ * @return array{handle: string, base_url: string}|null The CDN handle and base URL, or null if none is registered.
+ */
+function wp_get_image_cdn_for_mime_type( string $mime_type ): ?array {
+	return WP_Image_CDN_Registry::get_instance()->get_for_mime_type( $mime_type );
+}
+
+/**
+ * Rewrites an uploaded image URL to the CDN registered for its mime type.
+ *
+ * URLs outside the uploads directory, and images whose mime type has no CDN, are returned unchanged.
+ *
+ * @since 7.3.0
+ *
+ * @param string $url       The image URL.
+ * @param string $mime_type Optional. The image mime type. Default is detected from the file extension.
+ * @return string The CDN URL, or the original URL if no CDN applies.
+ */
+function wp_get_image_cdn_url( string $url, string $mime_type = '' ): string {
+	$registry = WP_Image_CDN_Registry::get_instance();
+
+	if ( '' === $url || ! $registry->has_registrations() ) {
+		return $url;
 	}
 
-	unset( $wp_mime_cdn_handlers[ $mime_type ] );
-	return true;
+	if ( '' === $mime_type ) {
+		$path      = wp_parse_url( $url, PHP_URL_PATH );
+		$mime_type = (string) wp_check_filetype( is_string( $path ) ? $path : '' )['type'];
+	}
+
+	$cdn = $registry->get_for_mime_type( $mime_type );
+	if ( null === $cdn ) {
+		return $url;
+	}
+
+	$uploads = wp_get_upload_dir();
+	if ( false !== $uploads['error'] ) {
+		return $url;
+	}
+
+	// Compare without the scheme, since the image URL may have been upgraded to HTTPS.
+	$base_url   = (string) preg_replace( '#^https?:#i', '', trailingslashit( $uploads['baseurl'] ) );
+	$image_path = (string) preg_replace( '#^https?:#i', '', $url );
+
+	if ( ! str_starts_with( $image_path, $base_url ) ) {
+		return $url;
+	}
+
+	$cdn_url = $cdn['base_url'] . substr( $image_path, strlen( $base_url ) );
+
+	/**
+	 * Filters the CDN URL for an uploaded image.
+	 *
+	 * Use this to add CDN transforms, such as query parameters, or to resolve conflicts
+	 * between CDNs registered for the same mime type.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $cdn_url   The CDN URL for the image.
+	 * @param string $url       The original image URL.
+	 * @param string $mime_type The image mime type.
+	 * @param string $handle    The handle of the CDN serving the image.
+	 */
+	return (string) apply_filters( 'wp_image_cdn_url', $cdn_url, $url, $mime_type, $cdn['handle'] );
+}
+
+/**
+ * Rewrites the `src` of an `img` tag to the CDN registered for its mime type.
+ *
+ * @since 7.3.0
+ *
+ * @param string $image The HTML `img` tag.
+ * @return string The `img` tag with its `src` rewritten, or unchanged if no CDN applies.
+ */
+function wp_img_tag_add_image_cdn_src( string $image ): string {
+	if ( ! WP_Image_CDN_Registry::get_instance()->has_registrations() ) {
+		return $image;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( $image );
+	if ( ! $processor->next_tag( 'IMG' ) ) {
+		return $image;
+	}
+
+	$src = $processor->get_attribute( 'src' );
+	if ( ! is_string( $src ) ) {
+		return $image;
+	}
+
+	$cdn_src = wp_get_image_cdn_url( $src );
+	if ( $cdn_src === $src ) {
+		return $image;
+	}
+
+	$processor->set_attribute( 'src', $cdn_src );
+	return $processor->get_updated_html();
 }

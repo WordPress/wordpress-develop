@@ -7473,6 +7473,11 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 		$url = set_url_scheme( $url );
 	}
 
+	// Serve images from a registered CDN.
+	if ( str_starts_with( $post->post_mime_type, 'image/' ) ) {
+		$url = wp_get_image_cdn_url( $url, $post->post_mime_type );
+	}
+
 	/**
 	 * Filters the attachment URL.
 	 *
