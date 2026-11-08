@@ -307,7 +307,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * Contains the user's autosave, for empty if it doesn't exist.
 	 *
 	 * @since 5.0.0
-	 * @since 7.2.0 Added support for the `author` parameter.
+	 * @since 7.3.0 Added support for the `author` parameter.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
