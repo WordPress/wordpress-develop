@@ -7099,7 +7099,6 @@ function wp_unregister_cdn_handler( $handle ) {
 		return false;
 	}
 
-
 	foreach ( $wp_mime_cdn_handlers as $mime_type => $cdn_handler ) {
 		if ( $cdn_handler['handle'] === $handle ) {
 			unset( $wp_mime_cdn_handlers[ $mime_type ] );
