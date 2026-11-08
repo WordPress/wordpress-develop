@@ -147,7 +147,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertSame( $expected_response, get_network_option( $network_id, $option, true ) );
 	}
 
-	public function data_network_id_parameter() {
+	public static function data_network_id_parameter() {
 		return array(
 			// Numeric values should always be accepted.
 			array( 1, true ),

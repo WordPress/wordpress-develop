@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method WP_Automatic_Updater\:\:update\(\) should return WP_Error\|null but returns false\.$#'
-			identifier: return.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
 			message: '#^Function convert_to_screen\(\) should return WP_Screen but returns object\{id\: string, base\: string\}&stdClass\.$#'
 			identifier: return.type
 			count: 1
@@ -39,21 +34,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
 		-
-			message: '#^Method WP_Block_Processor\:\:extract_full_block_and_advance\(\) should return array\<array\>\|null but returns array\<string, array\|string\|null\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Method WP_Block_Processor\:\:extract_full_block_and_advance\(\) should return array\<array\>\|null but returns array\<string, list\<string\|null\>\|string\|null\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Method WP_Block_Type\:\:__get\(\) should return array\<string\>\|string\|null but returns array\<array\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-type.php
-		-
 			message: '#^Method WP_Image_Editor_Imagick\:\:set_imagick_time_limit\(\) should return int\|null but returns float\.$#'
 			identifier: return.type
 			count: 1
@@ -63,11 +43,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
-		-
-			message: '#^Method WP_Term_Query\:\:get_terms\(\) should return array\<int\|string\|WP_Term\>\|string but returns int\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-term-query.php
 		-
 			message: '#^Method wp_xmlrpc_server\:\:mw_newPost\(\) should return int\|IXR_Error but returns string\.$#'
 			identifier: return.type
@@ -89,20 +64,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php
 		-
-			message: '#^Function _wp_filter_font_directory\(\) should return string but returns array\.$#'
+			message: '#^Function _wp_filter_font_directory\(\) should return string but returns array\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: ../../../src/wp-includes/fonts.php
-		-
-			message: '#^Method WP_Translation_Controller\:\:get_entries\(\) should return array\<string, string\> but returns array\<string, array\<string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/l10n/class-wp-translation-controller.php
-		-
-			message: '#^Method WP_Translation_File\:\:entries\(\) should return array\<string, array\<string\>\> but returns array\<string, string\>\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/l10n/class-wp-translation-file.php
 		-
 			message: '#^Function update_meta_cache\(\) should return array\|false but returns bool\.$#'
 			identifier: return.type
@@ -153,11 +118,6 @@ parameters:
 			identifier: return.type
 			count: 2
 			path: ../../../src/wp-includes/revision.php
-		-
-			message: '#^Function term_exists\(\) should return array\{term_id\: numeric\-string, term_taxonomy_id\: numeric\-string\}\|int\|null but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
 		-
 			message: '#^Function _wp_get_current_user\(\) should return WP_User but returns null\.$#'
 			identifier: return.type

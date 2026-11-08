@@ -35,6 +35,26 @@
 
 namespace WordPress\PHPStan;
 
+/**
+ * Opening marker of the region of the configuration's `includes` this script owns.
+ *
+ * Everything between this and the closing marker is generated: it is rewritten to
+ * match the baselines on disk, and suppressed while the analysis runs.
+ */
+const BASELINES_START_MARKER = '# phpstan:baselines start';
+
+/**
+ * Closing marker of the region of the configuration's `includes` this script owns.
+ */
+const BASELINES_END_MARKER = '# phpstan:baselines end';
+
+/**
+ * The configuration analyzed when `--config` does not name one.
+ *
+ * Relative to the repository root.
+ */
+const DEFAULT_CONFIG = 'phpstan.neon.dist';
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -51,7 +71,7 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 }
 array_shift( $args );
 
-$config_option    = 'phpstan.neon.dist';
+$config_option    = DEFAULT_CONFIG;
 $output_option    = 'tests/phpstan/baselines';
 $memory_limit     = '2G';
 $only_identifiers = array();
@@ -106,15 +126,12 @@ if ( ! is_file( $config_path ) ) {
 }
 
 /*
- * The temporary configuration has to sit beside the original, because a neon
- * file's `includes` entries resolve relative to its own directory.
- */
-/*
- * Both temporary files sit beside the configuration, and so inside the
+ * All three temporary files sit beside the configuration, and so inside the
  * repository, for two separate reasons.
  *
  * A neon file's `includes` resolve relative to its own directory, so the copy of
- * the configuration has to live where the original did.
+ * the configuration, and the wrapper including it, have to live where the
+ * original did.
  *
  * PHPStan writes a PHP baseline's paths as __DIR__ followed by a relative chain,
  * which it can only produce when the baseline shares an ancestry with the files
@@ -122,12 +139,14 @@ if ( ! is_file( $config_path ) ) {
  * it emits `__DIR__ . '//absolute/path'` instead, and every path in it then
  * resolves to somewhere under that directory rather than to the source file.
  */
-$temp_config   = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid() . '.neon';
-$temp_baseline = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid() . '.php';
+$temp_prefix   = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid();
+$temp_config   = $temp_prefix . '.neon';
+$temp_stripped = $temp_prefix . '-stripped.neon';
+$temp_baseline = $temp_prefix . '.php';
 
 register_shutdown_function(
-	static function () use ( $temp_config, $temp_baseline ): void {
-		foreach ( array( $temp_config, $temp_baseline ) as $file ) {
+	static function () use ( $temp_config, $temp_stripped, $temp_baseline ): void {
+		foreach ( array( $temp_config, $temp_stripped, $temp_baseline ) as $file ) {
 			if ( is_file( $file ) ) {
 				unlink( $file );
 			}
@@ -135,7 +154,67 @@ register_shutdown_function(
 	}
 );
 
-file_put_contents( $temp_config, strip_baseline_includes( $config_path, $output_dir ) );
+file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir ) );
+
+/*
+ * The analysis gets a scratch directory of its own, rather than the `tmpDir` that
+ * `tests/phpstan/base.neon` configures for everything else.
+ *
+ * That directory holds more than the analysis results. PHPStan also stores what
+ * it read out of each source file there, the docblocks and signatures it found,
+ * keyed by that file's contents and nothing else. The extensions in this
+ * directory change what reading a file yields without changing the file:
+ * HashNotationVisitor rewrites a docblock in the syntax tree, and the bytes on
+ * disk stay as they were.
+ *
+ * That rewriting only reaches the files PHPStan routes to its rich parser, which
+ * is the set of files being analyzed. A run narrowed to a few paths — an editor
+ * analyzing the file being typed in, or one scoped to a diff — therefore caches
+ * the unrewritten reading of every file outside those paths, and a later full run
+ * sharing the directory restores it. The baseline generated from that run records
+ * messages derived from types the extensions would have replaced.
+ *
+ * A directory only ever written by this script cannot be poisoned that way,
+ * because this script only ever analyzes the full set of configured paths.
+ */
+$analysis_tmp_dir = $repo_root . '/.cache/baselines';
+
+/*
+ * A configuration other than the default gets a directory to itself.
+ *
+ * "The full set of configured paths" is only as wide as the configuration saying
+ * what they are, and `--config` can name one covering less than the default does.
+ * A run of that configuration is a full run of it, but measured against the
+ * default it is a narrowed one, and it would leave behind the same unrewritten
+ * readings of everything it does not cover. Keying the directory on the
+ * configuration keeps each one's reflection to itself.
+ */
+$config_relative = trim( normalize_path( $config_option ), '/' );
+
+if ( DEFAULT_CONFIG !== $config_relative ) {
+	$analysis_tmp_dir .= '-' . (string) preg_replace( '/[^A-Za-z0-9._]+/', '-', $config_relative );
+}
+
+/*
+ * `tmpDir` is set in a wrapper including the stripped copy, rather than in the
+ * copy itself, because neon rejects a duplicated key and the copy already carries
+ * the `parameters` section it was made from. A file's own parameters win over
+ * those of the files it includes, so the wrapper's `tmpDir` is the one that takes
+ * effect.
+ */
+file_put_contents(
+	$temp_config,
+	sprintf(
+		<<<'NEON'
+		includes:
+			- %s
+		parameters:
+			tmpDir: %s
+		NEON,
+		basename( $temp_stripped ),
+		quote_neon_value( $analysis_tmp_dir )
+	)
+);
 
 /*
  * PHPStan reports on stdout, which --combined reserves for the baseline itself,
@@ -362,10 +441,21 @@ function read_baseline( string $path ): array {
 }
 
 /**
- * Returns the configuration with any `includes` of the baseline directory removed.
+ * Returns the configuration with the baseline `includes` removed.
  *
  * Those files suppress the very errors being regenerated, so they have to be out
  * of the way for the analysis to report anything.
+ *
+ * Two kinds of include are dropped. Everything between the `# phpstan:baselines`
+ * markers goes, whatever it points at, because that region is generated and every
+ * baseline in force is listed there. Any other include resolving inside the output
+ * directory goes as well, so that a baseline listed by hand outside the markers is
+ * still suppressed when it is about to be rewritten.
+ *
+ * The distinction matters to `--output-dir`. Were only the output directory
+ * considered, writing somewhere other than the default would leave the baselines
+ * already in force active, and the analysis would report just the errors they do
+ * not cover: a differential baseline rather than a complete one.
  *
  * @param non-falsy-string $config_path Absolute path to the configuration file.
  * @param non-falsy-string $output_dir  Absolute path to the baseline directory.
@@ -374,6 +464,7 @@ function read_baseline( string $path ): array {
 function strip_baseline_includes( string $config_path, string $output_dir ): string {
 	$config_dir = dirname( $config_path );
 	$in_block   = false;
+	$in_managed = false;
 	$kept       = array();
 
 	foreach ( explode( "\n", read_file( $config_path ) ) as $line ) {
@@ -385,10 +476,23 @@ function strip_baseline_includes( string $config_path, string $output_dir ): str
 
 		// A non-indented, non-blank line ends the block.
 		if ( $in_block && '' !== trim( $line ) && 1 !== preg_match( '/^\s/', $line ) ) {
-			$in_block = false;
+			$in_block   = false;
+			$in_managed = false;
+		}
+
+		if ( $in_block ) {
+			if ( BASELINES_START_MARKER === trim( $line ) ) {
+				$in_managed = true;
+			} elseif ( BASELINES_END_MARKER === trim( $line ) ) {
+				$in_managed = false;
+			}
 		}
 
 		if ( $in_block && 1 === preg_match( '/^\s*-\s*(\S+)\s*$/', $line, $matches ) ) {
+			if ( $in_managed ) {
+				continue;
+			}
+
 			$included = $matches[1];
 			$absolute = ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included;
 
@@ -441,8 +545,8 @@ function find_baselines( string $output_dir ): array {
  * @param non-empty-string $output_dir    Absolute path to the baseline directory.
  */
 function update_config_includes( string $config_path, string $config_option, string $output_dir ): void {
-	$start_marker = '# phpstan:baselines start';
-	$end_marker   = '# phpstan:baselines end';
+	$start_marker = BASELINES_START_MARKER;
+	$end_marker   = BASELINES_END_MARKER;
 
 	$before = read_file( $config_path );
 	$lines  = explode( "\n", $before );
