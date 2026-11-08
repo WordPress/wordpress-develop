@@ -237,7 +237,17 @@ This lowers the count of the entry, or removes the entry, leaving the rest of th
 Keep in mind:
 
 - **Run it on the whole tree.** PHPStan only reports stale ignores when it analyzes every path, so a run limited to some files, such as `composer phpstan -- --fix src/wp-includes/template.php`, fixes none of them.
-- **A baseline it empties is left behind**, as a file with `ignoreErrors: []`. That still passes, but to delete the file and its `includes` entry in `phpstan.neon.dist`, regenerate that one baseline, as described [below](#regenerating-the-baselines), e.g. `composer phpstan:baselines -- --identifier=variable.undefined`.
+- **A baseline it empties is left behind**, as a file with `ignoreErrors: []`. That still passes, but delete the file and its `includes` entry in `phpstan.neon.dist` by running the generator with `--prune`, which analyzes nothing and so takes no time:
+
+	```bash
+	npm run typecheck:php:baselines -- --prune
+	```
+
+	or, outside the Docker environment:
+
+	```bash
+	composer phpstan:baselines -- --prune
+	```
 - **It fixes every fixable error the run reports**, not only stale ignores. A few other errors can also be fixed automatically, such as a [useless cast](https://phpstan.org/error-identifiers/cast.useless), so check the diff before committing it.
 - `--fix-ignored` goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs.
 
@@ -266,6 +276,9 @@ npm run typecheck:php:baselines -- --identifier=isset.variable --identifier=empt
 # print every error as one baseline, writing nothing:
 npm run typecheck:php:baselines -- --combined
 
+# without analyzing anything, delete the baselines that list no entries:
+npm run typecheck:php:baselines -- --prune
+
 # the remaining options:
 npm run typecheck:php:baselines -- --help
 ```
@@ -277,6 +290,7 @@ composer phpstan:baselines
 
 composer phpstan:baselines -- --identifier=variable.undefined
 composer phpstan:baselines -- --combined
+composer phpstan:baselines -- --prune
 composer phpstan:baselines -- --help
 ```
 
