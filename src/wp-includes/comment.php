@@ -4628,9 +4628,10 @@ function _wp_check_for_scheduled_update_comment_type() {
 }
 
 /**
- * Register initial note status meta.
+ * Registers initial note meta.
  *
  * @since 6.9.0
+ * @since 7.3.0 Added the `_wp_note_anchor` meta.
  */
 function wp_create_initial_comment_meta() {
 	register_meta(
@@ -4651,6 +4652,111 @@ function wp_create_initial_comment_meta() {
 			},
 		)
 	);
+
+	/*
+	 * A note's link to its block, `metadata.noteId` and the inline note marker,
+	 * is part of the post content and only persists when the post is saved. The
+	 * editor stores the blocks as they stood when the note was added, so a note
+	 * added to a post that isn't saved afterwards can be re-attached on load.
+	 */
+	register_meta(
+		'comment',
+		'_wp_note_anchor',
+		array(
+			'type'          => 'array',
+			'description'   => __( 'The blocks the note was added to, as they stood at the time.' ),
+			'single'        => true,
+			'show_in_rest'  => array(
+				'schema' => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'path'    => array(
+								'type'  => 'array',
+								'items' => array( 'type' => 'integer' ),
+							),
+							'content' => array( 'type' => 'string' ),
+						),
+						'additionalProperties' => false,
+					),
+				),
+			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
+		)
+	);
+}
+
+/**
+ * Collects the IDs of the notes that blocks link to through `metadata.noteId`.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<mixed> $blocks Parsed blocks, as returned by parse_blocks().
+ * @return int[] Note IDs.
+ */
+function _wp_get_note_ids_from_blocks( array $blocks ): array {
+	$note_ids = array();
+	foreach ( $blocks as $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+		$metadata = is_array( $block['attrs'] ?? null ) ? ( $block['attrs']['metadata'] ?? null ) : null;
+		$ids      = is_array( $metadata ) ? ( $metadata['noteId'] ?? null ) : null;
+		foreach ( (array) $ids as $id ) {
+			if ( is_numeric( $id ) ) {
+				$note_ids[] = (int) $id;
+			}
+		}
+		if ( is_array( $block['innerBlocks'] ?? null ) ) {
+			$note_ids = array_merge( $note_ids, _wp_get_note_ids_from_blocks( $block['innerBlocks'] ) );
+		}
+	}
+	return $note_ids;
+}
+
+/**
+ * Deletes the block snapshots of the notes a saved post now links to.
+ *
+ * Once the post content links to a note, the snapshot stored in the note's
+ * `_wp_note_anchor` meta is no longer needed. Notes the saved content doesn't
+ * link to keep theirs, since another user may have saved content from before
+ * the note was added.
+ *
+ * @since 7.3.0
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
+ * @param bool    $update  Whether this is an existing post being updated.
+ */
+function wp_delete_persisted_note_anchors( $post_id, $post, $update ): void {
+	if ( ! $update || 'revision' === $post->post_type ) {
+		return;
+	}
+
+	$note_ids = get_comments(
+		array(
+			'post_id'  => $post_id,
+			'type'     => 'note',
+			'parent'   => 0,
+			'meta_key' => '_wp_note_anchor',
+			'fields'   => 'ids',
+		)
+	);
+	if ( ! is_array( $note_ids ) || ! $note_ids ) {
+		return;
+	}
+
+	$linked = _wp_get_note_ids_from_blocks( parse_blocks( $post->post_content ) );
+	foreach ( $note_ids as $note_id ) {
+		$note_id = (int) $note_id;
+		if ( $note_id > 0 && in_array( $note_id, $linked, true ) ) {
+			delete_comment_meta( $note_id, '_wp_note_anchor' );
+		}
+	}
 }
 
 /**

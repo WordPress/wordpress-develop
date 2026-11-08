@@ -4143,6 +4143,75 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Dispatches a request creating a note with the given anchor meta.
+	 *
+	 * @param mixed $anchor Value for the `_wp_note_anchor` meta.
+	 * @return WP_REST_Response Response.
+	 */
+	private function create_note_with_anchor_meta( $anchor ): WP_REST_Response {
+		wp_set_current_user( self::$editor_id );
+		$params  = array(
+			'post'    => self::factory()->post->create(),
+			'author'  => self::$editor_id,
+			'type'    => 'note',
+			'content' => 'A note.',
+			'meta'    => array(
+				'_wp_note_anchor' => $anchor,
+			),
+		);
+		$body    = wp_json_encode( $params );
+		$this->assertIsString( $body );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( $body );
+
+		return rest_get_server()->dispatch( $request );
+	}
+
+	public function test_create_note_with_anchor_meta(): void {
+		$anchor   = array(
+			array(
+				'path'    => array( 1, 0 ),
+				'content' => "<!-- wp:paragraph -->\n<p>Hello</p>\n<!-- /wp:paragraph -->",
+			),
+		);
+		$response = $this->create_note_with_anchor_meta( $anchor );
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['meta'] );
+		$this->assertIsInt( $data['id'] );
+		$this->assertSame( $anchor, $data['meta']['_wp_note_anchor'] );
+		$this->assertSame( $anchor, get_comment_meta( $data['id'], '_wp_note_anchor', true ) );
+	}
+
+	public function test_cannot_create_note_with_invalid_anchor_meta(): void {
+		$response = $this->create_note_with_anchor_meta(
+			array(
+				array(
+					'path'    => array( 'first' ),
+					'content' => 'x',
+				),
+			)
+		);
+		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
+	}
+
+	public function test_cannot_create_note_with_unknown_anchor_property(): void {
+		$response = $this->create_note_with_anchor_meta(
+			array(
+				array(
+					'path'    => array( 0 ),
+					'content' => 'x',
+					'extra'   => 'x',
+				),
+			)
+		);
+		$this->assertErrorResponse( 'rest_additional_properties_forbidden', $response, 400 );
+	}
+
+	/**
 	 * @ticket 64096
 	 */
 	public function test_create_duplicate_note() {
