@@ -3946,8 +3946,10 @@ function wp_resource_hints() {
 	);
 
 	/*
-	 * Attributes which may be printed on a resource hint, mapped to whether the
-	 * attribute may be printed without a value when it is supplied as `true`.
+	 * Attributes allowed on a resource hint. Any attribute not listed as a key is
+	 * dropped. A value of `true` means the attribute may also be printed as a
+	 * boolean (valueless) attribute, when it is supplied as `true` or as a list
+	 * item. Attributes with a value of `false` are printed only with a value.
 	 *
 	 * Other attributes of the link element are omitted because the HTML spec only
 	 * allows them with other link types: blocking, color, disabled, imagesizes,
@@ -4183,8 +4185,10 @@ function wp_preload_resources() {
 	}
 
 	/*
-	 * Attributes which may be printed on a preload, mapped to whether the
-	 * attribute may be printed without a value when it is supplied as `true`.
+	 * Attributes allowed on a preload. Any attribute not listed as a key is
+	 * dropped. A value of `true` means the attribute may also be printed as a
+	 * boolean (valueless) attribute, when it is supplied as `true` or as a list
+	 * item. Attributes with a value of `false` are printed only with a value.
 	 */
 	$allowed_attributes = array(
 		'as'            => false,
