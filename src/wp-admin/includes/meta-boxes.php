@@ -1012,6 +1012,11 @@ function page_attributes_meta_box( $post ) {
 			'echo'             => 0,
 		);
 
+		$post_type_object = get_post_type_object( $post->post_type );
+		if ( current_user_can( $post_type_object->cap->read_private_posts ) ) {
+			$dropdown_args['post_status'] = array( 'publish', 'private' );
+		}
+
 		/**
 		 * Filters the arguments used to generate a Pages drop-down element.
 		 *
