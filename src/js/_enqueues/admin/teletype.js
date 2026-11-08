@@ -133,13 +133,14 @@
 	/**
 	 * Plays the scene.
 	 *
-	 * @param {string}   displayName The current user's display name.
-	 * @param {Object}   i18n        Translated strings.
-	 * @param {string}   i18n.label  Accessible name of the dialog.
-	 * @param {string}   i18n.exit   Text of the Exit button.
-	 * @param {string}   i18n.rain   Description of the rain for screen readers.
-	 * @param {string[]} i18n.actOne Lines typed on the white screen.
-	 * @param {string[]} i18n.actTwo Lines typed on the black screen; %s is the display name.
+	 * @param {string}   displayName    The current user's display name.
+	 * @param {Object}   i18n           Translated strings.
+	 * @param {string}   i18n.label     Accessible name of the dialog.
+	 * @param {string}   i18n.exit      Text of the Exit button.
+	 * @param {string}   i18n.rain      Description of the rain for screen readers.
+	 * @param {string[]} i18n.actOne    Lines typed on the white screen.
+	 * @param {string[]} i18n.countdown The 2 and 1 typed after the white screen's last line.
+	 * @param {string[]} i18n.actTwo    Lines typed on the black screen; %s is the display name.
 	 */
 	function run( displayName, i18n ) {
 		var aborted          = false,
@@ -147,7 +148,7 @@
 			stopRain         = null,
 			previousFocus    = document.activeElement,
 			previousOverflow = document.documentElement.style.overflow,
-			actOneLines      = i18n.actOne.concat( [ '2', '1' ] );
+			actOneLines      = i18n.actOne.concat( i18n.countdown );
 
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;

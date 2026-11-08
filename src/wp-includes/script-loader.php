@@ -4073,14 +4073,14 @@ function wp_enqueue_command_palette_assets() {
 					 */
 					'i18n'   => array(
 						/* translators: Easter egg trigger, typed into the command palette. Case, spaces and punctuation are ignored. Feel free to pick a phrase loved by your local community. See https://core.trac.wordpress.org/ticket/65907 */
-						'trigger' => _x( 'Code is poetry', 'easter egg trigger' ),
+						'trigger'   => _x( 'Code is poetry', 'easter egg trigger' ),
 						/* translators: Accessible name of the easter egg dialog. See https://core.trac.wordpress.org/ticket/65907 */
-						'label'   => __( 'A WordPress easter egg. Press Escape to leave.' ),
+						'label'     => __( 'A WordPress easter egg. Press Escape to leave.' ),
 						/* translators: Button that closes the easter egg. See https://core.trac.wordpress.org/ticket/65907 */
-						'exit'    => __( 'Exit' ),
+						'exit'      => __( 'Exit' ),
 						/* translators: Read aloud to screen readers when the easter egg screen goes black and Matrix-style code rain starts. See https://core.trac.wordpress.org/ticket/65907 */
-						'rain'    => __( 'The screen goes black. Green code rains down it.' ),
-						'actOne'  => array(
+						'rain'      => __( 'The screen goes black. Green code rains down it.' ),
+						'actOne'    => array(
 							/* translators: Easter egg, typed out like a computer terminal. See https://core.trac.wordpress.org/ticket/65907 */
 							__( 'Self-reference detected.' ),
 							/* translators: Easter egg, typed out like a computer terminal. See https://core.trac.wordpress.org/ticket/65907 */
@@ -4088,7 +4088,13 @@ function wp_enqueue_command_palette_assets() {
 							/* translators: Easter egg, typed out like a computer terminal. The 3 starts a countdown that continues 2, 1. See https://core.trac.wordpress.org/ticket/65907 */
 							__( 'Running a routine maintenance cycle. Back in... 3' ),
 						),
-						'actTwo'  => array(
+						'countdown' => array(
+							/* translators: Easter egg countdown, typed after "Back in... 3". Translate only if your locale writes numbers with other digits. See https://core.trac.wordpress.org/ticket/65907 */
+							_x( '2', 'easter egg countdown' ),
+							/* translators: Easter egg countdown, typed after "2". Translate only if your locale writes numbers with other digits. See https://core.trac.wordpress.org/ticket/65907 */
+							_x( '1', 'easter egg countdown' ),
+						),
+						'actTwo'    => array(
 							/* translators: %s: User display name. Easter egg quoting The Matrix (1999); use the line from your local release of the film if there is one. See https://core.trac.wordpress.org/ticket/65907 */
 							__( 'Wake up, %s...' ),
 							/* translators: Easter egg quoting The Matrix (1999); use the line from your local release of the film if there is one. See https://core.trac.wordpress.org/ticket/65907 */
