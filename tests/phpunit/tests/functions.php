@@ -1785,7 +1785,7 @@ class Tests_Functions extends WP_UnitTestCase {
 						'audio-only-3gp4.m4a',
 						array(
 							'ext'             => 'm4a',
-							'type'            => 'audio/3gpp',
+							'type'            => 'audio/mpeg',
 							'proper_filename' => false,
 						),
 					),
