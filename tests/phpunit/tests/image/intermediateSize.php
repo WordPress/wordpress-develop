@@ -5,15 +5,6 @@
  * @group upload
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
-	/**
-	 * Set up the test fixture.
-	 */
-	public function set_up() {
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
-
-		parent::set_up();
-	}
-
 	public function tear_down() {
 		$this->remove_added_uploads();
 
@@ -21,9 +12,6 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		remove_image_size( 'false-height' );
 		remove_image_size( 'false-width' );
 		remove_image_size( 'off-by-one' );
-
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
-
 		parent::tear_down();
 	}
 
@@ -47,6 +35,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
@@ -56,6 +46,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
@@ -81,7 +73,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	public function test_image_editor_output_format_filter() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array( 'image/jpeg' => 'image/webp' );
 			}
 		);
@@ -126,7 +118,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_by_array_exact() {
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', 330, 220, true );
 		add_image_size( 'false-height', 330, 400, true );
 		add_image_size( 'false-width', 600, 220, true );
@@ -196,7 +188,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// Use this width.
 		$width = 300;
 
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', $width, 0, false );
 		add_image_size( 'false-height', $width, 100, true );
 
@@ -225,7 +217,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// 202 is the smallest height that will trigger a miss for 'false-height'.
 		$height = 202;
 
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', 0, $height, false );
 		add_image_size( 'false-height', 300, $height, true );
 

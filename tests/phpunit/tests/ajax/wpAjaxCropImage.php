@@ -11,6 +11,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
  * Class for testing ajax crop image functionality.
  *
  * @group ajax
+ *
  * @covers ::wp_ajax_crop_image
  */
 class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
@@ -213,7 +214,6 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @param WP_Post $attachment
-	 *
 	 * @return string
 	 */
 	private function get_attachment_filename( WP_Post $attachment ) {

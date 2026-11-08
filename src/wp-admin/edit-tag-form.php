@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 // Back compat hooks.
@@ -44,11 +44,7 @@ if ( 'category' === $taxonomy ) {
 	do_action_deprecated( 'edit_tag_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 }
 
-/**
- * Use with caution, see https://developer.wordpress.org/reference/functions/wp_reset_vars/
- */
-wp_reset_vars( array( 'wp_http_referer' ) );
-
+$wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_url( $_REQUEST['wp_http_referer'] ) : '';
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
 // Also used by Edit Tags.
@@ -76,19 +72,26 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 <h1><?php echo $tax->labels->edit_item; ?></h1>
 
 <?php
-$class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
+$class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
 
 if ( $message ) {
-	?>
-<div id="message" class="notice notice-<?php echo $class; ?>">
-	<p><strong><?php echo $message; ?></strong></p>
-	<?php if ( $wp_http_referer ) { ?>
-	<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ); ?>">
-		<?php echo esc_html( $tax->labels->back_to_items ); ?>
-	</a></p>
-	<?php } ?>
-</div>
-	<?php
+	$message = '<p><strong>' . $message . '</strong></p>';
+	if ( $wp_http_referer ) {
+		$message .= sprintf(
+			'<p><a href="%1$s">%2$s</a></p>',
+			esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), admin_url( 'term.php?taxonomy=' . $taxonomy ) ) ),
+			esc_html( $tax->labels->back_to_items )
+		);
+	}
+
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => $class,
+			'id'             => 'message',
+			'paragraph_wrap' => false,
+		)
+	);
 }
 ?>
 
@@ -148,7 +151,6 @@ if ( isset( $tag->name ) ) {
 			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description" />
 			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p></td>
 		</tr>
-<?php if ( ! global_terms_enabled() ) { ?>
 		<tr class="form-field term-slug-wrap">
 			<th scope="row"><label for="slug"><?php _e( 'Slug' ); ?></label></th>
 			<?php
@@ -170,7 +172,6 @@ if ( isset( $tag->name ) ) {
 			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" aria-describedby="slug-description" />
 			<p class="description" id="slug-description"><?php echo $tax->labels->slug_field_description; ?></p></td>
 		</tr>
-<?php } ?>
 <?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>
 		<tr class="form-field term-parent-wrap">
 			<th scope="row"><label for="parent"><?php echo esc_html( $tax->labels->parent_item ); ?></label></th>
@@ -311,7 +312,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 </div>
 
 <?php if ( ! wp_is_mobile() ) : ?>
-<script type="text/javascript">
+<script>
 try{document.forms.edittag.name.focus();}catch(e){}
 </script>
 	<?php

@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Tabs 1.13.1
- * http://jqueryui.com
+ * jQuery UI Tabs 1.14.2
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Tabs
 //>>group: Widgets
 //>>description: Transforms a set of container elements into a tab structure.
-//>>docs: http://api.jqueryui.com/tabs/
-//>>demos: http://jqueryui.com/tabs/
+//>>docs: https://api.jqueryui.com/tabs/
+//>>demos: https://jqueryui.com/tabs/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/tabs.css
 //>>css.theme: ../../themes/base/theme.css
@@ -24,7 +24,10 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../keycode",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -35,7 +38,7 @@
 "use strict";
 
 $.widget( "ui.tabs", {
-	version: "1.13.1",
+	version: "1.14.2",
 	delay: 300,
 	options: {
 		active: null,
@@ -58,26 +61,19 @@ $.widget( "ui.tabs", {
 		load: null
 	},
 
-	_isLocal: ( function() {
-		var rhash = /#.*$/;
+	_isLocal: function( anchor ) {
+		var anchorUrl = new URL( anchor.href ),
+			locationUrl = new URL( location.href );
 
-		return function( anchor ) {
-			var anchorUrl, locationUrl;
+		return anchor.hash.length > 1 &&
 
-			anchorUrl = anchor.href.replace( rhash, "" );
-			locationUrl = location.href.replace( rhash, "" );
-
-			// Decoding may throw an error if the URL isn't UTF-8 (#9518)
-			try {
-				anchorUrl = decodeURIComponent( anchorUrl );
-			} catch ( error ) {}
-			try {
-				locationUrl = decodeURIComponent( locationUrl );
-			} catch ( error ) {}
-
-			return anchor.hash.length > 1 && anchorUrl === locationUrl;
-		};
-	} )(),
+			// `href` may contain a hash but also username & password;
+			// we want to ignore them, so we check the three fields
+			// below instead.
+			anchorUrl.origin === locationUrl.origin &&
+			anchorUrl.pathname === locationUrl.pathname &&
+			anchorUrl.search === locationUrl.search;
+	},
 
 	_create: function() {
 		var that = this,
@@ -118,7 +114,8 @@ $.widget( "ui.tabs", {
 	_initialActive: function() {
 		var active = this.options.active,
 			collapsible = this.options.collapsible,
-			locationHash = location.hash.substring( 1 );
+			locationHash = location.hash.substring( 1 ),
+			locationHashDecoded = decodeURIComponent( locationHash );
 
 		if ( active === null ) {
 
@@ -130,6 +127,18 @@ $.widget( "ui.tabs", {
 						return false;
 					}
 				} );
+
+				// If not found, decode the hash & try again.
+				// See the comment in `_processTabs` under the `_isLocal` check
+				// for more information.
+				if ( active === null ) {
+					this.tabs.each( function( i, tab ) {
+						if ( $( tab ).attr( "aria-controls" ) === locationHashDecoded ) {
+							active = i;
+							return false;
+						}
+					} );
+				}
 			}
 
 			// Check for a tab marked active via a class
@@ -167,7 +176,7 @@ $.widget( "ui.tabs", {
 	},
 
 	_tabKeydown: function( event ) {
-		var focusedTab = $( $.ui.safeActiveElement( this.document[ 0 ] ) ).closest( "li" ),
+		var focusedTab = $( this.document[ 0 ].activeElement ).closest( "li" ),
 			selectedIndex = this.tabs.index( focusedTab ),
 			goingForward = true;
 
@@ -176,39 +185,39 @@ $.widget( "ui.tabs", {
 		}
 
 		switch ( event.keyCode ) {
-			case $.ui.keyCode.RIGHT:
-			case $.ui.keyCode.DOWN:
-				selectedIndex++;
-				break;
-			case $.ui.keyCode.UP:
-			case $.ui.keyCode.LEFT:
-				goingForward = false;
-				selectedIndex--;
-				break;
-			case $.ui.keyCode.END:
-				selectedIndex = this.anchors.length - 1;
-				break;
-			case $.ui.keyCode.HOME:
-				selectedIndex = 0;
-				break;
-			case $.ui.keyCode.SPACE:
+		case $.ui.keyCode.RIGHT:
+		case $.ui.keyCode.DOWN:
+			selectedIndex++;
+			break;
+		case $.ui.keyCode.UP:
+		case $.ui.keyCode.LEFT:
+			goingForward = false;
+			selectedIndex--;
+			break;
+		case $.ui.keyCode.END:
+			selectedIndex = this.anchors.length - 1;
+			break;
+		case $.ui.keyCode.HOME:
+			selectedIndex = 0;
+			break;
+		case $.ui.keyCode.SPACE:
 
-				// Activate only, no collapsing
-				event.preventDefault();
-				clearTimeout( this.activating );
-				this._activate( selectedIndex );
-				return;
-			case $.ui.keyCode.ENTER:
+			// Activate only, no collapsing
+			event.preventDefault();
+			clearTimeout( this.activating );
+			this._activate( selectedIndex );
+			return;
+		case $.ui.keyCode.ENTER:
 
-				// Toggle (cancel delayed activation, allow collapsing)
-				event.preventDefault();
-				clearTimeout( this.activating );
+			// Toggle (cancel delayed activation, allow collapsing)
+			event.preventDefault();
+			clearTimeout( this.activating );
 
-				// Determine if we should collapse or activate
-				this._activate( selectedIndex === this.options.active ? false : selectedIndex );
-				return;
-			default:
-				return;
+			// Determine if we should collapse or activate
+			this._activate( selectedIndex === this.options.active ? false : selectedIndex );
+			return;
+		default:
+			return;
 		}
 
 		// Focus the appropriate tab, based on which key was pressed
@@ -309,10 +318,6 @@ $.widget( "ui.tabs", {
 		}
 	},
 
-	_sanitizeSelector: function( hash ) {
-		return hash ? hash.replace( /[!"$%&'()*+,.\/:;<=>?@\[\]\^`{|}~]/g, "\\$&" ) : "";
-	},
-
 	refresh: function() {
 		var options = this.options,
 			lis = this.tablist.children( ":has(a[href])" );
@@ -330,7 +335,7 @@ $.widget( "ui.tabs", {
 			options.active = false;
 			this.active = $();
 
-			// was active, but active tab is gone
+		// was active, but active tab is gone
 		} else if ( this.active.length && !$.contains( this.tablist[ 0 ], this.active[ 0 ] ) ) {
 
 			// all remaining tabs are disabled
@@ -338,12 +343,12 @@ $.widget( "ui.tabs", {
 				options.active = false;
 				this.active = $();
 
-				// activate previous tab
+			// activate previous tab
 			} else {
 				this._activate( this._findNextTab( Math.max( 0, options.active - 1 ), false ) );
 			}
 
-			// was active, active tab still exists
+		// was active, active tab still exists
 		} else {
 
 			// make sure active index is correct
@@ -404,18 +409,6 @@ $.widget( "ui.tabs", {
 				if ( $( this ).is( ".ui-state-disabled" ) ) {
 					event.preventDefault();
 				}
-			} )
-
-			// Support: IE <9
-			// Preventing the default action in mousedown doesn't prevent IE
-			// from focusing the element, so if the anchor gets focused, blur.
-			// We don't have to worry about focusing the previously focused
-			// element since clicking on a non-focusable element should focus
-			// the body anyway.
-			.on( "focus" + this.eventNamespace, ".ui-tabs-anchor", function() {
-				if ( $( this ).closest( "li" ).is( ".ui-state-disabled" ) ) {
-					this.blur();
-				}
 			} );
 
 		this.tabs = this.tablist.find( "> li:has(a[href])" )
@@ -443,11 +436,26 @@ $.widget( "ui.tabs", {
 
 			// Inline tab
 			if ( that._isLocal( anchor ) ) {
+
+				// The "scrolling to a fragment" section of the HTML spec:
+				// https://html.spec.whatwg.org/#scrolling-to-a-fragment
+				// uses a concept of document's indicated part:
+				// https://html.spec.whatwg.org/#the-indicated-part-of-the-document
+				// Slightly below there's an algorithm to compute the indicated
+				// part:
+				// https://html.spec.whatwg.org/#the-indicated-part-of-the-document
+				// First, the algorithm tries the hash as-is, without decoding.
+				// Then, if one is not found, the same is attempted with a decoded
+				// hash. Replicate this logic.
 				selector = anchor.hash;
 				panelId = selector.substring( 1 );
-				panel = that.element.find( that._sanitizeSelector( selector ) );
+				panel = that.element.find( "#" + CSS.escape( panelId ) );
+				if ( !panel.length ) {
+					panelId = decodeURIComponent( panelId );
+					panel = that.element.find( "#" + CSS.escape( panelId ) );
+				}
 
-				// remote tab
+			// remote tab
 			} else {
 
 				// If the tab doesn't already have aria-controls,
@@ -605,17 +613,17 @@ $.widget( "ui.tabs", {
 
 		if ( tab.hasClass( "ui-state-disabled" ) ||
 
-			// tab is already loading
-			tab.hasClass( "ui-tabs-loading" ) ||
+				// tab is already loading
+				tab.hasClass( "ui-tabs-loading" ) ||
 
-			// can't switch durning an animation
-			this.running ||
+				// can't switch durning an animation
+				this.running ||
 
-			// click on active header, but not collapsible
-			( clickedIsActive && !options.collapsible ) ||
+				// click on active header, but not collapsible
+				( clickedIsActive && !options.collapsible ) ||
 
-			// allow canceling activation
-			( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
+				// allow canceling activation
+				( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
 			return;
 		}
 
@@ -731,7 +739,7 @@ $.widget( "ui.tabs", {
 		// meta-function to give users option to provide a href string instead of a numerical index.
 		if ( typeof index === "string" ) {
 			index = this.anchors.index( this.anchors.filter( "[href$='" +
-				$.escapeSelector( index ) + "']" ) );
+				CSS.escape( index ) + "']" ) );
 		}
 
 		return index;
@@ -853,32 +861,19 @@ $.widget( "ui.tabs", {
 
 		this.xhr = $.ajax( this._ajaxSettings( anchor, event, eventData ) );
 
-		// Support: jQuery <1.8
-		// jQuery <1.8 returns false if the request is canceled in beforeSend,
-		// but as of 1.8, $.ajax() always returns a jqXHR object.
-		if ( this.xhr && this.xhr.statusText !== "canceled" ) {
+		if ( this.xhr.statusText !== "canceled" ) {
 			this._addClass( tab, "ui-tabs-loading" );
 			panel.attr( "aria-busy", "true" );
 
 			this.xhr
 				.done( function( response, status, jqXHR ) {
+					panel.html( response );
+					that._trigger( "load", event, eventData );
 
-					// support: jQuery <1.8
-					// http://bugs.jquery.com/ticket/11778
-					setTimeout( function() {
-						panel.html( response );
-						that._trigger( "load", event, eventData );
-
-						complete( jqXHR, status );
-					}, 1 );
+					complete( jqXHR, status );
 				} )
 				.fail( function( jqXHR, status ) {
-
-					// support: jQuery <1.8
-					// http://bugs.jquery.com/ticket/11778
-					setTimeout( function() {
-						complete( jqXHR, status );
-					}, 1 );
+					complete( jqXHR, status );
 				} );
 		}
 	},
@@ -886,10 +881,7 @@ $.widget( "ui.tabs", {
 	_ajaxSettings: function( anchor, event, eventData ) {
 		var that = this;
 		return {
-
-			// Support: IE <11 only
-			// Strip any hash that exists to prevent errors with the Ajax request
-			url: anchor.attr( "href" ).replace( /#.*$/, "" ),
+			url: anchor.attr( "href" ),
 			beforeSend: function( jqXHR, settings ) {
 				return that._trigger( "beforeLoad", event,
 					$.extend( { jqXHR: jqXHR, ajaxSettings: settings }, eventData ) );
@@ -899,13 +891,13 @@ $.widget( "ui.tabs", {
 
 	_getPanelForTab: function( tab ) {
 		var id = $( tab ).attr( "aria-controls" );
-		return this.element.find( this._sanitizeSelector( "#" + id ) );
+		return this.element.find( "#" + CSS.escape( id ) );
 	}
 } );
 
 // DEPRECATED
 // TODO: Switch return back to widget declaration at top of file when this is removed
-if ( $.uiBackCompat !== false ) {
+if ( $.uiBackCompat === true ) {
 
 	// Backcompat for ui-tab class (now ui-tabs-tab)
 	$.widget( "ui.tabs", $.ui.tabs, {

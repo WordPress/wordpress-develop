@@ -13,6 +13,9 @@ if ( empty( $wp ) ) {
 	wp( array( 'tb' => '1' ) );
 }
 
+// Always run as an unauthenticated user.
+wp_set_current_user( 0 );
+
 /**
  * Response to a trackback.
  *
@@ -21,8 +24,11 @@ if ( empty( $wp ) ) {
  * @since 0.71
  *
  * @param int|bool $error         Whether there was an error.
- *                                Default '0'. Accepts '0' or '1', true or false.
- * @param string   $error_message Error message if an error occurred.
+ *                                Default 0. Accepts 0 or 1, true or false.
+ * @param string   $error_message Error message if an error occurred. Default empty string.
+ * @return void Never returns if `$error` is truthy, as the function dies after
+ *              sending the error response.
+ * @phpstan-return ( $error is 0|false ? void : never )
  */
 function trackback_response( $error = 0, $error_message = '' ) {
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );
@@ -31,7 +37,7 @@ function trackback_response( $error = 0, $error_message = '' ) {
 		echo '<?xml version="1.0" encoding="utf-8"?' . ">\n";
 		echo "<response>\n";
 		echo "<error>1</error>\n";
-		echo "<message>$error_message</message>\n";
+		echo '<message>' . esc_xml( $error_message ) . "</message>\n";
 		echo '</response>';
 		die();
 	} else {
@@ -44,25 +50,32 @@ function trackback_response( $error = 0, $error_message = '' ) {
 
 if ( ! isset( $_GET['tb_id'] ) || ! $_GET['tb_id'] ) {
 	$post_id = explode( '/', $_SERVER['REQUEST_URI'] );
-	$post_id = (int) $post_id[ count( $post_id ) - 1 ];
+	$post_id = (int) array_last( $post_id );
 }
 
-$trackback_url = isset( $_POST['url'] ) ? $_POST['url'] : '';
-$charset       = isset( $_POST['charset'] ) ? $_POST['charset'] : '';
+$trackback_url = isset( $_POST['url'] ) ? sanitize_url( $_POST['url'] ) : '';
+$charset       = isset( $_POST['charset'] ) ? sanitize_text_field( $_POST['charset'] ) : '';
 
 // These three are stripslashed here so they can be properly escaped after mb_convert_encoding().
-$title     = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
-$excerpt   = isset( $_POST['excerpt'] ) ? wp_unslash( $_POST['excerpt'] ) : '';
-$blog_name = isset( $_POST['blog_name'] ) ? wp_unslash( $_POST['blog_name'] ) : '';
+$title     = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+$excerpt   = isset( $_POST['excerpt'] ) ? sanitize_textarea_field( wp_unslash( $_POST['excerpt'] ) ) : '';
+$blog_name = isset( $_POST['blog_name'] ) ? sanitize_text_field( wp_unslash( $_POST['blog_name'] ) ) : '';
 
 if ( $charset ) {
 	$charset = str_replace( array( ',', ' ' ), '', strtoupper( trim( $charset ) ) );
-} else {
+
+	// Validate the specified "sender" charset is available on the receiving site.
+	if ( function_exists( 'mb_list_encodings' ) && ! in_array( $charset, mb_list_encodings(), true ) ) {
+		$charset = '';
+	}
+}
+
+if ( ! $charset ) {
 	$charset = 'ASCII, UTF-8, ISO-8859-1, JIS, EUC-JP, SJIS';
 }
 
 // No valid uses for UTF-7.
-if ( false !== strpos( $charset, 'UTF-7' ) ) {
+if ( str_contains( $charset, 'UTF-7' ) ) {
 	die;
 }
 
@@ -73,10 +86,16 @@ if ( function_exists( 'mb_convert_encoding' ) ) {
 	$blog_name = mb_convert_encoding( $blog_name, get_option( 'blog_charset' ), $charset );
 }
 
-// Now that mb_convert_encoding() has been given a swing, we need to escape these three.
+// Escape values to use in the trackback.
 $title     = wp_slash( $title );
 $excerpt   = wp_slash( $excerpt );
 $blog_name = wp_slash( $blog_name );
+
+/**
+ * @global wpdb      $wpdb  WordPress database abstraction object.
+ * @global WP_Post[] $posts Array of post objects.
+ */
+global $wpdb, $posts;
 
 if ( is_single() || is_page() ) {
 	$post_id = $posts[0]->ID;
@@ -103,7 +122,7 @@ if ( ! empty( $trackback_url ) && ! empty( $title ) ) {
 	 * @param string $charset       Character set.
 	 * @param string $title         Trackback title.
 	 * @param string $excerpt       Trackback excerpt.
-	 * @param string $blog_name     Blog name.
+	 * @param string $blog_name     Site name.
 	 */
 	do_action( 'pre_trackback_post', $post_id, $trackback_url, $charset, $title, $excerpt, $blog_name );
 

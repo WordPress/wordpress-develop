@@ -1,5 +1,7 @@
 <?php
 
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+
 /**
  * @group image
  * @group media
@@ -25,24 +27,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
-
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
 	}
 
-	/**
-	 * Tear down the class.
-	 */
-	public function tear_down() {
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
-		parent::tear_down();
-	}
 
 	/**
 	 * Gets the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
-	private function get_image_editor_engine_classes() {
+	private static function get_image_editor_engine_classes() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -60,8 +53,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_image_editor_engine_classes() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
+	public static function data_image_editor_engine_classes() {
+		return self::text_array_to_dataprovider( self::get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -102,7 +95,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_positive() {
+	public static function data_file_is_valid_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -121,9 +114,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -146,7 +143,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_negative() {
+	public static function data_file_is_valid_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -154,7 +151,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.sgi',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -176,7 +173,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_positive() {
+	public static function data_file_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -196,7 +193,18 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'webp-transparent.webp';
 		}
 
-		return $this->text_array_to_dataprovider( $files );
+		// Add AVIF images if the image editor supports them.
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/avif' ) ) {
+			$files[] = 'avif-animated.avif';
+			$files[] = 'avif-lossless.avif';
+			$files[] = 'avif-lossy.avif';
+			$files[] = 'avif-transparent.avif';
+		}
+
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -218,7 +226,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_negative() {
+	public static function data_file_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -232,9 +240,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -293,8 +302,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
 
 		// Clean up.
@@ -308,8 +317,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_wp_save_image_file() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -338,6 +347,147 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_save_image_file() throws a deprecated argument notice when passed a GD resource.
+	 *
+	 * @ticket 6821
+	 * @expectedDeprecated wp_save_image_file
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
+	 */
+	public function test_wp_save_image_file_deprecated_argument_with_gd_resource() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// Call wp_save_image_file().
+		$file = wp_tempnam();
+		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
+		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
+
+		if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+			imagedestroy( $img );
+		}
+
+		unlink( $file );
+
+		$this->assertTrue( $ret, 'Image failed to save.' );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` applies 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 */
+	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$id = $this->create_image_editor_test_attachment();
+
+		$filter = new MockAction();
+		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
+
+		ob_start();
+		wp_image_editor( $id );
+		ob_end_clean();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` conditionally outputs markup for editing thumbnails separately
+	 * based on the result of applying 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 *
+	 * @dataProvider data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters
+	 *
+	 * @param string $callback The name of the callback for the 'image_edit_thumbnails_separately' hook.
+	 * @param bool   $expected Whether the markup should be output.
+	 */
+	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$id = $this->create_image_editor_test_attachment();
+
+		add_filter( 'image_edit_thumbnails_separately', $callback );
+
+		ob_start();
+		wp_image_editor( $id );
+		$actual = ob_get_clean();
+
+		if ( $expected ) {
+			$this->assertStringContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should have been output.'
+			);
+		} else {
+			$this->assertStringNotContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should not have been output.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+		return array(
+			'true'  => array(
+				'callback' => '__return_true',
+				'expected' => true,
+			),
+			'false' => array(
+				'callback' => '__return_false',
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * Creates a minimal image attachment for wp_image_editor() filter tests.
+	 *
+	 * Uses static metadata instead of generating real thumbnails. A thumbnail
+	 * size entry is needed for the imgedit-applyto section to render.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_editor_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => DIR_TESTDATA . '/images/canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+				'sizes'  => array(
+					'thumbnail' => array(
+						'file'      => 'canola-150x150.jpg',
+						'width'     => 150,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			)
+		);
+
+		return $attachment_id;
+	}
+
+	/**
 	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
@@ -361,8 +511,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret       = $img->save( $file, $mime_type );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name.' );
 
 		// Clean up.
@@ -407,8 +557,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = $img->save( trailingslashit( $temp ) . $file );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly.' );
 
 		// Clean up.
@@ -421,8 +571,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_inferred_mime_types_when_saving_an_image() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_inferred_mime_types_when_saving_an_image() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -470,7 +620,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
 		$editor = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 	}
 
 	/**
@@ -488,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor = new $class_name( DIR_TESTDATA );
 		$loaded = $editor->load();
 
-		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertWPError( $loaded, 'Loading a directory did not result in a WP_Error.' );
 		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
 	}
 
@@ -524,20 +674,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+		WP_Test_Stream::$data['s.w.org']['/screenshots/3.9/dashboard.png'] = file_get_contents( DIR_TESTDATA . '/images/canola.jpg' );
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		try {
+			$file = wp_crop_image(
+				'https://s.w.org/screenshots/3.9/dashboard.png',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100,
+				false,
+				DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+			WP_Test_Stream::$data = array();
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
@@ -565,7 +720,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 	}
 
 	/**
@@ -573,16 +728,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
-		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+
+		try {
+			$file = wp_crop_image(
+				'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+		}
+
+		$this->assertWPError( $file );
+		$this->assertSame( 'error_loading_image', $file->get_error_code() );
 	}
 
 	/**
@@ -594,7 +758,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function( $editors ) {
+			static function ( $editors ) {
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
@@ -608,7 +772,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 
 		WP_Image_Editor_Mock::$save_return = array();
 	}
@@ -620,7 +784,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 			}
 		);
@@ -666,7 +830,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -743,7 +908,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -816,7 +982,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
@@ -894,12 +1061,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$preview_path = $temp_dir . $metadata['sizes']['full']['file'];
 
 		// PDF preview didn't overwrite PDF.
-		$this->assertNotEquals( $pdf_path, $preview_path );
+		$this->assertNotSame( $pdf_path, $preview_path );
 		// PDF preview didn't overwrite JPG with same name.
-		$this->assertNotEquals( $jpg1_path, $preview_path );
+		$this->assertNotSame( $jpg1_path, $preview_path );
 		$this->assertSame( 'asdf', file_get_contents( $jpg1_path ) );
 		// PDF preview didn't overwrite PDF preview with same name.
-		$this->assertNotEquals( $jpg2_path, $preview_path );
+		$this->assertNotSame( $jpg2_path, $preview_path );
 		$this->assertSame( 'fdsa', file_get_contents( $jpg2_path ) );
 
 		// Cleanup.
@@ -932,7 +1099,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_exif_frac2dec() {
+	public static function data_wp_exif_frac2dec() {
 		return array(
 			'invalid input: null'              => array(
 				'fraction' => null,
@@ -1035,5 +1202,49 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'expect'   => 2,
 			),
 		);
+	}
+}
+
+/**
+ * Mock stream wrapper for simulating HTTP/HTTPS image requests.
+ */
+class WP_Test_Stream_Http_Mock extends WP_Test_Stream {
+
+	/**
+	 * Opens a URL. Fails if no fixture data has been registered for the path.
+	 *
+	 * @param string $path        URL to open.
+	 * @param string $mode        Mode used to open the file.
+	 * @param int    $options     Options.
+	 * @param string $opened_path Opened path.
+	 * @return bool True on success, false if file does not exist.
+	 */
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		$components = array_merge(
+			array(
+				'host' => '',
+				'path' => '',
+			),
+			parse_url( $path )
+		);
+		$bucket     = $components['host'];
+		$file       = $components['path'] ? $components['path'] : '/';
+
+		if ( ! isset( self::$data[ $bucket ][ $file ] ) ) {
+			return false;
+		}
+
+		return parent::stream_open( $path, $mode, $options, $opened_path );
+	}
+
+	/**
+	 * Simulates url_stat() for URLs. Real HTTP/HTTPS URLs return false from url_stat()/is_file().
+	 *
+	 * @param string $path  URL.
+	 * @param int    $flags Flags.
+	 * @return false Always false for remote URLs.
+	 */
+	public function url_stat( $path, $flags ) {
+		return false;
 	}
 }

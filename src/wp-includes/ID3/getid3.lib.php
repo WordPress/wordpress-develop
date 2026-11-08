@@ -11,6 +11,18 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_LIBXML_OPTIONS') && defined('LIBXML_VERSION')) {
+	if (LIBXML_VERSION >= 20621) {
+		define('GETID3_LIBXML_OPTIONS', LIBXML_NONET | LIBXML_NOWARNING | LIBXML_COMPACT);
+	} else {
+		define('GETID3_LIBXML_OPTIONS', LIBXML_NONET | LIBXML_NOWARNING);
+	}
+}
+
+// Available since PHP 7.0 (2015-Dec-03 https://www.php.net/ChangeLog-7.php)
+if (!defined('PHP_INT_MIN')) {
+	define('PHP_INT_MIN', ~PHP_INT_MAX);
+}
 
 class getid3_lib
 {
@@ -66,6 +78,7 @@ class getid3_lib
 
 	/**
 	 * @param int|null $variable
+	 * @param-out int  $variable
 	 * @param int      $increment
 	 *
 	 * @return bool
@@ -105,19 +118,20 @@ class getid3_lib
 	 * @return bool
 	 */
 	public static function intValueSupported($num) {
-		// check if integers are 64-bit
-		static $hasINT64 = null;
-		if ($hasINT64 === null) { // 10x faster than is_null()
-			$hasINT64 = is_int(pow(2, 31)); // 32-bit int are limited to (2^31)-1
-			if (!$hasINT64 && !defined('PHP_INT_MIN')) {
-				define('PHP_INT_MIN', ~PHP_INT_MAX);
-			}
-		}
-		// if integers are 64-bit - no other check required
-		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) { // phpcs:ignore PHPCompatibility.Constants.NewConstants.php_int_minFound
-			return true;
-		}
-		return false;
+		// really should be <= and >= but trying "(int)9.2233720368548E+18" results in PHP warning "The float 9.2233720368548E+18 is not representable as an int, cast occurred"
+		return (($num < PHP_INT_MAX) && ($num > PHP_INT_MIN));
+	}
+
+	/**
+	 * Perform a division, guarding against division by zero
+	 *
+	 * @param float|int $numerator
+	 * @param float|int $denominator
+	 * @param float|int $fallback
+	 * @return float|int
+	 */
+	public static function SafeDiv($numerator, $denominator, $fallback = 0) {
+		return $denominator ? $numerator / $denominator : $fallback;
 	}
 
 	/**
@@ -127,7 +141,7 @@ class getid3_lib
 	 */
 	public static function DecimalizeFraction($fraction) {
 		list($numerator, $denominator) = explode('/', $fraction);
-		return $numerator / ($denominator ? $denominator : 1);
+		return (int) $numerator / ($denominator ? $denominator : 1);
 	}
 
 	/**
@@ -303,11 +317,10 @@ class getid3_lib
 			}
 		} elseif (($exponent == 0) && ($fraction == 0)) {
 			if ($signbit == '1') {
-				$floatvalue = -0;
+				$floatvalue = -0.0;
 			} else {
-				$floatvalue = 0;
+				$floatvalue = 0.0;
 			}
-			$floatvalue = ($signbit ? 0 : -0);
 		} elseif (($exponent == 0) && ($fraction != 0)) {
 			// These are 'unnormalized' values
 			$floatvalue = pow(2, (-1 * (pow(2, $exponentbits - 1) - 2))) * self::DecimalBinary2Float($fractionstring);
@@ -422,7 +435,7 @@ class getid3_lib
 	}
 
 	/**
-	 * @param int $number
+	 * @param int|string $number
 	 *
 	 * @return string
 	 */
@@ -726,16 +739,36 @@ class getid3_lib
 	 * @return array|false
 	 */
 	public static function XML2array($XMLstring) {
-		if (function_exists('simplexml_load_string') && function_exists('libxml_disable_entity_loader')) {
-			// http://websec.io/2012/08/27/Preventing-XEE-in-PHP.html
-			// https://core.trac.wordpress.org/changeset/29378
-			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading is
-			// disabled by default, but is still needed when LIBXML_NOENT is used.
-			$loader = @libxml_disable_entity_loader(true);
-			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', LIBXML_NOENT);
-			$return = self::SimpleXMLelement2array($XMLobject);
-			@libxml_disable_entity_loader($loader);
-			return $return;
+		if (function_exists('simplexml_load_string')) {
+			if (PHP_VERSION_ID < 80000) {
+				if (function_exists('libxml_disable_entity_loader')) {
+					// http://websec.io/2012/08/27/Preventing-XEE-in-PHP.html
+					// https://core.trac.wordpress.org/changeset/29378
+					// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading is
+					// disabled by default, but is still needed when LIBXML_NOENT is used.
+					$loader = @libxml_disable_entity_loader(true);
+					$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', GETID3_LIBXML_OPTIONS);
+					$return = self::SimpleXMLelement2array($XMLobject);
+					@libxml_disable_entity_loader($loader);
+					return $return;
+				}
+			} else {
+				$allow = false;
+				if (defined('LIBXML_VERSION') && (LIBXML_VERSION >= 20900)) {
+					// https://www.php.net/manual/en/function.libxml-disable-entity-loader.php
+					// "as of libxml 2.9.0 entity substitution is disabled by default, so there is no need to disable the loading
+					//  of external entities, unless there is the need to resolve internal entity references with LIBXML_NOENT."
+					$allow = true;
+				} elseif (function_exists('libxml_set_external_entity_loader')) {
+					libxml_set_external_entity_loader(function () { return null; }); // https://www.zend.com/blog/cve-2023-3823
+					$allow = true;
+				}
+				if ($allow) {
+					$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', GETID3_LIBXML_OPTIONS);
+					$return = self::SimpleXMLelement2array($XMLobject);
+					return $return;
+				}
+			}
 		}
 		return false;
 	}
@@ -865,10 +898,6 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function iconv_fallback_iso88591_utf8($string, $bom=false) {
-		if (function_exists('utf8_encode')) {
-			return utf8_encode($string);
-		}
-		// utf8_encode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		if ($bom) {
 			$newcharstring .= "\xEF\xBB\xBF";
@@ -937,10 +966,6 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function iconv_fallback_utf8_iso88591($string) {
-		if (function_exists('utf8_decode')) {
-			return utf8_decode($string);
-		}
-		// utf8_decode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		$offset = 0;
 		$stringlength = strlen($string);
@@ -1487,7 +1512,7 @@ class getid3_lib
 	public static function GetDataImageSize($imgData, &$imageinfo=array()) {
 		if (PHP_VERSION_ID >= 50400) {
 			$GetDataImageSize = @getimagesizefromstring($imgData, $imageinfo);
-			if ($GetDataImageSize === false || !isset($GetDataImageSize[0], $GetDataImageSize[1])) {
+			if ($GetDataImageSize === false) {
 				return false;
 			}
 			$GetDataImageSize['height'] = $GetDataImageSize[0];
@@ -1515,7 +1540,7 @@ class getid3_lib
 				fwrite($tmp, $imgData);
 				fclose($tmp);
 				$GetDataImageSize = @getimagesize($tempfilename, $imageinfo);
-				if (($GetDataImageSize === false) || !isset($GetDataImageSize[0]) || !isset($GetDataImageSize[1])) {
+				if ($GetDataImageSize === false) {
 					return false;
 				}
 				$GetDataImageSize['height'] = $GetDataImageSize[0];
@@ -1709,7 +1734,7 @@ class getid3_lib
 			// METHOD B: cache all keys in this lookup - more memory but faster on next lookup of not-previously-looked-up key
 			//$cache[$file][$name][substr($line, 0, $keylength)] = trim(substr($line, $keylength + 1));
 			$explodedLine = explode("\t", $line, 2);
-			$ThisKey   = (isset($explodedLine[0]) ? $explodedLine[0] : '');
+			$ThisKey   = $explodedLine[0];
 			$ThisValue = (isset($explodedLine[1]) ? $explodedLine[1] : '');
 			$cache[$file][$name][$ThisKey] = trim($ThisValue);
 		}
@@ -1778,7 +1803,7 @@ class getid3_lib
 			$commandline = 'ls -l '.escapeshellarg($path).' | awk \'{print $5}\'';
 		}
 		if (isset($commandline)) {
-			$output = trim(`$commandline`);
+			$output = trim(shell_exec($commandline));
 			if (ctype_digit($output)) {
 				$filesize = (float) $output;
 			}

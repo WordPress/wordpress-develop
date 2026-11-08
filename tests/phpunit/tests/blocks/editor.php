@@ -1,28 +1,28 @@
 <?php
 /**
- * Block editor tests
+ * Tests for the block editor methods.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.5.0
- */
-
-/**
- * Tests for the block editor methods.
- *
  * @since 5.5.0
  *
  * @group blocks
  */
 class Tests_Blocks_Editor extends WP_UnitTestCase {
-
 	/**
 	 * Sets up each test method.
+	 *
+	 * @global WP_Scripts        $wp_scripts
+	 * @global WP_Styles         $wp_styles
+	 * @global WP_Script_Modules $wp_script_modules
 	 */
 	public function set_up() {
 		global $post;
 
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 
 		$args = array(
 			'post_title' => 'Example',
@@ -31,16 +31,65 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get( $args );
 
 		global $wp_rest_server;
-		$wp_rest_server = new Spy_REST_Server;
+		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+
+		global $post_ID;
+		$post_ID = 1;
+
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$this->original_wp_scripts        = $wp_scripts;
+		$this->original_wp_styles         = $wp_styles;
+		$this->original_wp_script_modules = $wp_script_modules;
+		$wp_scripts                       = null;
+		$wp_styles                        = null;
+		$wp_script_modules                = null;
+		wp_scripts();
+		wp_styles();
+		/*
+		 * The script module print callbacks are bound to the instance that
+		 * registers them, so the fresh instance must register its own hooks.
+		 * WP_UnitTestCase restores $wp_filter between tests.
+		 */
+		wp_script_modules()->add_hooks();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$wp_scripts        = $this->original_wp_scripts;
+		$wp_styles         = $this->original_wp_styles;
+		$wp_script_modules = $this->original_wp_script_modules;
+
+		$registry = WP_Block_Type_Registry::get_instance();
+		if ( $registry->is_registered( 'tests/preload-view-assets' ) ) {
+			$registry->unregister( 'tests/preload-view-assets' );
+		}
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
+		global $post_ID;
+		$post_ID = null;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
+
+	protected ?WP_Scripts $original_wp_scripts;
+
+	protected ?WP_Styles $original_wp_styles;
+
+	protected ?WP_Script_Modules $original_wp_script_modules;
+
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
 
 	public function filter_set_block_categories_post( $block_categories, $post ) {
 		if ( empty( $post ) ) {
@@ -66,7 +115,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	public function filter_set_block_editor_settings_post( $editor_settings, $post ) {
 		if ( empty( $post ) ) {
-			return $allowed_block_types;
+			return $editor_settings;
 		}
 
 		return array(
@@ -202,9 +251,10 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 18, $settings );
+		$this->assertCount( 21, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
+		$this->assertTrue( $settings['autoAttachMediaEnabled'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
@@ -240,7 +290,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				),
 				array(
 					'slug'  => 'reusable',
-					'title' => 'Reusable Blocks',
+					'title' => 'Patterns',
 					'icon'  => null,
 				),
 			),
@@ -249,6 +299,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomColors'] );
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
+		$this->assertFalse( $settings['disableLayoutStyles'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );
@@ -297,7 +348,63 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
+		$this->assertSame( admin_url( '/' ), $settings['__experimentalDashboardLink'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
+	}
+
+	/**
+	 * Tests that media is not attached to the post on save when attachment pages are enabled.
+	 *
+	 * @ticket 66321
+	 *
+	 * @dataProvider data_get_default_block_editor_settings_auto_attach_media_enabled
+	 *
+	 * @param int  $attachment_pages_enabled Value of the `wp_attachment_pages_enabled` option.
+	 * @param bool $expected                 Expected value of the `autoAttachMediaEnabled` setting.
+	 */
+	public function test_get_default_block_editor_settings_auto_attach_media_enabled( $attachment_pages_enabled, $expected ) {
+		update_option( 'wp_attachment_pages_enabled', $attachment_pages_enabled );
+
+		$settings = get_default_block_editor_settings();
+
+		$this->assertSame( $expected, $settings['autoAttachMediaEnabled'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_default_block_editor_settings_auto_attach_media_enabled() {
+		return array(
+			'attachment pages disabled' => array( 0, true ),
+			'attachment pages enabled'  => array( 1, false ),
+		);
+	}
+
+	/**
+	 * @ticket 56815
+	 */
+	public function test_get_default_block_editor_settings_max_upload_file_size() {
+		// Force the return value of wp_max_upload_size() to be 500.
+		add_filter(
+			'upload_size_limit',
+			static function () {
+				return 500;
+			}
+		);
+
+		// Expect 0 when user is not allowed to upload (as wp_max_upload_size() should not be called).
+		$settings = get_default_block_editor_settings();
+		$this->assertSame( 0, $settings['maxUploadFileSize'] );
+
+		// Set up an administrator, as they can upload files.
+		$administrator = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $administrator );
+
+		// Expect the above 500 as the user is now allowed to upload.
+		$settings = get_default_block_editor_settings();
+		$this->assertSame( 500, $settings['maxUploadFileSize'] );
 	}
 
 	/**
@@ -377,6 +484,65 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_first_block() {
+		$block_name               = 'core/paragraph';
+		$blocks                   = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => $block_name,
+				'attrs'     => array(
+					'content' => 'Hello World!',
+				),
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+			array(
+				'blockName' => $block_name,
+			),
+		);
+		$blocks_with_no_paragraph = array(
+			array(
+				'blockName' => 'core/image',
+			),
+			array(
+				'blockName' => 'core/heading',
+			),
+		);
+
+		$this->assertSame( $blocks[1], wp_get_first_block( $blocks, $block_name ) );
+
+		$this->assertSame( array(), wp_get_first_block( $blocks_with_no_paragraph, $block_name ) );
+	}
+
+	/**
+	 * @ticket 58534
+	 */
+	public function test_wp_get_post_content_block_attributes() {
+		$attributes_with_layout = array(
+			'layout' => array(
+				'type' => 'constrained',
+			),
+		);
+		// With no block theme, expect null.
+		$this->assertNull( wp_get_post_content_block_attributes() );
+
+		switch_theme( 'block-theme' );
+
+		$this->assertSame( $attributes_with_layout, wp_get_post_content_block_attributes() );
+	}
+
+	public function test_wp_get_post_content_block_attributes_no_layout() {
+		switch_theme( 'block-theme-post-content-default' );
+
+		$this->assertSame( array(), wp_get_post_content_block_attributes() );
+	}
+
+	/**
 	 * @ticket 53458
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
@@ -436,8 +602,29 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
+		// settings.postContentAttributes
+		$this->assertSameSets(
+			array(
+				'layout' => array(
+					'type' => 'constrained',
+				),
+			),
+			$settings['postContentAttributes']
+		);
 
 		switch_theme( WP_DEFAULT_THEME );
+	}
+
+	/**
+	 * @ticket 59358
+	 */
+	public function test_get_block_editor_settings_without_post_content_block() {
+
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+
+		$settings = get_block_editor_settings( array(), $post_editor_context );
+
+		$this->assertArrayNotHasKey( 'postContentAttributes', $settings );
 	}
 
 	/**
@@ -454,7 +641,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'filter' => 'deprecated',
+				'canEditCSS' => false,
+				'filter'     => 'deprecated',
 			),
 			$settings
 		);
@@ -523,8 +711,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertStringContainsString( 'wp.apiFetch.createPreloadingMiddleware', $after );
-		$this->assertStringContainsString( '"\/wp\/v2\/blocks"', $after );
-		$this->assertStringContainsString( '"\/wp\/v2\/types"', $after );
+		$this->assertStringContainsString( '"/wp/v2/blocks"', $after );
+		$this->assertStringContainsString( '"/wp/v2/types"', $after );
 	}
 
 	/**
@@ -543,19 +731,115 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that scripts, styles, and script modules enqueued while rendering blocks
+	 * during REST API preloading are not enqueued in the block editor.
+	 *
+	 * @ticket 64484
+	 * @ticket 55151
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 */
+	public function test_block_editor_rest_api_preload_discards_assets_enqueued_during_preload() {
+		wp_register_script( 'test-view-script', '/test-view-script.js', array(), null );
+		wp_register_style( 'test-view-style', '/test-view-style.css', array(), null );
+		wp_register_script_module( 'test-view-script-module', '/test-view-script-module.js' );
+		wp_register_script_module( 'test-editor-script-module', '/test-editor-script-module.js' );
+
+		$rendered = false;
+		register_block_type(
+			'tests/preload-view-assets',
+			array(
+				'render_callback'        => static function () use ( &$rendered ) {
+					$rendered = true;
+					return '<p>Block content.</p>';
+				},
+				'view_script_handles'    => array( 'test-view-script' ),
+				'view_style_handles'     => array( 'test-view-style' ),
+				'view_script_module_ids' => array( 'test-view-script-module' ),
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => '<!-- wp:tests/preload-view-assets /-->',
+			)
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		// Enqueued before preloading, so it must still be enqueued afterwards.
+		wp_enqueue_script_module( 'test-editor-script-module' );
+
+		block_editor_rest_api_preload(
+			array( "/wp/v2/posts/{$post_id}?context=edit" ),
+			new WP_Block_Editor_Context( array( 'post' => get_post( $post_id ) ) )
+		);
+
+		$admin_footer_scripts = get_echo(
+			static function () {
+				/** This action is documented in wp-admin/admin-footer.php */
+				do_action( 'admin_print_footer_scripts' );
+			}
+		);
+
+		$this->assertTrue( $rendered, 'The block should render during preloading.' );
+		$this->assertNotContains( 'test-view-script', wp_scripts()->queue, 'The block view script should not be enqueued.' );
+		$this->assertNotContains( 'test-view-style', wp_styles()->queue, 'The block view style should not be enqueued.' );
+		$this->assertStringNotContainsString( 'test-view-script-module', $admin_footer_scripts, 'The block view script module should not be printed.' );
+		$this->assertStringContainsString( 'test-editor-script-module', $admin_footer_scripts, 'The script module enqueued before preloading should be printed.' );
+	}
+
+	/**
+	 * @ticket 57547
+	 *
+	 * @covers ::get_classic_theme_supports_block_editor_settings
+	 */
+	public function test_get_classic_theme_supports_block_editor_settings() {
+		$font_sizes = array(
+			array(
+				'name' => 'Small',
+				'size' => 12,
+				'slug' => 'small',
+			),
+			array(
+				'name' => 'Regular',
+				'size' => 16,
+				'slug' => 'regular',
+			),
+		);
+
+		add_theme_support( 'editor-font-sizes', $font_sizes );
+		$settings = get_classic_theme_supports_block_editor_settings();
+		remove_theme_support( 'editor-font-sizes' );
+
+		$this->assertFalse( $settings['disableCustomColors'], 'Value for array key "disableCustomColors" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomFontSizes'], 'Value for array key "disableCustomFontSizes" does not match expectations' );
+		$this->assertFalse( $settings['disableCustomGradients'], 'Value for array key "disableCustomGradients" does not match expectations' );
+		$this->assertFalse( $settings['disableLayoutStyles'], 'Value for array key "disableLayoutStyles" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomLineHeight'], 'Value for array key "enableCustomLineHeight" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomSpacing'], 'Value for array key "enableCustomSpacing" does not match expectations' );
+		$this->assertFalse( $settings['enableCustomUnits'], 'Value for array key "enableCustomUnits" does not match expectations' );
+
+		$this->assertSame(
+			$font_sizes,
+			$settings['fontSizes'],
+			'Value for array key "fontSizes" does not match expectations'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
 	 */
-	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
+	public static function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
 		return array(
 			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'a string with a slash'                  => array(
 				'preload_paths' => array( '/wp/v2/blocks' ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'a string starting with a question mark' => array(
 				'preload_paths' => array( '?context=edit' ),
@@ -563,16 +847,64 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			),
 			'an array with a string without a slash' => array(
 				'preload_paths' => array( array( 'wp/v2/blocks', 'OPTIONS' ) ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'an array with a string with a slash'    => array(
 				'preload_paths' => array( array( '/wp/v2/blocks', 'OPTIONS' ) ),
-				'expected'      => '\/wp\/v2\/blocks',
+				'expected'      => '/wp/v2/blocks',
 			),
 			'an array with a string starting with a question mark' => array(
 				'preload_paths' => array( array( '?context=edit', 'OPTIONS' ) ),
-				'expected'      => '\/?context=edit',
+				'expected'      => '/?context=edit',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 62797
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 *
+	 * Some valid JSON-encoded data is dangerous to embed in HTML without appropriate
+	 * escaping. This test includes an example of data that would prevent the enclosing
+	 * `<script></script>` tag from closing on its apparent closer and remain open.
+	 */
+	public function test_ensure_preload_data_script_tag_closes() {
+		add_theme_support( 'html5', array( 'script' ) );
+		register_rest_route(
+			'test/v0',
+			'test-62797',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return 'Unclosed comment and a script open tag <!--<script>';
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		// Prevent a bunch of noisy or unstable data from being included in the test output.
+		wp_scripts()->registered['wp-api-fetch']->ver            = 'test';
+		wp_scripts()->registered['wp-api-fetch']->extra['after'] = array();
+
+		block_editor_rest_api_preload(
+			array( '/test/v0/test-62797' ),
+			new WP_Block_Editor_Context()
+		);
+
+		ob_start();
+		wp_scripts()->do_item( 'wp-api-fetch' );
+		$output = ob_get_clean();
+
+		$baseurl  = site_url();
+		$expected = <<<HTML
+<script src="{$baseurl}/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
+<script id="wp-api-fetch-js-after">
+wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":"Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E","headers":{"Allow":"GET"}}} ) );
+//# sourceURL=wp-api-fetch-js-after
+</script>
+
+HTML;
+		$this->assertEqualHTML( $expected, $output );
 	}
 }

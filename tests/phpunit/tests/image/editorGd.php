@@ -8,6 +8,7 @@
  * @group wp-image-editor-gd
  */
 require_once __DIR__ . '/base.php';
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
@@ -16,8 +17,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	public function set_up() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
-
-		add_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		// This needs to come after the mock image editor class is loaded.
 		parent::set_up();
@@ -31,8 +30,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		}
 
 		$this->remove_added_uploads();
-
-		remove_filter( 'image_editor_output_format', '__return_empty_array' );
 
 		parent::tear_down();
 	}
@@ -56,7 +53,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image, not using crop
+	 * Tests resizing an image, not using crop.
 	 *
 	 * @requires function imagejpeg
 	 */
@@ -78,7 +75,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with single image resize and no crop
+	 * Tests multi_resize() with single image resize and no crop.
 	 *
 	 * @requires function imagejpeg
 	 */
@@ -120,7 +117,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Ensure multi_resize doesn't create an image when
+	 * Tests that multi_resize() does not create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
 	 * @ticket 26823
@@ -189,7 +186,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with multiple sizes
+	 * Tests multi_resize() with multiple sizes.
 	 *
 	 * @ticket 26823
 	 * @requires function imagejpeg
@@ -202,7 +199,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$sizes_array = array(
 
-			/**
+			/*
 			 * #0 - 10x10 resize, no cropping.
 			 * By aspect, should be 10x6 output.
 			 */
@@ -212,7 +209,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #1 - 75x50 resize, with cropping.
 			 * Output dimensions should be 75x50
 			 */
@@ -222,7 +219,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #2 - 20 pixel max height, no cropping.
 			 * By aspect, should be 30x20 output.
 			 */
@@ -232,7 +229,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #3 - 45 pixel max height, with cropping.
 			 * By aspect, should be 45x400 output.
 			 */
@@ -242,7 +239,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #4 - 50 pixel max width, no cropping.
 			 * By aspect, should be 50x33 output.
 			 */
@@ -250,7 +247,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width' => 50,
 			),
 
-			/**
+			/*
 			 * #5 - 55 pixel max width, no cropping, null height
 			 * By aspect, should be 55x36 output.
 			 */
@@ -259,7 +256,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => null,
 			),
 
-			/**
+			/*
 			 * #6 - 55 pixel max height, no cropping, no width specified.
 			 * By aspect, should be 82x55 output.
 			 */
@@ -267,7 +264,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 55,
 			),
 
-			/**
+			/*
 			 * #7 - 60 pixel max height, no cropping, null width.
 			 * By aspect, should be 90x60 output.
 			 */
@@ -276,7 +273,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 60,
 			),
 
-			/**
+			/*
 			 * #8 - 70 pixel max height, no cropping, negative width.
 			 * By aspect, should be 105x70 output.
 			 */
@@ -285,7 +282,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'height' => 70,
 			),
 
-			/**
+			/*
 			 * #9 - 200 pixel max width, no cropping, negative height.
 			 * By aspect, should be 200x133 output.
 			 */
@@ -406,7 +403,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image with cropping
+	 * Tests resizing an image with cropping.
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -426,7 +423,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test cropping an image.
+	 * Tests cropping an image.
 	 *
 	 * @ticket 51937
 	 *
@@ -449,7 +446,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		);
 	}
 
-	public function data_crop() {
+	public static function data_crop() {
 		return array(
 			'src height and width must be greater than 0' => array(
 				'src_x' => 0,
@@ -483,7 +480,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test should return WP_Error when dimensions are not integer or are <= 0.
+	 * Tests that crop() returns WP_Error when dimensions are not integer or are <= 0.
 	 *
 	 * @ticket 51937
 	 *
@@ -497,11 +494,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$actual = $gd_image_editor->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs );
 
-		$this->assertInstanceOf( 'WP_Error', $actual );
+		$this->assertWPError( $actual );
 		$this->assertSame( 'image_crop_error', $actual->get_error_code() );
 	}
 
-	public function data_crop_invalid_dimensions() {
+	public static function data_crop_invalid_dimensions() {
 		return array(
 			'src height must be greater than 0' => array(
 				'src_x' => 0,
@@ -549,7 +546,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test rotating an image 180 deg
+	 * Tests rotating an image 180 deg.
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -558,7 +555,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor->load();
 
 		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
 
@@ -568,7 +567,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test flipping an image
+	 * Tests flipping an image.
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -577,7 +576,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor->load();
 
 		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
 
@@ -587,34 +588,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test the image created with WP_Image_Editor_GD preserves alpha when resizing
-	 *
-	 * @ticket 23039
-	 */
-	public function test_image_preserves_alpha_on_resize() {
-		if ( ! ( imagetypes() & IMG_PNG ) ) {
-			$this->fail( 'This test requires PHP to be compiled with PNG support.' );
-		}
-
-		$file = DIR_TESTDATA . '/images/transparent.png';
-
-		$editor = wp_get_image_editor( $file );
-
-		$this->assertNotWPError( $editor );
-
-		$editor->load();
-		$editor->resize( 5, 5 );
-		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-
-		$editor->save( $save_to_file );
-
-		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
-
-		unlink( $save_to_file );
-	}
-
-	/**
-	 * Test the image created with WP_Image_Editor_GD preserves alpha with no resizing etc
+	 * Tests that an image created with WP_Image_Editor_GD preserves alpha with no resizing.
 	 *
 	 * @ticket 23039
 	 */
@@ -625,15 +599,37 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
-		$editor = wp_get_image_editor( $file );
-
-		$this->assertNotWPError( $editor );
-
-		$editor->load();
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
 
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-		$editor->save( $save_to_file );
+		$gd_image_editor->save( $save_to_file );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
+
+		unlink( $save_to_file );
+	}
+
+	/**
+	 * Tests that an image created with WP_Image_Editor_GD preserves alpha when resizing.
+	 *
+	 * @ticket 23039
+	 */
+	public function test_image_preserves_alpha_on_resize() {
+		if ( ! ( imagetypes() & IMG_PNG ) ) {
+			$this->fail( 'This test requires PHP to be compiled with PNG support.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/transparent.png';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+
+		$gd_image_editor->resize( 5, 5 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+
+		$gd_image_editor->save( $save_to_file );
 
 		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
 
@@ -654,27 +650,127 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$rgb      = imagecolorat( $image, 0, 0 );
 		$expected = imagecolorsforindex( $image, $rgb );
 
-		$editor = new WP_Image_Editor_GD( $file );
-				$editor->load();
-				$editor->rotate( 180 );
-				$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
 
-				$editor->save( $save_to_file );
+		$gd_image_editor->rotate( 180 );
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-				$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), $expected['alpha'] );
-				unlink( $save_to_file );
+		$gd_image_editor->save( $save_to_file );
 
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), $expected['alpha'] );
+
+		unlink( $save_to_file );
 	}
 
 	/**
-	 * Test WP_Image_Editor_GD handles extension-less images
+	 * Tests that WP_Image_Editor_GD handles extensionless images.
 	 *
 	 * @ticket 39195
 	 */
 	public function test_image_non_existent_extension() {
-		$image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image-no-extension' );
-		$result       = $image_editor->load();
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image-no-extension' );
 
-		$this->assertTrue( $result );
+		$loaded = $gd_image_editor->load();
+
+		$this->assertTrue( $loaded );
+	}
+
+	/**
+	 * Tests that images can be saved to a stream.
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream() {
+		$saved = $this->save_to_stream( 'wptestgd', 'WP_Test_Stream' );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( 'wptestgd://Tests_Image_Editor_GD/write.jpg', $saved['path'] );
+		$this->assertNotEmpty( WP_Test_Stream::$data['Tests_Image_Editor_GD']['/write.jpg'], 'The image should have been written to the stream.' );
+	}
+
+	/**
+	 * Tests that saving fails when the image cannot be fully written to the stream.
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream_fails_when_write_fails() {
+		// file_put_contents() warns about the incomplete write. $this->expectWarning() is deprecated in PHPUnit 10.
+		$warnings = array();
+		set_error_handler(
+			static function ( int $errno, string $errstr ) use ( &$warnings ) {
+				$warnings[] = $errstr;
+				return true;
+			},
+			E_WARNING
+		);
+
+		try {
+			$saved = $this->save_to_stream( 'wptestgdwritefail', 'WP_Test_Stream_GD_Write_Failure' );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertCount( 1, $warnings, 'Expected one warning about the incomplete write.' );
+		$this->assertStringContainsString( 'bytes written', $warnings[0] );
+		$this->assertWPError( $saved );
+		$this->assertSame( 'image_save_error', $saved->get_error_code() );
+	}
+
+	/**
+	 * Tests that saving fails when the stream cannot be flushed.
+	 *
+	 * PHP 8.6 is the first version where fclose() reports flush and close failures.
+	 *
+	 * @requires PHP >= 8.6
+	 *
+	 * @covers WP_Image_Editor::make_image
+	 */
+	public function test_save_to_stream_fails_when_flush_fails() {
+		$saved = $this->save_to_stream( 'wptestgdflushfail', 'WP_Test_Stream_GD_Flush_Failure' );
+
+		$this->assertWPError( $saved );
+		$this->assertSame( 'image_save_error', $saved->get_error_code() );
+	}
+
+	/**
+	 * Loads a JPEG image with the GD editor and saves it to a stream.
+	 *
+	 * @param string $protocol      The stream protocol to register.
+	 * @param string $wrapper_class The stream wrapper class to register for the protocol.
+	 * @return array|WP_Error The result of WP_Image_Editor_GD::save().
+	 */
+	private function save_to_stream( $protocol, $wrapper_class ) {
+		stream_wrapper_register( $protocol, $wrapper_class );
+		WP_Test_Stream::$data = array();
+
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/waffles.jpg' );
+		$loaded          = $gd_image_editor->load();
+
+		$saved = $gd_image_editor->save( $protocol . '://Tests_Image_Editor_GD/write.jpg', 'image/jpeg' );
+
+		stream_wrapper_unregister( $protocol );
+
+		$this->assertTrue( $loaded );
+
+		return $saved;
+	}
+}
+
+/**
+ * A stream wrapper that fails to write any data.
+ */
+class WP_Test_Stream_GD_Write_Failure extends WP_Test_Stream {
+	public function stream_write( $data ) {
+		return 0;
+	}
+}
+
+/**
+ * A stream wrapper that fails to flush, like a remote storage wrapper whose upload fails.
+ */
+class WP_Test_Stream_GD_Flush_Failure extends WP_Test_Stream {
+	public function stream_flush() {
+		return false;
 	}
 }

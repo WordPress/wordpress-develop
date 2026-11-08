@@ -10,7 +10,7 @@
  */
 
 /**
- * Function to return the array of starter content for the theme.
+ * Returns the array of starter content for the theme.
  *
  * Passes it through the `twenty_twenty_one_starter_content` filter before returning.
  *
@@ -119,7 +119,7 @@ function twenty_twenty_one_get_starter_content() {
 					<!-- wp:columns -->
 					<div class="wp-block-columns"><!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:paragraph -->
-					<p><a href="https://wordpress.org/support/article/twenty-twenty-one/">' . esc_html_x( 'Read the Theme Documentation', 'Theme starter content', 'twentytwentyone' ) . '</a></p>
+					<p><a href="https://wordpress.org/documentation/article/twenty-twenty-one/">' . esc_html_x( 'Read the Theme Documentation', 'Theme starter content', 'twentytwentyone' ) . '</a></p>
 					<!-- /wp:paragraph --></div>
 					<!-- /wp:column -->
 

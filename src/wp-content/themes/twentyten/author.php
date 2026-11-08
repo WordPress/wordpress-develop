@@ -29,7 +29,7 @@ if ( have_posts() ) {
 				<h1 class="page-title author">
 				<?php
 				/* translators: %s: Author display name. */
-				printf( __( 'Author Archives: %s', 'twentyten' ), '<span class="vcard"><a class="url fn n" href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" title="' . esc_attr( get_the_author() ) . '" rel="me">' . get_the_author() . '</a></span>' );
+				printf( __( 'Author Archives: %s', 'twentyten' ), '<span class="vcard"><a class="url fn n" href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" rel="me">' . get_the_author() . '</a></span>' );
 				?>
 				</h1>
 
@@ -45,7 +45,7 @@ if ( get_the_author_meta( 'description' ) ) :
 							 *
 							 * @since Twenty Ten 1.0
 							 *
-							 * @param int The height and width avatar dimensions in pixels. Default 60.
+							 * @param int $size The height and width avatar dimensions in pixels. Default 60.
 							 */
 							$author_bio_avatar_size = apply_filters( 'twentyten_author_bio_avatar_size', 60 );
 							echo get_avatar( get_the_author_meta( 'user_email' ), $author_bio_avatar_size );

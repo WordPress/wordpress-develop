@@ -54,8 +54,8 @@ if ( ! class_exists( 'Services_JSON' ) ) :
  * @author      Brett Stimmerman <brettstimmerman[at]gmail[dot]com>
  * @copyright   2005 Michal Migurski
  * @version     CVS: $Id: JSON.php 305040 2010-11-02 23:19:03Z alan_k $
- * @license     http://www.opensource.org/licenses/bsd-license.php
- * @link        http://pear.php.net/pepr/pepr-proposal-show.php?id=198
+ * @license     https://www.opensource.org/licenses/bsd-license.php
+ * @link        https://pear.php.net/pepr/pepr-proposal-show.php?id=198
  */
 
 /**
@@ -291,7 +291,7 @@ class Services_JSON
     {
         _deprecated_function( __METHOD__, '5.3.0', 'The PHP native JSON extension' );
 
-        header('Content-type: application/json');
+        header('Content-Type: application/json');
         return $this->encodeUnsafe($var);
     }
     /**
@@ -662,8 +662,8 @@ class Services_JSON
                     // return (float)$str;
 
                     // Return float or int, as appropriate
-                    return ((float)$str == (integer)$str)
-                        ? (integer)$str
+                    return ((float)$str == (int)$str)
+                        ? (int)$str
                         : (float)$str;
 
                 } elseif (preg_match('/^("|\').*(\1)$/s', $str, $m) && $m[1] == $m[2]) {

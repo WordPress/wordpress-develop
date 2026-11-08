@@ -6,6 +6,7 @@
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
 		convertErrorsToExceptions="true"
 		convertWarningsToExceptions="true"
 		convertNoticesToExceptions="true"
@@ -33,8 +34,12 @@
 			<group>ms-excluded</group>
 			<group>external-http</group>
 			<group>oembed-headers</group>
+			<group>html-api-web-platform-tests</group>
 		</exclude>
 	</groups>
+	<listeners>
+		<listener class="WP_PHPUnit_Default_Group_Filter" />
+	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">../../src</directory>
@@ -42,7 +47,6 @@
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">../../src/wp-includes/ID3</directory>
 				<directory suffix=".php">../../src/wp-includes/IXR</directory>
-				<directory suffix=".php">../../src/wp-includes/random_compat</directory>
 				<directory suffix=".php">../../src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">../../src/wp-includes/Requests</directory>
 				<directory suffix=".php">../../src/wp-includes/SimplePie</directory>
@@ -72,4 +76,7 @@
 			</exclude>
 		</whitelist>
 	</filter>
+	<logging>
+		<log type="junit" target="build/logs/junit.xml" />
+	</logging>
 </phpunit>

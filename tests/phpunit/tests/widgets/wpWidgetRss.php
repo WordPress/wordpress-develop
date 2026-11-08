@@ -34,7 +34,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		);
 
 		if ( is_null( $url ) ) {
-			unset( $instance['ur'] );
+			unset( $instance['url'] );
 		}
 
 		$this->expectOutputString( '' );
@@ -42,7 +42,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 	}
 
-	public function data_url_unhappy_path() {
+	public static function data_url_unhappy_path() {
 		return array(
 			'when unset'         => array(
 				'url' => null,
@@ -79,10 +79,6 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 			'url'   => $url,
 		);
 
-		if ( is_null( $url ) ) {
-			unset( $instance['ur'] );
-		}
-
 		ob_start();
 		$widget->widget( $args, $instance );
 		$actual = ob_get_clean();
@@ -90,7 +86,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, $actual );
 	}
 
-	public function data_url_happy_path() {
+	public static function data_url_happy_path() {
 		return array(
 			'when url is given' => array(
 				'url' => 'https://wordpress.org/news/feed/',
@@ -101,12 +97,12 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	public function mocked_rss_response() {
 		$single_value_headers = array(
-			'content-type' => 'application/rss+xml; charset=UTF-8',
+			'Content-Type' => 'application/rss+xml; charset=UTF-8',
 			'link'         => '<https://wordpress.org/news/wp-json/>; rel="https://api.w.org/"',
 		);
 
 		return array(
-			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $single_value_headers ),
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
 			'response' => array(
 				'code'    => 200,
