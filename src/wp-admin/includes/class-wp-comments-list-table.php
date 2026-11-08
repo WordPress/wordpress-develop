@@ -106,43 +106,21 @@ class WP_Comments_List_Table extends WP_List_Table {
 		}
 
 		/*
-		 * Notes and reactions carry their own visibility rules, so they are never listed here and a
-		 * request for them is dropped outright. This is deliberately narrower than the
-		 * treatment of the other default-excluded types below, which can be listed when
-		 * explicitly requested. Emptying the excluded set does surface notes in the
-		 * untyped views, but not as a type the table can be filtered to.
+		 * Notes and reactions cannot be requested as a type here, unlike other
+		 * default-excluded types. A non-string request is ignored.
 		 */
 		$comment_type = '';
 
-		/*
-		 * Only a string is honoured. A request that supplies an array, for example
-		 * comment_type[]=review, is treated as no type filter at all so that the
-		 * value can safely be compared and diffed as a string below.
-		 */
 		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
 		/*
-		 * WP_Comment_Query drops the default exclusions when 'all' types are
-		 * requested, so they are also passed as 'type__not_in' to keep excluded
-		 * types out of the list table in that case.
-		 *
-		 * The requested type is removed from that list, so a plugin that adds
-		 * its own default-excluded type to the type dropdown via
-		 * 'admin_comment_types_dropdown' can still list it. Type aliases are
-		 * expanded first, matching how WP_Comment_Query resolves them.
+		 * The default exclusions are passed explicitly so they still apply to an 'all'
+		 * request. The requested type is kept, so a plugin can list its own excluded
+		 * type via the 'admin_comment_types_dropdown' filter.
 		 */
 		switch ( $comment_type ) {
-			/*
-			 * Kept for symmetry with WP_Comment_Query; the accessor strips these tokens
-			 * from the excluded set, so this branch can never subtract anything.
-			 */
-			case 'comment':
-			case 'comments':
-				$requested_types = array( '', 'comment' );
-				break;
-
 			case 'pings':
 				$requested_types = array( 'pingback', 'trackback' );
 				break;

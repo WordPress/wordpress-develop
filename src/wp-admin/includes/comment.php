@@ -247,8 +247,7 @@ function get_pending_comments_num( $post_id ) {
 
 	$type_not_in = wp_get_excluded_comment_types_clause();
 
-	// $post_id_in is built from integers and $type_not_in is prepared above.
-	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $post_id_in holds integers and $type_not_in is prepared.
 	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0'$type_not_in GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
