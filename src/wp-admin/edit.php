@@ -188,6 +188,13 @@ if ( $doaction ) {
 				++$deleted;
 			}
 			$sendback = add_query_arg( 'deleted', $deleted, $sendback );
+
+			if ( isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'] ) {
+				$post_counts = (array) wp_count_posts( $post_type, 'readable' );
+				if ( empty( $post_counts['trash'] ) ) {
+					$sendback = remove_query_arg( array( 'post_status', 'paged' ), $sendback );
+				}
+			}
 			break;
 		case 'edit':
 			if ( isset( $_REQUEST['bulk_edit'] ) ) {
@@ -233,6 +240,12 @@ if ( $doaction ) {
 }
 
 $wp_list_table->prepare_items();
+
+if ( ! $wp_list_table->has_items() && isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'] ) {
+	$sendback = remove_query_arg( array( 'post_status', 'paged' ), wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	wp_redirect( $sendback );
+	exit;
+}
 
 wp_enqueue_script( 'inline-edit-post' );
 wp_enqueue_script( 'heartbeat' );
