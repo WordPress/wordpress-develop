@@ -712,7 +712,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	/**
 	 * @ticket 30854
 	 */
-	function test_wp_first_revision_is_not_lost() {
+	public function test_wp_first_revision_is_not_lost() {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_title'   => 'some-post',
