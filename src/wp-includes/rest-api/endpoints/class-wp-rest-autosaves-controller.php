@@ -350,7 +350,6 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				if ( in_array( $autosave->post_author, $seen_authors, true ) ) {
 					continue;
 				}
-
 				$seen_authors[] = $autosave->post_author;
 
 				$data       = $this->prepare_item_for_response( $autosave, $request );
