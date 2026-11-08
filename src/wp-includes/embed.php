@@ -582,9 +582,11 @@ function get_oembed_response_data( $post, $width ) {
 	 * @param array $min_max_width {
 	 *     Minimum and maximum widths for the oEmbed response.
 	 *
-	 *     @type int $min Minimum width. Default 200.
-	 *     @type int $max Maximum width. Default 600.
+	 *     @type int $min Minimum width. Default 200. Required.
+	 *     @type int $max Maximum width. Default 600. Required.
 	 * }
+	 *
+	 * @phpstan-param array{ min: positive-int, max: positive-int } $min_max_width
 	 */
 	$min_max_width = apply_filters(
 		'oembed_min_max_width',
@@ -594,7 +596,6 @@ function get_oembed_response_data( $post, $width ) {
 		)
 	);
 
-	/** @var array{ min: positive-int, max: positive-int } $min_max_width */
 	$width  = clamp( $width, $min_max_width['min'], $min_max_width['max'] );
 	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
@@ -676,7 +677,7 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		}
 
 		if ( $site && get_current_blog_id() !== (int) $site->blog_id ) {
-			switch_to_blog( $site->blog_id );
+			switch_to_blog( (int) $site->blog_id );
 			$switched_blog = true;
 		}
 	}

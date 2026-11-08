@@ -136,7 +136,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_include_attachments() {
+	public static function data_should_include_attachments() {
 		return array(
 			'for all content'           => array(
 				'args'     => array(

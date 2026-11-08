@@ -31,7 +31,10 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t['term_id'] );
 		$this->assertGreaterThan( 0, $t['term_taxonomy_id'] );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
+		$this->assertSame(
+			(string) ( $initial_count + 1 ),
+			wp_count_terms( array( 'taxonomy' => $taxonomy ) )
+		);
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );
@@ -672,7 +675,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		 * allow for duplicate slugs.
 		 */
 		$this->assertSame( 'foo-2', $new_term->slug );
-		$this->assertNotEquals( $new_term->term_id, $term->term_id );
+		$this->assertNotSame( $new_term->term_id, $term->term_id );
 
 		_unregister_taxonomy( 'wptests_tax', 'post' );
 	}
@@ -761,7 +764,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
 		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
 
-		$this->assertNotEquals( $t1['term_id'], $t2['term_id'] );
+		$this->assertNotSame( $t1['term_id'], $t2['term_id'] );
 	}
 
 	public function test_wp_insert_term_should_return_term_id_and_term_taxonomy_id() {
@@ -778,6 +781,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( $found['term_id'] );
 		$this->assertNotEmpty( $found['term_taxonomy_id'] );
 		$this->assertNotEmpty( $term_by_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_by_id, $term_by_slug );
 		$this->assertEquals( $term_by_id, $term_by_ttid );
 	}
@@ -906,6 +911,77 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_root_level_term_with_same_name_as_child_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Foo',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Bar',
+				'slug'     => 'foo-bar',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t3 = wp_insert_term( 'Bar', 'wptests_tax' );
+
+		$this->assertNotWPError( $t3 );
+		$t3_term = get_term( $t3['term_id'], 'wptests_tax' );
+		$this->assertSame( 'bar', $t3_term->slug );
+	}
+
+	/**
+	 * @ticket 31270
+	 */
+	public function test_wp_insert_term_child_term_with_same_name_as_another_child_under_different_parent_should_get_clean_slug() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent One',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'name'     => 'Parent Two',
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		self::factory()->term->create(
+			array(
+				'name'     => 'Child',
+				'slug'     => 'parent-one-child',
+				'parent'   => $t1,
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t4 = wp_insert_term(
+			'Child',
+			'wptests_tax',
+			array(
+				'parent' => $t2,
+			)
+		);
+
+		$this->assertNotWPError( $t4 );
+		$t4_term = get_term( $t4['term_id'], 'wptests_tax' );
+		$this->assertSame( 'child', $t4_term->slug );
+	}
+
+	/**
 	 * Non-ASCII slugs are stored percent-encoded, so a short term name can still
 	 * overflow the 200 character `slug` column once a parent slug is appended.
 	 *
@@ -961,7 +1037,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		// Pesky string $this->assertIsInt( $tt_id );
 		$this->assertSame( $term, $deleted_term->term_id );
 		$this->assertSame( $taxonomy, $deleted_term->taxonomy );
-		$this->assertEquals( $tt_id, $deleted_term->term_taxonomy_id );
+		$this->assertSame( (int) $tt_id, $deleted_term->term_taxonomy_id );
 		$this->assertEmpty( $object_ids );
 	}
 

@@ -914,9 +914,9 @@ function post_password_required( $post = null ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param bool    $required Whether the user needs to supply a password. True if password has not been
-	 *                          provided or is incorrect, false if password has been supplied or is not required.
-	 * @param WP_Post $post     Post object.
+	 * @param bool         $required Whether the user needs to supply a password. True if password has not been
+	 *                               provided or is incorrect, false if password has been supplied or is not required.
+	 * @param WP_Post|null $post     Post object, or null if no post is found.
 	 */
 	return apply_filters( 'post_password_required', $required, $post );
 }
@@ -1640,6 +1640,8 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
  * @param bool        $permalink  Optional. Whether to include permalink. Default false.
+ *
+ * @phpstan-param false $deprecated
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1860,9 +1862,9 @@ function get_the_password_form( $post = 0 ) {
 	 * @since 5.8.0 Added the `$post` parameter.
 	 * @since 6.8.0 Added the `$invalid_password` parameter.
 	 *
-	 * @param string  $output           The password form HTML output.
-	 * @param WP_Post $post             Post object.
-	 * @param string  $invalid_password The invalid password message.
+	 * @param string       $output           The password form HTML output.
+	 * @param WP_Post|null $post             Post object, or null if no post is found.
+	 * @param string       $invalid_password The invalid password message.
 	 */
 	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
 }
