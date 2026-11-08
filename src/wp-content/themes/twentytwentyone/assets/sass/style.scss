@@ -70,6 +70,7 @@
  *
  * UTILITIES
  * A11y.................Screen reader text, prefers reduced motion etc.
+ * Border...............Block border styles.
  * Color Palette........Classes for the color palette colors.
  * Editor Font Sizes....Editor Font Sizes.
  * Measure..............The width of a line of text, in characters.
@@ -116,5 +117,6 @@
 
 /* Category 07 is for any utility classes that are not assigned to a specific component. */
 @import "07-utilities/a11y";
+@import "07-utilities/border";
 @import "07-utilities/color-palette";
 @import "07-utilities/measure";
