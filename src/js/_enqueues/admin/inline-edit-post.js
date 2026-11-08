@@ -18,8 +18,11 @@ window.wp = window.wp || {};
  *
  * @type {Object}
  *
- * @property {string} type The type of inline editor.
- * @property {string} what The prefix before the post ID.
+ * @property {string}       type The type of inline editor.
+ * @property {string}       what The prefix before the post ID.
+ *
+ * @param    {JQueryStatic} $    The jQuery object.
+ * @param    {wp}           wp   The WordPress global object.
  *
  */
 ( function( $, wp ) {
@@ -188,6 +191,8 @@ window.wp = window.wp || {};
 	 * @since 2.7.0
 	 *
 	 * @memberof inlineEditPost
+	 *
+	 * @return {void|false} Returns false if no checkboxes are checked, otherwise does not return anything.
 	 */
 	setBulk : function(){
 		var te = '', type = this.type, c = true;
