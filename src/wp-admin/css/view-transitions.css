@@ -14,7 +14,6 @@
 	 * shared wp-menu-top class lets the image-pair rule below address every
 	 * menu-top group at once.
 	 */
-	#adminmenu > .menu-top.wp-has-current-submenu,
 	#adminmenu > .menu-top {
 		view-transition-name: attr(id type(<custom-ident>), none);
 		view-transition-class: wp-menu-top;
