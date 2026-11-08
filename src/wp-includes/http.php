@@ -449,13 +449,15 @@ function get_allowed_http_origins() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 
-	// @todo Preserve port?
+	$admin_host = $admin_origin['host'] . ( isset( $admin_origin['port'] ) ? ':' . $admin_origin['port'] : '' );
+	$home_host  = $home_origin['host'] . ( isset( $home_origin['port'] ) ? ':' . $home_origin['port'] : '' );
+
 	$allowed_origins = array_unique(
 		array(
-			'http://' . $admin_origin['host'],
-			'https://' . $admin_origin['host'],
-			'http://' . $home_origin['host'],
-			'https://' . $home_origin['host'],
+			'http://' . $admin_host,
+			'https://' . $admin_host,
+			'http://' . $home_host,
+			'https://' . $home_host,
 		)
 	);
 
