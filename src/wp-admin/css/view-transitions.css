@@ -15,17 +15,6 @@
 	 * menu-top group at once.
 	 */
 	#adminmenu > .menu-top.wp-has-current-submenu,
-	/*
-	 * Give each top-level menu item its own view transition name — its id,
-	 * such as "menu-posts" — so each one is captured as an independent group
-	 * and animates from its old position and size to its new ones across a
-	 * navigation. This produces the accordion effect: the previously open
-	 * section collapses as the newly current one expands, instead of the
-	 * whole menu simply cross-fading. attr() falls back to "none" for any
-	 * item whose id is missing or is not a valid custom identifier. The
-	 * shared wp-menu-top class lets the image-pair rule below address every
-	 * menu-top group at once.
-	 */
 	#adminmenu > .menu-top {
 		view-transition-name: attr(id type(<custom-ident>), none);
 		view-transition-class: wp-menu-top;
