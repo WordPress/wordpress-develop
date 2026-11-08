@@ -2,6 +2,8 @@
 /**
  * Twenty Twenty-Two: Block Patterns
  *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
  * @since Twenty Twenty-Two 1.0
  */
 
@@ -14,11 +16,11 @@
  */
 function twentytwentytwo_register_block_patterns() {
 	$block_pattern_categories = array(
-		'featured' => array( 'label' => __( 'Featured', 'twentytwentytwo' ) ),
-		'footer'   => array( 'label' => __( 'Footers', 'twentytwentytwo' ) ),
-		'header'   => array( 'label' => __( 'Headers', 'twentytwentytwo' ) ),
-		'query'    => array( 'label' => __( 'Query', 'twentytwentytwo' ) ),
-		'pages'    => array( 'label' => __( 'Pages', 'twentytwentytwo' ) ),
+		'featured'              => array( 'label' => __( 'Featured', 'twentytwentytwo' ) ),
+		'footer'                => array( 'label' => __( 'Footers', 'twentytwentytwo' ) ),
+		'header'                => array( 'label' => __( 'Headers', 'twentytwentytwo' ) ),
+		'query'                 => array( 'label' => __( 'Query', 'twentytwentytwo' ) ),
+		'twentytwentytwo_pages' => array( 'label' => __( 'Pages', 'twentytwentytwo' ) ),
 	);
 
 	/**

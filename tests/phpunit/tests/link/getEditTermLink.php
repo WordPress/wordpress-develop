@@ -21,6 +21,10 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		self::$user_ids['subscriber'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$user_ids['admin'] );
@@ -202,7 +206,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_edit_term_link() {
+	public static function data_get_edit_term_link() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',
@@ -235,5 +239,18 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 				'expected' => 'term.php?taxonomy=wptests_tax&tag_ID=%ID%&post_type=post',
 			),
 		);
+	}
+
+	/**
+	 * Checks that `get_edit_term_link()` produces the correct URL when called without taxonomy.
+	 *
+	 * @ticket 61726
+	 */
+	public function test_get_edit_term_link_without_taxonomy() {
+		$term = $this->get_term( 'wptests_tax', true );
+
+		$actual   = get_edit_term_link( $term );
+		$expected = sprintf( admin_url( 'term.php?taxonomy=wptests_tax&tag_ID=%d&post_type=post' ), $term );
+		$this->assertSame( $expected, $actual );
 	}
 }
