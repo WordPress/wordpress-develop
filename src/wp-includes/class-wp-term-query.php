@@ -938,7 +938,7 @@ class WP_Term_Query {
 	 * @return string|false Value to used in the ORDER clause. False otherwise.
 	 */
 	protected function parse_orderby( $orderby_raw ) {
-		$_orderby           = strtolower( $orderby_raw );
+		$_orderby           = strtolower( (string) $orderby_raw );
 		$maybe_orderby_meta = false;
 
 		if ( in_array( $_orderby, array( 'term_id', 'name', 'slug', 'term_group' ), true ) ) {
