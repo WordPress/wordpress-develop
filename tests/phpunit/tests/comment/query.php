@@ -5878,7 +5878,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
 	public function test_default_excluded_comment_types_filter_false_return_is_tolerated() {
-		$comments = $this->create_note_type_test_comments();
+		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter( 'default_excluded_comment_types', '__return_false' );
 
@@ -5897,7 +5897,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers ::wp_get_default_excluded_comment_types
 	 */
 	public function test_default_excluded_comment_types_filter_strips_special_tokens() {
-		$comments = $this->create_note_type_test_comments();
+		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter(
 			'default_excluded_comment_types',
@@ -5934,7 +5934,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
 	public function test_default_excluded_comment_types_filter_respects_alias_request() {
-		$comments = $this->create_note_type_test_comments();
+		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter(
 			'default_excluded_comment_types',
@@ -6004,7 +6004,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( 'note', 'private' ),
+			array( 'note', 'reaction', 'private' ),
 			wp_get_default_excluded_comment_types(),
 			'Only the scalar comment types should survive normalization.'
 		);
