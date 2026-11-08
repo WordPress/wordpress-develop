@@ -33,7 +33,7 @@ class Tests_Load_wpIsIniValueChangeable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_is_ini_value_changeable() {
+	public static function data_wp_is_ini_value_changeable(): array {
 		$array = array(
 			array( 'memory_limit', true ), // PHP_INI_ALL.
 			array( 'log_errors', true ), // PHP_INI_ALL.
@@ -41,7 +41,7 @@ class Tests_Load_wpIsIniValueChangeable extends WP_UnitTestCase {
 			array( 'upload_tmp_dir', false ), // PHP_INI_SYSTEM.
 		);
 
-		if ( PHP_VERSION_ID > 70000 && extension_loaded( 'Tidy' ) ) {
+		if ( extension_loaded( 'Tidy' ) ) {
 			$array[] = array( 'tidy.clean_output', true ); // PHP_INI_USER.
 		}
 

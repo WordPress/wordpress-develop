@@ -47,9 +47,16 @@ class Tests_Option_WpPrimeOptionCachesByGroup extends WP_UnitTestCase {
 		// Call the wp_prime_option_caches_by_group function to prime the options.
 		wp_prime_option_caches_by_group( 'group1' );
 
-		// Check that options are now in the cache.
-		$this->assertSame( get_option( 'option1' ), wp_cache_get( 'option1', 'options' ), 'option1\'s cache was not primed.' );
-		$this->assertSame( get_option( 'option2' ), wp_cache_get( 'option2', 'options' ), 'option2\'s cache was not primed.' );
+		/*
+		 * Check that options are now in the cache.
+		 *
+		 * Repeat the string here rather than using get_option as get_option
+		 * will prime the cache before the call to wp_cache_get if the option
+		 * is not in the cache. Thus causing the tests to pass when they should
+		 * fail.
+		 */
+		$this->assertSame( 'value_option1', wp_cache_get( 'option1', 'options' ), 'option1\'s cache was not primed.' );
+		$this->assertSame( 'value_option2', wp_cache_get( 'option2', 'options' ), 'option2\'s cache was not primed.' );
 
 		// Make sure option3 is still not in cache.
 		$this->assertFalse( wp_cache_get( 'option3', 'options' ), 'option3 was not deleted from the cache.' );
