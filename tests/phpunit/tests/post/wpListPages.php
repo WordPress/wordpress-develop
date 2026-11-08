@@ -599,4 +599,28 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			'depth two'       => array( 2 ),
 		);
 	}
+
+	/**
+	 * Tests that a singular request without a queried object does not throw warnings.
+	 *
+	 * @ticket 63522
+	 */
+	public function test_wp_list_pages_singular_without_queried_object() {
+		add_filter( 'pre_handle_404', '__return_true' );
+		$this->go_to( home_url( '?name=non-existent-post' ) );
+
+		$this->assertTrue( is_single(), 'The request should be a single post request.' );
+		$this->assertNull( get_queried_object(), 'The queried object should be null.' );
+
+		$output = wp_list_pages(
+			array(
+				'echo'     => false,
+				'include'  => self::$parent_1,
+				'title_li' => '',
+			)
+		);
+
+		$this->assertStringContainsString( 'page-item-' . self::$parent_1, $output );
+		$this->assertStringNotContainsString( 'current_page_item', $output );
+	}
 }
