@@ -725,14 +725,16 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q->posts = $posts;
 
-		$methd = new ReflectionMethod( 'WP_Query', 'set_found_posts' );
-		$methd->setAccessible( true );
-		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
+		$method = new ReflectionMethod( 'WP_Query', 'set_found_posts' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		$method->invoke( $q, array( 'no_found_rows' => false ), array() );
 
 		$this->assertSame( $expected, $q->found_posts );
 	}
 
-	public function data_set_found_posts_not_posts_as_an_array() {
+	public static function data_set_found_posts_not_posts_as_an_array() {
 		// Count return 0 for null, but 1 for other data you may not expect.
 		return array(
 			array( null, 0 ),
@@ -777,6 +779,23 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47719
+	 */
+	public function test_post__in_should_return_no_posts_when_0() {
+		self::factory()->post->create_many( 4 );
+
+		$query = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'post__in'  => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->found_posts );
+	}
+
+	/**
 	 * @ticket 57296
 	 * @covers WP_Query::get_posts
 	 */
@@ -791,5 +810,39 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		add_filter( 'split_the_query', '__return_false' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_false' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace_split_the_query() {
+		add_filter( 'split_the_query', '__return_true' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_true' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

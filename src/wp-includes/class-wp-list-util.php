@@ -82,20 +82,22 @@ class WP_List_Util {
 	 * Key represents property name, and value represents property value.
 	 *
 	 * If an object has more properties than those specified in arguments,
-	 * that will not disqualify it. When using the 'AND' operator,
+	 * that will not disqualify it. When using the 'and' operator,
 	 * any missing properties will disqualify it.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array  $args     Optional. An array of key => value arguments to match
 	 *                         against each object. Default empty array.
-	 * @param string $operator Optional. The logical operation to perform. 'AND' means
-	 *                         all elements from the array must match. 'OR' means only
-	 *                         one element needs to match. 'NOT' means no elements may
-	 *                         match. Default 'AND'.
+	 * @param string $operator Optional. The logical operation to perform. 'and' means
+	 *                         all elements from the array must match. 'or' means only
+	 *                         one element needs to match. 'not' means no elements may
+	 *                         match. The value is case-insensitive. Default 'and'.
 	 * @return array Array of found values.
+	 *
+	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
 	 */
-	public function filter( $args = array(), $operator = 'AND' ) {
+	public function filter( $args = array(), $operator = 'and' ) {
 		if ( empty( $args ) ) {
 			return $this->output;
 		}
@@ -165,13 +167,9 @@ class WP_List_Util {
 			 */
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
-					if ( property_exists( $value, $field ) ) {
-						$newlist[ $key ] = $value->$field;
-					}
+					$newlist[ $key ] = $value->$field;
 				} elseif ( is_array( $value ) ) {
-					if ( array_key_exists( $field, $value ) ) {
-						$newlist[ $key ] = $value[ $field ];
-					}
+					$newlist[ $key ] = $value[ $field ];
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
@@ -192,20 +190,16 @@ class WP_List_Util {
 		 */
 		foreach ( $this->output as $value ) {
 			if ( is_object( $value ) ) {
-				if ( property_exists( $value, $field ) ) {
-					if ( property_exists( $value, $index_key ) ) {
-						$newlist[ $value->$index_key ] = $value->$field;
-					} else {
-						$newlist[] = $value->$field;
-					}
+				if ( isset( $value->$index_key ) ) {
+					$newlist[ $value->$index_key ] = $value->$field;
+				} else {
+					$newlist[] = $value->$field;
 				}
 			} elseif ( is_array( $value ) ) {
-				if ( array_key_exists( $field, $value ) ) {
-					if ( array_key_exists( $index_key, $value ) ) {
-						$newlist[ $value[ $index_key ] ] = $value[ $field ];
-					} else {
-						$newlist[] = $value[ $field ];
-					}
+				if ( isset( $value[ $index_key ] ) ) {
+					$newlist[ $value[ $index_key ] ] = $value[ $field ];
+				} else {
+					$newlist[] = $value[ $field ];
 				}
 			} else {
 				_doing_it_wrong(

@@ -19,7 +19,7 @@ class IXR_IntrospectionServer extends IXR_Server
         $this->setCallbacks();
         $this->setCapabilities();
         $this->capabilities['introspection'] = array(
-            'specUrl' => 'http://xmlrpc.usefulinc.com/doc/reserved.html',
+            'specUrl' => 'https://web.archive.org/web/20050404090342/http://xmlrpc.usefulinc.com/doc/reserved.html',
             'specVersion' => 1
         );
         $this->addCallback(
@@ -114,7 +114,7 @@ class IXR_IntrospectionServer extends IXR_Server
                     break;
                 case 'date':
                 case 'dateTime.iso8601':
-                    if (!is_a($arg, 'IXR_Date')) {
+                    if (!($arg instanceof IXR_Date)) {
                         $ok = false;
                     }
                     break;

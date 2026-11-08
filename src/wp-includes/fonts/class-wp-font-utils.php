@@ -110,8 +110,11 @@ class WP_Font_Utils {
 			'unicodeRange' => 'U+0-10FFFF',
 		);
 		$settings = wp_parse_args( $settings, $defaults );
-
-		$font_family   = mb_strtolower( $settings['fontFamily'] );
+		if ( function_exists( 'mb_strtolower' ) ) {
+			$font_family = mb_strtolower( $settings['fontFamily'] );
+		} else {
+			$font_family = strtolower( $settings['fontFamily'] );
+		}
 		$font_style    = strtolower( $settings['fontStyle'] );
 		$font_weight   = strtolower( $settings['fontWeight'] );
 		$font_stretch  = strtolower( $settings['fontStretch'] );
@@ -218,8 +221,8 @@ class WP_Font_Utils {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param mixed $value     The value to sanitize.
-	 * @param mixed $sanitizer The sanitizer function to apply.
+	 * @param mixed    $value     The value to sanitize.
+	 * @param callable $sanitizer The sanitizer function to apply.
 	 * @return mixed The sanitized value.
 	 */
 	private static function apply_sanitizer( $value, $sanitizer ) {
@@ -233,22 +236,25 @@ class WP_Font_Utils {
 	/**
 	 * Returns the expected mime-type values for font files, depending on PHP version.
 	 *
-	 * This is needed because font mime types vary by PHP version, so checking the PHP version
-	 * is necessary until a list of valid mime-types for each file extension can be provided to
-	 * the 'upload_mimes' filter.
+	 * This is needed because the mime types detected for WOFF and WOFF2 files vary by PHP version,
+	 * so checking the PHP version is necessary until a list of valid mime-types for each file
+	 * extension can be provided to the 'upload_mimes' filter.
+	 *
+	 * TrueType fonts can be detected as either font/ttf or font/sfnt depending on the libmagic
+	 * version, and both are accepted by wp_check_filetype_and_ext(). The canonical font/ttf
+	 * is returned for them on all PHP versions.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 TrueType fonts now use the font/ttf mime type on all PHP versions.
 	 *
 	 * @access private
 	 *
-	 * @return array A collection of mime types keyed by file extension.
+	 * @return string[] A collection of mime types keyed by file extension.
 	 */
 	public static function get_allowed_font_mime_types() {
-		$php_7_ttf_mime_type = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
-
 		return array(
 			'otf'   => 'application/vnd.ms-opentype',
-			'ttf'   => PHP_VERSION_ID >= 70400 ? 'font/sfnt' : $php_7_ttf_mime_type,
+			'ttf'   => 'font/ttf',
 			'woff'  => PHP_VERSION_ID >= 80112 ? 'font/woff' : 'application/font-woff',
 			'woff2' => PHP_VERSION_ID >= 80112 ? 'font/woff2' : 'application/font-woff2',
 		);
