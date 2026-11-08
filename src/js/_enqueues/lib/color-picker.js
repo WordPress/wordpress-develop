@@ -1,7 +1,15 @@
 /**
  * @output wp-admin/js/color-picker.js
+ *
+ * @since 3.5.0
  */
 
+/**
+ * Handles the color picker functionality.
+ *
+ * @param {JQueryStatic} $     The jQuery object.
+ * @param {undefined}    undef The undefined value.
+ */
 ( function( $, undef ) {
 
 	var ColorPicker,
@@ -61,8 +69,8 @@
 				 *
 				 * @ignore
 				 *
-				 * @param {Event} event    The event that's being called.
-				 * @param {HTMLElement} ui The HTMLElement containing the color picker.
+				 * @param {Event}       event The event that's being called.
+				 * @param {HTMLElement} ui    The HTMLElement containing the color picker.
 				 *
 				 * @return {void}
 				 */
@@ -181,8 +189,8 @@
 				 *
 				 * @ignore
 				 *
-				 * @param {Event} event    The event that's being called.
-				 * @param {HTMLElement} ui The HTMLElement containing the color picker.
+				 * @param {Event}       event The event that's being called.
+				 * @param {HTMLElement} ui    The HTMLElement containing the color picker.
 				 *
 				 * @return {void}
 				 */
@@ -320,11 +328,11 @@
 		/**
 		 * Returns the iris object if no new color is provided. If a new color is provided, it sets the new color.
 		 *
-		 * @param newColor {string|*} The new color to use. Can be undefined.
+		 * @param {string|*} newColor The new color to use. Can be undefined.
 		 *
 		 * @since 3.5.0
 		 *
-		 * @return {string} The element's color.
+		 * @return {string|void} The element's color.
 		 */
 		color: function( newColor ) {
 			if ( newColor === undef ) {
@@ -332,15 +340,16 @@
 			}
 			this.element.iris( 'option', 'color', newColor );
 		},
+
 		/**
 		 * Returns the iris object if no new default color is provided.
 		 * If a new default color is provided, it sets the new default color.
 		 *
-		 * @param newDefaultColor {string|*} The new default color to use. Can be undefined.
+		 * @param {string|*} newDefaultColor The new default color to use. Can be undefined.
 		 *
 		 * @since 3.5.0
 		 *
-		 * @return {boolean|string} The element's color.
+		 * @return {string|void} The element's default color.
 		 */
 		defaultColor: function( newDefaultColor ) {
 			if ( newDefaultColor === undef ) {

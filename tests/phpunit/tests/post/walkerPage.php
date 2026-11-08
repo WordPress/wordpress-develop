@@ -33,7 +33,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 
 		add_filter(
 			'page_menu_link_attributes',
-			static function( $atts ) use ( $value ) {
+			static function ( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}
@@ -48,7 +48,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 		$this->assertSame( "<li class=\"page_item page-item-{$page->ID}\"><a href=\"{$link}\"{$expected}>{$page->post_title}</a>", $output );
 	}
 
-	public function data_start_el_with_empty_attributes() {
+	public static function data_start_el_with_empty_attributes() {
 		return array(
 			array(
 				'',

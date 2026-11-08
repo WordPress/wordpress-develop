@@ -1,4 +1,0 @@
-<?php
-/**
- * Block theme.
- */
