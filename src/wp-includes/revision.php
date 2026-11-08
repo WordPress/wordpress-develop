@@ -111,10 +111,7 @@ function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
 		return;
 	}
 
-	wp_save_post_revision(
-		$post_id,
-		! $update && 0 === get_current_user_id() ? $post->post_author : null
-	);
+	wp_save_post_revision( $post_id );
 }
 
 /**
@@ -124,13 +121,11 @@ function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
  * and the most recent revision always matches the current post.
  *
  * @since 2.6.0
- * @since 7.1.0 The `$revision_author` parameter was added.
  *
- * @param int      $post_id         The ID of the post to save as a revision.
- * @param int|null $revision_author Optional. The revision author ID. Default null.
+ * @param int $post_id The ID of the post to save as a revision.
  * @return int|WP_Error|null Null or 0 if error, new revision ID, if success.
  */
-function wp_save_post_revision( $post_id, $revision_author = null ) {
+function wp_save_post_revision( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return null;
 	}
@@ -215,6 +210,15 @@ function wp_save_post_revision( $post_id, $revision_author = null ) {
 				return null;
 			}
 		}
+	}
+
+	/*
+	 * With no current user (eg. imports or cron), credit the first revision
+	 * to the post author instead of user 0.
+	 */
+	$revision_author = null;
+	if ( ! $revisions && 0 === get_current_user_id() ) {
+		$revision_author = (int) $post->post_author;
 	}
 
 	$return = _wp_put_post_revision( $post, false, $revision_author );
@@ -349,7 +353,7 @@ function wp_is_post_autosave( $post ) {
  * Inserts post data into the posts table as a post revision.
  *
  * @since 2.6.0
- * @since 7.1.0 The `$post_author` parameter was added.
+ * @since 7.3.0 The `$post_author` parameter was added.
  * @access private
  *
  * @param int|WP_Post|array|null $post        Post ID, post object OR post array.
