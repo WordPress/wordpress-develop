@@ -12,6 +12,12 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 	}
 
+	public function tear_down() {
+		$this->remove_added_uploads();
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that a `filesize` stored in the attachment metadata is normalized to a positive integer.
 	 *
@@ -64,7 +70,7 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ filesize: mixed, expected: int<0, max>|null }>
 	 */
-	public function data_attachment_submitbox_metadata_filesize(): array {
+	public static function data_attachment_submitbox_metadata_filesize(): array {
 		return array(
 			'an integer'                  => array(
 				'filesize' => 12345,
@@ -161,7 +167,7 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ filesize: mixed }>
 	 */
-	public function data_attachment_submitbox_metadata_filesize_falls_back_to_the_file(): array {
+	public static function data_attachment_submitbox_metadata_filesize_falls_back_to_the_file(): array {
 		return array(
 			'a value smaller than a byte' => array( 'filesize' => 0.5 ),
 			'zero'                        => array( 'filesize' => 0 ),

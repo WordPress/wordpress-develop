@@ -75,6 +75,263 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the form field with the given id from a view configuration.
+	 *
+	 * @param array  $config The view configuration.
+	 * @param string $id     The form field id.
+	 * @return array|null The form field, or null when absent.
+	 */
+	private function get_form_field( $config, $id ) {
+		foreach ( $config['form']['fields'] as $field ) {
+			if ( is_array( $field ) && isset( $field['id'] ) && $id === $field['id'] ) {
+				return $field;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * The `status` and `discussion` groups of the default post type form declare
+	 * their panel summary explicitly, for built-in and custom post types alike.
+	 *
+	 * @ticket 65981
+	 *
+	 * @dataProvider data_default_form_post_types
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_default_form_groups_declare_summary( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		foreach ( array( 'status', 'discussion' ) as $group ) {
+			$field = $this->get_form_field( $config, $group );
+			$this->assertNotNull( $field, "The `{$group}` group is present." );
+			$this->assertNotEmpty( $field['children'], "The `{$group}` group keeps its children." );
+			$this->assertSame(
+				array(
+					'type'    => 'panel',
+					'summary' => $group,
+				),
+				$field['layout'],
+				"The `{$group}` group summary is explicit."
+			);
+		}
+
+		if ( 'page' !== $post_type && 'post' !== $post_type ) {
+			unregister_post_type( $post_type );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_default_form_post_types() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'custom post type' => array( 'summaries_cpt' ),
+		);
+	}
+
+	/**
+	 * Post types with their own form do not receive the default form groups.
+	 *
+	 * @ticket 66229
+	 *
+	 * @dataProvider data_post_types_with_own_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_own_form_post_types_do_not_get_default_groups( $post_type ) {
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertNull( $this->get_form_field( $config, 'status' ), 'The `status` group is absent.' );
+		$this->assertNull( $this->get_form_field( $config, 'discussion' ), 'The `discussion` group is absent.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_types_with_own_form() {
+		return array(
+			'attachment'       => array( 'attachment' ),
+			'wp_block'         => array( 'wp_block' ),
+			'wp_template'      => array( 'wp_template' ),
+			'wp_template_part' => array( 'wp_template_part' ),
+		);
+	}
+
+	/**
+	 * The `excerpt` row shows the field's placeholder when the excerpt is
+	 * empty, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_block
+	 *
+	 * @dataProvider data_post_types_with_excerpt_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_excerpt_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'excerpt' )['layout']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_types_with_excerpt_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'wp_block'         => array( 'wp_block' ),
+			'custom post type' => array( 'excerpt_cpt' ),
+		);
+	}
+
+	/**
+	 * The `description` row of templates shows the field's placeholder when
+	 * the description is empty, like the excerpt of posts and patterns.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_template
+	 */
+	public function test_wp_template_description_layout_shows_placeholder_if_empty() {
+		$config = wp_get_entity_view_config( 'postType', 'wp_template' );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'description' )['layout']
+		);
+	}
+
+	/**
+	 * The `author` row shows the field's placeholder when the post has no
+	 * author, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_attachment
+	 *
+	 * @dataProvider data_post_types_with_author_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_author_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'author' )['layout']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_types_with_author_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'attachment'       => array( 'attachment' ),
+			'custom post type' => array( 'author_cpt' ),
+		);
+	}
+
+	/**
+	 * The `attachment` post type provides the form of the media editor: the
+	 * editable fields in a regular layout, then the rest in panels.
+	 *
+	 * @ticket 66229
+	 *
+	 * @covers ::_wp_get_entity_view_config_posttype_attachment
+	 */
+	public function test_attachment_form() {
+		$config = wp_get_entity_view_config( 'postType', 'attachment' );
+
+		$this->assertSame( array( 'type' => 'panel' ), $config['form']['layout'], 'The form uses a panel layout.' );
+
+		$regular_layout = array(
+			'type'          => 'regular',
+			'labelPosition' => 'top',
+		);
+		$this->assertSame(
+			array(
+				array(
+					'id'     => 'title',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'alt_text',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'caption',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'description',
+					'layout' => $regular_layout,
+				),
+				'date',
+				array(
+					'id'     => 'author',
+					'layout' => array(
+						'type'                   => 'panel',
+						'showPlaceholderIfEmpty' => true,
+					),
+				),
+				'filename',
+				'mime_type',
+				'filesize',
+				'media_dimensions',
+				'attached_to',
+			),
+			$config['form']['fields'],
+			'The form lists the media editor fields in order.'
+		);
+	}
+
+	/**
 	 * The default configuration exposes the documented shape for an unknown entity.
 	 */
 	public function test_default_config_for_unknown_entity() {

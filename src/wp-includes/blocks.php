@@ -623,7 +623,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 * @param array    $attributes Block attributes.
 			 * @param string   $content    Block default content.
 			 * @param WP_Block $block      Block instance.
-			 *
 			 * @return string Returns the block content.
 			 */
 			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
@@ -844,6 +843,7 @@ function register_block_type( $block_type, $args = array() ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
+	/** @var (lowercase-string&non-falsy-string)|WP_Block_Type $block_type A string that is not a path to block metadata should be a block type name. */
 	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
 }
 
@@ -979,12 +979,6 @@ function get_hooked_blocks() {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ] ) ) {
-				$hooked_blocks[ $anchor_block_type ] = array();
-			}
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
-				$hooked_blocks[ $anchor_block_type ][ $relative_position ] = array();
-			}
 			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}
 	}
@@ -1259,16 +1253,16 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
  * @since 7.0.0 Added the `$ignored_hooked_blocks_at_root` parameter.
  * @access private
  *
- * @param string       $content  Serialized content.
- * @param WP_Post|null $post     A post object that the content belongs to. If set to `null`,
- *                               `get_post()` will be called to use the current post as context.
- *                               Default: `null`.
- * @param callable     $callback A function that will be called for each block to generate
- *                               the markup for a given list of blocks that are hooked to it.
- *                               Default: 'insert_hooked_blocks'.
+ * @param string       $content                       Serialized content.
+ * @param WP_Post|null $post                          A post object that the content belongs to. If set to `null`,
+ *                                                    `get_post()` will be called to use the current post as context.
+ *                                                    Default: `null`.
+ * @param callable     $callback                      A function that will be called for each block to generate
+ *                                                    the markup for a given list of blocks that are hooked to it.
+ *                                                    Default: 'insert_hooked_blocks'.
  * @param array|null   $ignored_hooked_blocks_at_root A reference to an array that will be populated
- *                               with the ignored hooked blocks at the root level.
- *                               Default: `null`.
+ *                                                    with the ignored hooked blocks at the root level.
+ *                                                    Default: `null`.
  * @return string The serialized markup.
  */
 function apply_block_hooks_to_content_from_post_object(
@@ -1490,9 +1484,6 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
 
-		if ( ! isset( $post->meta_input ) ) {
-			$post->meta_input = array();
-		}
 		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
@@ -1928,9 +1919,40 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @since 6.6.0
  * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
- * @param array $blocks An array blocks.
+ * @param array[] $blocks {
+ *     An array of blocks.
  *
- * @return array An array of blocks with patterns replaced by their content.
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Required. Name of block.
+ *         @type array       $attrs        Required. Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  Required. List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    Required. HTML from inside block comment delimiters.
+ *         @type array       $innerContent Required. List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *     }
+ * }
+ * @return array[] {
+ *     An array of blocks with patterns replaced by their content.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *         @type mixed       ...$key       Any other keys a block passed in carries, which
+ *                                         are kept, except where a `core/pattern` block is
+ *                                         replaced by its pattern's blocks, or removed as
+ *                                         recursive.
+ *     }
+ * }
  */
 function resolve_pattern_blocks( $blocks ) {
 	static $inner_content;
@@ -2256,6 +2278,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/heading',
 		'core/html',
 		'core/list',
+		'core/list-item',
 		'core/media-text',
 		'core/paragraph',
 		'core/preformatted',
@@ -2269,6 +2292,7 @@ function excerpt_remove_blocks( $content ) {
 		'core/columns',
 		'core/column',
 		'core/group',
+		'core/list',
 	);
 
 	/**
@@ -2682,6 +2706,8 @@ function _wp_apply_block_content_filters( $content, $context = '', &$seen_ids = 
  *
  * @param string $content Content to test.
  * @return int The block format version is 1 if the content contains one or more blocks, 0 otherwise.
+ *
+ * @phpstan-return ( $content is '' ? 0 : 0|1 )
  */
 function block_version( $content ) {
 	return has_blocks( $content ) ? 1 : 0;
@@ -2814,7 +2840,6 @@ function wp_migrate_old_typography_shape( $metadata ) {
  *
  * @param WP_Block $block Block instance.
  * @param int      $page  Current query's page.
- *
  * @return array Returns the constructed WP_Query arguments.
  */
 function build_query_vars_from_query_block( $block, $page ) {
@@ -2841,7 +2866,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 				 * Logic should be used beforehand to determine if WP_Query should be used in the event that the array
 				 * being passed to post__in is empty.
 				 *
-				 * @see https://core.trac.wordpress.org/ticket/28099
+				 * @link https://core.trac.wordpress.org/ticket/28099
 				 */
 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
 				$query['ignore_sticky_posts'] = 1;
@@ -3083,6 +3108,8 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -3183,6 +3210,8 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Optional. Type of the arrow we will be rendering.
  *                                  Accepts 'next' or 'previous'. Default 'next'.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

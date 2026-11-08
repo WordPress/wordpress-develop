@@ -73,11 +73,11 @@ class WP_Upgrader {
 	 * This is set by WP_Upgrader::install_package(), only when the package is installed
 	 * successfully. It will then be an array, unless a WP_Error is returned by the
 	 * {@see 'upgrader_post_install'} filter. In that case, the WP_Error will be assigned to
-	 * it.
+	 * it. Until then, it is an empty array, or null in subclasses which redeclare it.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var array|WP_Error $result {
+	 * @var array|WP_Error|null $result {
 	 *     @type string $source             The full path to the source the files were installed from.
 	 *     @type string $source_files       List of all the files in the source directory.
 	 *     @type string $destination        The full path to the installation destination folder.
@@ -344,6 +344,21 @@ class WP_Upgrader {
 	}
 
 	/**
+	 * Builds an unpredictable name for the directory a package is unpacked into.
+	 *
+	 * @since 7.1.4
+	 *
+	 * @param string $package The full local path or URI of the package.
+	 * @return string The directory name, without a path.
+	 */
+	private function get_working_dir_name( $package ) {
+		// Strip off any .tmp or .zip suffixes.
+		$name = basename( basename( $package, '.tmp' ), '.zip' );
+
+		return $name . '-' . wp_generate_password( 16, false );
+	}
+
+	/**
 	 * Unpacks a compressed package file.
 	 *
 	 * @since 2.8.0
@@ -366,16 +381,32 @@ class WP_Upgrader {
 
 		$upgrade_folder = $wp_filesystem->wp_content_dir() . 'upgrade/';
 
-		// Clean up contents of upgrade directory beforehand.
+		// Clean up contents of upgrade directory beforehand, keeping its index.php.
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
+				if ( 'index.php' === $file['name'] ) {
+					continue;
+				}
+
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
 		}
 
-		// We need a working directory - strip off any .tmp or .zip suffixes.
-		$working_dir = $upgrade_folder . basename( basename( $package, '.tmp' ), '.zip' );
+		/*
+		 * The upgrade directory is web-served. Keep it from being listed, as core does
+		 * for wp-content and its plugins and themes directories, so the name of the
+		 * working directory created below cannot be discovered from a directory index.
+		 */
+		if ( ! $wp_filesystem->is_dir( $upgrade_folder ) ) {
+			$wp_filesystem->mkdir( $upgrade_folder, FS_CHMOD_DIR );
+		}
+		if ( ! $wp_filesystem->exists( $upgrade_folder . 'index.php' ) ) {
+			$wp_filesystem->put_contents( $upgrade_folder . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+		}
+
+		// We need a working directory.
+		$working_dir = $upgrade_folder . $this->get_working_dir_name( $package );
 
 		// Clean up working directory.
 		if ( $wp_filesystem->is_dir( $working_dir ) ) {
