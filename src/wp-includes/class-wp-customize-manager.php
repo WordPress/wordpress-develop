@@ -628,7 +628,13 @@ final class WP_Customize_Manager {
 		if ( empty( $this->_changeset_uuid ) ) {
 			$changeset_uuid = null;
 
-			if ( ! $this->branching() && $this->is_theme_active() ) {
+			/**
+			 * Only users who can customize may have the latest unpublished changeset auto-loaded. Otherwise, an
+			 * unauthenticated preview request lacking a UUID could adopt another user's unpublished changeset and
+			 * disclose its state, since the UUID serves as the secret key for previewing. Unauthorized requests
+			 * get a fresh UUID instead, which matches no changeset and is rejected in {@see self::setup_theme()}.
+			 */
+			if ( ! $this->branching() && $this->is_theme_active() && current_user_can( 'customize' ) ) {
 				$unpublished_changeset_posts = $this->get_changeset_posts(
 					array(
 						'post_status'               => array_diff( get_post_stati(), array( 'auto-draft', 'publish', 'trash', 'inherit', 'private' ) ),
@@ -2687,7 +2693,7 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) ); // Only future dates are allowed.
 			}
 
-			if ( ! $this->is_theme_active() && ( 'future' === $args['status'] || $is_future_dated ) ) {
+			if ( ! $this->is_theme_active() ) {
 				return new WP_Error( 'cannot_schedule_theme_switches' ); // This should be allowed in the future, when theme is a regular setting.
 			}
 			$will_remain_auto_draft = ( ! $args['status'] && ( ! $changeset_post_id || 'auto-draft' === get_post_status( $changeset_post_id ) ) );
@@ -2817,9 +2823,7 @@ final class WP_Customize_Manager {
 
 		// Ensure that all post values are included in the changeset data.
 		foreach ( $post_values as $setting_id => $post_value ) {
-			if ( ! isset( $args['data'][ $setting_id ] ) ) {
-				$args['data'][ $setting_id ] = array();
-			}
+			$args['data'][ $setting_id ] ??= array();
 			if ( ! isset( $args['data'][ $setting_id ]['value'] ) ) {
 				$args['data'][ $setting_id ]['value'] = $post_value;
 			}
@@ -2846,9 +2850,7 @@ final class WP_Customize_Manager {
 				unset( $data[ $changeset_setting_id ] );
 			} else {
 
-				if ( ! isset( $data[ $changeset_setting_id ] ) ) {
-					$data[ $changeset_setting_id ] = array();
-				}
+				$data[ $changeset_setting_id ] ??= array();
 
 				// Merge any additional setting params that have been supplied with the existing params.
 				$merged_setting_params = array_merge( $data[ $changeset_setting_id ], $setting_params );
@@ -3250,7 +3252,7 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0
 	 *
 	 * @param int  $changeset_post_id Changeset post ID.
-	 * @param bool $take_over Whether to take over the changeset. Default false.
+	 * @param bool $take_over         Whether to take over the changeset. Default false.
 	 */
 	public function set_changeset_lock( $changeset_post_id, $take_over = false ) {
 		if ( $changeset_post_id ) {
@@ -3516,9 +3518,6 @@ final class WP_Customize_Manager {
 				preg_match( $namespace_pattern, $raw_setting_id, $matches )
 			);
 			if ( $is_theme_mod_setting ) {
-				if ( ! isset( $theme_mod_settings[ $matches['stylesheet'] ] ) ) {
-					$theme_mod_settings[ $matches['stylesheet'] ] = array();
-				}
 				$theme_mod_settings[ $matches['stylesheet'] ][ $matches['setting_id'] ] = $setting_params;
 
 				if ( $this->get_stylesheet() === $matches['stylesheet'] ) {
@@ -3665,9 +3664,7 @@ final class WP_Customize_Manager {
 
 		// Merge inactive theme mods with the stashed theme mod settings.
 		foreach ( $inactive_theme_mod_settings as $stylesheet => $theme_mod_settings ) {
-			if ( ! isset( $stashed_theme_mod_settings[ $stylesheet ] ) ) {
-				$stashed_theme_mod_settings[ $stylesheet ] = array();
-			}
+			$stashed_theme_mod_settings[ $stylesheet ] ??= array();
 
 			$stashed_theme_mod_settings[ $stylesheet ] = array_merge(
 				$stashed_theme_mod_settings[ $stylesheet ],
@@ -3872,9 +3869,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Setting|null The setting, if set.
 	 */
 	public function get_setting( $id ) {
-		if ( isset( $this->settings[ $id ] ) ) {
-			return $this->settings[ $id ];
-		}
+		return $this->settings[ $id ] ?? null;
 	}
 
 	/**
@@ -3924,9 +3919,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Panel|null Requested panel instance, if set.
 	 */
 	public function get_panel( $id ) {
-		if ( isset( $this->panels[ $id ] ) ) {
-			return $this->panels[ $id ];
-		}
+		return $this->panels[ $id ] ?? null;
 	}
 
 	/**
@@ -4020,9 +4013,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Section|null The section, if set.
 	 */
 	public function get_section( $id ) {
-		if ( isset( $this->sections[ $id ] ) ) {
-			return $this->sections[ $id ];
-		}
+		return $this->sections[ $id ] ?? null;
 	}
 
 	/**
@@ -4099,9 +4090,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Control|null The control object, if set.
 	 */
 	public function get_control( $id ) {
-		if ( isset( $this->controls[ $id ] ) ) {
-			return $this->controls[ $id ];
-		}
+		return $this->controls[ $id ] ?? null;
 	}
 
 	/**
@@ -5808,7 +5797,7 @@ final class WP_Customize_Manager {
 			get_pages(
 				array(
 					'number'       => 1,
-					'hierarchical' => 0,
+					'hierarchical' => false,
 				)
 			)
 		);

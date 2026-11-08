@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace WordPress\PHPStan;
 
 use PhpParser\Node\Expr\FuncCall;
+use PHPStan\Analyser\DependencyTracker;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\ShouldNotHappenException;
@@ -72,9 +73,9 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @link https://developer.wordpress.org/reference/functions/apply_filters_deprecated/
 	 * @link https://developer.wordpress.org/reference/functions/apply_filters_ref_array/
 	 *
-	 * @param FunctionReflection $functionReflection Function being analyzed.
-	 * @param FuncCall           $functionCall       The function call node.
-	 * @param Scope              $scope              Analysis scope.
+	 * @param FunctionReflection      $functionReflection Function being analyzed.
+	 * @param FuncCall                $functionCall       The function call node.
+	 * @param Scope&DependencyTracker $scope              Analysis scope.
 	 * @return Type
 	 * @throws ShouldNotHappenException
 	 */
