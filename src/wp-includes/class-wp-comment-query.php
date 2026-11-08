@@ -69,7 +69,7 @@ class WP_Comment_Query {
 	/**
 	 * Comment types excluded from the results by default, or null until resolved.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 * @var string[]|null
 	 */
 	protected $default_excluded_comment_types = null;
@@ -566,7 +566,7 @@ class WP_Comment_Query {
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
 	 * @since 7.2.0 Excludes the 'reaction' comment type, unless 'all' or the 'reaction' types are requested.
-	 * @since 7.2.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
+	 * @since 7.3.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *

@@ -402,7 +402,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
  * @since 7.2.0 The 'note' and 'reaction' comment types are excluded from the query.
- * @since 7.2.0 The excluded comment types are derived from the
+ * @since 7.3.0 The excluded comment types are derived from the
  *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -1108,7 +1108,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  * Calculates what page number a comment will appear on for comment paging.
  *
  * @since 2.7.0
- * @since 7.2.0 Comment types excluded by default are no longer counted when 'type' is 'all'.
+ * @since 7.3.0 Comment types excluded by default are no longer counted when 'type' is 'all'.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1216,7 +1216,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		 * Filters the arguments used to query comments in get_page_of_comment().
 		 *
 		 * @since 5.5.0
-		 * @since 7.2.0 Added the `$type__not_in` argument.
+		 * @since 7.3.0 Added the `$type__not_in` argument.
 		 *
 		 * @see WP_Comment_Query::__construct()
 		 *
@@ -3237,7 +3237,7 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  * non-empty strings and never the WP_Comment_Query type aliases ('all', 'comment',
  * 'comments', 'pings').
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param WP_Comment_Query|null $query Optional. The comment query resolving the set, if any.
  *                                     Default null.
@@ -3271,7 +3271,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * This is a default-visibility setting, not access control: excluded types can still
 	 * be queried explicitly.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string[]              $excluded_types Comment types excluded by default. Defaults to
 	 *                                              'note', 'reaction' and every comment type
@@ -3302,7 +3302,7 @@ function wp_get_default_excluded_comment_types( $query = null ) {
  *
  * For comment queries built without WP_Comment_Query.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -3334,7 +3334,7 @@ function wp_get_excluded_comment_types_clause( string $column = 'comment_type' )
  * Updates the comment count for the post.
  *
  * @since 2.5.0
- * @since 7.2.0 The excluded comment types are derived from the
+ * @since 7.3.0 The excluded comment types are derived from the
  *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
