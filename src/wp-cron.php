@@ -16,18 +16,22 @@
  * @package WordPress
  */
 
-ignore_user_abort( true );
-
 if ( ! headers_sent() ) {
 	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
 	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 }
 
+if ( defined( 'WP_CRON_IGNORE_ABORT' ) && true === WP_CRON_IGNORE_ABORT ) {
+	ignore_user_abort( true );
+}
+
 // Don't run cron until the request finishes, if possible.
-if ( function_exists( 'fastcgi_finish_request' ) ) {
-	fastcgi_finish_request();
-} elseif ( function_exists( 'litespeed_finish_request' ) ) {
-	litespeed_finish_request();
+if ( defined( 'WP_CRON_FLUSH' ) && true === WP_CRON_FLUSH ) {
+	if ( function_exists( 'fastcgi_finish_request' ) ) {
+		fastcgi_finish_request();
+	} elseif ( function_exists( 'litespeed_finish_request' ) ) {
+		litespeed_finish_request();
+	}
 }
 
 if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
