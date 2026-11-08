@@ -1005,6 +1005,7 @@ a#remove-post-thumbnail:hover,
 	gap: 8px;
 }
 
+/* Prevent any legacy clearfix elements added by plugins from becoming active flex items. */
 #minor-publishing-actions .clear {
 	display: none;
 }
