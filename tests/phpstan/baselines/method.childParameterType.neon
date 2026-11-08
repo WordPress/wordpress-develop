@@ -19,6 +19,16 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Parameter \#2 \$data_object \(WP_Post\) of method Walker_Nav_Menu_Checklist\:\:start_el\(\) should be compatible with parameter \$data_object \(object\{ID\: int\|string, title\: string, classes\?\: array\<string\>, target\?\: string, xfn\?\: string, url\?\: string\|false, attr_title\?\: string, current\?\: bool\}\) of method Walker_Nav_Menu\:\:start_el\(\)$#'
+			identifier: method.childParameterType
+			count: 1
+			path: ../../../src/wp-admin/includes/class-walker-nav-menu-checklist.php
+		-
+			message: '#^Parameter \#2 \$data_object \(WP_Post\) of method Walker_Nav_Menu_Edit\:\:start_el\(\) should be compatible with parameter \$data_object \(object\{ID\: int\|string, title\: string, classes\?\: array\<string\>, target\?\: string, xfn\?\: string, url\?\: string\|false, attr_title\?\: string, current\?\: bool\}\) of method Walker_Nav_Menu\:\:start_el\(\)$#'
+			identifier: method.childParameterType
+			count: 1
+			path: ../../../src/wp-admin/includes/class-walker-nav-menu-edit.php
+		-
 			message: '#^Parameter \#1 \$comment_status \(bool\) of method WP_Post_Comments_List_Table\:\:get_per_page\(\) should be compatible with parameter \$comment_status \(string\) of method WP_Comments_List_Table\:\:get_per_page\(\)$#'
 			identifier: method.childParameterType
 			count: 1

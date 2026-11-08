@@ -1098,15 +1098,7 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 
 	$page = $screen->id;
 
-	if ( ! isset( $wp_meta_boxes ) ) {
-		$wp_meta_boxes = array();
-	}
-	if ( ! isset( $wp_meta_boxes[ $page ] ) ) {
-		$wp_meta_boxes[ $page ] = array();
-	}
-	if ( ! isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ] = array();
-	}
+	$wp_meta_boxes[ $page ][ $context ] ??= array();
 
 	foreach ( array_keys( $wp_meta_boxes[ $page ] ) as $a_context ) {
 		foreach ( array( 'high', 'core', 'default', 'low' ) as $a_priority ) {
@@ -1156,10 +1148,6 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 
 	if ( empty( $priority ) ) {
 		$priority = 'low';
-	}
-
-	if ( ! isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ][ $priority ] = array();
 	}
 
 	$wp_meta_boxes[ $page ][ $context ][ $priority ][ $id ] = array(
@@ -1502,15 +1490,7 @@ function remove_meta_box( $id, $screen, $context ) {
 
 	$page = $screen->id;
 
-	if ( ! isset( $wp_meta_boxes ) ) {
-		$wp_meta_boxes = array();
-	}
-	if ( ! isset( $wp_meta_boxes[ $page ] ) ) {
-		$wp_meta_boxes[ $page ] = array();
-	}
-	if ( ! isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ] = array();
-	}
+	$wp_meta_boxes[ $page ][ $context ] ??= array();
 
 	foreach ( array( 'high', 'core', 'default', 'low' ) as $priority ) {
 		$wp_meta_boxes[ $page ][ $context ][ $priority ][ $id ] = false;
@@ -1907,7 +1887,7 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *         @type string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
  *         @type string $message The formatted message text to display to the user (will be shown inside styled
  *                               `<div>` and `<p>` tags).
- *         @type string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+ *         @type string $type    Message type, controls HTML class. Possible values include 'error',
  *                               'success', 'warning', 'info'. Default 'error'.
  *     }
  * }
@@ -2542,70 +2522,6 @@ function get_media_states( $post ) {
 	 * @param WP_Post  $post         The current attachment object.
 	 */
 	return apply_filters( 'display_media_states', $media_states, $post );
-}
-
-/**
- * Tests support for compressing JavaScript from PHP.
- *
- * Outputs JavaScript that tests if compression from PHP works as expected
- * and sets an option with the result. Has no effect when the current user
- * is not an administrator. To run the test again the option 'can_compress_scripts'
- * has to be deleted.
- *
- * @since 2.8.0
- */
-function compression_test() {
-	?>
-	<script>
-	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
-	var testCompression = {
-		get : function(test) {
-			var x;
-			if ( window.XMLHttpRequest ) {
-				x = new XMLHttpRequest();
-			} else {
-				try{x=new ActiveXObject('Msxml2.XMLHTTP');}catch(e){try{x=new ActiveXObject('Microsoft.XMLHTTP');}catch(e){};}
-			}
-
-			if (x) {
-				x.onreadystatechange = function() {
-					var r, h;
-					if ( x.readyState == 4 ) {
-						r = x.responseText.substr(0, 18);
-						h = x.getResponseHeader('Content-Encoding');
-						testCompression.check(r, h, test);
-					}
-				};
-
-				x.open('GET', ajaxurl + '?action=wp-compression-test&test='+test+'&_ajax_nonce='+compressionNonce+'&'+(new Date()).getTime(), true);
-				x.send('');
-			}
-		},
-
-		check : function(r, h, test) {
-			if ( ! r && ! test )
-				this.get(1);
-
-			if ( 1 == test ) {
-				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
-					this.get('no');
-				else
-					this.get(2);
-
-				return;
-			}
-
-			if ( 2 == test ) {
-				if ( '"wpCompressionTest' === r )
-					this.get('yes');
-				else
-					this.get('no');
-			}
-		}
-	};
-	testCompression.check();
-	</script>
-	<?php
 }
 
 /**

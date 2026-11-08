@@ -407,6 +407,13 @@
  * @since 6.5.0 Pauses processor when input ends in an incomplete syntax token.
  *              Introduces "special" elements which act like void elements, e.g. TITLE, STYLE.
  *              Allows scanning through all tokens and processing modifiable text, where applicable.
+ *
+ * @phpstan-type Query array{
+ *     tag_name?: non-empty-string|null,
+ *     match_offset?: int<1, max>|null,
+ *     class_name?: non-empty-string|null,
+ *     tag_closers?: 'visit'|'skip'|null,
+ * }|non-empty-string|null
  */
 class WP_HTML_Tag_Processor {
 	/**
@@ -443,7 +450,8 @@ class WP_HTML_Tag_Processor {
 	 * The last query passed to next_tag().
 	 *
 	 * @since 6.2.0
-	 * @var array|null
+	 * @var array|string|null
+	 * @phpstan-var Query
 	 */
 	private $last_query;
 
@@ -452,6 +460,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var string|null
+	 * @phpstan-var non-empty-string|null
 	 */
 	private $sought_tag_name;
 
@@ -460,6 +469,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var string|null
+	 * @phpstan-var non-empty-string|null
 	 */
 	private $sought_class_name;
 
@@ -468,6 +478,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @var int|null
+	 * @phpstan-var int<1, max>|null
 	 */
 	private $sought_match_offset;
 
@@ -895,6 +906,7 @@ class WP_HTML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 *
+	 * @phpstan-param Query $query
 	 * @phpstan-impure
 	 */
 	public function next_tag( $query = null ): bool {
@@ -1208,21 +1220,12 @@ class WP_HTML_Tag_Processor {
 
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
 
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
-			// Skip past any initial boundary characters.
-			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
-				return;
-			}
-
+		$at           = strspn( $class, " \t\f\r\n" );
+		$class_length = strlen( $class );
+		while ( $at < $class_length ) {
 			// Find the byte length until the next boundary.
 			$length = strcspn( $class, " \t\f\r\n", $at );
-			if ( 0 === $length ) {
-				return;
-			}
-
-			$name = substr( $class, $at, $length );
+			$name   = substr( $class, $at, $length );
 			if ( $is_quirks ) {
 				$name = strtolower( $name );
 			}
@@ -1233,12 +1236,12 @@ class WP_HTML_Tag_Processor {
 			 * Given this, it is probably faster overall to scan an array for a value rather
 			 * than to use the class name as a key and check if it's a key of $seen.
 			 */
-			if ( in_array( $name, $seen, true ) ) {
-				continue;
+			if ( ! in_array( $name, $seen, true ) ) {
+				$seen[] = $name;
+				yield $name;
 			}
 
-			$seen[] = $name;
-			yield $name;
+			$at += strspn( $class, " \t\f\r\n", $at );
 		}
 	}
 
@@ -1403,7 +1406,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.3.2
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/#generic-raw-text-element-parsing-algorithm
+	 * @link https://html.spec.whatwg.org/#generic-raw-text-element-parsing-algorithm
 	 *
 	 * @param string $tag_name The uppercase tag name which will close the RAWTEXT region.
 	 * @return bool Whether an end to the RAWTEXT region was found before the end of the document.
@@ -1423,7 +1426,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @ignore
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state
 	 *
 	 * @param string $tag_name The uppercase tag name which will close the RCDATA region.
 	 * @return bool Whether an end to the RCDATA region was found before the end of the document.
@@ -1652,17 +1655,17 @@ class WP_HTML_Tag_Processor {
 				/**
 				 * These characters trigger state transitions of interest:
 				 *
-				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state}
-				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state}
-				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state}
-				 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state}
 				 *
 				 * The "\r" character is not present in the above references. However, "\r" must be
 				 * treated the same as "\n". This is because the HTML Standard requires newline
 				 * normalization during preprocessing which applies this replacement.
 				 *
-				 * - @see https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
-				 * - @see https://infra.spec.whatwg.org/#normalize-newlines
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream}
+				 * - {@link https://infra.spec.whatwg.org/#normalize-newlines}
 				 */
 				'>' !== $c &&
 				' ' !== $c &&
@@ -1686,7 +1689,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			if ( $is_closing ) {
-				$this->bytes_already_parsed = $closer_potentially_starts_at;
+				$this->bytes_already_parsed = $at;
 				$this->tag_name_starts_at   = $closer_potentially_starts_at;
 				if ( $this->bytes_already_parsed >= $doc_length ) {
 					return false;
@@ -1729,8 +1732,6 @@ class WP_HTML_Tag_Processor {
 	 * @phpstan-impure
 	 */
 	private function parse_next_tag(): bool {
-		$this->after_tag();
-
 		$html       = $this->html;
 		$doc_length = strlen( $html );
 		$was_at     = $this->bytes_already_parsed;
@@ -1753,7 +1754,7 @@ class WP_HTML_Tag_Processor {
 				 * At this point the parser checks if this is one of those cases and if it is
 				 * will continue searching for the next "<" in search of a token boundary.
 				 *
-				 * @see https://html.spec.whatwg.org/#tag-open-state
+				 * @link https://html.spec.whatwg.org/#tag-open-state
 				 */
 				if ( 1 !== strspn( $html, '!/?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $at + 1, 1 ) ) {
 					++$at;
@@ -2131,7 +2132,7 @@ class WP_HTML_Tag_Processor {
 				 *                     [#x10000-#xEFFFF]
 				 * > NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
 				 *
-				 * @see https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-PITarget
+				 * @link https://www.w3.org/TR/2006/REC-xml11-20060816/#NT-PITarget
 				 */
 				if ( $this->token_length >= 5 && '?' === $html[ $closer_at - 1 ] ) {
 					$comment_text     = substr( $html, $this->token_starts_at + 2, $this->token_length - 4 );
@@ -2244,7 +2245,7 @@ class WP_HTML_Tag_Processor {
 		 * Treat the equal sign as a part of the attribute
 		 * name if it is the first encountered byte.
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
+		 * @link https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
 		 */
 		$name_length = '=' === $this->html[ $this->bytes_already_parsed ]
 			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
@@ -2321,12 +2322,12 @@ class WP_HTML_Tag_Processor {
 		 * > case-insensitive match for each other.
 		 *     - HTML 5 spec
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 		 *
 		 * The tokenizer replaces U+0000 NULL bytes in
 		 * attribute names with U+FFFD.
 		 *
-		 * @see https://html.spec.whatwg.org/#attribute-name-state
+		 * @link https://html.spec.whatwg.org/#attribute-name-state
 		 */
 		$comparable_name = strtolower( str_replace( "\x00", "\u{FFFD}", $attribute_name ) );
 
@@ -2960,7 +2961,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+	 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
@@ -3043,12 +3044,22 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_tag(): ?string {
 		if ( null === $this->tag_name_starts_at ) {
 			return null;
 		}
 
+		/**
+		 * The name is never empty and never "0": a tag name starts with an ASCII
+		 * letter, a processing instruction target with a letter or "_", and the
+		 * target of a comment which looks like a processing instruction with a
+		 * letter, ":", or "_".
+		 *
+		 * @var non-falsy-string $tag_name
+		 */
 		$tag_name = str_replace( "\x00", "\u{FFFD}", substr( $this->html, $this->tag_name_starts_at, $this->tag_name_length ) );
 
 		if ( self::STATE_MATCHED_TAG === $this->parser_state ) {
@@ -3080,6 +3091,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @return string|null Name of current tag name.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_qualified_tag_name(): ?string {
 		$tag_name = $this->get_tag();
@@ -3515,7 +3528,7 @@ class WP_HTML_Tag_Processor {
 			 * appears then the HTML parser will treat it as an opening tag with no
 			 * attributes. The BR tag is unique in this way.
 			 *
-			 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+			 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 			 */
 			'BR' !== $this->get_tag()
 		);
@@ -3578,6 +3591,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.5.0
 	 *
 	 * @return string|null Name of the matched token.
+	 *
+	 * @phpstan-return non-falsy-string|null
 	 */
 	public function get_token_name(): ?string {
 		switch ( $this->parser_state ) {
@@ -3833,8 +3848,8 @@ class WP_HTML_Tag_Processor {
 		 * it's important to apply the pre-processing steps, which is
 		 * normalizing newlines.
 		 *
-		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
-		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+		 * @link https://html.spec.whatwg.org/#preprocessing-the-input-stream
+		 * @link https://infra.spec.whatwg.org/#normalize-newlines
 		 */
 		$text = str_replace( "\r\n", "\n", $text );
 		$text = str_replace( "\r", "\n", $text );
@@ -4242,7 +4257,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * Only 'javascript' and 'json' content types are currently recognized.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
+	 * @link https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
 	 * @since 7.0.0
 	 * @ignore
@@ -4311,8 +4326,8 @@ class WP_HTML_Tag_Processor {
 		 * > - text/x-ecmascript
 		 * > - text/x-javascript
 		 *
-		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match
-		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type
+		 * @link https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match
+		 * @link https://mimesniff.spec.whatwg.org/#javascript-mime-type
 		 */
 		switch ( $type_string ) {
 			case 'application/ecmascript':
@@ -4514,9 +4529,9 @@ class WP_HTML_Tag_Processor {
 	 *               as “tag-name-terminating characters.” This sequence forms the start
 	 *               of what could be a SCRIPT opening or closing tag.
 	 *
-	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
-	 * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#specifications
 	 * @see wp_html_api_script_element_escaping_diagram_source()
+	 * @link https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
+	 * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#specifications
 	 *
 	 * @since 7.0.0
 	 * @ignore
@@ -4624,7 +4639,7 @@ class WP_HTML_Tag_Processor {
 		 *  - greater-than “>”
 		 *  - ampersand “&”
 		 *
-		 * @see https://html.spec.whatwg.org/#attributes-2
+		 * @link https://html.spec.whatwg.org/#attributes-2
 		 */
 		if (
 			0 === $name_length ||
@@ -4665,7 +4680,7 @@ class WP_HTML_Tag_Processor {
 			/**
 			 * Escape attribute values appropriately.
 			 *
-			 * @see https://html.spec.whatwg.org/#attributes-3
+			 * @link https://html.spec.whatwg.org/#attributes-3
 			 */
 			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
 				? esc_url( $value )
@@ -4694,7 +4709,7 @@ class WP_HTML_Tag_Processor {
 		 * > case-insensitive match for each other.
 		 *     - HTML 5 spec
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 		 */
 		$comparable_name = strtolower( $name );
 
@@ -4770,7 +4785,7 @@ class WP_HTML_Tag_Processor {
 		 * > case-insensitive match for each other.
 		 *     - HTML 5 spec
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
+		 * @link https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 		 */
 		$name = strtolower( $name );
 
@@ -4997,6 +5012,7 @@ class WP_HTML_Tag_Processor {
 	 *     @type string|null $class_name   Tag must contain this class name to match.
 	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
+	 * @phpstan-param Query $query
 	 */
 	private function parse_query( $query ) {
 		if ( null !== $query && $query === $this->last_query ) {
@@ -5340,7 +5356,7 @@ class WP_HTML_Tag_Processor {
 	 * > described by the modern HTML and CSS specifications.
 	 *
 	 * @see self::$compat_mode
-	 * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
 	 *
 	 * @since 6.7.0
 	 *
@@ -5356,7 +5372,7 @@ class WP_HTML_Tag_Processor {
 	 * > built before the widespread adoption of web standards.
 	 *
 	 * @see self::$compat_mode
-	 * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTML/Quirks_Mode_and_Standards_Mode
 	 *
 	 * @since 6.7.0
 	 *

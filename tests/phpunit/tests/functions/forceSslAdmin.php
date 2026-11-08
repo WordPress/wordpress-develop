@@ -44,7 +44,7 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_force_ssl_admin() {
+	public static function data_force_ssl_admin() {
 		return array(
 			'default'          => array( null, false ),
 			'true'             => array( true, true ),
