@@ -54,6 +54,8 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 	}
 
 	public function test_get_index_url() {
+		$this->set_permalink_structure( '' );
+
 		$sitemap_index = new WP_Sitemaps_Index( new WP_Sitemaps_Registry() );
 		$index_url     = $sitemap_index->get_index_url();
 
@@ -61,14 +63,8 @@ class Tests_Sitemaps_wpSitemapsIndex extends WP_UnitTestCase {
 	}
 
 	public function test_get_index_url_pretty_permalinks() {
-		// Set permalinks for testing.
-		$this->set_permalink_structure( '/%year%/%postname%/' );
-
 		$sitemap_index = new WP_Sitemaps_Index( new WP_Sitemaps_Registry() );
 		$index_url     = $sitemap_index->get_index_url();
-
-		// Clean up permalinks.
-		$this->set_permalink_structure();
 
 		$this->assertStringEndsWith( '/wp-sitemap.xml', $index_url );
 	}
