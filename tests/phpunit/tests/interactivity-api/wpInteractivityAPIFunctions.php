@@ -12,10 +12,45 @@
  */
 class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCase {
 	/**
+	 * Global WP_Interactivity_API instance from before the test class ran.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	private static $wp_interactivity_before_class;
+
+	/**
+	 * Global WP_Interactivity_API instance from before the test.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	private $original_wp_interactivity;
+
+	/**
+	 * Records the global instance that every test must leave in place.
+	 */
+	public static function set_up_before_class() {
+		global $wp_interactivity;
+
+		parent::set_up_before_class();
+
+		self::$wp_interactivity_before_class = $wp_interactivity;
+	}
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
+		global $wp_interactivity;
+
 		parent::set_up();
+
+		/*
+		 * The global instance is replaced with a fresh one for the duration of
+		 * the test, so that no state leaks into the original instance.
+		 */
+		$this->original_wp_interactivity = $wp_interactivity;
+		$wp_interactivity                = new WP_Interactivity_API();
+		$wp_interactivity->add_hooks();
 
 		$interactive_block = array(
 			'render_callback' => function ( $attributes, $content ) {
@@ -58,6 +93,14 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 * Tear down.
 	 */
 	public function tear_down() {
+		global $wp_interactivity;
+
+		/*
+		 * The hooks registered by core are bound to the original instance and are
+		 * restored by the parent method, so the same instance must be restored.
+		 */
+		$wp_interactivity = $this->original_wp_interactivity;
+
 		unregister_block_type( 'test/interactive-block' );
 		unregister_block_type( 'test/interactive-block-2' );
 		unregister_block_type( 'test/non-interactive-block' );
@@ -71,12 +114,12 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_single_interactive_block() {
+	public function test_process_directives_of_single_interactive_block() {
 		$post_content    = '<!-- wp:test/interactive-block { "block": 1 } /-->';
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-1' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -87,7 +130,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_multiple_interactive_blocks_in_paralell() {
+	public function test_process_directives_of_multiple_interactive_blocks_in_parallel() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } /-->
 			<!-- wp:test/interactive-block-2 { "block": 2 } /-->
@@ -97,13 +140,13 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-1' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'interactive/block-2' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-3' ) );
 		$this->assertNull( $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'interactive/block-4' ) );
-		$this->assertEquals( '4', $p->get_attribute( 'value' ) );
+		$this->assertSame( '4', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -113,7 +156,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_inside_non_interactive_block() {
+	public function test_process_directives_of_interactive_block_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -122,7 +165,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-2' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -133,7 +176,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_multple_interactive_blocks_inside_non_interactive_block() {
+	public function test_process_directives_of_multiple_interactive_blocks_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -143,9 +186,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-2' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'interactive/block-3' ) );
-		$this->assertEquals( '3', $p->get_attribute( 'value' ) );
+		$this->assertSame( '3', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -156,7 +199,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_inside_multple_non_interactive_block() {
+	public function test_process_directives_of_interactive_block_inside_multiple_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -168,9 +211,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-2' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'interactive/block-4' ) );
-		$this->assertEquals( '4', $p->get_attribute( 'value' ) );
+		$this->assertSame( '4', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -181,7 +224,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
+	public function test_process_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/non-interactive-block { "block": 2 } /-->
@@ -190,7 +233,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-1' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-2' ) );
 		$this->assertNull( $p->get_attribute( 'value' ) );
 	}
@@ -203,7 +246,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
+	public function test_process_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/non-interactive-block { "block": 2, "hasDirective": true } /-->
@@ -212,9 +255,9 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-1' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-2' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -226,7 +269,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_processs_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
+	public function test_process_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block-2 { "block": 2 } -->
@@ -238,13 +281,13 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
 		$p->next_tag( array( 'class_name' => 'interactive/block-1' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'interactive/block-2' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-3' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
+		$this->assertSame( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-4' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
+		$this->assertSame( '1', $p->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -282,13 +325,15 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	public function test_process_directives_only_process_the_root_interactive_blocks() {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
 		$directive_processors = $class->getProperty( 'directive_processors' );
-		$directive_processors->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$directive_processors->setAccessible( true );
+		}
 		$old_directive_processors = $directive_processors->getValue();
 		$directive_processors->setValue( null, array( 'data-wp-test' => array( $this, 'data_wp_test_processor' ) ) );
 		$html                               = '<div data-wp-test></div>';
 		$this->data_wp_test_processor_count = 0;
 		wp_interactivity_process_directives( $html );
-		$this->assertEquals( 1, $this->data_wp_test_processor_count );
+		$this->assertSame( 1, $this->data_wp_test_processor_count );
 
 		register_block_type(
 			'test/custom-directive-block',
@@ -309,7 +354,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$this->data_wp_test_processor_count = 0;
 		do_blocks( $post_content );
 		unregister_block_type( 'test/custom-directive-block' );
-		$this->assertEquals( 2, $this->data_wp_test_processor_count );
+		$this->assertSame( 2, $this->data_wp_test_processor_count );
 		$directive_processors->setValue( null, $old_directive_processors );
 	}
 
@@ -332,18 +377,20 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 				),
 			)
 		);
-		function test_render_block_data( $parsed_block ) {
+
+		$test_render_block_data = static function ( $parsed_block ) {
 			$parsed_block['testKey'] = true;
 			return $parsed_block;
-		}
-		add_filter( 'render_block_data', 'test_render_block_data' );
+		};
+
+		add_filter( 'render_block_data', $test_render_block_data );
 		$post_content      = '<!-- wp:test/custom-directive-block /-->';
 		$processed_content = do_blocks( $post_content );
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'data-wp-interactive' => 'nameSpace' ) );
-		remove_filter( 'render_block_data', 'test_render_block_data' );
+		remove_filter( 'render_block_data', $test_render_block_data );
 		unregister_block_type( 'test/custom-directive-block' );
-		$this->assertEquals( 'test', $processor->get_attribute( 'value' ) );
+		$this->assertSame( 'test', $processor->get_attribute( 'value' ) );
 	}
 
 	/**
@@ -352,27 +399,43 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_different_arrays
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_different_arrays() {
-		$this->assertEquals( 'data-wp-context=\'{}\'', wp_interactivity_data_wp_context( array() ) );
-		$this->assertEquals(
-			'data-wp-context=\'{"a":1,"b":"2","c":true}\'',
-			wp_interactivity_data_wp_context(
-				array(
+	public function test_wp_interactivity_data_wp_context_with_different_arrays( $context, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_wp_interactivity_data_wp_context_with_different_arrays() {
+		return array(
+			'empty array'                                  => array(
+				'context'  => array(),
+				'expected' => 'data-wp-context=\'{}\'',
+			),
+			'associative array with mixed values'          => array(
+				'context'  => array(
 					'a' => 1,
 					'b' => '2',
 					'c' => true,
-				)
-			)
-		);
-		$this->assertEquals(
-			'data-wp-context=\'{"a":[1,2]}\'',
-			wp_interactivity_data_wp_context( array( 'a' => array( 1, 2 ) ) )
-		);
-		$this->assertEquals(
-			'data-wp-context=\'[1,2]\'',
-			wp_interactivity_data_wp_context( array( 1, 2 ) )
+				),
+				'expected' => 'data-wp-context=\'{"a":1,"b":"2","c":true}\'',
+			),
+			'associative array with nested array as value' => array(
+				'context'  => array( 'a' => array( 1, 2 ) ),
+				'expected' => 'data-wp-context=\'{"a":[1,2]}\'',
+			),
+			'array without keys, integer values'           => array(
+				'context'  => array( 1, 2 ),
+				'expected' => 'data-wp-context=\'[1,2]\'',
+			),
 		);
 	}
 
@@ -382,28 +445,48 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $store    Store namespace.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
-		$this->assertEquals( 'data-wp-context=\'myPlugin::{}\'', wp_interactivity_data_wp_context( array(), 'myPlugin' ) );
-		$this->assertEquals(
-			'data-wp-context=\'myPlugin::{"a":1,"b":"2","c":true}\'',
-			wp_interactivity_data_wp_context(
-				array(
+	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace( $context, $store, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context, $store ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
+		return array(
+			'empty array'                                  => array(
+				'context'  => array(),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{}\'',
+			),
+			'associative array with mixed values'          => array(
+				'context'  => array(
 					'a' => 1,
 					'b' => '2',
 					'c' => true,
 				),
-				'myPlugin'
-			)
-		);
-		$this->assertEquals(
-			'data-wp-context=\'myPlugin::{"a":[1,2]}\'',
-			wp_interactivity_data_wp_context( array( 'a' => array( 1, 2 ) ), 'myPlugin' )
-		);
-		$this->assertEquals(
-			'data-wp-context=\'myPlugin::[1,2]\'',
-			wp_interactivity_data_wp_context( array( 1, 2 ), 'myPlugin' )
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{"a":1,"b":"2","c":true}\'',
+			),
+			'associative array with nested array as value' => array(
+				'context'  => array( 'a' => array( 1, 2 ) ),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::{"a":[1,2]}\'',
+			),
+			'array without keys, integer values'           => array(
+				'context'  => array( 1, 2 ),
+				'store'    => 'myPlugin',
+				'expected' => 'data-wp-context=\'myPlugin::[1,2]\'',
+			),
 		);
 	}
 
@@ -415,13 +498,40 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers wp_interactivity_data_wp_context
+	 * @covers       wp_interactivity_data_wp_context
+	 * @dataProvider data_wp_interactivity_data_wp_context_with_json_flags
+	 *
+	 * @param array  $context  Context to encode.
+	 * @param string $expected Expected function output.
 	 */
-	public function test_wp_interactivity_data_wp_context_with_json_flags() {
-		$this->assertEquals( 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'', wp_interactivity_data_wp_context( array( 'tag' => '<foo>' ) ) );
-		$this->assertEquals( 'data-wp-context=\'{"apos":"\u0027bar\u0027"}\'', wp_interactivity_data_wp_context( array( 'apos' => "'bar'" ) ) );
-		$this->assertEquals( 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'', wp_interactivity_data_wp_context( array( 'quot' => '"baz"' ) ) );
-		$this->assertEquals( 'data-wp-context=\'{"amp":"T\u0026T"}\'', wp_interactivity_data_wp_context( array( 'amp' => 'T&T' ) ) );
+	public function test_wp_interactivity_data_wp_context_with_json_flags( $context, $expected ) {
+		$this->assertSame( $expected, wp_interactivity_data_wp_context( $context ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_wp_interactivity_data_wp_context_with_json_flags() {
+		return array(
+			'value contains <> brackets'        => array(
+				'context'  => array( 'tag' => '<foo>' ),
+				'expected' => 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'',
+			),
+			'value contains single quote chars' => array(
+				'context'  => array( 'apos' => "'bar'" ),
+				'expected' => 'data-wp-context=\'{"apos":"\u0027bar\u0027"}\'',
+			),
+			'value contains double quote chars' => array(
+				'context'  => array( 'quot' => '"baz"' ),
+				'expected' => 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'',
+			),
+			'value contains & ampersand'        => array(
+				'context'  => array( 'amp' => 'T&T' ),
+				'expected' => 'data-wp-context=\'{"amp":"T\u0026T"}\'',
+			),
+		);
 	}
 
 	/**
@@ -448,7 +558,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$processor         = new WP_HTML_Tag_Processor( $processed_content );
 		$processor->next_tag( array( 'class_name' => 'test' ) );
 		unregister_block_type( 'test/custom-directive-block' );
-		$this->assertEquals( '1', $processor->get_attribute( 'src' ) );
+		$this->assertSame( '1', $processor->get_attribute( 'src' ) );
 	}
 
 	/**
@@ -488,8 +598,8 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		);
 		$second_input_value = $processor->get_attribute( 'value' );
 		unregister_block_type( 'test/custom-directive-block' );
-		$this->assertEquals( 'inner', $first_input_value );
-		$this->assertEquals( 'outer', $second_input_value );
+		$this->assertSame( 'inner', $first_input_value );
+		$this->assertSame( 'outer', $second_input_value );
 	}
 
 	/**
@@ -524,5 +634,99 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$input_value = $processor->get_attribute( 'value' );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
+	}
+
+	/**
+	 * Tests interactivity_process_directives filter.
+	 *
+	 * @ticket 61185
+	 *
+	 * @covers wp_interactivity_process_directives
+	 */
+	public function test_not_processing_directives_filter() {
+		wp_interactivity_state(
+			'dont-process',
+			array(
+				'text' => 'text',
+			)
+		);
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<div data-wp-interactive="dont-process"><input data-wp-bind--value="state.text" /></div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content = '<!-- wp:test/custom-directive-block /-->';
+		add_filter( 'interactivity_process_directives', '__return_false' );
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'tag_name' => 'input' ) );
+		$input_value = $processor->get_attribute( 'value' );
+		remove_filter( 'interactivity_process_directives', '__return_false' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertNull( $input_value );
+	}
+
+	/**
+	 * Tests that state set with the global function reaches the script module data.
+	 *
+	 * @ticket 65893
+	 *
+	 * @covers ::wp_interactivity_state
+	 */
+	public function test_state_is_included_in_script_module_data() {
+		wp_interactivity_state( 'myPlugin', array( 'key' => 'value' ) );
+
+		/** This filter is documented in wp-includes/class-wp-script-modules.php */
+		$data = apply_filters( 'script_module_data_@wordpress/interactivity', array() ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- The hook name is defined by core.
+
+		$this->assertSame(
+			array( 'myPlugin' => array( 'key' => 'value' ) ),
+			$data['state'] ?? null,
+			'The state should be present in the script module data.'
+		);
+	}
+
+	/**
+	 * Tests that the original global instance is back in place after a test's tear down.
+	 *
+	 * The two data sets make sure at least one run follows another test in this class.
+	 *
+	 * @ticket 65893
+	 *
+	 * @dataProvider data_original_global_instance_runs
+	 *
+	 * @param string $store_namespace Store namespace to set state for.
+	 */
+	public function test_original_global_instance_is_restored_after_tear_down( $store_namespace ) {
+		$this->assertSame(
+			self::$wp_interactivity_before_class,
+			$this->original_wp_interactivity,
+			'The original global instance should be restored after each test.'
+		);
+		$this->assertSame(
+			array(),
+			wp_interactivity_state( $store_namespace ),
+			'State from a previous test should not be present.'
+		);
+
+		wp_interactivity_state( $store_namespace, array( 'key' => 'value' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ string }>
+	 */
+	public static function data_original_global_instance_runs() {
+		return array(
+			'first run'  => array( 'isolationTest' ),
+			'second run' => array( 'isolationTest' ),
+		);
 	}
 }

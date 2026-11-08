@@ -7,10 +7,8 @@
  * @since 6.4.0
  *
  * @group blocks
- *
- * @coversDefaultClass WP_Block_Patterns_Registry
  */
-class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Fake block patterns registry.
@@ -30,6 +28,13 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	private $original_registered_patterns = null;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Set up each test method.
 	 *
 	 * @since 6.4.0
@@ -39,6 +44,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		$this->registry                     = new WP_Block_Patterns_Registry();
 		$this->original_registered_patterns = $this->get_registered_patterns_variable_value();
+		$this->original_stylesheet          = get_stylesheet();
 	}
 
 	/**
@@ -56,6 +62,11 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		}
 
 		$this->set_registered_patterns_variable_value( $this->original_registered_patterns );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
@@ -664,11 +675,15 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// Use Reflection to access private property.
 		$reflection = new ReflectionClass( $registry );
 		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		// Get the value of the private property.
 		$registered_patterns = $property->getValue( $registry );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		return $registered_patterns;
 	}
@@ -683,10 +698,21 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// Use Reflection to access private property.
 		$reflection = new ReflectionClass( $registry );
 		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		// Set the value of the private property.
 		$property->setValue( $registry, $value );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
+	}
+
+	/**
+	 * @ticket 63957
+	 */
+	public function test_is_registered_with_null_pattern_name() {
+		$this->assertFalse( $this->registry->is_registered( null ) );
 	}
 }

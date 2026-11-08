@@ -137,8 +137,15 @@ class WP_Block_Type {
 	/**
 	 * Custom CSS selectors for theme.json style generation.
 	 *
+	 * The `root` key holds the selector for the block itself. Each other key is a block support
+	 * feature (such as `color` or `typography`) whose value is either a selector string, or an
+	 * array of selectors keyed by subfeature (such as `root` or `text`). The exception is the
+	 * `states` key, which holds the selectors for the block's custom states, keyed by state
+	 * name (such as `-current`).
+	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var array<string, string|array<string, string>>
+	 * @phpstan-var array{ root?: string, ...<string, string|array<string, string>> }
 	 */
 	public $selectors = array();
 
@@ -297,12 +304,12 @@ class WP_Block_Type {
 	 * @since 5.8.0 Added the `variations` property.
 	 * @since 5.9.0 Added the `view_script` property.
 	 * @since 6.0.0 Added the `ancestor` property.
-	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles,
+	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles`,
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
-	 * @since 6.5.0 Added the `view_style_handles` property.
+	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
 	 *
 	 * @see register_block_type()
 	 *
@@ -311,37 +318,37 @@ class WP_Block_Type {
 	 *     Optional. Array or string of arguments for registering a block type. Any arguments may be defined,
 	 *     however the ones described below are supported by default. Default empty array.
 	 *
-	 *     @type string        $api_version              Block API version.
-	 *     @type string        $title                    Human-readable block type label.
-	 *     @type string|null   $category                 Block type category classification, used in
-	 *                                                   search interfaces to arrange block types by category.
-	 *     @type string[]|null $parent                   Setting parent lets a block require that it is only
-	 *                                                   available when nested within the specified blocks.
-	 *     @type string[]|null $ancestor                 Setting ancestor makes a block available only inside the specified
-	 *                                                   block types at any position of the ancestor's block subtree.
-	 *     @type string[]|null $allowed_blocks           Limits which block types can be inserted as children of this block type.
-	 *     @type string|null   $icon                     Block type icon.
-	 *     @type string        $description              A detailed block type description.
-	 *     @type string[]      $keywords                 Additional keywords to produce block type as
-	 *                                                   result in search interfaces.
-	 *     @type string|null   $textdomain               The translation textdomain.
-	 *     @type array[]       $styles                   Alternative block styles.
-	 *     @type array[]       $variations               Block variations.
-	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
-	 *     @type array|null    $supports                 Supported features.
-	 *     @type array|null    $example                  Structured data for the block preview.
-	 *     @type callable|null $render_callback          Block type render callback.
-	 *     @type callable|null $variation_callback       Block type variations callback.
-	 *     @type array|null    $attributes               Block type attributes property schemas.
-	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
-	 *     @type string[]|null $provides_context         Context provided by blocks of this type.
-	 *     @type string[]      $block_hooks              Block hooks.
-	 *     @type string[]      $editor_script_handles    Block type editor only script handles.
-	 *     @type string[]      $script_handles           Block type front end and editor script handles.
-	 *     @type string[]      $view_script_handles      Block type front end only script handles.
-	 *     @type string[]      $editor_style_handles     Block type editor only style handles.
-	 *     @type string[]      $style_handles            Block type front end and editor style handles.
-	 *     @type string[]      $view_style_handles       Block type front end only style handles.
+	 *     @type string                                      $api_version           Block API version.
+	 *     @type string                                      $title                 Human-readable block type label.
+	 *     @type string|null                                 $category              Block type category classification, used in
+	 *                                                                              search interfaces to arrange block types by category.
+	 *     @type string[]|null                               $parent                Setting parent lets a block require that it is only
+	 *                                                                              available when nested within the specified blocks.
+	 *     @type string[]|null                               $ancestor              Setting ancestor makes a block available only inside the specified
+	 *                                                                              block types at any position of the ancestor's block subtree.
+	 *     @type string[]|null                               $allowed_blocks        Limits which block types can be inserted as children of this block type.
+	 *     @type string|null                                 $icon                  Block type icon.
+	 *     @type string                                      $description           A detailed block type description.
+	 *     @type string[]                                    $keywords              Additional keywords to produce block type as
+	 *                                                                              result in search interfaces.
+	 *     @type string|null                                 $textdomain            The translation textdomain.
+	 *     @type array[]                                     $styles                Alternative block styles.
+	 *     @type array[]                                     $variations            Block variations.
+	 *     @type array<string, string|array<string, string>> $selectors             Custom CSS selectors for theme.json style generation.
+	 *     @type array|null                                  $supports              Supported features.
+	 *     @type array|null                                  $example               Structured data for the block preview.
+	 *     @type callable|null                               $render_callback       Block type render callback.
+	 *     @type callable|null                               $variation_callback    Block type variations callback.
+	 *     @type array|null                                  $attributes            Block type attributes property schemas.
+	 *     @type string[]                                    $uses_context          Context values inherited by blocks of this type.
+	 *     @type string[]|null                               $provides_context      Context provided by blocks of this type.
+	 *     @type string[]                                    $block_hooks           Block hooks.
+	 *     @type string[]                                    $editor_script_handles Block type editor only script handles.
+	 *     @type string[]                                    $script_handles        Block type front end and editor script handles.
+	 *     @type string[]                                    $view_script_handles   Block type front end only script handles.
+	 *     @type string[]                                    $editor_style_handles  Block type editor only style handles.
+	 *     @type string[]                                    $style_handles         Block type front end and editor style handles.
+	 *     @type string[]                                    $view_style_handles    Block type front end only style handles.
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {
@@ -357,9 +364,9 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 *
 	 * @param string $name Deprecated property name.
-	 *
-	 * @return string|string[]|null|void The value read from the new property if the first item in the array provided,
-	 *                                   null when value not found, or void when unknown property name provided.
+	 * @return string|string[]|array[]|null The value read from the new property if the first item in the array
+	 *                                      provided, the variations or uses context arrays for those two names,
+	 *                                      null when value not found or when unknown property name provided.
 	 */
 	public function __get( $name ) {
 		if ( 'variations' === $name ) {
@@ -371,7 +378,7 @@ class WP_Block_Type {
 		}
 
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
-			return;
+			return null;
 		}
 
 		$new_name = $name . '_handles';
@@ -383,7 +390,7 @@ class WP_Block_Type {
 		if ( count( $this->{$new_name} ) > 1 ) {
 			return $this->{$new_name};
 		}
-		return isset( $this->{$new_name}[0] ) ? $this->{$new_name}[0] : null;
+		return $this->{$new_name}[0] ?? null;
 	}
 
 	/**
@@ -393,7 +400,6 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 *
 	 * @param string $name Deprecated property name.
-	 *
 	 * @return bool Returns true when for the new property the first item in the array exists,
 	 *              or false otherwise.
 	 */
@@ -621,7 +627,7 @@ class WP_Block_Type {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array[]
+	 * @return string[]
 	 */
 	public function get_uses_context() {
 		/**
@@ -629,7 +635,7 @@ class WP_Block_Type {
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param array         $uses_context Array of registered uses context for a block type.
+		 * @param string[]      $uses_context Array of registered uses context for a block type.
 		 * @param WP_Block_Type $block_type   The full block type object.
 		 */
 		return apply_filters( 'get_block_type_uses_context', $this->uses_context, $this );

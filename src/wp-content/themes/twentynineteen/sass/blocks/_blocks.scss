@@ -137,6 +137,7 @@
 		width: 100%;
 
 		audio {
+			display: block;
 			width: 100%;
 		}
 
@@ -239,6 +240,22 @@
 		}
 	}
 
+	.wp-block-buttons,
+	.wp-block-button {
+
+		&.has-custom-font-size .wp-block-button__link {
+			font-size: 1em;
+		}
+
+		&[style*="font-weight"] .wp-block-button__link {
+			font-weight: inherit;
+		}
+
+		&[style*="text-decoration"] .wp-block-button__link {
+			text-decoration: inherit;
+		}
+	}
+
 	//! Latest posts, categories, archives
 	.wp-block-archives,
 	.wp-block-categories,
@@ -332,7 +349,7 @@
 		padding: $size__spacing-unit;
 	}
 
-	//! Verse
+	//! Poetry (Verse)
 	.wp-block-verse {
 		@include font-family( $font__body );
 		font-size: $font__size_base;
@@ -362,6 +379,7 @@
 		border-color: transparent;
 		border-width: 2px;
 		padding: $size__spacing-unit;
+		font-size: 1em;
 
 		blockquote {
 			border: none;
@@ -388,7 +406,7 @@
 		}
 
 		cite {
-			display: inline-block;
+			display: block;
 			@include font-family( $font__heading );
 			line-height: 1.6;
 			text-transform: none;
@@ -416,6 +434,10 @@
 					margin-top: 0;
 				}
 			}
+		}
+
+		&.has-text-color cite {
+			color: inherit;
 		}
 
 		&.is-style-solid-color {
@@ -553,9 +575,9 @@
 			display: block;
 		}
 
-		// If an image does not have a left/center/right alignment, 
-		// it's a direct child of .wp-block-image.  If it has no other 
-		// alignment added, we want to make sure the image and its 
+		// If an image does not have a left/center/right alignment,
+		// it's a direct child of .wp-block-image.  If it has no other
+		// alignment added, we want to make sure the image and its
 		// caption do not extend beyond the width of the text column.
 		&:not(.alignwide):not(.alignfull) > img,
 		&:not(.alignwide):not(.alignfull) > a > img,
@@ -706,12 +728,12 @@
 		}
 
 		&.is-style-dots {
-			max-width: 100%;
-			@include postContentMaxWidth();
 			background-color: inherit;
 			border: inherit;
 			height: inherit;
 			text-align: center;
+			max-width: 100%;
+			@include postContentMaxWidth();
 
 			// Only apply the default dot color if there's no separator color specified.
 			&:not(.has-text-color):not(.has-background) {
@@ -725,12 +747,11 @@
 			}
 		}
 
-		/* Remove duplicate rule-line when a separator
-		 * is followed by an H1, or H2 */
 		& + h1,
 		& + h2 {
 
 			&:before {
+				/* Remove duplicate rule-line when a separator is followed by an H1 or H2 */
 				display: none;
 			}
 		}
@@ -786,6 +807,16 @@
 				outline-offset: -4px;
 			}
 		}
+
+		&.aligncenter .wp-block-file__button {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		&.alignright .wp-block-file__button {
+			margin-left: auto;
+			margin-right: 0;
+		}
 	}
 
 	//! Code
@@ -840,7 +871,7 @@
 	//! Group
 	.wp-block-group {
 
-		// When the Group block is standard/wide, we need to prevent full-aligned 
+		// When the Group block is standard/wide, we need to prevent full-aligned
 		// child blocks from expanding out of their container.
 		&:not(.alignfull) > .wp-block-group__inner-container > .alignfull,
 		&:not(.alignfull) > .wp-block-group__inner-container > .wp-block-image > img {
@@ -881,7 +912,7 @@
 				}
 			}
 
-			// If the Group block is full-width, it does not need this extra padding. 
+			// If the Group block is full-width, it does not need this extra padding.
 			&.alignfull {
 				padding-left: 0;
 				padding-right: 0;
@@ -896,7 +927,7 @@
 			&:not(.alignfull) > .wp-block-group__inner-container > .alignfull {
 				width: 100%;
 				max-width: 100%;
-				
+
 				@include media(tablet) {
 					width: calc( 100% + #{$size__spacing-unit * 2} );
 					max-width: calc( 100% + #{$size__spacing-unit * 2} );
@@ -904,7 +935,6 @@
 				}
 			}
 		}
-		
 	}
 
 	//! Latest Comments
@@ -925,19 +955,11 @@
 			font-size: inherit;
 		}
 
-		&.has-avatars {
-
-		}
-
 		&.has-dates {
 
 			.wp-block-latest-comments__comment-date {
 				font-size: $font__size-xs;
 			}
-		}
-
-		&.has-excerpts {
-
 		}
 	}
 

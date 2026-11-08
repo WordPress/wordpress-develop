@@ -228,6 +228,8 @@ abstract class WP_REST_Meta_Fields {
 	 * @param string $meta_key  Key for the field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @return true|WP_Error True if meta field is deleted, WP_Error otherwise.
+	 *
+	 * @phpstan-param positive-int $object_id
 	 */
 	protected function delete_meta_value( $object_id, $meta_key, $name ) {
 		$meta_type = $this->get_meta_type();
@@ -268,12 +270,15 @@ abstract class WP_REST_Meta_Fields {
 	 * Alters the list of values in the database to match the list of provided values.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @param array  $values    List of values to update to.
 	 * @return true|WP_Error True if meta fields are updated, WP_Error otherwise.
+	 *
+	 * @phpstan-param positive-int $object_id
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
 		$meta_type = $this->get_meta_type();
@@ -290,7 +295,7 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
+		$current_values = get_metadata_raw( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
 
 		if ( ! is_array( $current_values ) ) {
@@ -367,6 +372,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Updates a meta value for an object.
 	 *
 	 * @since 4.7.0
+	 * @since 6.7.0 Stores values into DB even if provided registered default value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -378,7 +384,7 @@ abstract class WP_REST_Meta_Fields {
 		$meta_type = $this->get_meta_type();
 
 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
+		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
 
 		if ( is_array( $old_value ) && 1 === count( $old_value )
@@ -476,8 +482,9 @@ abstract class WP_REST_Meta_Fields {
 
 			$default_schema = array(
 				'type'        => $default_args['type'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
-				'default'     => isset( $args['default'] ) ? $args['default'] : null,
+				'default'     => $args['default'] ?? null,
 			);
 
 			$rest_args           = array_merge( $default_args, $rest_args );

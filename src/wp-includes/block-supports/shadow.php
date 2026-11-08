@@ -25,13 +25,13 @@ function wp_register_shadow_support( $block_type ) {
 		$block_type->attributes = array();
 	}
 
-	if ( array_key_exists( 'style', $block_type->attributes ) ) {
+	if ( ! array_key_exists( 'style', $block_type->attributes ) ) {
 		$block_type->attributes['style'] = array(
 			'type' => 'object',
 		);
 	}
 
-	if ( array_key_exists( 'shadow', $block_type->attributes ) ) {
+	if ( ! array_key_exists( 'shadow', $block_type->attributes ) ) {
 		$block_type->attributes['shadow'] = array(
 			'type' => 'string',
 		);
@@ -43,16 +43,20 @@ function wp_register_shadow_support( $block_type ) {
  * This will be applied to the block markup in the front-end.
  *
  * @since 6.3.0
+ * @since 6.6.0 Return early if __experimentalSkipSerialization is true.
  * @access private
  *
- * @param  WP_Block_Type $block_type       Block type.
- * @param  array         $block_attributes Block attributes.
+ * @param WP_Block_Type $block_type       Block type.
+ * @param array         $block_attributes Block attributes.
  * @return array Shadow CSS classes and inline styles.
  */
 function wp_apply_shadow_support( $block_type, $block_attributes ) {
 	$has_shadow_support = block_has_support( $block_type, 'shadow', false );
 
-	if ( ! $has_shadow_support ) {
+	if (
+		! $has_shadow_support ||
+		wp_should_skip_block_supports_serialization( $block_type, 'shadow' )
+	) {
 		return array();
 	}
 

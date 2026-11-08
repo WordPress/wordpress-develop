@@ -71,6 +71,25 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 * @return bool Whether the content was successfully replaced.
 	 */
 	public function set_content_between_balanced_tags( string $new_content ): bool {
+		return $this->set_raw_content_between_balanced_tags( esc_html( $new_content ) );
+	}
+
+	/**
+	 * Sets the content between two balanced tags, writing it as given.
+	 *
+	 * Unlike {@see WP_Interactivity_API_Directives_Processor::set_content_between_balanced_tags()},
+	 * it does not escape the content. Like it, it replaces the content between
+	 * the current opener tag and its matching closer tag, and it rewinds to the
+	 * opener tag.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @access private
+	 *
+	 * @param string $new_content The markup to replace the content between the matching tags. It is written as is.
+	 * @return bool Whether the content was successfully replaced.
+	 */
+	public function set_raw_content_between_balanced_tags( string $new_content ): bool {
 		$positions = $this->get_after_opener_tag_and_before_closer_tag_positions( true );
 		if ( ! $positions ) {
 			return false;
@@ -80,7 +99,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 		$this->lexical_updates[] = new WP_HTML_Text_Replacement(
 			$after_opener_tag,
 			$before_closer_tag - $after_opener_tag,
-			esc_html( $new_content )
+			$new_content
 		);
 
 		return true;
@@ -91,6 +110,8 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * It positions the cursor in the closer tag of the balanced template tag,
 	 * if it exists.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
@@ -107,7 +128,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 
 		$bookmark = 'append_content_after_template_tag_closer';
 		$this->set_bookmark( $bookmark );
-		$after_closing_tag = $this->bookmarks[ $bookmark ]->start + $this->bookmarks[ $bookmark ]->length + 1;
+		$after_closing_tag = $this->bookmarks[ $bookmark ]->start + $this->bookmarks[ $bookmark ]->length;
 		$this->release_bookmark( $bookmark );
 
 		// Appends the new content.
@@ -140,7 +161,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 		}
 		list( $opener_tag, $closer_tag ) = $bookmarks;
 
-		$after_opener_tag  = $this->bookmarks[ $opener_tag ]->start + $this->bookmarks[ $opener_tag ]->length + 1;
+		$after_opener_tag  = $this->bookmarks[ $opener_tag ]->start + $this->bookmarks[ $opener_tag ]->length;
 		$before_closer_tag = $this->bookmarks[ $closer_tag ]->start;
 
 		if ( $rewind ) {
@@ -198,16 +219,19 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	public function skip_to_tag_closer(): bool {
 		$depth    = 1;
 		$tag_name = $this->get_tag();
-		while ( $depth > 0 && $this->next_tag(
-			array(
-				'tag_name'    => $tag_name,
-				'tag_closers' => 'visit',
-			)
-		) ) {
-			if ( $this->has_self_closing_flag() ) {
-				continue;
+
+		while ( $depth > 0 && $this->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			if ( ! $this->is_tag_closer() && $this->get_attribute_names_with_prefix( 'data-wp-' ) ) {
+				/* translators: 1: SVG or MATH HTML tag. */
+				$message = sprintf( __( 'Interactivity directives were detected inside an incompatible %1$s tag. These directives will be ignored in the server side render.' ), $tag_name );
+				_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			}
-			$depth += $this->is_tag_closer() ? -1 : 1;
+			if ( $this->get_tag() === $tag_name ) {
+				if ( $this->has_self_closing_flag() ) {
+					continue;
+				}
+				$depth += $this->is_tag_closer() ? -1 : 1;
+			}
 		}
 
 		return 0 === $depth;

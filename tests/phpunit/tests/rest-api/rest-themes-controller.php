@@ -37,13 +37,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $admin_id;
 
 	/**
-	 * The current theme object.
+	 * Theme support state before the class tests run.
 	 *
-	 * @since 5.0.0
-	 *
-	 * @var WP_Theme $current_theme
+	 * @var array
 	 */
-	protected static $current_theme;
+	protected static $theme_features;
+
+	/**
+	 * Registered theme feature state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $registered_theme_features;
 
 	/**
 	 * The REST API route for themes.
@@ -113,7 +118,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 				'role' => 'contributor',
 			)
 		);
-		self::$current_theme  = wp_get_theme();
+
+		self::$theme_features            = $GLOBALS['_wp_theme_features'];
+		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		wp_set_current_user( self::$contributor_id );
 	}
@@ -141,7 +148,21 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		parent::set_up();
 
 		wp_set_current_user( self::$contributor_id );
-		switch_theme( 'rest-api' );
+
+		// Select the fixture theme without running theme activation side effects.
+		update_option( 'template', 'default' );
+		update_option( 'stylesheet', 'rest-api' );
+		update_option( 'template_root', DIR_TESTDATA . '/themedir1' );
+		update_option( 'stylesheet_root', DIR_TESTDATA . '/themedir1' );
+		wp_set_template_globals();
+		wp_clean_theme_json_cache();
+	}
+
+	public function tear_down() {
+		$GLOBALS['_wp_theme_features']            = self::$theme_features;
+		$GLOBALS['_wp_registered_theme_features'] = self::$registered_theme_features;
+
+		parent::tear_down();
 	}
 
 	/**
@@ -162,14 +183,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Test retrieving a collection of themes.
 	 *
 	 * @ticket 45016
+	 * @ticket 61021
+	 * @ticket 62574
 	 */
 	public function test_get_items() {
-		$response = self::perform_active_theme_request();
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->check_get_theme_response( $response );
 		$fields = array(
 			'_links',
 			'author',
@@ -182,22 +207,70 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
-			'theme_supports',
 			'theme_uri',
 			'version',
 		);
 		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+
+		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
+		$this->assertContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
+	 * Test retrieving a collection of active themes.
+	 *
+	 * @ticket 64719
+	 */
+	public function test_get_items_active() {
+		wp_set_current_user( self::$admin_id );
+
+		$response = self::perform_active_theme_request();
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->check_get_theme_response( $response );
+		$fields = array(
+			'_links',
+			'author',
+			'author_uri',
+			'default_template_part_areas',
+			'default_template_types',
+			'description',
+			'is_block_theme',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'stylesheet_uri',
+			'tags',
+			'template',
+			'template_uri',
+			'textdomain',
+			'theme_supports',
+			'theme_uri',
+			'version',
+		);
+		$this->assertIsArray( $data );
+		$this->assertCount( 1, $data );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+		$this->assertSame( array( 'rest-api' ), wp_list_pluck( $data, 'stylesheet' ) );
 	}
 
 	/**
 	 * Test retrieving a collection of inactive themes.
 	 *
 	 * @ticket 50152
+	 * @ticket 61021
 	 */
 	public function test_get_items_inactive() {
 		wp_set_current_user( self::$admin_id );
@@ -221,8 +294,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
 			'theme_uri',
 			'version',
@@ -284,7 +359,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( $error_code, $response, 403 );
 	}
 
-	public function data_get_items_by_status() {
+	public static function data_get_items_by_status() {
 		return array(
 			array( 'active', 'rest_cannot_view_active_theme' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -311,7 +386,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function data_get_items_by_status_for_contributor() {
+	public static function data_get_items_by_status_for_contributor() {
 		return array(
 			array( 'active', '' ),
 			array( 'active, inactive', 'rest_cannot_view_themes' ),
@@ -347,12 +422,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Verify the theme schema.
 	 *
 	 * @ticket 45016
+	 * @ticket 61021
+	 * @ticket 62574
 	 */
 	public function test_get_item_schema() {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 16, $properties );
+		$this->assertCount( 20, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -366,6 +443,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
 
+		$this->assertArrayHasKey( 'default_template_part_areas', $properties );
+		$this->assertArrayHasKey( 'default_template_types', $properties );
+
 		$this->assertArrayHasKey( 'is_block_theme', $properties );
 
 		$this->assertArrayHasKey( 'name', $properties );
@@ -377,6 +457,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
+		$this->assertArrayHasKey( 'stylesheet_uri', $properties );
 
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['tags']['properties'] );
@@ -384,6 +465,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'rendered', $properties['tags']['properties'] );
 
 		$this->assertArrayHasKey( 'template', $properties );
+		$this->assertArrayHasKey( 'template_uri', $properties );
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
 
@@ -410,6 +492,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'editor-color-palette', $theme_supports );
 		$this->assertArrayHasKey( 'editor-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-gradient-presets', $theme_supports );
+		$this->assertArrayHasKey( 'editor-spacing-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-styles', $theme_supports );
 		$this->assertArrayHasKey( 'formats', $theme_supports );
 		$this->assertArrayHasKey( 'html5', $theme_supports );
@@ -417,7 +500,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 23, $theme_supports, 'There should be 23 theme supports' );
+		$this->assertCount( 24, $theme_supports, 'There should be 24 theme supports' );
 	}
 
 	/**
@@ -460,6 +543,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'The 9&#8242; foot tall theme.',
 			$result[0]['description']['rendered']
 		);
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_part_areas() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'default_template_part_areas', $result[0] );
+		$this->assertSame( get_allowed_block_template_part_areas(), $result[0]['default_template_part_areas'] );
+	}
+
+	/**
+	 * @ticket 62574
+	 */
+	public function test_theme_default_template_types() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$expected = array();
+		foreach ( get_default_block_template_types() as $slug => $template_type ) {
+			$template_type['slug'] = (string) $slug;
+			$expected[]            = $template_type;
+		}
+
+		$this->assertArrayHasKey( 'default_template_types', $result[0] );
+		$this->assertSame( $expected, $result[0]['default_template_types'] );
 	}
 
 	/**
@@ -535,14 +644,45 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 61021
+	 */
+	public function test_theme_stylesheet_uri() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', array( 'active', 'inactive' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
+		$result        = $response->get_data();
+		$current_theme = wp_get_theme();
+
+		foreach ( $result as $theme_result ) {
+			$this->assertArrayHasKey( 'stylesheet_uri', $theme_result );
+			if ( 'active' === $theme_result['status'] ) {
+				$this->assertSame(
+					get_stylesheet_directory_uri(),
+					$theme_result['stylesheet_uri'],
+					'stylesheet_uri for an active theme should be the same as the global get_stylesheet_directory_uri()'
+				);
+			} else {
+				$theme = wp_get_theme( $theme_result['stylesheet'] );
+				$this->assertSame(
+					$theme->get_stylesheet_directory_uri(),
+					$theme_result['stylesheet_uri'],
+					"stylesheet_uri for an inactive theme should be the same as the theme's get_stylesheet_directory_uri() method"
+				);
+			}
+		}
+	}
+
+	/**
 	 * @ticket 49906
 	 */
 	public function test_theme_tags() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'tags', $result[0] );
-		$this->assertSame( array( 'holiday', 'custom-menu' ), $result[0]['tags']['raw'] );
-		$this->assertSame( 'holiday, custom-menu', $result[0]['tags']['rendered'] );
+		$this->assertSame( array( 'Holiday', 'custom-menu' ), $result[0]['tags']['raw'] );
+		$this->assertSame( 'Holiday, custom-menu', $result[0]['tags']['rendered'] );
 	}
 
 	/**
@@ -553,6 +693,37 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'template', $result[0] );
 		$this->assertSame( 'default', $result[0]['template'] );
+	}
+
+	/**
+	 * @ticket 61021
+	 */
+	public function test_theme_template_uri() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', array( 'active', 'inactive' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
+		$result        = $response->get_data();
+		$current_theme = wp_get_theme();
+
+		foreach ( $result as $theme_result ) {
+			$this->assertArrayHasKey( 'template_uri', $theme_result );
+			if ( 'active' === $theme_result['status'] ) {
+				$this->assertSame(
+					get_template_directory_uri(),
+					$theme_result['template_uri'],
+					'template_uri for an active theme should be the same as the global get_template_directory_uri()'
+				);
+			} else {
+				$theme = wp_get_theme( $theme_result['stylesheet'] );
+				$this->assertSame(
+					$theme->get_template_directory_uri(),
+					$theme_result['template_uri'],
+					"template_uri for an inactive theme should be the same as the theme's get_template_directory_uri() method"
+				);
+			}
+		}
 	}
 
 	/**
@@ -934,7 +1105,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_wp_block_styles_optin() {
+	public function test_theme_wp_block_styles_opt_in() {
 		remove_theme_support( 'wp-block-styles' );
 		add_theme_support( 'wp-block-styles' );
 		$response = self::perform_active_theme_request();
@@ -958,7 +1129,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_align_wide_optin() {
+	public function test_theme_align_wide_opt_in() {
 		remove_theme_support( 'align-wide' );
 		add_theme_support( 'align-wide' );
 		$response = self::perform_active_theme_request();
@@ -982,7 +1153,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_editor_styles_optin() {
+	public function test_theme_editor_styles_opt_in() {
 		remove_theme_support( 'editor-styles' );
 		add_theme_support( 'editor-styles' );
 		$response = self::perform_active_theme_request();
@@ -1006,7 +1177,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_dark_editor_style_optin() {
+	public function test_theme_dark_editor_style_opt_in() {
 		remove_theme_support( 'dark-editor-style' );
 		add_theme_support( 'dark-editor-style' );
 		$response = self::perform_active_theme_request();
@@ -1231,21 +1402,38 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The create_item() method does not exist for themes.
+	 * Themes is read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The update_item() method does not exist for themes.
+	 * Themes is read-only; update requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = self::$themes_route . '/' . get_stylesheet();
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
@@ -1273,8 +1461,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
 			'theme_uri',
 			'version',
@@ -1348,7 +1538,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_non_subdir_theme() {
+	public static function data_get_item_non_subdir_theme() {
 		return array(
 			'parent theme'                => array(
 				'theme_dir'     => '/block-theme',
@@ -1396,7 +1586,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @return array
 	 */
-	public function data_get_item_subdirectory_theme() {
+	public static function data_get_item_subdirectory_theme() {
 		return array(
 			'theme2'                      => array(
 				'theme_dir'     => '/subdir/theme2',
@@ -1434,20 +1624,44 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The delete_item() method does not exist for themes.
+	 * Themes is read-only; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = self::$themes_route . '/' . get_stylesheet();
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
 	 * Context is not supported for themes.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		// Collection.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
+
+		// Single.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 	}
 }

@@ -14,20 +14,18 @@
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
-	 * Cleans up stores after each test.
-	 */
-	public function tear_down() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
 	 * @ticket 56467
 	 * @ticket 58549
 	 * @ticket 58590
 	 * @ticket 60175
+	 * @ticket 61720
+	 * @ticket 62189
+	 * @ticket 63799
+	 * @ticket 64974
+	 * @ticket 65037
+	 * @ticket 66094
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -56,7 +54,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_style_engine_get_styles() {
+	public static function data_wp_style_engine_get_styles() {
 		return array(
 			'default_return_value'                         => array(
 				'block_styles'    => array(),
@@ -124,6 +122,25 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_dimension_preset_style'          => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'width'     => 'var:preset|dimension|large',
+						'height'    => 'var:preset|dimension|modestly-small',
+						'objectFit' => 'cover',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'height:var(--wp--preset--dimension--modestly-small);object-fit:cover;width:var(--wp--preset--dimension--large);',
+					'declarations' => array(
+						'height'     => 'var(--wp--preset--dimension--modestly-small)',
+						'object-fit' => 'cover',
+						'width'      => 'var(--wp--preset--dimension--large)',
+					),
+				),
+			),
+
 			'inline_valid_box_model_style'                 => array(
 				'block_styles'    => array(
 					'spacing' => array(
@@ -169,7 +186,30 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_valid_dimensions_style'                => array(
+			'inline_valid_border_radius_presets'           => array(
+				'block_styles'    => array(
+					'border' => array(
+						'radius' => array(
+							'topLeft'     => 'var:preset|border-radius|large',
+							'topRight'    => 'var:preset|border-radius|large',
+							'bottomLeft'  => 'var:preset|border-radius|large',
+							'bottomRight' => 'var:preset|border-radius|large',
+						),
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'border-top-left-radius:var(--wp--preset--border-radius--large);border-top-right-radius:var(--wp--preset--border-radius--large);border-bottom-left-radius:var(--wp--preset--border-radius--large);border-bottom-right-radius:var(--wp--preset--border-radius--large);',
+					'declarations' => array(
+						'border-top-left-radius'     => 'var(--wp--preset--border-radius--large)',
+						'border-top-right-radius'    => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-left-radius'  => 'var(--wp--preset--border-radius--large)',
+						'border-bottom-right-radius' => 'var(--wp--preset--border-radius--large)',
+					),
+				),
+			),
+
+			'inline_valid_dimensions_min_height_style'     => array(
 				'block_styles'    => array(
 					'dimensions' => array(
 						'minHeight' => '50vh',
@@ -180,6 +220,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'css'          => 'min-height:50vh;',
 					'declarations' => array(
 						'min-height' => '50vh',
+					),
+				),
+			),
+
+			'inline_valid_dimensions_min_width_style'      => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'minWidth' => '25vw',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'min-width:25vw;',
+					'declarations' => array(
+						'min-width' => '25vw',
 					),
 				),
 			),
@@ -227,11 +282,12 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'textDecoration' => 'underline',
 						'textTransform'  => 'uppercase',
 						'letterSpacing'  => '2',
+						'writingMode'    => 'vertical-rl',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;',
+					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;writing-mode:vertical-rl;',
 					'declarations' => array(
 						'font-size'       => 'clamp(2em, 2vw, 4em)',
 						'font-family'     => 'Roboto,Oxygen-Sans,Ubuntu,sans-serif',
@@ -242,6 +298,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
 						'letter-spacing'  => '2',
+						'writing-mode'    => 'vertical-rl',
 					),
 				),
 			),
@@ -536,27 +593,123 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_background_image_url_with_background_size' => array(
+			'inline_background_gradient_only'              => array(
 				'block_styles'    => array(
 					'background' => array(
-						'backgroundImage'    => array(
-							'url' => 'https://example.com/image.jpg',
-						),
-						'backgroundPosition' => 'center',
-						'backgroundRepeat'   => 'no-repeat',
-						'backgroundSize'     => 'cover',
+						'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
 					),
 				),
 				'options'         => array(),
 				'expected_output' => array(
-					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;",
+					'css'          => 'background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);',
 					'declarations' => array(
-						'background-image'    => "url('https://example.com/image.jpg')",
-						'background-position' => 'center',
-						'background-repeat'   => 'no-repeat',
-						'background-size'     => 'cover',
+						'background-image' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_gradient_with_preset_slug'  => array(
+				'block_styles'    => array(
+					'background' => array(
+						'gradient' => 'var:preset|gradient|vivid-cyan-blue',
 					),
 				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-image:var(--wp--preset--gradient--vivid-cyan-blue);',
+					'declarations' => array(
+						'background-image' => 'var(--wp--preset--gradient--vivid-cyan-blue)',
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_gradient_and_image_combined' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => "background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('https://example.com/image.jpg');",
+					'declarations' => array(
+						'background-image' => "linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_image_url_with_background_size' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundImage'      => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'backgroundPosition'   => 'center',
+						'backgroundRepeat'     => 'no-repeat',
+						'backgroundSize'       => 'cover',
+						'backgroundAttachment' => 'fixed',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;background-attachment:fixed;",
+					'declarations' => array(
+						'background-image'      => "url('https://example.com/image.jpg')",
+						'background-position'   => 'center',
+						'background-repeat'     => 'no-repeat',
+						'background-size'       => 'cover',
+						'background-attachment' => 'fixed',
+					),
+				),
+			),
+
+			'inline_background_clip_border_box'            => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'border-box',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:border-box;-webkit-text-fill-color:currentColor;',
+					'declarations' => array(
+						'background-clip'         => 'border-box',
+						'-webkit-text-fill-color' => 'currentColor',
+					),
+				),
+			),
+
+			'inline_background_clip_text_with_vendor_prefixes' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'text',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+					'declarations' => array(
+						'background-clip'         => 'text',
+						'-webkit-background-clip' => 'text',
+						'-webkit-text-fill-color' => 'transparent',
+					),
+				),
+			),
+
+			'inline_background_clip_invalid_value'         => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'invalid-value',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(),
 			),
 		);
 	}
@@ -701,6 +854,35 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests returning a generated stylesheet with important declarations.
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 * @covers WP_Style_Engine::compile_stylesheet_from_css_rules
+	 *
+	 * @ticket 65561
+	 */
+	public function test_should_return_stylesheet_with_important_declarations() {
+		$declarations = new WP_Style_Engine_CSS_Declarations();
+		$declarations->add_declaration(
+			'background-image',
+			'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+			array(
+				'important' => true,
+			)
+		);
+		$css_rules = array(
+			array(
+				'selector'     => '.responsive-state',
+				'declarations' => $declarations,
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '.responsive-state{background-image:linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%) !important;}', $compiled_stylesheet );
+	}
+
+	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
 	 * @ticket 58811
@@ -748,5 +930,69 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
 		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore{color:grey;height:90px;border-style:dotted;}.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules and merging their declarations.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_merge_declarations_for_rules_groups() {
+		$css_rules = array(
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'        => 'white',
+					'height'       => '100px',
+					'border-style' => 'solid',
+					'align-self'   => 'stretch',
+				),
+			),
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'       => 'black',
+					'font-family' => 'The-Great-Eye',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '@container (min-width: 700px){.saruman{color:black;height:100px;border-style:solid;align-self:stretch;font-family:The-Great-Eye;}}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_return_stylesheet_with_nested_rules() {
+		$css_rules = array(
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (orientation: landscape)',
+				'declarations' => array(
+					'background-color' => 'blue',
+				),
+			),
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (min-width > 1024px)',
+				'declarations' => array(
+					'background-color' => 'cotton-blue',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '.foo{@media (orientation: landscape){background-color:blue;}}.foo{@media (min-width > 1024px){background-color:cotton-blue;}}', $compiled_stylesheet );
 	}
 }
