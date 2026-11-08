@@ -1,4 +1,4 @@
-/* global addComment, WP, I10n */
+/* global addComment, WP */
 
 /**
  * WordPress Comment Reply 6.6.1
@@ -143,10 +143,6 @@ window.addComment = {
 
 	init : function() {
 		var t                 = this,
-			commId,
-			parentId,
-			respondId,
-			postId,
 			onReplyLinkClick,
 			element,
 			responseLinks = document.querySelectorAll( '.comment-reply-link' ),
