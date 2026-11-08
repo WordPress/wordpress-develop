@@ -575,7 +575,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			'Notes should not push a regular comment onto a later page.'
 		);
 		$this->assertSame(
-			2,
+			1,
 			get_page_of_comment(
 				$last_comment,
 				array(
@@ -583,7 +583,50 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 					'type'     => 'all',
 				)
 			),
-			'An explicit type of all should still count every type.'
+			'An explicit type of all should match the default.'
+		);
+		$this->assertSame(
+			1,
+			get_page_of_comment(
+				$last_comment,
+				array(
+					'per_page' => 2,
+					'type'     => '',
+				)
+			),
+			'An empty type should match the default.'
+		);
+	}
+
+	/**
+	 * A default-excluded type is still counted when it is requested by name.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_explicitly_requested_excluded_type_is_counted(): void {
+		$post_id = self::factory()->post->create();
+
+		foreach ( array( 'note', 'note', 'note' ) as $index => $comment_type ) {
+			$comment_ids[] = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_type'     => $comment_type,
+					'comment_approved' => '1',
+					'comment_date'     => sprintf( '2024-01-01 10:0%d:00', $index ),
+					'comment_date_gmt' => sprintf( '2024-01-01 10:0%d:00', $index ),
+				)
+			);
+		}
+
+		$this->assertSame(
+			2,
+			get_page_of_comment(
+				end( $comment_ids ),
+				array(
+					'per_page' => 2,
+					'type'     => 'note',
+				)
+			)
 		);
 	}
 
@@ -631,8 +674,9 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * get_comment_link() forwards its own arguments to get_page_of_comment(), so its
-	 * default has to match or the permalink lands on the wrong page.
+	 * get_comment_link() forwards its arguments to get_page_of_comment(). Walker_Comment
+	 * passes the wp_list_comments() arguments, which set 'type' to 'all', so both the
+	 * default and an explicit 'all' have to land on the rendered page.
 	 *
 	 * @ticket 65537
 	 *
@@ -657,12 +701,17 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			);
 		}
 
-		$link = get_comment_link( end( $comment_ids ) );
+		$last_comment = end( $comment_ids );
 
 		$this->assertStringNotContainsString(
 			'cpage=2',
-			$link,
-			'The permalink should point at the page the comment is rendered on.'
+			get_comment_link( $last_comment ),
+			'The default permalink should point at the page the comment is rendered on.'
+		);
+		$this->assertStringNotContainsString(
+			'cpage=2',
+			get_comment_link( $last_comment, array( 'type' => 'all' ) ),
+			'A permalink with an explicit type of all should point at the same page.'
 		);
 	}
 }
