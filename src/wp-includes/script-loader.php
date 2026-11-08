@@ -4073,7 +4073,7 @@ function wp_enqueue_command_palette_assets() {
 					 */
 					'i18n'   => array(
 						/* translators: Easter egg trigger, typed into the command palette. Case, spaces and punctuation are ignored. Feel free to pick a phrase loved by your local community. See https://core.trac.wordpress.org/ticket/65907 */
-						'trigger' => __( 'Code is poetry' ),
+						'trigger' => _x( 'Code is poetry', 'easter egg trigger' ),
 						/* translators: Accessible name of the easter egg dialog. See https://core.trac.wordpress.org/ticket/65907 */
 						'label'   => __( 'A WordPress easter egg. Press Escape to leave.' ),
 						/* translators: Button that closes the easter egg. See https://core.trac.wordpress.org/ticket/65907 */
