@@ -7026,36 +7026,30 @@ function wp_is_cross_origin_isolated_request(): bool {
 
 
 /**
- * Register one or more image CDN handlers.
+ * Registers an image CDN handler for one or more mime types.
  *
- * Each CDN can register a set of image types and the URL prefix they should use.
+ * Media URLs for each mime type are rewritten using the prefix of the CDN registered for it.
+ * Where more than one CDN is registered for a mime type, the last one registered is used.
+ * Registering a handle again replaces all of its previous mappings.
  *
- * Media URLs will be rewritetn based on the registered CDN's. Where more than one CDN is
- * registered for a single mime_type, the last registered CDN will be used.
+ * @since 7.3.0
  *
- * @since 6.5.0
+ * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
  *
- * @param $handle     string The unique handle for the CDN
- * @param $mime_types array  An array of supported mime types, maps mime types to URL prefixes, enabling different
- *                           prefixes depending on the mime type.
+ * @param string                $handle     Unique handle for the CDN.
+ * @param array<string, string> $mime_types Map of mime types to the URL prefix to use for each. An empty
+ *                                          array removes all mappings for the handle.
  */
-function wp_register_mime_cdn_handler( $handle, $mime_types, $callback ) {
+function wp_register_mime_cdn_handler( string $handle, array $mime_types ): void {
+	wp_unregister_cdn_handler( $handle );
+
+	/** @var array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers */
 	global $wp_mime_cdn_handlers;
 
 	if ( ! is_array( $wp_mime_cdn_handlers ) ) {
 		$wp_mime_cdn_handlers = array();
 	}
 
-	// Clear any mime type mappings.
-	if ( empty( $mime_types ) ) {
-		foreach ( $wp_mime_cdn_handlers as $mime_type => $cdn_handler ) {
-			if ( $cdn_handler['handle'] === $handle ) {
-				unset( $wp_mime_cdn_handlers[ $mime_type ] );
-			}
-		}
-	}
-
-	// Map each mime type to its handler for quick lookup. Each type can only have one handler.
 	foreach ( $mime_types as $mime_type => $prefix ) {
 		$wp_mime_cdn_handlers[ $mime_type ] = array(
 			'handle' => $handle,
@@ -7065,67 +7059,69 @@ function wp_register_mime_cdn_handler( $handle, $mime_types, $callback ) {
 }
 
 /**
- * Gets the CDN URL mapping for a specific mime_type.
+ * Gets the CDN handler registered for a mime type.
  *
- * @since 6.5.0
+ * @since 7.3.0
  *
- * @param string $mime_type The mime type to get the CDN URL mapping for.
+ * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
  *
- * @return string The URL prefix for the mime type. False if not found.
+ * @param string $mime_type The mime type to get the CDN handler for.
+ * @return array{handle: string, prefix: string}|null The CDN handle and URL prefix, or null if none is registered.
  */
-function wp_get_mime_cdn_mapping( $mime_type ) {
+function wp_get_mime_cdn_mapping( string $mime_type ): ?array {
+	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
 	global $wp_mime_cdn_handlers;
 
-	if ( empty( $wp_mime_cdn_handlers ) ) {
-		return false;
-	}
-
-	return $wp_mime_cdn_handlers[ $mime_type ];
+	return $wp_mime_cdn_handlers[ $mime_type ] ?? null;
 }
 
 /**
- * Remove the CDN URL mapping for a specific CDN and optimally a specific mime type.
+ * Removes all mime type mappings for a CDN handler.
  *
- * @since 6.5.0
+ * @since 7.3.0
+ *
+ * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
  *
  * @param string $handle The handle for the CDN.
- *
- * @return bool True if the mapping was removed, false if not found.
+ * @return bool True if any mapping was removed, false otherwise.
  */
-function wp_unregister_cdn_handler( $handle ) {
+function wp_unregister_cdn_handler( string $handle ): bool {
+	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
 	global $wp_mime_cdn_handlers;
 
 	if ( empty( $wp_mime_cdn_handlers ) ) {
 		return false;
 	}
 
+	$removed = false;
 	foreach ( $wp_mime_cdn_handlers as $mime_type => $cdn_handler ) {
 		if ( $cdn_handler['handle'] === $handle ) {
 			unset( $wp_mime_cdn_handlers[ $mime_type ] );
-			return true;
+			$removed = true;
 		}
 	}
 
-	return false;
+	return $removed;
 }
 
 /**
- * Remove all CDN handlers for a given mime type.
+ * Removes the CDN handler for a mime type.
  *
- * @since 6.5.0
+ * @since 7.3.0
  *
- * @param $mime_type string The mime type to remove the CDN handler for.
+ * @global array<string, array{handle: string, prefix: string}> $wp_mime_cdn_handlers Mime type to CDN handler map.
  *
- * @return bool True if the mapping was removed, false if not found.
+ * @param string $mime_type The mime type to remove the CDN handler for.
+ * @return bool True if the mapping was removed, false if none was registered.
  */
-function wp_unregister_mime_cdn_handler( $mime_type ) {
+function wp_unregister_mime_cdn_handler( string $mime_type ): bool {
+	/** @var array<string, array{handle: string, prefix: string}>|null $wp_mime_cdn_handlers */
 	global $wp_mime_cdn_handlers;
 
-	if ( ! empty( $wp_mime_cdn_handlers ) && isset( $wp_mime_cdn_handlers[ $mime_type ] ) ) {
-		unset( $wp_mime_cdn_handlers[ $mime_type ] );
-		return true;
+	if ( ! isset( $wp_mime_cdn_handlers[ $mime_type ] ) ) {
+		return false;
 	}
 
-	return false;
+	unset( $wp_mime_cdn_handlers[ $mime_type ] );
+	return true;
 }
-
