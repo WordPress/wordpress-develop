@@ -3976,7 +3976,8 @@ function wp_resource_hints() {
 		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
 		 *              as its child elements.
 		 * @since 7.3.0 The obsolete `pr` attribute is no longer printed. The `crossorigin`
-		 *              attribute may be `true` to print it without a value. Added the
+		 *              attribute may be `true` to print it without a value. List items
+		 *              other than `crossorigin` are no longer printed. Added the
 		 *              `fetchpriority`, `hreflang`, `media`, `referrerpolicy`, and `title`
 		 *              attributes.
 		 *
