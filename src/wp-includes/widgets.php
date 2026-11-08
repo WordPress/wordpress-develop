@@ -702,10 +702,13 @@ function dynamic_sidebar( $index = 1 ) {
 		$index = "sidebar-$index";
 	} else {
 		$index = sanitize_title( $index );
-		foreach ( (array) $wp_registered_sidebars as $key => $value ) {
-			if ( sanitize_title( $value['name'] ) === $index ) {
-				$index = $key;
-				break;
+
+		if ( empty( $wp_registered_sidebars[ $index ] ) ) {
+			foreach ( (array) $wp_registered_sidebars as $key => $value ) {
+				if ( sanitize_title( $value['name'] ) === $index ) {
+					$index = $key;
+					break;
+				}
 			}
 		}
 	}
@@ -790,7 +793,9 @@ function dynamic_sidebar( $index = 1 ) {
 		 * @see register_sidebar()
 		 *
 		 * @param array $params {
-		 *     @type array $args  {
+		 *     The arguments the display callback is called with, in order.
+		 *
+		 *     @type array $0 {
 		 *         An array of widget display arguments.
 		 *
 		 *         @type string $name          Name of the sidebar the widget is assigned to.
@@ -804,8 +809,8 @@ function dynamic_sidebar( $index = 1 ) {
 		 *         @type string $widget_id     ID of the widget.
 		 *         @type string $widget_name   Name of the widget.
 		 *     }
-		 *     @type array $widget_args {
-		 *         An array of multi-widget arguments.
+		 *     @type array ...$1 {
+		 *         The parameters the widget was registered with, such as the multi-widget arguments.
 		 *
 		 *         @type int $number Number increment used for multiples of the same widget.
 		 *     }
@@ -1016,6 +1021,8 @@ function is_active_sidebar( $index ) {
  *
  * @param bool $deprecated Not used (argument deprecated).
  * @return array Upgraded list of widgets to version 3 array format when called from the admin.
+ *
+ * @phpstan-param true $deprecated
  */
 function wp_get_sidebars_widgets( $deprecated = true ) {
 	if ( true !== $deprecated ) {

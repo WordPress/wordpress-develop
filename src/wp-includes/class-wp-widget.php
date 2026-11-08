@@ -213,6 +213,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string Name attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
@@ -238,6 +240,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string ID attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_id( $field_name ) {
 		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
@@ -408,6 +412,8 @@ class WP_Widget {
 	 * @global array $wp_registered_widgets
 	 *
 	 * @param int $deprecated Not used.
+	 *
+	 * @final
 	 */
 	public function update_callback( $deprecated = 1 ) {
 		global $wp_registered_widgets;
@@ -500,6 +506,8 @@ class WP_Widget {
 	 *     @type int $number Number increment used for multiples of the same widget.
 	 * }
 	 * @return string|null
+	 *
+	 * @final
 	 */
 	public function form_callback( $widget_args = 1 ) {
 		if ( is_numeric( $widget_args ) ) {
