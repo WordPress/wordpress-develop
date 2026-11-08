@@ -4663,10 +4663,10 @@ function wp_create_initial_comment_meta() {
 		'comment',
 		'_wp_note_anchor',
 		array(
-			'type'          => 'array',
-			'description'   => __( 'The blocks the note was added to, as they stood at the time.' ),
-			'single'        => true,
-			'show_in_rest'  => array(
+			'type'              => 'array',
+			'description'       => __( 'The blocks the note was added to, as they stood at the time.' ),
+			'single'            => true,
+			'show_in_rest'      => array(
 				'schema' => array(
 					'type'  => 'array',
 					'items' => array(
@@ -4682,11 +4682,55 @@ function wp_create_initial_comment_meta() {
 					),
 				),
 			),
-			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+			'sanitize_callback' => '_wp_sanitize_note_anchor',
+			'auth_callback'     => function ( $allowed, $meta_key, $object_id ) {
 				return current_user_can( 'edit_comment', $object_id );
 			},
 		)
 	);
+}
+
+/**
+ * Sanitizes the `_wp_note_anchor` meta value.
+ *
+ * The snapshot is block markup, so it gets the same KSES filtering as post
+ * content for users who can't post unfiltered HTML.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param mixed $value Meta value.
+ * @return list<array{path: list<int>, content: string}> Sanitized snapshot.
+ */
+function _wp_sanitize_note_anchor( $value ): array {
+	if ( ! is_array( $value ) ) {
+		return array();
+	}
+
+	$anchors = array();
+	foreach ( $value as $anchor ) {
+		if ( ! is_array( $anchor ) || ! is_string( $anchor['content'] ?? null ) || ! is_array( $anchor['path'] ?? null ) ) {
+			continue;
+		}
+
+		$path = array();
+		foreach ( $anchor['path'] as $index ) {
+			if ( is_numeric( $index ) ) {
+				$path[] = absint( $index );
+			}
+		}
+
+		$content = $anchor['content'];
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			$content = wp_kses_post( $content );
+		}
+
+		$anchors[] = array(
+			'path'    => $path,
+			'content' => $content,
+		);
+	}
+	return $anchors;
 }
 
 /**

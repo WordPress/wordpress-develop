@@ -8,6 +8,7 @@
  *
  * @covers ::wp_delete_persisted_note_anchors
  * @covers ::_wp_get_note_ids_from_blocks
+ * @covers ::_wp_sanitize_note_anchor
  */
 class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 
@@ -58,6 +59,51 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 
 	public function test_registers_note_anchor_meta(): void {
 		$this->assertTrue( registered_meta_key_exists( 'comment', '_wp_note_anchor' ) );
+	}
+
+	public function test_strips_disallowed_html_without_unfiltered_html(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+
+		$value = _wp_sanitize_note_anchor(
+			array(
+				array(
+					'path'    => array( 0, '2' ),
+					'content' => "<!-- wp:paragraph {\"metadata\":{\"noteId\":[3]}} -->\n<p><mark class=\"wp-note\" data-id=\"new\">Hi</mark><script>alert(1)</script></p>\n<!-- /wp:paragraph -->",
+				),
+				'not an anchor',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				array(
+					'path'    => array( 0, 2 ),
+					'content' => "<!-- wp:paragraph {\"metadata\":{\"noteId\":[3]}} -->\n<p><mark class=\"wp-note\" data-id=\"new\">Hi</mark></p>\n<!-- /wp:paragraph -->",
+				),
+			),
+			$value
+		);
+	}
+
+	public function test_keeps_html_with_unfiltered_html(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $user_id );
+		}
+		wp_set_current_user( $user_id );
+		$content = '<!-- wp:html --><script>alert(1)</script><!-- /wp:html -->';
+
+		$value = _wp_sanitize_note_anchor(
+			array(
+				array(
+					'path'    => array( 0 ),
+					'content' => $content,
+				),
+			)
+		);
+
+		$this->assertSame( $content, $value[0]['content'] );
 	}
 
 	public function test_deletes_anchor_when_saved_content_links_to_note(): void {
