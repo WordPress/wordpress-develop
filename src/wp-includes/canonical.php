@@ -65,11 +65,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
+	if ( ! $requested_url && isset( $_SERVER['REQUEST_URI'] ) ) {
 		// Build the URL in the address bar.
-		$requested_url  = is_ssl() ? 'https://' : 'http://';
-		$requested_url .= $_SERVER['HTTP_HOST'];
-		$requested_url .= $_SERVER['REQUEST_URI'];
+		$requested_url = wp_get_current_request_url();
 	}
 
 	$original = parse_url( $requested_url );
