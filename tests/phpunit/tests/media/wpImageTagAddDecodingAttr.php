@@ -41,7 +41,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_add_decoding_attr() {
+	public static function data_should_add_decoding_attr() {
 		return array(
 			'default' => array(
 				'image'    => '<img src="my-image.png">',
@@ -104,7 +104,7 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_not_add_decoding_attr() {
+	public static function data_should_not_add_decoding_attr() {
 		return array(
 			// Unhappy paths.
 			'lazy (unaccepted value)' => array(

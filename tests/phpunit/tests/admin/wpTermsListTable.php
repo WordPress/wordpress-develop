@@ -49,7 +49,9 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	 */
 	private function call_inaccessible_method( $instance, $method_name, $args = array() ) {
 		$method = ( new ReflectionClass( $instance ) )->getMethod( $method_name );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method->invokeArgs( $instance, $args );
 	}
 

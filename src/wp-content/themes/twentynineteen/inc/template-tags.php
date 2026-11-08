@@ -92,7 +92,7 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 					/* translators: Hidden accessibility text. */
 					__( 'Posted in', 'twentynineteen' ),
 					$categories_list
-				); // WPCS: XSS OK.
+				);
 			}
 
 			$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
@@ -104,7 +104,7 @@ if ( ! function_exists( 'twentynineteen_entry_footer' ) ) :
 					/* translators: Hidden accessibility text. */
 					__( 'Tags:', 'twentynineteen' ),
 					$tags_list
-				); // WPCS: XSS OK.
+				);
 			}
 		}
 
@@ -170,6 +170,11 @@ endif;
 if ( ! function_exists( 'twentynineteen_get_user_avatar_markup' ) ) :
 	/**
 	 * Returns the HTML markup to generate a user avatar.
+	 *
+	 * @param mixed $id_or_email Optional. The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
+	 *                           Default null, which uses the current user ID.
+	 * @return string HTML markup for the user avatar.
 	 */
 	function twentynineteen_get_user_avatar_markup( $id_or_email = null ) {
 
@@ -184,6 +189,9 @@ endif;
 if ( ! function_exists( 'twentynineteen_discussion_avatars_list' ) ) :
 	/**
 	 * Displays a list of avatars involved in a discussion for a given post.
+	 *
+	 * @param array $comment_authors Comment authors to display avatars for. Each entry is a user ID,
+	 *                               or an email address for authors without an account.
 	 */
 	function twentynineteen_discussion_avatars_list( $comment_authors ) {
 		if ( empty( $comment_authors ) ) {
@@ -202,14 +210,18 @@ endif;
 
 if ( ! function_exists( 'twentynineteen_comment_form' ) ) :
 	/**
-	 * Documentation for function.
+	 * Displays the comment form.
+	 *
+	 * @param bool|string $order Whether to display the form. Accepts 'asc' or 'desc' to display it only
+	 *                           when the value matches the 'comment_order' option, or true to always
+	 *                           display it.
 	 */
 	function twentynineteen_comment_form( $order ) {
 		if ( true === $order || strtolower( $order ) === strtolower( get_option( 'comment_order', 'asc' ) ) ) {
 
 			comment_form(
 				array(
-					'title_reply' => null,
+					'title_reply' => '',
 				)
 			);
 		}
@@ -218,20 +230,23 @@ endif;
 
 if ( ! function_exists( 'twentynineteen_the_posts_navigation' ) ) :
 	/**
-	 * Documentation for function.
+	 * Displays the next and previous posts navigation.
 	 */
 	function twentynineteen_the_posts_navigation() {
+		$order          = get_query_var( 'order', 'DESC' );
+		$new_posts_text = __( 'Newer posts', 'twentynineteen' );
+		$old_posts_text = __( 'Older posts', 'twentynineteen' );
 		the_posts_pagination(
 			array(
 				'mid_size'  => 2,
 				'prev_text' => sprintf(
 					'%s <span class="nav-prev-text">%s</span>',
 					twentynineteen_get_icon_svg( 'chevron_left', 22 ),
-					__( 'Newer posts', 'twentynineteen' )
+					( 'DESC' === $order ) ? $new_posts_text : $old_posts_text
 				),
 				'next_text' => sprintf(
 					'<span class="nav-next-text">%s</span> %s',
-					__( 'Older posts', 'twentynineteen' ),
+					( 'DESC' === $order ) ? $old_posts_text : $new_posts_text,
 					twentynineteen_get_icon_svg( 'chevron_right', 22 )
 				),
 			)
@@ -241,7 +256,7 @@ endif;
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *

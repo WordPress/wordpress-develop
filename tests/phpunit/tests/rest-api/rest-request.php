@@ -63,7 +63,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @param string $expected Expected canonicalized version.
 	 */
 	public function test_header_canonicalization( $original, $expected ) {
-		$this->assertSame( $expected, $this->request->canonicalize_header_name( $original ) );
+		$this->assertSame( $expected, WP_REST_Request::canonicalize_header_name( $original ) );
 	}
 
 	public static function data_header_canonicalization() {
@@ -203,7 +203,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		// Check that JSON takes precedence.
 		$this->assertSame( $source, $this->request->get_param( 'source' ) );
-		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
+		if ( $accept_json ) {
+			$this->assertTrue( $this->request->get_param( 'has_json_params' ) );
+		} else {
+			$this->assertNull( $this->request->get_param( 'has_json_params' ) );
+		}
 	}
 
 	public static function data_alternate_json_content_type() {
@@ -337,7 +341,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_non_post_body_parameters() {
+	public static function data_non_post_body_parameters() {
 		return array(
 			array( 'PUT' ),
 			array( 'PATCH' ),
@@ -809,7 +813,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		return new WP_Error( 'some-error', 'This is not valid!' );
 	}
 
-	public function data_from_url() {
+	public static function data_from_url() {
 		return array(
 			array(
 				'permalink_structure' => '/%post_name%/',
@@ -1106,7 +1110,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_method_should_detect_method_ignoring_case() {
+	public static function data_is_method_should_detect_method_ignoring_case() {
 		return array(
 			// GET.
 			'GET same case'          => array( 'GET', 'GET', true ),
@@ -1125,5 +1129,36 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			'HEAD different case #2' => array( 'HEAD', 'HeAd', true ),
 			'HEAD wrong method'      => array( 'HEAD', 'GET', false ),
 		);
+	}
+
+	/**
+	 * @ticket 62163
+	 */
+	public function test_get_params_without_pretty_permalink() {
+		update_option( 'permalink_structure', '' );
+
+		$request = new WP_REST_Request();
+		$request->set_param( 'rest_route', '/wp/v2/posts' );
+		$request->set_param( 'some_param', 'foobar' );
+
+		$params = $request->get_params();
+
+		$this->assertArrayNotHasKey( 'rest_route', $params );
+		$this->assertArrayHasKey( 'some_param', $params );
+	}
+
+	/**
+	 * @ticket 62163
+	 */
+	public function test_get_params_with_pretty_permalinks() {
+		$request = new WP_REST_Request();
+
+		$request->set_param( 'rest_route', '/wp/v2/posts' );
+		$request->set_param( 'some_param', 'foobar' );
+
+		$params = $request->get_params();
+
+		$this->assertArrayHasKey( 'rest_route', $params );
+		$this->assertArrayHasKey( 'some_param', $params );
 	}
 }

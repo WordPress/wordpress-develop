@@ -148,10 +148,7 @@ function register_nav_menu( $location, $description ) {
  */
 function get_registered_nav_menus() {
 	global $_wp_registered_nav_menus;
-	if ( isset( $_wp_registered_nav_menus ) ) {
-		return $_wp_registered_nav_menus;
-	}
-	return array();
+	return $_wp_registered_nav_menus ?? array();
 }
 
 /**
@@ -319,8 +316,8 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 	$_menu = wp_get_nav_menu_object( $menu_id );
 
 	$args = array(
-		'description' => ( isset( $menu_data['description'] ) ? $menu_data['description'] : '' ),
-		'name'        => ( isset( $menu_data['menu-name'] ) ? $menu_data['menu-name'] : '' ),
+		'description' => $menu_data['description'] ?? '',
+		'name'        => $menu_data['menu-name'] ?? '',
 		'parent'      => ( isset( $menu_data['parent'] ) ? (int) $menu_data['parent'] : 0 ),
 		'slug'        => null,
 	);
@@ -377,7 +374,7 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 		return (int) $_menu['term_id'];
 	}
 
-	if ( ! $_menu || ! isset( $_menu->term_id ) ) {
+	if ( ! isset( $_menu->term_id ) ) {
 		return 0;
 	}
 
@@ -461,11 +458,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	if ( 0 === $menu_id ) {
 		$args['menu-item-position'] = 1;
 	} elseif ( 0 === (int) $args['menu-item-position'] ) {
-		$menu_items = array();
-
-		if ( 0 !== $menu_id ) {
-			$menu_items = (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
-		}
+		$menu_items = (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
 
 		$last_item = array_pop( $menu_items );
 
@@ -514,7 +507,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 			}
 		}
 
-		if ( wp_unslash( $args['menu-item-title'] ) === wp_specialchars_decode( $original_title ) ) {
+		if ( wp_unslash( $args['menu-item-title'] ) === $original_title ) {
 			$args['menu-item-title'] = '';
 		}
 
@@ -875,10 +868,12 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->type_label = $object->labels->singular_name;
 					// Denote post states for special pages (only in the admin).
 					if ( function_exists( 'get_post_states' ) ) {
-						$menu_post   = get_post( $menu_item->object_id );
-						$post_states = get_post_states( $menu_post );
-						if ( $post_states ) {
-							$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+						$menu_post = get_post( $menu_item->object_id );
+						if ( $menu_post instanceof WP_Post ) {
+							$post_states = get_post_states( $menu_post );
+							if ( $post_states ) {
+								$menu_item->type_label = wp_strip_all_tags( implode( ', ', $post_states ) );
+							}
 						}
 					}
 				} else {
@@ -1282,7 +1277,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 				// ...actually match!
 				if ( is_string( $new_location ) && false === stripos( $new_location, $slug ) && false === stripos( $slug, $new_location ) ) {
 					continue;
-				} elseif ( is_numeric( $new_location ) && $new_location !== $slug ) {
+				} elseif ( ! is_string( $new_location ) ) {
 					continue;
 				}
 
@@ -1295,7 +1290,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 						// ... have a match as well.
 						if ( is_string( $location ) && false === stripos( $location, $slug ) && false === stripos( $slug, $location ) ) {
 							continue;
-						} elseif ( is_numeric( $location ) && $location !== $slug ) {
+						} elseif ( ! is_string( $location ) ) {
 							continue;
 						}
 

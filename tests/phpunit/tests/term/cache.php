@@ -49,7 +49,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		wp_update_term( $term->term_id, 'category', array( 'name' => 'Bar' ) );
 		$cats2 = get_the_category( $post->ID );
-		$this->assertNotEquals( $term->name, reset( $cats2 )->name );
+		$this->assertNotSame( $term->name, reset( $cats2 )->name );
 	}
 
 	/**
@@ -147,6 +147,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
@@ -174,6 +176,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
@@ -222,6 +226,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		update_term_cache( $terms );
 
+		$this->assertNotEmpty( $terms );
+
 		foreach ( $terms as $term ) {
 			$this->assertSame( $p, $term->object_id );
 		}
@@ -252,6 +258,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, get_num_queries() );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
@@ -315,6 +322,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
@@ -373,6 +381,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify the term is cached.
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term1, $term2 );
 
 		$suspend = wp_suspend_cache_invalidation();
@@ -384,6 +394,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify that the cached term still matches the initial cached term.
 		$term3 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term1, $term3 );
 
 		// Verify that last changed has not been updated as part of an invalidation routine.
