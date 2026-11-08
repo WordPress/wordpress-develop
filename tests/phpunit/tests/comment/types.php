@@ -98,6 +98,7 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 		$this->assertTrue( comment_type_exists( 'pingback' ) );
 		$this->assertTrue( comment_type_exists( 'trackback' ) );
 		$this->assertTrue( comment_type_exists( 'note' ) );
+		$this->assertTrue( comment_type_exists( 'reaction' ) );
 	}
 
 	/**
@@ -110,6 +111,21 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 
 		$this->assertTrue( $note->internal );
 		$this->assertFalse( $note->public );
+	}
+
+	/**
+	 * @ticket 35214
+	 *
+	 * @covers ::create_initial_comment_types
+	 */
+	public function test_built_in_reaction_type_is_internal_and_non_public(): void {
+		$reaction = $this->get_registered_comment_type( 'reaction' );
+
+		$this->assertTrue( $reaction->internal );
+		$this->assertFalse( $reaction->public );
+		$this->assertTrue( $reaction->_builtin );
+		$this->assertSame( 'Reactions', $reaction->label );
+		$this->assertSame( 'Reaction', $reaction->labels->singular_name );
 	}
 
 	/**
@@ -165,6 +181,7 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 		$this->assertContains( 'comment', $public );
 		$this->assertNotContains( 'foo', $public );
 		$this->assertNotContains( 'note', $public );
+		$this->assertNotContains( 'reaction', $public );
 	}
 
 	/**
@@ -223,6 +240,7 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 			array( 'pingback' ),
 			array( 'trackback' ),
 			array( 'note' ),
+			array( 'reaction' ),
 		);
 	}
 
@@ -401,7 +419,7 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 		create_initial_comment_types();
 		create_initial_comment_types();
 
-		$this->assertCount( 4, get_comment_types( array( '_builtin' => true ) ) );
+		$this->assertCount( 5, get_comment_types( array( '_builtin' => true ) ) );
 	}
 
 	/**

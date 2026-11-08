@@ -99,13 +99,13 @@ class Tests_Comment_CommentType extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The label fallback must not apply to built-in types: 'note' has 'Note' labels
-	 * but comment_type() output stays 'Comment'.
+	 * The label fallback does not apply to built-in types such as 'note' and 'reaction'.
 	 *
 	 * @ticket 35214
 	 */
-	public function test_built_in_note_type_outputs_default_comment_text(): void {
+	public function test_built_in_internal_types_output_default_comment_text(): void {
 		$this->assertSame( 'Comment', $this->get_comment_type_output( 'note' ) );
+		$this->assertSame( 'Comment', $this->get_comment_type_output( 'reaction' ) );
 	}
 
 	/**

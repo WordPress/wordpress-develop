@@ -341,9 +341,8 @@ function create_initial_comment_types(): void {
 	WP_Comment_Type::reset_default_labels();
 
 	/*
-	 * The 'comment', 'pingback', and 'trackback' labels deliberately reuse existing
-	 * core translation strings, while 'note' introduces new strings with explicit
-	 * contexts. Do not normalize one style to the other.
+	 * The 'comment', 'pingback', and 'trackback' labels reuse existing translation
+	 * strings; 'note' and 'reaction' use new strings with explicit contexts.
 	 */
 	register_comment_type(
 		'comment',
@@ -387,6 +386,19 @@ function create_initial_comment_types(): void {
 			'label'    => _x( 'Notes', 'comment type general name' ),
 			'labels'   => array(
 				'singular_name' => _x( 'Note', 'comment type singular name' ),
+			),
+			'public'   => false,
+			'internal' => true,
+			'_builtin' => true,
+		)
+	);
+
+	register_comment_type(
+		'reaction',
+		array(
+			'label'    => _x( 'Reactions', 'comment type general name' ),
+			'labels'   => array(
+				'singular_name' => _x( 'Reaction', 'comment type singular name' ),
 			),
 			'public'   => false,
 			'internal' => true,
