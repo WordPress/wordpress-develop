@@ -1428,7 +1428,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->register_revisioned_and_non_revisioned_meta();
 
 		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
-		$revision_id = $this->get_oldest_revision_id( $post_id );
+		$revision_id = $this->get_first_update_revision_id( $post_id );
 
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
@@ -1460,7 +1460,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( 2, $data );
+		$this->assertCount( 3, $data );
 
 		foreach ( $data as $revision ) {
 			$this->assertArrayHasKey( 'revisioned_meta', $revision['meta'], 'Revisioned meta should be included.' );
@@ -1515,7 +1515,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 				'post_content' => 'Revised content.',
 			)
 		);
-		$revision_id = $this->get_oldest_revision_id( $post_id );
+		$revision_id = $this->get_first_update_revision_id( $post_id );
 
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
@@ -1556,7 +1556,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		);
 
 		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
-		$revision_id = $this->get_oldest_revision_id( $post_id );
+		$revision_id = $this->get_first_update_revision_id( $post_id );
 
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
@@ -1587,7 +1587,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$post_id = $this->create_post_with_revisioned_meta( 'old value' );
 		update_post_meta( $post_id, 'revisioned_meta', 'new value' );
 		update_post_meta( $post_id, 'non_revisioned_meta', 'kept value' );
-		$revision_id = $this->get_oldest_revision_id( $post_id );
+		$revision_id = $this->get_first_update_revision_id( $post_id );
 
 		wp_set_current_user( self::$editor_id );
 		$response = $this->restore_revision_like_the_block_editor( '/wp/v2/posts/' . $post_id, $revision_id );
@@ -1636,7 +1636,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 				'post_content' => 'Latest content.',
 			)
 		);
-		$revision_id = $this->get_oldest_revision_id( $pattern_id );
+		$revision_id = $this->get_first_update_revision_id( $pattern_id );
 
 		wp_set_current_user( self::$editor_id );
 		$response = $this->restore_revision_like_the_block_editor( '/wp/v2/blocks/' . $pattern_id, $revision_id );
@@ -1670,7 +1670,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->register_revisioned_and_non_revisioned_meta();
 
 		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
-		$revision_id = $this->get_oldest_revision_id( $post_id );
+		$revision_id = $this->get_first_update_revision_id( $post_id );
 
 		add_filter( 'wp_post_revision_meta_keys', '__return_false' );
 
@@ -1735,15 +1735,17 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 * Gets the ID of a post's oldest revision.
+	 * Gets the ID of the revision saved by a post's first update.
+	 *
+	 * Skips the initial revision saved when the post was inserted.
 	 *
 	 * @param int $post_id Post ID.
 	 * @return int Revision ID.
 	 */
-	private function get_oldest_revision_id( $post_id ) {
-		$revisions = wp_get_post_revisions( $post_id );
+	private function get_first_update_revision_id( $post_id ) {
+		$revisions = array_values( wp_get_post_revisions( $post_id, array( 'order' => 'ASC' ) ) );
 
-		return end( $revisions )->ID;
+		return $revisions[1]->ID;
 	}
 
 	/**
