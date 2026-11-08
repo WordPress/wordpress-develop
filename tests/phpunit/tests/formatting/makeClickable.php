@@ -528,4 +528,22 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	public function test_make_clickable_does_not_break_existing_link_with_spaces() {
+		$text = '<a href="https://codex.wordpress.org/Roles and Capabilities">https://codex.wordpress.org/Roles and Capabilities</a>';
+
+		$this->assertSame(
+			$text,
+			make_clickable( $text )
+		);
+	}
+
+	public function test_make_clickable_does_not_break_existing_truncated_link() {
+		$text = '<p><a href="https://search.google.com/structured-data/testing-tool#url=">https://search.google.com/s...</a>';
+
+		$this->assertSame(
+			$text,
+			make_clickable( $text )
+		);
+	}
 }
