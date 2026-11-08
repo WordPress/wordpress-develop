@@ -244,7 +244,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$type_not_in = _wp_get_excluded_comment_types_clause();
+	$type_not_in = wp_get_excluded_comment_types_clause();
 
 	// $post_id_in is built from integers and $type_not_in is prepared above.
 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

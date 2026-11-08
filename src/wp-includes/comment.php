@@ -3245,17 +3245,16 @@ function wp_get_default_excluded_comment_types( $query = null ) {
  * honor the same {@see 'default_excluded_comment_types'} filter output.
  *
  * @since 7.2.0
- * @access private
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $column Optional. The `comment_type` column to filter on, qualified with a
- *                       table name where the query joins other tables. Must not contain
- *                       user input. Default 'comment_type'.
+ *                       table name where the query joins other tables, for example
+ *                       'wp_comments.comment_type'. Default 'comment_type'.
  * @return string Prepared ` AND <column> NOT IN (...)` condition, or an empty string when
  *                no comment types are excluded.
  */
-function _wp_get_excluded_comment_types_clause( $column = 'comment_type' ) {
+function wp_get_excluded_comment_types_clause( string $column = 'comment_type' ): string {
 	global $wpdb;
 
 	$excluded_types = wp_get_default_excluded_comment_types();
@@ -3264,12 +3263,13 @@ function _wp_get_excluded_comment_types_clause( $column = 'comment_type' ) {
 		return '';
 	}
 
+	// Each part of a qualified name is its own identifier, so `table`.`column` quotes correctly.
+	$column_parts = explode( '.', $column );
+	$column_sql   = implode( '.', array_fill( 0, count( $column_parts ), '%i' ) );
 	$placeholders = implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) );
-	$clause       = sprintf( ' AND %s NOT IN ( %s )', $column, $placeholders );
 
-	// The column name comes from core call sites; the type values are prepared here.
-	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-	return $wpdb->prepare( $clause, $excluded_types );
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Both hold placeholders only.
+	return (string) $wpdb->prepare( " AND $column_sql NOT IN ( $placeholders )", array_merge( $column_parts, $excluded_types ) );
 }
 
 /**
@@ -3316,7 +3316,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$type_not_in = _wp_get_excluded_comment_types_clause();
+		$type_not_in = wp_get_excluded_comment_types_clause();
 
 		$new = (int) $wpdb->get_var(
 			$wpdb->prepare(

@@ -2801,7 +2801,7 @@ class WP_Query {
 
 		// Comments feeds.
 		if ( $this->is_comment_feed && ! $this->is_singular ) {
-			$ctype_not_in = _wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
+			$ctype_not_in = wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
 
 			if ( $this->is_archive || $this->is_search ) {
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
@@ -3522,7 +3522,7 @@ class WP_Query {
 		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
-			$ctype_not_in = _wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
+			$ctype_not_in = wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
