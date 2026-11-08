@@ -1775,6 +1775,21 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					/*
+					 * Audio wrapped in an 3GPP TS 26.244 container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/3gpp, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-only-3gp4.m4a',
+						'audio-only-3gp4.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/3gpp',
+							'proper_filename' => false,
+						),
+					),
+					
 					// Assorted text/* sample files
 					array(
 						DIR_TESTDATA . '/uploads/test.vtt',
