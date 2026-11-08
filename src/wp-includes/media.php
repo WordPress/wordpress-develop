@@ -407,10 +407,6 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	$size_class = is_array( $size ) ? implode( 'x', $size ) : $size;
 	$class      = 'align' . esc_attr( $align ) . ' size-' . esc_attr( $size_class ) . ' wp-image-' . $id;
 
-	if ( current_theme_supports( 'html5', 'picture' ) ) {
-		$html = '<picture>' . $html . '</picture>';
-	}
-
 	/**
 	 * Filters the value of the attachment's image tag class attribute.
 	 *
@@ -425,6 +421,10 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
 	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+
+	if ( current_theme_supports( 'html5', 'picture' ) ) {
+		$html = '<picture>' . $html . '</picture>';
+	}
 
 	/**
 	 * Filters the HTML content for the image tag.
