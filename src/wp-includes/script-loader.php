@@ -1969,6 +1969,15 @@ function wp_localize_jquery_ui_datepicker() {
 		return;
 	}
 
+	// jQuery UI does not support ordinal suffixes. Preserve escaped literal characters.
+	$date_format = preg_replace_callback(
+		'/\\\\.|S/s',
+		static function ( $matches ) {
+			return 'S' === $matches[0] ? '' : $matches[0];
+		},
+		get_option( 'date_format' )
+	);
+
 	// Convert the PHP date format into jQuery UI's format.
 	$datepicker_date_format = str_replace(
 		array(
@@ -1995,7 +2004,7 @@ function wp_localize_jquery_ui_datepicker() {
 			'yy',
 			'y',
 		),
-		get_option( 'date_format' )
+		$date_format
 	);
 
 	$datepicker_defaults = wp_json_encode(
