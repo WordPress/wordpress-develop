@@ -13,6 +13,7 @@
  *
  * @since 4.7.0
  */
+#[AllowDynamicProperties]
 class WP_List_Util {
 	/**
 	 * The input array.
@@ -81,20 +82,22 @@ class WP_List_Util {
 	 * Key represents property name, and value represents property value.
 	 *
 	 * If an object has more properties than those specified in arguments,
-	 * that will not disqualify it. When using the 'AND' operator,
+	 * that will not disqualify it. When using the 'and' operator,
 	 * any missing properties will disqualify it.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array  $args     Optional. An array of key => value arguments to match
 	 *                         against each object. Default empty array.
-	 * @param string $operator Optional. The logical operation to perform. 'AND' means
-	 *                         all elements from the array must match. 'OR' means only
-	 *                         one element needs to match. 'NOT' means no elements may
-	 *                         match. Default 'AND'.
+	 * @param string $operator Optional. The logical operation to perform. 'and' means
+	 *                         all elements from the array must match. 'or' means only
+	 *                         one element needs to match. 'not' means no elements may
+	 *                         match. The value is case-insensitive. Default 'and'.
 	 * @return array Array of found values.
+	 *
+	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
 	 */
-	public function filter( $args = array(), $operator = 'AND' ) {
+	public function filter( $args = array(), $operator = 'and' ) {
 		if ( empty( $args ) ) {
 			return $this->output;
 		}
@@ -116,12 +119,12 @@ class WP_List_Util {
 				if ( is_array( $obj ) ) {
 					// Treat object as an array.
 					if ( array_key_exists( $m_key, $obj ) && ( $m_value == $obj[ $m_key ] ) ) {
-						$matched++;
+						++$matched;
 					}
 				} elseif ( is_object( $obj ) ) {
 					// Treat object as an object.
 					if ( isset( $obj->{$m_key} ) && ( $m_value == $obj->{$m_key} ) ) {
-						$matched++;
+						++$matched;
 					}
 				}
 			}
@@ -165,8 +168,14 @@ class WP_List_Util {
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
 					$newlist[ $key ] = $value->$field;
-				} else {
+				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Values for the input array must be either objects or arrays.' ),
+						'6.2.0'
+					);
 				}
 			}
 
@@ -186,12 +195,18 @@ class WP_List_Util {
 				} else {
 					$newlist[] = $value->$field;
 				}
-			} else {
+			} elseif ( is_array( $value ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
 					$newlist[ $value[ $index_key ] ] = $value[ $field ];
 				} else {
 					$newlist[] = $value[ $field ];
 				}
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Values for the input array must be either objects or arrays.' ),
+					'6.2.0'
+				);
 			}
 		}
 
@@ -206,9 +221,10 @@ class WP_List_Util {
 	 * @since 4.7.0
 	 *
 	 * @param string|array $orderby       Optional. Either the field name to order by or an array
-	 *                                    of multiple orderby fields as $orderby => $order.
-	 * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
-	 *                                    is a string.
+	 *                                    of multiple orderby fields as `$orderby => $order`.
+	 *                                    Default empty array.
+	 * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
+	 *                                    is a string. Default 'ASC'.
 	 * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
 	 * @return array The sorted array.
 	 */

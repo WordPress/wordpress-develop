@@ -87,26 +87,27 @@ class WP_Widget_RSS extends WP_Widget {
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		if ( $title ) {
-			$feed_link = '';
 			$feed_url  = strip_tags( $url );
 			$feed_icon = includes_url( 'images/rss.png' );
+
 			$feed_link = sprintf(
 				'<a class="rsswidget rss-widget-feed" href="%1$s"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="%2$s" alt="%3$s"%4$s /></a> ',
 				esc_url( $feed_url ),
 				esc_url( $feed_icon ),
-				esc_attr__( 'RSS' ),
+				/* translators: %s: RSS feed title. */
+				esc_attr( sprintf( __( 'RSS feed: %s' ), wp_strip_all_tags( $title ) ) ),
 				( wp_lazy_loading_enabled( 'img', 'rss_widget_feed_icon' ) ? ' loading="lazy"' : '' )
 			);
 
 			/**
 			 * Filters the classic RSS widget's feed icon link.
 			 *
-			 * Themes can remove the icon link by using `add_filter( 'rss_widget_feed_link', '__return_false' );`.
+			 * Themes can remove the icon link by using `add_filter( 'rss_widget_feed_link', '__return_empty_string' );`.
 			 *
 			 * @since 5.9.0
 			 *
-			 * @param string $feed_link HTML for link to RSS feed.
-			 * @param array  $instance  Array of settings for the current widget.
+			 * @param string|false $feed_link HTML for link to RSS feed.
+			 * @param array        $instance  Array of settings for the current widget.
 			 */
 			$feed_link = apply_filters( 'rss_widget_feed_link', $feed_link, $instance );
 

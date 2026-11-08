@@ -2,6 +2,9 @@
 /**
  * @group formatting
  * @group post
+ *
+ * @covers ::sanitize_post
+ * @covers WP_Post::__construct
  */
 class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 
@@ -25,6 +28,9 @@ class Tests_Formatting_SanitizePost extends WP_UnitTestCase {
 					break;
 				case 'string':
 					$this->assertIsString( $post->$field, "field $field" );
+					break;
+				default:
+					$this->fail( "Type $type is not handled by this test." );
 					break;
 			}
 		}

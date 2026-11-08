@@ -12,12 +12,12 @@ class Tests_Hooks_Iterator extends WP_UnitTestCase {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 
-		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $tag, $callback_two, $priority + 1, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 
 		$functions  = array();
 		$priorities = array();

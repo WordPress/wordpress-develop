@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_link
  */
 class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	protected static $p;
@@ -53,7 +55,12 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 600 ),
 			)
 		);
+	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
 	}
 
 	/**
@@ -137,7 +144,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	 * @ticket 34946
 	 */
 	public function test_should_not_contain_comment_page_1_when_pagination_is_disabled() {
-		$this->set_permalink_structure( '/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		update_option( 'page_comments', 0 );
 
 		$found = get_comment_link( self::$comments[1] );

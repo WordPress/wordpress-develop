@@ -4,7 +4,7 @@
  *
  * @todo Reuse the init/load code in init.php
  */
-error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
+error_reporting( E_ALL & ~E_DEPRECATED );
 
 $config_file_path = $argv[1];
 $multisite        = in_array( 'run_ms_tests', $argv, true );
@@ -37,10 +37,10 @@ $_SERVER['PHP_SELF'] = '/index.php';
 
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 
-require_once ABSPATH . '/wp-settings.php';
+require_once ABSPATH . 'wp-settings.php';
 
-require_once ABSPATH . '/wp-admin/includes/upgrade.php';
-require_once ABSPATH . '/wp-includes/wp-db.php';
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+require_once ABSPATH . 'wp-includes/class-wpdb.php';
 
 // Override the PHPMailer.
 global $phpmailer;
@@ -64,12 +64,12 @@ echo 'Installing...' . PHP_EOL;
 
 $wpdb->query( 'SET foreign_key_checks = 0' );
 foreach ( $wpdb->tables() as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 }
 
 foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
-	//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 
 	// We need to create references to ms global tables.
@@ -79,16 +79,31 @@ foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
 }
 $wpdb->query( 'SET foreign_key_checks = 1' );
 
+/*
+ * Discard the roles object created while bootstrapping WordPress above, as it
+ * holds role data loaded from the tables that were just dropped. If it were
+ * kept, populate_roles() would see the default roles as already existing and
+ * write the stale capabilities back to the database. The next call to
+ * wp_roles() recreates the object after the fresh tables are in place.
+ */
+unset( $GLOBALS['wp_roles'] );
+
 // Prefill a permalink structure so that WP doesn't try to determine one itself.
 add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
-wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, null, 'password' );
+wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, '', 'password' );
 
-// Delete dummy permalink structure, as prefilled above.
-if ( ! is_multisite() ) {
+remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	$wp_rewrite->init();
+	$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+	create_initial_taxonomies();
+	$wp_rewrite->flush_rules();
+} elseif ( ! is_multisite() ) {
+	// Delete dummy permalink structure, as prefilled above.
 	delete_option( 'permalink_structure' );
 }
-remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
 if ( $multisite ) {
 	echo 'Installing network...' . PHP_EOL;
@@ -105,5 +120,12 @@ if ( $multisite ) {
 		wp_die( $error );
 	}
 
-	$wp_rewrite->set_permalink_structure( '' );
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+		$wp_rewrite->init();
+		$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+		create_initial_taxonomies();
+		$wp_rewrite->flush_rules();
+	} else {
+		$wp_rewrite->set_permalink_structure( '' );
+	}
 }

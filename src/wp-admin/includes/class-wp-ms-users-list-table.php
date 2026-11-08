@@ -11,38 +11,37 @@
  * Core class used to implement displaying users in a list table for the network admin.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
 class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
-	 * @return bool
+	 * Checks if the current user has permissions to perform an Ajax action.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the current user can perform an Ajax action.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'manage_network_users' );
 	}
 
 	/**
-	 * @global string $mode       List table view mode.
-	 * @global string $usersearch
-	 * @global string $role
+	 * Prepares the users list for display.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $usersearch User search query.
+	 * @global string $role       The user role to filter by. Only 'super' (super admins) is supported.
 	 */
 	public function prepare_items() {
-		global $mode, $usersearch, $role;
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'network_users_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'network_users_list_mode', 'list' );
-		}
+		global $usersearch, $role;
 
 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 
 		$users_per_page = $this->get_items_per_page( 'users_network_per_page' );
 
-		$role = isset( $_REQUEST['role'] ) ? $_REQUEST['role'] : '';
+		$role = $_REQUEST['role'] ?? '';
 
 		$paged = $this->get_pagenum();
 
@@ -107,7 +106,11 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * Gets the available bulk actions for the users list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, string> Bulk action labels keyed by action name.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -121,14 +124,22 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Displays a message when there are no items.
+	 *
+	 * @since 3.1.0
 	 */
 	public function no_items() {
 		_e( 'No users found.' );
 	}
 
 	/**
-	 * @global string $role
-	 * @return array
+	 * Gets the list of views (all, super admin) available for the users list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global string $role The user role to filter by. Only 'super' (super admins) is supported.
+	 *
+	 * @return array<string, string> View link markup keyed by view name ('all' or 'super').
 	 */
 	protected function get_views() {
 		global $role;
@@ -137,13 +148,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$super_admins = get_super_admins();
 		$total_admins = count( $super_admins );
 
-		$current_link_attributes = 'super' !== $role ? ' class="current" aria-current="page"' : '';
-		$role_links              = array();
-		$role_links['all']       = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php' ),
-			$current_link_attributes,
-			sprintf(
+		$role_links        = array();
+		$role_links['all'] = array(
+			'url'     => network_admin_url( 'users.php' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_nx(
 					'All <span class="count">(%s)</span>',
@@ -152,14 +160,13 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					'users'
 				),
 				number_format_i18n( $total_users )
-			)
+			),
+			'current' => 'super' !== $role,
 		);
-		$current_link_attributes = 'super' === $role ? ' class="current" aria-current="page"' : '';
-		$role_links['super']     = sprintf(
-			'<a href="%s"%s>%s</a>',
-			network_admin_url( 'users.php?role=super' ),
-			$current_link_attributes,
-			sprintf(
+
+		$role_links['super'] = array(
+			'url'     => network_admin_url( 'users.php?role=super' ),
+			'label'   => sprintf(
 				/* translators: Number of users. */
 				_n(
 					'Super Admin <span class="count">(%s)</span>',
@@ -167,29 +174,19 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 					$total_admins
 				),
 				number_format_i18n( $total_admins )
-			)
+			),
+			'current' => 'super' === $role,
 		);
 
-		return $role_links;
+		return $this->get_views_links( $role_links );
 	}
 
 	/**
-	 * @global string $mode List table view mode.
+	 * Gets the list of columns for the users list table.
 	 *
-	 * @param string $which
-	 */
-	protected function pagination( $which ) {
-		global $mode;
-
-		parent::pagination( $which );
-
-		if ( 'top' === $which ) {
-			$this->view_switcher( $mode );
-		}
-	}
-
-	/**
-	 * @return array
+	 * @since 3.1.0
+	 *
+	 * @return array<string, string> Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$users_columns = array(
@@ -205,21 +202,27 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		 *
 		 * @since MU (3.0.0)
 		 *
-		 * @param string[] $users_columns An array of user columns. Default 'cb', 'username',
-		 *                                'name', 'email', 'registered', 'blogs'.
+		 * @param array<string, string> $users_columns Column titles keyed by column name. Default keys are 'cb',
+		 *                                             'username', 'name', 'email', 'registered', and 'blogs'.
 		 */
 		return apply_filters( 'wpmu_users_columns', $users_columns );
 	}
 
 	/**
-	 * @return array
+	 * Gets the list of sortable columns for the users list table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return array<string, array<int, string|bool>> Sortable columns.
+	 *
+	 * @phpstan-return array<string, array{0: string, 1: bool, 2: string, 3: string, 4?: 'asc'|'desc'}>
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'username'   => 'login',
-			'name'       => 'name',
-			'email'      => 'email',
-			'registered' => 'id',
+			'username'   => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
+			'name'       => array( 'name', false, __( 'Name' ), __( 'Table ordered by Name.' ) ),
+			'email'      => array( 'email', false, __( 'E-mail' ), __( 'Table ordered by E-mail.' ) ),
+			'registered' => array( 'id', false, _x( 'Registered', 'user' ), __( 'Table ordered by User Registered Date.' ) ),
 		);
 	}
 
@@ -239,13 +242,15 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			return;
 		}
 		?>
-		<label class="screen-reader-text" for="blog_<?php echo $user->ID; ?>">
-			<?php
-			/* translators: %s: User login. */
-			printf( __( 'Select %s' ), $user->user_login );
-			?>
-		</label>
 		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
+		<label for="blog_<?php echo $user->ID; ?>">
+			<span class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. %s: User login. */
+			printf( __( 'Select %s' ), esc_html( $user->user_login ) );
+			?>
+			</span>
+		</label>
 		<?php
 	}
 
@@ -275,9 +280,9 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_user', $user->ID ) ) {
 			$edit_link = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user->ID ) ) );
-			$edit      = "<a href=\"{$edit_link}\">{$user->user_login}</a>";
+			$edit      = "<a href=\"{$edit_link}\">" . esc_html( $user->user_login ) . '</a>';
 		} else {
-			$edit = $user->user_login;
+			$edit = esc_html( $user->user_login );
 		}
 
 		?>
@@ -302,13 +307,21 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function column_name( $user ) {
 		if ( $user->first_name && $user->last_name ) {
-			echo "$user->first_name $user->last_name";
+			printf(
+				/* translators: 1: User's first name, 2: Last name. */
+				_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+				$user->first_name,
+				$user->last_name
+			);
 		} elseif ( $user->first_name ) {
 			echo $user->first_name;
 		} elseif ( $user->last_name ) {
 			echo $user->last_name;
 		} else {
-			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . _x( 'Unknown', 'name' ) . '</span>';
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				_x( 'Unknown', 'name' ) .
+			'</span>';
 		}
 	}
 
@@ -328,27 +341,21 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public function column_registered( $user ) {
-		global $mode;
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
-			$date = __( 'Y/m/d g:i:s a' );
-		}
-		echo mysql2date( $date, $user->user_registered );
+		echo mysql2date( __( 'Y/m/d g:i:s a' ), $user->user_registered );
 	}
 
 	/**
+	 * Outputs the sites column content.
+	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_User $user
-	 * @param string  $classes
-	 * @param string  $data
-	 * @param string  $primary
+	 * @param WP_User $user    The current WP_User object.
+	 * @param string  $classes CSS classes for the cell.
+	 * @param string  $data    Custom data attributes for the cell.
+	 * @param string  $primary The primary column name.
 	 */
 	protected function _column_blogs( $user, $classes, $data, $primary ) {
 		echo '<td class="', $classes, ' has-row-actions" ', $data, '>';
@@ -377,25 +384,30 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 			$path         = ( '/' === $site->path ) ? '' : $site->path;
 			$site_classes = array( 'site-' . $site->site_id );
+
 			/**
-			 * Filters the span class for a site listing on the mulisite user list table.
+			 * Filters the span class for a site listing on the multisite user list table.
 			 *
 			 * @since 5.2.0
 			 *
-			 * @param string[] $site_classes Array of class names used within the span tag. Default "site-#" with the site's network ID.
+			 * @param string[] $site_classes Array of class names used within the span tag.
+			 *                               Default "site-#" with the site's network ID.
 			 * @param int      $site_id      Site ID.
 			 * @param int      $network_id   Network ID.
 			 * @param WP_User  $user         WP_User object.
 			 */
 			$site_classes = apply_filters( 'ms_user_list_site_class', $site_classes, $site->userblog_id, $site->site_id, $user );
+
 			if ( is_array( $site_classes ) && ! empty( $site_classes ) ) {
 				$site_classes = array_map( 'sanitize_html_class', array_unique( $site_classes ) );
 				echo '<span class="' . esc_attr( implode( ' ', $site_classes ) ) . '">';
 			} else {
 				echo '<span>';
 			}
+
 			echo '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . str_replace( '.' . get_network()->domain, '', $site->domain . $path ) . '</a>';
 			echo ' <small class="row-actions">';
+
 			$actions         = array();
 			$actions['edit'] = '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $site->userblog_id ) ) . '">' . __( 'Edit' ) . '</a>';
 
@@ -433,12 +445,12 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			foreach ( $actions as $action => $link ) {
 				++$i;
 
-				$sep = ( $i < $action_count ) ? ' | ' : '';
+				$separator = ( $i < $action_count ) ? ' | ' : '';
 
-				echo "<span class='$action'>$link$sep</span>";
+				echo "<span class='$action'>{$link}{$separator}</span>";
 			}
 
-			echo '</small></span><br/>';
+			echo '</small></span><br />';
 		}
 	}
 
@@ -452,15 +464,29 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @param string  $column_name The current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$user = $item;
+
 		/** This filter is documented in wp-admin/includes/class-wp-users-list-table.php */
-		echo apply_filters(
-			'manage_users_custom_column',
-			'', // Custom column output. Default empty.
-			$column_name,
-			$item->ID // User ID.
-		);
+		$column_output = apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+
+		/**
+		 * Filters the display output of custom columns in the Network Users list table.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $output      Custom column output. Default empty.
+		 * @param string $column_name Name of the custom column.
+		 * @param int    $user_id     ID of the currently-listed user.
+		 */
+		echo apply_filters( 'manage_users-network_custom_column', $column_output, $column_name, $user->ID );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $user ) {
 			$class = '';
@@ -477,7 +503,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			}
 
 			?>
-			<tr class="<?php echo trim( $class ); ?>">
+			<tr id="user-<?php echo (int) $user->ID; ?>" class="<?php echo trim( $class ); ?>">
 				<?php $this->single_row_columns( $user ); ?>
 			</tr>
 			<?php
@@ -513,10 +539,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$user         = $item;
-		$super_admins = get_super_admins();
+		$user = $item;
 
-		$actions = array();
+		$super_admins = get_super_admins();
+		$actions      = array();
 
 		if ( current_user_can( 'edit_user', $user->ID ) ) {
 			$edit_link       = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user->ID ) ) );
@@ -538,5 +564,20 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$actions = apply_filters( 'ms_user_row_actions', $actions, $user );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (Username) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the user login as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_User $user The current WP_User object.
+	 * @return string The user login.
+	 */
+	protected function get_primary_column_aria_label( $user ) {
+		return $user->user_login;
 	}
 }

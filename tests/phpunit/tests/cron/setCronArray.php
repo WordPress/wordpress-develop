@@ -24,9 +24,9 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 * Tests the input validation for the `_set_cron_array()` function.
 	 *
 	 * Includes verifying that invalid input - typically `false` - does not result in a PHP
-	 * deprecation warning on PHP 8.1 or higher.
+	 * deprecation notice on PHP 8.1 or higher.
 	 *
-	 * The warning that we should not see:
+	 * The notice that we should not see:
 	 * `Deprecated: Automatic conversion of false to array is deprecated`.
 	 *
 	 * @ticket 53635
@@ -51,7 +51,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_input_validation() {
+	public static function data_set_cron_array_input_validation() {
 		return array(
 			'null'        => array(
 				'input'    => null,
@@ -101,7 +101,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_returns_false_when_not_updated() {
+	public static function data_set_cron_array_returns_false_when_not_updated() {
 		return array(
 			'empty array' => array(
 				'input'    => array(),
@@ -135,7 +135,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_returns_WP_Error_when_not_updated() {
+	public static function data_set_cron_array_returns_WP_Error_when_not_updated() {
 		return array(
 			'empty array' => array(
 				'input'    => array(),

@@ -6,10 +6,24 @@
  * @group query
  */
 class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
+
+	/**
+	 * Dummy HTTP URL.
+	 *
+	 * @var string
+	 */
+	private $http = '';
+
+	/**
+	 * Dummy HTTPS URL.
+	 *
+	 * @var string
+	 */
+	private $https = '';
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 
 		$this->http  = set_url_scheme( home_url( 'sample-page/' ), 'http' );
@@ -46,9 +60,8 @@ class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
 
 		$redirect = redirect_canonical( $this->https, false );
 
-		$this->assertNull( $redirect );
-
 		remove_filter( 'home_url', array( $this, 'set_https' ) );
-	}
 
+		$this->assertNull( $redirect );
+	}
 }

@@ -2,53 +2,72 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_term_field
  */
 class Tests_Term_getTermField extends WP_UnitTestCase {
 
-	public $taxonomy = 'wptests_tax';
+	public static $taxonomy = 'wptests_tax';
+
+	public static $term;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		register_taxonomy( self::$taxonomy, 'post' );
+		self::$term = $factory->term->create_and_get(
+			array(
+				'taxonomy'    => self::$taxonomy,
+				'description' => wpautop( 'Test term description' ),
+			)
+		);
+	}
 
 	public function set_up() {
 		parent::set_up();
-
-		register_taxonomy( $this->taxonomy, 'post' );
+		// Required as taxonomies are reset between tests.
+		register_taxonomy( self::$taxonomy, 'post' );
 	}
 
 	/**
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_should_not_return_error_for_empty_taxonomy() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$found = get_term_field( 'taxonomy', $term->term_id, '' );
 		$this->assertNotWPError( $found );
-		$this->assertSame( $this->taxonomy, $found );
+		$this->assertSame( self::$taxonomy, $found );
 	}
 
 	/**
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_supplying_a_taxonomy() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$found = get_term_field( 'taxonomy', $term->term_id, $term->taxonomy );
-		$this->assertSame( $this->taxonomy, $found );
+		$this->assertSame( self::$taxonomy, $found );
 	}
 
 	/**
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_supplying_no_taxonomy() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$found = get_term_field( 'taxonomy', $term->term_id );
-		$this->assertSame( $this->taxonomy, $found );
+		$this->assertSame( self::$taxonomy, $found );
 	}
 
 	/**
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_should_accept_a_WP_Term_id_or_object() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term ) );
@@ -60,7 +79,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_invalid_taxonomy_should_return_WP_Error() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$found = get_term_field( 'taxonomy', $term, 'foo-taxonomy' );
 		$this->assertWPError( $found );
@@ -71,7 +90,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	 * @ticket 34245
 	 */
 	public function test_get_term_field_invalid_term_should_return_WP_Error() {
-		$found = get_term_field( 'taxonomy', 0, $this->taxonomy );
+		$found = get_term_field( 'taxonomy', 0, self::$taxonomy );
 
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
@@ -83,7 +102,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_term_id() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term ) );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->data ) );
@@ -96,7 +115,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 		$term = self::factory()->term->create_and_get(
 			array(
 				'name'     => $name,
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 			)
 		);
 
@@ -110,7 +129,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 
 		$term = self::factory()->term->create_and_get(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 				'slug'     => $slug,
 			)
 		);
@@ -125,7 +144,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 
 		$term = self::factory()->term->create_and_get(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 				'name'     => $name,
 			)
 		);
@@ -138,7 +157,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	public function test_get_term_field_slug_when_slug_and_name_are_not_set() {
 		$term = self::factory()->term->create_and_get(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 			)
 		);
 
@@ -148,33 +167,28 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_taxonomy() {
-		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$term = self::$term;
 
-		$this->assertSame( $this->taxonomy, get_term_field( 'taxonomy', $term ) );
-		$this->assertSame( $this->taxonomy, get_term_field( 'taxonomy', $term->data ) );
-		$this->assertSame( $this->taxonomy, get_term_field( 'taxonomy', $term->term_id ) );
+		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term ) );
+		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term->data ) );
+		$this->assertSame( self::$taxonomy, get_term_field( 'taxonomy', $term->term_id ) );
 	}
 
 	public function test_get_term_field_description() {
-		$desc = wpautop( 'baz' );
+		$description = wpautop( 'Test term description' );
 
-		$term = self::factory()->term->create_and_get(
-			array(
-				'taxonomy'    => $this->taxonomy,
-				'description' => $desc,
-			)
-		);
+		$term = self::$term;
 
-		$this->assertSame( $desc, get_term_field( 'description', $term ) );
-		$this->assertSame( $desc, get_term_field( 'description', $term->data ) );
-		$this->assertSame( $desc, get_term_field( 'description', $term->term_id ) );
+		$this->assertSame( $description, get_term_field( 'description', $term ) );
+		$this->assertSame( $description, get_term_field( 'description', $term->data ) );
+		$this->assertSame( $description, get_term_field( 'description', $term->term_id ) );
 	}
 
 	public function test_get_term_field_parent() {
-		$parent = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
+		$parent = self::$term;
 		$term   = self::factory()->term->create_and_get(
 			array(
-				'taxonomy' => $this->taxonomy,
+				'taxonomy' => self::$taxonomy,
 				'parent'   => $parent->term_id,
 			)
 		);

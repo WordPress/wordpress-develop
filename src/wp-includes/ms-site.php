@@ -114,8 +114,10 @@ function wp_insert_site( array $data ) {
 			$meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
 		}
 
-		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
-		// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		/*
+		 * Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+		 * The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		 */
 		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
 
@@ -339,7 +341,8 @@ function get_site( $site = null ) {
  *
  * @since 4.6.0
  * @since 5.1.0 Introduced the `$update_meta_cache` parameter.
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
+ * @since 6.3.0 Use wp_lazyload_site_meta() for lazy-loading of site meta.
  *
  * @see update_site_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -354,8 +357,27 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		update_site_cache( $fresh_sites, $update_meta_cache );
+		update_site_cache( $fresh_sites, false );
 	}
+
+	if ( $update_meta_cache ) {
+		wp_lazyload_site_meta( $ids );
+	}
+}
+
+/**
+ * Queue site meta for lazy-loading.
+ *
+ * @since 6.3.0
+ *
+ * @param array $site_ids List of site IDs.
+ */
+function wp_lazyload_site_meta( array $site_ids ) {
+	if ( empty( $site_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'blog', $site_ids );
 }
 
 /**
@@ -417,8 +439,14 @@ function update_sitemeta_cache( $site_ids ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Site_Query::__construct()
  *                           for information on accepted arguments. Default empty array.
- * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
- *                   or the number of sites when 'count' is passed as a query var.
+ * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ *                             or the number of sites when 'count' is passed as a query var.
+ *
+ * @phpstan-return (
+ *     $args is array{ count: true, ... } ? int : (
+ *         $args is array{ fields: 'ids', ... } ? int[] : array<int, WP_Site>
+ *     )
+ * )
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -502,11 +530,7 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 function wp_normalize_site_data( $data ) {
 	// Sanitize domain if passed.
 	if ( array_key_exists( 'domain', $data ) ) {
-		$data['domain'] = trim( $data['domain'] );
-		$data['domain'] = preg_replace( '/\s+/', '', sanitize_user( $data['domain'], true ) );
-		if ( is_subdomain_install() ) {
-			$data['domain'] = str_replace( '@', '', $data['domain'] );
-		}
+		$data['domain'] = preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
 	}
 
 	// Sanitize path if passed.
@@ -622,7 +646,9 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
  * @param array       $args    {
  *     Optional. Arguments to modify the initialization behavior.
  *
- *     @type int    $user_id Required. User ID for the site administrator.
+ *     @type int    $user_id User ID for the site administrator. Default 0, in which
+ *                           case the site is created without an administrator
+ *                           and with an empty admin email address.
  *     @type string $title   Site title. Default is 'Site %d' where %d is the
  *                           site ID.
  *     @type array  $options Custom option $key => $value pairs to use. Default
@@ -814,7 +840,7 @@ function wp_uninitialize_site( $site_id ) {
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**
@@ -822,7 +848,7 @@ function wp_uninitialize_site( $site_id ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $basedir Uploads path without subdirectory. @see wp_upload_dir()
+	 * @param string $basedir Uploads path without subdirectory. See {@see wp_upload_dir()}.
 	 * @param int    $site_id The site ID.
 	 */
 	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
@@ -855,12 +881,12 @@ function wp_uninitialize_site( $site_id ) {
 			}
 			@closedir( $dh );
 		}
-		$index++;
+		++$index;
 	}
 
 	$stack = array_reverse( $stack ); // Last added directories are deepest.
 	foreach ( (array) $stack as $dir ) {
-		if ( $dir != $top_dir ) {
+		if ( $dir !== $top_dir ) {
 			@rmdir( $dir );
 		}
 	}
@@ -988,7 +1014,7 @@ function clean_blog_cache( $blog ) {
 	 */
 	do_action( 'clean_site_cache', $blog_id, $blog, $domain_path_key );
 
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_sites_last_changed();
 
 	/**
 	 * Fires after the blog details cache is cleared.
@@ -1004,11 +1030,19 @@ function clean_blog_cache( $blog ) {
 /**
  * Adds metadata to a site.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 5.1.0
  *
  * @param int    $site_id    Site ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $meta_value Metadata value. Arrays and objects are stored as serialized data and
+ *                           will be returned as the same type when retrieved. Other data types will
+ *                           be stored as strings in the database:
+ *                           - false is stored and retrieved as an empty string ('')
+ *                           - true is stored and retrieved as '1'
+ *                           - numbers (both integer and float) are stored and retrieved as strings
+ *                           Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
  * @return int|false Meta ID on success, false on failure.
@@ -1024,6 +1058,8 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 5.1.0
  *
  * @param int    $site_id    Site ID.
@@ -1032,6 +1068,8 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $site_id
  */
 function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'blog', $site_id, $meta_key, $meta_value );
@@ -1051,7 +1089,25 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$site_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing site ID is passed.
+ *               An empty array if a valid but non-existing site ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing site ID is passed and `$single` is true.
+ *               Note: Non-serialized values are returned as strings:
+ *               - false values are returned as empty strings ('')
+ *               - true values are returned as '1'
+ *               - numbers (both integer and float) are returned as strings
+ *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );
@@ -1060,10 +1116,12 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
 /**
  * Updates metadata for a site.
  *
- * Use the $prev_value parameter to differentiate between meta fields with the
+ * Use the `$prev_value` parameter to differentiate between meta fields with the
  * same key and site ID.
  *
  * If the meta field for the site does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *
@@ -1090,7 +1148,33 @@ function update_site_meta( $site_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @return bool Whether the site meta key was deleted from the database.
  */
 function delete_site_meta_by_key( $meta_key ) {
-	return delete_metadata( 'blog', null, $meta_key, '', true );
+	return delete_metadata( 'blog', 0, $meta_key, '', true );
+}
+
+/**
+ * Registers a meta key for sites.
+ *
+ * @since 7.2.0
+ *
+ * @param string $meta_key The meta key to register.
+ * @param array  $args     Data used to describe the meta key when registered. See
+ *                         {@see register_meta()} for a list of supported arguments.
+ * @return bool True if the meta key was successfully registered, false if not.
+ */
+function register_site_meta( $meta_key, array $args ) {
+	return register_meta( 'blog', $meta_key, $args );
+}
+
+/**
+ * Unregisters a meta key for sites.
+ *
+ * @since 7.2.0
+ *
+ * @param string $meta_key The meta key to unregister.
+ * @return bool True on success, false if the meta key was not previously registered.
+ */
+function unregister_site_meta( $meta_key ) {
+	return unregister_meta_key( 'blog', $meta_key );
 }
 
 /**
@@ -1108,7 +1192,7 @@ function wp_maybe_update_network_site_counts_on_update( $new_site, $old_site = n
 		return;
 	}
 
-	if ( $new_site->network_id != $old_site->network_id ) {
+	if ( $new_site->network_id !== $old_site->network_id ) {
 		wp_maybe_update_network_site_counts( $new_site->network_id );
 		wp_maybe_update_network_site_counts( $old_site->network_id );
 	}
@@ -1131,8 +1215,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		$old_site = new WP_Site( new stdClass() );
 	}
 
-	if ( $new_site->spam != $old_site->spam ) {
-		if ( 1 == $new_site->spam ) {
+	if ( $new_site->spam !== $old_site->spam ) {
+		if ( '1' === $new_site->spam ) {
 
 			/**
 			 * Fires when the 'spam' status is added to a site.
@@ -1155,8 +1239,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->mature != $old_site->mature ) {
-		if ( 1 == $new_site->mature ) {
+	if ( $new_site->mature !== $old_site->mature ) {
+		if ( '1' === $new_site->mature ) {
 
 			/**
 			 * Fires when the 'mature' status is added to a site.
@@ -1179,8 +1263,8 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->archived != $old_site->archived ) {
-		if ( 1 == $new_site->archived ) {
+	if ( $new_site->archived !== $old_site->archived ) {
+		if ( '1' === $new_site->archived ) {
 
 			/**
 			 * Fires when the 'archived' status is added to a site.
@@ -1203,11 +1287,11 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->deleted != $old_site->deleted ) {
-		if ( 1 == $new_site->deleted ) {
+	if ( $new_site->deleted !== $old_site->deleted ) {
+		if ( '1' === $new_site->deleted ) {
 
 			/**
-			 * Fires when the 'deleted' status is added to a site.
+			 * Fires when the 'flagged for deletion' status is added to a site.
 			 *
 			 * @since 3.5.0
 			 *
@@ -1217,7 +1301,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		} else {
 
 			/**
-			 * Fires when the 'deleted' status is removed from a site.
+			 * Fires when the 'flagged for deletion' status is removed from a site.
 			 *
 			 * @since 3.5.0
 			 *
@@ -1227,15 +1311,16 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		}
 	}
 
-	if ( $new_site->public != $old_site->public ) {
+	if ( $new_site->public !== $old_site->public ) {
 
 		/**
 		 * Fires after the current blog's 'public' setting is updated.
 		 *
 		 * @since MU (3.0.0)
 		 *
-		 * @param int    $site_id Site ID.
-		 * @param string $value   The value of the site status.
+		 * @param int    $site_id   Site ID.
+		 * @param string $is_public Whether the site is public. A numeric string,
+		 *                          for compatibility reasons. Accepts '1' or '0'.
 		 */
 		do_action( 'update_blog_public', $site_id, $new_site->public );
 	}
@@ -1247,7 +1332,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
  * @since 5.1.0
  *
  * @param WP_Site $new_site The site object after the update.
- * @param WP_Site $old_site The site obejct prior to the update.
+ * @param WP_Site $old_site The site object prior to the update.
  */
 function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
 	if ( $old_site->domain !== $new_site->domain || $old_site->path !== $new_site->path ) {
@@ -1260,17 +1345,18 @@ function wp_maybe_clean_new_site_cache_on_update( $new_site, $old_site ) {
  *
  * @since 5.1.0
  *
- * @param int    $site_id Site ID.
- * @param string $public  The value of the site status.
+ * @param int    $site_id   Site ID.
+ * @param string $is_public Whether the site is public. A numeric string,
+ *                          for compatibility reasons. Accepts '1' or '0'.
  */
-function wp_update_blog_public_option_on_site_update( $site_id, $public ) {
+function wp_update_blog_public_option_on_site_update( $site_id, $is_public ) {
 
 	// Bail if the site's database tables do not exist (yet).
 	if ( ! wp_is_site_initialized( $site_id ) ) {
 		return;
 	}
 
-	update_blog_option( $site_id, 'blog_public', $public );
+	update_blog_option( $site_id, 'blog_public', $is_public );
 }
 
 /**
@@ -1279,7 +1365,7 @@ function wp_update_blog_public_option_on_site_update( $site_id, $public ) {
  * @since 5.1.0
  */
 function wp_cache_set_sites_last_changed() {
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_set_last_changed( 'sites' );
 }
 
 /**

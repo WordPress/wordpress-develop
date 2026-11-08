@@ -10,18 +10,23 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_slug() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'slug', 'foo', 'category' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
 	public function test_get_term_by_name() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'name', 'Foo', 'category' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
 	public function test_get_term_by_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'id', $term1['term_id'], 'category' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
@@ -31,6 +36,8 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_term_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'term_id', $term1['term_id'], 'category' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
@@ -40,6 +47,8 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_uppercase_id() {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'ID', $term1['term_id'], 'category' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
@@ -49,6 +58,8 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_tt_id() {
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = get_term_by( 'term_taxonomy_id', $term1['term_taxonomy_id'], 'category' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
 	}
 
@@ -111,8 +122,6 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	 * @ticket 14162
 	 */
 	public function test_should_prime_term_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t = self::factory()->term->create(
 			array(
@@ -123,18 +132,18 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 
 		clean_term_cache( $t, 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$found       = get_term_by( 'slug', 'foo', 'wptests_tax' );
 		$num_queries = $num_queries + 2;
 
 		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertSame( $t, $found->term_id );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Calls to `get_term()` should now hit cache.
 		$found2 = get_term( $t );
 		$this->assertSame( $t, $found->term_id );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -196,7 +205,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_query_should_not_contain_order_by_clause() {
 		global $wpdb;
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'burrito',
 				'taxonomy' => 'post_tag',
@@ -211,7 +220,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	 * @ticket 21760
 	 */
 	public function test_query_should_contain_limit_clause() {
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => 'burrito',
 				'taxonomy' => 'post_tag',
@@ -242,7 +251,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_name_with_string_0() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'name'     => '0',
 				'taxonomy' => 'wptests_tax',
@@ -259,7 +268,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	public function test_get_term_by_slug_with_string_0() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = $this->factory->term->create(
+		$term_id = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
 				'name'     => '0',

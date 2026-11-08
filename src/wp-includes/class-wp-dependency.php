@@ -16,6 +16,7 @@
  * @access private
  * @since 2.6.0
  */
+#[AllowDynamicProperties]
 class _WP_Dependency {
 	/**
 	 * The handle name.
@@ -28,8 +29,10 @@ class _WP_Dependency {
 	/**
 	 * The handle source.
 	 *
+	 * If source is set to false, the item is an alias of other items it depends on.
+	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @var string|false
 	 */
 	public $src;
 
@@ -47,7 +50,7 @@ class _WP_Dependency {
 	 * Used for cache-busting.
 	 *
 	 * @since 2.6.0
-	 * @var bool|string
+	 * @var string|false|null
 	 */
 	public $ver = false;
 
@@ -55,14 +58,14 @@ class _WP_Dependency {
 	 * Additional arguments for the handle.
 	 *
 	 * @since 2.6.0
-	 * @var array
+	 * @var mixed
 	 */
 	public $args = null;  // Custom property, such as $in_footer or $media.
 
 	/**
-	 * Additional arguments for attributes.
+	 * Custom attributes for the script tag.
 	 *
-	 * @since 5.8.2
+	 * @since 7.1.0
 	 * @var array
 	 */
 	public $attr = array();
@@ -71,7 +74,7 @@ class _WP_Dependency {
 	 * Extra data to supply to the handle.
 	 *
 	 * @since 2.6.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	public $extra = array();
 
@@ -87,7 +90,7 @@ class _WP_Dependency {
 	 * Translation path set for this dependency.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $translations_path;
 
@@ -101,7 +104,8 @@ class _WP_Dependency {
 	 * @param mixed ...$args Dependency information.
 	 */
 	public function __construct( ...$args ) {
-		list( $this->handle, $this->src, $this->deps, $this->ver, $this->args, $this->attr ) = $args;
+		list( $this->handle, $this->src, $this->deps, $this->ver, $this->args ) = $args;
+		$this->attr = isset( $args[5] ) && is_array( $args[5] ) ? $args[5] : array();
 		if ( ! is_array( $this->deps ) ) {
 			$this->deps = array();
 		}
@@ -133,7 +137,7 @@ class _WP_Dependency {
 	 * @param string $path   Optional. The full file path to the directory containing translation files.
 	 * @return bool False if $domain is not a string, true otherwise.
 	 */
-	public function set_translations( $domain, $path = null ) {
+	public function set_translations( $domain, $path = '' ) {
 		if ( ! is_string( $domain ) ) {
 			return false;
 		}

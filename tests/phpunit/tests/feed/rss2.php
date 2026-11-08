@@ -14,6 +14,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -58,6 +61,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
+
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
 
 	/**
@@ -71,12 +77,20 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// This seems to break something.
 		update_option( 'use_smilies', false );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 	}
 
 	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
+	}
+
+	/**
 	 * This is a bit of a hack used to buffer feed content.
+	 *
+	 * @return non-falsy-string
 	 */
 	private function do_rss2() {
 		ob_start();
@@ -115,6 +129,41 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		// RSS should have exactly one child element (channel).
 		$this->assertCount( 1, $rss[0]['child'] );
+	}
+
+	/**
+	 * Two plugins adding the same namespace via the `wp_feed_namespaces`
+	 * filter must not produce a duplicate attribute, which would be an XML
+	 * well-formedness error. The same goes for a plugin adding one of the
+	 * default namespaces of the feed.
+	 *
+	 * @ticket 65785
+	 */
+	public function test_wp_feed_namespaces_should_prevent_duplicate_namespaces() {
+		$add_source_ns = static function ( array $namespaces ): array {
+			$namespaces['source'] = 'http://source.scripting.com/';
+			$namespaces['atom']   = 'http://www.w3.org/2005/Atom';
+			return $namespaces;
+		};
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 10 );
+		add_filter( 'wp_feed_namespaces', $add_source_ns, 11 );
+
+		$this->go_to( '/?feed=rss2' );
+		$feed = $this->do_rss2();
+
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:source=' ) );
+		$this->assertSame( 1, substr_count( $feed, 'xmlns:atom=' ) );
+
+		// The feed must still parse: xml_to_array() returns an empty array on a parse error.
+		$xml = xml_to_array( $feed );
+		$rss = xml_find( $xml, 'rss' );
+
+		$this->assertCount( 1, $rss );
+		$this->assertIsArray( $rss[0] );
+		$this->assertArrayHasKey( 'attributes', $rss[0] );
+		$this->assertIsArray( $rss[0]['attributes'] );
+		$this->assertArrayHasKey( 'xmlns:source', $rss[0]['attributes'] );
+		$this->assertSame( 'http://source.scripting.com/', $rss[0]['attributes']['xmlns:source'] );
 	}
 
 	/**
@@ -193,9 +242,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( $items as $key => $item ) {
 
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
@@ -233,7 +283,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			}
 			$cats = array_filter( $cats );
 			// Should be the same number of categories.
-			$this->assertSame( count( $cats ), count( $categories ) );
+			$this->assertCount( count( $cats ), $categories );
 
 			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
@@ -276,12 +326,15 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
+		$this->assertNotEmpty( $items );
+
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
@@ -473,7 +526,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_feed_build_date
+	 * @dataProvider data_get_feed_build_date
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
@@ -487,12 +540,11 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_test_get_feed_build_date() {
+	public static function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),
 		);
-
 	}
 
 	/**
@@ -501,17 +553,17 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_a_post_date_when_withcomments_is_not_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
 		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -521,7 +573,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the post's date when "withcomments" is not passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $last_week ) {
+			function ( $headers ) use ( $last_week ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $last_week ),
@@ -540,17 +592,17 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_comment_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
 		$yesterday = gmdate( 'Y-m-d H:i:s', strtotime( '-1 day' ) );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -560,7 +612,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// The Last-Modified header should have the comment's date when "withcomments=1" is passed.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $yesterday ) {
+			function ( $headers ) use ( $yesterday ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $yesterday ),
@@ -579,7 +631,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 47968
 	 *
-	 * @covers ::send_headers
+	 * @covers WP::send_headers
 	 */
 	public function test_feed_last_modified_should_be_the_date_of_a_post_that_is_the_latest_update_when_withcomments_is_passed() {
 		$last_week = gmdate( 'Y-m-d H:i:s', strtotime( '-1 week' ) );
@@ -587,10 +639,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$today     = gmdate( 'Y-m-d H:i:s' );
 
 		// Create a post dated last week.
-		$post_id = $this->factory()->post->create( array( 'post_date' => $last_week ) );
+		$post_id = self::factory()->post->create( array( 'post_date' => $last_week ) );
 
 		// Create a comment dated yesterday.
-		$this->factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_date'    => $yesterday,
@@ -598,12 +650,12 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		);
 
 		// Create a post dated today.
-		$this->factory()->post->create( array( 'post_date' => $today ) );
+		self::factory()->post->create( array( 'post_date' => $today ) );
 
 		// The Last-Modified header should have the date from today's post when it is the latest update.
 		add_filter(
 			'wp_headers',
-			function( $headers ) use ( $today ) {
+			function ( $headers ) use ( $today ) {
 				$this->assertSame(
 					strtotime( $headers['Last-Modified'] ),
 					strtotime( $today ),
