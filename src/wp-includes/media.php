@@ -1234,8 +1234,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			unset( $attr['fetchpriority'] );
 		}
 
-		// Generate 'srcset' and 'sizes' if not already present.
-		if ( empty( $attr['srcset'] ) ) {
+		// If srcset is set to false, it should be omitted.
+		if ( isset( $attr['srcset'] ) && false === $attr['srcset'] ) {
+			unset( $attr['srcset'] );
+			unset( $attr['sizes'] );
+		} elseif ( empty( $attr['srcset'] ) ) {
+			// Generate 'srcset' and 'sizes' if not already present and srcset is not set to false.
 			$image_meta = wp_get_attachment_metadata( $attachment_id );
 
 			if ( is_array( $image_meta ) ) {
@@ -1250,6 +1254,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 						$attr['sizes'] = $sizes;
 					}
 				}
+			}
+
+			// If after trying to generate it, it's still empty, omit it.
+			if ( empty( $attr['srcset'] ) ) {
+				unset( $attr['srcset'] );
+				unset( $attr['sizes'] );
 			}
 		}
 
