@@ -572,6 +572,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 7.2.0 Excludes the 'reaction' comment type, unless 'all' or the 'reaction' types are requested.
 	 * @since 7.2.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -723,11 +724,7 @@ class WP_Comment_Query {
 					}
 				}
 
-				// Default to DESC.
-				if ( ! $comment_id_order ) {
-					$comment_id_order = 'DESC';
-				}
-
+				// The logic above ensures $comment_id_order is set to 'ASC' or defaults to 'DESC'.
 				$orderby_array[] = "$wpdb->comments.comment_ID $comment_id_order";
 			}
 
@@ -845,7 +842,10 @@ class WP_Comment_Query {
 			}
 
 			foreach ( $excluded_types as $excluded_type ) {
-				if ( ! in_array( $excluded_type, $requested_types, true ) ) {
+				if (
+					! in_array( $excluded_type, $requested_types, true ) &&
+					! in_array( $excluded_type, $raw_types['NOT IN'], true )
+				) {
 					$raw_types['NOT IN'][] = $excluded_type;
 				}
 			}

@@ -639,7 +639,7 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 	/**
 	 * Data provider for testing is_block_editor.
 	 */
-	public function data_is_block_editor() {
+	public static function data_is_block_editor() {
 		return array(
 			array(
 				// Edit post: Post type supports `show_in_rest`, no filters.

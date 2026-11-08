@@ -14,6 +14,10 @@
  *
  * @since 1.5.0
  * @since 4.5.0 Removed the `$comments_popup` property.
+ *
+ * @phpstan-property-read bool                                      $query_vars_changed
+ * @phpstan-property-read false|(lowercase-string&non-falsy-string) $query_vars_hash
+ * @phpstan-method void init_query_flags()
  */
 #[AllowDynamicProperties]
 class WP_Query {
@@ -182,6 +186,7 @@ class WP_Query {
 	 *
 	 * @since 2.1.0
 	 * @var int
+	 * @phpstan-var int<0, max>
 	 */
 	public $max_num_pages = 0;
 
@@ -418,6 +423,16 @@ class WP_Query {
 	public bool $is_sitemap = false;
 
 	/**
+	 * Signifies whether the current query is for random content.
+	 *
+	 * True for a blog home, archive or search request that includes the `random`
+	 * query variable, for example `example.com/random/` or `example.com/?s=foo&random`.
+	 *
+	 * @since 7.2.0
+	 */
+	public bool $is_random = false;
+
+	/**
 	 * Signifies whether the current query is for the page_for_posts page.
 	 *
 	 * Basically, the homepage if the option isn't set for the static homepage.
@@ -441,6 +456,7 @@ class WP_Query {
 	 *
 	 * @since 3.1.0
 	 * @var bool|string
+	 * @phpstan-var false|(lowercase-string&non-falsy-string)
 	 */
 	private $query_vars_hash = false;
 
@@ -527,6 +543,7 @@ class WP_Query {
 		$this->is_robots            = false;
 		$this->is_favicon           = false;
 		$this->is_sitemap           = false;
+		$this->is_random            = false;
 		$this->is_posts_page        = false;
 		$this->is_post_type_archive = false;
 	}
@@ -1146,6 +1163,10 @@ class WP_Query {
 		}
 
 		$this->is_embed = $this->is_embed && ( $this->is_singular || $this->is_404 );
+
+		$this->is_random = isset( $query_vars['random'] )
+			&& ! $this->is_feed
+			&& ( $this->is_home || $this->is_archive || $this->is_search );
 
 		$this->query_vars_hash    = md5( serialize( $this->query_vars ) );
 		$this->query_vars_changed = false;
@@ -3716,7 +3737,7 @@ class WP_Query {
 		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
 		if ( ! empty( $limits ) ) {
-			$this->max_num_pages = (int) ceil( $this->found_posts / $query_vars['posts_per_page'] );
+			$this->max_num_pages = max( 0, (int) ceil( $this->found_posts / (int) $query_vars['posts_per_page'] ) );
 		}
 	}
 
@@ -4655,6 +4676,19 @@ class WP_Query {
 	 */
 	public function is_sitemap(): bool {
 		return $this->is_sitemap;
+	}
+
+	/**
+	 * Determines whether the query is for random content.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_query()
+	 *
+	 * @return bool Whether the query is for random content.
+	 */
+	public function is_random(): bool {
+		return $this->is_random;
 	}
 
 	/**

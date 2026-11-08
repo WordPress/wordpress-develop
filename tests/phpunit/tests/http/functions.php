@@ -226,6 +226,20 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that {@see wp_remote_retrieve_cookie_value()} returns an empty string for a cookie without a value.
+	 *
+	 * @covers ::wp_remote_retrieve_cookie_value
+	 */
+	public function test_wp_remote_retrieve_cookie_value_for_cookie_without_value(): void {
+		$cookie = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
+		$this->assertNull( $cookie->value, 'Expected the cookie value to be null.' );
+
+		$response = array( 'cookies' => array( $cookie ) );
+
+		$this->assertSame( '', wp_remote_retrieve_cookie_value( $response, 'flavor' ) );
+	}
+
+	/**
 	 * @ticket 37437
 	 *
 	 * @covers ::wp_remote_get

@@ -106,7 +106,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		}
 
 		/*
-		 * Notes carry their own visibility rules, so they are never listed here and a
+		 * Notes and reactions carry their own visibility rules, so they are never listed here and a
 		 * request for them is dropped outright. This is deliberately narrower than the
 		 * treatment of the other default-excluded types below, which can be listed when
 		 * explicitly requested. Emptying the excluded set does surface notes in the
@@ -119,7 +119,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * comment_type[]=review, is treated as no type filter at all so that the
 		 * value can safely be compared and diffed as a string below.
 		 */
-		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
