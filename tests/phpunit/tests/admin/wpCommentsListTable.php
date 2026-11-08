@@ -272,7 +272,7 @@ OPTIONS;
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_comment_type(): array {
+	public static function data_comment_type(): array {
 		return array(
 			'note type explicitly requested'     => array( 'note' ),
 			'reaction type explicitly requested' => array( 'reaction' ),

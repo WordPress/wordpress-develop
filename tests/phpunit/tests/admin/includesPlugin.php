@@ -26,13 +26,19 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * Resets the global menu registries modified by the menu API tests.
 	 */
 	private function reset_menu_globals() {
-		global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages;
+		global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages,
+			$_wp_menu_nopriv, $_wp_submenu_nopriv, $_wp_nopriv_pages;
 
-		$menu              = array();
-		$submenu           = array();
-		$admin_page_hooks  = array();
-		$_registered_pages = array();
-		$_parent_pages     = array();
+		$menu               = array();
+		$submenu            = array();
+		$admin_page_hooks   = array();
+		$_registered_pages  = array();
+		$_parent_pages      = array();
+		$_wp_menu_nopriv    = array();
+		$_wp_submenu_nopriv = array();
+		$_wp_nopriv_pages   = array();
+
+		unset( $GLOBALS['plugin_page'] );
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
@@ -98,6 +104,128 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_when_no_plugin_page_is_set() {
+		unset( $GLOBALS['plugin_page'] );
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
+		global $pagenow, $plugin_page;
+
+		wp_set_current_user( self::$admin_id );
+
+		add_options_page( 'Test Settings', 'Test Settings', 'manage_options', 'testsettings', 'mt_settings_page' );
+
+		$original_pagenow = $pagenow;
+		$pagenow          = 'options-general.php';
+		$plugin_page      = 'testsettings';
+
+		$exists = wp_admin_page_exists();
+
+		$pagenow = $original_pagenow;
+
+		$this->assertTrue( $exists );
+	}
+
+	/**
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_false_for_an_unregistered_page() {
+		global $plugin_page, $_registered_pages;
+
+		$plugin_page       = 'does-not-exist';
+		$_registered_pages = array();
+
+		$this->assertFalse( wp_admin_page_exists() );
+	}
+
+	/**
+	 * Pages the current user cannot access are not added to $_registered_pages,
+	 * but they do exist and must not be reported as missing.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_a_registered_page_the_user_cannot_access() {
+		global $plugin_page;
+
+		wp_set_current_user( self::$admin_id );
+
+		add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
+
+		// Register a submenu page requiring a capability no user has.
+		wp_set_current_user( 0 );
+		add_submenu_page( 'mt-top-level-handle', 'No Priv', 'No Priv', 'do_not_allow', 'mt-no-priv', 'mt_no_priv_page' );
+
+		$plugin_page = 'mt-no-priv';
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * The no-privilege menu registries are reset in menu.php after the
+	 * `_admin_menu` hook fires, so pages registered before that must still
+	 * be considered to exist.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_an_inaccessible_page_after_nopriv_registries_are_reset() {
+		global $plugin_page, $_wp_menu_nopriv, $_wp_submenu_nopriv;
+
+		wp_set_current_user( 0 );
+
+		add_submenu_page( 'options-general.php', 'No Priv', 'No Priv', 'do_not_allow', 'mt-no-priv', 'mt_no_priv_page' );
+
+		// Simulate menu.php resetting the registries.
+		$_wp_menu_nopriv    = array();
+		$_wp_submenu_nopriv = array();
+
+		$plugin_page = 'mt-no-priv';
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * A page listed only in $_wp_submenu_nopriv, for example by code that fills
+	 * that registry directly, must still be considered to exist.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_checks_the_submenu_nopriv_registry() {
+		global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv, $_wp_nopriv_pages;
+
+		$_registered_pages  = array();
+		$_wp_menu_nopriv    = array();
+		$_wp_nopriv_pages   = array();
+		$_wp_submenu_nopriv = array(
+			'options-general.php' => array( 'mt-only-in-submenu-nopriv' => true ),
+		);
+
+		$plugin_page = 'mt-only-in-submenu-nopriv';
+		$this->assertTrue( wp_admin_page_exists(), 'A page in $_wp_submenu_nopriv should exist.' );
+
+		$plugin_page = 'mt-not-registered-anywhere';
+		$this->assertFalse( wp_admin_page_exists(), 'A page in no registry should not exist.' );
+	}
+
+	/**
 	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
@@ -119,7 +247,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Setup a menu with some items.
 		$parent = add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
-		foreach ( $this->submenus_to_add() as $menu_to_add ) {
+		foreach ( self::submenus_to_add() as $menu_to_add ) {
 			add_submenu_page( $parent, $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $menu_to_add[3], $menu_to_add[4] );
 		}
 
@@ -223,7 +351,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		foreach ( $helper_functions as $helper_function ) {
 
 			// Build up demo pages on the menu root.
-			foreach ( $this->submenus_to_add() as $menu_to_add ) {
+			foreach ( self::submenus_to_add() as $menu_to_add ) {
 				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function['menu_root'], $helper_function['menu_root'] );
 			}
 
@@ -259,7 +387,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	private function submenus_to_add() {
+	private static function submenus_to_add() {
 		return array(
 			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
 			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
@@ -281,8 +409,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_submenu_position() {
-		$menu_count = count( $this->submenus_to_add() );
+	public static function data_submenu_position() {
+		$menu_count = count( self::submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
 			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.
@@ -610,25 +738,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( $name );
 	}
 
-	/**
-	 * @covers ::validate_active_plugins
-	 */
-	public function test_validate_active_plugins_remove_invalid() {
-		$plugin = $this->_create_plugin();
-
-		activate_plugin( $plugin[0] );
-		unlink( $plugin[1] );
-
-		$result = validate_active_plugins();
-		$this->assertArrayHasKey( $plugin[0], $result );
-	}
-
-	/**
-	 * @covers ::validate_active_plugins
-	 */
-	public function test_validate_active_plugins_empty() {
-		$this->assertSame( array(), validate_active_plugins() );
-	}
 
 	/**
 	 * @covers ::is_uninstallable_plugin

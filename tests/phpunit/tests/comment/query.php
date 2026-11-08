@@ -3640,7 +3640,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -3665,7 +3665,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEquals( $num_queries, get_num_queries() );
+		$this->assertNotSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -5517,7 +5517,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
-	public function data_internal_comment_type_exclusion(): array {
+	public static function data_internal_comment_type_exclusion(): array {
 		return array(
 			'default query excludes note'        => array(
 				'query_args'     => array(),

@@ -39,7 +39,7 @@ function media_upload_tabs() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $tabs Associative array of default tab names.
- * @return array $tabs Filtered tabs with gallery if post has image attachment.
+ * @return array Filtered tabs with gallery if post has image attachment.
  */
 function update_gallery_tab( $tabs ) {
 	global $wpdb;
@@ -3750,12 +3750,9 @@ function wp_read_video_metadata( $file ) {
 		$metadata['audio'] = $data['audio'];
 	}
 
-	if ( empty( $metadata['created_timestamp'] ) ) {
-		$created_timestamp = wp_get_media_creation_timestamp( $data );
-
-		if ( false !== $created_timestamp ) {
-			$metadata['created_timestamp'] = $created_timestamp;
-		}
+	$created_timestamp = wp_get_media_creation_timestamp( $data );
+	if ( false !== $created_timestamp ) {
+		$metadata['created_timestamp'] = $created_timestamp;
 	}
 
 	wp_add_id3_tag_data( $metadata, $data );

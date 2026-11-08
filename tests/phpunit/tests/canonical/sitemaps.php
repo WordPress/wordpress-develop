@@ -15,13 +15,11 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	}
 
 	public function test_remove_trailing_slashes_for_sitemap_index_requests() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/wp-sitemap.xml', '/wp-sitemap.xml' );
 		$this->assertCanonical( '/wp-sitemap.xml/', '/wp-sitemap.xml' );
 	}
 
 	public function test_remove_trailing_slashes_for_sitemap_requests() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/wp-sitemap-posts-post-1.xml', '/wp-sitemap-posts-post-1.xml' );
 		$this->assertCanonical( '/wp-sitemap-posts-post-1.xml/', '/wp-sitemap-posts-post-1.xml' );
 		$this->assertCanonical( '/wp-sitemap-users-1.xml', '/wp-sitemap-users-1.xml' );
@@ -104,7 +102,7 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	 *     @type string $1 The expected canonical URL.
 	 * }
 	 */
-	public function data_sitemaps_canonical_ugly_redirects() {
+	public static function data_sitemaps_canonical_ugly_redirects() {
 		return array(
 			// Ugly permalinks remain ugly.
 			array( '/?sitemap=index', '/?sitemap=index' ),

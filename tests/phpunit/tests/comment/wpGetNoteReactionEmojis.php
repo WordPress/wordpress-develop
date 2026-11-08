@@ -15,9 +15,9 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	/**
 	 * @ticket 66276
 	 */
-	public function test_defaults_to_the_five_quick_reactions() {
+	public function test_defaults_to_the_seven_quick_reactions(): void {
 		$this->assertSame(
-			array( '2764', '1f389', '1f604', '1f440', '1f680' ),
+			array( '1f44d', '2795', '2764', '1f389', '1f604', '1f440', '1f680' ),
 			wp_get_note_reaction_keys()
 		);
 	}
@@ -25,10 +25,10 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	/**
 	 * @ticket 66276
 	 */
-	public function test_filter_can_add_and_remove_emoji() {
+	public function test_filter_can_add_and_remove_emoji(): void {
 		add_filter(
 			'wp_note_reaction_emojis',
-			static function ( $emojis ) {
+			static function ( array $emojis ): array {
 				$emojis[] = array(
 					'hexKey' => '1f984',
 					'label'  => 'unicorn',
@@ -38,7 +38,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( '1f389', '1f604', '1f440', '1f680', '1f984' ),
+			array( '2795', '2764', '1f389', '1f604', '1f440', '1f680', '1f984' ),
 			wp_get_note_reaction_keys()
 		);
 	}
@@ -46,7 +46,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	/**
 	 * @ticket 66276
 	 */
-	public function test_filter_can_remove_every_emoji() {
+	public function test_filter_can_remove_every_emoji(): void {
 		add_filter( 'wp_note_reaction_emojis', '__return_empty_array' );
 
 		$this->assertSame( array(), wp_get_note_reaction_emojis() );
@@ -55,16 +55,16 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	/**
 	 * @ticket 66276
 	 */
-	public function test_falls_back_to_the_defaults_when_the_filter_returns_no_list() {
+	public function test_falls_back_to_the_defaults_when_the_filter_returns_no_list(): void {
 		add_filter( 'wp_note_reaction_emojis', '__return_null' );
 
-		$this->assertCount( 5, wp_get_note_reaction_emojis() );
+		$this->assertCount( 7, wp_get_note_reaction_emojis() );
 	}
 
 	/**
 	 * @ticket 66276
 	 */
-	public function test_drops_malformed_and_duplicate_entries() {
+	public function test_drops_malformed_and_duplicate_entries(): void {
 		add_filter(
 			'wp_note_reaction_emojis',
 			static function () {
@@ -128,11 +128,16 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	 * @param mixed  $hex_key  The key to normalize.
 	 * @param string $expected The normalized key.
 	 */
-	public function test_normalize_note_reaction_key( $hex_key, $expected ) {
+	public function test_normalize_note_reaction_key( $hex_key, $expected ): void {
 		$this->assertSame( $expected, wp_normalize_note_reaction_key( $hex_key ) );
 	}
 
-	public function data_normalize_note_reaction_key() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{mixed, string}>
+	 */
+	public static function data_normalize_note_reaction_key(): array {
 		return array(
 			'already normalized' => array( '1f984', '1f984' ),
 			'uppercase'          => array( '1F984', '1f984' ),

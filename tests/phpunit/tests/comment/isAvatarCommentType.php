@@ -34,7 +34,7 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_is_avatar_comment_type() {
+	public static function data_is_avatar_comment_type() {
 		return array(
 			array( null, false ),
 			array( '', false ),

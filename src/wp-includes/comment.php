@@ -352,40 +352,6 @@ function get_comment_statuses() {
 }
 
 /**
- * Retrieves the IDs of a note's reaction comments.
- *
- * Reactions hang off a note as child comments, so they have to be trashed
- * and deleted along with it.
- *
- * @since 7.2.0
- *
- * @param int|WP_Comment $comment_id Note comment ID or WP_Comment object.
- * @param string         $status     Optional. Comment status to match, as accepted by
- *                                   WP_Comment_Query. Note that 'all' covers only approved
- *                                   and pending comments, so trashed reactions need an
- *                                   explicit status. Default 'any'.
- * @return int[] Reaction comment IDs, oldest first. Empty if the comment is not a note.
- */
-function wp_get_note_reaction_ids( $comment_id, $status = 'any' ): array {
-	$comment = get_comment( $comment_id );
-
-	if ( ! $comment || 'note' !== $comment->comment_type ) {
-		return array();
-	}
-
-	return get_comments(
-		array(
-			'parent'  => $comment->comment_ID,
-			'type'    => 'reaction',
-			'status'  => $status,
-			'fields'  => 'ids',
-			'orderby' => 'comment_ID',
-			'order'   => 'ASC',
-		)
-	);
-}
-
-/**
  * Normalizes an emoji hex key to the form note reactions are stored under.
  *
  * Lowercases the code points, pads each to four digits and drops U+FE0F, so
@@ -404,7 +370,7 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
 
 	$code_points = array();
 	foreach ( explode( '-', strtolower( $hex_key ) ) as $code_point ) {
-		$value = hexdec( $code_point );
+		$value = (int) hexdec( $code_point );
 		// Surrogates and values past U+10FFFF are not code points.
 		if ( $value > 0x10FFFF || ( $value >= 0xD800 && $value <= 0xDFFF ) ) {
 			return '';
@@ -429,10 +395,20 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
  *     @type string $hexKey The emoji's hex key, e.g. `2764`.
  *     @type string $label  The emoji's name, lowercase, e.g. `heart`.
  * }
+ *
+ * @phpstan-return list<array{ hexKey: string, label: string }>
  */
 function wp_get_note_reaction_emojis(): array {
 	// Labels are lowercase since they also appear mid-sentence, e.g. in the reaction pill's tooltip.
 	$default_emojis = array(
+		array(
+			'hexKey' => '1f44d',
+			'label'  => _x( 'thumbs up', 'emoji reaction' ),
+		),
+		array(
+			'hexKey' => '2795',
+			'label'  => _x( 'plus', 'emoji reaction' ),
+		),
 		array(
 			'hexKey' => '2764',
 			'label'  => _x( 'heart', 'emoji reaction' ),
@@ -516,7 +492,7 @@ function wp_get_note_reaction_emojis(): array {
  * @return string[] The keys of the emoji from wp_get_note_reaction_emojis().
  */
 function wp_get_note_reaction_keys(): array {
-	return wp_list_pluck( wp_get_note_reaction_emojis(), 'hexKey' );
+	return array_column( wp_get_note_reaction_emojis(), 'hexKey' );
 }
 
 /**
@@ -1778,8 +1754,19 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	 * would keep the reactor's identity on a note that no longer exists. This
 	 * covers every status: a reaction the user removed is trashed, not deleted.
 	 */
-	foreach ( wp_get_note_reaction_ids( $comment ) as $reaction_id ) {
-		wp_delete_comment( $reaction_id, true );
+	if ( 'note' === $comment->comment_type ) {
+		$reaction_ids = get_comments(
+			array(
+				'parent' => $comment->comment_ID,
+				'type'   => 'reaction',
+				'status' => 'any',
+				'fields' => 'ids',
+			)
+		);
+
+		foreach ( $reaction_ids as $reaction_id ) {
+			wp_delete_comment( $reaction_id, true );
+		}
 	}
 
 	// Move children up a level.
@@ -1833,6 +1820,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
  * @since 7.2.0 A note's reactions are trashed along with it.
+ * @since 7.2.0 The child notes trashed along with a note are recorded, so that they can be restored with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1905,11 +1893,21 @@ function wp_trash_comment( $comment_id ) {
 		 * own reactions along through this same branch.
 		 *
 		 * Restoring the note does not bring its reactions back:
-		 * wp_untrash_comment() restores no children of any type, so restoring
-		 * children is left to a cascade that covers every child type together.
+		 * wp_untrash_comment() only restores the child notes recorded below.
 		 */
-		foreach ( wp_get_note_reaction_ids( $comment, 'approve' ) as $reaction_id ) {
-			wp_trash_comment( $reaction_id );
+		if ( 'note' === $comment->comment_type ) {
+			$reaction_ids = get_comments(
+				array(
+					'parent' => $comment->comment_ID,
+					'type'   => 'reaction',
+					'status' => 'approve',
+					'fields' => 'ids',
+				)
+			);
+
+			foreach ( $reaction_ids as $reaction_id ) {
+				wp_trash_comment( $reaction_id );
+			}
 		}
 
 		// For top level 'note' type comments, also trash children.
@@ -1921,6 +1919,22 @@ function wp_trash_comment( $comment_id ) {
 					'type'   => 'note',
 				)
 			);
+
+			// Skip children already in the Trash, so that they are not restored with the parent.
+			$children = array_values(
+				array_filter(
+					array_map( 'intval', $children ),
+					static function ( $child_id ) {
+						return 'trash' !== wp_get_comment_status( $child_id );
+					}
+				)
+			);
+
+			// Record the children trashed along with the parent, so that they can be restored with it.
+			delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_children' );
+			if ( $children ) {
+				add_comment_meta( $comment->comment_ID, '_wp_trash_meta_children', $children );
+			}
 
 			$success = true;
 			foreach ( $children as $child_id ) {
@@ -1941,6 +1955,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
+ * @since 7.2.0 Any child notes trashed along with a note are restored when restoring the note.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1981,6 +1996,36 @@ function wp_untrash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The untrashed comment.
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
+
+		// For top level 'note' type comments, also restore the children trashed along with it.
+		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = get_comment_meta( $comment->comment_ID, '_wp_trash_meta_children', true );
+			delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_children' );
+
+			if ( ! is_array( $children ) ) {
+				return true;
+			}
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				$child = get_comment( (int) $child_id );
+
+				// Skip children that have been deleted, moved, or restored in the meantime.
+				if (
+					! $child ||
+					'note' !== $child->comment_type ||
+					(int) $child->comment_parent !== (int) $comment->comment_ID ||
+					'trash' !== wp_get_comment_status( $child )
+				) {
+					continue;
+				}
+
+				if ( ! wp_untrash_comment( $child ) ) {
+					$success = false;
+				}
+			}
+			return $success;
+		}
 
 		return true;
 	}
@@ -4097,7 +4142,7 @@ function _close_comments_for_old_posts( $posts, $query ) {
  *
  * @param bool $open    Comments open or closed.
  * @param int  $post_id Post ID.
- * @return bool $open
+ * @return bool True if comments are open, false otherwise.
  */
 function _close_comments_for_old_post( $open, $post_id ) {
 	if ( ! $open ) {

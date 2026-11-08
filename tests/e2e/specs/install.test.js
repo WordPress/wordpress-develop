@@ -2,13 +2,17 @@
  * External dependencies
  */
 import { writeFileSync, readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+
+/**
+ * Internal dependencies
+ */
+import { wpCli } from '../utils/wp-cli';
 
 let wpConfigOriginal;
 
@@ -48,20 +52,7 @@ function dropE2eTables() {
 		}
 	`;
 
-	execFileSync(
-		process.execPath,
-		[
-			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
-			'exec',
-			'--user',
-			'wp_php',
-			'cli',
-			'wp',
-			'eval',
-			dropTablesPhp,
-		],
-		{ stdio: 'inherit' }
-	);
+	wpCli( [ 'eval', dropTablesPhp ], { stdio: 'inherit' } );
 }
 
 test.describe( 'WordPress installation process', () => {
@@ -101,13 +92,20 @@ test.describe( 'WordPress installation process', () => {
 		writeFileSync( wpConfig, wpConfigPatched );
 	} );
 
-	test.afterEach( async () => {
+	test.afterEach( async ( { page } ) => {
 		writeFileSync( wpConfig, wpConfigOriginal );
 
 		// The test completes a full install under TEST_TABLE_PREFIX. Drop
 		// those tables, otherwise the next run finds a pre-existing install
 		// and never reaches the installation screen it's meant to be testing.
 		dropE2eTables();
+
+		// PHP can briefly serve the previous wp-config.php; wait until the site answers as installed.
+		await expect( async () => {
+			await page.goto( '/wp-login.php' );
+			expect( page.url() ).toMatch( /\/wp-login\.php$/ );
+			await expect( page.getByRole( 'button', { name: 'Log In', exact: true } ) ).toBeVisible();
+		}, 'should restore the installed site after the installation test' ).toPass( { timeout: 10_000 } );
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
@@ -153,7 +151,9 @@ test.describe( 'WordPress installation process', () => {
 			'should redirect to the login page'
 		).toHaveURL( /wp-login\.php$/ );
 
-		await page.getByLabel( 'Username or Email Address' ).fill( 'admin' );
+		const usernameField = page.getByLabel( 'Username or Email Address' );
+		await expect( usernameField ).toBeFocused();
+		await usernameField.fill( 'admin' );
 		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 
 		await page.getByRole( 'button', { name: 'Log In' } ).click();
