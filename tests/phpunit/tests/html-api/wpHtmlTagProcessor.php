@@ -2370,6 +2370,54 @@ HTML;
 	}
 
 	/**
+	 * Ensures that tag-name-terminating characters close RCDATA and RAWTEXT elements.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
+	 *
+	 * @param non-falsy-string $tag_name            The RCDATA or RAWTEXT tag name.
+	 * @param non-falsy-string $tag_name_terminator The tag-name-terminating character.
+	 */
+	public function test_rcdata_and_rawtext_end_tags_accept_tag_name_terminators( string $tag_name, string $tag_name_terminator ): void {
+		$end_tag_closer = '>' === $tag_name_terminator ? '' : '>';
+		$processor      = new WP_HTML_Tag_Processor( "<{$tag_name}>content</{$tag_name}{$tag_name_terminator}{$end_tag_closer}<div>" );
+
+		$this->assertTrue( $processor->next_token(), "Expected to find complete {$tag_name} tag." );
+		$this->assertSame( strtoupper( $tag_name ), $processor->get_tag() );
+		$this->assertSame( 'content', $processor->get_modifiable_text() );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), "Expected to find DIV after the {$tag_name} element." );
+	}
+
+	/**
+	 * Provides every RCDATA and RAWTEXT tag with every tag-name-terminating character.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string, non-falsy-string}> Test cases.
+	 */
+	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
+		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
+			foreach ( self::data_tag_name_terminators() as $terminator_name => $terminator_data ) {
+				yield "{$tag_name} + {$terminator_name}" => array( strtolower( $tag_name ), $terminator_data[0] );
+			}
+		}
+	}
+
+	/**
+	 * Provides tag-name-terminating characters.
+	 *
+	 * @return Generator<non-falsy-string, array{non-falsy-string}> Test cases.
+	 */
+	public static function data_tag_name_terminators(): Generator {
+		yield 'SPACE'             => array( ' ' );
+		yield 'TAB'               => array( "\t" );
+		yield 'LINE FEED'         => array( "\n" );
+		yield 'FORM FEED'         => array( "\f" );
+		yield 'CARRIAGE RETURN'   => array( "\r" );
+		yield 'SOLIDUS'           => array( '/' );
+		yield 'GREATER-THAN SIGN' => array( '>' );
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007
@@ -2638,6 +2686,63 @@ HTML;
 		$found_classes = iterator_to_array( $processor->class_list() );
 
 		$this->assertSame( array( 'a', "\u{FFFD}", "b\u{FFFD}", "\u{FFFD}c\u{FFFD}" ), $found_classes );
+	}
+
+	/**
+	 * @ticket 59209
+	 * @ticket 65846
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 *
+	 * @dataProvider data_class_list
+	 *
+	 * @param string   $html                 HTML containing a DIV with a class attribute.
+	 * @param string[] $expected_class_names Class names class_list() should yield.
+	 */
+	public function test_class_list( string $html, array $expected_class_names ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), 'Should have found the DIV tag.' );
+
+		$this->assertSame(
+			$expected_class_names,
+			iterator_to_array( $processor->class_list() ),
+			'Should have yielded the expected class names.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_class_list(): array {
+		return array(
+			'Leading whitespace'                      => array( "<div class='  foo'>", array( 'foo' ) ),
+			'Trailing whitespace'                     => array( "<div class='foo  '>", array( 'foo' ) ),
+			'Only spaces'                             => array( "<div class='   '>", array() ),
+			'Only mixed whitespace'                   => array( "<div class=' \t\n'>", array() ),
+			'Form feed separator'                     => array( "<div class='a\fb'>", array( 'a', 'b' ) ),
+			'Encoded carriage return separator'       => array( "<div class='a&#13;b'>", array( 'a', 'b' ) ),
+			'Encoded space separator'                 => array( "<div class='a&#x20;b'>", array( 'a', 'b' ) ),
+			'Encoded leading and trailing whitespace' => array( "<div class='&#x20;a&#9;'>", array( 'a' ) ),
+			'Vertical tab is not a separator'         => array( "<div class='a\vb'>", array( "a\vb" ) ),
+			'No-break space is not a separator'       => array( "<div class='a\u{A0}b'>", array( "a\u{A0}b" ) ),
+			'Legacy reference at end'                 => array( "<div class='&amp'>", array( '&' ) ),
+			'Legacy reference before space'           => array( "<div class='&amp x'>", array( '&', 'x' ) ),
+			'Legacy reference before hyphen'          => array( "<div class='&amp-x'>", array( '&-x' ) ),
+			'Legacy reference before ampersand'       => array( "<div class='&lt&gt'>", array( '<>' ) ),
+			'Uppercase legacy reference'              => array( "<div class='&AMP'>", array( '&' ) ),
+			'Legacy reference before letter'          => array( "<div class='&ampx'>", array( '&ampx' ) ),
+			'Legacy reference before digit'           => array( "<div class='&copy2026'>", array( '&copy2026' ) ),
+			'Legacy reference before equals sign'     => array( "<div class='&amp='>", array( '&amp=' ) ),
+			'Legacy prefix of a longer reference'     => array( "<div class='&notin'>", array( '&notin' ) ),
+			'Legacy and full forms are duplicates'    => array( "<div class='&amp &amp;'>", array( '&' ) ),
+			'Non-legacy reference without semicolon'  => array( "<div class='&hellip'>", array( '&hellip' ) ),
+			'Unknown reference'                       => array( "<div class='&foo;'>", array( '&foo;' ) ),
+			'Decimal reference without semicolon'     => array( "<div class='a&#32b'>", array( 'a', 'b' ) ),
+			'Hex reference without semicolon'         => array( "<div class='a&#x20g'>", array( 'a', 'g' ) ),
+			'Bare ampersand'                          => array( "<div class='&'>", array( '&' ) ),
+		);
 	}
 
 	/**
