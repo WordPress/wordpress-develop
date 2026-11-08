@@ -12,6 +12,63 @@
  *
  * @since 3.7.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
+ *
+ * @phpstan-type Core_Update_Offer object{
+ *     current: string,
+ *     version: string,
+ *     php_version: string,
+ *     mysql_version: string,
+ *     new_files?: bool|string,
+ *     notify_email?: bool|string,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&stdClass
+ * @phpstan-type Plugin_Update_Offer object{
+ *     slug: string,
+ *     plugin: string,
+ *     new_version: string,
+ *     current_version?: string|false,
+ *     requires_php?: string|false|null,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&stdClass
+ * @phpstan-type Theme_Update_Offer object{
+ *     theme: string,
+ *     new_version: string,
+ *     current_version?: string|false,
+ *     requires_php?: string|false|null,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&stdClass
+ * @phpstan-type Translation_Update_Offer object{
+ *     language: string,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&stdClass
+ * @phpstan-type Core_Update_Result object{
+ *     item: Core_Update_Offer,
+ *     result: string|WP_Error,
+ *     name: string,
+ *     messages: string[],
+ * }&stdClass
+ * @phpstan-type Plugin_Update_Result object{
+ *     item: Plugin_Update_Offer,
+ *     result: true|WP_Error|null,
+ *     name: string,
+ *     messages: string[],
+ * }&stdClass
+ * @phpstan-type Theme_Update_Result object{
+ *     item: Theme_Update_Offer,
+ *     result: true|WP_Error|null,
+ *     name: string|false,
+ *     messages: string[],
+ * }&stdClass
+ * @phpstan-type Translation_Update_Result object{
+ *     item: Translation_Update_Offer,
+ *     result: array<mixed>|true|WP_Error|null,
+ *     name: string,
+ *     messages: string[],
+ * }&stdClass
  */
 #[AllowDynamicProperties]
 class WP_Automatic_Updater {
@@ -19,9 +76,25 @@ class WP_Automatic_Updater {
 	/**
 	 * Tracks update results during processing.
 	 *
-	 * @var array
+	 * @var array<string, object[]>
+	 * @phpstan-var array{
+	 *     core?: list<Core_Update_Result>,
+	 *     plugin?: list<Plugin_Update_Result>,
+	 *     theme?: list<Theme_Update_Result>,
+	 *     translation?: list<Translation_Update_Result>,
+	 * }
 	 */
 	protected $update_results = array();
+
+	/**
+	 * Details of the fatal error detected by the last call to has_fatal_error().
+	 *
+	 * This is the fatal error, or the reason the loopback request to check for one failed.
+	 * It is null when no fatal error was detected.
+	 *
+	 * @since 7.2.0
+	 */
+	private ?string $fatal_error_message = null;
 
 	/**
 	 * Determines whether the entire automatic updater is disabled.
@@ -119,6 +192,7 @@ class WP_Automatic_Updater {
 	 * how things get updated.
 	 *
 	 * @since 3.7.0
+	 * @since 7.2.0 Detects a `.git` file, as used by Git worktrees and submodules.
 	 *
 	 * @param string $context The filesystem path to check, in addition to ABSPATH.
 	 * @return bool True if a VCS checkout was discovered at `$context` or ABSPATH,
@@ -148,6 +222,7 @@ class WP_Automatic_Updater {
 		}
 
 		$check_dirs = array_unique( $check_dirs );
+		$checkout   = false;
 
 		// Search all directories we've found for evidence of version control.
 		foreach ( $vcs_dirs as $vcs_dir ) {
@@ -156,7 +231,8 @@ class WP_Automatic_Updater {
 					continue;
 				}
 
-				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
+				// In a Git worktree or submodule, `.git` is a file rather than a directory.
+				$checkout = file_exists( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
 				if ( $checkout ) {
 					break 2;
 				}
@@ -169,10 +245,10 @@ class WP_Automatic_Updater {
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param bool $checkout  Whether a VCS checkout was discovered at `$context`
-		 *                        or ABSPATH, or anywhere higher.
-		 * @param string $context The filesystem context (a path) against which
-		 *                        filesystem status should be checked.
+		 * @param bool   $checkout Whether a VCS checkout was discovered at `$context`
+		 *                         or ABSPATH, or anywhere higher.
+		 * @param string $context  The filesystem context (a path) against which
+		 *                         filesystem status should be checked.
 		 */
 		return apply_filters( 'automatic_updates_is_vcs_checkout', $checkout, $context );
 	}
@@ -190,6 +266,9 @@ class WP_Automatic_Updater {
 	 * @param string $context The filesystem context (a path) against which filesystem
 	 *                        access and status should be checked.
 	 * @return bool True if the item should be updated, false otherwise.
+	 *
+	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
+	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
 	 */
 	public function should_update( $type, $item, $context ) {
 		// Used to see if WP_Filesystem is set up to allow unattended updates.
@@ -215,10 +294,17 @@ class WP_Automatic_Updater {
 			return false;
 		}
 
-		// Next up, is this an item we can update?
+		/*
+		 * Next up, is this an item we can update?
+		 *
+		 * The inline @phpstan-var tags narrow $item by $type. This should be replaced with a conditional
+		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
+		 */
 		if ( 'core' === $type ) {
+			/** @phpstan-var Core_Update_Offer $item */
 			$update = Core_Upgrader::should_update_to_version( $item->current );
 		} elseif ( 'plugin' === $type || 'theme' === $type ) {
+			/** @phpstan-var (Plugin_Update_Offer|Theme_Update_Offer) $item */
 			$update = ! empty( $item->autoupdate );
 
 			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
@@ -228,11 +314,15 @@ class WP_Automatic_Updater {
 			}
 		} else {
 			$update = ! empty( $item->autoupdate );
+
+			if ( $update && wp_is_translation_update_deferred( $item ) ) {
+				$update = false;
+			}
 		}
 
 		// If the `disable_autoupdate` flag is set, override any user-choice, but allow filters.
 		if ( ! empty( $item->disable_autoupdate ) ) {
-			$update = $item->disable_autoupdate;
+			$update = false;
 		}
 
 		/**
@@ -277,6 +367,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
+			/** @phpstan-var Core_Update_Offer $item */
 			$php_compat = version_compare( PHP_VERSION, $item->php_version, '>=' );
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
@@ -291,6 +382,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
+			/** @phpstan-var (Plugin_Update_Offer|Theme_Update_Offer) $item */
 			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
 				return false;
 			}
@@ -356,27 +448,50 @@ class WP_Automatic_Updater {
 	 *
 	 * @param string $type The type of update being checked: 'core', 'theme', 'plugin', 'translation'.
 	 * @param object $item The update offer.
-	 * @return null|WP_Error
+	 * @return WP_Error|bool|string|array|null False if the item should not be updated, otherwise the result
+	 *                                         from the upgrader: the new WordPress version for core, true for
+	 *                                         a successful plugin or theme update, the installation result for
+	 *                                         a translation, or a WP_Error on failure. Null for a plugin, theme,
+	 *                                         or translation if the update failed before the package was
+	 *                                         installed.
+	 *
+	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
+	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
+	 * @phpstan-return (
+	 *     $type is 'core' ? string|false|WP_Error : (
+	 *         $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|WP_Error|null
+	 *     )
+	 * )
 	 */
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
 
+		/*
+		 * The inline @phpstan-var tags narrow $item by $type. This should be replaced with a conditional
+		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
+		 */
+		$upgrader = null;
+		$context  = null;
 		switch ( $type ) {
 			case 'core':
+				/** @phpstan-var Core_Update_Offer $item */
 				// The Core upgrader doesn't use the Upgrader's skin during the actual main part of the upgrade, instead, firing a filter.
 				add_filter( 'update_feedback', array( $skin, 'feedback' ) );
 				$upgrader = new Core_Upgrader( $skin );
 				$context  = ABSPATH;
 				break;
 			case 'plugin':
+				/** @phpstan-var Plugin_Update_Offer $item */
 				$upgrader = new Plugin_Upgrader( $skin );
 				$context  = WP_PLUGIN_DIR; // We don't support custom Plugin directories, or updates for WPMU_PLUGIN_DIR.
 				break;
 			case 'theme':
+				/** @phpstan-var Theme_Update_Offer $item */
 				$upgrader = new Theme_Upgrader( $skin );
 				$context  = get_theme_root( $item->theme );
 				break;
 			case 'translation':
+				/** @phpstan-var Translation_Update_Offer $item */
 				$upgrader = new Language_Pack_Upgrader( $skin );
 				$context  = WP_CONTENT_DIR; // WP_LANG_DIR;
 				break;
@@ -399,18 +514,21 @@ class WP_Automatic_Updater {
 		 */
 		do_action( 'pre_auto_update', $type, $item, $context );
 
+		$item_name     = null;
 		$upgrader_item = $item;
 		switch ( $type ) {
 			case 'core':
+				/** @phpstan-var Core_Update_Offer $item */
 				/* translators: %s: WordPress version. */
 				$skin->feedback( __( 'Updating to WordPress %s' ), $item->version );
 				/* translators: %s: WordPress version. */
 				$item_name = sprintf( __( 'WordPress %s' ), $item->version );
 				break;
 			case 'theme':
+				/** @phpstan-var Theme_Update_Offer $item */
 				$upgrader_item = $item->theme;
 				$theme         = wp_get_theme( $upgrader_item );
-				$item_name     = $theme->Get( 'Name' );
+				$item_name     = $theme->get( 'Name' );
 				// Add the current version so that it can be reported in the notification email.
 				$item->current_version = $theme->get( 'Version' );
 				if ( empty( $item->current_version ) ) {
@@ -420,6 +538,7 @@ class WP_Automatic_Updater {
 				$skin->feedback( __( 'Updating theme: %s' ), $item_name );
 				break;
 			case 'plugin':
+				/** @phpstan-var Plugin_Update_Offer $item */
 				$upgrader_item = $item->plugin;
 				$plugin_data   = get_plugin_data( $context . '/' . $upgrader_item );
 				$item_name     = $plugin_data['Name'];
@@ -432,6 +551,8 @@ class WP_Automatic_Updater {
 				$skin->feedback( __( 'Updating plugin: %s' ), $item_name );
 				break;
 			case 'translation':
+				/** @phpstan-var Translation_Update_Offer $item */
+				/** @var Language_Pack_Upgrader $upgrader */
 				$language_item_name = $upgrader->get_name_for_update( $item );
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
 				$item_name = sprintf( __( 'Translations for %s' ), $language_item_name );
@@ -443,6 +564,38 @@ class WP_Automatic_Updater {
 		$allow_relaxed_file_ownership = false;
 		if ( 'core' === $type && isset( $item->new_files ) && ! $item->new_files ) {
 			$allow_relaxed_file_ownership = true;
+		}
+
+		$was_active = null;
+		$is_debug   = WP_DEBUG && WP_DEBUG_LOG;
+		if ( 'plugin' === $type ) {
+			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @var string $upgrader_item */
+			$was_active = is_plugin_active( $upgrader_item );
+			if ( $is_debug ) {
+				error_log( '    Upgrading plugin ' . var_export( $item->slug, true ) . '...' );
+			}
+		}
+
+		if ( 'theme' === $type && $is_debug ) {
+			/** @phpstan-var Theme_Update_Offer $item */
+			error_log( '    Upgrading theme ' . var_export( $item->theme, true ) . '...' );
+		}
+
+		/*
+		 * Enable maintenance mode before upgrading the plugin or theme.
+		 *
+		 * This avoids potential non-fatal errors being detected
+		 * while scraping for a fatal error if some files are still
+		 * being moved.
+		 *
+		 * While these checks are intended only for plugins,
+		 * maintenance mode is enabled for all upgrade types as any
+		 * update could contain an error or warning, which could cause
+		 * the scrape to miss a fatal error in the plugin update.
+		 */
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( true );
 		}
 
 		// Boom, this site's about to get a whole new splash of paint!
@@ -459,6 +612,19 @@ class WP_Automatic_Updater {
 			)
 		);
 
+		/*
+		 * After WP_Upgrader::upgrade() completes, maintenance mode is disabled.
+		 *
+		 * Re-enable maintenance mode while attempting to detect fatal errors
+		 * and potentially rolling back.
+		 *
+		 * This avoids errors if the site is visited while fatal errors exist
+		 * or while files are still being moved.
+		 */
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( true );
+		}
+
 		// If the filesystem is unavailable, false is returned.
 		if ( false === $upgrade_result ) {
 			$upgrade_result = new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
@@ -469,8 +635,13 @@ class WP_Automatic_Updater {
 				&& ( 'up_to_date' === $upgrade_result->get_error_code()
 					|| 'locked' === $upgrade_result->get_error_code() )
 			) {
-				// These aren't actual errors, treat it as a skipped-update instead
-				// to avoid triggering the post-core update failure routines.
+				// Allow visitors to browse the site again.
+				$upgrader->maintenance_mode( false );
+
+				/*
+				 * These aren't actual errors, treat it as a skipped-update instead
+				 * to avoid triggering the post-core update failure routines.
+				 */
 				return false;
 			}
 
@@ -481,6 +652,105 @@ class WP_Automatic_Updater {
 			} else {
 				$skin->feedback( __( 'WordPress updated successfully.' ) );
 			}
+		}
+
+		if ( 'theme' === $type && $is_debug ) {
+			/** @phpstan-var Theme_Update_Offer $item */
+			error_log( '    Theme ' . var_export( $item->theme, true ) . ' has been upgraded.' );
+		}
+
+		if ( 'plugin' === $type ) {
+			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @var string $upgrader_item */
+			if ( $is_debug ) {
+				error_log( '    Plugin ' . var_export( $item->slug, true ) . ' has been upgraded.' );
+				if ( is_plugin_inactive( $upgrader_item ) ) {
+					error_log( '    ' . var_export( $upgrader_item, true ) . ' is inactive and will not be checked for fatal errors.' );
+				}
+			}
+
+			if ( $was_active && ! is_wp_error( $upgrade_result ) ) {
+
+				/*
+				 * The usual time limit is five minutes. However, as a loopback request
+				 * is about to be performed, increase the time limit to account for this.
+				 */
+				if ( function_exists( 'set_time_limit' ) ) {
+					set_time_limit( 10 * MINUTE_IN_SECONDS );
+				}
+
+				/*
+				 * Avoids a race condition when there are 2 sequential plugins that have
+				 * fatal errors. It seems a slight delay is required for the loopback to
+				 * use the updated plugin code in the request. This can cause the second
+				 * plugin's fatal error checking to be inaccurate, and may also affect
+				 * subsequent plugin checks.
+				 */
+				sleep( 2 );
+
+				if ( $this->has_fatal_error() ) {
+					$upgrade_result = new WP_Error();
+					$temp_backup    = array(
+						array(
+							'dir'  => 'plugins',
+							'slug' => $item->slug,
+							'src'  => WP_PLUGIN_DIR,
+						),
+					);
+
+					$backup_restored = $upgrader->restore_temp_backup( $temp_backup );
+					if ( is_wp_error( $backup_restored ) ) {
+						$upgrade_result->add(
+							'plugin_update_fatal_error_rollback_failed',
+							sprintf(
+								/* translators: %s: The plugin's slug. */
+								__( "The update for '%s' contained a fatal error. The previously installed version could not be restored." ),
+								$item->slug
+							)
+						);
+
+						$upgrade_result->merge_from( $backup_restored );
+					} else {
+						$upgrade_result->add(
+							'plugin_update_fatal_error_rollback_successful',
+							sprintf(
+								/* translators: %s: The plugin's slug. */
+								__( "The update for '%s' contained a fatal error. The previously installed version has been restored." ),
+								$item->slug
+							)
+						);
+
+						$backup_deleted = $upgrader->delete_temp_backup( $temp_backup );
+						if ( is_wp_error( $backup_deleted ) ) {
+							$upgrade_result->merge_from( $backup_deleted );
+						}
+					}
+
+					if ( null !== $this->fatal_error_message ) {
+						$upgrade_result->add( 'plugin_update_fatal_error', $this->fatal_error_message );
+					}
+
+					/*
+					 * Should emails not be working, log the message(s) so that
+					 * the log file contains context for the fatal error,
+					 * and whether a rollback was performed.
+					 *
+					 * `trigger_error()` is not used as it outputs a stack trace
+					 * to this location rather than to the fatal error, which will
+					 * appear above this entry in the log file.
+					 */
+					if ( $is_debug ) {
+						error_log( '    ' . implode( "\n", $upgrade_result->get_error_messages() ) );
+					}
+				} elseif ( $is_debug ) {
+					error_log( '    The update for ' . var_export( $item->slug, true ) . ' has no fatal errors.' );
+				}
+			}
+		}
+
+		// All processes are complete. Allow visitors to browse the site again.
+		if ( 'translation' !== $type ) {
+			$upgrader->maintenance_mode( false );
 		}
 
 		$this->update_results[ $type ][] = (object) array(
@@ -511,6 +781,12 @@ class WP_Automatic_Updater {
 			return;
 		}
 
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
+
+		if ( $is_debug ) {
+			error_log( 'Automatic updates starting...' );
+		}
+
 		// Don't automatically run these things, as we'll handle it ourselves.
 		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
 		remove_action( 'upgrader_process_complete', 'wp_version_check' );
@@ -521,22 +797,43 @@ class WP_Automatic_Updater {
 		wp_update_plugins(); // Check for plugin updates.
 		$plugin_updates = get_site_transient( 'update_plugins' );
 		if ( $plugin_updates && ! empty( $plugin_updates->response ) ) {
+			if ( $is_debug ) {
+				error_log( '  Automatic plugin updates starting...' );
+			}
+
 			foreach ( $plugin_updates->response as $plugin ) {
 				$this->update( 'plugin', $plugin );
 			}
+
 			// Force refresh of plugin update information.
 			wp_clean_plugins_cache();
+
+			if ( $is_debug ) {
+				error_log( '  Automatic plugin updates complete.' );
+			}
 		}
 
 		// Next, those themes we all love.
 		wp_update_themes();  // Check for theme updates.
 		$theme_updates = get_site_transient( 'update_themes' );
 		if ( $theme_updates && ! empty( $theme_updates->response ) ) {
+			if ( $is_debug ) {
+				error_log( '  Automatic theme updates starting...' );
+			}
+
 			foreach ( $theme_updates->response as $theme ) {
 				$this->update( 'theme', (object) $theme );
 			}
 			// Force refresh of theme update information.
 			wp_clean_themes_cache();
+
+			if ( $is_debug ) {
+				error_log( '  Automatic theme updates complete.' );
+			}
+		}
+
+		if ( $is_debug ) {
+			error_log( 'Automatic updates complete.' );
 		}
 
 		// Next, process any core update.
@@ -547,8 +844,10 @@ class WP_Automatic_Updater {
 			$this->update( 'core', $core_update );
 		}
 
-		// Clean up, and check for any pending translations.
-		// (Core_Upgrader checks for core updates.)
+		/*
+		 * Clean up, and check for any pending translations.
+		 * (Core_Upgrader checks for core updates.)
+		 */
 		$theme_stats = array();
 		if ( isset( $this->update_results['theme'] ) ) {
 			foreach ( $this->update_results['theme'] as $upgrade ) {
@@ -582,7 +881,7 @@ class WP_Automatic_Updater {
 
 		// Send debugging email to admin for all development installations.
 		if ( ! empty( $this->update_results ) ) {
-			$development_version = str_contains( get_bloginfo( 'version' ), '-' );
+			$development_version = str_contains( wp_get_wp_version(), '-' );
 
 			/**
 			 * Filters whether to send a debugging email for each automatic background update.
@@ -625,7 +924,7 @@ class WP_Automatic_Updater {
 	 * @param object $update_result The result of the core update. Includes the update offer and result.
 	 */
 	protected function after_core_update( $update_result ) {
-		$wp_version = get_bloginfo( 'version' );
+		$wp_version = wp_get_wp_version();
 
 		$core_update = $update_result->item;
 		$result      = $update_result->result;
@@ -637,8 +936,10 @@ class WP_Automatic_Updater {
 
 		$error_code = $result->get_error_code();
 
-		// Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
-		// We should not try to perform a background update again until there is a successful one-click update performed by the user.
+		/*
+		 * Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
+		 * We should not try to perform a background update again until there is a successful one-click update performed by the user.
+		 */
 		$critical = false;
 		if ( 'disk_full' === $error_code || str_contains( $error_code, '__copy_dir' ) ) {
 			$critical = true;
@@ -764,6 +1065,14 @@ class WP_Automatic_Updater {
 			return;
 		}
 
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
+		}
+
 		switch ( $type ) {
 			case 'success': // We updated.
 				/* translators: Site updated notification email subject. 1: Site title, 2: WordPress version. */
@@ -830,8 +1139,10 @@ class WP_Automatic_Updater {
 
 				$body .= "\n\n";
 
-				// Don't show this message if there is a newer version available.
-				// Potential for confusion, and also not useful for them to know at this point.
+				/*
+				 * Don't show this message if there is a newer version available.
+				 * Potential for confusion, and also not useful for them to know at this point.
+				 */
 				if ( 'fail' === $type && ! $newer_version_available ) {
 					$body .= __( 'An attempt was made, but your site could not be updated automatically.' ) . ' ';
 				}
@@ -902,8 +1213,10 @@ class WP_Automatic_Updater {
 			$body .= ' ' . __( 'Some data that describes the error your site encountered has been put together.' );
 			$body .= ' ' . __( 'Your hosting company, support forum volunteers, or a friendly developer may be able to use this information to help you:' );
 
-			// If we had a rollback and we're still critical, then the rollback failed too.
-			// Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
+			/*
+			 * If we had a rollback and we're still critical, then the rollback failed too.
+			 * Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
+			 */
 			if ( 'rollback_was_required' === $result->get_error_code() ) {
 				$errors = array( $result, $result->get_error_data()->update, $result->get_error_data()->rollback );
 			} else {
@@ -946,7 +1259,7 @@ class WP_Automatic_Updater {
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param array $email {
+		 * @param array  $email {
 		 *     Array of email arguments that will be passed to wp_mail().
 		 *
 		 *     @type string $to      The email recipient. An array of emails
@@ -963,8 +1276,11 @@ class WP_Automatic_Updater {
 		$email = apply_filters( 'auto_core_update_email', $email, $type, $core_update, $result );
 
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
-	}
 
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+	}
 
 	/**
 	 * Checks whether an email should be sent after attempting plugin or theme updates.
@@ -972,6 +1288,13 @@ class WP_Automatic_Updater {
 	 * @since 5.5.0
 	 *
 	 * @param array $update_results The results of update tasks.
+	 *
+	 * @phpstan-param array{
+	 *     core?: list<Core_Update_Result>,
+	 *     plugin?: list<Plugin_Update_Result>,
+	 *     theme?: list<Theme_Update_Result>,
+	 *     translation?: list<Translation_Update_Result>,
+	 * } $update_results
 	 */
 	protected function after_plugin_theme_update( $update_results ) {
 		$successful_updates = array();
@@ -1044,6 +1367,10 @@ class WP_Automatic_Updater {
 	 * @param string $type               The type of email to send. Can be one of 'success', 'fail', 'mixed'.
 	 * @param array  $successful_updates A list of updates that succeeded.
 	 * @param array  $failed_updates     A list of updates that failed.
+	 *
+	 * @phpstan-param 'success'|'fail'|'mixed' $type
+	 * @phpstan-param array{ plugin?: list<Plugin_Update_Result>, theme?: list<Theme_Update_Result> } $successful_updates
+	 * @phpstan-param array{ plugin?: list<Plugin_Update_Result>, theme?: list<Theme_Update_Result> } $failed_updates
 	 */
 	protected function send_plugin_theme_email( $type, $successful_updates, $failed_updates ) {
 		// No updates were attempted.
@@ -1077,6 +1404,14 @@ class WP_Automatic_Updater {
 			if ( ! $unique_failures ) {
 				return;
 			}
+		}
+
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
 		}
 
 		$body               = array();
@@ -1152,7 +1487,7 @@ class WP_Automatic_Updater {
 
 			// List failed plugin updates.
 			if ( ! empty( $failed_updates['plugin'] ) ) {
-				$body[] = __( 'These plugins failed to update:' );
+				$body[] = __( 'The following plugins failed to update. If there was a fatal error in the update, the previously installed version has been restored.' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
 					$body_message = '';
@@ -1182,6 +1517,13 @@ class WP_Automatic_Updater {
 					}
 
 					$body[] = $body_message;
+
+					if ( isset( $item->result ) && is_wp_error( $item->result ) ) {
+						$fatal_error = $item->result->get_error_message( 'plugin_update_fatal_error' );
+						if ( '' !== $fatal_error ) {
+							$body[] = '  ' . $fatal_error;
+						}
+					}
 
 					$past_failure_emails[ $item->item->plugin ] = $item->item->new_version;
 				}
@@ -1350,6 +1692,10 @@ class WP_Automatic_Updater {
 		if ( $result ) {
 			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
 		}
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 	}
 
 	/**
@@ -1358,9 +1704,12 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 */
 	protected function send_debug_email() {
-		$update_count = 0;
-		foreach ( $this->update_results as $type => $updates ) {
-			$update_count += count( $updates );
+		$admin_user = get_user_by( 'email', get_site_option( 'admin_email' ) );
+
+		if ( $admin_user ) {
+			$switched_locale = switch_to_user_locale( $admin_user->ID );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
 		}
 
 		$body     = array();
@@ -1379,7 +1728,7 @@ class WP_Automatic_Updater {
 			} else {
 				/* translators: %s: WordPress version. */
 				$body[] = sprintf( __( 'FAILED: WordPress failed to update to %s' ), $result->name );
-				$failures++;
+				++$failures;
 			}
 
 			$body[] = '';
@@ -1421,7 +1770,7 @@ class WP_Automatic_Updater {
 					if ( ! $item->result || is_wp_error( $item->result ) ) {
 						/* translators: %s: Name of plugin / theme / translation. */
 						$body[] = ' * ' . sprintf( __( 'FAILED: %s' ), $item->name );
-						$failures++;
+						++$failures;
 					}
 				}
 			}
@@ -1539,5 +1888,118 @@ Thanks! -- The WordPress Team"
 		$email = apply_filters( 'automatic_updates_debug_email', $email, $failures, $this->update_results );
 
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+	}
+
+	/**
+	 * Performs a loopback request to check for potential fatal errors.
+	 *
+	 * Fatal errors cannot be detected unless maintenance mode is enabled.
+	 *
+	 * @since 6.6.0
+	 * @since 7.2.0 Details of a detected fatal error are recorded for the update result.
+	 *
+	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
+	 *
+	 * @return bool Whether a fatal error was detected.
+	 */
+	protected function has_fatal_error() {
+		global $upgrading;
+
+		$this->fatal_error_message = null;
+
+		$maintenance_file = ABSPATH . '.maintenance';
+		if ( ! file_exists( $maintenance_file ) ) {
+			return false;
+		}
+
+		require $maintenance_file;
+		if ( ! is_int( $upgrading ) ) {
+			return false;
+		}
+
+		$scrape_key   = md5( $upgrading );
+		$scrape_nonce = (string) $upgrading;
+		$transient    = 'scrape_key_' . $scrape_key;
+		set_transient( $transient, $scrape_nonce, 30 );
+
+		$cookies       = wp_unslash( $_COOKIE );
+		$scrape_params = array(
+			'wp_scrape_key'   => $scrape_key,
+			'wp_scrape_nonce' => $scrape_nonce,
+		);
+		$headers       = array(
+			'Cache-Control' => 'no-cache',
+		);
+
+		// Include Basic auth in the loopback request.
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+		}
+
+		// Time to wait for loopback request to finish.
+		$timeout = 50; // 50 seconds.
+
+		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
+		if ( $is_debug ) {
+			error_log( '    Scraping home page...' );
+		}
+
+		$needle_start = "###### wp_scraping_result_start:$scrape_key ######";
+		$needle_end   = "###### wp_scraping_result_end:$scrape_key ######";
+		$url          = add_query_arg( $scrape_params, home_url( '/' ) );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
+		$response  = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+
+		if ( is_wp_error( $response ) ) {
+			$this->fatal_error_message = sprintf(
+				/* translators: %s: Error message. */
+				__( 'The loopback request to check for fatal errors failed: %s' ),
+				$response->get_error_message()
+			);
+
+			if ( $is_debug ) {
+				error_log( 'Loopback request failed: ' . $response->get_error_message() );
+			}
+			return true;
+		}
+
+		// If this outputs `true` in the log, it means there were no fatal errors detected.
+		if ( $is_debug ) {
+			error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
+		}
+
+		$body                   = wp_remote_retrieve_body( $response );
+		$scrape_result_position = strpos( $body, $needle_start );
+		$result                 = null;
+
+		if ( false !== $scrape_result_position ) {
+			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+			$result       = json_decode( trim( $error_output ), true );
+		}
+
+		if ( is_array( $result ) && isset( $result['type'] ) && ! empty( $result['message'] ) && is_string( $result['message'] ) ) {
+			/*
+			 * Only the first line of the message is kept, as the message for an uncaught exception
+			 * continues with a stack trace, which can include the values of function arguments.
+			 */
+			$this->fatal_error_message = sprintf(
+				'PHP Fatal error: %s in %s on line %d',
+				explode( "\n", $result['message'], 2 )[0],
+				isset( $result['file'] ) && is_string( $result['file'] ) ? $result['file'] : 'unknown',
+				isset( $result['line'] ) && is_numeric( $result['line'] ) ? (int) $result['line'] : 0
+			);
+		}
+
+		delete_transient( $transient );
+
+		// Only fatal errors will result in a 'type' key.
+		return isset( $result['type'] );
 	}
 }

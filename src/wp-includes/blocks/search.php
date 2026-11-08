@@ -8,6 +8,8 @@
 /**
  * Dynamically renders the `core/search` block.
  *
+ * @since 6.3.0 Using block.json `viewScript` to register script, and update `view_script_handles()` only when needed.
+ *
  * @param array $attributes The block attributes.
  *
  * @return string The search block markup.
@@ -27,12 +29,11 @@ function render_block_core_search( $attributes ) {
 
 	$input_id            = wp_unique_id( 'wp-block-search__input-' );
 	$classnames          = classnames_for_block_core_search( $attributes );
-	$show_label          = ( ! empty( $attributes['showLabel'] ) ) ? true : false;
-	$use_icon_button     = ( ! empty( $attributes['buttonUseIcon'] ) ) ? true : false;
+	$show_label          = ! empty( $attributes['showLabel'] );
+	$use_icon_button     = ! empty( $attributes['buttonUseIcon'] );
 	$show_button         = ( ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'] ) ? false : true;
 	$button_position     = $show_button ? $attributes['buttonPosition'] : null;
 	$query_params        = ( ! empty( $attributes['query'] ) ) ? $attributes['query'] : array();
-	$button_behavior     = ( ! empty( $attributes['buttonBehavior'] ) ) ? $attributes['buttonBehavior'] : 'default';
 	$button              = '';
 	$query_params_markup = '';
 	$inline_styles       = styles_for_block_core_search( $attributes );
@@ -42,6 +43,9 @@ function render_block_core_search( $attributes ) {
 		'button-inside' === $attributes['buttonPosition'];
 	// Border color classes need to be applied to the elements that have a border color.
 	$border_color_classes = get_border_color_classes_for_block_core_search( $attributes );
+	// This variable is a constant and its value is always false at this moment.
+	// It is defined this way because some values depend on it, in case it changes in the future.
+	$open_by_default = false;
 
 	$label_inner_html = empty( $attributes['label'] ) ? __( 'Search' ) : wp_kses_post( $attributes['label'] );
 	$label            = new WP_HTML_Tag_Processor( sprintf( '<label %1$s>%2$s</label>', $inline_styles['label'], $label_inner_html ) );
@@ -65,15 +69,27 @@ function render_block_core_search( $attributes ) {
 	if ( ! empty( $typography_classes ) ) {
 		$input_classes[] = $typography_classes;
 	}
+	if ( ! $show_button && ! empty( $color_classes ) ) {
+		$input_classes[] = $color_classes;
+	}
 	if ( $input->next_tag() ) {
 		$input->add_class( implode( ' ', $input_classes ) );
 		$input->set_attribute( 'id', $input_id );
-		$input->set_attribute( 'value', get_search_query() );
+		$input->set_attribute( 'value', get_search_query( false ) );
 		$input->set_attribute( 'placeholder', $attributes['placeholder'] );
-		if ( 'button-only' === $button_position && 'expand-searchfield' === $button_behavior ) {
+
+		// If it's interactive, enqueue the script module and add the directives.
+		$is_expandable_searchfield = 'button-only' === $button_position;
+		if ( $is_expandable_searchfield ) {
+			wp_enqueue_script_module( '@wordpress/block-library/search/view' );
+
+			$input->set_attribute( 'data-wp-bind--aria-hidden', '!context.isSearchInputVisible' );
+			$input->set_attribute( 'data-wp-bind--tabindex', 'state.tabindex' );
+
+			// Adding these attributes manually is needed until the Interactivity API
+			// SSR logic is added to core.
 			$input->set_attribute( 'aria-hidden', 'true' );
 			$input->set_attribute( 'tabindex', '-1' );
-			wp_enqueue_script( 'wp-block--search-view', plugins_url( 'search/view.min.js', __FILE__ ) );
 		}
 	}
 
@@ -118,37 +134,100 @@ function render_block_core_search( $attributes ) {
 
 		if ( $button->next_tag() ) {
 			$button->add_class( implode( ' ', $button_classes ) );
-			if ( 'expand-searchfield' === $attributes['buttonBehavior'] && 'button-only' === $attributes['buttonPosition'] ) {
+			if ( 'button-only' === $attributes['buttonPosition'] ) {
+				$button->set_attribute( 'data-wp-bind--aria-label', 'state.ariaLabel' );
+				$button->set_attribute( 'data-wp-bind--aria-controls', 'state.ariaControls' );
+				$button->set_attribute( 'data-wp-bind--aria-expanded', 'context.isSearchInputVisible' );
+				$button->set_attribute( 'data-wp-bind--type', 'state.type' );
+				$button->set_attribute( 'data-wp-on--click', 'actions.openSearchInput' );
+
+				// Adding these attributes manually is needed until the Interactivity
+				// API SSR logic is added to core.
 				$button->set_attribute( 'aria-label', __( 'Expand search field' ) );
 				$button->set_attribute( 'aria-controls', 'wp-block-search__input-' . $input_id );
 				$button->set_attribute( 'aria-expanded', 'false' );
+				$button->set_attribute( 'type', 'button' );
 			} else {
 				$button->set_attribute( 'aria-label', wp_strip_all_tags( $attributes['buttonText'] ) );
 			}
 		}
 	}
 
-	$field_markup_classes = $is_button_inside ? $border_color_classes : '';
-	$field_markup         = sprintf(
-		'<div class="wp-block-search__inside-wrapper %s" %s>%s</div>',
-		esc_attr( $field_markup_classes ),
+	$field_markup_classes = array(
+		'wp-block-search__inside-wrapper',
+	);
+	if ( $is_button_inside && ! empty( $border_color_classes ) ) {
+		$field_markup_classes[] = $border_color_classes;
+	}
+	$field_markup       = sprintf(
+		'<div class="%s" %s>%s</div>',
+		esc_attr( implode( ' ', $field_markup_classes ) ),
 		$inline_styles['wrapper'],
 		$input . $query_params_markup . $button
 	);
-	$wrapper_attributes   = get_block_wrapper_attributes(
+	$wrapper_attributes = get_block_wrapper_attributes(
 		array( 'class' => $classnames )
 	);
+	$form_directives    = '';
+
+	// If it's interactive, add the directives.
+	if ( $is_expandable_searchfield ) {
+		$aria_label_expanded  = __( 'Submit Search' );
+		$aria_label_collapsed = __( 'Expand search field' );
+		$form_context         = wp_interactivity_data_wp_context(
+			array(
+				'isSearchInputVisible' => $open_by_default,
+				'inputId'              => $input_id,
+				'ariaLabelExpanded'    => $aria_label_expanded,
+				'ariaLabelCollapsed'   => $aria_label_collapsed,
+			)
+		);
+		$form_directives      = '
+		 data-wp-interactive="core/search"
+		 ' . $form_context . '
+		 data-wp-class--wp-block-search__searchfield-hidden="!context.isSearchInputVisible"
+		 data-wp-on--keydown="actions.handleSearchKeydown"
+		 data-wp-on--focusout="actions.handleSearchFocusout"
+		';
+	}
+
+	/*
+	 * The semantic <search> landmark wrapper is opt-in to preserve back
+	 * compatibility with themes targeting <form role="search">. The block
+	 * exposes a per-instance HTML element selector with three values:
+	 *
+	 *   - 'search' forces the <search> wrapper
+	 *   - 'form'   forces the original <form role="search"> markup
+	 *   - empty    defers to the 'search-element' html5 sub-feature
+	 *              ( add_theme_support( 'html5', array( 'search-element' ) ) ),
+	 *              matching the opt-in added to get_search_form() in core
+	 */
+	$tag_name           = $attributes['tagName'] ?? '';
+	$use_search_element = 'search' === $tag_name || ( '' === $tag_name && current_theme_supports( 'html5', 'search-element' ) );
+
+	/*
+	 * Only the wrapper markup differs between the semantic <search> landmark
+	 * and the classic <form role="search">. Positional specifiers keep a
+	 * single argument list usable by both formats, since the action URL
+	 * precedes the wrapper attributes in the <search> variant.
+	 */
+	$format = $use_search_element
+		? '<search %2$s %3$s><form method="get" action="%1$s">%4$s</form></search>'
+		: '<form role="search" method="get" action="%1$s" %2$s %3$s>%4$s</form>';
 
 	return sprintf(
-		'<form role="search" method="get" action="%s" %s>%s</form>',
+		$format,
 		esc_url( home_url( '/' ) ),
 		$wrapper_attributes,
+		$form_directives,
 		$label . $field_markup
 	);
 }
 
 /**
  * Registers the `core/search` block on the server.
+ *
+ * @since 5.2.0
  */
 function register_block_core_search() {
 	register_block_type_from_metadata(
@@ -162,6 +241,8 @@ add_action( 'init', 'register_block_core_search' );
 
 /**
  * Builds the correct top level classnames for the 'core/search' block.
+ *
+ * @since 5.6.0
  *
  * @param array $attributes The block attributes.
  *
@@ -184,10 +265,7 @@ function classnames_for_block_core_search( $attributes ) {
 		}
 
 		if ( 'button-only' === $attributes['buttonPosition'] ) {
-			$classnames[] = 'wp-block-search__button-only';
-			if ( ! empty( $attributes['buttonBehavior'] ) && 'expand-searchfield' === $attributes['buttonBehavior'] ) {
-				$classnames[] = 'wp-block-search__button-behavior-expand wp-block-search__searchfield-hidden';
-			}
+			$classnames[] = 'wp-block-search__button-only wp-block-search__searchfield-hidden';
 		}
 	}
 
@@ -210,17 +288,17 @@ function classnames_for_block_core_search( $attributes ) {
  * or not, the generated rule is injected into the appropriate collection of
  * styles for later application in the block's markup.
  *
+ * @since 6.1.0
+ *
  * @param array  $attributes     The block attributes.
  * @param string $property       Border property to generate rule for e.g. width or color.
  * @param string $side           Optional side border. The dictates the value retrieved and final CSS property.
  * @param array  $wrapper_styles Current collection of wrapper styles.
  * @param array  $button_styles  Current collection of button styles.
  * @param array  $input_styles   Current collection of input styles.
- *
- * @return void
  */
 function apply_block_core_search_border_style( $attributes, $property, $side, &$wrapper_styles, &$button_styles, &$input_styles ) {
-	$is_button_inside = 'button-inside' === _wp_array_get( $attributes, array( 'buttonPosition' ), false );
+	$is_button_inside = isset( $attributes['buttonPosition'] ) && 'button-inside' === $attributes['buttonPosition'];
 
 	$path = array( 'style', 'border', $property );
 
@@ -257,13 +335,13 @@ function apply_block_core_search_border_style( $attributes, $property, $side, &$
  * injects rules into the provided wrapper, button and input style arrays for
  * uniform "flat" borders or those with individual sides configured.
  *
+ * @since 6.1.0
+ *
  * @param array  $attributes     The block attributes.
  * @param string $property       Border property to generate rule for e.g. width or color.
  * @param array  $wrapper_styles Current collection of wrapper styles.
  * @param array  $button_styles  Current collection of button styles.
  * @param array  $input_styles   Current collection of input styles.
- *
- * @return void
  */
 function apply_block_core_search_border_styles( $attributes, $property, &$wrapper_styles, &$button_styles, &$input_styles ) {
 	apply_block_core_search_border_style( $attributes, $property, null, $wrapper_styles, $button_styles, $input_styles );
@@ -280,7 +358,9 @@ function apply_block_core_search_border_styles( $attributes, $property, &$wrappe
  * inner input or button and a second for the inner wrapper should the block
  * be positioning the button "inside".
  *
- * @param  array $attributes The block attributes.
+ * @since 5.8.0
+ *
+ * @param array $attributes The block attributes.
  *
  * @return array Style HTML attribute.
  */
@@ -304,6 +384,20 @@ function styles_for_block_core_search( $attributes ) {
 		);
 	}
 
+	// Add minimum width and height styles.
+	$dimensions_styles = wp_style_engine_get_styles(
+		array(
+			'dimensions' => array(
+				'minWidth'  => $attributes['style']['dimensions']['minWidth'] ?? null,
+				'minHeight' => $attributes['style']['dimensions']['minHeight'] ?? null,
+			),
+		)
+	);
+
+	if ( ! empty( $dimensions_styles['css'] ) ) {
+		$wrapper_styles[] = $dimensions_styles['css'];
+	}
+
 	// Add border width and color styles.
 	apply_block_core_search_border_styles( $attributes, 'width', $wrapper_styles, $button_styles, $input_styles );
 	apply_block_core_search_border_styles( $attributes, 'color', $wrapper_styles, $button_styles, $input_styles );
@@ -319,6 +413,13 @@ function styles_for_block_core_search( $attributes ) {
 		if ( is_array( $border_radius ) ) {
 			// Apply styles for individual corner border radii.
 			foreach ( $border_radius as $key => $value ) {
+				// Get border-radius CSS variable from preset value if provided.
+				if ( is_string( $value ) && str_contains( $value, 'var:preset|border-radius|' ) ) {
+					$index_to_splice = strrpos( $value, '|' ) + 1;
+					$slug            = _wp_to_kebab_case( substr( $value, $index_to_splice ) );
+					$value           = "var(--wp--preset--border-radius--$slug)";
+				}
+
 				if ( null !== $value ) {
 					// Convert camelCase key to kebab-case.
 					$name = strtolower( preg_replace( '/(?<!^)[A-Z]/', '-$0', $key ) );
@@ -334,7 +435,7 @@ function styles_for_block_core_search( $attributes ) {
 
 					// Add adjusted border radius styles for the wrapper element
 					// if button is positioned inside.
-					if ( $is_button_inside && intval( $value ) !== 0 ) {
+					if ( $is_button_inside && ( intval( $value ) !== 0 || str_contains( $value, 'var(--wp--preset--border-radius--' ) ) ) {
 						$wrapper_styles[] = sprintf(
 							'border-%s-radius: calc(%s + %s);',
 							esc_attr( $name ),
@@ -346,7 +447,14 @@ function styles_for_block_core_search( $attributes ) {
 			}
 		} else {
 			// Numeric check is for backwards compatibility purposes.
-			$border_radius   = is_numeric( $border_radius ) ? $border_radius . 'px' : $border_radius;
+			$border_radius = is_numeric( $border_radius ) ? $border_radius . 'px' : $border_radius;
+			// Get border-radius CSS variable from preset value if provided.
+			if ( is_string( $border_radius ) && str_contains( $border_radius, 'var:preset|border-radius|' ) ) {
+				$index_to_splice = strrpos( $border_radius, '|' ) + 1;
+				$slug            = _wp_to_kebab_case( substr( $border_radius, $index_to_splice ) );
+				$border_radius   = "var(--wp--preset--border-radius--$slug)";
+			}
+
 			$border_style    = sprintf( 'border-radius: %s;', esc_attr( $border_radius ) );
 			$input_styles[]  = $border_style;
 			$button_styles[] = $border_style;
@@ -363,20 +471,69 @@ function styles_for_block_core_search( $attributes ) {
 		}
 	}
 
+	// Shadow lands on the same elements as the border.
+	if ( ! empty( $attributes['style']['shadow'] ) && is_string( $attributes['style']['shadow'] ) ) {
+		$shadow_styles = wp_style_engine_get_styles( array( 'shadow' => $attributes['style']['shadow'] ) );
+
+		if ( ! empty( $shadow_styles['css'] ) ) {
+			if ( $is_button_inside ) {
+				$wrapper_styles[] = $shadow_styles['css'];
+			} else {
+				$button_styles[] = $shadow_styles['css'];
+				$input_styles[]  = $shadow_styles['css'];
+			}
+		}
+	}
+
+	$use_input_for_colors = ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'];
+
 	// Add color styles.
 	$has_text_color = ! empty( $attributes['style']['color']['text'] );
 	if ( $has_text_color ) {
-		$button_styles[] = sprintf( 'color: %s;', $attributes['style']['color']['text'] );
+		$text_color_style = sprintf( 'color: %s;', $attributes['style']['color']['text'] );
+		if ( $use_input_for_colors ) {
+			$input_styles[] = $text_color_style;
+		} else {
+			$button_styles[] = $text_color_style;
+		}
 	}
 
 	$has_background_color = ! empty( $attributes['style']['color']['background'] );
 	if ( $has_background_color ) {
-		$button_styles[] = sprintf( 'background-color: %s;', $attributes['style']['color']['background'] );
+		$background_color_style = sprintf( 'background-color: %s;', $attributes['style']['color']['background'] );
+		if ( $use_input_for_colors ) {
+			$input_styles[] = $background_color_style;
+		} else {
+			$button_styles[] = $background_color_style;
+		}
 	}
 
 	$has_custom_gradient = ! empty( $attributes['style']['color']['gradient'] );
 	if ( $has_custom_gradient ) {
-		$button_styles[] = sprintf( 'background: %s;', $attributes['style']['color']['gradient'] );
+		$custom_gradient_style = sprintf( 'background: %s;', $attributes['style']['color']['gradient'] );
+		if ( $use_input_for_colors ) {
+			$input_styles[] = $custom_gradient_style;
+		} else {
+			$button_styles[] = $custom_gradient_style;
+		}
+	}
+
+	// Background skips serialization, so it follows color onto the same element.
+	if ( ! empty( $attributes['style']['background']['gradient'] ) ) {
+		$background_styles = wp_style_engine_get_styles(
+			array(
+				'background' => array(
+					'gradient' => $attributes['style']['background']['gradient'],
+				),
+			)
+		);
+		if ( ! empty( $background_styles['css'] ) ) {
+			if ( $use_input_for_colors ) {
+				$input_styles[] = $background_styles['css'];
+			} else {
+				$button_styles[] = $background_styles['css'];
+			}
+		}
 	}
 
 	// Get typography styles to be shared across inner elements.
@@ -406,7 +563,9 @@ function styles_for_block_core_search( $attributes ) {
 }
 
 /**
- * Returns typography classnames depending on whether there are named font sizes/families .
+ * Returns typography classnames depending on whether there are named font sizes/families.
+ *
+ * @since 6.1.0
  *
  * @param array $attributes The block attributes.
  *
@@ -431,6 +590,8 @@ function get_typography_classes_for_block_core_search( $attributes ) {
 /**
  * Returns typography styles to be included in an HTML style tag.
  * This excludes text-decoration, which is applied only to the label and button elements of the search block.
+ *
+ * @since 6.1.0
  *
  * @param array $attributes The block attributes.
  *
@@ -482,6 +643,8 @@ function get_typography_styles_for_block_core_search( $attributes ) {
 /**
  * Returns border color classnames depending on whether there are named or custom border colors.
  *
+ * @since 5.9.0
+ *
  * @param array $attributes The block attributes.
  *
  * @return string The border color classnames to be applied to the block elements.
@@ -505,6 +668,8 @@ function get_border_color_classes_for_block_core_search( $attributes ) {
 /**
  * Returns color classnames depending on whether there are named or custom text and background colors.
  *
+ * @since 5.9.0
+ *
  * @param array $attributes The block attributes.
  *
  * @return string The color classnames to be applied to the block elements.
@@ -527,11 +692,13 @@ function get_color_classes_for_block_core_search( $attributes ) {
 	$has_custom_background_color = ! empty( $attributes['style']['color']['background'] );
 	$has_named_gradient          = ! empty( $attributes['gradient'] );
 	$has_custom_gradient         = ! empty( $attributes['style']['color']['gradient'] );
+	$has_background_gradient     = ! empty( $attributes['style']['background']['gradient'] );
 	if (
 		$has_named_background_color ||
 		$has_custom_background_color ||
 		$has_named_gradient ||
-		$has_custom_gradient
+		$has_custom_gradient ||
+		$has_background_gradient
 	) {
 		$classnames[] = 'has-background';
 	}

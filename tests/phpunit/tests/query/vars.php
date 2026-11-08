@@ -11,7 +11,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 	 * @ticket 35115
 	 * @ticket 51154
 	 */
-	public function testPublicQueryVarsAreAsExpected() {
+	public function test_public_query_vars_are_as_expected() {
 		global $wp;
 
 		// Re-initialize any dynamically-added public query vars:
@@ -67,18 +67,17 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				'cpage',
 				'post_type',
 				'embed',
+				'random',
 
 				// Dynamically added public query vars:
 				'post_format',
 				'rest_route',
 				'sitemap',
 				'sitemap-subtype',
-				'sitemap-stylesheet',
 
 			),
 			$wp->public_query_vars,
 			'Care should be taken when introducing new public query vars. See https://core.trac.wordpress.org/ticket/35115'
 		);
 	}
-
 }

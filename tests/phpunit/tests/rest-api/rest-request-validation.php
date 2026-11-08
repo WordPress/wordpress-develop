@@ -202,5 +202,4 @@ class WP_Test_REST_Request_Validation extends WP_Test_REST_TestCase {
 		$ret = rest_validate_request_arg( 9, $request, 'lessthanmax' );
 		$this->assertTrue( $ret );
 	}
-
 }

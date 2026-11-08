@@ -82,20 +82,22 @@ class WP_List_Util {
 	 * Key represents property name, and value represents property value.
 	 *
 	 * If an object has more properties than those specified in arguments,
-	 * that will not disqualify it. When using the 'AND' operator,
+	 * that will not disqualify it. When using the 'and' operator,
 	 * any missing properties will disqualify it.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array  $args     Optional. An array of key => value arguments to match
 	 *                         against each object. Default empty array.
-	 * @param string $operator Optional. The logical operation to perform. 'AND' means
-	 *                         all elements from the array must match. 'OR' means only
-	 *                         one element needs to match. 'NOT' means no elements may
-	 *                         match. Default 'AND'.
+	 * @param string $operator Optional. The logical operation to perform. 'and' means
+	 *                         all elements from the array must match. 'or' means only
+	 *                         one element needs to match. 'not' means no elements may
+	 *                         match. The value is case-insensitive. Default 'and'.
 	 * @return array Array of found values.
+	 *
+	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
 	 */
-	public function filter( $args = array(), $operator = 'AND' ) {
+	public function filter( $args = array(), $operator = 'and' ) {
 		if ( empty( $args ) ) {
 			return $this->output;
 		}
@@ -116,13 +118,13 @@ class WP_List_Util {
 			foreach ( $args as $m_key => $m_value ) {
 				if ( is_array( $obj ) ) {
 					// Treat object as an array.
-					if ( array_key_exists( $m_key, $obj ) && ( $m_value === $obj[ $m_key ] ) ) {
-						$matched++;
+					if ( array_key_exists( $m_key, $obj ) && ( $m_value == $obj[ $m_key ] ) ) {
+						++$matched;
 					}
 				} elseif ( is_object( $obj ) ) {
 					// Treat object as an object.
-					if ( isset( $obj->{$m_key} ) && ( $m_value === $obj->{$m_key} ) ) {
-						$matched++;
+					if ( isset( $obj->{$m_key} ) && ( $m_value == $obj->{$m_key} ) ) {
+						++$matched;
 					}
 				}
 			}
@@ -276,7 +278,7 @@ class WP_List_Util {
 				continue;
 			}
 
-			if ( $a[ $field ] === $b[ $field ] ) {
+			if ( $a[ $field ] == $b[ $field ] ) {
 				continue;
 			}
 

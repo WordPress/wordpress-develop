@@ -8,14 +8,29 @@
 	"textdomain": "default",
 	"attributes": {
 		"content": {
-			"type": "string",
-			"source": "html",
-			"selector": "code"
+			"type": "rich-text",
+			"source": "rich-text",
+			"selector": "code",
+			"__unstablePreserveWhiteSpace": true,
+			"role": "content"
 		}
 	},
 	"supports": {
 		"align": [ "wide" ],
 		"anchor": true,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -31,7 +46,11 @@
 		},
 		"spacing": {
 			"margin": [ "top", "bottom" ],
-			"padding": true
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
 		},
 		"__experimentalBorder": {
 			"radius": true,
@@ -51,6 +70,10 @@
 				"background": true,
 				"text": true
 			}
+		},
+		"shadow": true,
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-code"

@@ -4,6 +4,7 @@
  *
  * @package WordPress
  *
+ * @group functions
  * @group cache
  *
  * @covers ::_get_non_cached_ids
@@ -44,7 +45,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_valid_ids_should_be_returned_as_integers() {
+	public static function data_valid_ids_should_be_returned_as_integers() {
 		return array(
 			'(int) 1'    => array( 1 ),
 			'(string) 1' => array( '1' ),
@@ -86,7 +87,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_invalid_cache_ids_should_throw_a_notice() {
+	public static function data_invalid_cache_ids_should_throw_a_notice() {
 		return array(
 			'null'         => array( null ),
 			'false'        => array( false ),
@@ -97,7 +98,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 			'empty string' => array( '' ),
 			'array'        => array( array( 1 ) ),
 			'empty array'  => array( array() ),
-			'stdClass'     => array( new stdClass ),
+			'stdClass'     => array( new stdClass() ),
 		);
 	}
 }

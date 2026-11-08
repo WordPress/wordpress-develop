@@ -4,7 +4,7 @@ require_once __DIR__ . '/class-basic-object.php';
 /**
  * Retrieves PHPUnit runner version.
  *
- * @return double The version number.
+ * @return string|int The version number, or 0 if PHPUnit is not loaded.
  */
 function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
@@ -81,7 +81,7 @@ function tests_add_filter( $hook_name, $callback, $priority = 10, $accepted_args
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
 function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	if ( is_string( $callback ) ) {
@@ -89,26 +89,42 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	}
 
 	if ( is_object( $callback ) ) {
-		// Closures are currently implemented as objects.
-		$callback = array( $callback, '' );
-	} else {
-		$callback = (array) $callback;
+		/*
+		 * The prefix keeps the ID from being the decimal representation of an integer. PHP casts such a
+		 * string to int when it is used as an array key, which would change the type of the keys in
+		 * WP_Hook::$callbacks and break consumers that pass them to string functions.
+		 */
+		return 'spl_object_id:' . spl_object_id( $callback );
+	}
+
+	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+		return null;
 	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
-		return spl_object_hash( $callback[0] ) . $callback[1];
+		return ( (string) spl_object_id( $callback[0] ) ) . $callback[1];
 	} elseif ( is_string( $callback[0] ) ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
 	}
+
+	return null;
 }
 
 /**
- * Deletes all data from the database.
+ * Deletes all data from the database, except:
+ * - The default category.
+ * - The default user.
  */
 function _delete_all_data() {
 	global $wpdb;
+
+	// Retrieve all attachment posts, and delete them along with the attached media.
+	$attachments = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment'" );
+	foreach ( $attachments as $attachment ) {
+		wp_delete_attachment( $attachment, true );
+	}
 
 	foreach ( array(
 		$wpdb->posts,
@@ -118,7 +134,7 @@ function _delete_all_data() {
 		$wpdb->term_relationships,
 		$wpdb->termmeta,
 	) as $table ) {
-		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
 	}
 
@@ -126,7 +142,7 @@ function _delete_all_data() {
 		$wpdb->terms,
 		$wpdb->term_taxonomy,
 	) as $table ) {
-		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table} WHERE term_id != 1" );
 	}
 
@@ -227,8 +243,13 @@ function _wp_die_handler_filter_exit() {
 function _wp_die_handler_txt( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
+	$message = html_entity_decode( strip_tags( $message ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
+
+	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
+	echo "\033[0m";
 
 	if ( ! empty( $title ) ) {
 		echo "Title: $title\n";
@@ -259,8 +280,13 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 function _wp_die_handler_exit( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
+	$message = html_entity_decode( strip_tags( $message ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
+
+	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
 	echo "Message: $message\n";
+	echo "\033[0m";
 
 	if ( ! empty( $title ) ) {
 		echo "Title: $title\n";
@@ -280,6 +306,13 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	exit( 1 );
 }
 
+/*
+ * Permalink structure used by default in the test suite, matching the default
+ * for new installs. Tests that need plain permalinks should call
+ * `$this->set_permalink_structure( '' )`.
+ */
+define( 'WP_TESTS_DEFAULT_PERMALINK_STRUCTURE', '/%year%/%monthnum%/%day%/%postname%/' );
+
 /**
  * Set a permalink structure.
  *
@@ -289,7 +322,7 @@ function _wp_die_handler_exit( $message, $title, $args ) {
  * @since 4.2.0
  */
 function _set_default_permalink_structure_for_tests() {
-	update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	update_option( 'permalink_structure', WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 }
 
 /**
@@ -320,6 +353,17 @@ function _upload_dir_https( $uploads ) {
 }
 
 /**
+ * Builds the upload base URL used throughout the test suite.
+ *
+ * @param string $path   Path/filename to append after the uploads URL. No leading slash needed.
+ * @param string $scheme URL scheme, 'http' or 'https'.
+ * @return string The upload URL.
+ */
+function _upload_get_url( $path = '', $scheme = 'http' ) {
+	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( UPLOADS ) . ltrim( $path, '/' );
+}
+
+/**
  * Use the Spy_REST_Server class for the REST server.
  *
  * @return string The server class name.
@@ -339,10 +383,75 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
+	// Block types.
 	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+
+	// Block binding sources.
+	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
+	remove_action( 'init', '_register_block_bindings_post_data_source' );
+	remove_action( 'init', '_register_block_bindings_post_meta_source' );
+	remove_action( 'init', '_register_block_bindings_term_data_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register font collections can cause
+ * errors. To avoid this, unhook the font registration functions.
+ *
+ * @since 6.5.0
+ */
+function _unhook_font_registration() {
+	remove_action( 'init', '_wp_register_default_font_collections' );
+}
+tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register icon collections and icons
+ * can cause errors. To avoid this, unhook the icon registration functions.
+ *
+ * @since 7.1.0
+ */
+function _unhook_icon_registration() {
+	remove_action( 'init', '_wp_register_default_icon_collections', 0 );
+	remove_action( 'init', '_wp_register_default_icons' );
+}
+tests_add_filter( 'init', '_unhook_icon_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register connector settings can cause
+ * duplicate registrations. To avoid this, unhook the connector registration functions.
+ *
+ * @since 7.0.0
+ */
+function _unhook_connector_registration() {
+	remove_action( 'init', '_wp_register_default_connector_settings', 20 );
+	remove_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
+}
+tests_add_filter( 'init', '_unhook_connector_registration', 1000 );
+
+/**
+ * Before the abilities API categories init action runs, unhook the core ability
+ * categories registration function to prevent core categories from being registered
+ * during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_ability_categories_registration() {
+	remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+}
+tests_add_filter( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+
+/**
+ * Before the abilities API init action runs, unhook the core abilities
+ * registration function to prevent core abilities from being registered during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_abilities_registration() {
+	remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+}
+tests_add_filter( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );

@@ -101,7 +101,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'edit_term_link',
-			function( $location, $term ) {
+			function ( $location, $term ) {
 				$this->assertIsInt( $term );
 			},
 			10,
@@ -116,7 +116,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_edit_term_link() {
+	public static function data_edit_term_link() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',

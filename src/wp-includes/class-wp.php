@@ -13,9 +13,10 @@ class WP {
 	 * Long list of public query variables.
 	 *
 	 * @since 2.0.0
+	 * @since 7.2.0 Added the `random` query variable.
 	 * @var string[]
 	 */
-	public $public_query_vars = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed' );
+	public $public_query_vars = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed', 'random' );
 
 	/**
 	 * Private query variables.
@@ -167,7 +168,7 @@ class WP {
 			$error               = '404';
 			$this->did_permalink = true;
 
-			$pathinfo         = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '';
+			$pathinfo         = $_SERVER['PATH_INFO'] ?? '';
 			list( $pathinfo ) = explode( '?', $pathinfo );
 			$pathinfo         = str_replace( '%', '%25', $pathinfo );
 
@@ -200,17 +201,18 @@ class WP {
 				$self     = trim( $self, '/' );
 			}
 
-			// The requested permalink is in $pathinfo for path info requests and
-			// $req_uri for other requests.
+			// The requested permalink is in $pathinfo for path info requests and $req_uri for other requests.
 			if ( ! empty( $pathinfo ) && ! preg_match( '|^.*' . $wp_rewrite->index . '$|', $pathinfo ) ) {
 				$requested_path = $pathinfo;
 			} else {
 				// If the request uri is the index, blank it out so that we don't try to match it against a rule.
-				if ( $req_uri == $wp_rewrite->index ) {
+				if ( $req_uri === $wp_rewrite->index ) {
 					$req_uri = '';
 				}
+
 				$requested_path = $req_uri;
 			}
+
 			$requested_file = $req_uri;
 
 			$this->request = $requested_path;
@@ -227,23 +229,32 @@ class WP {
 			} else {
 				foreach ( (array) $rewrite as $match => $query ) {
 					// If the requested file is the anchor of the match, prepend it to the path info.
-					if ( ! empty( $requested_file ) && str_starts_with( $match, $requested_file ) && $requested_file != $requested_path ) {
+					if ( ! empty( $requested_file )
+						&& str_starts_with( $match, $requested_file )
+						&& $requested_file !== $requested_path
+					) {
 						$request_match = $requested_file . '/' . $requested_path;
 					}
 
-					if ( preg_match( "#^$match#", $request_match, $matches ) ||
-						preg_match( "#^$match#", urldecode( $request_match ), $matches ) ) {
+					if ( preg_match( "#^$match#", $request_match, $matches )
+						|| preg_match( "#^$match#", urldecode( $request_match ), $matches )
+					) {
 
-						if ( $wp_rewrite->use_verbose_page_rules && preg_match( '/pagename=\$matches\[([0-9]+)\]/', $query, $varmatch ) ) {
+						if ( $wp_rewrite->use_verbose_page_rules
+							&& preg_match( '/pagename=\$matches\[([0-9]+)\]/', $query, $varmatch )
+						) {
 							// This is a verbose page match, let's check to be sure about it.
 							$page = get_page_by_path( $matches[ $varmatch[1] ] );
+
 							if ( ! $page ) {
 								continue;
 							}
 
 							$post_status_obj = get_post_status_object( $page->post_status );
+
 							if ( ! $post_status_obj->public && ! $post_status_obj->protected
-								&& ! $post_status_obj->private && $post_status_obj->exclude_from_search ) {
+								&& ! $post_status_obj->private && $post_status_obj->exclude_from_search
+							) {
 								continue;
 							}
 						}
@@ -267,14 +278,14 @@ class WP {
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' == $error ) {
-					unset( $error, $_GET['error'] );
-				}
+				// Clear the 404 error var since we found something.
+				unset( $error, $_GET['error'] );
 			}
 
 			// If req_uri is empty or if it is a request for ourself, unset error.
-			if ( empty( $requested_path ) || $requested_file == $self || str_contains( $_SERVER['PHP_SELF'], 'wp-admin/' ) ) {
+			if ( empty( $requested_path ) || $requested_file === $self
+				|| str_contains( $_SERVER['PHP_SELF'], 'wp-admin/' )
+			) {
 				unset( $error, $_GET['error'] );
 
 				if ( isset( $perma_query_vars ) && str_contains( $_SERVER['PHP_SELF'], 'wp-admin/' ) ) {
@@ -307,8 +318,14 @@ class WP {
 		foreach ( $this->public_query_vars as $wpvar ) {
 			if ( isset( $this->extra_query_vars[ $wpvar ] ) ) {
 				$this->query_vars[ $wpvar ] = $this->extra_query_vars[ $wpvar ];
-			} elseif ( isset( $_GET[ $wpvar ] ) && isset( $_POST[ $wpvar ] ) && $_GET[ $wpvar ] !== $_POST[ $wpvar ] ) {
-				wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
+			} elseif ( isset( $_GET[ $wpvar ] ) && isset( $_POST[ $wpvar ] )
+				&& $_GET[ $wpvar ] !== $_POST[ $wpvar ]
+			) {
+				wp_die(
+					__( 'A variable mismatch has been detected.' ),
+					__( 'Sorry, you are not allowed to view this item.' ),
+					400
+				);
 			} elseif ( isset( $_POST[ $wpvar ] ) ) {
 				$this->query_vars[ $wpvar ] = $_POST[ $wpvar ];
 			} elseif ( isset( $_GET[ $wpvar ] ) ) {
@@ -358,6 +375,7 @@ class WP {
 		// Limit publicly queried post_types to those that are 'publicly_queryable'.
 		if ( isset( $this->query_vars['post_type'] ) ) {
 			$queryable_post_types = get_post_types( array( 'publicly_queryable' => true ) );
+
 			if ( ! is_array( $this->query_vars['post_type'] ) ) {
 				if ( ! in_array( $this->query_vars['post_type'], $queryable_post_types, true ) ) {
 					unset( $this->query_vars['post_type'] );
@@ -435,10 +453,12 @@ class WP {
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
+
 			if ( 404 === $status ) {
 				if ( ! is_user_logged_in() ) {
 					$headers = array_merge( $headers, wp_get_nocache_headers() );
 				}
+
 				$headers['Content-Type'] = get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' );
 			} elseif ( in_array( $status, array( 403, 500, 502, 503 ), true ) ) {
 				$exit_required = true;
@@ -451,6 +471,7 @@ class WP {
 			if ( 'feed' === $this->query_vars['feed'] ) {
 				$type = get_default_feed();
 			}
+
 			$headers['Content-Type'] = feed_content_type( $type ) . '; charset=' . get_option( 'blog_charset' );
 
 			// We're showing a feed, so WP is indeed the only thing that last changed.
@@ -468,6 +489,7 @@ class WP {
 			) {
 				$wp_last_modified_post    = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
 				$wp_last_modified_comment = mysql2date( $date_format, get_lastcommentmodified( 'GMT' ), false );
+
 				if ( strtotime( $wp_last_modified_post ) > strtotime( $wp_last_modified_comment ) ) {
 					$wp_last_modified = $wp_last_modified_post;
 				} else {
@@ -482,8 +504,8 @@ class WP {
 			}
 
 			$wp_last_modified .= ' GMT';
+			$wp_etag           = '"' . md5( $wp_last_modified ) . '"';
 
-			$wp_etag                  = '"' . md5( $wp_last_modified ) . '"';
 			$headers['Last-Modified'] = $wp_last_modified;
 			$headers['ETag']          = $wp_etag;
 
@@ -491,30 +513,41 @@ class WP {
 			if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) {
 				$client_etag = wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] );
 			} else {
-				$client_etag = false;
+				$client_etag = '';
 			}
 
-			$client_last_modified = empty( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ? '' : trim( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+				$client_last_modified = trim( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+			} else {
+				$client_last_modified = '';
+			}
+
 			// If string is empty, return 0. If not, attempt to parse into a timestamp.
 			$client_modified_timestamp = $client_last_modified ? strtotime( $client_last_modified ) : 0;
 
-			// Make a timestamp for our most recent modification..
+			// Make a timestamp for our most recent modification.
 			$wp_modified_timestamp = strtotime( $wp_last_modified );
 
-			if ( ( $client_last_modified && $client_etag ) ?
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag == $wp_etag ) ) :
-					( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag == $wp_etag ) ) ) {
+			if ( ( $client_last_modified && $client_etag )
+				? ( ( $client_modified_timestamp >= $wp_modified_timestamp ) && ( $client_etag === $wp_etag ) )
+				: ( ( $client_modified_timestamp >= $wp_modified_timestamp ) || ( $client_etag === $wp_etag ) )
+			) {
 				$status        = 304;
 				$exit_required = true;
 			}
 		}
 
 		if ( is_singular() ) {
-			$post = isset( $wp_query->post ) ? $wp_query->post : null;
+			$post = $wp_query->post ?? null;
 
 			// Only set X-Pingback for single posts that allow pings.
 			if ( $post && pings_open( $post ) ) {
 				$headers['X-Pingback'] = get_bloginfo( 'pingback_url', 'display' );
+			}
+
+			// Send nocache headers for password protected posts to avoid unwanted caching.
+			if ( ! empty( $post->post_password ) ) {
+				$headers = array_merge( $headers, wp_get_nocache_headers() );
 			}
 		}
 
@@ -554,6 +587,9 @@ class WP {
 		/**
 		 * Fires once the requested HTTP headers for caching, content type, etc. have been sent.
 		 *
+		 * The {@see 'wp_finalized_template_enhancement_output_buffer'} action may be used to send
+		 * headers after rendering the template into an output buffer.
+		 *
 		 * @since 2.1.0
 		 *
 		 * @param WP $wp Current WordPress environment instance (passed by reference).
@@ -571,12 +607,15 @@ class WP {
 	 */
 	public function build_query_string() {
 		$this->query_string = '';
+
 		foreach ( (array) array_keys( $this->query_vars ) as $wpvar ) {
-			if ( '' != $this->query_vars[ $wpvar ] ) {
+			if ( '' !== $this->query_vars[ $wpvar ] ) {
 				$this->query_string .= ( strlen( $this->query_string ) < 1 ) ? '' : '&';
+
 				if ( ! is_scalar( $this->query_vars[ $wpvar ] ) ) { // Discard non-scalars.
 					continue;
 				}
+
 				$this->query_string .= $wpvar . '=' . rawurlencode( $this->query_vars[ $wpvar ] );
 			}
 		}
@@ -596,6 +635,7 @@ class WP {
 				'2.1.0',
 				'query_vars, request'
 			);
+
 			parse_str( $this->query_string, $this->query_vars );
 		}
 	}
@@ -609,14 +649,14 @@ class WP {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @global WP_Query     $wp_query     WordPress Query object.
-	 * @global string       $query_string Query string for the loop.
-	 * @global array        $posts        The found posts.
-	 * @global WP_Post|null $post         The current post, if available.
-	 * @global string       $request      The SQL statement for the request.
-	 * @global int          $more         Only set, if single page or post.
-	 * @global int          $single       If single page or post. Only set, if single page or post.
-	 * @global WP_User      $authordata   Only set, if author archive.
+	 * @global WP_Query           $wp_query     WordPress Query object.
+	 * @global string             $query_string Query string for the loop.
+	 * @global array              $posts        The found posts.
+	 * @global WP_Post|null       $post         The current post, if available.
+	 * @global string             $request      The SQL statement for the request.
+	 * @global int                $more         Only set, if single page or post.
+	 * @global int                $single       If single page or post. Only set, if single page or post.
+	 * @global WP_User|false|null $authordata   Only set, if author archive.
 	 */
 	public function register_globals() {
 		global $wp_query;
@@ -628,7 +668,7 @@ class WP {
 
 		$GLOBALS['query_string'] = $this->query_string;
 		$GLOBALS['posts']        = & $wp_query->posts;
-		$GLOBALS['post']         = isset( $wp_query->post ) ? $wp_query->post : null;
+		$GLOBALS['post']         = $wp_query->post ?? null;
 		$GLOBALS['request']      = $wp_query->request;
 
 		if ( $wp_query->is_single() || $wp_query->is_page() ) {
@@ -661,6 +701,62 @@ class WP {
 		global $wp_the_query;
 		$this->build_query_string();
 		$wp_the_query->query( $this->query_vars );
+	}
+
+	/**
+	 * Redirects random content requests to a randomly selected post.
+	 *
+	 * For random content requests, runs the main query to select a single random post
+	 * from the requested archive and redirects to it. For example, `example.com/random/`
+	 * redirects to a random post and `example.com/random/category/news/` redirects to a
+	 * random post in the "news" category.
+	 *
+	 * The random post is selected by the main query, so {@see 'pre_get_posts'} callbacks
+	 * customizing the archive apply to the selection. While the query runs, callbacks
+	 * enforcing the eligible posts, order and limit are added after any other callbacks:
+	 *
+	 * - {@see wp_random_content_pre_get_posts()} on the {@see 'pre_get_posts'} action.
+	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
+	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
+	 *
+	 * If no post is selected, for example on an empty archive, the request is a 404 as
+	 * there is no post to redirect to. If a post is selected but the request is not
+	 * redirected, the request continues with the results of the main query. The main
+	 * query is not run again.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_query()
+	 * @global WP_Query $wp_the_query WordPress Query object.
+	 *
+	 * @return bool Whether the main query was run for a random content request.
+	 */
+	public function handle_random(): bool {
+		global $wp_the_query;
+
+		if ( ! isset( $this->query_vars['random'] ) || ! wp_is_random_content_redirect_enabled() ) {
+			return false;
+		}
+
+		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20, 2 );
+		add_filter( 'post_limits', 'wp_random_content_post_limits', 20, 2 );
+
+		$this->query_posts();
+
+		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
+		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
+
+		wp_random_content_redirect();
+
+		if ( wp_is_random_content_query( $wp_the_query ) && ! $wp_the_query->post instanceof WP_Post ) {
+			$wp_the_query->set_404();
+			status_header( 404 );
+			nocache_headers();
+		}
+
+		return true;
 	}
 
 	/**
@@ -705,8 +801,9 @@ class WP {
 
 		$set_404 = true;
 
-		// Never 404 for the admin, robots, or favicon.
-		if ( is_admin() || is_robots() || is_favicon() ) {
+		// Never 404 here for the admin, robots, favicon, or sitemaps.
+		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
@@ -714,7 +811,7 @@ class WP {
 			$content_found = true;
 
 			if ( is_singular() ) {
-				$post = isset( $wp_query->post ) ? $wp_query->post : null;
+				$post = $wp_query->post ?? null;
 				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.
@@ -780,7 +877,9 @@ class WP {
 		$parsed = $this->parse_request( $query_args );
 
 		if ( $parsed ) {
-			$this->query_posts();
+			if ( ! $this->handle_random() ) {
+				$this->query_posts();
+			}
 			$this->handle_404();
 			$this->register_globals();
 		}

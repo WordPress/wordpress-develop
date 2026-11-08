@@ -5,8 +5,10 @@
  *
  * See query/dateQuery.php for tests that require WP_Query.
  *
- * @group datequery
  * @group date
+ * @group datetime
+ * @group datequery
+ *
  * @covers WP_Date_Query
  */
 class Tests_Date_Query extends WP_UnitTestCase {
@@ -522,10 +524,8 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	public function test_build_mysql_datetime_datetime_non_array() {
 		$q = new WP_Date_Query( array() );
 
-		// This might be a fragile test if it takes longer than 1 second to run.
-		$found    = $q->build_mysql_datetime( 'foo' );
-		$expected = gmdate( 'Y-m-d H:i:s', false );
-		$this->assertSame( $expected, $found );
+		$found = $q->build_mysql_datetime( 'foo' );
+		$this->assertSame( '1970-01-01 00:00:00', $found );
 	}
 
 	/**
@@ -546,7 +546,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function data_build_mysql_datetime() {
+	public static function data_build_mysql_datetime() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
@@ -579,10 +579,9 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$message = "Expected {$expected}, got {$found}";
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
-
 	}
 
-	public function data_build_mysql_datetime_with_custom_timezone() {
+	public static function data_build_mysql_datetime_with_custom_timezone() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
@@ -1021,7 +1020,6 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		foreach ( $seconds as $second ) {
 			$this->assertFalse( $this->q->validate_date_values( array( 'second' => $second ) ) );
 		}
-
 	}
 
 	/**
@@ -1184,9 +1182,9 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$sql = $q->get_sql();
 
-		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$parts = preg_split( '#\)\s+AND\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
-		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of AND operators.' );
 
 		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
 	}
@@ -1231,9 +1229,9 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'OR', $sql, 'SQL query does not contain conditions joined by operator OR.' );
 
-		$parts = mb_split( '\)\s+OR\s+\(', $sql );
+		$parts = preg_split( '#\)\s+OR\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator OR.' );
-		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of OR operators.' );
+		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of OR operators.' );
 
 		// Checking number of occurrences of AND while skipping the one at the beginning.
 		$this->assertSame( 2, substr_count( substr( $sql, 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
@@ -1277,9 +1275,9 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 		$sql = $q->get_sql();
 
-		$parts = mb_split( '\)\s+AND\s+\(', $sql );
+		$parts = preg_split( '#\)\s+AND\s+\(#', $sql );
 		$this->assertIsArray( $parts, 'SQL query cannot be split into multiple parts using operator AND.' );
-		$this->assertSame( 2, count( $parts ), 'SQL query does not contain correct number of AND operators.' );
+		$this->assertCount( 2, $parts, 'SQL query does not contain correct number of AND operators.' );
 
 		$this->assertStringNotContainsString( 'OR', $sql, 'SQL query contains conditions joined by operator OR.' );
 	}

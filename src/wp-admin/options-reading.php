@@ -16,6 +16,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Used in the HTML title tag.
 $title       = __( 'Reading Settings' );
 $parent_file = 'options-general.php';
+// Check whether the blog_privacy_selector action is in use, for later reuse.
+$has_action_blog_privacy_selector = has_action( 'blog_privacy_selector' );
 
 add_action( 'admin_head', 'options_reading_add_js' );
 
@@ -32,7 +34,7 @@ get_current_screen()->add_help_tab(
 			'<p>' . sprintf(
 				/* translators: %s: Documentation URL. */
 				__( 'You can also control the display of your content in RSS feeds, including the maximum number of posts to display and whether to show full text or an excerpt. <a href="%s">Learn more about feeds</a>.' ),
-				__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+				__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 			) . '</p>' .
 			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
@@ -41,7 +43,7 @@ get_current_screen()->add_help_tab(
 get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'site-visibility',
-		'title'   => has_action( 'blog_privacy_selector' ) ? __( 'Site visibility' ) : __( 'Search engine visibility' ),
+		'title'   => $has_action_blog_privacy_selector ? __( 'Site visibility' ) : __( 'Search engine visibility' ),
 		'content' => '<p>' . __( 'You can choose whether or not your site will be crawled by robots, ping services, and spiders. If you want those services to ignore your site, click the checkbox next to &#8220;Discourage search engines from indexing this site&#8221; and click the Save Changes button at the bottom of the screen.' ) . '</p>' .
 			'<p>' . __( 'Note that even when set to discourage search engines, your site is still visible on the web and not all search engines adhere to this directive.' ) . '</p>' .
 			'<p>' . __( 'When this setting is in effect, a reminder is shown in the At a Glance box of the Dashboard that says, &#8220;Search engines discouraged&#8221;, to remind you that you have directed search engines to not crawl your site.' ) . '</p>',
@@ -64,7 +66,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 settings_fields( 'reading' );
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
+if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
 ?>
@@ -81,24 +83,21 @@ else :
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
 		update_option( 'show_on_front', 'posts' );
 	}
+
+	$your_homepage_displays_title = __( 'Your homepage displays' );
 	?>
 <table class="form-table" role="presentation">
 <tr>
-<th scope="row"><?php _e( 'Your homepage displays' ); ?></th>
+<th scope="row"><?php echo $your_homepage_displays_title; ?></th>
 <td id="front-static-pages"><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Your homepage displays' );
-		?>
-	</span></legend>
+	<legend class="screen-reader-text"><span><?php echo $your_homepage_displays_title; ?></span></legend>
 	<p><label>
-		<input name="show_on_front" type="radio" value="posts" class="tog" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="posts" <?php checked( 'posts', get_option( 'show_on_front' ) ); ?> />
 		<?php _e( 'Your latest posts' ); ?>
 	</label>
 	</p>
 	<p><label>
-		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
+		<input name="show_on_front" type="radio" value="page" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
 		<?php
 		printf(
 			/* translators: %s: URL to Pages screen. */
@@ -144,68 +143,85 @@ else :
 	?>
 </label></li>
 </ul>
-	<?php if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="front-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
-	<?php endif; ?>
-	<?php if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="privacy-policy-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ); ?></p></div>
-	<?php endif; ?>
+	<?php
+	if ( 'page' === get_option( 'show_on_front' )
+		&& get_option( 'page_for_posts' ) === get_option( 'page_on_front' )
+	) :
+		wp_admin_notice(
+			__( '<strong>Warning:</strong> these pages should not be the same!' ),
+			array(
+				'type'               => 'warning',
+				'id'                 => 'front-page-warning',
+				'additional_classes' => array( 'inline' ),
+			)
+		);
+	endif;
+
+	$privacy_policy_page = get_option( 'wp_page_for_privacy_policy' );
+
+	if ( $privacy_policy_page
+		&& ( get_option( 'page_for_posts' ) === $privacy_policy_page
+			|| get_option( 'page_on_front' ) === $privacy_policy_page )
+	) :
+		wp_admin_notice(
+			__( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ),
+			array(
+				'type'               => 'warning',
+				'id'                 => 'privacy-policy-page-warning',
+				'additional_classes' => array( 'inline' ),
+			)
+		);
+	endif;
+	?>
 </fieldset></td>
 </tr>
 <?php endif; ?>
 <tr>
-<th scope="row"><label for="posts_per_page"><?php _e( 'Blog pages show at most' ); ?></label></th>
+<th scope="row"><label for="posts_per_page"><?php _e( 'Number of recent posts shown on archive pages' ); ?></label></th>
 <td>
-<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" /> <?php _e( 'posts' ); ?>
+<input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<?php form_option( 'posts_per_page' ); ?>" class="small-text" />
 </td>
 </tr>
 <tr>
-<th scope="row"><label for="posts_per_rss"><?php _e( 'Syndication feeds show the most recent' ); ?></label></th>
-<td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /> <?php _e( 'items' ); ?></td>
+<th scope="row"><label for="posts_per_rss"><?php _e( 'Number of recent items shown in syndication feeds' ); ?></label></th>
+<td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /></td>
 </tr>
+
+<?php $rss_use_excerpt_title = __( 'For each post in a feed, include' ); ?>
 <tr>
-<th scope="row"><?php _e( 'For each post in a feed, include' ); ?> </th>
-<td><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'For each post in a feed, include' );
-		?>
-	</span></legend>
-	<p>
-		<label><input name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?>	/> <?php _e( 'Full text' ); ?></label><br />
-		<label><input name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> /> <?php _e( 'Excerpt' ); ?></label>
-	</p>
-	<p class="description">
+<th scope="row"><?php echo $rss_use_excerpt_title; ?> </th>
+<td><fieldset aria-describedby="rss-use-excerpt-description">
+	<legend class="screen-reader-text"><?php echo $rss_use_excerpt_title; ?></legend>
+	<input id="rss-use-full-text" name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?> />
+	<label for="rss-use-full-text"><?php _e( 'Full text' ); ?></label><br />
+	<input id="rss-use-excerpt" name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> />
+	<label for="rss-use-excerpt"><?php _e( 'Excerpt' ); ?></label>
+	<p class="description" id="rss-use-excerpt-description">
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
-			__( 'https://wordpress.org/documentation/article/wordpress-feeds/' )
+			__( 'https://developer.wordpress.org/advanced-administration/wordpress/feeds/' )
 		);
 		?>
 	</p>
 </fieldset></td>
 </tr>
 
+<?php
+$blog_privacy_selector_title = $has_action_blog_privacy_selector ? __( 'Site visibility' ) : __( 'Search engine visibility' );
+$fieldset_aria_describedby   = $has_action_blog_privacy_selector ? ' aria-describedby="option-site-visibility-description"' : '';
+?>
 <tr class="option-site-visibility">
-<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </th>
-<td><fieldset>
-	<legend class="screen-reader-text"><span>
-		<?php
-		has_action( 'blog_privacy_selector' )
-			/* translators: Hidden accessibility text. */
-			? _e( 'Site visibility' )
-			/* translators: Hidden accessibility text. */
-			: _e( 'Search engine visibility' );
-		?>
-	</span></legend>
-<?php if ( has_action( 'blog_privacy_selector' ) ) : ?>
+<th scope="row"><?php echo $blog_privacy_selector_title; ?> </th>
+<td><fieldset<?php echo $fieldset_aria_describedby; ?>>
+	<legend class="screen-reader-text"><span><?php echo $blog_privacy_selector_title; ?></span></legend>
+<?php if ( $has_action_blog_privacy_selector ) : ?>
 	<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( '1', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br />
 	<input id="blog-norobots" type="radio" name="blog_public" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-norobots"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-	<p class="description"><?php _e( 'Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
+	<p id="option-site-visibility-description" class="description"><?php _e( 'Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
 	<?php
 	/**
 	 * Enables the legacy 'Site visibility' privacy options.
@@ -224,9 +240,9 @@ else :
 	do_action( 'blog_privacy_selector' );
 	?>
 <?php else : ?>
-	<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
-	<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-	<p class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
+	<input name="blog_public" type="checkbox" id="blog_public" aria-describedby="option-site-visibility" value="0" <?php checked( '0', get_option( 'blog_public' ) ); ?> />
+	<label for="blog_public"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
+	<p id="option-site-visibility-description" class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 <?php endif; ?>
 </fieldset></td>
 </tr>

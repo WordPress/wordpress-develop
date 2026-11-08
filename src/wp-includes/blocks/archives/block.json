@@ -25,11 +25,34 @@
 		}
 	},
 	"supports": {
+		"anchor": true,
 		"align": true,
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true
+		},
 		"html": false,
 		"spacing": {
 			"margin": true,
-			"padding": true
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
 		},
 		"typography": {
 			"fontSize": true,
@@ -43,7 +66,18 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"color": {
+			"gradients": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true,
+				"link": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
-	},
-	"editorStyle": "wp-block-archives-editor"
+	}
 }

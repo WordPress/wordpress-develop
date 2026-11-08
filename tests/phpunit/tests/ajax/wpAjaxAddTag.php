@@ -53,7 +53,7 @@ class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_add_tag() {
+	public static function data_add_tag() {
 		return array(
 			'add a category'                        => array(
 				'post_data' => array(
@@ -74,7 +74,7 @@ class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 					'tag-name'  => 'techno',
 				),
 				'expected'  => 'A new category added.',
-				'callback'  => static function( array $messages ) {
+				'callback'  => static function ( array $messages ) {
 					$messages['category'][1] = 'A new category added.';
 					return $messages;
 				},

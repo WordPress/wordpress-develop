@@ -3,7 +3,8 @@
 /**
  * Test wp_fuzzy_number_match().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_fuzzy_number_match
  */
 class Tests_Functions_wpFuzzyNumberMatch extends WP_UnitTestCase {
@@ -32,7 +33,7 @@ class Tests_Functions_wpFuzzyNumberMatch extends WP_UnitTestCase {
 	 *     @type bool      $result    Whether the numbers match within the specified precision.
 	 * }
 	 */
-	public function data_wp_fuzzy_number_match() {
+	public static function data_wp_fuzzy_number_match() {
 		return array(
 			'expected 1 int, actual 1 int'                => array(
 				'expected'  => 1,
@@ -108,5 +109,4 @@ class Tests_Functions_wpFuzzyNumberMatch extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

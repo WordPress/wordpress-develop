@@ -1,137 +1,227 @@
-import {
-	createNewPost,
-	pressKeyTimes,
-	publishPost,
-	trashAllPosts,
-	visitAdminPage,
-} from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Edit Posts', () => {
-	beforeEach( async () => {
-		await trashAllPosts();
+test.describe( 'Edit Posts', () => {
+	test.beforeEach( async ( { requestUtils }) => {
+		await requestUtils.deleteAllPosts();
 	} );
 
-	it( 'displays a message in the posts table when no posts are present', async () => {
-		await visitAdminPage( '/edit.php' );
-		const noPostsMessage = await page.$x(
-			'//td[text()="No posts found."]'
-		);
-		expect( noPostsMessage.length ).toBe( 1 );
+	test( 'displays a message in the posts table when no posts are present',async ( {
+		admin,
+		page,
+	} ) => {
+		await admin.visitAdminPage( '/edit.php' );
+		await expect(
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
 
-	it( 'shows a single post after one is published with the correct title', async () => {
+	test( 'lists a published post and renders its title and content on the front end', async ( {
+		admin,
+		editor,
+		page,
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		const content = 'This content should be visible on the published post.';
+		await admin.createNewPost( { title, content } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = await page.$$( '#the-list .type-post' );
-		expect( posts.length ).toBe( 1 );
-
-		const [ firstPost ] = posts;
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		const postTitle = await firstPost.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		expect( postTitle.length ).toBe( 1 );
+		const postLink = listTable.getByRole( 'link', {
+			name: title,
+			exact: true,
+		} );
+		await expect( postLink ).toBeVisible();
+
+		await postLink.hover();
+		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
+		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
+		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
 	} );
 
-	it( 'allows an existing post to be edited using the Edit button', async () => {
+	test( 'allows an existing post to be edited using the Edit button', async ( {
+		admin,
+		editor,
+		page,
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.click();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
 
-		// Wait for the editor iframe to load, and switch to it as the active content frame.
-		const editorFrame = await page.waitForSelector( 'iframe[name="editor-canvas"]' );
+		const editorPostTitle = editor.canvas.getByRole( 'textbox', { name: 'Add title' } );
 
-		const innerFrame = await editorFrame.contentFrame();
-
-		// Wait for title field to render onscreen.
-		await innerFrame.waitForSelector( '.editor-post-title__input' );
-
-		// Expect to now be in the editor with the correct post title shown.
-		const editorPostTitleInput = await innerFrame.$x(
-			`//h1[contains(@class, "editor-post-title__input")][contains(text(), "${ title }")]`
-		);
-		expect( editorPostTitleInput.length ).toBe( 1 );
+		// Expect title field to be in the editor with correct title shown.
+		// The editor iframe can take a while to load.
+		await expect( editorPostTitle ).toBeVisible( { timeout: 15_000 } );
+		await expect( editorPostTitle ).toHaveText( title );
 	} );
 
-	it( 'allows an existing post to be quick edited using the Quick Edit button', async () => {
+	test( 'allows an existing post to be quick edited using the Quick Edit button', async ( {
+		admin,
+		editor,
+		page,
+		pageUtils
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.focus();
+		// // Focus on the post title link.
+		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
-		await pressKeyTimes( 'Tab', 2 );
+		await pageUtils.pressKeys( 'Tab', { times: 2 } );
+		await expect(
+			page.getByRole( 'button', {
+				name: `Quick edit “${ title }” inline`,
+				exact: true,
+			} )
+		).toBeFocused();
 		await page.keyboard.press( 'Enter' );
 
 		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
 		await page.keyboard.type( ' Edited' );
 
 		// Update the post.
-		await page.click( '.button.save' );
+		await page.getByRole( 'button', { name: 'Update' } ).click();
 
 		// Wait for the quick edit button to reappear.
-		await page.waitForSelector( 'button.editinline', { visible: true } );
+		await expect( page.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
 
 		// Expect there to be one row in the post list.
-		const posts = await page.$$( '#the-list tr.type-post' );
-		expect( posts.length ).toBe( 1 );
-
-		const [ firstPost ] = posts;
+		await expect(
+			listTable.locator( '#the-list' ).getByRole( 'row' )
+		).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		const postTitle = await firstPost.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
-		);
-		expect( postTitle.length ).toBe( 1 );
+		await expect(
+			listTable.getByRole( 'link', {
+				name: `${ title } Edited`,
+				exact: true,
+			} )
+		).toBeVisible();
 	} );
-	it( 'allows an existing post to be deleted using the Trash button', async () => {
+
+	test( 'allows an existing post to be deleted using the Trash button', async ( {
+		admin,
+		editor,
+		page,
+	} ) => {
 		const title = 'Test Title';
-		await createNewPost( { title } );
-		await publishPost();
-		await visitAdminPage( '/edit.php' );
+		await admin.createNewPost( { title } );
+		await editor.publishPost();
+		await admin.visitAdminPage( '/edit.php' );
 
-		await page.waitForSelector( '#the-list .type-post' );
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		await expect( listTable ).toBeVisible();
 
-		// Focus on the post title link.
-		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
-		);
-		await editLink.focus();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).hover();
+		await listTable
+			.getByRole( 'link', {
+				name: `Move “${ title }” to the Trash`,
+				exact: true,
+			} )
+			.click();
 
-		// Tab to the Trash button and press Enter to delete the post.
-		await pressKeyTimes( 'Tab', 3 );
-		await page.keyboard.press( 'Enter' );
-
-		const noPostsMessage = await page.waitForSelector(
-			'#the-list .no-items td'
-		);
-
-		expect(
-			await noPostsMessage.evaluate( ( element ) => element.innerText )
-		).toBe( 'No posts found.' );
+		await expect(
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
+} );
+
+test( 'bulk edits only the selected posts', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	const posts = [];
+	const titlePrefix = `Bulk edit ${ Date.now() }`;
+
+	try {
+		for ( const suffix of [ 'first', 'second', 'control' ] ) {
+			posts.push(
+				await requestUtils.createPost( {
+					title: `${ titlePrefix } ${ suffix }`,
+					status: 'publish',
+				} )
+			);
+		}
+
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: titlePrefix } ).toString()
+		);
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await page
+				.locator( `#post-${ post.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+		}
+		await page
+			.locator( '#bulk-action-selector-top' )
+			.selectOption( 'edit' );
+		await page.locator( '#doaction' ).click();
+		const bulkEdit = page.getByRole( 'region', {
+			name: 'Bulk Edit',
+			exact: true,
+		} );
+		await bulkEdit
+			.getByRole( 'combobox', { name: 'Status', exact: true } )
+			.selectOption( 'draft' );
+		await bulkEdit
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'2 posts updated.'
+		);
+
+		await page.reload();
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await expect(
+				page
+					.locator( `#post-${ post.id }` )
+					.getByText( 'Draft', { exact: true } )
+			).toBeVisible();
+			const savedPost = await requestUtils.rest( {
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( savedPost.status ).toBe( 'draft' );
+		}
+		const control = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ posts[ 2 ].id }`,
+			params: { context: 'edit' },
+		} );
+		expect( control.status ).toBe( 'publish' );
+	} finally {
+		for ( const post of posts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { force: true },
+			} );
+		}
+	}
 } );

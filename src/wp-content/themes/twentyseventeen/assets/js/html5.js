@@ -1,1 +1,1 @@
-// This theme does not support old versions of Microsoft Internet Explorer anymore.
+// This theme does not support Internet Explorer since version 4.0.

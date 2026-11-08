@@ -15,6 +15,8 @@
  * Requires the Curl extension to be installed.
  *
  * @since 2.7.0
+ * @deprecated 6.4.0 Use WP_Http
+ * @see WP_Http
  */
 #[AllowDynamicProperties]
 class WP_Http_Curl {
@@ -78,6 +80,9 @@ class WP_Http_Curl {
 			'headers'     => array(),
 			'body'        => null,
 			'cookies'     => array(),
+			'decompress'  => false,
+			'stream'      => false,
+			'filename'    => null,
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );
@@ -235,16 +240,27 @@ class WP_Http_Curl {
 			curl_exec( $handle );
 
 			$curl_error = curl_error( $handle );
+
 			if ( $curl_error ) {
-				curl_close( $handle );
+				if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+					curl_close( $handle );
+				}
+
 				return new WP_Error( 'http_request_failed', $curl_error );
 			}
+
 			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ), true ) ) {
-				curl_close( $handle );
+				if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+					curl_close( $handle );
+				}
+
 				return new WP_Error( 'http_request_failed', __( 'Too many redirects.' ) );
 			}
 
-			curl_close( $handle );
+			if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+				curl_close( $handle );
+			}
+
 			return array(
 				'headers'  => array(),
 				'body'     => '',
@@ -273,28 +289,45 @@ class WP_Http_Curl {
 			if ( CURLE_WRITE_ERROR /* 23 */ === $curl_error ) {
 				if ( ! $this->max_body_length || $this->max_body_length !== $bytes_written_total ) {
 					if ( $parsed_args['stream'] ) {
-						curl_close( $handle );
+						if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+							curl_close( $handle );
+						}
+
 						fclose( $this->stream_handle );
+
 						return new WP_Error( 'http_request_failed', __( 'Failed to write request to temporary file.' ) );
 					} else {
-						curl_close( $handle );
+						if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+							curl_close( $handle );
+						}
+
 						return new WP_Error( 'http_request_failed', curl_error( $handle ) );
 					}
 				}
 			} else {
 				$curl_error = curl_error( $handle );
+
 				if ( $curl_error ) {
-					curl_close( $handle );
+					if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+						curl_close( $handle );
+					}
+
 					return new WP_Error( 'http_request_failed', $curl_error );
 				}
 			}
+
 			if ( in_array( curl_getinfo( $handle, CURLINFO_HTTP_CODE ), array( 301, 302 ), true ) ) {
-				curl_close( $handle );
+				if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+					curl_close( $handle );
+				}
+
 				return new WP_Error( 'http_request_failed', __( 'Too many redirects.' ) );
 			}
 		}
 
-		curl_close( $handle );
+		if ( PHP_VERSION_ID < 80000 ) { // curl_close() has no effect as of PHP 8.0.
+			curl_close( $handle );
+		}
 
 		if ( $parsed_args['stream'] ) {
 			fclose( $this->stream_handle );

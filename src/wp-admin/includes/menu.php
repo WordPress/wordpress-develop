@@ -13,8 +13,8 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 3.1.0
+	 * @access private
 	 */
 	do_action( '_network_admin_menu' );
 } elseif ( is_user_admin() ) {
@@ -24,8 +24,8 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 3.1.0
+	 * @access private
 	 */
 	do_action( '_user_admin_menu' );
 } else {
@@ -35,11 +35,18 @@ if ( is_network_admin() ) {
 	 *
 	 * The hook fires before menus and sub-menus are removed based on user privileges.
 	 *
-	 * @private
 	 * @since 2.2.0
+	 * @access private
 	 */
 	do_action( '_admin_menu' );
 }
+
+/**
+ * @global array $menu
+ * @global array $submenu
+ * @global array $compat
+ */
+global $menu, $submenu, $compat;
 
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
@@ -201,6 +208,10 @@ unset( $id, $data, $subs, $first_sub );
  * @param string $class_to_add The CSS class to add.
  * @param string $classes      The string to add the CSS class to.
  * @return string The string with the CSS class added.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $class_to_add
+ * @phpstan-return ( $classes is empty ? T : non-empty-string )
  */
 function add_cssclass( $class_to_add, $classes ) {
 	if ( empty( $classes ) ) {
@@ -228,7 +239,7 @@ function add_menu_classes( $menu ) {
 	$i = 0;
 
 	foreach ( $menu as $order => $top ) {
-		$i++;
+		++$i;
 
 		if ( 0 === $order ) { // Dashboard is always shown/single.
 			$menu[0][4] = add_cssclass( 'menu-top-first', $top[4] );
@@ -327,12 +338,9 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
 		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
-			if ( $menu_order[ $a ] === $menu_order[ $b ] ) {
-				return 0;
-			}
-			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
+			return $menu_order[ $a ] <=> $menu_order[ $b ];
 		} else {
-			return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
+			return $default_menu_order[ $a ] <=> $default_menu_order[ $b ];
 		}
 	}
 
@@ -368,7 +376,17 @@ if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 }
 unset( $last_menu_key );
 
-if ( ! user_can_access_admin_page() ) {
+if ( ! wp_admin_page_exists() ) {
+
+	/**
+	 * Fires when a request is made to access an admin page that does not exist.
+	 *
+	 * @since 7.2.0
+	 */
+	do_action( 'wp_admin_page_not_found' );
+
+	wp_die( __( 'The requested page does not exist.' ), 404 );
+} elseif ( ! user_can_access_admin_page() ) {
 
 	/**
 	 * Fires when access to an admin page is denied.
