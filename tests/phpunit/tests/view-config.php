@@ -131,7 +131,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_default_form_post_types() {
+	public static function data_default_form_post_types() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
@@ -160,12 +160,120 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_post_types_with_own_form() {
+	public static function data_post_types_with_own_form() {
 		return array(
 			'attachment'       => array( 'attachment' ),
 			'wp_block'         => array( 'wp_block' ),
 			'wp_template'      => array( 'wp_template' ),
 			'wp_template_part' => array( 'wp_template_part' ),
+		);
+	}
+
+	/**
+	 * The `excerpt` row shows the field's placeholder when the excerpt is
+	 * empty, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_block
+	 *
+	 * @dataProvider data_post_types_with_excerpt_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_excerpt_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'excerpt' )['layout']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_types_with_excerpt_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'wp_block'         => array( 'wp_block' ),
+			'custom post type' => array( 'excerpt_cpt' ),
+		);
+	}
+
+	/**
+	 * The `description` row of templates shows the field's placeholder when
+	 * the description is empty, like the excerpt of posts and patterns.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_entity_view_config_posttype_wp_template
+	 */
+	public function test_wp_template_description_layout_shows_placeholder_if_empty() {
+		$config = wp_get_entity_view_config( 'postType', 'wp_template' );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'labelPosition'          => 'top',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'description' )['layout']
+		);
+	}
+
+	/**
+	 * The `author` row shows the field's placeholder when the post has no
+	 * author, for every post type whose form lists the field.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 * @covers ::_wp_get_entity_view_config_posttype_attachment
+	 *
+	 * @dataProvider data_post_types_with_author_in_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_author_layout_shows_placeholder_if_empty( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'                   => 'panel',
+				'showPlaceholderIfEmpty' => true,
+			),
+			$this->get_form_field( $config, 'author' )['layout']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_types_with_author_in_form() {
+		return array(
+			'page'             => array( 'page' ),
+			'post'             => array( 'post' ),
+			'attachment'       => array( 'attachment' ),
+			'custom post type' => array( 'author_cpt' ),
 		);
 	}
 
@@ -205,7 +313,13 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 					'layout' => $regular_layout,
 				),
 				'date',
-				'author',
+				array(
+					'id'     => 'author',
+					'layout' => array(
+						'type'                   => 'panel',
+						'showPlaceholderIfEmpty' => true,
+					),
+				),
 				'filename',
 				'mime_type',
 				'filesize',

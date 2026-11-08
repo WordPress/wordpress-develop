@@ -253,13 +253,9 @@ test.describe( 'Moderate Comments', () => {
 		await firstRow.getByRole( 'checkbox' ).check();
 		await secondRow.getByRole( 'checkbox' ).check();
 		await page
-			.getByLabel( 'Select bulk action' )
-			.first()
+			.locator( '#bulk-action-selector-top' )
 			.selectOption( 'spam' );
-		await page
-			.getByRole( 'button', { name: 'Apply', exact: true } )
-			.first()
-			.click();
+		await page.locator( '#doaction' ).click();
 
 		await expect
 			.poll( () => getCommentStatus( requestUtils, comment.id ), {
@@ -279,5 +275,71 @@ test.describe( 'Moderate Comments', () => {
 		);
 		await expect( firstRow ).toBeVisible();
 		await expect( secondRow ).toBeVisible();
+	} );
+
+	test( 'quick edits a comment and persists its content', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const { post, comment } = await createPostWithComment(
+			requestUtils,
+			'approved'
+		);
+		await admin.visitAdminPage(
+			'/edit-comments.php',
+			`p=${ post.id }`
+		);
+
+		const row = page.locator( `#comment-${ comment.id }` );
+		await row.hover();
+		await row
+			.getByRole( 'button', { name: 'Quick edit this comment inline' } )
+			.click();
+
+		const commentField = page.getByRole( 'textbox', {
+			name: 'Comment',
+			exact: true,
+		} );
+		await expect( commentField ).toHaveValue( COMMENT_CONTENT );
+		const newContent = 'A comment updated with Quick Edit.';
+		await commentField.fill( newContent );
+		await page
+			.getByRole( 'button', { name: 'Update Comment', exact: true } )
+			.click();
+
+		await expect(
+			row
+				.getByRole( 'paragraph' )
+				.and( row.getByText( newContent, { exact: true } ) )
+		).toBeVisible();
+		await expect( commentField ).toBeHidden();
+		await expect
+			.poll(
+				async () => {
+					const saved = await requestUtils.rest( {
+						path: `/wp/v2/comments/${ comment.id }`,
+						params: { context: 'edit' },
+					} );
+					return {
+						content: saved.content.raw,
+						status: saved.status,
+						authorName: saved.author_name,
+						authorEmail: saved.author_email,
+						authorUrl: saved.author_url,
+					};
+				},
+				{
+					message:
+						'the comment should be saved with the new content and unchanged author and status',
+				}
+			)
+			.toEqual( {
+				content: newContent,
+				status: 'approved',
+				authorName: comment.author_name,
+				authorEmail: comment.author_email,
+				authorUrl: comment.author_url,
+			} );
 	} );
 } );

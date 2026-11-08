@@ -31,7 +31,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return WP_Post_Type[] Array of registered post type objects keyed by their name.
+	 * @return array<string, WP_Post_Type> Array of registered post type objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		$post_types = get_post_types( array( 'public' => true ), 'objects' );
@@ -44,7 +44,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param WP_Post_Type[] $post_types Array of registered post type objects keyed by their name.
+		 * @param array<string, WP_Post_Type> $post_types Array of registered post type objects keyed by their name.
 		 */
 		return apply_filters( 'wp_sitemaps_post_types', $post_types );
 	}
@@ -209,7 +209,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		$query = new WP_Query( $args );
 
 		$min_num_pages = ( 'page' === $post_type && 'posts' === get_option( 'show_on_front' ) ) ? 1 : 0;
-		return isset( $query->max_num_pages ) ? max( $min_num_pages, $query->max_num_pages ) : 1;
+		return max( $min_num_pages, $query->max_num_pages );
 	}
 
 	/**

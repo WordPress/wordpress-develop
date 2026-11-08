@@ -218,9 +218,7 @@ final class WP_Interactivity_API {
 
 			$store_namespace = end( $this->namespace_stack );
 		}
-		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
-			$this->state_data[ $store_namespace ] = array();
-		}
+		$this->state_data[ $store_namespace ] ??= array();
 		if ( is_array( $state ) ) {
 			$this->state_data[ $store_namespace ] = array_replace_recursive(
 				$this->state_data[ $store_namespace ],
@@ -246,9 +244,7 @@ final class WP_Interactivity_API {
 	 *               $config argument was provided.
 	 */
 	public function config( string $store_namespace, array $config = array() ): array {
-		if ( ! isset( $this->config_data[ $store_namespace ] ) ) {
-			$this->config_data[ $store_namespace ] = array();
-		}
+		$this->config_data[ $store_namespace ] ??= array();
 		if ( is_array( $config ) ) {
 			$this->config_data[ $store_namespace ] = array_replace_recursive(
 				$this->config_data[ $store_namespace ],
@@ -286,9 +282,6 @@ final class WP_Interactivity_API {
 	 * @return array Data for the Interactivity Router script module.
 	 */
 	public function filter_script_module_interactivity_router_data( array $data ): array {
-		if ( ! isset( $data['i18n'] ) ) {
-			$data['i18n'] = array();
-		}
 		$data['i18n']['loading'] = __( 'Loading page, please wait.' );
 		$data['i18n']['loaded']  = __( 'Page Loaded.' );
 		return $data;
@@ -970,12 +963,13 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
 	 * @param string                                    $prefix The directive prefix to filter by.
-	 * @return array An array of entries containing the directive namespace, value, suffix, and unique ID.
+	 * @return array An array of entries containing the directive namespace, value, suffix, unique ID, and attribute name.
 	 * @phpstan-return list<array{
 	 *     namespace: string|null,
 	 *     value: mixed,
 	 *     suffix: string|null,
 	 *     unique_id: string|null,
+	 *     attribute_name: non-empty-string,
 	 * }>
 	 */
 	private function get_directive_entries( WP_Interactivity_API_Directives_Processor $p, string $prefix ): array {
@@ -1012,10 +1006,11 @@ final class WP_Interactivity_API {
 
 			list( $namespace, $value ) = $this->extract_directive_value( $attribute_value, $default_namespace );
 			$entries[]                 = array(
-				'namespace' => $namespace,
-				'value'     => $value,
-				'suffix'    => $suffix,
-				'unique_id' => $unique_id,
+				'namespace'      => $namespace,
+				'value'          => $value,
+				'suffix'         => $suffix,
+				'unique_id'      => $unique_id,
+				'attribute_name' => $attribute_name,
 			);
 		}
 		// Sort directive entries to ensure stable ordering with the client.
@@ -1151,28 +1146,49 @@ final class WP_Interactivity_API {
 	 * @since 7.1.0 An object is resolved to whatever it serializes to for the client, a number is formatted by the
 	 *              JSON encoder, and a value which cannot be sent to the client is rejected rather than passed to
 	 *              WP_HTML_Tag_Processor::set_attribute().
+	 * @since 7.2.0 Event handler bind directives are removed.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
 	 */
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
 		if ( 'enter' === $mode ) {
-			$entries = $this->get_directive_entries( $p, 'bind' );
+			$event_handler_prefix = 'data-wp-bind--on';
+			$entries              = $this->get_directive_entries( $p, 'bind' );
 			foreach ( $entries as $entry ) {
-				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
-					continue;
-				}
-
-				// Skip if the suffix is an event handler.
-				if ( str_starts_with( $entry['suffix'], 'on' ) ) {
+				// Binding event handler attributes is not supported.
+				if ( str_starts_with( $entry['attribute_name'], $event_handler_prefix ) ) {
+					$p->remove_attribute( $entry['attribute_name'] );
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
 							/* translators: %s: The directive, e.g. data-wp-on--click. */
 							__( 'Binding event handler attributes is not supported. Please use "%s" instead.' ),
-							esc_attr( 'data-wp-on--' . substr( $entry['suffix'], 2 ) )
+							esc_attr( 'data-wp-on--' . substr( $entry['attribute_name'], strlen( $event_handler_prefix ) ) )
 						),
 						'6.9.2'
+					);
+					continue;
+				}
+
+				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
+					continue;
+				}
+
+				/*
+				 * Remove a binding that would change an `object` attribute whose value KSES checks,
+				 * so that a client runtime without this check does not apply it either.
+				 */
+				if ( 'OBJECT' === $p->get_tag() && ! self::is_bindable_object_attribute( $entry['suffix'] ) ) {
+					$p->remove_attribute( $entry['attribute_name'] );
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The attribute name. */
+							__( 'The "%s" attribute cannot be bound on an "object" element, so the binding was ignored.' ),
+							esc_html( $entry['suffix'] )
+						),
+						'7.1.4'
 					);
 					continue;
 				}
@@ -1290,12 +1306,40 @@ final class WP_Interactivity_API {
 					) {
 						$result = $result ? 'true' : 'false';
 					}
+
 					$p->set_attribute( $entry['suffix'], $result );
 				} else {
 					$p->remove_attribute( $entry['suffix'] );
 				}
 			}
 		}
+	}
+
+	/**
+	 * Determines whether a binding may set or remove an attribute of an `object` element.
+	 *
+	 * KSES only allows an `object` element in post content after checking the values of its
+	 * `data` and `type` attributes. Neither the server nor the client can repeat that check for
+	 * a bound value, so a binding on an `object` element may only change attributes that cannot
+	 * change what it loads: `aria-*` attributes, `data-*` attributes other than directives,
+	 * `width`, `height`, and the global attributes KSES allows on any element. Any `aria-*`
+	 * attribute is allowed, where KSES lists only some. A `data-wp-*` attribute is refused
+	 * because it is a directive, which could bind `data` or `type` once rendered. The client
+	 * runtime enforces the same set.
+	 *
+	 * @since 7.1.4
+	 *
+	 * @param string $attribute_name The name of the bound attribute.
+	 * @return bool Whether the attribute may be bound on an `object` element.
+	 */
+	private static function is_bindable_object_attribute( string $attribute_name ): bool {
+		$attribute_name = strtolower( $attribute_name );
+
+		return (
+			str_starts_with( $attribute_name, 'aria-' ) ||
+			( str_starts_with( $attribute_name, 'data-' ) && ! str_starts_with( $attribute_name, 'data-wp-' ) ) ||
+			in_array( $attribute_name, array( 'class', 'dir', 'height', 'hidden', 'id', 'lang', 'role', 'style', 'tabindex', 'title', 'width' ), true )
+		);
 	}
 
 	/**
