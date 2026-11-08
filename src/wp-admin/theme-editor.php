@@ -15,7 +15,7 @@ if ( is_multisite() && ! is_network_admin() ) {
 }
 
 if ( ! current_user_can( 'edit_themes' ) ) {
-	wp_die( '<p>' . __( 'Sorry, you are not allowed to edit templates for this site.' ) . '</p>' );
+	wp_die( '<p>' . __( 'Sorry, you are not allowed to edit templates for this site.' ) . '</p>', 403 );
 }
 
 // Used in the HTML title tag.
@@ -70,7 +70,7 @@ if ( $theme ) {
 $theme = wp_get_theme( $stylesheet );
 
 if ( ! $theme->exists() ) {
-	wp_die( __( 'The requested theme does not exist.' ) );
+	wp_die( __( 'The requested theme does not exist.' ), 404 );
 }
 
 if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
