@@ -20,9 +20,9 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 * @param string $message          The message to test.
 	 * @param string $expected_message The expected error message.
 	 */
-	public function test_should_trigger_error( $function_name, $message, $expected_message ) {
-		$this->expectError();
-		$this->expectErrorMessage( $expected_message );
+	public function test_should_throw_exception( $function_name, $message, $expected_message ) {
+		$this->expectException( WP_Exception::class );
+		$this->expectExceptionMessage( $expected_message );
 
 		wp_trigger_error( $function_name, $message, E_USER_ERROR );
 	}
@@ -80,7 +80,7 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_trigger_error() {
+	public static function data_should_trigger_error() {
 		return array(
 			'function name and message are given'          => array(
 				'function_name'    => 'some_function',
@@ -110,7 +110,7 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 			'disallowed HTML elements are present in message' => array(
 				'function_name'    => 'some_function',
 				'message'          => '<script>alert("expected the function name and message")</script>',
-				'expected_message' => 'some_function(): alert("expected the function name and message")',
+				'expected_message' => 'some_function(): ',
 			),
 		);
 	}

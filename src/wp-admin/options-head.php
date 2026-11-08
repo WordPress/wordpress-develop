@@ -8,6 +8,11 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 $action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
 if ( isset( $_GET['updated'] ) && isset( $_GET['page'] ) ) {

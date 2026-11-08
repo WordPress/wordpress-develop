@@ -80,6 +80,21 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	protected function check_has_read_only_access( $request ) {
+		/**
+		 * Filters whether the current user has read access to menu items via the REST API.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool               $read_only_access Whether the current user has read access to menu items
+		 *                                             via the REST API.
+		 * @param WP_REST_Request    $request          Full details about the request.
+		 * @param WP_REST_Controller $controller       The current instance of the controller.
+		 */
+		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+		if ( $read_only_access ) {
+			return true;
+		}
+
 		if ( current_user_can( 'edit_theme_options' ) ) {
 			return true;
 		}
@@ -102,7 +117,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Creates a single post.
+	 * Creates a single nav menu item.
 	 *
 	 * @since 5.9.0
 	 *
@@ -267,7 +282,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Deletes a single menu item.
+	 * Deletes a single nav menu item.
 	 *
 	 * @since 5.9.0
 	 *
@@ -307,9 +322,9 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @since 5.9.0
 		 *
-		 * @param object          $nav_menu_item Inserted or updated menu item object.
-		 * @param WP_REST_Response $response The response data.
-		 * @param WP_REST_Request $request       Request object.
+		 * @param object           $nav_menu_item Inserted or updated menu item object.
+		 * @param WP_REST_Response $response      The response data.
+		 * @param WP_REST_Request  $request       Request object.
 		 */
 		do_action( 'rest_delete_nav_menu_item', $menu_item, $response, $request );
 
@@ -317,12 +332,11 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Prepares a single post for create or update.
+	 * Prepares a single nav menu item for create or update.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 *
 	 * @return object|WP_Error
 	 */
 	protected function prepare_item_for_database( $request ) {
@@ -482,7 +496,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Prepares a single post output for response.
+	 * Prepares a single nav menu item output for response.
 	 *
 	 * @since 5.9.0
 	 *
@@ -678,7 +692,24 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
+	 * Gets the link relations available for the menu item and current user.
+	 *
+	 * Menu items can only be deleted permanently, so the `action-trash` link is skipped.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post         $post    Post object.
+	 * @param WP_REST_Request $request Request object.
+	 * @return array List of link relations.
+	 */
+	protected function get_available_actions( $post, $request ) {
+		$rels = parent::get_available_actions( $post, $request );
+
+		return array_values( array_diff( $rels, array( 'https://api.w.org/action-trash' ) ) );
+	}
+
+	/**
+	 * Retrieves Link Description Objects that should be added to the Schema for the nav menu items collection.
 	 *
 	 * @since 5.9.0
 	 *
@@ -686,6 +717,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function get_schema_links() {
 		$links   = parent::get_schema_links();
+		$links   = array_values( wp_list_filter( $links, array( 'rel' => 'https://api.w.org/action-trash' ), 'NOT' ) );
 		$href    = rest_url( "{$this->namespace}/{$this->rest_base}/{id}" );
 		$links[] = array(
 			'rel'          => 'https://api.w.org/menu-item-object',
@@ -705,7 +737,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves the term's schema, conforming to JSON Schema.
+	 * Retrieves the nav menu item's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.9.0
 	 *
@@ -926,7 +958,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieves the query params for the posts collection.
+	 * Retrieves the query params for the nav menu items collection.
 	 *
 	 * @since 5.9.0
 	 *

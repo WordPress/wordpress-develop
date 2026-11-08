@@ -18,8 +18,11 @@
  */
 function render_block_core_comments_pagination_previous( $attributes, $content, $block ) {
 	$default_label    = __( 'Older Comments' );
-	$label            = isset( $attributes['label'] ) && ! empty( $attributes['label'] ) ? $attributes['label'] : $default_label;
+	$label            = ! empty( $attributes['label'] ) ? $attributes['label'] : $default_label;
 	$pagination_arrow = get_comments_pagination_arrow( $block, 'previous' );
+
+	// Escaping early as pagination arrow can return HTML that should not be escaped.
+	$label = esc_html( $label );
 	if ( $pagination_arrow ) {
 		$label = $pagination_arrow . $label;
 	}
@@ -29,7 +32,8 @@ function render_block_core_comments_pagination_previous( $attributes, $content, 
 	};
 	add_filter( 'previous_comments_link_attributes', $filter_link_attributes );
 
-	$previous_comments_link = get_previous_comments_link( $label );
+	$comment_vars           = build_comment_query_vars_from_block( $block );
+	$previous_comments_link = get_previous_comments_link( $label, $comment_vars['paged'] ?? null );
 
 	remove_filter( 'previous_comments_link_attributes', $filter_link_attributes );
 

@@ -16,6 +16,7 @@
  * @since 6.4.0
  *
  * @access private
+ * @ignore
  *
  * @see WP_HTML_Processor
  */
@@ -32,7 +33,7 @@ class WP_HTML_Processor_State {
 	 * is added to the parser for more modes, add them here
 	 * following the same naming and value pattern.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-insertion-mode
 	 */
 
 	/**
@@ -40,8 +41,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -52,8 +53,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -64,8 +65,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-beforehead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-beforehead
 	 *
 	 * @var string
 	 */
@@ -76,8 +77,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inhead
 	 *
 	 * @var string
 	 */
@@ -88,8 +89,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 *
 	 * @var string
 	 */
@@ -100,8 +101,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterhead
 	 *
 	 * @var string
 	 */
@@ -112,8 +113,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @var string
 	 */
@@ -124,8 +125,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 *
 	 * @var string
 	 */
@@ -136,8 +137,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 *
 	 * @var string
 	 */
@@ -148,8 +149,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 *
 	 * @var string
 	 */
@@ -160,8 +161,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 *
 	 * @var string
 	 */
@@ -172,8 +173,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intablebody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intablebody
 	 *
 	 * @var string
 	 */
@@ -184,8 +185,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inrow
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inrow
 	 *
 	 * @var string
 	 */
@@ -196,8 +197,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incell
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incell
 	 *
 	 * @var string
 	 */
@@ -208,7 +209,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselect
+	 * @deprecated 7.1.0 The "in select" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -220,7 +223,9 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
+	 * @deprecated 7.1.0 The "in select in table" insertion mode was removed from the standard.
+	 * @ignore
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -232,8 +237,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intemplate
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 *
 	 * @var string
 	 */
@@ -244,8 +249,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 *
 	 * @var string
 	 */
@@ -256,8 +261,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 *
 	 * @var string
 	 */
@@ -268,8 +273,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 *
 	 * @var string
 	 */
@@ -280,8 +285,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -292,44 +297,19 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 *
 	 * @var string
 	 */
 	const INSERTION_MODE_AFTER_AFTER_FRAMESET = 'insertion-mode-after-after-frameset';
 
 	/**
-	 * No-quirks mode document compatability mode.
-	 *
-	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
-	 * > described by the modern HTML and CSS specifications.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @var string
-	 */
-	const NO_QUIRKS_MODE = 'no-quirks-mode';
-
-	/**
-	 * Quirks mode document compatability mode.
-	 *
-	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
-	 * > Explorer 5. This is essential in order to support websites that were
-	 * > built before the widespread adoption of web standards.
-	 *
-	 * @since 6.7.0
-	 *
-	 * @var string
-	 */
-	const QUIRKS_MODE = 'quirks-mode';
-
-	/**
 	 * The stack of template insertion modes.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-insertion-mode:stack-of-template-insertion-modes
+	 * @link https://html.spec.whatwg.org/#the-insertion-mode:stack-of-template-insertion-modes
 	 *
 	 * @var array<string>
 	 */
@@ -342,7 +322,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
+	 * @link https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @var WP_HTML_Open_Elements
 	 */
@@ -355,7 +335,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#list-of-active-formatting-elements
+	 * @link https://html.spec.whatwg.org/#list-of-active-formatting-elements
 	 *
 	 * @var WP_HTML_Active_Formatting_Elements
 	 */
@@ -375,44 +355,19 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#insertion-mode
+	 * @link https://html.spec.whatwg.org/#insertion-mode
 	 *
 	 * @var string
 	 */
 	public $insertion_mode = self::INSERTION_MODE_INITIAL;
 
 	/**
-	 * Indicates if the document is in quirks mode or no-quirks mode.
-	 *
-	 * Impact on HTML parsing:
-	 *
-	 *  - In `NO_QUIRKS_MODE` CSS class and ID selectors match in a byte-for-byte
-	 *    manner, otherwise for backwards compatability, class selectors are to
-	 *    match in an ASCII case-insensitive manner.
-	 *
-	 *  - When not in `QUIRKS_MODE`, a TABLE start tag implicitly closes an open P tag
-	 *    if one is in scope and open, otherwise the TABLE becomes a child of the P.
-	 *
-	 * `QUIRKS_MODE` impacts many styling-related aspects of an HTML document, but
-	 * none of the other changes modifies how the HTML is parsed or selected.
-	 *
-	 * @see self::QUIRKS_MODE
-	 * @see self::NO_QUIRKS_MODE
-	 *
-	 * @since 6.7.0
-	 *
-	 * @var string
-	 */
-	public $document_mode = self::NO_QUIRKS_MODE;
-
-	/**
 	 * Context node initializing fragment parser, if created as a fragment parser.
 	 *
 	 * @since 6.4.0
+	 * @deprecated 6.8.0 WP_HTML_Processor tracks the context_node internally.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-frag-parse-context
-	 *
-	 * @var [string, array]|null
+	 * @var null
 	 */
 	public $context_node = null;
 
@@ -453,7 +408,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
 	 *
 	 * @var WP_HTML_Token|null
 	 */
@@ -469,7 +424,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @todo This may be invalidated by a seek operation.
 	 *
-	 * @see https://html.spec.whatwg.org/#form-element-pointer
+	 * @link https://html.spec.whatwg.org/#form-element-pointer
 	 *
 	 * @since 6.7.0
 	 *
@@ -484,7 +439,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#frameset-ok-flag
+	 * @link https://html.spec.whatwg.org/#frameset-ok-flag
 	 *
 	 * @var bool
 	 */

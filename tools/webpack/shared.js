@@ -2,8 +2,7 @@
  * External dependencies
  */
 const { DefinePlugin } = require( 'webpack' );
-const TerserPlugin = require( 'terser-webpack-plugin' );
-const postcss = require( 'postcss' );
+const TerserPlugin = require( 'minimizer-webpack-plugin' );
 const { join } = require( 'path' );
 
 const baseDir = join( __dirname, '../../' );
@@ -66,29 +65,6 @@ const getBaseConfig = ( env ) => {
 	return config;
 };
 
-const stylesTransform = ( mode ) => ( content ) => {
-	return postcss( [
-		require( 'cssnano' )( {
-			preset:
-				mode === 'production'
-					? 'default'
-					: [
-							'default',
-							{
-								discardComments: {
-									removeAll:
-										! content.includes( 'Copyright' ) &&
-										! content.includes( 'License' ),
-								},
-								normalizeWhitespace: false,
-							},
-					  ],
-		} ),
-	] )
-		.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
-		.then( ( result ) => result.css );
-};
-
 const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
 
 const BUNDLED_PACKAGES = [
@@ -97,10 +73,18 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interface',
 	'@wordpress/interactivity',
 	'@wordpress/sync',
+	'@wordpress/undo-manager',
+	'@wordpress/upload-media',
+	'@wordpress/fields',
 ];
 const MODULES = [
 	'@wordpress/interactivity',
 	'@wordpress/interactivity-router',
+];
+const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/a11y',
+	'@wordpress/block-library',
+	'@wordpress/block-editor',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
@@ -108,8 +92,8 @@ module.exports = {
 	baseDir,
 	getBaseConfig,
 	normalizeJoin,
-	stylesTransform,
 	BUNDLED_PACKAGES,
 	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
 	WORDPRESS_NAMESPACE,
 };

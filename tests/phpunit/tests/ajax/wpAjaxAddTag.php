@@ -53,7 +53,7 @@ class Tests_Ajax_wpAjaxAddTag extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_add_tag() {
+	public static function data_add_tag() {
 		return array(
 			'add a category'                        => array(
 				'post_data' => array(

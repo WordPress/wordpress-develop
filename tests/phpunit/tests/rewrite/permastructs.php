@@ -2,14 +2,11 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_permastruct
+ * @covers ::remove_permastruct
  */
 class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
-
-	public function set_up() {
-		parent::set_up();
-
-		$this->set_permalink_structure( '/%postname%/' );
-	}
 
 	public function test_add_permastruct() {
 		global $wp_rewrite;

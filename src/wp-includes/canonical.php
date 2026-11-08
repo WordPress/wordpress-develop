@@ -37,13 +37,14 @@
  * @param string $requested_url Optional. The URL that was requested, used to
  *                              figure if redirect is needed.
  * @param bool   $do_redirect   Optional. Redirect to the new URL.
- * @return string|void The string of the URL, if redirect needed.
+ * @return string|null The string of the URL, if redirect needed. Never returns if a redirect occurs, depending on $do_redirect.
+ * @phpstan-return ( $do_redirect is true ? null : string|null )
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	global $wp_rewrite, $is_IIS, $wp_query, $wpdb, $wp;
 
 	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
-		return;
+		return null;
 	}
 
 	/*
@@ -62,7 +63,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( is_admin() || is_search() || is_preview() || is_trackback() || is_favicon()
 		|| ( $is_IIS && ! iis7_supports_permalinks() )
 	) {
-		return;
+		return null;
 	}
 
 	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
@@ -74,20 +75,20 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	$original = parse_url( $requested_url );
 	if ( false === $original ) {
-		return;
+		return null;
 	}
+
+	// Notice fixing.
+	$original += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
 
 	$redirect     = $original;
 	$redirect_url = false;
 	$redirect_obj = false;
-
-	// Notice fixing.
-	if ( ! isset( $redirect['path'] ) ) {
-		$redirect['path'] = '';
-	}
-	if ( ! isset( $redirect['query'] ) ) {
-		$redirect['query'] = '';
-	}
 
 	/*
 	 * If the original URL ended with non-breaking spaces, they were almost
@@ -455,8 +456,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$default_feed = get_default_feed();
 
 			if ( is_feed() && in_array( $feed, $wp_rewrite->feeds, true ) ) {
-				$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
-
 				if ( ! is_singular() && get_query_var( 'withcomments' ) ) {
 					$addl_path .= 'comments/';
 				}
@@ -615,6 +614,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		unset( $redirect['port'] );
 	}
 
+	// Notice prevention after new parse_url( $redirect_url ) calls
+	$redirect += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
+
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );
 
@@ -698,9 +705,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Remove trailing slash for robots.txt or sitemap requests.
-	if ( is_robots()
-		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
-	) {
+	if ( is_robots() || ! empty( get_query_var( 'sitemap' ) ) ) {
 		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 
@@ -763,7 +768,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	if ( ! $redirect_url || $redirect_url === $requested_url ) {
-		return;
+		return null;
 	}
 
 	// Hex-encoded octets are case-insensitive.
@@ -822,7 +827,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	// Yes, again -- in case the filter aborted the request.
 	if ( ! $redirect_url || strip_fragment_from_url( $redirect_url ) === strip_fragment_from_url( $requested_url ) ) {
-		return;
+		return null;
 	}
 
 	if ( $do_redirect ) {
@@ -833,7 +838,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		} else {
 			// Debug.
 			// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
-			return;
+			return null;
 		}
 	} else {
 		return $redirect_url;
@@ -977,7 +982,7 @@ function redirect_guess_404_permalink() {
 				if ( empty( $post_types ) ) {
 					return false;
 				}
-				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
+				$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $post_types ) ) . "')";
 			} else {
 				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
 					return false;
@@ -998,8 +1003,23 @@ function redirect_guess_404_permalink() {
 			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
+		$query = "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')";
+
+		// Remove the per-request placeholder escape so the cache key is stable across requests.
+		$key          = md5( $wpdb->remove_placeholder_escape( $query ) );
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		$cache_key    = "redirect_guess_404_permalink:$key";
+		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
+
+		if ( false !== $cache ) {
+			$post_id = $cache;
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$post_id = (int) $wpdb->get_var( $query );
+
+			// Cache misses as well as hits.
+			wp_cache_set_salted( $cache_key, $post_id, 'post-queries', $last_changed );
+		}
 
 		if ( ! $post_id ) {
 			return false;
@@ -1056,6 +1076,39 @@ function wp_redirect_admin_locations() {
 
 	if ( in_array( untrailingslashit( $_SERVER['REQUEST_URI'] ), $logins, true ) ) {
 		wp_redirect( wp_login_url() );
+		exit;
+	}
+
+	/**
+	 * Filters the well-known change password URL (/.well-known/change-password).
+	 *
+	 * By default visiting the well-known change password URL will redirect to
+	 * the user's profile page when requested by a browser or password manager.
+	 *
+	 * Sites with a custom URL structure for modifying the passwords can modify
+	 * the destination with this filter.
+	 *
+	 * The resulting URL is redirected using {@see wp_safe_redirect}, if the
+	 * filtered URL is on an external host, that host will need to be included
+	 * as an allowed host via the {@see 'allowed_redirect_hosts'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $change_password_url The URL to redirect to. Default is the user profile page.
+	 */
+	$change_password_url = apply_filters( 'wp_change_password_url', admin_url( 'profile.php' ) );
+
+	/*
+	 * The well-known change-password URL is always at the root of the origin
+	 * per the spec (https://w3c.github.io/webappsec-change-password-url/), so
+	 * only the root-relative path is matched here, regardless of whether
+	 * WordPress is installed in a subdirectory.
+	 */
+	if (
+		'/.well-known/change-password' === untrailingslashit( $_SERVER['REQUEST_URI'] )
+		&& $change_password_url
+		&& wp_safe_redirect( $change_password_url )
+	) {
 		exit;
 	}
 }

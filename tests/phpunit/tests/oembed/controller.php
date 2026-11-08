@@ -4,7 +4,7 @@
  * @group oembed
  * @group restapi
  */
-class Test_oEmbed_Controller extends WP_UnitTestCase {
+class Tests_oEmbed_Controller extends WP_UnitTestCase {
 	/**
 	 * @var WP_REST_Server
 	 */
@@ -48,9 +48,11 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		parent::set_up();
 
 		/** @var WP_REST_Server $wp_rest_server */
-		global $wp_rest_server;
+		global $wp_rest_server, $wp_scripts;
 		$wp_rest_server = new Spy_REST_Server();
 		do_action( 'rest_api_init', $wp_rest_server );
+		$wp_scripts = null;
+		wp_scripts();
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 		add_filter( 'oembed_result', array( $this, 'filter_oembed_result' ), 10, 3 );
@@ -93,7 +95,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		unset( $response, $parsed_args );
 
 		$parsed_url = wp_parse_url( $url );
-		$query      = isset( $parsed_url['query'] ) ? $parsed_url['query'] : '';
+		$query      = $parsed_url['query'] ?? '';
 		parse_str( $query, $query_params );
 		$this->request_count += 1;
 
@@ -304,11 +306,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_request_json() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -391,11 +389,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_request_xml() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -461,11 +455,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_rest_pre_serve_request() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -509,6 +499,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_get_oembed_endpoint_url() {
+		$this->set_permalink_structure( '' );
+
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
 		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
@@ -522,8 +514,6 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_get_oembed_endpoint_url_pretty_permalinks() {
-		update_option( 'permalink_structure', '/%postname%' );
-
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url() );
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
@@ -533,8 +523,6 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
 		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
-
-		update_option( 'permalink_structure', '' );
 	}
 
 	public function test_proxy_without_permission() {
@@ -677,11 +665,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	public function test_proxy_with_internal_url() {
 		wp_set_current_user( self::$editor );
 
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
