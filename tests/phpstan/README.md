@@ -220,36 +220,30 @@ The consequence is that **fixing a baselined error means updating its baseline a
 
 ### Removing stale entries with `--fix`
 
-PHPStan marks an error it can fix automatically with 🔧, and ends its report by saying how many there are. Stale ignores are among them: a baseline entry whose count is now too high, or that matches nothing at all, and an `@phpstan-ignore` comment that no longer ignores anything. Run the analysis with `--fix` to fix them in place:
+PHPStan marks an error it can fix automatically with 🔧, and ends its report by saying how many there are. Stale ignores are among them: a baseline entry whose count is now too high, or that matches nothing at all, and an `@phpstan-ignore` comment that no longer ignores anything. Fix them in place with:
 
 ```bash
-npm run typecheck:php -- --fix
+npm run typecheck:php:fix
 ```
 
 or, outside the Docker environment:
 
 ```bash
-composer phpstan -- --fix
+composer phpstan:fix
 ```
 
-This lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
+This runs three steps, each only when the one before it succeeds:
+
+1. PHPStan with its `--fix` option, which lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
+2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries, along with its `includes` entry in `phpstan.neon.dist`. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
+3. The analysis once more, which reuses the result cache and so is quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
 
 Keep in mind:
 
-- **Run it on the whole tree.** PHPStan only reports stale ignores when it analyzes every path, so a run limited to some files, such as `composer phpstan -- --fix src/wp-includes/template.php`, fixes none of them.
-- **A baseline it empties is left behind**, as a file with `ignoreErrors: []`. That still passes, but delete the file and its `includes` entry in `phpstan.neon.dist` by running the generator with `--prune`, which analyzes nothing and so takes no time:
-
-	```bash
-	npm run typecheck:php:baselines -- --prune
-	```
-
-	or, outside the Docker environment:
-
-	```bash
-	composer phpstan:baselines -- --prune
-	```
+- **It fails when nothing is fixable.** PHPStan then says `No fixable errors found` and stops the script there, so run `composer phpstan` to see whether any errors remain.
+- **It always analyzes the whole tree with `phpstan.neon.dist`**, whatever a local `phpstan.neon` says. PHPStan only reports stale ignores when it analyzes every path, and a configuration at another rule level can report a baselined error with a different message, in which case `--fix` would remove an entry that the default configuration still needs.
 - **It fixes every fixable error the run reports**, not only stale ignores. A few other errors can also be fixed automatically, such as a [useless cast](https://phpstan.org/error-identifiers/cast.useless), so check the diff before committing it.
-- `--fix-ignored` goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs.
+- PHPStan's `--fix-ignored`, run as `composer phpstan -- --fix-ignored`, goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs, and follow it with `composer phpstan:baselines -- --prune`.
 
 The feature is marked experimental in PHPStan. See [the PHPStan documentation](https://phpstan.org/user-guide/command-line-usage) for details.
 

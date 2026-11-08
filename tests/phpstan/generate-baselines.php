@@ -21,7 +21,8 @@
  * With `--prune`, nothing is analyzed: the baselines that no longer list any
  * entries are deleted, and the list in the configuration is updated to match. That
  * completes running PHPStan with `--fix`, which removes the entries of fixed
- * errors in place but leaves a baseline it has emptied behind.
+ * errors in place but leaves a baseline it has emptied behind, and so
+ * `composer phpstan:fix` runs it with `--prune` after `--fix`.
  *
  * The intermediate baseline is generated in PHPStan's PHP format and read back
  * with `require`, so the entries arrive as an array. Nothing has to parse, or
@@ -431,7 +432,10 @@ function get_usage(): string {
 		  Inspect everything as one baseline without writing any files:
 		    composer phpstan:baselines -- --combined
 
-		  Remove the baselines that `composer phpstan -- --fix` emptied:
+		  Remove the entries of fixed errors, and any baseline left empty:
+		    composer phpstan:fix
+
+		  Remove only the baselines that list no entries:
 		    composer phpstan:baselines -- --prune
 
 		TEXT;

@@ -162,7 +162,7 @@ jobs:
             }
 
             // PHPStan marks an error it can fix itself, such as a stale baseline entry, as fixable.
-            const fixHint = 'This can be fixed automatically by running `composer phpstan -- --fix` (or `npm run typecheck:php -- --fix`).';
+            const fixHint = 'This can be fixed automatically by running `composer phpstan:fix` (or `npm run typecheck:php:fix`).';
 
             for ( const error of errors ) {
               const properties = { title: error.identifier ? `PHPStan: ${ error.identifier }` : 'PHPStan' };
@@ -271,19 +271,19 @@ jobs:
 
           **If you fixed the error, this is expected.** Each baseline entry records an exact count for a specific file, so that a new occurrence of an already baselined error is reported rather than absorbed. That same exactness means fixing one leaves the baseline describing a state that no longer exists. There is nothing to fix in the code; the baselines just need to catch up.
 
-          Remove the stale entries by running the analysis with `--fix`, and commit the result:
+          Remove the stale entries, and commit the result:
 
           ```bash
-          npm run typecheck:php -- --fix
+          npm run typecheck:php:fix
           ```
 
           or, outside the Docker environment:
 
           ```bash
-          composer phpstan -- --fix
+          composer phpstan:fix
           ```
 
-          That lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. If it leaves a baseline with no entries, delete that file and update the list in `phpstan.neon.dist` with `npm run typecheck:php:baselines -- --prune` or `composer phpstan:baselines -- --prune`.
+          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries, and updates the list of them in `phpstan.neon.dist`.
 
           Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`, but it does not clear an `@phpstan-ignore` annotation.
 
@@ -299,7 +299,7 @@ jobs:
               echo "[readme]: ${README_URL}"
             } >> "${GITHUB_STEP_SUMMARY}"
 
-            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php -- --fix\` or \`composer phpstan -- --fix\` and commit the updated baselines. See ${README_URL}"
+            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:fix\` or \`composer phpstan:fix\` and commit the updated baselines. See ${README_URL}"
           else
             echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
           fi
