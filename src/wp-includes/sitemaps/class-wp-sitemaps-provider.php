@@ -69,8 +69,10 @@ abstract class WP_Sitemaps_Provider {
 
 		$object_subtypes = $this->get_object_subtypes();
 
-		// If there are no object subtypes, include a single sitemap for the
-		// entire object type.
+		/*
+		 * If there are no object subtypes, include a single sitemap for the
+		 * entire object type.
+		 */
 		if ( empty( $object_subtypes ) ) {
 			$sitemap_data[] = array(
 				'name'  => '',
@@ -172,7 +174,7 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array List of object subtypes objects keyed by their name.
+	 * @return array<string, object> List of object subtypes objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		return array();

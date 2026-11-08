@@ -33,7 +33,7 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		this.model = new Backbone.Model( this.defaults );
 
 		// If any of the `options` have a key from `defaults`, apply its
-		// value to the `model` and remove it from the `options object.
+		// value to the `model` and remove it from the `options` object.
 		_.each( this.defaults, function( def, key ) {
 			var value = this.options[ key ];
 			if ( _.isUndefined( value ) ) {
@@ -47,6 +47,8 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		this.listenTo( this.model, 'change', this.render );
 	},
 	/**
+	 * Renders the button.
+	 *
 	 * @return {wp.media.view.Button} Returns itself to allow chaining.
 	 */
 	render: function() {
@@ -64,13 +66,15 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		classes = _.uniq( classes.concat( this.options.classes ) );
 		this.el.className = classes.join(' ');
 
-		this.$el.attr( 'disabled', model.disabled );
+		this.$el.prop( 'disabled', model.disabled );
 		this.$el.text( this.model.get('text') );
 
 		return this;
 	},
 	/**
-	 * @param {Object} event
+	 * Handles the click event.
+	 *
+	 * @param {JQuery.Event} event The jQuery event object for the click action.
 	 */
 	click: function( event ) {
 		if ( '#' === this.attributes.href ) {

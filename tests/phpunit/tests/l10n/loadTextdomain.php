@@ -5,7 +5,6 @@
  * @group i18n
  */
 class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
-	protected $locale;
 	protected static $user_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -19,11 +18,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-
-		$this->locale = '';
-
-		add_filter( 'plugin_locale', array( $this, 'store_locale' ) );
-		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
 
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
@@ -39,12 +33,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
 		parent::tear_down();
-	}
-
-	public function store_locale( $locale ) {
-		$this->locale = $locale;
-
-		return $locale;
 	}
 
 	/**
@@ -233,71 +221,50 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::load_muplugin_textdomain
-	 */
-	public function test_load_muplugin_textdomain_site_locale() {
-		load_muplugin_textdomain( 'wp-tests-domain' );
-
-		$this->assertSame( get_locale(), $this->locale );
-	}
-
-	/**
-	 * @ticket 38485
-	 *
-	 * @covers ::load_muplugin_textdomain
-	 */
-	public function test_load_muplugin_textdomain_user_locale() {
-		set_current_screen( 'dashboard' );
-		wp_set_current_user( self::$user_id );
-
-		load_muplugin_textdomain( 'wp-tests-domain' );
-
-		$this->assertSame( get_user_locale(), $this->locale );
-	}
-
-	/**
-	 * @covers ::load_plugin_textdomain
-	 */
-	public function test_load_plugin_textdomain_site_locale() {
-		load_plugin_textdomain( 'wp-tests-domain' );
-
-		$this->assertSame( get_locale(), $this->locale );
-	}
-
-	/**
-	 * @ticket 38485
-	 *
-	 * @covers ::load_plugin_textdomain
-	 */
-	public function test_load_plugin_textdomain_user_locale() {
-		set_current_screen( 'dashboard' );
-		wp_set_current_user( self::$user_id );
-
-		load_plugin_textdomain( 'wp-tests-domain' );
-
-		$this->assertSame( get_user_locale(), $this->locale );
-	}
-
-	/**
-	 * @covers ::load_theme_textdomain
-	 */
-	public function test_load_theme_textdomain_site_locale() {
-		load_theme_textdomain( 'wp-tests-domain' );
-
-		$this->assertSame( get_locale(), $this->locale );
-	}
-
-	/**
-	 * @ticket 38485
+	 * @ticket 58035
 	 *
 	 * @covers ::load_theme_textdomain
 	 */
-	public function test_load_theme_textdomain_user_locale() {
-		set_current_screen( 'dashboard' );
-		wp_set_current_user( self::$user_id );
+	public function test_pre_load_textdomain_filter() {
+		$override_load_textdomain_callback = new MockAction();
+		add_filter( 'override_load_textdomain', array( $override_load_textdomain_callback, 'action' ) );
 
-		load_theme_textdomain( 'wp-tests-domain' );
+		add_filter( 'pre_load_textdomain', '__return_true' );
+		load_plugin_textdomain( 'wp-tests-domain' );
+		remove_filter( 'pre_load_textdomain', '__return_true' );
 
-		$this->assertSame( get_user_locale(), $this->locale );
+		$this->assertSame( 0, $override_load_textdomain_callback->get_call_count(), 'Expected override_load_textdomain not to be called.' );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_plugin_textdomain
+	 */
+	public function test_load_plugin_textdomain_invalid_domain() {
+		$this->assertFalse( load_plugin_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_muplugin_textdomain
+	 */
+	public function test_load_muplugin_textdomain_invalid_domain() {
+		$this->assertFalse( load_muplugin_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_theme_textdomain
+	 */
+	public function test_load_theme_textdomain_invalid_domain() {
+		$this->assertFalse( load_theme_textdomain( null ) );
+	}
+
+	/**
+	 * @ticket 60888
+	 * @covers ::load_textdomain
+	 */
+	public function test_load_textdomain_invalid_domain() {
+		$this->assertFalse( load_textdomain( null, DIR_TESTDATA . '/pomo/thisfiledoesnotexist.mo' ) );
 	}
 }

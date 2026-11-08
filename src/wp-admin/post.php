@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $parent_file  = 'edit.php';
 $submenu_file = 'edit.php';
 
-wp_reset_vars( array( 'action' ) );
+$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
@@ -28,9 +28,9 @@ if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post']
 $post_ID = $post_id;
 
 /**
- * @global string  $post_type
- * @global object  $post_type_object
- * @global WP_Post $post             Global post object.
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
+ * @global WP_Post      $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
 
@@ -55,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	false !== strpos( $sendback, 'post.php' ) ||
-	false !== strpos( $sendback, 'post-new.php' ) ) {
+	str_contains( $sendback, 'post.php' ) ||
+	str_contains( $sendback, 'post-new.php' ) ) {
 	if ( 'attachment' === $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -96,16 +96,28 @@ switch ( $action ) {
 		$_POST['comment_status'] = get_default_comment_status( $post->post_type );
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
 
-		// Wrap Quick Draft content in the Paragraph block.
-		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+		$quickdraft_post_title   = trim( $_POST['post_title'] );
+		$quickdraft_post_content = trim( $_POST['content'] );
+
+		if ( empty( $quickdraft_post_title ) && empty( $quickdraft_post_content ) ) {
+			return wp_dashboard_quick_press( __( 'Cannot create a draft post with empty title and content.' ) );
+		}
+
+		// Wrap Quick Draft content in a Paragraph block.
+		if (
+			use_block_editor_for_post_type( $post->post_type ) &&
+			! empty( $quickdraft_post_content ) &&
+			! str_contains( $quickdraft_post_content, '<!-- wp:paragraph -->' )
+		) {
+			// Note that `edit_post()` reads from the $_POST superglobal by reference.
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
-				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )
+				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $quickdraft_post_content )
 			);
 		}
 
 		edit_post();
-		wp_dashboard_quick_press();
+		wp_dashboard_quick_press( __( 'Draft created successfully.' ), 'success' );
 		exit;
 
 	case 'postajaxpost':
@@ -124,23 +136,23 @@ switch ( $action ) {
 		}
 
 		if ( ! $post ) {
-			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ) );
+			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ), 404 );
 		}
 
 		if ( ! $post_type_object ) {
-			wp_die( __( 'Invalid post type.' ) );
+			wp_die( __( 'Invalid post type.' ), 400 );
 		}
 
 		if ( ! in_array( $typenow, get_post_types( array( 'show_ui' => true ) ), true ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ), 403 );
 		}
 
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit this item.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit this item.' ), 403 );
 		}
 
 		if ( 'trash' === $post->post_status ) {
-			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ) );
+			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ), 409 );
 		}
 
 		if ( ! empty( $_GET['get-post-lock'] ) ) {
@@ -160,7 +172,7 @@ switch ( $action ) {
 			$submenu_file  = 'upload.php';
 			$post_new_file = 'media-new.php';
 		} else {
-			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
+			if ( $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
 				$parent_file = $post_type_object->show_in_menu;
 			} else {
 				$parent_file = "edit.php?post_type=$post_type";
@@ -239,26 +251,26 @@ switch ( $action ) {
 		check_admin_referer( 'trash-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'The item you are trying to move to the Trash no longer exists.' ) );
+			wp_die( __( 'The item you are trying to move to the Trash no longer exists.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
-			wp_die( __( 'Invalid post type.' ) );
+			wp_die( __( 'Invalid post type.' ), 400 );
 		}
 
 		if ( ! current_user_can( 'delete_post', $post_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
+			wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ), 403 );
 		}
 
 		$user_id = wp_check_post_lock( $post_id );
 		if ( $user_id ) {
 			$user = get_userdata( $user_id );
 			/* translators: %s: User's display name. */
-			wp_die( sprintf( __( 'You cannot move this item to the Trash. %s is currently editing.' ), $user->display_name ) );
+			wp_die( sprintf( __( 'You cannot move this item to the Trash. %s is currently editing.' ), $user->display_name ), 409 );
 		}
 
 		if ( ! wp_trash_post( $post_id ) ) {
-			wp_die( __( 'Error in moving the item to Trash.' ) );
+			wp_die( __( 'Error in moving the item to Trash.' ), 500 );
 		}
 
 		wp_redirect(
@@ -276,19 +288,19 @@ switch ( $action ) {
 		check_admin_referer( 'untrash-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'The item you are trying to restore from the Trash no longer exists.' ) );
+			wp_die( __( 'The item you are trying to restore from the Trash no longer exists.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
-			wp_die( __( 'Invalid post type.' ) );
+			wp_die( __( 'Invalid post type.' ), 400 );
 		}
 
 		if ( ! current_user_can( 'delete_post', $post_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
+			wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ), 403 );
 		}
 
 		if ( ! wp_untrash_post( $post_id ) ) {
-			wp_die( __( 'Error in restoring the item from Trash.' ) );
+			wp_die( __( 'Error in restoring the item from Trash.' ), 500 );
 		}
 
 		$sendback = add_query_arg(
@@ -305,25 +317,25 @@ switch ( $action ) {
 		check_admin_referer( 'delete-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'This item has already been deleted.' ) );
+			wp_die( __( 'This item has already been deleted.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
-			wp_die( __( 'Invalid post type.' ) );
+			wp_die( __( 'Invalid post type.' ), 400 );
 		}
 
 		if ( ! current_user_can( 'delete_post', $post_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
+			wp_die( __( 'Sorry, you are not allowed to delete this item.' ), 403 );
 		}
 
 		if ( 'attachment' === $post->post_type ) {
 			$force = ( ! MEDIA_TRASH );
 			if ( ! wp_delete_attachment( $post_id, $force ) ) {
-				wp_die( __( 'Error in deleting the attachment.' ) );
+				wp_die( __( 'Error in deleting the attachment.' ), 500 );
 			}
 		} else {
 			if ( ! wp_delete_post( $post_id, true ) ) {
-				wp_die( __( 'Error in deleting the item.' ) );
+				wp_die( __( 'Error in deleting the item.' ), 500 );
 			}
 		}
 

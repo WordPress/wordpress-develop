@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ *
  * @covers ::the_date
  * @covers ::the_weekday_date
  */
@@ -80,7 +81,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 	}
 
 	public function count_hook( $input ) {
-		$this->hooks_called[ current_filter() ]++;
+		++$this->hooks_called[ current_filter() ];
 
 		return $input;
 	}
@@ -127,6 +128,7 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47354
+	 * @ticket 65819
 	 */
 	public function test_the_weekday_date() {
 		ob_start();
@@ -151,5 +153,23 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		$GLOBALS['previousweekday'] = '17.09.15';
 		the_weekday_date( 'before ', ' after' );
 		$this->assertSame( 'before Wednesday after', ob_get_clean() );
+
+		// Consecutive call on the same day should be suppressed.
+		ob_start();
+		the_weekday_date( 'before ', ' after' );
+		$this->assertSame( '', ob_get_clean() );
+
+		add_filter(
+			'the_weekday_date',
+			static function ( $output ) {
+				return 'Filtered ' . $output;
+			}
+		);
+
+		ob_start();
+		$GLOBALS['currentday']      = '19.09.15';
+		$GLOBALS['previousweekday'] = '18.09.15';
+		the_weekday_date();
+		$this->assertSame( 'Filtered Wednesday', ob_get_clean() );
 	}
 }

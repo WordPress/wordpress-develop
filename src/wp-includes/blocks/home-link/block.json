@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/home-link",
 	"category": "design",
 	"parent": [ "core/navigation" ],
@@ -9,6 +9,14 @@
 	"textdomain": "default",
 	"attributes": {
 		"label": {
+			"type": "string",
+			"role": "content"
+		},
+		"opensInNewTab": {
+			"type": "boolean",
+			"default": false
+		},
+		"description": {
 			"type": "string"
 		}
 	},
@@ -25,6 +33,11 @@
 		"anchor": true,
 		"reusable": false,
 		"html": false,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -37,6 +50,34 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"shadow": true,
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true,
+			"__experimentalDefaultControls": {
+				"color": false,
+				"radius": false,
+				"style": false,
+				"width": false
+			}
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"editorStyle": "wp-block-home-link-editor",

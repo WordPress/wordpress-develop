@@ -155,12 +155,19 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * Prepare a raw block pattern before it gets output in a REST API response.
 	 *
 	 * @since 6.0.0
+	 * @since 6.3.0 Added `source` property.
 	 *
 	 * @param array           $item    Raw pattern as registered, before any changes.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		// Resolve pattern blocks so they don't need to be resolved client-side
+		// in the editor, improving performance.
+		$blocks          = parse_blocks( $item['content'] );
+		$blocks          = resolve_pattern_blocks( $blocks );
+		$item['content'] = serialize_blocks( $blocks );
+
 		$fields = $this->get_fields_for_response( $request );
 		$keys   = array(
 			'name'          => 'name',
@@ -174,6 +181,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 			'blockTypes'    => 'block_types',
 			'postTypes'     => 'post_types',
 			'templateTypes' => 'template_types',
+			'source'        => 'source',
 		);
 		$data   = array();
 		foreach ( $keys as $item_key => $rest_key ) {
@@ -192,10 +200,15 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * Retrieves the block pattern schema, conforming to JSON Schema.
 	 *
 	 * @since 6.0.0
+	 * @since 6.3.0 Added `source` property.
 	 *
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-pattern',
@@ -267,9 +280,25 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
+				'source'         => array(
+					'description' => __( 'Where the pattern comes from e.g. core' ),
+					'type'        => 'string',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'enum'        => array(
+						'core',
+						'plugin',
+						'theme',
+						'pattern-directory/core',
+						'pattern-directory/theme',
+						'pattern-directory/featured',
+					),
+				),
 			),
 		);
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 }

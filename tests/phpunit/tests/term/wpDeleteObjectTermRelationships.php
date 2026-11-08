@@ -53,4 +53,24 @@ class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $t2 ), $terms );
 	}
+
+	/**
+	 * @ticket 64406
+	 */
+	public function test_delete_when_error() {
+		$taxonomy_name = 'wptests_tax';
+		register_taxonomy( $taxonomy_name, 'post' );
+		$term_id   = self::factory()->term->create( array( 'taxonomy' => $taxonomy_name ) );
+		$object_id = 567;
+		wp_set_object_terms( $object_id, array( $term_id ), $taxonomy_name );
+
+		// Confirm the setup.
+		$terms = wp_get_object_terms( $object_id, array( $taxonomy_name ), array( 'fields' => 'ids' ) );
+		$this->assertSame( array( $term_id ), $terms, 'Expected same object terms.' );
+
+		// Try wp_delete_object_term_relationships() when the taxonomy is invalid (no change expected).
+		wp_delete_object_term_relationships( $object_id, 'wptests_taxation' );
+		$terms = wp_get_object_terms( $object_id, array( $taxonomy_name ), array( 'fields' => 'ids' ) );
+		$this->assertSame( array( $term_id ), $terms, 'Expected the object terms to be unchanged.' );
+	}
 }

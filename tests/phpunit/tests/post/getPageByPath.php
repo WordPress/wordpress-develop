@@ -38,9 +38,11 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( 'some-page', $page->post_name );
 
 		// get_page_by_path() should return a post of the requested type before returning an attachment.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $page, get_page_by_path( 'some-page' ) );
 
 		// Make sure get_page_by_path() will still select an attachment when a post of the requested type doesn't exist.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $other_att, get_page_by_path( 'some-other-page' ) );
 	}
 
@@ -55,6 +57,72 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$found = get_page_by_path( 'foo' );
 
 		$this->assertSame( $page, $found->ID );
+	}
+
+	/**
+	 * @ticket 61996
+	 * @covers ::get_page_by_path
+	 *
+	 * @dataProvider data_page_post_types
+	 *
+	 * @param string|string[] $post_type Post type argument.
+	 */
+	public function test_should_prefer_published_page_then_lowest_id( $post_type ) {
+		// Setting a pending page's slug requires publish permission.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$draft     = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$pending   = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'pending',
+			)
+		);
+		$published = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_name'   => 'privacy-policy',
+			)
+		);
+
+		// Draft and pending slug updates can reuse a published page's slug.
+		foreach ( array( $draft, $pending ) as $post_id ) {
+			wp_update_post(
+				array(
+					'ID'        => $post_id,
+					'post_name' => 'privacy-policy',
+				)
+			);
+			$this->assertSame( 'privacy-policy', get_post( $post_id )->post_name );
+		}
+
+		$this->assertSame( $published, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
+
+		// Draft and pending pages have the same priority, so the lowest ID wins.
+		wp_delete_post( $published, true );
+		$this->assertSame( $draft, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
+
+		wp_delete_post( $draft, true );
+		$this->assertSame( $pending, get_page_by_path( 'privacy-policy', OBJECT, $post_type )->ID );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array<string|string[]>> {
+	 */
+	public static function data_page_post_types(): array {
+		return array(
+			'string'             => array( 'page' ),
+			'array of one type'  => array( array( 'page' ) ),
+			'array of two types' => array( array( 'page', 'post' ) ),
+		);
 	}
 
 	public function test_should_obey_post_type() {
@@ -260,8 +328,6 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 * @ticket 36711
 	 */
 	public function test_should_hit_cache() {
-		global $wpdb;
-
 		$page = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -273,35 +339,33 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$found = get_page_by_path( 'foo' );
 		$this->assertSame( $page, $found->ID );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_page_by_path( 'foo' );
 		$this->assertSame( $page, $found->ID );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 36711
 	 */
 	public function test_bad_path_should_be_cached() {
-		global $wpdb;
-
 		// Prime cache.
 		$found = get_page_by_path( 'foo' );
 		$this->assertNull( $found );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_page_by_path( 'foo' );
 		$this->assertNull( $found );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 36711
 	 */
 	public function test_bad_path_served_from_cache_should_not_fall_back_on_current_post() {
-		global $wpdb, $post;
+		global $post;
 
 		// Fake the global.
 		$post = self::factory()->post->create_and_get();
@@ -310,11 +374,11 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$found = get_page_by_path( 'foo' );
 		$this->assertNull( $found );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_page_by_path( 'foo' );
 		$this->assertNull( $found );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 
 		unset( $post );
 	}
@@ -323,8 +387,6 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 * @ticket 36711
 	 */
 	public function test_cache_should_not_match_post_in_different_post_type_with_same_path() {
-		global $wpdb;
-
 		register_post_type( 'wptests_pt' );
 
 		$p1 = self::factory()->post->create(
@@ -345,20 +407,18 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$found = get_page_by_path( 'foo' );
 		$this->assertSame( $p1, $found->ID );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_page_by_path( 'foo', OBJECT, 'wptests_pt' );
 		$this->assertSame( $p2, $found->ID );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 36711
 	 */
 	public function test_cache_should_be_invalidated_when_post_name_is_edited() {
-		global $wpdb;
-
 		$page = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -377,12 +437,12 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_page_by_path( 'bar' );
 		$this->assertSame( $page, $found->ID );
-		$num_queries++;
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		++$num_queries;
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**

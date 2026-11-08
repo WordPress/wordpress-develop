@@ -123,7 +123,7 @@ class WP_Meta_Query {
 	 *                                            - 'NOT IN'
 	 *                                            - 'REGEXP'
 	 *                                            - 'NOT REGEXP'
-	 *                                            - 'RLIKE',
+	 *                                            - 'RLIKE'
 	 *                                            - 'EXISTS' (alias of '=')
 	 *                                            - 'NOT EXISTS' (alias of '!=')
 	 *                                            Default is 'IN' when `$key` is an array, '=' otherwise.
@@ -132,7 +132,7 @@ class WP_Meta_Query {
 	 *                                            comparisons. Default is ''.
 	 *         @type string|string[] $value       Meta value or values to filter by.
 	 *         @type string          $compare     MySQL operator used for comparing the $value. Accepts:
-	 *                                            - '=',
+	 *                                            - '='
 	 *                                            - '!='
 	 *                                            - '>'
 	 *                                            - '>='
@@ -165,7 +165,7 @@ class WP_Meta_Query {
 	 *     }
 	 * }
 	 */
-	public function __construct( $meta_query = false ) {
+	public function __construct( $meta_query = array() ) {
 		if ( ! $meta_query ) {
 			return;
 		}
@@ -345,6 +345,7 @@ class WP_Meta_Query {
 	 * @param string $primary_id_column ID column for the filtered object in $primary_table.
 	 * @param object $context           Optional. The main query object that corresponds to the type, for
 	 *                                  example a `WP_Query`, `WP_User_Query`, or `WP_Site_Query`.
+	 *                                  Default null.
 	 * @return string[]|false {
 	 *     Array containing JOIN and WHERE SQL clauses to append to the main query,
 	 *     or false if no table exists for the requested meta type.
@@ -373,7 +374,7 @@ class WP_Meta_Query {
 		 * If any JOINs are LEFT JOINs (as in the case of NOT EXISTS), then all JOINs should
 		 * be LEFT. Otherwise posts with no metadata will be excluded from results.
 		 */
-		if ( false !== strpos( $sql['join'], 'LEFT JOIN' ) ) {
+		if ( str_contains( $sql['join'], 'LEFT JOIN' ) ) {
 			$sql['join'] = str_replace( 'INNER JOIN', 'LEFT JOIN', $sql['join'] );
 		}
 
@@ -521,11 +522,12 @@ class WP_Meta_Query {
 	 * @param array  $parent_query Parent query array.
 	 * @param string $clause_key   Optional. The array key used to name the clause in the original `$meta_query`
 	 *                             parameters. If not provided, a key will be generated automatically.
-	 * @return string[] {
+	 *                             Default empty string.
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
@@ -617,7 +619,7 @@ class WP_Meta_Query {
 		$clause['alias'] = $alias;
 
 		// Determine the data type.
-		$_meta_type     = isset( $clause['type'] ) ? $clause['type'] : '';
+		$_meta_type     = $clause['type'] ?? '';
 		$meta_type      = $this->get_cast_for_type( $_meta_type );
 		$clause['cast'] = $meta_type;
 
@@ -631,7 +633,7 @@ class WP_Meta_Query {
 		$clause_key_base = $clause_key;
 		while ( isset( $this->clauses[ $clause_key ] ) ) {
 			$clause_key = $clause_key_base . '-' . $iterator;
-			$iterator++;
+			++$iterator;
 		}
 
 		// Store the clause in our flat array.

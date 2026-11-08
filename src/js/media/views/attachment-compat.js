@@ -24,7 +24,14 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		'change textarea': 'save'
 	},
 
+	initialize: function() {
+		// Render the view when a new item is added.
+		this.listenTo( this.model, 'add', this.render );
+	},
+
 	/**
+	 * Disposes of the view and its children.
+	 *
 	 * @return {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	dispose: function() {
@@ -37,7 +44,9 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		return View.prototype.dispose.apply( this, arguments );
 	},
 	/**
-	 * @return {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
+	 * Renders the view.
+	 *
+	 * @return {void|wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var compat = this.model.get('compat');
@@ -51,13 +60,17 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		return this;
 	},
 	/**
-	 * @param {Object} event
+	 * Prevents the default action of the event.
+	 *
+	 * @param {JQuery.Event} event The jQuery event object associated with the action.
 	 */
 	preventDefault: function( event ) {
 		event.preventDefault();
 	},
 	/**
-	 * @param {Object} event
+	 * Saves the attachment compat data.
+	 *
+	 * @param {JQuery.Event} event The jQuery event object associated with the action.
 	 */
 	save: function( event ) {
 		var data = {};
@@ -74,6 +87,9 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		this.model.saveCompat( data ).always( _.bind( this.postSave, this ) );
 	},
 
+	/**
+	 * Triggers the `attachment:compat:ready` event on the controller after saving the compat data.
+	 */
 	postSave: function() {
 		this.controller.trigger( 'attachment:compat:ready', ['ready'] );
 	}

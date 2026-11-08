@@ -214,7 +214,7 @@ class Iri {
 			$return = null;
 		}
 
-		if ($return === null && isset($this->normalization[$this->scheme][$name])) {
+		if ($return === null && isset($this->scheme, $this->normalization[$this->scheme][$name])) {
 			return $this->normalization[$this->scheme][$name];
 		}
 		else {
@@ -395,11 +395,11 @@ class Iri {
 			// preceding "/" (if any) from the output buffer; otherwise,
 			elseif (strpos($input, '/../') === 0) {
 				$input = substr($input, 3);
-				$output = substr_replace($output, '', strrpos($output, '/'));
+				$output = substr_replace($output, '', (strrpos($output, '/') ?: 0));
 			}
 			elseif ($input === '/..') {
 				$input = '/';
-				$output = substr_replace($output, '', strrpos($output, '/'));
+				$output = substr_replace($output, '', (strrpos($output, '/') ?: 0));
 			}
 			// D: if the input buffer consists only of "." or "..", then remove
 			// that from the input buffer; otherwise,
@@ -669,26 +669,28 @@ class Iri {
 	}
 
 	protected function scheme_normalization() {
-		if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo']) {
-			$this->iuserinfo = null;
-		}
-		if (isset($this->normalization[$this->scheme]['ihost']) && $this->ihost === $this->normalization[$this->scheme]['ihost']) {
-			$this->ihost = null;
-		}
-		if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port']) {
-			$this->port = null;
-		}
-		if (isset($this->normalization[$this->scheme]['ipath']) && $this->ipath === $this->normalization[$this->scheme]['ipath']) {
-			$this->ipath = '';
+		if (isset($this->scheme, $this->normalization[$this->scheme])) {
+			if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo']) {
+				$this->iuserinfo = null;
+			}
+			if (isset($this->normalization[$this->scheme]['ihost']) && $this->ihost === $this->normalization[$this->scheme]['ihost']) {
+				$this->ihost = null;
+			}
+			if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port']) {
+				$this->port = null;
+			}
+			if (isset($this->normalization[$this->scheme]['ipath']) && $this->ipath === $this->normalization[$this->scheme]['ipath']) {
+				$this->ipath = '';
+			}
+			if (isset($this->normalization[$this->scheme]['iquery']) && $this->iquery === $this->normalization[$this->scheme]['iquery']) {
+				$this->iquery = null;
+			}
+			if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment']) {
+				$this->ifragment = null;
+			}
 		}
 		if (isset($this->ihost) && empty($this->ipath)) {
 			$this->ipath = '/';
-		}
-		if (isset($this->normalization[$this->scheme]['iquery']) && $this->iquery === $this->normalization[$this->scheme]['iquery']) {
-			$this->iquery = null;
-		}
-		if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment']) {
-			$this->ifragment = null;
 		}
 	}
 
@@ -715,6 +717,20 @@ class Iri {
 		}
 
 		return true;
+	}
+
+	public function __wakeup() {
+		$class_props = get_class_vars( __CLASS__ );
+		$string_props = array( 'scheme', 'iuserinfo', 'ihost', 'port', 'ipath', 'iquery', 'ifragment' );
+		$array_props = array( 'normalization' );
+		foreach ( $class_props as $prop => $default_value ) {
+			if ( in_array( $prop, $string_props, true ) && ! is_string( $this->$prop ) ) {
+				throw new UnexpectedValueException();
+			} elseif ( in_array( $prop, $array_props, true ) && ! is_array( $this->$prop ) ) {
+				throw new UnexpectedValueException();
+			}
+			$this->$prop = null;
+		}
 	}
 
 	/**
@@ -824,7 +840,8 @@ class Iri {
 		else {
 			$iuserinfo = null;
 		}
-		if (($port_start = strpos($remaining, ':', strpos($remaining, ']'))) !== false) {
+
+		if (($port_start = strpos($remaining, ':', (strpos($remaining, ']') ?: 0))) !== false) {
 			$port = substr($remaining, $port_start + 1);
 			if ($port === false || $port === '') {
 				$port = null;
