@@ -81,7 +81,7 @@ function tests_add_filter( $hook_name, $callback, $priority = 10, $accepted_args
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
  */
 function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	if ( is_string( $callback ) ) {
@@ -89,11 +89,17 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	}
 
 	if ( is_object( $callback ) ) {
-		// Closures are currently implemented as objects.
+		/*
+		 * The prefix keeps the ID from being the decimal representation of an integer. PHP casts such a
+		 * string to int when it is used as an array key, which would change the type of the keys in
+		 * WP_Hook::$callbacks and break consumers that pass them to string functions.
+		 */
 		return 'spl_object_id:' . spl_object_id( $callback );
 	}
 
-	$callback = (array) $callback;
+	if ( ! isset( $callback[1] ) || ! is_string( $callback[1] ) ) {
+		return null;
+	}
 
 	if ( is_object( $callback[0] ) ) {
 		// Object class calling.
@@ -102,6 +108,8 @@ function _test_filter_build_unique_id( $hook_name, $callback, $priority ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
 	}
+
+	return null;
 }
 
 /**

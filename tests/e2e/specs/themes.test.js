@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
@@ -145,5 +150,60 @@ test.describe( 'Theme management', () => {
 		expect(
 			themes.find( ( theme ) => theme.status === 'active' ).stylesheet
 		).toBe( previousTheme );
+	} );
+
+	test( 'searches for an installed theme', async ( { admin, page } ) => {
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		const themeDetailsButtons = page.getByRole( 'button', {
+			name: /View Theme Details for /,
+		} );
+		// Confirm search starts from a broader results set before filtering.
+		await expect
+			.poll( async () => themeDetailsButtons.count() )
+			.toBeGreaterThan( 1 );
+		await search.fill( themeName );
+
+		// Wait for the debounced filter, then require a single matching result.
+		await expect( themeDetailsButtons ).toHaveCount( 1 );
+		await expect(
+			page.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for a missing theme', async ( {
+		admin,
+		page,
+	} ) => {
+		// Fixture theme from beforeEach keeps the library non-empty so ignoring
+		// search cannot vacuously pass.
+		const missing = `e2e-missing-theme-${ randomUUID().slice( 0, 8 ) }`;
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		await search.fill( missing );
+
+		// Scope to the empty-state paragraph; the same copy is also spoken via
+		// wp.a11y.speak() into a live region.
+		const emptyState = page.locator( 'p.no-themes' );
+		await expect( emptyState ).toBeVisible();
+		await expect( emptyState ).toHaveText(
+			'No themes found. Try a different search.'
+		);
+		await expect(
+			page.getByRole( 'button', {
+				name: /View Theme Details for /,
+			} )
+		).toHaveCount( 0 );
 	} );
 } );
