@@ -979,12 +979,6 @@ function get_hooked_blocks() {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ] ) ) {
-				$hooked_blocks[ $anchor_block_type ] = array();
-			}
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
-				$hooked_blocks[ $anchor_block_type ][ $relative_position ] = array();
-			}
 			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}
 	}
@@ -1490,9 +1484,6 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
 
-		if ( ! isset( $post->meta_input ) ) {
-			$post->meta_input = array();
-		}
 		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
@@ -1928,8 +1919,40 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @since 6.6.0
  * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
- * @param array $blocks An array blocks.
- * @return array An array of blocks with patterns replaced by their content.
+ * @param array[] $blocks {
+ *     An array of blocks.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Required. Name of block.
+ *         @type array       $attrs        Required. Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  Required. List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    Required. HTML from inside block comment delimiters.
+ *         @type array       $innerContent Required. List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *     }
+ * }
+ * @return array[] {
+ *     An array of blocks with patterns replaced by their content.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *         @type mixed       ...$key       Any other keys a block passed in carries, which
+ *                                         are kept, except where a `core/pattern` block is
+ *                                         replaced by its pattern's blocks, or removed as
+ *                                         recursive.
+ *     }
+ * }
  */
 function resolve_pattern_blocks( $blocks ) {
 	static $inner_content;
@@ -2843,7 +2866,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 				 * Logic should be used beforehand to determine if WP_Query should be used in the event that the array
 				 * being passed to post__in is empty.
 				 *
-				 * @see https://core.trac.wordpress.org/ticket/28099
+				 * @link https://core.trac.wordpress.org/ticket/28099
 				 */
 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
 				$query['ignore_sticky_posts'] = 1;

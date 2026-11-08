@@ -2428,7 +2428,7 @@ function wp_insert_user( $userdata ) {
 	 * check if current email and new email are the same, and check `email_exists`
 	 * accordingly.
 	 */
-	if ( ( ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $user_email, $old_user_data->user_email ) ) )
+	if ( ( ! $update || 0 !== strcasecmp( $user_email, $old_user_data->user_email ) )
 		&& ! defined( 'WP_IMPORTING' )
 		&& email_exists( $user_email )
 	) {
@@ -3421,7 +3421,7 @@ function retrieve_password( $user_login = '' ) {
 	 * end in a period. To avoid the ambiguity, ensure that the login is not the last query
 	 * arg in the URL. If moving it to the end, a trailing period will need to be escaped.
 	 *
-	 * @see https://core.trac.wordpress.org/tickets/42957
+	 * @link https://core.trac.wordpress.org/ticket/42957
 	 */
 	$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user_login ) . "&key=$key&action=rp", 'login' ) . '&wp_lang=' . $locale . "\r\n\r\n";
 
@@ -4326,6 +4326,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
+	$manage_url = '';
 	if ( 'export_personal_data' === $request->action_name ) {
 		$manage_url = admin_url( 'export-personal-data.php' );
 	} elseif ( 'remove_personal_data' === $request->action_name ) {
@@ -5126,12 +5127,17 @@ function wp_validate_user_request_key(
 	#[\SensitiveParameter]
 	$key
 ) {
-	$request_id       = absint( $request_id );
-	$request          = wp_get_user_request( $request_id );
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request( $request_id );
+
+	if ( ! $request ) {
+		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
+	}
+
 	$saved_key        = $request->confirm_key;
 	$key_request_time = $request->modified_timestamp;
 
-	if ( ! $request || ! $saved_key || ! $key_request_time ) {
+	if ( ! $saved_key || ! $key_request_time ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 

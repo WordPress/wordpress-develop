@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     3: Page title.
  *     4: Classes.
  *     5: ID.
- *     6: Icon for top level menu.
+ *     6: Icon for top level menu. Dashicons values are kept here and replaced
+ *        with SVG icons at render time, see _wp_menu_output().
  *
  * @global array $menu
  */
@@ -144,10 +145,11 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 
 	$menu_icon = 'dashicons-admin-post';
 	if ( is_string( $post_type_obj->menu_icon ) ) {
-		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, and Dashicons.
+		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and namespaced icon names.
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
 			|| str_starts_with( $post_type_obj->menu_icon, 'dashicons-' )
+			|| wp_is_valid_icon_name( $post_type_obj->menu_icon )
 		) {
 			$menu_icon = $post_type_obj->menu_icon;
 		} else {
@@ -224,31 +226,35 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	/* translators: %s: Number of available theme updates. */
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
 
+if ( ! is_multisite() ) {
+	$submenu['themes.php'][6] = array( __( 'Add Theme' ), 'install_themes', 'theme-install.php', '', 'hide-if-no-js' );
+}
+
 if ( wp_is_block_theme() ) {
-	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
+	$submenu['themes.php'][7] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
 } else {
 	$supports_stylebook = ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() );
 
 	if ( $supports_stylebook ) {
-		$submenu['themes.php'][6] = array( _x( 'Design', 'design menu item' ), 'edit_theme_options', 'site-editor.php' );
+		$submenu['themes.php'][7] = array( _x( 'Design', 'design menu item' ), 'edit_theme_options', 'site-editor.php' );
 	} else {
-		$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
+		$submenu['themes.php'][7] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
 	}
 }
 
 // Font Library menu item.
-$submenu['themes.php'][9] = array( __( 'Fonts' ), 'edit_theme_options', 'font-library.php' );
+$submenu['themes.php'][10] = array( __( 'Fonts' ), 'edit_theme_options', 'font-library.php' );
 
 $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
 
 // Hide Customize link on block themes unless a plugin or theme
 // is using 'customize_register' to add a setting.
 if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
-	$submenu['themes.php'][7] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][8] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
 }
 
 if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) {
-	$submenu['themes.php'][10] = array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' );
+	$submenu['themes.php'][11] = array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' );
 }
 
 if ( current_theme_supports( 'custom-header' ) && current_user_can( 'customize' ) ) {

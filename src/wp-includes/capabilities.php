@@ -767,6 +767,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_network_plugins':
 		case 'manage_network_themes':
 		case 'manage_network_options':
+		case 'manage_network_secrets':
 		case 'upgrade_network':
 			$caps[] = $cap;
 			break;
@@ -830,11 +831,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 			$post_type_object = get_post_type_object( $object_subtype );
 			// Initialize empty array if it doesn't exist.
-			if ( ! isset( $post_type_object->capabilities ) ) {
-				$post_type_object->capabilities = array();
-			}
-			$post_type_capabilities = get_post_type_capabilities( $post_type_object );
-			$caps                   = map_meta_cap( $post_type_capabilities->edit_post, $user_id, $object_id );
+			$post_type_object->capabilities ??= array();
+			$post_type_capabilities           = get_post_type_capabilities( $post_type_object );
+			$caps                             = map_meta_cap( $post_type_capabilities->edit_post, $user_id, $object_id );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
@@ -909,6 +908,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the current user has the given capability. If `$capability` is a meta cap and `$object_id` is
  *              passed, whether the current user has the given meta capability for the given object.
+ *
+ * @phpstan-impure
  */
 function current_user_can( $capability, ...$args ) {
 	return user_can( wp_get_current_user(), $capability, ...$args );

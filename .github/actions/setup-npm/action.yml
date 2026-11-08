@@ -18,11 +18,22 @@ runs:
       id: npm
       env:
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        NPM_INSTALL_MAX_ATTEMPTS: 3
       run: |
         NPM_VERSION="$(jq -r '.devEngines.packageManager.version // empty' package.json)"
         if [ -n "$NPM_VERSION" ]; then
           # Contributors need the floor; CI stays on that major's newest release.
-          npm install --global "npm@${NPM_VERSION/>=/^}"
+          # The registry can reset the connection mid-download (ECONNRESET), so retry.
+          for (( attempt = 1; attempt <= NPM_INSTALL_MAX_ATTEMPTS; attempt++ )); do
+            if npm install --global "npm@${NPM_VERSION/>=/^}"; then
+              break
+            fi
+            echo "::warning::npm install failed on attempt $attempt of $NPM_INSTALL_MAX_ATTEMPTS."
+            if (( attempt == NPM_INSTALL_MAX_ATTEMPTS )); then
+              exit 1
+            fi
+            sleep $(( attempt * 10 ))
+          done
           echo "Required npm version: $NPM_VERSION"
         else
           echo "No devEngines.packageManager.version, keeping the bundled npm."
