@@ -419,20 +419,7 @@ function create_initial_comment_types(): void {
  * may be stored. Comment types that are stored but never registered keep behaving exactly
  * as they did before this API existed.
  *
- * Each argument drives exactly one layer of behavior, so the flags stay independently
- * meaningful as more of them are added:
- *
- *  - `public` states display-surface intent: whether the type is meant to be seen by site
- *    visitors. It does not affect what queries return.
- *  - `internal` states query-surface intent: whether the type should be excluded from
- *    comment queries and counts by default.
- *
- * An argument never implies another argument. The one cascade planned for the future is
- * `show_in_rest`, which will default from `public`.
- *
- * Registrations live in a per-process global. Like post types, they are not scoped to a
- * site on multisite: a type registered by one site's plugins is visible after
- * switch_to_blog() for the rest of the request.
+ * Like post types, registrations are not scoped to a site on multisite.
  *
  * Cannot be used to re-register built-in comment types. The names WP_Comment_Query reads
  * as query tokens ('all', 'comments', 'pings') cannot be registered either.
@@ -485,11 +472,7 @@ function register_comment_type( $comment_type, $args = array() ) {
 		return new WP_Error( 'comment_type_length_invalid', __( 'Comment type names must be between 1 and 20 characters in length.' ) );
 	}
 
-	/*
-	 * Re-registering a built-in comment type could strip flags that core relies on
-	 * for rendering and query behavior, so it is not allowed. Core's own repeated
-	 * registrations (on 'init' and 'change_locale') pass '_builtin' and are exempt.
-	 */
+	// Core's own re-registrations on 'init' and 'change_locale' pass '_builtin' and are exempt.
 	if ( isset( $wp_comment_types[ $comment_type ] )
 		&& $wp_comment_types[ $comment_type ]->_builtin
 		&& empty( $args['_builtin'] )
@@ -506,11 +489,7 @@ function register_comment_type( $comment_type, $args = array() ) {
 		return new WP_Error( 'comment_type_builtin', __( 'Built-in comment types cannot be re-registered.' ) );
 	}
 
-	/*
-	 * WP_Comment_Query reads these names as query tokens rather than as literal
-	 * comment_type values, so a type registered under one of them could never be
-	 * queried for on its own.
-	 */
+	// WP_Comment_Query treats these names as query tokens, not comment_type values.
 	if ( in_array( $comment_type, array( 'all', 'comments', 'pings' ), true ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -541,7 +520,7 @@ function register_comment_type( $comment_type, $args = array() ) {
 	/**
 	 * Fires after a specific comment type is registered.
 	 *
-	 * The dynamic portion of the filter name, `$comment_type`, refers to the comment type key.
+	 * The dynamic portion of the hook name, `$comment_type`, refers to the comment type key.
 	 *
 	 * Possible hook names include:
 	 *
@@ -678,18 +657,10 @@ function get_comment_type_labels( $comment_type_object ) {
 
 	$provided_labels = (array) $comment_type_object->labels;
 
-	/*
-	 * _get_custom_object_labels() writes every label it derives back onto the object
-	 * it is given, including the post-type-only labels removed below. Hand it a copy
-	 * so calling this function on a registered comment type leaves the registered
-	 * object untouched.
-	 */
+	// _get_custom_object_labels() writes labels back onto the object, so pass a copy.
 	$labels = _get_custom_object_labels( clone $comment_type_object, $nohier_vs_hier_defaults );
 
-	/*
-	 * _get_custom_object_labels() derives labels that only apply to post types.
-	 * Remove them unless they were explicitly provided at registration.
-	 */
+	// Drop post-type-only labels unless they were provided at registration.
 	foreach ( array( 'name_admin_bar', 'all_items', 'archives' ) as $post_type_only_label ) {
 		if ( ! array_key_exists( $post_type_only_label, $provided_labels ) ) {
 			unset( $labels->$post_type_only_label );

@@ -63,10 +63,7 @@ final class WP_Comment_Type {
 	/**
 	 * Whether a comment type is intended for use publicly either via the admin interface or by front-end users.
 	 *
-	 * Core does not currently act on this property, but it is the intended default
-	 * for future visibility-related arguments. It defaults to true so that
-	 * registering a type in order to provide labels never hides comments that are
-	 * already publicly visible.
+	 * Core does not currently act on this property.
 	 *
 	 * Default true.
 	 *
@@ -78,9 +75,8 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is for internal use only.
 	 *
-	 * Analogous to the `internal` argument of register_post_status(). Internal types
-	 * are meant to be excluded from comment queries and counts by default. Core does
-	 * not currently act on this flag.
+	 * Internal types are meant to be excluded from comment queries and counts by
+	 * default. Core does not currently act on this property.
 	 *
 	 * Default false.
 	 *
@@ -102,9 +98,7 @@ final class WP_Comment_Type {
 	/**
 	 * Whether the comment type is hierarchical.
 	 *
-	 * Comment types are never hierarchical. This property exists so the shared label
-	 * helper {@see _get_custom_object_labels()} can resolve default labels, and
-	 * set_props() forces it to false so a provided value cannot resolve them to null.
+	 * Always false. Read by _get_custom_object_labels() to pick default labels.
 	 *
 	 * @since 7.2.0
 	 * @var bool
@@ -176,12 +170,7 @@ final class WP_Comment_Type {
 		 */
 		$args = apply_filters( "register_{$comment_type}_comment_type_args", $args, $this->name );
 
-		/*
-		 * Note: 'label' is intentionally omitted from the defaults. Leaving the property
-		 * unset (null) lets get_comment_type_labels() fall back to the default labels, the
-		 * same way WP_Post_Type and WP_Taxonomy behave. A 'label' default of false would be
-		 * treated as a provided value and overwrite the default name with false.
-		 */
+		// No 'label' default, so get_comment_type_labels() can fall back to the default name.
 		$defaults = array(
 			'labels'      => array(),
 			'description' => '',
@@ -194,11 +183,7 @@ final class WP_Comment_Type {
 
 		$args['name'] = $this->name;
 
-		/*
-		 * Comment types are never hierarchical. The property exists only so the shared
-		 * label helper can pick a slot, and the hierarchical slot is deliberately null,
-		 * so honoring a provided value would resolve every default label to null.
-		 */
+		// The hierarchical label slots are null, so a true value would null every default label.
 		$args['hierarchical'] = false;
 
 		foreach ( $args as $property_name => $property_value ) {
