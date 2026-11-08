@@ -6,9 +6,9 @@
  * @group themes
  */
 class Tests_Theme extends WP_UnitTestCase {
-	protected $theme_slug     = 'twentyeleven';
-	protected $theme_name     = 'Twenty Eleven';
-	protected $default_themes = array(
+	protected $theme_slug            = 'twentyeleven';
+	protected $theme_name            = 'Twenty Eleven';
+	protected static $default_themes = array(
 		'twentyten',
 		'twentyeleven',
 		'twentytwelve',
@@ -24,6 +24,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentythree',
 		'twentytwentyfour',
 		'twentytwentyfive',
+		'ipsum',
 	);
 
 	/**
@@ -228,13 +229,14 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Make sure we update the default theme list to include the latest default theme.
 	 *
 	 * @ticket 29925
+	 * @ticket 66352
 	 */
 	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
-		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
-			$this->fail( 'No Twenty* series default themes are installed.' );
+		if ( ! $latest_default_theme->exists() ) {
+			$this->fail( 'No default themes are installed.' );
 		}
-		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
+		$this->assertContains( $latest_default_theme->get_stylesheet(), self::$default_themes );
 	}
 
 	/**
@@ -259,7 +261,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$default_themes = array_keys( $property->getValue() );
 		$default_themes = array_diff( $default_themes, array( 'default', 'classic' ) );
 
-		$this->assertSameSets( $default_themes, $this->default_themes, 'Test suite default themes should match the runtime default themes.' );
+		$this->assertSameSets( $default_themes, self::$default_themes, 'Test suite default themes should match the runtime default themes.' );
 	}
 
 	/**
@@ -307,7 +309,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			}
 		);
 
-		$tested_themes = $this->default_themes;
+		$tested_themes = self::$default_themes;
 		// Convert the tested themes to directory names.
 		$tested_themes = array_map(
 			static function ( $theme ) {
@@ -320,7 +322,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	public function test_default_themes_have_textdomain() {
-		foreach ( $this->default_themes as $theme ) {
+		foreach ( self::$default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
 				$this->assertSame( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
 			}
@@ -357,9 +359,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ theme: string }>
 	 */
-	public function data_provider_default_themes(): array {
+	public static function data_provider_default_themes(): array {
 		$data = array();
-		foreach ( $this->default_themes as $default_theme ) {
+		foreach ( self::$default_themes as $default_theme ) {
 			$data[ $default_theme ] = array( 'theme' => $default_theme );
 		}
 		return $data;
@@ -875,7 +877,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_theme_has_default_support() {
+	public static function data_block_theme_has_default_support() {
 		return array(
 			'post-thumbnails'      => array(
 				'support' => array(
@@ -1101,7 +1103,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_stylesheet_directory_with_filter() {
+	public static function data_get_stylesheet_directory_with_filter() {
 		return array(
 			'with stylesheet_directory filter' => array(
 				'block-theme',
@@ -1161,7 +1163,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_template_directory_with_filter() {
+	public static function data_get_template_directory_with_filter() {
 		return array(
 			'with template_directory filter' => array(
 				'block-theme',
@@ -1487,7 +1489,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentyten' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentyten' ) );
 	}
 
 	/**
@@ -1510,6 +1512,6 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentytwenty' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentytwenty' ) );
 	}
 }

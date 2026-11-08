@@ -43,7 +43,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_title() {
+	public static function data_get_title() {
 		return array(
 
 			// Happy path for default.
@@ -116,7 +116,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_icon() {
+	public static function data_get_icon() {
 		return array(
 
 			// Happy path for default.
@@ -293,7 +293,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_description() {
+	public static function data_get_description() {
 		return array(
 
 			// Happy paths.
@@ -447,7 +447,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_image() {
+	public static function data_get_image() {
 		return array(
 
 			// Happy paths.

@@ -34,7 +34,7 @@ class Tests_Compat_strContains extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_str_contains() {
+	public static function data_str_contains() {
 		return array(
 			'empty needle'              => array(
 				'expected' => true,
