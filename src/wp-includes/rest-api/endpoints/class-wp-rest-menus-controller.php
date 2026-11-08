@@ -436,9 +436,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 
 		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
 
-		if ( ! isset( $nav_menu_option['auto_add'] ) ) {
-			$nav_menu_option['auto_add'] = array();
-		}
+		$nav_menu_option['auto_add'] ??= array();
 
 		$auto_add = $request['auto_add'];
 
@@ -453,7 +451,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		$update = update_option( 'nav_menu_options', $nav_menu_option );
 
 		/** This action is documented in wp-includes/nav-menu.php */
-		do_action( 'wp_update_nav_menu', $menu_id );
+		do_action( 'wp_update_nav_menu', $menu_id, array() );
 
 		return $update;
 	}
