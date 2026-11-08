@@ -135,6 +135,9 @@ class Walker {
 			return;
 		}
 
+		$max_depth = (int) $max_depth;
+		$depth     = (int) $depth;
+
 		$id_field = $this->db_fields['id'];
 		$id       = $element->$id_field;
 
@@ -161,7 +164,7 @@ class Walker {
 			unset( $children_elements[ $id ] );
 		}
 
-		if ( isset( $newlevel ) && $newlevel ) {
+		if ( isset( $newlevel ) ) {
 			// End the child delimiter.
 			$this->end_lvl( $output, $depth, ...array_values( $args ) );
 		}
@@ -190,6 +193,8 @@ class Walker {
 	 */
 	public function walk( $elements, $max_depth, ...$args ) {
 		$output = '';
+
+		$max_depth = (int) $max_depth;
 
 		// Invalid parameter or nothing to walk.
 		if ( $max_depth < -1 || empty( $elements ) ) {
@@ -225,12 +230,23 @@ class Walker {
 
 		/*
 		 * When none of the elements is top level.
-		 * Assume the first one must be root of the sub elements.
+		 * Find an element whose parent is not in the list to use as the root.
 		 */
 		if ( empty( $top_level_elements ) ) {
+			$id_field    = $this->db_fields['id'];
+			$element_ids = array();
+			foreach ( $elements as $e ) {
+				$element_ids[ $e->$id_field ] = true;
+			}
 
-			$first = array_slice( $elements, 0, 1 );
-			$root  = $first[0];
+			// Fall back to the first element when all parents are included, as with a cycle.
+			$root = array_first( $elements );
+			foreach ( $elements as $e ) {
+				if ( ! isset( $element_ids[ $e->$parent_field ] ) ) {
+					$root = $e;
+					break;
+				}
+			}
 
 			$top_level_elements = array();
 			$children_elements  = array();
@@ -285,11 +301,13 @@ class Walker {
 	 * @return string XHTML of the specified page of elements.
 	 */
 	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
-		if ( empty( $elements ) || $max_depth < -1 ) {
-			return '';
-		}
-
 		$output = '';
+
+		$max_depth = (int) $max_depth;
+
+		if ( empty( $elements ) || $max_depth < -1 ) {
+			return $output;
+		}
 
 		$parent_field = $this->db_fields['parent'];
 

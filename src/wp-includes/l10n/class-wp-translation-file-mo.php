@@ -90,7 +90,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	protected function parse_file(): bool {
 		$this->parsed = true;
 
-		$file_contents = file_get_contents( $this->file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$file_contents = file_get_contents( $this->file );
 
 		if ( false === $file_contents ) {
 			return false;
@@ -154,7 +154,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 			// Metadata about the MO file is stored in the first translation entry.
 			if ( '' === $original ) {
 				foreach ( explode( "\n", $translation ) as $meta_line ) {
-					if ( '' === $meta_line ) {
+					if ( '' === $meta_line || ! str_contains( $meta_line, ':' ) ) {
 						continue;
 					}
 

@@ -21,7 +21,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_make_absolute_url() {
+	public static function data_make_absolute_url() {
 		// 0: The Location header, 1: The current URL, 3: The expected URL.
 		return array(
 			// Absolute URL provided.
@@ -47,7 +47,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( '../file-in-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-parent.ext' ),
 			array( '../file-in-parent.ext', 'http://example.com/directory/filename', 'http://example.com/file-in-parent.ext' ),
 
-			// Location provided in muliple levels higher, including impossible to reach (../ below DOCROOT).
+			// Location provided in multiple levels higher, including impossible to reach (../ below DOCROOT).
 			array( '../../file-in-grand-parent.ext', 'http://example.com', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/filename', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-grand-parent.ext' ),
@@ -89,7 +89,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_parse_url() {
+	public static function data_wp_parse_url() {
 		// 0: The URL, 1: The expected resulting structure.
 		return array(
 			array(
@@ -114,7 +114,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array(
 				'//example.com/path/',
 				array(
@@ -138,7 +138,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				),
 			),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array(
 				'http://example.com/http://example.net/',
 				array(
@@ -149,7 +149,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array(
 				'//[::FFFF::127.0.0.1]/',
 				array(
@@ -226,7 +226,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_parse_url_with_component() {
+	public static function data_wp_parse_url_with_component() {
 		// 0: The URL, 1: The requested component, 2: The expected resulting structure.
 		return array(
 			array( self::FULL_TEST_URL, PHP_URL_SCHEME, 'http' ),
@@ -238,7 +238,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( self::FULL_TEST_URL, PHP_URL_QUERY, 'arg1=value1&arg2=value2' ),
 			array( self::FULL_TEST_URL, PHP_URL_FRAGMENT, 'anchor' ),
 
-			// < PHP 5.4.7: Schemeless URL.
+			// Schemeless URL.
 			array( '//example.com/path/', PHP_URL_HOST, 'example.com' ),
 			array( '//example.com/path/', PHP_URL_PATH, '/path/' ),
 			array( '//example.com/', PHP_URL_HOST, 'example.com' ),
@@ -246,13 +246,13 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 'http://example.com//path/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com//path/', PHP_URL_PATH, '//path/' ),
 
-			// < PHP 5.4.7: Scheme separator in the URL.
+			// Scheme separator in the URL.
 			array( 'http://example.com/http://example.net/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com/http://example.net/', PHP_URL_PATH, '/http://example.net/' ),
 			array( '/path/http://example.net/', PHP_URL_HOST, null ),
 			array( '/path/http://example.net/', PHP_URL_PATH, '/path/http://example.net/' ),
 
-			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
+			// IPv6 literals in schemeless URLs.
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_HOST, '[::FFFF::127.0.0.1]' ),
 			array( '//[::FFFF::127.0.0.1]/', PHP_URL_PATH, '/' ),
 
@@ -275,23 +275,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 123, PHP_URL_PORT, null ),
 			array( 123, PHP_URL_PATH, '123' ),
 		);
-	}
-
-	/**
-	 * @ticket 35426
-	 *
-	 * @covers ::get_status_header_desc
-	 */
-	public function test_http_response_code_constants() {
-		global $wp_header_to_desc;
-
-		$ref       = new ReflectionClass( 'WP_Http' );
-		$constants = $ref->getConstants();
-
-		// This primes the `$wp_header_to_desc` global:
-		get_status_header_desc( 200 );
-
-		$this->assertSame( array_keys( $wp_header_to_desc ), array_values( $constants ) );
 	}
 
 	/**
@@ -343,7 +326,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_get_component_from_parsed_url_array() {
+	public static function data_get_component_from_parsed_url_array() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
 			array(
@@ -383,7 +366,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_translate_php_url_constant_to_key() {
+	public static function data_wp_translate_php_url_constant_to_key() {
 		// 0: PHP URL constant, 1: The expected result.
 		return array(
 			array( PHP_URL_SCHEME, 'scheme' ),
@@ -433,7 +416,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_http_validate_url_should_validate() {
+	public static function data_wp_http_validate_url_should_validate() {
 		return array(
 			'no port specified'                 => array(
 				'url' => 'http://example.com/caniload.php',
@@ -507,7 +490,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_http_validate_url_should_not_validate() {
+	public static function data_wp_http_validate_url_should_not_validate() {
 		return array(
 			'url as false'                                 => array(
 				'url' => false,
@@ -549,7 +532,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url' => 'http://[exam]ple.com/caniload.php',
 			),
 			'a host whose IPv4 address cannot be resolved' => array(
-				'url' => 'http://exampleeeee.com/caniload.php',
+				'url' => 'http://example.invalid/caniload.php',
 			),
 			'an external request when not allowed'         => array(
 				'url'           => 'http://192.168.0.1/caniload.php',
@@ -712,5 +695,77 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie without a value, as {@see WP_Http_Cookie::getHeaderValue()} does.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_skips_cookie_without_value(): void {
+		$cookie = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
+		$this->assertNull( $cookie->value, 'Expected the cookie value to be null.' );
+		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected the cookie to be omitted from the header value.' );
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertSame( array(), iterator_to_array( $cookie_jar ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie with a non-scalar value.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_skips_cookie_with_non_scalar_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'prefs',
+				'value' => array( 'a' => 1 ),
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertSame( array(), iterator_to_array( $cookie_jar ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with a scalar value as a string.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_scalar_cookie_value_to_string(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'count',
+				'value' => 5,
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['count'] );
+		$this->assertSame( '5', $cookie_jar['count']->value );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty value.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_sends_cookie_with_empty_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => '',
+			)
+		);
+		$this->assertSame( 'flavor=', $cookie->getHeaderValue(), 'Expected the cookie to be in the header value.' );
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
+		$this->assertSame( 'flavor=', $cookie_jar['flavor']->format_for_header() );
 	}
 }

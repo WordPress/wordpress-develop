@@ -31,7 +31,7 @@ class Tests_Date_wpCheckdate extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_checkdate() {
+	public static function data_wp_checkdate() {
 		return array(
 			'integers'              => array( 1, 1, 1, '1-1-1', true ),
 			'strings'               => array( '1', '1', '1', '1-1-1', true ),
