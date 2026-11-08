@@ -43,6 +43,14 @@
 	margin: 0 -8px;
 }
 
+#dashboard-widgets .postbox {
+	border-radius: 8px;
+}
+
+#dashboard-widgets .postbox-header .hndle {
+	padding: 12px 16px;
+}
+
 #dashboard-widgets .postbox .inside {
 	margin-bottom: 0;
 }
@@ -50,30 +58,41 @@
 #dashboard-widgets .meta-box-sortables {
 	display: flow-root; /* avoid margin collapsing between parent and first/last child elements */
 	/* Required min-height to make the jQuery UI Sortable drop zone work. */
-	min-height: 100px;
+	min-height: 0;
 	margin: 0 8px 20px;
 }
 
+#dashboard-widgets .meta-box-sortables:not(:empty) {
+	margin-bottom: 16px;
+}
+
 #dashboard-widgets .postbox-container .empty-container {
-	outline: 3px dashed #c3c4c7;
+	outline: 2px dashed rgba(0, 0, 0, 0.15);
+	outline-offset: -2px;
+	border-radius: 8px;
 	height: 250px;
+	margin: 4px;
 }
 
-/* Only highlight drop zones when dragging and only in the 2 columns layout. */
+/* Only highlight drop zones when dragging. */
 .is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
-	outline: 3px dashed #646970;
-	/* Prevent margin on the child from collapsing with margin on the parent. */
-	display: flow-root;
+	border-radius: 8px;
+	background: rgba(var(--wp-admin-theme-color--rgb), 0.04);
+	min-height: 100px;
 }
 
-#dashboard-widgets .postbox-container .empty-container:after {
+.is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
+	background: rgba(0, 0, 0, 0.01);
+}
+
+#dashboard-widgets .postbox-container .empty-container::after {
 	content: attr(data-emptystring);
 	margin: auto;
 	position: absolute;
 	top: 50%;
 	left: 0;
 	right: 0;
-	transform: translateY( -50% );
+	transform: translateY(-50%);
 	padding: 0 2em;
 	text-align: center;
 	color: #646970;
@@ -81,7 +100,6 @@
 	line-height: 1.5;
 	display: none;
 }
-
 
 /* @todo: this was originally in this section, but likely belongs elsewhere */
 #the-comment-list td.comment p.comment-author {
@@ -110,65 +128,127 @@
 	max-width: 100%;
 }
 
+/* Screen meta exception for when the "Dashboard" heading is missing or located below the Welcome Panel. */
+.index-php #screen-meta-links {
+	margin: 0 20px 8px 0;
+}
+
 /* Welcome Panel */
 .welcome-panel {
 	position: relative;
 	overflow: auto;
 	margin: 16px 0;
-	padding: 23px 10px 0;
-	border: 1px solid #c3c4c7;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-	background: #fff;
-	font-size: 13px;
-	line-height: 1.7;
+	border-radius: 8px;
+	font-size: 14px;
+	line-height: 1.3;
+	clear: both;
 }
 
 .welcome-panel h2 {
 	margin: 0;
-	font-size: 21px;
-	font-weight: 400;
-	line-height: 1.2;
+	font-size: 48px;
+	font-weight: 600;
+	line-height: 1.25;
 }
 
 .welcome-panel h3 {
-	margin: 1.33em 0 0;
-	font-size: 16px;
-}
-
-.welcome-panel li {
-	font-size: 14px;
+	margin: 0;
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 1.4;
 }
 
 .welcome-panel p {
-	color: #646970;
+	font-size: inherit;
+	line-height: inherit;
 }
 
-.welcome-panel li a {
+.welcome-panel-header {
+	box-sizing: border-box;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 1500px;
+	width: 100%;
+	padding: 48px 0 80px 48px;
+	position: relative;
+	color: #fff;
+}
+
+.welcome-panel-header-image {
+	position: absolute !important;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 0 !important;
+	overflow: hidden;
+}
+
+.welcome-panel-header-image svg {
+	display: block;
+	margin: auto;
+	width: 100%;
+	height: 100%;
+}
+
+.rtl .welcome-panel-header-image svg {
+	transform: scaleX(-1);
+}
+
+.welcome-panel-header * {
+	color: inherit;
+	position: relative;
+	z-index: 1;
+}
+
+.welcome-panel-header a:focus,
+.welcome-panel-header a:hover {
+	color: inherit;
 	text-decoration: none;
 }
 
-.welcome-panel .about-description {
-	font-size: 16px;
-	margin: 0;
+.welcome-panel-header a:focus,
+.welcome-panel .welcome-panel-close:focus {
+	outline-color: currentColor;
+	outline-offset: 1px;
+	box-shadow: none;
+}
+
+.welcome-panel-header p {
+	margin: 0.5em 0 0;
+	font-size: 20px;
+	line-height: 1.4;
 }
 
 .welcome-panel .welcome-panel-close {
+	display: flex;
+	align-items: center;
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	padding: 10px 15px 10px 21px;
+	padding: 10px 15px;
 	font-size: 13px;
 	line-height: 1.23076923; /* Chrome rounding, needs to be 16px equivalent */
 	text-decoration: none;
+	z-index: 1; /* Raise above the version image. */
+	color: #fff;
 }
 
-.welcome-panel .welcome-panel-close:before {
-	position: absolute;
-	top: 8px;
-	left: 0;
-	transition: all .1s ease-in-out;
+.welcome-panel .welcome-panel-close::before {
+	transition: all 0.1s ease-in-out;
+	content: "\f335";
+	font-size: 24px;
+	color: #fff;
 }
 
+.welcome-panel .welcome-panel-close:hover,
+.welcome-panel .welcome-panel-close:focus,
+.welcome-panel .welcome-panel-close:hover::before,
+.welcome-panel .welcome-panel-close:focus::before {
+	color: #fff972;
+}
+
+/* @deprecated 5.9.0 -- Button removed from panel. */
 .wp-core-ui .welcome-panel .button.button-hero {
 	margin: 15px 13px 3px 0;
 	padding: 12px 36px;
@@ -178,61 +258,103 @@
 }
 
 .welcome-panel-content {
-	margin-left: 13px;
-	max-width: 1500px;
+	min-height: 400px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.welcome-panel-header-wrap {
+	background-color: #151515;
 }
 
 .welcome-panel .welcome-panel-column-container {
+	box-sizing: border-box;
+	width: 100%;
 	clear: both;
-	position: relative;
+	display: grid;
+	z-index: 1;
+	padding: 24px;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 32px;
+	align-self: flex-end;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: 0;
+	border-radius: 0 0 8px 8px;
 }
 
-.welcome-panel .welcome-panel-column {
-	width: 32%;
-	min-width: 200px;
-	float: left;
+[class*="welcome-panel-icon"] {
+	height: 60px;
+	width: 60px;
+	background-position: center;
+	background-size: 24px 24px;
+	background-repeat: no-repeat;
+	border-radius: 100%;
 }
 
-.welcome-panel .welcome-panel-column:first-child {
-	width: 36%;
+.welcome-panel-column > svg {
+	margin-top: 4px;
 }
 
-.welcome-panel-column p.hide-if-no-customize {
-	margin-top: 10px;
+.welcome-panel-column {
+	display: grid;
+	grid-template-columns: min-content 1fr;
+	gap: 24px;
 }
 
-.welcome-panel-column p {
-	margin-top: 7px;
-	color: #3c434a;
+.welcome-panel-icon-pages {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M7 13.8h6v-1.5H7v1.5zM18 16V4c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2zM5.5 16V4c0-.3.2-.5.5-.5h10c.3 0 .5.2.5.5v12c0 .3-.2.5-.5.5H6c-.3 0-.5-.2-.5-.5zM7 10.5h8V9H7v1.5zm0-3.3h8V5.8H7v1.4zM20.2 6v13c0 .7-.6 1.2-1.2 1.2H8v1.5h11c1.5 0 2.7-1.2 2.7-2.8V6h-1.5z' /%3E%3C/svg%3E");
 }
 
+.welcome-panel-icon-layout {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M18 5.5H6a.5.5 0 00-.5.5v3h13V6a.5.5 0 00-.5-.5zm.5 5H10v8h8a.5.5 0 00.5-.5v-7.5zm-10 0h-3V18a.5.5 0 00.5.5h2.5v-8zM6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z' /%3E%3C/svg%3E");
+}
+
+.welcome-panel-icon-styles {
+	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23fff' d='M12 4c-4.4 0-8 3.6-8 8v.1c0 4.1 3.2 7.5 7.2 7.9h.8c4.4 0 8-3.6 8-8s-3.6-8-8-8zm0 15V5c3.9 0 7 3.1 7 7s-3.1 7-7 7z' /%3E%3C/svg%3E");
+}
+
+/* @deprecated 5.9.0 -- Section removed from welcome panel. */
 .welcome-panel .welcome-widgets-menus {
 	line-height: 1.14285714;
 }
 
+/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
 .welcome-panel .welcome-panel-column ul {
 	margin: 0.8em 1em 1em 0;
 }
 
+/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
+.welcome-panel li {
+	font-size: 14px;
+}
+
+/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
+.welcome-panel li a {
+	text-decoration: none;
+}
+
+/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
 .welcome-panel .welcome-panel-column li {
 	line-height: 1.14285714;
 	list-style-type: none;
 	padding: 0 0 8px;
 }
 
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
 .welcome-panel .welcome-icon {
 	background: transparent !important;
 }
 
 /* Welcome Panel and Right Now common Icons style */
 
-.welcome-panel .welcome-icon:before,
-#dashboard_right_now li a:before,
-#dashboard_right_now li span:before,
-#dashboard_right_now .search-engines-info:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-icon::before,
+#dashboard_right_now li a::before,
+#dashboard_right_now li span::before {
 	color: #646970;
-	font: normal 20px/1 dashicons;
-	speak: never;
+	font: 400 20px/1 dashicons;
 	display: inline-block;
 	padding: 0 10px 0 0;
 	position: relative;
@@ -244,89 +366,108 @@
 
 /* Welcome Panel specific Icons styles */
 
-.welcome-panel .welcome-write-blog:before,
-.welcome-panel .welcome-edit-page:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-write-blog::before,
+.welcome-panel .welcome-edit-page::before {
 	content: "\f119";
+	content: "\f119" / "";
 	top: -3px;
 }
 
-.welcome-panel .welcome-add-page:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-add-page::before {
 	content: "\f132";
+	content: "\f132" / "";
 	top: -1px;
 }
 
-.welcome-panel .welcome-setup-home:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-setup-home::before {
 	content: "\f102";
+	content: "\f102" / "";
 	top: -1px;
 }
 
-.welcome-panel .welcome-view-site:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-view-site::before {
 	content: "\f115";
+	content: "\f115" / "";
 	top: -2px;
 }
 
-.welcome-panel .welcome-widgets-menus:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-widgets-menus::before {
 	content: "\f116";
+	content: "\f116" / "";
 	top: -2px;
 }
 
-.welcome-panel .welcome-widgets:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-widgets::before {
 	content: "\f538";
+	content: "\f538" / "";
 	top: -2px;
 }
 
-.welcome-panel .welcome-menus:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-menus::before {
 	content: "\f163";
+	content: "\f163" / "";
 	top: -2px;
 }
 
-.welcome-panel .welcome-comments:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-comments::before {
 	content: "\f117";
+	content: "\f117" / "";
 	top: -1px;
 }
 
-.welcome-panel .welcome-learn-more:before {
+/* @deprecated 5.9.0 -- Icons removed from welcome panel. */
+.welcome-panel .welcome-learn-more::before {
 	content: "\f118";
+	content: "\f118" / "";
 	top: -1px;
 }
 
 /* Right Now specific Icons styles */
 
-#dashboard_right_now .search-engines-info:before,
-#dashboard_right_now li a:before,
-#dashboard_right_now li > span:before { /* get only the first level span to exclude screen-reader-text in mu-storage */
-	content: "\f159"; /* generic icon for items added by CPTs ? */
+#dashboard_right_now li a::before,
+#dashboard_right_now li > span::before {
 	padding: 0 5px 0 0;
+	/*
+	 * Default icon for plugin-added items: a copy of the core `asterisk` icon.
+	 * Plugins can still override `content` with a Dashicon.
+	 */
+	content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20style%3D%22fill%3A%20none%22%20stroke%3D%22%23646970%22%20stroke-width%3D%221.5%22%3E%3Cpath%20d%3D%22M5.72131%2015.625L12%2012M12%2012L18.2787%208.375M12%2012V4.75M12%2012L12%2019.25M12%2012L5.72131%208.375M12%2012L18.2787%2015.625%22%20stroke-linecap%3D%22square%22%20%2F%3E%3C%2Fsvg%3E");
+	content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20style%3D%22fill%3A%20none%22%20stroke%3D%22%23646970%22%20stroke-width%3D%221.5%22%3E%3Cpath%20d%3D%22M5.72131%2015.625L12%2012M12%2012L18.2787%208.375M12%2012V4.75M12%2012L12%2019.25M12%2012L5.72131%208.375M12%2012L18.2787%2015.625%22%20stroke-linecap%3D%22square%22%20%2F%3E%3C%2Fsvg%3E") / "";
 }
 
-#dashboard_right_now .page-count a:before,
-#dashboard_right_now .page-count span:before {
-	content: "\f105";
+#dashboard_right_now li a:has(> svg)::before,
+#dashboard_right_now li > span:has(> svg)::before {
+	display: none;
 }
 
-#dashboard_right_now .post-count a:before,
-#dashboard_right_now .post-count span:before {
-	content: "\f109";
+#dashboard_right_now li a:has(> svg),
+#dashboard_right_now li > span:has(> svg),
+#dashboard_right_now .search-engines-info a {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 5px;
+	/* Match the height of ::before icon rows so the floated list items don't snag. */
+	vertical-align: top;
 }
 
-#dashboard_right_now .comment-count a:before {
-	content: "\f101";
+#dashboard_right_now li a > svg,
+#dashboard_right_now li > span > svg,
+#dashboard_right_now .search-engines-info svg {
+	flex: none;
+	color: #646970;
 }
 
-#dashboard_right_now .comment-mod-count a:before {
-	content: "\f125";
-}
-
-#dashboard_right_now .storage-count a:before {
-	content: "\f104";
-}
-
-#dashboard_right_now .storage-count.warning a:before {
-	content: "\f153";
-}
-
-#dashboard_right_now .search-engines-info:before {
-	content: "\f348";
+#dashboard_right_now .warning a > svg,
+#dashboard_right_now .search-engines-info svg {
+	color: #d63638;
 }
 
 /* Dashboard WordPress events */
@@ -345,9 +486,7 @@
 }
 
 .community-events .spinner {
-	float: none;
-	margin: 5px 2px 0;
-	vertical-align: top;
+	margin: 0 2px 0;
 }
 
 .community-events-errors[aria-hidden="true"],
@@ -366,17 +505,27 @@
 
 .community-events-form {
 	margin: 15px 0 5px;
+	display: flex;
+	gap: 5px;
+	align-items: center;
+	flex-wrap: wrap;
 }
 
 .community-events-form .regular-text {
 	width: 40%;
-	height: 29px;
 	margin: 0;
-	vertical-align: top;
+	min-height: 32px;
+	padding: 0 8px;
+}
+
+#dashboard-widgets .community-events-form .button {
+	min-height: 32px;
+	line-height: 2.30769231;
+	padding: 0 12px;
 }
 
 .community-events li.event-none {
-	border-left: 4px solid #72aee6;
+	border-left: 4px solid var(--wp-admin-theme-color, #3858e9);
 }
 
 #dashboard-widgets .community-events li.event-none a {
@@ -384,10 +533,7 @@
 }
 
 .community-events-form label {
-	display: inline-block;
-	vertical-align: top;
-	line-height: 2.15384615;
-	height: 28px;
+	line-height: 2.14285714;
 }
 
 .community-events .activity-block > p {
@@ -399,22 +545,13 @@
 	vertical-align: middle;
 }
 
-#community-events-submit {
-	margin-left: 3px;
-	margin-right: 3px;
-}
-
 /* Needs higher specificity than #dashboard-widgets .button-link */
 #dashboard-widgets .community-events-cancel.button-link {
-	vertical-align: top;
-	/* Same properties as the submit button for cross-browsers alignment. */
-	line-height: 2;
-	height: 28px;
 	text-decoration: underline;
 }
 
 .community-events ul {
-	background-color: #f6f7f7;
+	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
 	padding-left: 0;
 	padding-right: 0;
 	padding-bottom: 0;
@@ -425,22 +562,28 @@
 	padding: 8px 12px;
 	color: #2c3338;
 }
+
 .community-events li:first-child {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events li ~ li {
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid #e9e9ed;
 }
 
 .community-events .activity-block.last {
-	border-bottom: 1px solid #f0f0f1;
+	border-bottom: 1px solid #e9e9ed;
 	padding-top: 0;
 	margin-top: -1px;
 }
 
 .community-events .event-info {
 	display: block;
+}
+
+.community-events .ce-separator::before {
+	content: "\2022";
+	content: "\2022" / "";
 }
 
 .event-icon {
@@ -450,15 +593,19 @@
 	display: none; /* Hide on smaller screens */
 }
 
-.event-icon:before {
+.event-icon::before {
 	color: #646970;
 	font-size: 18px;
 }
-.event-meetup .event-icon:before {
+
+.event-meetup .event-icon::before {
 	content: "\f484";
+	content: "\f484" / "";
 }
-.event-wordcamp .event-icon:before {
+
+.event-wordcamp .event-icon::before {
 	content: "\f486";
+	content: "\f486" / "";
 }
 
 .community-events .event-title {
@@ -476,7 +623,7 @@
 	margin-bottom: 0;
 	padding: 12px;
 	border-top: 1px solid #f0f0f1;
-	color: #dcdcde;
+	color: #646970;
 }
 
 /* Safari 10 + VoiceOver specific: without this, the hidden text gets read out before the link. */
@@ -511,6 +658,7 @@ body #dashboard-widgets .postbox form .submit {
 	margin-top: 0;
 }
 
+/* stylelint-disable-next-line selector-class-pattern -- The class rssSummary can't be changed because of backward compatibility reasons. */
 .rssSummary {
 	color: #646970;
 	margin-top: 4px;
@@ -559,23 +707,23 @@ body #dashboard-widgets .postbox form .submit {
 	margin-bottom: 10px;
 }
 
-#dashboard_right_now .inside {
-	padding: 0;
-}
-
-#dashboard_right_now .main {
-	padding: 0 12px 11px;
-}
-
 #dashboard_right_now .main p {
 	margin: 0;
 }
 
+#dashboard_right_now #wp-version-message {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+#dashboard_right_now #wp-version {
+	flex: 1;
+}
+
 #dashboard_right_now #wp-version-message .button {
-	float: right;
-	position: relative;
-	top: -5px;
-	margin-left: 5px;
+	margin-left: auto;
 }
 
 #dashboard_right_now p.search-engines-info {
@@ -591,6 +739,11 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 0;
 	font-size: 14px;
 	font-weight: 400;
+}
+
+#network_dashboard_right_now p input {
+	margin: 2px 1px;
+	vertical-align: middle;
 }
 
 /* Dashboard right now - Colors */
@@ -610,8 +763,8 @@ body #dashboard-widgets .postbox form .submit {
 	margin: 0 0 1em;
 }
 
-#dashboard_right_now .warning a:before,
-#dashboard_right_now .warning span:before {
+#dashboard_right_now .warning a::before,
+#dashboard_right_now .warning span::before {
 	color: #d63638;
 }
 
@@ -622,17 +775,12 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 0;
 }
 
-#dashboard_quick_press div.updated {
-	margin-bottom: 10px;
-	border: 1px solid #f0f0f1;
-	border-width: 1px 1px 1px 0;
-}
-
 #dashboard_quick_press form {
 	margin: 12px;
 }
 
-#dashboard_quick_press .drafts {
+#dashboard_quick_press .drafts,
+#dashboard_quick_press .no-drafts {
 	padding: 10px 0 0;
 }
 
@@ -645,13 +793,7 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard_quick_press input,
 #dashboard_quick_press textarea {
-	box-sizing: border-box;
 	margin: 0;
-}
-
-#dashboard-widgets .postbox form .submit {
-	margin: -39px 0;
-	float: right;
 }
 
 #description-wrap {
@@ -662,13 +804,14 @@ body #dashboard-widgets .postbox form .submit {
 	min-height: 90px;
 	max-height: 1300px;
 	margin: 0 0 8px;
-	padding: 6px 7px;
+	padding: 8px 12px;
 	resize: none;
 }
 
 /* Dashboard Quick Draft - Drafts list */
 
-.js #dashboard_quick_press .drafts {
+.js #dashboard_quick_press .drafts,
+.js #dashboard_quick_press .no-drafts {
 	border-top: 1px solid #f0f0f1;
 }
 
@@ -692,11 +835,12 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard_quick_press .drafts li {
 	margin-bottom: 1em;
 }
+
 #dashboard_quick_press .drafts li time {
 	color: #646970;
 }
 
-#dashboard_quick_press .drafts p {
+#dashboard_quick_press .drafts .draft-content {
 	margin: 0;
 	word-wrap: break-word;
 }
@@ -714,7 +858,8 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard-widgets h4, /* Back-compat for pre-4.4 */
 #dashboard-widgets h3,
-#dashboard_quick_press .drafts h2 {
+#dashboard_quick_press .drafts h2,
+#dashboard_quick_press .no-drafts p {
 	margin: 0 12px 8px;
 	padding: 0;
 	font-size: 14px;
@@ -734,9 +879,10 @@ body #dashboard-widgets .postbox form .submit {
 
 /* Dashboard activity widget */
 
-#dashboard_activity .comment-meta span.approve:before {
+#dashboard_recent_comments .comment-meta span.approve::before {
 	content: "\f227";
-	font: 20px/.5 dashicons;
+	content: "\f227" / "";
+	font: 20px/0.5 dashicons;
 	margin-left: 5px;
 	vertical-align: middle;
 	position: relative;
@@ -744,9 +890,10 @@ body #dashboard-widgets .postbox form .submit {
 	margin-right: 2px;
 }
 
-#dashboard_activity .inside {
+#dashboard_activity .inside,
+#dashboard_recent_comments .inside {
 	margin: 0;
-	padding-bottom: 0;
+	padding: 0 12px;
 }
 
 #dashboard_activity .no-activity {
@@ -760,93 +907,101 @@ body #dashboard-widgets .postbox form .submit {
 	font-size: 16px;
 }
 
-#dashboard_activity .subsubsub {
+#dashboard_recent_comments .subsubsub {
 	float: none;
 	border-top: 1px solid #f0f0f1;
 	margin: 0 -12px;
 	padding: 8px 12px 4px;
 }
 
-#dashboard_activity .subsubsub a .count,
-#dashboard_activity .subsubsub a.current .count {
+#dashboard_recent_comments .subsubsub a .count,
+#dashboard_recent_comments .subsubsub a.current .count {
 	color: #646970; /* white background on the dashboard but #f0f0f1 on list tables */
 }
 
 #future-posts ul,
-#published-posts ul {
-	clear: both;
-	margin-bottom: 0;
+#published-posts ul,
+#on-this-day-posts ul {
+	margin: 8px -12px 0 -12px;
 }
 
 #future-posts li,
-#published-posts li {
-	margin-bottom: 8px;
+#published-posts li,
+#on-this-day-posts li {
+	display: grid;
+	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto;
+	column-gap: 10px;
+	color: #646970;
+	padding: 4px 12px;
 }
 
-#future-posts ul span,
-#published-posts ul span {
-	display: inline-block;
-	margin-right: 5px;
-	min-width: 150px;
+#future-posts li:nth-child(odd),
+#published-posts li:nth-child(odd),
+#on-this-day-posts li:nth-child(odd) {
+	background-color: #f6f7f7;
+}
+
+#on-this-day-posts .wp-on-this-day-post-author {
 	color: #646970;
 }
 
 .activity-block {
 	border-bottom: 1px solid #f0f0f1;
-	margin: 0 -12px;
+	margin: 0 -12px 6px -12px;
 	padding: 8px 12px 4px;
 }
 
 .activity-block:last-child {
 	border-bottom: none;
+	margin-bottom: 0;
 }
 
 .activity-block .subsubsub li {
-	color: #dcdcde;
+	color: #646970;
 }
 
 /* Dashboard activity widget - Comments */
 /* @todo: needs serious de-duplication */
 
-#activity-widget #the-comment-list tr.undo,
-#activity-widget #the-comment-list div.undo {
+#dashboard_recent_comments #the-comment-list tr.undo,
+#dashboard_recent_comments #the-comment-list div.undo {
 	background: none;
 	padding: 6px 0;
 	margin-left: 12px;
 }
 
-#activity-widget #the-comment-list .comment-item {
+#dashboard_recent_comments #the-comment-list .comment-item {
 	background: #f6f7f7;
 	padding: 12px;
 	position: relative;
 }
 
-#activity-widget #the-comment-list .avatar {
+#dashboard_recent_comments #the-comment-list .avatar {
 	position: absolute;
 	top: 12px;
 }
 
-#activity-widget #the-comment-list .dashboard-comment-wrap.has-avatar {
+#dashboard_recent_comments #the-comment-list .dashboard-comment-wrap.has-avatar {
 	padding-left: 63px;
 }
 
-#activity-widget #the-comment-list .dashboard-comment-wrap blockquote {
+#dashboard_recent_comments #the-comment-list .dashboard-comment-wrap blockquote {
 	margin: 1em 0;
 }
 
-#activity-widget #the-comment-list .comment-item p.row-actions {
+#dashboard_recent_comments #the-comment-list .comment-item p.row-actions {
 	margin: 4px 0 0;
 }
 
-#activity-widget #the-comment-list .comment-item:first-child {
+#dashboard_recent_comments #the-comment-list .comment-item:first-child {
 	border-top: 1px solid #f0f0f1;
 }
 
-#activity-widget #the-comment-list .unapproved {
+#dashboard_recent_comments #the-comment-list .unapproved {
 	background-color: #fcf9e8;
 }
 
-#activity-widget #the-comment-list .unapproved:before {
+#dashboard_recent_comments #the-comment-list .unapproved::before {
 	content: "";
 	display: block;
 	position: absolute;
@@ -857,8 +1012,8 @@ body #dashboard-widgets .postbox form .submit {
 	width: 4px;
 }
 
-#activity-widget #the-comment-list .spam-undo-inside .avatar,
-#activity-widget #the-comment-list .trash-undo-inside .avatar {
+#dashboard_recent_comments #the-comment-list .spam-undo-inside .avatar,
+#dashboard_recent_comments #the-comment-list .trash-undo-inside .avatar {
 	position: relative;
 	top: 0;
 }
@@ -892,7 +1047,7 @@ body #dashboard-widgets .postbox form .submit {
 
 #dashboard-widgets .postbox form .submit {
 	float: none;
-	margin: .5em 0 0;
+	margin: 0.5em 0 0;
 	padding: 0;
 	border: none;
 }
@@ -901,7 +1056,7 @@ body #dashboard-widgets .postbox form .submit {
 	min-width: 0;
 }
 
-#dashboard-widgets li a,
+#dashboard-widgets li:not(.activity-block li):not(.comment) a,
 #dashboard-widgets .button-link,
 .community-events-footer a {
 	text-decoration: none;
@@ -1007,8 +1162,9 @@ a.rsswidget {
 	padding: 0;
 }
 
-.rss-widget cite:before {
+.rss-widget cite::before {
 	content: "\2014";
+	content: "\2014" / "";
 }
 
 .dashboard-comment-wrap {
@@ -1023,6 +1179,7 @@ a.rsswidget {
 
 #dashboard_browser_nag a {
 	text-decoration: underline;
+	color: #fff;
 }
 
 #dashboard_browser_nag p.browser-update-nag.has-browser-icon {
@@ -1046,10 +1203,6 @@ a.rsswidget {
 	background: transparent none;
 	color: #fff;
 	box-shadow: none;
-}
-
-#dashboard_browser_nag a {
-	color: #fff;
 }
 
 #dashboard_browser_nag.postbox .postbox-header {
@@ -1079,7 +1232,8 @@ a.rsswidget {
 	padding-right: 6px;
 }
 
-#dashboard_php_nag.php-insecure .dashicons-warning {
+#dashboard_php_nag.php-no-security-updates .dashicons-warning,
+#dashboard_php_nag.php-version-lower-than-future-minimum .dashicons-warning {
 	color: #d63638;
 }
 
@@ -1091,16 +1245,25 @@ a.rsswidget {
 	margin: 12px 0;
 }
 
-#dashboard_php_nag h3 {
+.bigger-bolder-text {
 	font-weight: 600;
-}
-
-#dashboard_php_nag .button .dashicons-external {
-	line-height: 25px;
+	font-size: 14px;
 }
 
 /* =Media Queries
 -------------------------------------------------------------- */
+
+@media only screen and (min-width: 1600px) {
+	.welcome-panel .welcome-panel-column-container {
+		display: flex;
+		justify-content: center;
+	}
+
+	.welcome-panel-column {
+		width: 100%;
+		max-width: 460px;
+	}
+}
 
 /* one column on the dash */
 @media only screen and (max-width: 799px) {
@@ -1136,14 +1299,15 @@ a.rsswidget {
 
 	#dashboard-widgets #postbox-container-3 .empty-container,
 	#dashboard-widgets #postbox-container-4 .empty-container {
-		outline: none;
+		border: none;
 		height: 0;
 		min-height: 0;
 		margin-bottom: 0;
+		display: none;
 	}
 
-	#dashboard-widgets #postbox-container-3 .empty-container:after,
-	#dashboard-widgets #postbox-container-4 .empty-container:after {
+	#dashboard-widgets #postbox-container-3 .empty-container::after,
+	#dashboard-widgets #postbox-container-4 .empty-container::after {
 		display: none;
 	}
 
@@ -1152,7 +1316,7 @@ a.rsswidget {
 	}
 
 	#wpbody #dashboard-widgets .metabox-holder.columns-1 .postbox-container .empty-container {
-		outline: none;
+		border: none;
 		height: 0;
 		min-height: 0;
 		margin-bottom: 0;
@@ -1169,7 +1333,7 @@ a.rsswidget {
 		display: none;
 	}
 
-	#dashboard-widgets .postbox-container .empty-container:after {
+	#dashboard-widgets .postbox-container .empty-container::after {
 		display: block;
 	}
 }
@@ -1190,48 +1354,88 @@ a.rsswidget {
 	}
 
 	#dashboard-widgets #postbox-container-4 .empty-container {
-		outline: none;
+		border: none;
 		height: 0;
 		min-height: 0;
 		margin-bottom: 0;
-	}
-
-	#dashboard-widgets #postbox-container-4 .empty-container:after {
 		display: none;
 	}
 
-	#dashboard-widgets .postbox-container .empty-container:after {
+	#dashboard-widgets #postbox-container-4 .empty-container::after {
+		display: none;
+	}
+
+	#dashboard-widgets .postbox-container .empty-container::after {
 		display: block;
 	}
 }
 
 /* Always show the "Drag boxes here" CSS generated content on large screens. */
 @media only screen and (min-width: 1801px) {
-	#dashboard-widgets .postbox-container .empty-container:after {
+	#dashboard-widgets .postbox-container .empty-container::after {
 		display: block;
 	}
 }
 
-@media screen and (max-width: 870px) {
-	.welcome-panel .welcome-panel-column,
-	.welcome-panel .welcome-panel-column:first-child {
-		display: block;
-		float: none;
-		width: 100%;
-	}
+.js.meta-box-reordering-disabled #dashboard-widgets .postbox-container .empty-container {
+	display: none;
+}
 
+@media screen and (max-width: 870px) {
+	/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
 	.welcome-panel .welcome-panel-column li {
 		display: inline-block;
 		margin-right: 13px;
 	}
 
+	/* @deprecated 5.9.0 -- Lists removed from welcome panel. */
 	.welcome-panel .welcome-panel-column ul {
 		margin: 0.4em 0 0;
 	}
 
 }
 
+@media screen and (max-width: 1180px) and (min-width: 783px) {
+	.welcome-panel-column {
+		grid-template-columns: 1fr;
+	}
+
+	[class*="welcome-panel-icon"],
+	.welcome-panel-column > svg {
+		display: none;
+	}
+}
+
 @media screen and (max-width: 782px) {
+	.welcome-panel .welcome-panel-column-container {
+		grid-template-columns: 1fr;
+		box-sizing: border-box;
+		padding: 32px;
+		width: 100%;
+	}
+
+	.welcome-panel .welcome-panel-column-content {
+		max-width: 520px;
+	}
+
+	/* Keep the close icon from overlapping the Welcome text. */
+	.welcome-panel .welcome-panel-close {
+		overflow: hidden;
+		text-indent: 40px;
+		white-space: nowrap;
+		width: 20px;
+		height: 20px;
+		padding: 5px;
+		top: 5px;
+		right: 5px;
+	}
+
+	.welcome-panel .welcome-panel-close::before {
+		position: absolute;
+		top: 5px;
+		left: -35px;
+	}
+
 	#dashboard-widgets h2 {
 		padding: 12px;
 	}
@@ -1247,14 +1451,8 @@ a.rsswidget {
 		vertical-align: baseline;
 	}
 
-	.community-events-form .regular-text {
-		height: 32px;
-	}
-
 	#community-events-submit {
 		margin-bottom: 0;
-		/* Override .wp-core-ui .button */
-		vertical-align: top;
 	}
 
 	.community-events-form label,
@@ -1262,35 +1460,36 @@ a.rsswidget {
 		/* Same properties as the submit button for cross-browsers alignment. */
 		font-size: 14px;
 		line-height: normal;
-		height: auto;
 		padding: 6px 0;
 		border: 1px solid transparent;
-	}
-
-	.community-events .spinner {
-		margin-top: 7px;
 	}
 }
 
 /* Smartphone */
 @media screen and (max-width: 600px) {
-	/* Keep the close icon from overlapping the Welcome text. */
-	.welcome-panel .welcome-panel-close {
-		overflow: hidden;
-		text-indent: 40px;
-		white-space: nowrap;
-		width: 20px;
-		height: 20px;
-		padding: 5px;
-		top: 5px;
-		right: 5px;
+	.welcome-panel-header {
+		padding: 32px 32px 64px;
 	}
 
-	/* Make the close icon larger for tappability. */
-	.welcome-panel .welcome-panel-close:before {
-		font-size: 20px;
-		top: 5px;
-		left: -35px;
+	.welcome-panel-header-image {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.welcome-panel-column {
+		gap: 16px;
+	}
+}
+
+@media screen and (max-width: 360px) {
+	.welcome-panel-column {
+		grid-template-columns: 1fr;
+	}
+
+	[class*="welcome-panel-icon"],
+	.welcome-panel-column > svg {
+		display: none;
 	}
 }
 

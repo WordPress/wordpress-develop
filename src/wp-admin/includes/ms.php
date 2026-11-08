@@ -8,12 +8,12 @@
  */
 
 /**
- * Determine if uploaded file exceeds space quota.
+ * Determines whether uploaded file exceeds space quota.
  *
  * @since 3.0.0
  *
- * @param array $file $_FILES array for a given file.
- * @return array $_FILES array with 'error' key set if file exceeds quota. 'error' is empty otherwise.
+ * @param array $file An element from the `$_FILES` array for a given file.
+ * @return array The `$_FILES` array element with 'error' key set if file exceeds quota. 'error' is empty otherwise.
  */
 function check_upload_size( $file ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
@@ -53,19 +53,15 @@ function check_upload_size( $file ) {
 }
 
 /**
- * Delete a site.
+ * Deletes a site.
  *
  * @since 3.0.0
  * @since 5.1.0 Use wp_delete_site() internally to delete the site row from the database.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $blog_id Site ID.
  * @param bool $drop    True if site's database tables should be dropped. Default false.
  */
 function wpmu_delete_blog( $blog_id, $drop = false ) {
-	global $wpdb;
-
 	$blog_id = (int) $blog_id;
 
 	$switch = false;
@@ -101,7 +97,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	if ( $drop ) {
 		wp_delete_site( $blog_id );
 	} else {
-		/** This action is documented in wp-includes/ms-blogs.php */
+		/** This action is documented in wp-includes/ms-site.php */
 		do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.1.0' );
 
 		$users = get_users(
@@ -120,7 +116,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 
 		update_blog_status( $blog_id, 'deleted', 1 );
 
-		/** This action is documented in wp-includes/ms-blogs.php */
+		/** This action is documented in wp-includes/ms-site.php */
 		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
 	}
 
@@ -130,16 +126,21 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 }
 
 /**
- * Delete a user from the network and remove from all sites.
+ * Deletes a user and all of their posts from the network.
+ *
+ * This function:
+ *
+ * - Deletes all posts (of all post types) authored by the user on all sites on the network
+ * - Deletes all links owned by the user on all sites on the network
+ * - Removes the user from all sites on the network
+ * - Deletes the user from the database
  *
  * @since 3.0.0
- *
- * @todo Merge with wp_delete_user()?
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $id The user ID.
- * @return bool True if the user was deleted, otherwise false.
+ * @return bool True if the user was deleted, false otherwise.
  */
 function wpmu_delete_user( $id ) {
 	global $wpdb;
@@ -213,14 +214,15 @@ function wpmu_delete_user( $id ) {
 }
 
 /**
- * Check whether a site has used its allotted upload space.
+ * Checks whether a site has used its allotted upload space.
  *
  * @since MU (3.0.0)
  *
- * @param bool $echo Optional. If $echo is set and the quota is exceeded, a warning message is echoed. Default is true.
+ * @param bool $display_message Optional. If set to true and the quota is exceeded,
+ *                              a warning message is displayed. Default true.
  * @return bool True if user is over upload space quota, otherwise false.
  */
-function upload_is_user_over_quota( $echo = true ) {
+function upload_is_user_over_quota( $display_message = true ) {
 	if ( get_site_option( 'upload_space_check_disabled' ) ) {
 		return false;
 	}
@@ -232,7 +234,7 @@ function upload_is_user_over_quota( $echo = true ) {
 	$space_used = get_space_used();
 
 	if ( ( $space_allowed - $space_used ) < 0 ) {
-		if ( $echo ) {
+		if ( $display_message ) {
 			printf(
 				/* translators: %s: Allowed space allocation. */
 				__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
@@ -268,12 +270,12 @@ function display_space_usage() {
 }
 
 /**
- * Get the remaining upload space for this site.
+ * Gets the remaining upload space for this site.
  *
  * @since MU (3.0.0)
  *
- * @param int $size Current max size in bytes
- * @return int Max size in bytes
+ * @param int $size Current max size in bytes.
+ * @return int Max size in bytes.
  */
 function fix_import_form_size( $size ) {
 	if ( upload_is_user_over_quota( false ) ) {
@@ -303,8 +305,15 @@ function upload_space_setting( $id ) {
 	<tr>
 		<th><label for="blog-upload-space-number"><?php _e( 'Site Upload Space Quota' ); ?></label></th>
 		<td>
-			<input type="number" step="1" min="0" style="width: 100px" name="option[blog_upload_space]" id="blog-upload-space-number" aria-describedby="blog-upload-space-desc" value="<?php echo $quota; ?>" />
-			<span id="blog-upload-space-desc"><span class="screen-reader-text"><?php _e( 'Size in megabytes' ); ?></span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
+			<input type="number" step="1" min="0" style="width: 100px"
+				name="option[blog_upload_space]" id="blog-upload-space-number"
+				aria-describedby="blog-upload-space-desc" value="<?php echo esc_attr( $quota ); ?>" />
+			<span id="blog-upload-space-desc"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Size in megabytes' );
+				?>
+			</span> <?php _e( 'MB (Leave blank for network default)' ); ?></span>
 		</td>
 	</tr>
 	<?php
@@ -543,29 +552,6 @@ function format_code_lang( $code = '' ) {
 }
 
 /**
- * Synchronizes category and post tag slugs when global terms are enabled.
- *
- * @since 3.0.0
- *
- * @param WP_Term|array $term     The term.
- * @param string        $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
- *                                the only taxonomies which are processed by this function; anything else
- *                                will be returned untouched.
- * @return WP_Term|array Returns `$term`, after filtering the 'slug' field with `sanitize_title()`
- *                       if `$taxonomy` is 'category' or 'post_tag'.
- */
-function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
-		if ( is_object( $term ) ) {
-			$term->slug = sanitize_title( $term->name );
-		} else {
-			$term['slug'] = sanitize_title( $term['name'] );
-		}
-	}
-	return $term;
-}
-
-/**
  * Displays an access denied message when a user tries to view a site's dashboard they
  * do not have access to.
  *
@@ -628,11 +614,7 @@ function _access_denied_splash() {
  * @return bool True if the user has proper permissions, false if they do not.
  */
 function check_import_new_users( $permission ) {
-	if ( ! current_user_can( 'manage_network_users' ) ) {
-		return false;
-	}
-
-	return true;
+	return current_user_can( 'manage_network_users' );
 }
 // See "import_allow_fetch_attachments" and "import_attachment_size_limit" filters too.
 
@@ -692,7 +674,7 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
  * @since 3.0.0
  *
  * @global int    $wp_db_version WordPress database version.
- * @global string $pagenow
+ * @global string $pagenow       The filename of the current screen.
  *
  * @return void|false Void on success. False if the current user is not a super admin.
  */
@@ -708,11 +690,20 @@ function site_admin_notice() {
 	}
 
 	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
-		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
+		$upgrade_network_message = sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
-			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
+			__( 'Thank you for updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
 			esc_url( network_admin_url( 'upgrade.php' ) )
-		) . '</div>';
+		);
+
+		wp_admin_notice(
+			$upgrade_network_message,
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'update-nag', 'inline' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	}
 }
 
@@ -750,7 +741,7 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 
 	while ( $c < 10 && get_id_from_blogname( $post_name ) ) {
 		$post_name .= mt_rand( 1, 10 );
-		$c++;
+		++$c;
 	}
 
 	if ( $post_name !== $data['post_name'] ) {
@@ -805,7 +796,7 @@ function choose_primary_blog() {
 				update_user_meta( get_current_user_id(), 'primary_blog', $blog->userblog_id );
 			}
 		} else {
-			echo 'N/A';
+			_e( 'Not available' );
 		}
 		?>
 		</td>
@@ -815,7 +806,7 @@ function choose_primary_blog() {
 }
 
 /**
- * Whether or not we can edit this network from this page.
+ * Determines whether or not this network from this page can be edited.
  *
  * By default editing of network is restricted to the Network Admin for that `$network_id`.
  * This function allows for this to be overridden.
@@ -823,7 +814,7 @@ function choose_primary_blog() {
  * @since 3.1.0
  *
  * @param int $network_id The network ID to check.
- * @return bool True if network can be edited, otherwise false.
+ * @return bool True if network can be edited, false otherwise.
  */
 function can_edit_network( $network_id ) {
 	if ( get_current_network_id() === (int) $network_id ) {
@@ -844,7 +835,7 @@ function can_edit_network( $network_id ) {
 }
 
 /**
- * Thickbox image paths for Network Admin.
+ * Prints thickbox image paths for Network Admin.
  *
  * @since 3.1.0
  *
@@ -852,22 +843,28 @@ function can_edit_network( $network_id ) {
  */
 function _thickbox_path_admin_subfolder() {
 	?>
-<script type="text/javascript">
+<script>
 var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
 </script>
 	<?php
 }
 
 /**
+ * @since 3.0.0
+ *
  * @param array $users
+ * @return bool
  */
 function confirm_delete_users( $users ) {
+	global $wpdb;
+
 	$current_user = wp_get_current_user();
 	if ( ! is_array( $users ) || empty( $users ) ) {
 		return false;
 	}
+
 	?>
-	<h1><?php esc_html_e( 'Users' ); ?></h1>
+	<h1><?php esc_html_e( 'Delete Users' ); ?></h1>
 
 	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
@@ -875,17 +872,15 @@ function confirm_delete_users( $users ) {
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
 	<?php endif; ?>
 
-	<form action="users.php?action=dodelete" method="post">
+	<form action="users.php?action=dodelete" method="post" class="delete-and-reassign-users-form">
 	<input type="hidden" name="dodelete" />
 	<?php
 	wp_nonce_field( 'ms-users-delete' );
 	$site_admins = get_super_admins();
-	$admin_out   = '<option value="' . esc_attr( $current_user->ID ) . '">' . $current_user->user_login . '</option>';
 	?>
 	<table class="form-table" role="presentation">
 	<?php
-	$allusers = (array) $_POST['allusers'];
-	foreach ( $allusers as $user_id ) {
+	foreach ( $users as $user_id ) {
 		if ( '' !== $user_id && '0' !== $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
@@ -894,7 +889,7 @@ function confirm_delete_users( $users ) {
 					sprintf(
 						/* translators: %s: User login. */
 						__( 'Warning! User %s cannot be deleted.' ),
-						$delete_user->user_login
+						esc_html( $delete_user->user_login )
 					)
 				);
 			}
@@ -904,13 +899,14 @@ function confirm_delete_users( $users ) {
 					sprintf(
 						/* translators: %s: User login. */
 						__( 'Warning! User cannot be deleted. The user %s is a network administrator.' ),
-						'<em>' . $delete_user->user_login . '</em>'
+						'<em>' . esc_html( $delete_user->user_login ) . '</em>'
 					)
 				);
 			}
+
 			?>
 			<tr>
-				<th scope="row"><?php echo $delete_user->user_login; ?>
+				<th scope="row"><?php echo esc_html( $delete_user->user_login ); ?>
 					<?php echo '<input type="hidden" name="user[]" value="' . esc_attr( $user_id ) . '" />' . "\n"; ?>
 				</th>
 			<?php
@@ -918,57 +914,105 @@ function confirm_delete_users( $users ) {
 
 			if ( ! empty( $blogs ) ) {
 				?>
-				<td><fieldset><p><legend>
+				<td><fieldset><legend>
 				<?php
 				printf(
-					/* translators: %s: User login. */
-					__( 'What should be done with content owned by %s?' ),
-					'<em>' . $delete_user->user_login . '</em>'
+					/* translators: 1: User login, 2: User ID. */
+					__( '%1$s (ID #%2$s): What should be done with the content owned by this user?' ),
+					'<strong>' . esc_html( $delete_user->user_login ) . '</strong>',
+					$user_id
 				);
 				?>
-				</legend></p>
+				</legend>
 				<?php
 				foreach ( (array) $blogs as $key => $details ) {
 					$blog_users = get_users(
 						array(
 							'blog_id' => $details->userblog_id,
-							'fields'  => array( 'ID', 'user_login' ),
+							'fields'  => array( 'ID' ),
+							'exclude' => $users,
 						)
 					);
 
-					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
-						$user_site      = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
-						$user_dropdown  = '<label for="reassign_user" class="screen-reader-text">' . __( 'Select a user' ) . '</label>';
-						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";
-						$user_list      = '';
+					$blog_users = wp_list_pluck( $blog_users, 'ID' );
 
-						foreach ( $blog_users as $user ) {
-							if ( ! in_array( (int) $user->ID, $allusers, true ) ) {
-								$user_list .= "<option value='{$user->ID}'>{$user->user_login}</option>";
+					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
+						$user_site = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
+						switch_to_blog( $details->userblog_id );
+						/** This filter is documented in wp-admin/users.php */
+						$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $delete_user->ID ) );
+
+						if ( ! $user_has_content ) {
+							if ( $wpdb->get_var(
+								$wpdb->prepare(
+									"SELECT ID FROM {$wpdb->posts}
+									WHERE post_author = %d
+									LIMIT 1",
+									$delete_user->ID
+								)
+							) ) {
+								$user_has_content = true;
+							} elseif ( $wpdb->get_var(
+								$wpdb->prepare(
+									"SELECT link_id FROM {$wpdb->links}
+									WHERE link_owner = %d
+									LIMIT 1",
+									$delete_user->ID
+								)
+							) ) {
+								$user_has_content = true;
 							}
 						}
+						restore_current_blog();
 
-						if ( '' === $user_list ) {
-							$user_list = $admin_out;
-						}
-
-						$user_dropdown .= $user_list;
-						$user_dropdown .= "</select>\n";
-						?>
-						<ul style="list-style:none;">
-							<li>
+						if ( ! $user_has_content ) {
+							?>
+							<p>
+							<?php
+							/* translators: %s: Link to user's site. */
+							printf( __( 'Site: %s' ), $user_site );
+							?>
+							</p>
+							<input type="hidden" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+							<p><?php _e( 'This user does not have any content.' ); ?></p>
+							<?php
+						} else {
+							?>
+							<fieldset>
+								<legend>
 								<?php
 								/* translators: %s: Link to user's site. */
 								printf( __( 'Site: %s' ), $user_site );
 								?>
-							</li>
-							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" checked="checked" />
-							<?php _e( 'Delete all content.' ); ?></label></li>
-							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
-							<?php _e( 'Attribute all content to:' ); ?></label>
-							<?php echo $user_dropdown; ?></li>
-						</ul>
-						<?php
+								</legend>
+								<ul>
+									<li>
+										<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+										<label for="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Delete all content.' ); ?></label>
+									</li>
+									<li>
+										<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
+										<label for="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>"><?php _e( 'Attribute all content to another user.' ); ?></label>
+
+										<label for="reassign_user_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" class="screen-reader-text"><?php _e( 'Select a user to attribute the content to.' ); ?></label>
+										<?php
+										wp_dropdown_users(
+											array(
+												'show_option_none' => __( 'Select a user' ),
+												'name'    => "blog[$user_id][$key]",
+												'include' => $blog_users,
+												'show'    => 'display_name_with_login',
+												'id'      => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+												'blog_id' => $details->userblog_id,
+											)
+										);
+										?>
+
+									</li>
+								</ul>
+							</fieldset>
+							<?php
+						}
 					}
 				}
 				echo '</fieldset></td></tr>';
@@ -985,7 +1029,7 @@ function confirm_delete_users( $users ) {
 	</table>
 	<?php
 	/** This action is documented in wp-admin/users.php */
-	do_action( 'delete_user_form', $current_user, $allusers );
+	do_action( 'delete_user_form', $current_user, $users );
 
 	if ( 1 === count( $users ) ) :
 		?>
@@ -995,7 +1039,7 @@ function confirm_delete_users( $users ) {
 		<?php
 	endif;
 
-	submit_button( __( 'Confirm Deletion' ), 'primary' );
+	submit_button( __( 'Confirm Deletion' ), 'primary', 'submit', false, array( 'id' => 'confirm-users-deletion' ) );
 	?>
 	</form>
 	<?php
@@ -1003,23 +1047,25 @@ function confirm_delete_users( $users ) {
 }
 
 /**
- * Print JavaScript in the header on the Network Settings screen.
+ * Prints JavaScript in the header on the Network Settings screen.
  *
  * @since 4.1.0
  */
 function network_settings_add_js() {
 	?>
-<script type="text/javascript">
-jQuery(document).ready( function($) {
+<script>
+jQuery( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).on( 'submit', function() {
-		// Don't show a spinner for English and installed languages,
-		// as there is nothing to download.
+		/*
+		 * Don't show a spinner for English and installed languages,
+		 * as there is nothing to download.
+		 */
 		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 		}
 	});
-});
+} );
 </script>
 	<?php
 }
@@ -1029,7 +1075,7 @@ jQuery(document).ready( function($) {
  *
  * @since 4.6.0
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  *
  * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.
@@ -1165,9 +1211,25 @@ function get_site_screen_help_tab_args() {
  * @since 4.9.0
  *
  * @return string Help sidebar content.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>';
+		'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
+}
+
+/**
+ * Stop execution if the role can not be assigned by the current user.
+ *
+ * @since 6.8.0
+ *
+ * @param string $role Role the user is attempting to assign.
+ */
+function wp_ensure_editable_role( $role ) {
+	$roles = get_editable_roles();
+	if ( ! isset( $roles[ $role ] ) ) {
+		wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+	}
 }

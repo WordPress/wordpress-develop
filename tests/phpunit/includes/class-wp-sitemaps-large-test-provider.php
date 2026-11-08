@@ -9,14 +9,14 @@ class WP_Sitemaps_Large_Test_Provider extends WP_Sitemaps_Provider {
 	/**
 	 * Number of entries in the sitemap the provider produces.
 	 *
-	 * @var integer
+	 * @var int
 	 */
 	public $num_entries = 1;
 
 	/**
 	 * WP_Sitemaps_Large_Test_Provider constructor.
 	 *
-	 * @param int $num_entries Optional. Number of entries in in the sitemap.
+	 * @param int $num_entries Optional. Number of entries in the sitemap.
 	 */
 	public function __construct( $num_entries = 50001 ) {
 		$this->name        = 'tests';
@@ -30,7 +30,7 @@ class WP_Sitemaps_Large_Test_Provider extends WP_Sitemaps_Provider {
 	 *
 	 * @param int    $page_num       Page of results.
 	 * @param string $object_subtype Optional. Object subtype name. Default empty.
-	 * @return array List of URLs for a sitemap.
+	 * @return array[] Array of URL information for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		return array_fill( 0, $this->num_entries, array( 'loc' => home_url( '/' ) ) );

@@ -3,7 +3,8 @@
 /**
  * Test WPDB _real_escape() method.
  *
- * @group  wpdb
+ * @group wpdb
+ *
  * @covers wpdb::_real_escape
  */
 class Tests_DB_RealEscape extends WP_UnitTestCase {
@@ -32,7 +33,7 @@ class Tests_DB_RealEscape extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	public function data_real_escape_input_type_handling() {
+	public static function data_real_escape_input_type_handling() {
 		return array(
 			'null'             => array(
 				'input'    => null,

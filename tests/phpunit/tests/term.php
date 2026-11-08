@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
@@ -51,14 +52,17 @@ class Tests_Term extends WP_UnitTestCase {
 	 */
 	public function test_is_term_type() {
 		// Insert a term.
-		$term = rand_str();
+		$term = 'term_new';
 		$t    = wp_insert_term( $term, $this->taxonomy );
 		$this->assertIsArray( $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );
-		$this->assertEquals( $t['term_id'], term_exists( $term_obj->slug ) );
 
+		$exists = term_exists( $term_obj->slug );
 		// Clean up.
-		$this->assertTrue( wp_delete_term( $t['term_id'], $this->taxonomy ) );
+		$deleted = wp_delete_term( $t['term_id'], $this->taxonomy );
+
+		$this->assertSame( (string) $t['term_id'], $exists );
+		$this->assertTrue( $deleted );
 	}
 
 	/**
@@ -72,7 +76,39 @@ class Tests_Term extends WP_UnitTestCase {
 			)
 		);
 		// There are 5 posts, all Uncategorized.
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
+	}
+
+	/**
+	 * Ensures a queried parent term outside the taxonomy hierarchy counts as the integer 0.
+	 *
+	 * Every other outcome is a numeric string, so this is the one case where the return
+	 * type is not a string at all.
+	 *
+	 * @ticket 61936
+	 *
+	 * @covers ::wp_count_terms
+	 */
+	public function test_wp_count_terms_should_return_integer_zero_for_a_parent_outside_the_hierarchy() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'parent'   => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a parent outside the hierarchy.' );
+
+		$count = wp_count_terms(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'child_of' => 99999,
+			)
+		);
+		$this->assertSame( 0, $count, 'Incorrect count for a child_of outside the hierarchy.' );
 	}
 
 	/**
@@ -83,14 +119,14 @@ class Tests_Term extends WP_UnitTestCase {
 
 		// Counts all terms (1 default category, 5 tags).
 		$count = wp_count_terms();
-		$this->assertEquals( 6, $count );
+		$this->assertSame( '6', $count );
 
 		// Counts only tags (5), with both current and legacy signature.
 		// Legacy usage should not trigger deprecated notice.
 		$count        = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
 		$legacy_count = wp_count_terms( 'post_tag' );
-		$this->assertEquals( 5, $count );
-		$this->assertEquals( $count, $legacy_count );
+		$this->assertSame( '5', $count );
+		$this->assertSame( $count, $legacy_count );
 	}
 
 	/**
@@ -111,7 +147,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_remove_object_terms( $posts[0], $tags[1], 'post_tag' ) );
 		$this->assertFalse( wp_remove_object_terms( $posts[0], $tags[0], 'post_tag' ) );
-		$this->assertInstanceOf( 'WP_Error', wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
+		$this->assertWPError( wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
 		$this->assertTrue( wp_remove_object_terms( $posts[1], $three_tags, 'post_tag' ) );
 		$this->assertCount( 0, wp_get_object_terms( $posts[1], 'post_tag' ) );
 
@@ -120,13 +156,10 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 
 		foreach ( $posts as $post_id ) {
-			$this->assertTrue( (bool) wp_delete_post( $post_id ) );
+			$this->assertInstanceOf( 'WP_Post', wp_delete_post( $post_id ) );
 		}
 	}
 
-	/**
-	 * @group category.php
-	 */
 	public function test_term_is_ancestor_of() {
 		$term  = rand_str();
 		$term2 = rand_str();
@@ -135,10 +168,10 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsArray( $t );
 		$t2 = wp_insert_term( $term, 'category', array( 'parent' => $t['term_id'] ) );
 		$this->assertIsArray( $t2 );
-		if ( function_exists( 'term_is_ancestor_of' ) ) {
-			$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
-			$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
-		}
+
+		$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
+		$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
+
 		$this->assertTrue( cat_is_ancestor_of( $t['term_id'], $t2['term_id'] ) );
 		$this->assertFalse( cat_is_ancestor_of( $t2['term_id'], $t['term_id'] ) );
 
@@ -156,7 +189,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertIsNumeric( $t );
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( (string) ( $initial_count + 1 ), wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );
@@ -166,7 +199,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );
-		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 	}
 
 	/**
@@ -178,7 +211,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertIsArray( $post->post_category );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = wp_insert_term( 'Bar', 'category' );
@@ -201,11 +234,11 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_set_post_categories( $post_id, array(), true );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
 		$this->assertCount( 1, $post->post_category );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 	}
 
 	/**
@@ -219,7 +252,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'cpt' ) );
 		$post    = get_post( $post_id );
 
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		$term = wp_insert_term( 'Foo', 'category' );
 
@@ -227,7 +260,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertSame( $term['term_id'], $post->post_category[0] );
 
 		wp_set_post_categories( $post_id, array() );
-		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
+		$this->assertSame( (int) get_option( 'default_category' ), $post->post_category[0] );
 
 		remove_filter( 'default_category_post_types', array( $this, 'filter_default_category_post_types' ) );
 	}
@@ -250,6 +283,51 @@ class Tests_Term extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53152
+	 * @dataProvider data_wp_set_term_objects_finds_term_name_with_special_characters
+	 *
+	 * @param string $name  A term name containing special characters.
+	 */
+	public function test_wp_set_term_objects_finds_term_name_with_special_characters( $name ) {
+		$post_id  = self::$post_ids[0];
+		$expected = wp_set_object_terms( $post_id, $name, 'category', false );
+		$actual   = wp_set_object_terms( $post_id, $name, 'category', false );
+		$this->assertSame( array_map( 'strval', $expected ), $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+		return array(
+			'ampersand'               => array( 'name' => 'Foo & Bar' ),
+			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
+			'trademark'               => array( 'name' => 'Foo Bar™' ),
+			'copyright'               => array( 'name' => 'Foo Bar©' ),
+			'registered'              => array( 'name' => 'Foo Bar®' ),
+			'degree'                  => array( 'name' => 'Foo ° Bar' ),
+			'forward slash'           => array( 'name' => 'Fo/o Ba/r' ),
+			'back slash'              => array( 'name' => 'F\oo \Bar' ),
+			'multiply'                => array( 'name' => 'Foo × Bar' ),
+			'standalone diacritic'    => array( 'name' => 'Foo Bāáǎàr' ),
+			'acute accents'           => array( 'name' => 'ááa´aˊ' ),
+			'iexcel and iquest'       => array( 'name' => '¡Foo ¿Bar' ),
+			'angle quotes'            => array( 'name' => '‹Foo« »Bar›' ),
+			'curly quotes'            => array( 'name' => '“F‘o„o‚ „ ‟ ‛B“a’r”' ),
+			'bullet'                  => array( 'name' => 'Foo • Bar' ),
+			'unencoded percent'       => array( 'name' => 'Foo % Bar' ),
+			'encoded ampersand'       => array( 'name' => 'Foo &amp; Bar' ),
+			'encoded ndash and mdash' => array( 'name' => 'Foo &mdash; &ndash; Bar' ),
+			'encoded trademark'       => array( 'name' => 'Foo Bar &trade;' ),
+			'encoded copyright'       => array( 'name' => 'Foo Bar &copy;' ),
+			'encoded registered'      => array( 'name' => 'Foo Bar &reg;' ),
+			'encoded bullet'          => array( 'name' => 'Foo &bullet; Bar' ),
+		);
+	}
+
+	/**
 	 * @ticket 19205
 	 */
 	public function test_orphan_category() {
@@ -257,7 +335,78 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_delete_category( $cat_id1 );
 
-		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
+		$cat_id2 = wp_insert_term( 'Child category', 'category', array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
+		$this->assertSame( 'missing_parent', $cat_id2->get_error_code() );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 */
+	public function test_get_term_sanitize_once() {
+		$cat_id1 = self::factory()->category->create();
+		$_term   = get_term( $cat_id1, '', OBJECT, 'edit' );
+
+		$filter = new MockAction();
+		add_filter( 'edit_term_slug', array( $filter, 'filter' ) );
+
+		$term = get_term( $_term, '', OBJECT, 'edit' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'The term was filtered more than once' );
+		$this->assertSame( $_term, $term, 'Both terms should match' );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter How to sanitize term fields.
+	 */
+	public function test_get_term_should_set_term_filter_property_to_filter_argument( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter How to sanitize term fields.
+	 */
+	public function test_get_term_filtered( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+		$cat     = self::factory()->category->create_and_get();
+		add_filter(
+			'get_term',
+			static function () use ( $cat ) {
+				return $cat;
+			}
+		);
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
+		$this->assertSame( $term, $cat, 'The returned term should match the filtered term' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_term_filter() {
+		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
 	}
 }

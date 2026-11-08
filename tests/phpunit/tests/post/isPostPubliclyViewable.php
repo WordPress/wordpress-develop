@@ -54,7 +54,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 			$date = date_format( date_create( '+1 year' ), 'Y-m-d H:i:s' );
 		}
 
-		$post_id = $this->factory()->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => $post_type,
 				'post_status' => $post_status,
@@ -76,7 +76,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 	 *     @type string $parent_key  The parent key as set up in shared fixtures.
 	 * }
 	 */
-	public function data_is_post_publicly_viewable() {
+	public static function data_is_post_publicly_viewable() {
 		return array(
 			array( 'post', 'publish', true ),
 			array( 'post', 'private', false ),

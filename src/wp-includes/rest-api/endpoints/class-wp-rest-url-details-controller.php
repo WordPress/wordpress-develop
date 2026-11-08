@@ -45,7 +45,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 							'required'          => true,
 							'description'       => __( 'The URL to process.' ),
 							'validate_callback' => 'wp_http_validate_url',
-							'sanitize_callback' => 'esc_url_raw',
+							'sanitize_callback' => 'sanitize_url',
 							'type'              => 'string',
 							'format'            => 'uri',
 						),
@@ -124,11 +124,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieves the contents of the `<title>` tag from the HTML response.
+	 * Retrieves the contents of the title tag from the HTML response.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_REST_REQUEST $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error The parsed details as a response object. WP_Error if there are errors.
 	 */
 	public function parse_url_details( $request ) {
@@ -188,11 +188,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks whether a given request has permission to read remote urls.
+	 * Checks whether a given request has permission to read remote URLs.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return WP_Error|bool True if the request has permission, else WP_Error.
+	 * @return true|WP_Error True if the request has permission, else WP_Error.
 	 */
 	public function permissions_check() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -207,7 +207,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 		return new WP_Error(
 			'rest_cannot_view_url_details',
-			__( 'Sorry, you are not allowed to process remote urls.' ),
+			__( 'Sorry, you are not allowed to process remote URLs.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
 	}
@@ -242,7 +242,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the HTTP request args for URL data retrieval.
 		 *
-		 * Can be used to adjust response size limit and other WP_Http::request args.
+		 * Can be used to adjust response size limit and other WP_Http::request() args.
 		 *
 		 * @since 5.9.0
 		 *
@@ -276,7 +276,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Parses the `<title>` contents from the provided HTML.
+	 * Parses the title tag contents from the provided HTML.
 	 *
 	 * @since 5.9.0
 	 *
@@ -347,11 +347,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param array $meta_elements {
-	 *     A multi-dimensional indexed array on success, else empty array.
+	 *     A multidimensional indexed array on success, else empty array.
 	 *
-	 *     @type string[] 0 Meta elements with a content attribute.
-	 *     @type string[] 1 Content attribute's opening quotation mark.
-	 *     @type string[] 2 Content attribute's value for each meta element.
+	 *     @type string[] $0 Meta elements with a content attribute.
+	 *     @type string[] $1 Content attribute's opening quotation mark.
+	 *     @type string[] $2 Content attribute's value for each meta element.
 	 * }
 	 * @return string The meta description contents on success. Empty string if not found.
 	 */
@@ -383,11 +383,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param array  $meta_elements {
-	 *     A multi-dimensional indexed array on success, else empty array.
+	 *     A multidimensional indexed array on success, else empty array.
 	 *
-	 *     @type string[] 0 Meta elements with a content attribute.
-	 *     @type string[] 1 Content attribute's opening quotation mark.
-	 *     @type string[] 2 Content attribute's value for each meta element.
+	 *     @type string[] $0 Meta elements with a content attribute.
+	 *     @type string[] $1 Content attribute's opening quotation mark.
+	 *     @type string[] $2 Content attribute's value for each meta element.
 	 * }
 	 * @param string $url The target website URL.
 	 * @return string The OG image on success. Empty string if not found.
@@ -451,7 +451,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @return mixed The value from the cache.
 	 */
 	private function get_cache( $key ) {
-		return get_transient( $key );
+		return get_site_transient( $key );
 	}
 
 	/**
@@ -478,11 +478,11 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 */
 		$cache_expiration = apply_filters( 'rest_url_details_cache_expiration', $ttl );
 
-		return set_transient( $key, $data, $cache_expiration );
+		return set_site_transient( $key, $data, $cache_expiration );
 	}
 
 	/**
-	 * Retrieves the `<head>` section.
+	 * Retrieves the head element section.
 	 *
 	 * @since 5.9.0
 	 *
@@ -519,17 +519,17 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Gets all the `<meta>` elements that have a `content` attribute.
+	 * Gets all the meta tag elements that have a 'content' attribute.
 	 *
 	 * @since 5.9.0
 	 *
 	 * @param string $html The string of HTML to be parsed.
 	 * @return array {
-	 *     A multi-dimensional indexed array on success, else empty array.
+	 *     A multidimensional indexed array on success, else empty array.
 	 *
-	 *     @type string[] 0 Meta elements with a content attribute.
-	 *     @type string[] 1 Content attribute's opening quotation mark.
-	 *     @type string[] 2 Content attribute's value for each meta element.
+	 *     @type string[] $0 Meta elements with a content attribute.
+	 *     @type string[] $1 Content attribute's opening quotation mark.
+	 *     @type string[] $2 Content attribute's value for each meta element.
 	 * }
 	 */
 	private function get_meta_with_content_elements( $html ) {
@@ -557,7 +557,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		$pattern = '#<meta\s' .
 
 				/*
-				 * Alows for additional attributes before the content attribute.
+				 * Allows for additional attributes before the content attribute.
 				 * Searches for anything other than > symbol.
 				 */
 				'[^>]*' .
@@ -588,7 +588,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 				/*
 				* These are the options:
-				* - i : case insensitive
+				* - i : case-insensitive
 				* - s : allows newline characters for the . match (needed for multiline elements)
 				* - U means non-greedy matching
 				*/
@@ -607,9 +607,9 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 	 * @param array  $meta_elements {
 	 *     A multi-dimensional indexed array on success, else empty array.
 	 *
-	 *     @type string[] 0 Meta elements with a content attribute.
-	 *     @type string[] 1 Content attribute's opening quotation mark.
-	 *     @type string[] 2 Content attribute's value for each meta element.
+	 *     @type string[] $0 Meta elements with a content attribute.
+	 *     @type string[] $1 Content attribute's opening quotation mark.
+	 *     @type string[] $2 Content attribute's value for each meta element.
 	 * }
 	 * @param string $attr       Attribute that identifies the element with the target metadata.
 	 * @param string $attr_value The attribute's value that identifies the element with the target metadata.
@@ -637,13 +637,13 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 
 				/*
 				 * These are the options:
-				 * - i : case insensitive
+				 * - i : case-insensitive
 				 * - s : allows newline characters for the . match (needed for multiline elements)
 				 * - U means non-greedy matching
 				 */
 				'#isU';
 
-		// Find the metdata element.
+		// Find the metadata element.
 		foreach ( $meta_elements[0] as $index => $element ) {
 			preg_match( $pattern, $element, $match );
 

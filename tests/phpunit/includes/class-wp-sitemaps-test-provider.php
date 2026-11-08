@@ -19,7 +19,7 @@ class WP_Sitemaps_Test_Provider extends WP_Sitemaps_Provider {
 	 * Return the public post types, which excludes nav_items and similar types.
 	 * Attachments are also excluded. This includes custom post types with public = true
 	 *
-	 * @return array Map of object subtype objects (WP_Post_Type) keyed by their name.
+	 * @return array<string, stdClass> Map of object subtype objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		return array(
@@ -34,7 +34,7 @@ class WP_Sitemaps_Test_Provider extends WP_Sitemaps_Provider {
 	 *
 	 * @param int    $page_num       Page of results.
 	 * @param string $object_subtype Optional. Object subtype name. Default empty.
-	 * @return array List of URLs for a sitemap.
+	 * @return array[] Array of URL information for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		return array();

@@ -14,6 +14,11 @@ window.makeSlugeditClickable = window.editPermalink = function(){};
 // Make sure the wp object exists.
 window.wp = window.wp || {};
 
+/**
+ * Handles the dynamic functionality needed on post and term pages.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 ( function( $ ) {
 	var titleHasFocus = false,
 		__ = wp.i18n.__;
@@ -35,13 +40,13 @@ window.wp = window.wp || {};
 		 * @memberof commentsBox
 		 *
 		 * @param {number} total Total number of comments for this post.
-		 * @param {number} num   Optional. Number of comments to fetch, defaults to 20.
+		 * @param {number} num   Optional. Number of comments to fetch, defaults to 10.
 		 * @return {boolean} Always returns false.
 		 */
 		get : function(total, num) {
 			var st = this.st, data;
 			if ( ! num )
-				num = 20;
+				num = 10;
 
 			this.st += num;
 			this.total = total;
@@ -97,7 +102,7 @@ window.wp = window.wp || {};
 		 * @param {number} total Total number of comments to load.
 		 */
 		load: function(total){
-			this.st = jQuery('#the-comment-list tr.comment:visible').length;
+			this.st = jQuery('#the-comment-list tr[id^="comment-"]:visible').length;
 			this.get(total);
 		}
 	};
@@ -135,21 +140,26 @@ window.wp = window.wp || {};
 	 * @global
 	 */
 	window.WPRemoveThumbnail = function(nonce){
-		$.post(ajaxurl, {
-			action: 'set-post-thumbnail', post_id: $( '#post_ID' ).val(), thumbnail_id: -1, _ajax_nonce: nonce, cookie: encodeURIComponent( document.cookie )
-		},
+		$.post(
+			ajaxurl, {
+				action: 'set-post-thumbnail',
+				post_id: $( '#post_ID' ).val(),
+				thumbnail_id: -1,
+				_ajax_nonce: nonce,
+				cookie: encodeURIComponent( document.cookie )
+			},
 			/**
 			 * Handle server response
 			 *
 			 * @param {string} str Response, will be '0' when an error occurred otherwise contains link to add Featured Image.
 			 */
 			function(str){
-			if ( str == '0' ) {
-				alert( __( 'Could not set that as the thumbnail image. Try a different attachment.' ) );
-			} else {
-				WPSetThumbnailHTML(str);
+				if ( str == '0' ) {
+					alert( __( 'Could not set that as the thumbnail image. Try a different attachment.' ) );
+				} else {
+					WPSetThumbnailHTML(str);
+				}
 			}
-		}
 		);
 	};
 
@@ -207,7 +217,9 @@ window.wp = window.wp || {};
 							height: 64,
 							alt: '',
 							src: received.lock_error.avatar_src,
-							srcset: received.lock_error.avatar_src_2x ? received.lock_error.avatar_src_2x + ' 2x' : undefined
+							srcset: received.lock_error.avatar_src_2x ?
+								received.lock_error.avatar_src_2x + ' 2x' :
+								undefined
 						} );
 						wrap.find('div.post-locked-avatar').empty().append( avatar );
 					}
@@ -246,7 +258,9 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * Heartbeat refresh nonces.
+ * Handles the Heartbeat refresh nonces.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
 	var check, timeout;
@@ -292,7 +306,9 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * All post and postbox controls and functionality.
+ * Handles all post and postbox controls and functionality.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 jQuery( function($) {
 	var stamp, visibility, $submitButtons, updateVisibility, updateText,
@@ -336,9 +352,9 @@ jQuery( function($) {
 		}
 	}).filter(':visible').find('.wp-tab-first').trigger( 'focus' );
 
-	// Set the heartbeat interval to 15 seconds if post lock dialogs are enabled.
+	// Set the heartbeat interval to 10 seconds if post lock dialogs are enabled.
 	if ( wp.heartbeat && $('#post-lock-dialog').length ) {
-		wp.heartbeat.interval( 15 );
+		wp.heartbeat.interval( 10 );
 	}
 
 	// The form is being submitted by the user.
@@ -427,25 +443,6 @@ jQuery( function($) {
 		$previewField.val('');
 	});
 
-	// This code is meant to allow tabbing from Title to Post content.
-	$('#title').on( 'keydown.editor-focus', function( event ) {
-		var editor;
-
-		if ( event.keyCode === 9 && ! event.ctrlKey && ! event.altKey && ! event.shiftKey ) {
-			editor = typeof tinymce != 'undefined' && tinymce.get('content');
-
-			if ( editor && ! editor.isHidden() ) {
-				editor.focus();
-			} else if ( $textarea.length ) {
-				$textarea.trigger( 'focus' );
-			} else {
-				return;
-			}
-
-			event.preventDefault();
-		}
-	});
-
 	// Auto save new posts after a title is typed.
 	if ( $( '#auto_draft' ).val() ) {
 		$( '#title' ).on( 'blur', function() {
@@ -504,7 +501,7 @@ jQuery( function($) {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event.
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
-	}).on( 'unload.edit-post', function( event ) {
+	}).on( 'pagehide.edit-post', function( event ) {
 		if ( ! releaseLock ) {
 			return;
 		}
@@ -578,16 +575,35 @@ jQuery( function($) {
 		}
 
 		// @todo Move to jQuery 1.3+, support for multiple hierarchical taxonomies, see wp-lists.js.
-		$('a', '#' + taxonomy + '-tabs').on( 'click', function( e ) {
-			e.preventDefault();
+		$('a', '#' + taxonomy + '-tabs').on( 'click keyup keydown', function( event ) {
 			var t = $(this).attr('href');
-			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
-			$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
-			$(t).show();
-			if ( '#' + taxonomy + '-all' == t ) {
-				deleteUserSetting( settingName );
-			} else {
-				setUserSetting( settingName, 'pop' );
+			if ( event.type === 'keydown' && event.key === ' ' ) {
+				event.preventDefault();
+			}
+			if ( ( event.type === 'keyup' && event.key === ' ' ) || ( event.type === 'keydown' && event.key === 'Enter' ) || event.type === 'click' ) {
+				event.preventDefault();
+				$('#' + taxonomy + '-tabs a').removeAttr( 'aria-selected' ).attr( 'tabindex', '-1' );
+				$(this).attr( 'aria-selected', 'true' ).removeAttr( 'tabindex' );
+				$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
+				$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
+				$( document ).find( t ).show();
+				if ( '#' + taxonomy + '-all' == t ) {
+					deleteUserSetting( settingName );
+				} else {
+					setUserSetting( settingName, 'pop' );
+				}
+			}
+			if ( event.type === 'keyup' && ( event.key === 'ArrowRight' || event.key === 'ArrowLeft' ) ) {
+				$(this).attr( 'tabindex', '-1' );
+				let next = $(this).parent('li').next();
+				let prev = $(this).parent('li').prev();
+				if ( next.length > 0 ) {
+					next.find('a').removeAttr( 'tabindex');
+					next.find('a').trigger( 'focus' );
+				} else {
+					prev.find('a').removeAttr( 'tabindex');
+					prev.find('a').trigger( 'focus' );
+				}
 			}
 		});
 
@@ -613,11 +629,11 @@ jQuery( function($) {
 		});
 
 		/**
-		 * Before adding a new taxonomy, disable submit button.
+		 * Disables the submit button before adding a new taxonomy.
 		 *
 		 * @param {Object} s Taxonomy object which will be added.
 		 *
-		 * @return {Object}
+		 * @return {Object} Taxonomy object with additional data to be sent to the server.
 		 */
 		catAddBefore = function( s ) {
 			if ( !$('#new'+taxonomy).val() ) {
@@ -666,11 +682,17 @@ jQuery( function($) {
 		});
 
 		// Sync checked items between "All {taxonomy}" and "Most used" lists.
-		$('#' + taxonomy + 'checklist, #' + taxonomy + 'checklist-pop').on( 'click', 'li.popular-category > label input[type="checkbox"]', function() {
-			var t = $(this), c = t.is(':checked'), id = t.val();
-			if ( id && t.parents('#taxonomy-'+taxonomy).length )
-				$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).prop( 'checked', c );
-		});
+		$('#' + taxonomy + 'checklist, #' + taxonomy + 'checklist-pop').on(
+			'click',
+			'li.popular-category > label input[type="checkbox"]',
+			function() {
+				var t = $(this), c = t.is(':checked'), id = t.val();
+				if ( id && t.parents('#taxonomy-'+taxonomy).length ) {
+					$('input#in-' + taxonomy + '-' + id + ', input[id^="in-' + taxonomy + '-' + id + '-"]').prop('checked', c);
+					$('input#in-popular-' + taxonomy + '-' + id).prop('checked', c);
+				}
+			}
+		);
 
 	}); // End cats.
 
@@ -749,11 +771,28 @@ jQuery( function($) {
 				mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val();
 
 			attemptedDate = new Date( aa, mm - 1, jj, hh, mn );
-			originalDate = new Date( $('#hidden_aa').val(), $('#hidden_mm').val() -1, $('#hidden_jj').val(), $('#hidden_hh').val(), $('#hidden_mn').val() );
-			currentDate = new Date( $('#cur_aa').val(), $('#cur_mm').val() -1, $('#cur_jj').val(), $('#cur_hh').val(), $('#cur_mn').val() );
+			originalDate = new Date(
+				$('#hidden_aa').val(),
+				$('#hidden_mm').val() -1,
+				$('#hidden_jj').val(),
+				$('#hidden_hh').val(),
+				$('#hidden_mn').val()
+			);
+			currentDate = new Date(
+				$('#cur_aa').val(),
+				$('#cur_mm').val() -1,
+				$('#cur_jj').val(),
+				$('#cur_hh').val(),
+				$('#cur_mn').val()
+			);
 
 			// Catch unexpected date problems.
-			if ( attemptedDate.getFullYear() != aa || (1 + attemptedDate.getMonth()) != mm || attemptedDate.getDate() != jj || attemptedDate.getMinutes() != mn ) {
+			if (
+				attemptedDate.getFullYear() != aa ||
+				(1 + attemptedDate.getMonth()) != mm ||
+				attemptedDate.getDate() != jj ||
+				attemptedDate.getMinutes() != mn
+			) {
 				$timestampdiv.find('.timestamp-wrap').addClass('form-invalid');
 				return false;
 			} else {
@@ -761,7 +800,7 @@ jQuery( function($) {
 			}
 
 			// Determine what the publish should be depending on the date and post status.
-			if ( attemptedDate > currentDate && $('#original_post_status').val() != 'future' ) {
+			if ( attemptedDate > currentDate ) {
 				publishOn = __( 'Schedule for:' );
 				$('#publish').val( _x( 'Schedule', 'post action/button label' ) );
 			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish' ) {
@@ -820,7 +859,10 @@ jQuery( function($) {
 			);
 
 			// Show or hide the "Save Draft" button.
-			if ( $('option:selected', postStatus).val() == 'private' || $('option:selected', postStatus).val() == 'publish' ) {
+			if (
+				$('option:selected', postStatus).val() == 'private' ||
+				$('option:selected', postStatus).val() == 'publish'
+			) {
 				$('#save-post').hide();
 			} else {
 				$('#save-post').show();
@@ -858,7 +900,7 @@ jQuery( function($) {
 		});
 
 		// Set the selected visibility as current.
-		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$postVisibilitySelect.find('.save-post-visibility').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			var visibilityLabel = '', selectedVisibility = $postVisibilitySelect.find('input:radio:checked').val();
 
 			$postVisibilitySelect.slideUp('fast');
@@ -914,7 +956,7 @@ jQuery( function($) {
 		});
 
 		// Save the changed timestamp.
-		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse - multiple OK cancels.
+		$timestampdiv.find('.save-timestamp').on( 'click', function( event ) { // Crazyhorse branch - multiple OK cancels.
 			if ( updateText() ) {
 				$timestampdiv.slideUp('fast');
 				$timestampdiv.siblings('a.edit-timestamp').show().trigger( 'focus' );
@@ -972,7 +1014,7 @@ jQuery( function($) {
 	 * @return {void}
 	 */
 	function editPermalink() {
-		var i, slug_value,
+		var i, slug_value, slug_label,
 			$el, revert_e,
 			c = 0,
 			real_slug = $('#post_name'),
@@ -994,7 +1036,10 @@ jQuery( function($) {
 		$el = $( '#editable-post-name' );
 		revert_e = $el.html();
 
-		buttons.html( '<button type="button" class="save button button-small">' + __( 'OK' ) + '</button> <button type="button" class="cancel button-link">' + __( 'Cancel' ) + '</button>' );
+		buttons.html(
+			'<button type="button" class="save button button-compact">' + __( 'OK' ) + '</button> ' +
+			'<button type="button" class="cancel button-link">' + __( 'Cancel' ) + '</button>'
+		);
 
 		// Save permalink changes.
 		buttons.children( '.save' ).on( 'click', function() {
@@ -1048,8 +1093,12 @@ jQuery( function($) {
 				c++;
 		}
 		slug_value = ( c > full.length / 4 ) ? '' : full;
+		slug_label = __( 'URL Slug' );
 
-		$el.html( '<input type="text" id="new-post-slug" value="' + slug_value + '" autocomplete="off" />' ).children( 'input' ).on( 'keydown', function( e ) {
+		$el.html(
+			'<label for="new-post-slug" class="screen-reader-text">' + slug_label + '</label>' +
+			'<input type="text" id="new-post-slug" value="' + slug_value + '" autocomplete="off" spellcheck="false" />'
+		).children( 'input' ).on( 'keydown', function( e ) {
 			var key = e.which;
 			// On [Enter], just save the new slug, don't save the post.
 			if ( 13 === key ) {
@@ -1135,7 +1184,7 @@ jQuery( function($) {
 		}
 
 		/**
-		 * When the dragging stopped make sure we return focus and do a sanity check on the height.
+		 * When the dragging stopped make sure we return focus and do a confidence check on the height.
 		 */
 		function endDrag() {
 			var height, toolbarHeight;
@@ -1160,7 +1209,7 @@ jQuery( function($) {
 
 			$document.off( '.wp-editor-resize' );
 
-			// Sanity check: normalize height to stay within acceptable ranges.
+			// Confidence check: normalize height to stay within acceptable ranges.
 			if ( height && height > 50 && height < 5000 ) {
 				setUserSetting( 'ed_size', height );
 			}
@@ -1223,7 +1272,12 @@ jQuery( function($) {
 	$textarea.on( 'keydown.wp-autosave', function( event ) {
 		// Key [S] has code 83.
 		if ( event.which === 83 ) {
-			if ( event.shiftKey || event.altKey || ( isMac && ( ! event.metaKey || event.ctrlKey ) ) || ( ! isMac && ! event.ctrlKey ) ) {
+			if (
+				event.shiftKey ||
+				event.altKey ||
+				( isMac && ( ! event.metaKey || event.ctrlKey ) ) ||
+				( ! isMac && ! event.ctrlKey )
+			) {
 				return;
 			}
 
@@ -1260,8 +1314,6 @@ jQuery( function($) {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( copyAttachmentURLSuccessTimeout );
@@ -1278,7 +1330,10 @@ jQuery( function($) {
 } );
 
 /**
- * TinyMCE word count display
+ * Handles the TinyMCE word count display.
+ *
+ * @param {JQueryStatic}         $       The jQuery object.
+ * @param {wp.utils.WordCounter} counter The WordCounter object.
  */
 ( function( $, counter ) {
 	$( function() {
