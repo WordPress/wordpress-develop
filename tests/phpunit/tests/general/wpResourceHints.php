@@ -356,9 +356,9 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_boolean_attributes()}.
 	 *
-	 * @return array<string, array{ hint: array<int|string, mixed>, expected: string }>
+	 * @return array<non-falsy-string, array{ hint: array<int|string, mixed>, expected: string }>
 	 */
-	public function data_boolean_attributes(): array {
+	public static function data_boolean_attributes(): array {
 		$href = 'https://example.com/foo.css';
 
 		return array(
