@@ -896,7 +896,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 *
 	 * @covers WP_REST_Autosaves_Controller::get_items
 	 */
-	public function test_get_items_scoped_to_author() {
+	public function test_get_items_scoped_to_author(): void {
 		$other_admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$autosave_ids   = array();
 
@@ -918,7 +918,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$autosaves = $response->get_data();
 
 		$this->assertSame( WP_Http::OK, $response->get_status(), 'Response is expected to have a status code of 200.' );
-		$this->assertCount( 1, $autosaves, 'Only the requested author\'s autosave should be returned.' );
-		$this->assertSame( $autosave_ids[ $other_admin_id ], $autosaves[0]['wp_id'], 'The autosave should belong to the requested author.' );
+		$this->assertIsArray( $autosaves );
+		$this->assertSame( array( $autosave_ids[ $other_admin_id ] ), wp_list_pluck( $autosaves, 'wp_id' ), 'Only the requested author\'s autosave should be returned.' );
 	}
 }
