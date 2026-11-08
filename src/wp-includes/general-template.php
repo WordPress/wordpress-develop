@@ -4065,7 +4065,11 @@ function wp_resource_hints() {
 					$value = true;
 				}
 
-				if ( ! isset( $allowed_attributes[ $attr ] ) ) {
+				/*
+				 * An attribute may be supplied twice, as a list item and as a key. As in HTML,
+				 * the first one wins, since the HTML API would otherwise apply the last one.
+				 */
+				if ( ! isset( $allowed_attributes[ $attr ] ) || null !== $processor->get_attribute( $attr ) ) {
 					continue;
 				}
 
@@ -4209,8 +4213,12 @@ function wp_preload_resources() {
 				$resource_value = true;
 			}
 
-			// Ignore non-supported attributes.
-			if ( ! isset( $allowed_attributes[ $resource_key ] ) ) {
+			/*
+			 * Ignore non-supported attributes. An attribute may also be supplied twice, as a list
+			 * item and as a key. As in HTML, the first one wins, since the HTML API would
+			 * otherwise apply the last one.
+			 */
+			if ( ! isset( $allowed_attributes[ $resource_key ] ) || null !== $processor->get_attribute( $resource_key ) ) {
 				continue;
 			}
 

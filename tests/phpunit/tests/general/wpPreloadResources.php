@@ -420,6 +420,33 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					'media' => 'screen and (min-width: 600px)" onload="alert(1)',
 				),
 			),
+			'list item before value'     => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin',
+					'crossorigin' => 'use-credentials',
+				),
+			),
+			'value before list item'     => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin='use-credentials' />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => 'use-credentials',
+					'crossorigin',
+				),
+			),
+			'repeated list item'         => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/font.woff2',
+					'as'   => 'font',
+					'crossorigin',
+					'crossorigin',
+				),
+			),
 		);
 	}
 }

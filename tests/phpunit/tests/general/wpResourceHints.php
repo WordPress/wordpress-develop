@@ -411,6 +411,30 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 				),
 				'expected' => "<link href='$href' rel='prefetch' />\n",
 			),
+			'list item before value'   => array(
+				'hint'     => array(
+					'crossorigin',
+					'crossorigin' => 'use-credentials',
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'value before list item'   => array(
+				'hint'     => array(
+					'crossorigin' => 'use-credentials',
+					'crossorigin',
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin='use-credentials' href='$href' rel='prefetch' />\n",
+			),
+			'repeated list item'       => array(
+				'hint'     => array(
+					'crossorigin',
+					'crossorigin',
+					'href' => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
 		);
 	}
 }
