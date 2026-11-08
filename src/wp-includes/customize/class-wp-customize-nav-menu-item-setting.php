@@ -471,7 +471,29 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 			add_filter( 'wp_get_nav_menu_items', array( __CLASS__, 'sort_wp_get_nav_menu_items' ), 1000, 3 );
 		}
 
-		// @todo Add get_post_metadata filters for plugins to add their data.
+		/**
+		 * Fires when the WP_Customize_Nav_Menu_Item_Setting::preview() method is called
+		 * for a specific nav menu item setting.
+		 *
+		 * The dynamic portion of the hook name, `$this->id`, refers to the setting ID.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param WP_Customize_Nav_Menu_Item_Setting $setting WP_Customize_Nav_Menu_Item_Setting instance.
+		 */
+		do_action( "customize_preview_{$this->id}", $this );
+
+		/**
+		 * Fires when the WP_Customize_Nav_Menu_Item_Setting::preview() method is called
+		 * for nav menu item settings.
+		 *
+		 * The dynamic portion of the hook name, `$this->type`, refers to the setting type.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param WP_Customize_Nav_Menu_Item_Setting $setting WP_Customize_Nav_Menu_Item_Setting instance.
+		 */
+		do_action( "customize_preview_{$this->type}", $this );
 
 		return true;
 	}
@@ -887,6 +909,18 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 				}
 			}
 		}
+
+		/**
+		 * Fires when the WP_Customize_Nav_Menu_Item_Setting::update() method is called.
+		 *
+		 * The dynamic portion of the hook name, `$this->type`, refers to the setting type.
+		 *
+		 * @since 7.1.0
+		 *
+		 * @param array|false                        $value   Value of the setting. False if the menu item is to be deleted.
+		 * @param WP_Customize_Nav_Menu_Item_Setting $setting WP_Customize_Nav_Menu_Item_Setting instance.
+		 */
+		do_action( "customize_update_{$this->type}", $value, $this );
 
 		return ( 'error' !== $this->update_status );
 	}
