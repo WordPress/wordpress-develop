@@ -1068,6 +1068,15 @@ function wp_get_mu_plugins() {
 
 	sort( $mu_plugins );
 
+	/**
+	 * Filters the list of mu-plugins to load.
+	 *
+	 * @since x.y
+	 *
+	 * @var string[] Array of absolute mu-plugin file paths to include.
+	 */
+	$mu_plugins = apply_filters( 'get_mu_plugins', $mu_plugins );
+
 	return $mu_plugins;
 }
 
@@ -1119,6 +1128,15 @@ function wp_get_active_and_valid_plugins() {
 	if ( wp_is_recovery_mode() ) {
 		$plugins = wp_skip_paused_plugins( $plugins );
 	}
+
+	/**
+	 * Filters the list of plugins to load.
+	 *
+	 * @since x.y
+	 *
+	 * @var string[] Array of absolute plugin file paths to include.
+	 */
+	$plugins = apply_filters( 'get_active_and_valid_plugins', $plugins );
 
 	return $plugins;
 }
@@ -1195,6 +1213,15 @@ function wp_get_active_and_valid_themes() {
 			add_filter( 'wp_using_themes', '__return_false' );
 		}
 	}
+
+	/**
+	 * Filters the list of themes to load.
+	 *
+	 * @since x.y
+	 *
+	 * @var string[] Array of absolute theme file paths to include.
+	 */
+	$themes = apply_filters( 'get_active_and_valid_themes', $themes );
 
 	return $themes;
 }
