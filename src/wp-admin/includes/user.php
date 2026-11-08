@@ -256,6 +256,167 @@ function edit_user( $user_id = 0 ) {
 }
 
 /**
+ * Gets the form fields responsible for a failed user update.
+ *
+ * These fields are excluded when rebuilding the edit form from submitted data
+ * after a failed update.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param WP_Error $errors Validation errors from `edit_user()`.
+ * @return string[] Array of field names that should not be repopulated.
+ */
+function _get_edit_user_error_fields( $errors ) {
+	$error_fields = array();
+
+	foreach ( $errors->get_error_codes() as $code ) {
+		$mapped_fields = array();
+
+		foreach ( $errors->get_all_error_data( $code ) as $data ) {
+			if ( is_array( $data ) && ! empty( $data['form-field'] ) ) {
+				$mapped_fields[] = $data['form-field'];
+			}
+		}
+
+		if ( empty( $mapped_fields ) ) {
+			switch ( $code ) {
+				case 'invalid_username':
+				case 'user_login':
+					$mapped_fields[] = 'user_login';
+					break;
+				case 'nickname':
+					$mapped_fields[] = 'nickname';
+					break;
+			}
+		}
+
+		if ( empty( $mapped_fields ) ) {
+			return array();
+		}
+
+		foreach ( $mapped_fields as $field ) {
+			$error_fields[ $field ] = true;
+		}
+	}
+
+	return array_keys( $error_fields );
+}
+
+/**
+ * Retrieves user data for the edit screen and overlays safe submitted values.
+ *
+ * When an existing user update fails validation, the edit and profile screens
+ * should preserve submitted values without writing them to the database. Fields
+ * that produced errors are left at their stored values, and password fields are
+ * never repopulated.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param int      $user_id User ID.
+ * @param WP_Error $errors  Validation errors from `edit_user()`.
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function _get_user_to_edit_from_post( $user_id, $errors ) {
+	$user = get_user_to_edit( $user_id );
+	$is_profile_page = defined( 'IS_PROFILE_PAGE' ) && IS_PROFILE_PAGE;
+
+	if ( ! $user || ! is_wp_error( $errors ) || ! $errors->has_errors() ) {
+		return $user;
+	}
+
+	$error_fields = array_flip( _get_edit_user_error_fields( $errors ) );
+	$properties   = array(
+		'first_name'   => 'first_name',
+		'last_name'    => 'last_name',
+		'nickname'     => 'nickname',
+		'display_name' => 'display_name',
+		'email'        => 'user_email',
+		'url'          => 'user_url',
+		'description'  => 'description',
+		'locale'       => 'locale',
+		'admin_color'  => 'admin_color',
+	);
+
+	foreach ( $properties as $field => $property ) {
+		if ( isset( $error_fields[ $field ] ) || ! isset( $_POST[ $field ] ) ) {
+			continue;
+		}
+
+		$user->$property = wp_unslash( $_POST[ $field ] );
+	}
+
+	foreach ( wp_get_user_contact_methods( $user ) as $method => $label ) {
+		if ( isset( $error_fields[ $method ] ) || ! isset( $_POST[ $method ] ) ) {
+			continue;
+		}
+
+		$user->$method = wp_unslash( $_POST[ $method ] );
+	}
+
+	if ( ! isset( $error_fields['rich_editing'] ) ) {
+		$user->rich_editing = isset( $_POST['rich_editing'] ) && 'false' === $_POST['rich_editing'] ? 'false' : 'true';
+	}
+
+	if ( ! isset( $error_fields['syntax_highlighting'] ) ) {
+		$user->syntax_highlighting = isset( $_POST['syntax_highlighting'] ) && 'false' === $_POST['syntax_highlighting'] ? 'false' : 'true';
+	}
+
+	if ( ! isset( $error_fields['comment_shortcuts'] ) ) {
+		$user->comment_shortcuts = isset( $_POST['comment_shortcuts'] ) && 'true' === $_POST['comment_shortcuts'] ? 'true' : '';
+	}
+
+	if ( ! isset( $error_fields['admin_bar_front'] ) ) {
+		$user->show_admin_bar_front = isset( $_POST['admin_bar_front'] ) ? 'true' : 'false';
+	}
+
+	if ( ! isset( $error_fields['use_ssl'] ) ) {
+		$user->use_ssl = ! empty( $_POST['use_ssl'] ) ? 1 : 0;
+	}
+
+	if ( ! isset( $error_fields['role'] )
+		&& ! $is_profile_page
+		&& ! is_network_admin()
+		&& isset( $_POST['role'] )
+		&& current_user_can( 'promote_user', $user_id )
+	) {
+		$role           = sanitize_text_field( wp_unslash( $_POST['role'] ) );
+		$editable_roles = get_editable_roles();
+
+		if ( '' === $role || ! empty( $editable_roles[ $role ] ) ) {
+			$user->roles = $role ? array( $role ) : array();
+		}
+	}
+
+	return $user;
+}
+
+/**
+ * Filters user options for the edit screen when repopulating submitted values.
+ *
+ * @since 7.1.0
+ * @access private
+ *
+ * @param mixed   $result  Value for the user's option.
+ * @param string  $option  Name of the option being retrieved.
+ * @param WP_User $user    WP_User object of the user whose option is being retrieved.
+ * @return mixed Filtered user option value.
+ */
+function _get_user_edit_form_posted_option( $result, $option, $user ) {
+	global $_wp_user_edit_posted_options;
+
+	if ( empty( $_wp_user_edit_posted_options['user_id'] )
+		|| (int) $_wp_user_edit_posted_options['user_id'] !== (int) $user->ID
+		|| ! isset( $_wp_user_edit_posted_options['options'][ $option ] )
+	) {
+		return $result;
+	}
+
+	return $_wp_user_edit_posted_options['options'][ $option ];
+}
+
+/**
  * Fetch a filtered list of user roles that the current user is
  * allowed to edit.
  *
