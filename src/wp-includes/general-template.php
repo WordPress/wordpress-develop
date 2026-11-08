@@ -4199,9 +4199,8 @@ function wp_preload_resources() {
 
 	// Build and output the HTML for each unique resource.
 	foreach ( $unique_resources as $unique_resource ) {
-		$processor = new WP_HTML_Tag_Processor( '<link>' );
+		$processor = new WP_HTML_Tag_Processor( '<link rel="preload">' );
 		$processor->next_tag();
-		$processor->set_attribute( 'rel', 'preload' );
 
 		foreach ( $unique_resource as $resource_key => $resource_value ) {
 			// A list item supplies a valueless attribute, as in `array( 'crossorigin', 'href' => … )`.
