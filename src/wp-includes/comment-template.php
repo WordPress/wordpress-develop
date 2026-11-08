@@ -609,23 +609,31 @@ function get_comment_class( $css_class = '', $comment_id = null, $post = null ) 
  * @param string         $format     Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
- * @return string The comment's date.
+ * @return string|int|false The comment's date. Integer if `$format` is 'U' or 'G', string otherwise.
+ *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_comment_date( $format = '', $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
-	$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
+	if ( null === $comment ) {
+		// For backward compatibility, failures go through the filter below.
+		$comment_date = false;
+	} else {
+		$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
 
-	$comment_date = mysql2date( $_format, $comment->comment_date );
+		$comment_date = mysql2date( $_format, $comment->comment_date );
+	}
 
 	/**
 	 * Filters the returned comment date.
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int $comment_date Formatted date string or Unix timestamp.
-	 * @param string     $format       PHP date format.
-	 * @param WP_Comment $comment      The comment object.
+	 * @param string|int|false $comment_date Formatted date string or Unix timestamp. False on failure.
+	 * @param string           $format       PHP date format.
+	 * @param WP_Comment|null  $comment      The comment object, or null if it does not exist.
 	 */
 	return apply_filters( 'get_comment_date', $comment_date, $format, $comment );
 }
@@ -893,6 +901,9 @@ function get_comments_link( $post = 0 ) {
  *
  * @param string $deprecated   Not Used.
  * @param string $deprecated_2 Not Used.
+ *
+ * @phpstan-param '' $deprecated
+ * @phpstan-param '' $deprecated_2
  */
 function comments_link( $deprecated = '', $deprecated_2 = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -925,7 +936,7 @@ function get_comments_number( $post = 0 ) {
 	 * @since 1.5.0
 	 *
 	 * @param string|int $comments_number A string representing the number of comments a post has, otherwise 0.
-	 * @param int        $post_id Post ID.
+	 * @param int        $post_id         Post ID.
 	 */
 	return apply_filters( 'get_comments_number', $comments_number, $post_id );
 }
@@ -1103,7 +1114,10 @@ function comment_text( $comment_id = 0, $args = array() ) {
  *                                   Default true.
  * @param int|WP_Comment $comment_id Optional. WP_Comment or ID of the comment for which to get the time.
  *                                   Default current comment.
- * @return string The formatted time.
+ * @return string|int|false The formatted time. Integer if `$format` is 'U' or 'G', string otherwise.
+ *                          False on failure, or an empty string if the comment does not exist.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false|'' : string|false )
  */
 function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
@@ -1123,11 +1137,12 @@ function get_comment_time( $format = '', $gmt = false, $translate = true, $comme
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int $comment_time The comment time, formatted as a date string or Unix timestamp.
-	 * @param string     $format       PHP date format.
-	 * @param bool       $gmt          Whether the GMT date is in use.
-	 * @param bool       $translate    Whether the time is translated.
-	 * @param WP_Comment $comment      The comment object.
+	 * @param string|int|false $comment_time The comment time, formatted as a date string or Unix timestamp.
+	 *                                       False on failure.
+	 * @param string           $format       PHP date format.
+	 * @param bool             $gmt          Whether the GMT date is in use.
+	 * @param bool             $translate    Whether the time is translated.
+	 * @param WP_Comment       $comment      The comment object.
 	 */
 	return apply_filters( 'get_comment_time', $comment_time, $format, $gmt, $translate, $comment );
 }
@@ -1244,10 +1259,12 @@ function get_trackback_url() {
  *
  * @see get_trackback_url()
  *
- * @param bool $deprecated_echo Deprecated. Use {@see get_trackback_url()}. Echo the URL or
+ * @param true $deprecated_echo Deprecated. Use {@see get_trackback_url()}. Echo the URL or
  *                              return it. Default true.
  * @return string|void The trackback URL when `$deprecated_echo` is false, nothing otherwise.
  * @phpstan-return ( $deprecated_echo is true ? void : string )
+ *
+ * @phpstan-ignore conditionalType.alwaysTrue (Typed `true` to flag the deprecated argument.)
  */
 function trackback_url( $deprecated_echo = true ) {
 	if ( true !== $deprecated_echo ) {
@@ -1277,6 +1294,8 @@ function trackback_url( $deprecated_echo = true ) {
  * @since 0.71
  *
  * @param int|string $deprecated Not used (Was $timezone = 0).
+ *
+ * @phpstan-param '' $deprecated
  */
 function trackback_rdf( $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2233,12 +2252,12 @@ function _get_comment_reply_id( $post = null ) {
  *     @type bool     $echo              Whether to echo the output or return it. Default true.
  * }
  * @param WP_Comment[] $comments Optional. Array of WP_Comment objects. Default null.
- * @return string|void HTML list of comments when 'echo' is false, null when there are no
- *                     comments to list. Nothing otherwise.
+ * @return string|null|void HTML list of comments when 'echo' is false, null when there are
+ *                          no comments to list. Nothing otherwise.
  * @phpstan-return (
  *     $args is array{ echo: false|0|''|'0', ... }
  *         ? string|null
- *         : ( $args is ''|array ? void : string|null )
+ *         : ( $args is ''|'0'|array ? void : string|null )
  * )
  */
 function wp_list_comments( $args = array(), $comments = null ) {

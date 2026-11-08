@@ -5,6 +5,8 @@
  * with one section opening at a time when its title is clicked.
  * Use the following markup structure for accordion behavior:
  *
+ * @example
+ * ```html
  * <div class="accordion-container">
  *	<div class="accordion-section open">
  *		<h3 class="accordion-section-title"><button type="button" aria-expanded="true" aria-controls="target-1"></button></h3>
@@ -22,6 +24,7 @@
  *		</div>
  *	</div>
  * </div>
+ * ```
  *
  * Note that any appropriate tags may be used, as long as the above classes are present.
  *
@@ -30,6 +33,8 @@
  */
 
 /**
+ * Handles the accordion functionality.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ){
@@ -46,7 +51,7 @@
 	/**
 	 * Close the current accordion section and open a new one.
 	 *
-	 * @param {Object} el Title element of the accordion section to toggle.
+	 * @param {JQuery} el Title element of the accordion section to toggle.
 	 * @since 3.6.0
 	 */
 	function accordionSwitch ( el ) {

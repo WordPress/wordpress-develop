@@ -57,6 +57,8 @@ CollectionEdit = Library.extend(/** @lends wp.media.controller.CollectionEdit.pr
 	},
 
 	/**
+	 * Initializes the CollectionEdit controller.
+	 *
 	 * @since 3.9.0
 	 */
 	initialize: function() {
@@ -81,6 +83,8 @@ CollectionEdit = Library.extend(/** @lends wp.media.controller.CollectionEdit.pr
 	},
 
 	/**
+	 * Activates the CollectionEdit controller.
+	 *
 	 * @since 3.9.0
 	 */
 	activate: function() {
@@ -98,6 +102,8 @@ CollectionEdit = Library.extend(/** @lends wp.media.controller.CollectionEdit.pr
 	},
 
 	/**
+	 * Deactivates the CollectionEdit controller.
+	 *
 	 * @since 3.9.0
 	 */
 	deactivate: function() {

@@ -106,4 +106,40 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 		$error_codes = $error->get_error_codes();
 		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
 	}
+
+	/**
+	 * The password reset link in the notification email should not be wrapped
+	 * in angle brackets, as that caused some email clients to include the
+	 * closing bracket as part of the URL and break the link.
+	 *
+	 * @ticket 44589
+	 */
+	public function test_retrieve_password_email_does_not_wrap_reset_link_in_angle_brackets() {
+		$message = '';
+
+		add_filter(
+			'retrieve_password_notification_email',
+			static function ( $defaults ) use ( &$message ) {
+				$message = $defaults['message'];
+				return $defaults;
+			}
+		);
+
+		retrieve_password( $this->user->user_login );
+
+		$this->assertNotEmpty( $message, 'The notification email message should not be empty.' );
+
+		$reset_link_line = '';
+
+		foreach ( explode( "\r\n", $message ) as $line ) {
+			if ( str_contains( $line, 'wp-login.php' ) ) {
+				$reset_link_line = $line;
+				break;
+			}
+		}
+
+		$this->assertNotEmpty( $reset_link_line, 'The reset password link should be present in the email message.' );
+		$this->assertFalse( str_starts_with( $reset_link_line, '<' ), 'The reset password link should not start with an angle bracket.' );
+		$this->assertFalse( str_ends_with( $reset_link_line, '>' ), 'The reset password link should not end with an angle bracket.' );
+	}
 }

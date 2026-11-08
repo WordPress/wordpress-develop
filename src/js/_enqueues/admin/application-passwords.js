@@ -3,6 +3,8 @@
  */
 
 /**
+ * Handles the Application Passwords functionality in the user profile screen.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
@@ -170,8 +172,8 @@
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param {jqXHR} xhr The XHR object from the ajax call.
-	 * @param {string} textStatus The string categorizing the ajax request's status.
+	 * @param {jqXHR}  xhr         The XHR object from the ajax call.
+	 * @param {string} textStatus  The string categorizing the ajax request's status.
 	 * @param {string} errorThrown The HTTP status error text.
 	 */
 	function handleErrorResponse( xhr, textStatus, errorThrown ) {

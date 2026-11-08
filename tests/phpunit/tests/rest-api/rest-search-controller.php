@@ -568,6 +568,21 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * The id property's schema should accept both integer and string ids,
+	 * as search handlers are not required to use integer ids.
+	 *
+	 * @ticket 51131
+	 */
+	public function test_get_item_schema_id_accepts_integer_and_string() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/search' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertSame( array( 'integer', 'string' ), $properties['id']['type'] );
+	}
+
+	/**
 	 * Tests that non-public post types are not allowed.
 	 *
 	 * @dataProvider data_readable_http_methods
@@ -870,6 +885,30 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			'Aside',
 			wp_list_pluck( $response->get_data(), 'title' )
 		);
+	}
+
+	/**
+	 * Post format search results should return the format slug as a string id, not an integer.
+	 *
+	 * @ticket 51131
+	 */
+	public function test_get_items_search_type_post_format_returns_string_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+
+		$this->assertContains( 'aside', $ids );
+
+		foreach ( $ids as $id ) {
+			$this->assertIsString( $id );
+		}
 	}
 
 	/**

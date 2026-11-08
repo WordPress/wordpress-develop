@@ -19,7 +19,7 @@ class Tests_Link_GetFeedLink extends WP_UnitTestCase {
 		$this->assertSame( home_url( $expected ), get_feed_link( $type ) );
 	}
 
-	public function data_plain_permastruct() {
+	public static function data_plain_permastruct() {
 		return array(
 			array( '?feed=rss2', '' ),
 			array( '?feed=atom', 'atom' ),
@@ -37,8 +37,6 @@ class Tests_Link_GetFeedLink extends WP_UnitTestCase {
 	 * @param string $type     Feed type to request.
 	 */
 	public function tests_pretty_permastruct( $expected, $type ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$this->assertSame( home_url( $expected ), get_feed_link( $type ) );
 	}
 
@@ -55,7 +53,7 @@ class Tests_Link_GetFeedLink extends WP_UnitTestCase {
 		$this->assertSame( home_url( $expected ), get_feed_link( $type ) );
 	}
 
-	public function data_pretty_permastruct() {
+	public static function data_pretty_permastruct() {
 		return array(
 			array( '/feed/', '' ),
 			array( '/feed/atom/', 'atom' ),

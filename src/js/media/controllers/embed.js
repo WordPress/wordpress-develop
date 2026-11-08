@@ -89,7 +89,7 @@ Embed = wp.media.controller.State.extend(/** @lends wp.media.controller.Embed.pr
 	/**
 	 * Try scanning the embed as an image to discover its dimensions.
 	 *
-	 * @param {Object} attributes
+	 * @param {Object} attributes The attributes for the embed scan.
 	 */
 	scanImage: function( attributes ) {
 		var frame = this.frame,
