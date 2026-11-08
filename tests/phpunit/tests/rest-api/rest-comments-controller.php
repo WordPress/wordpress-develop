@@ -4477,7 +4477,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 65537
 	 */
-	public function test_excluded_comment_type_visibility_is_not_access_control() {
+	public function test_excluded_comment_type_visibility_is_not_access_control(): void {
 		$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved' => 1,

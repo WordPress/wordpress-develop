@@ -551,7 +551,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 */
-	public function test_default_excluded_types_are_not_counted() {
+	public function test_default_excluded_types_are_not_counted(): void {
 		$post_id = self::factory()->post->create();
 
 		// Two notes, then two regular comments, oldest first.
@@ -635,7 +635,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 */
-	public function test_filtered_excluded_types_are_not_counted() {
+	public function test_filtered_excluded_types_are_not_counted(): void {
 		$post_id = self::factory()->post->create();
 
 		foreach ( array( 'private', 'private', '', '' ) as $index => $comment_type ) {
@@ -682,7 +682,7 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_comment_link
 	 */
-	public function test_get_comment_link_does_not_count_excluded_types() {
+	public function test_get_comment_link_does_not_count_excluded_types(): void {
 		update_option( 'page_comments', 1 );
 		update_option( 'comments_per_page', 2 );
 		update_option( 'default_comments_page', 'oldest' );

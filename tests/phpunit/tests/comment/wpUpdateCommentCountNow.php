@@ -102,7 +102,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 */
-	public function test_filtered_excluded_type_does_not_inflate_count() {
+	public function test_filtered_excluded_type_does_not_inflate_count(): void {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
@@ -142,7 +142,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 */
-	public function test_emptying_filter_counts_otherwise_excluded_types() {
+	public function test_emptying_filter_counts_otherwise_excluded_types(): void {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
@@ -170,7 +170,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 */
-	public function test_false_filter_return_counts_all_types() {
+	public function test_false_filter_return_counts_all_types(): void {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(

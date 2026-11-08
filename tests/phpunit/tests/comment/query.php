@@ -5491,8 +5491,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 * @dataProvider data_internal_comment_type_exclusion
 	 *
-	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
-	 * @param string[]                    $expected_types Expected comment types.
+	 * @param array<string, string|string[]> $query_args     Query arguments for WP_Comment_Query.
+	 * @param string[]                        $expected_types Expected comment types.
 	 */
 	public function test_internal_comment_type_exclusion( array $query_args, array $expected_types ) {
 		$this->create_internal_comment_type_test_comments();
@@ -5515,7 +5515,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
+	 * @return array<string, array{ query_args: array<string, string|string[]>, expected_types: string[] }>
 	 */
 	public static function data_internal_comment_type_exclusion(): array {
 		return array(
@@ -5705,7 +5705,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_excludes_custom_type() {
+	public function test_default_excluded_comment_types_filter_excludes_custom_type(): void {
 		$this->create_excluded_type_test_comments();
 
 		add_filter(
@@ -5733,7 +5733,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_can_remove_note() {
+	public function test_default_excluded_comment_types_filter_can_remove_note(): void {
 		$this->create_excluded_type_test_comments();
 
 		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
@@ -5755,10 +5755,10 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 * @dataProvider data_default_excluded_comment_types_explicit_request
 	 *
-	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
-	 * @param string[]                    $expected_types Expected comment types.
+	 * @param array<string, string|string[]> $query_args     Query arguments for WP_Comment_Query.
+	 * @param string[]                        $expected_types Expected comment types.
 	 */
-	public function test_default_excluded_comment_types_filter_respects_explicit_request( array $query_args, array $expected_types ) {
+	public function test_default_excluded_comment_types_filter_respects_explicit_request( array $query_args, array $expected_types ): void {
 		$this->create_excluded_type_test_comments();
 
 		add_filter(
@@ -5780,7 +5780,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
+	 * @return array<string, array{ query_args: array<string, string|string[]>, expected_types: string[] }>
 	 */
 	public function data_default_excluded_comment_types_explicit_request(): array {
 		return array(
@@ -5809,7 +5809,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_receives_default_and_instance() {
+	public function test_default_excluded_comment_types_filter_receives_default_and_instance(): void {
 		$filter = new MockAction();
 		add_filter( 'default_excluded_comment_types', array( $filter, 'filter' ), 10, 2 );
 
@@ -5829,7 +5829,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_not_duplicated_in_query() {
+	public function test_default_excluded_comment_types_filter_not_duplicated_in_query(): void {
 		$this->create_excluded_type_test_comments();
 
 		add_filter(
@@ -5870,7 +5870,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_false_return_is_tolerated() {
+	public function test_default_excluded_comment_types_filter_false_return_is_tolerated(): void {
 		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter( 'default_excluded_comment_types', '__return_false' );
@@ -5889,7 +5889,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers ::wp_get_default_excluded_comment_types
 	 */
-	public function test_default_excluded_comment_types_filter_strips_special_tokens() {
+	public function test_default_excluded_comment_types_filter_strips_special_tokens(): void {
 		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter(
@@ -5929,7 +5929,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
-	public function test_default_excluded_comment_types_filter_respects_alias_request() {
+	public function test_default_excluded_comment_types_filter_respects_alias_request(): void {
 		$comments = $this->create_internal_comment_type_test_comments();
 
 		add_filter(
@@ -5967,7 +5967,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers ::wp_get_default_excluded_comment_types
 	 */
-	public function test_default_excluded_comment_types_filter_preserves_zero_string_type() {
+	public function test_default_excluded_comment_types_filter_preserves_zero_string_type(): void {
 		add_filter(
 			'default_excluded_comment_types',
 			static function ( array $types ): array {
@@ -5986,7 +5986,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers ::wp_get_default_excluded_comment_types
 	 */
-	public function test_default_excluded_comment_types_filter_drops_non_scalar_values() {
+	public function test_default_excluded_comment_types_filter_drops_non_scalar_values(): void {
 		add_filter(
 			'default_excluded_comment_types',
 			static function ( array $types ): array {
@@ -6050,7 +6050,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 35214
 	 * @covers ::wp_get_default_excluded_comment_types
 	 */
-	public function test_internal_comment_types_are_excluded_by_default() {
+	public function test_internal_comment_types_are_excluded_by_default(): void {
 		if ( ! function_exists( 'register_comment_type' ) ) {
 			$this->markTestSkipped( 'Requires the comment type registry.' );
 		}
@@ -6086,7 +6086,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comments
 	 */
-	public function test_default_excluded_comment_types_are_part_of_the_cache_key() {
+	public function test_default_excluded_comment_types_are_part_of_the_cache_key(): void {
 		$this->create_excluded_type_test_comments();
 
 		$callback = static function ( array $types ): array {
@@ -6128,7 +6128,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers WP_Comment_Query::get_comments
 	 */
-	public function test_default_excluded_comment_types_filter_runs_once_per_query() {
+	public function test_default_excluded_comment_types_filter_runs_once_per_query(): void {
 		$filter = new MockAction();
 		add_filter( 'default_excluded_comment_types', array( $filter, 'filter' ) );
 
@@ -6145,7 +6145,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @ticket 65537
 	 * @covers ::wp_count_comments
 	 */
-	public function test_wp_count_comments_excludes_filtered_types() {
+	public function test_wp_count_comments_excludes_filtered_types(): void {
 		$this->create_excluded_type_test_comments();
 
 		add_filter(

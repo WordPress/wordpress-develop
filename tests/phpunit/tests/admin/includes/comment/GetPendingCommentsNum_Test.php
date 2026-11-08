@@ -28,7 +28,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	/**
 	 * @ticket 65537
 	 */
-	public function test_counts_only_pending_comments() {
+	public function test_counts_only_pending_comments(): void {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id );
 		self::factory()->comment->create(
@@ -44,7 +44,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	/**
 	 * @ticket 65537
 	 */
-	public function test_excludes_note_type_by_default() {
+	public function test_excludes_note_type_by_default(): void {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id );
 		$this->make_pending( $post_id, 'note' );
@@ -57,7 +57,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	 *
 	 * @ticket 65537
 	 */
-	public function test_excludes_a_filtered_type() {
+	public function test_excludes_a_filtered_type(): void {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id );
 		$this->make_pending( $post_id, 'review' );
@@ -80,7 +80,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	 *
 	 * @ticket 65537
 	 */
-	public function test_emptying_filter_counts_note_type() {
+	public function test_emptying_filter_counts_note_type(): void {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id, 'note' );
 
@@ -99,7 +99,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	 *
 	 * @ticket 65537
 	 */
-	public function test_false_filter_return_counts_all_types() {
+	public function test_false_filter_return_counts_all_types(): void {
 		$post_id = self::factory()->post->create();
 		$this->make_pending( $post_id, 'note' );
 
@@ -111,7 +111,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	/**
 	 * @ticket 65537
 	 */
-	public function test_array_input_returns_counts_keyed_by_post() {
+	public function test_array_input_returns_counts_keyed_by_post(): void {
 		$post_a = self::factory()->post->create();
 		$post_b = self::factory()->post->create();
 		$this->make_pending( $post_a );

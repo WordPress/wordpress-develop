@@ -292,7 +292,7 @@ OPTIONS;
 	 *
 	 * @param string $comment_type The comment_type request value to test.
 	 */
-	public function test_comments_list_table_hides_filtered_excluded_comment_type( string $comment_type ) {
+	public function test_comments_list_table_hides_filtered_excluded_comment_type( string $comment_type ): void {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
@@ -342,7 +342,7 @@ OPTIONS;
 	 *
 	 * @ticket 65537
 	 */
-	public function test_comments_list_table_shows_explicitly_requested_excluded_comment_type() {
+	public function test_comments_list_table_shows_explicitly_requested_excluded_comment_type(): void {
 		$post_id = self::factory()->post->create();
 
 		$private_comment_id = self::factory()->comment->create(
@@ -379,7 +379,7 @@ OPTIONS;
 	 *
 	 * @ticket 65537
 	 */
-	public function test_comments_list_table_note_request_is_dropped_with_an_empty_excluded_set() {
+	public function test_comments_list_table_note_request_is_dropped_with_an_empty_excluded_set(): void {
 		$post_id = self::factory()->post->create();
 
 		$note_id = self::factory()->comment->create(
@@ -429,7 +429,7 @@ OPTIONS;
 	 *
 	 * @ticket 65537
 	 */
-	public function test_comments_list_table_ignores_a_non_string_comment_type_request() {
+	public function test_comments_list_table_ignores_a_non_string_comment_type_request(): void {
 		$post_id = self::factory()->post->create();
 
 		self::factory()->comment->create(
