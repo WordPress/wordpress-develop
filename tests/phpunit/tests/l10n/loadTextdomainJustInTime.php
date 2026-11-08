@@ -51,6 +51,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		unload_textdomain( 'internationalized-plugin' );
 		unload_textdomain( 'internationalized-plugin-2' );
 		unload_textdomain( 'internationalized-theme' );
+		unload_textdomain( 'custom-internationalized-theme' );
 
 		parent::tear_down();
 	}
@@ -439,5 +440,76 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		$this->assertSame( 'Das ist ein Dummy Plugin', $before, 'de_DE translations should be loaded up front' );
 		$this->assertSame( 'This is a dummy plugin', $untranslated, 'There should be no ja_JP translations' );
 		$this->assertSame( 'Das ist ein Dummy Plugin', $after, 'de_DE translations should survive load_plugin_textdomain()' );
+	}
+
+	/**
+	 * A plugin that loads translations for a theme's text domain first
+	 * must not stop the theme's own translations from loading.
+	 *
+	 * @ticket 63725
+	 *
+	 * @covers WP_Theme::load_textdomain
+	 */
+	public function test_theme_translations_are_loaded_if_a_plugin_loaded_the_same_text_domain_first() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		load_textdomain( 'custom-internationalized-theme', DIR_TESTDATA . '/languages/plugins/internationalized-plugin-de_DE.mo' );
+
+		$theme_textdomain_loaded = wp_get_theme( 'custom-internationalized-theme' )->load_textdomain();
+
+		$theme_string  = __( 'This is a dummy theme', 'custom-internationalized-theme' );
+		$plugin_string = __( 'This is a dummy plugin', 'custom-internationalized-theme' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertTrue( $theme_textdomain_loaded, 'WP_Theme::load_textdomain() should report success' );
+		$this->assertSame( 'Das ist ein Dummy Theme', $theme_string, 'The theme string should be translated' );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $plugin_string, 'The plugin string should still be translated' );
+	}
+
+	/**
+	 * A theme's language pack in WP_LANG_DIR/themes is loaded even if a plugin
+	 * loaded translations for the same text domain first.
+	 *
+	 * @ticket 63725
+	 *
+	 * @covers WP_Theme::load_textdomain
+	 */
+	public function test_theme_language_pack_is_loaded_if_a_plugin_loaded_the_same_text_domain_first() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		load_textdomain( 'internationalized-theme', DIR_TESTDATA . '/languages/plugins/internationalized-plugin-de_DE.mo' );
+
+		wp_get_theme( 'internationalized-theme' )->load_textdomain();
+
+		$theme_string  = __( 'This is a dummy theme', 'internationalized-theme' );
+		$plugin_string = __( 'This is a dummy plugin', 'internationalized-theme' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertSame( 'Das ist ein Dummy Theme', $theme_string, 'The theme string should be translated from the language pack' );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $plugin_string, 'The plugin string should still be translated' );
+	}
+
+	/**
+	 * When the plugin and the theme both translate the same string,
+	 * the translation file that was loaded first wins.
+	 *
+	 * @ticket 63725
+	 *
+	 * @covers WP_Theme::load_textdomain
+	 */
+	public function test_translation_loaded_first_wins_for_a_string_shared_by_plugin_and_theme() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		load_textdomain( 'custom-internationalized-theme', DIR_TESTDATA . '/l10n/shared-text-domain-de_DE.mo' );
+
+		wp_get_theme( 'custom-internationalized-theme' )->load_textdomain();
+
+		$shared_string = __( 'This is a dummy theme', 'custom-internationalized-theme' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertSame( 'Das ist ein Dummy Theme aus einem Plugin', $shared_string );
 	}
 }
