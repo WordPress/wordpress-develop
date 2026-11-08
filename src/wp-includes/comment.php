@@ -337,7 +337,7 @@ function get_comments( $args = '' ) {
  *
  * @since 7.2.0
  */
-function create_initial_comment_types() {
+function create_initial_comment_types(): void {
 	WP_Comment_Type::reset_default_labels();
 
 	/*
@@ -561,11 +561,11 @@ function register_comment_type( $comment_type, $args = array() ) {
 function unregister_comment_type( $comment_type ) {
 	global $wp_comment_types;
 
-	if ( ! comment_type_exists( $comment_type ) ) {
+	$comment_type_object = get_comment_type_object( $comment_type );
+
+	if ( ! $comment_type_object ) {
 		return new WP_Error( 'invalid_comment_type', __( 'Invalid comment type.' ) );
 	}
-
-	$comment_type_object = get_comment_type_object( $comment_type );
 
 	// Do not allow unregistering built-in comment types.
 	if ( $comment_type_object->_builtin ) {
@@ -613,14 +613,16 @@ function get_comment_type_object( $comment_type ) {
  *
  * @global WP_Comment_Type[] $wp_comment_types List of comment types.
  *
- * @param array        $args     Optional. An array of key => value arguments to match against
- *                               the comment type objects. Default empty array.
- * @param string       $output   Optional. The type of output to return. Either comment type 'names'
- *                               or 'objects'. Default 'names'.
- * @param string       $operator Optional. The logical operation to perform. 'or' means only one
- *                               element from the array needs to match; 'and' means all elements
- *                               must match; 'not' means no elements may match. Default 'and'.
+ * @param array<string, mixed> $args     Optional. An array of key => value arguments to match against
+ *                                       the comment type objects. Default empty array.
+ * @param string               $output   Optional. The type of output to return. Either comment type 'names'
+ *                                       or 'objects'. Default 'names'.
+ * @param string               $operator Optional. The logical operation to perform. 'or' means only one
+ *                                       element from the array needs to match; 'and' means all elements
+ *                                       must match; 'not' means no elements may match. Default 'and'.
  * @return string[]|WP_Comment_Type[] An array of comment type names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function get_comment_types( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_comment_types;
@@ -648,7 +650,7 @@ function comment_type_exists( $comment_type ) {
  * @since 7.2.0
  *
  * @param WP_Comment_Type $comment_type_object Comment type object.
- * @return object {
+ * @return stdClass {
  *     Comment type labels object.
  *
  *     @type string $name          General name for the comment type, usually plural. The same as and

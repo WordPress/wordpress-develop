@@ -123,9 +123,9 @@ final class WP_Comment_Type {
 	 *
 	 * @see register_comment_type()
 	 *
-	 * @param string       $comment_type Comment type key.
-	 * @param array|string $args         Optional. Array or string of arguments for registering a comment type.
-	 *                                   Default empty array.
+	 * @param string                      $comment_type Comment type key.
+	 * @param array<string, mixed>|string $args         Optional. Array or string of arguments for registering
+	 *                                                  a comment type. Default empty array.
 	 */
 	public function __construct( $comment_type, $args = array() ) {
 		$this->name = $comment_type;
@@ -140,9 +140,9 @@ final class WP_Comment_Type {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array|string $args Array or string of arguments for registering a comment type.
+	 * @param array<string, mixed>|string $args Array or string of arguments for registering a comment type.
 	 */
-	public function set_props( $args ) {
+	public function set_props( $args ): void {
 		$args = wp_parse_args( $args );
 
 		/**
@@ -234,7 +234,7 @@ final class WP_Comment_Type {
 	 *
 	 * @since 7.2.0
 	 */
-	public static function reset_default_labels() {
+	public static function reset_default_labels(): void {
 		self::$default_labels = array();
 	}
 }
