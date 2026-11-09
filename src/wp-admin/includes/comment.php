@@ -56,15 +56,24 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
+	$comment = get_comment( absint( $_POST['comment_ID'] ) );
+
+	if ( ! $comment ) {
+		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
+	}
+
+	$post_id = (int) $comment->comment_post_ID;
+
 	/*
 	 * 'edit_comment' only covers the post the comment is on. Moving it to
-	 * another post needs edit access to that post as well.
+	 * another post needs edit access to that post as well, and a comment
+	 * cannot be detached from its post: with no post, 'edit_comment' would
+	 * no longer map to that post's capabilities.
 	 */
-	if ( ! empty( $_POST['comment_post_ID'] ) ) {
-		$comment = get_comment( absint( $_POST['comment_ID'] ) );
+	if ( isset( $_POST['comment_post_ID'] ) && absint( $_POST['comment_post_ID'] ) !== $post_id ) {
 		$post_id = absint( $_POST['comment_post_ID'] );
 
-		if ( $comment && $post_id !== (int) $comment->comment_post_ID && ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 	}
@@ -94,9 +103,7 @@ function edit_comment() {
 
 		$_POST['comment_parent'] = $comment_parent;
 
-		$comment = get_comment( $comment_id );
-
-		if ( $comment && $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
+		if ( $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
 			if ( ! get_option( 'thread_comments' ) ) {
 				return new WP_Error( 'comment_parent_invalid', __( 'The comment parent cannot be changed because threaded comments are disabled.' ) );
 			}
@@ -110,10 +117,10 @@ function edit_comment() {
 			$comment_status      = $_POST['comment_approved'] ?? $comment->comment_approved;
 			$comment_is_approved = in_array( $comment_status, array( 1, '1', 'approve' ), true );
 
-			// The parent must be a comment of the same type, on the same post, and publicly visible if the comment is approved.
+			// The parent must be a comment of the same type, on the post the comment will be on, and publicly visible if the comment is approved.
 			if (
 				! $parent
-				|| (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID
+				|| (int) $parent->comment_post_ID !== $post_id
 				|| $parent->comment_type !== $comment->comment_type
 				|| in_array( $parent_status, array( 'spam', 'trash' ), true )
 				|| ( $comment_is_approved && 'approved' !== $parent_status )
@@ -167,6 +174,23 @@ function edit_comment() {
 				if ( $parent_depth + $subtree_height > $max_thread_depth ) {
 					return new WP_Error( 'comment_parent_invalid', __( 'The comment cannot be moved there because it or its replies would exceed the maximum threading depth.' ) );
 				}
+			}
+		}
+	}
+
+	/*
+	 * A comment moving to another post cannot stay threaded under a comment
+	 * on the post it leaves. The new-parent checks above only run when the
+	 * parent changes, so cover the parent it keeps here.
+	 */
+	if ( $post_id !== (int) $comment->comment_post_ID ) {
+		$kept_parent = isset( $_POST['comment_parent'] ) ? absint( $_POST['comment_parent'] ) : (int) $comment->comment_parent;
+
+		if ( $kept_parent ) {
+			$parent = get_comment( $kept_parent );
+
+			if ( ! $parent || (int) $parent->comment_post_ID !== $post_id ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'Invalid parent comment.' ) );
 			}
 		}
 	}
