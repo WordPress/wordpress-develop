@@ -144,6 +144,8 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		$this->set_permalink_structure( '' );
+
 		register_taxonomy(
 			self::$tax_id,
 			self::$post_type,
@@ -164,13 +166,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'labels'      => array( 'name' => 'CPT for feed_links_extra()' ),
 			)
 		);
-	}
-
-	public function tear_down() {
-		unregister_taxonomy( self::$tax_id );
-		unregister_post_type( self::$post_type );
-
-		parent::tear_down();
 	}
 
 	/**
