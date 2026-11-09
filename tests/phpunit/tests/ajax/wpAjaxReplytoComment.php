@@ -324,6 +324,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 			'reaction, capitalized' => array( 'Reaction' ),
 			'note'                  => array( 'note' ),
 			'note, capitalized'     => array( 'Note' ),
+			'reaction, accented'    => array( 'reactión' ),
 		);
 	}
 

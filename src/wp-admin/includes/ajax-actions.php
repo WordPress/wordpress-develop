@@ -1314,8 +1314,16 @@ function wp_ajax_replyto_comment( $action ) {
 	 * Notes and reactions are created through the REST API, which validates
 	 * their author, parent, post and content together. Refuse them here so this
 	 * handler cannot store rows that validation would have rejected.
+	 *
+	 * The database compares comment types with a case- and accent-insensitive
+	 * collation, so a type that only differs from `reaction` by case or accents
+	 * would still be queried as one. Limit the type to ASCII key characters so
+	 * the check below sees every spelling the database would match.
 	 */
-	if ( in_array( strtolower( $comment_type ), array( 'note', 'reaction' ), true ) ) {
+	if (
+		! preg_match( '/^[a-z0-9_-]+$/i', $comment_type ) ||
+		in_array( strtolower( $comment_type ), array( 'note', 'reaction' ), true )
+	) {
 		wp_die( -1 );
 	}
 
