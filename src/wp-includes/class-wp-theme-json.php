@@ -543,6 +543,7 @@ class WP_Theme_JSON {
 	 * The valid properties for fontFamilies under settings key.
 	 *
 	 * @since 6.5.0
+	 * @since 7.3.0 Added support for `fontVariant`.
 	 * @var array
 	 */
 	const FONT_FAMILY_SCHEMA = array(
@@ -559,6 +560,7 @@ class WP_Theme_JSON {
 					'fontFeatureSettings'   => null,
 					'fontStyle'             => null,
 					'fontStretch'           => null,
+					'fontVariant'           => null,
 					'fontVariationSettings' => null,
 					'fontWeight'            => null,
 					'lineGapOverride'       => null,
