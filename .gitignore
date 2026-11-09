@@ -96,6 +96,7 @@ wp-tests-config.php
 /src/wp-content/themes/twentytwenty/node_modules
 /src/wp-content/themes/twentytwentytwo/node_modules
 /src/wp-content/themes/twentytwentyfive/node_modules
+/src/wp-content/themes/ipsum/node_modules
 
 # Minified files in bundled themes
 /src/wp-content/themes/twentytwentytwo/*.min.css
