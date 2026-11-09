@@ -1661,7 +1661,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$dependency_notice = wp_get_admin_notice(
 				$dependency_note,
 				array(
-					'type'               => 'error',
+					'type'               => 'warning',
 					'additional_classes' => array( 'inline' ),
 				)
 			);
