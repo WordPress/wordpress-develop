@@ -23,7 +23,7 @@
 <figure class="wp-block-image aligncenter size-full is-resized"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-portrait-tall.webp' ) ); ?>" alt="<?php esc_attr_e( 'Portrait of the author.', 'ipsum' ); ?>" style="aspect-ratio:1;object-fit:cover;object-position:50% 100%;width:160px;height:auto"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Identity', 'Name of the identity group', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":{"top":"var:preset|spacing|20","left":"var:preset|spacing|20"}}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"center"}} -->
+<!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Name and Role', 'Name of the group holding the author name and role', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":{"top":"var:preset|spacing|20","left":"var:preset|spacing|20"}}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"center"}} -->
 <div class="wp-block-group"><!-- wp:heading {"style":{"typography":{"textAlign":"center"}},"fontSize":"x-large"} -->
 <h2 class="wp-block-heading has-text-align-center has-x-large-font-size"><?php esc_html_e( 'Lorem', 'ipsum' ); ?></h2>
 <!-- /wp:heading -->

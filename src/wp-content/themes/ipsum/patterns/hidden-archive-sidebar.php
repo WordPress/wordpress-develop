@@ -20,7 +20,7 @@
 <div class="wp-block-group"><!-- wp:query-title {"type":"archive"} /--></div>
 <!-- /wp:group -->
 
-<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"categories":["posts"],"name":"<?php echo esc_html_x( 'Archive Simple', 'Name of the Archive Simple query', 'ipsum' ); ?>"},"layout":{"type":"default"}} -->
+<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"name":"<?php echo esc_html_x( 'Archive Simple', 'Name of the Archive Simple query', 'ipsum' ); ?>"},"layout":{"type":"default"}} -->
 <div class="wp-block-query"><!-- wp:post-template {"className":"is-style-hover-together","style":{"spacing":{"blockGap":"var:preset|spacing|40"}},"layout":{"type":"default"}} -->
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Archive Row', 'Name of the archive row group', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
 <div class="wp-block-group"><!-- wp:post-title {"isLink":true,"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"large"} /-->
@@ -62,11 +62,11 @@
 <!-- /wp:column -->
 
 <!-- wp:column {"width":"33.33%"} -->
-<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","area":"uncategorized","tagName":"aside"} /--></div>
+<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","tagName":"aside"} /--></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer-wide","area":"footer"} /-->
+<!-- wp:template-part {"slug":"footer-wide"} /-->
 
 <!-- wp:template-part {"slug":"search-bar","className":"is-style-sticky-bottom"} /-->

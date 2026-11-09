@@ -30,11 +30,11 @@
 <!-- /wp:column -->
 
 <!-- wp:column {"width":"33.33%"} -->
-<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","area":"uncategorized","tagName":"aside"} /--></div>
+<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","tagName":"aside"} /--></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer-wide","area":"footer"} /-->
+<!-- wp:template-part {"slug":"footer-wide"} /-->
 
 <!-- wp:template-part {"slug":"search-bar","className":"is-style-sticky-bottom"} /-->
