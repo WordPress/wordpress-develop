@@ -30,9 +30,7 @@ test.describe( 'Privacy page creation', () => {
 		requestUtils,
 		siteSettings,
 	} ) => {
-		// The form changes this setting, so register it for the fixture to restore.
-		const { page_for_privacy_policy } = await siteSettings.get();
-		await siteSettings.set( { page_for_privacy_policy } );
+		await siteSettings.remember( [ 'page_for_privacy_policy' ] );
 
 		await admin.visitAdminPage( 'options-privacy.php' );
 		await Promise.all( [

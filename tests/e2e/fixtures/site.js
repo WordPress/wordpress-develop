@@ -69,23 +69,33 @@ async function settleRestores( restores ) {
 }
 
 /**
- * Reads and changes site settings through REST. Teardown restores the keys passed to `set`.
+ * Reads and changes site settings through REST. Teardown restores the keys passed to `remember` or `set`.
  */
 export const siteSettings = async ( { requestUtils }, use ) => {
 	const originals = {};
 	const get = () => requestUtils.rest( { path: '/wp/v2/settings' } );
 	const post = ( data ) =>
 		requestUtils.rest( { method: 'POST', path: '/wp/v2/settings', data } );
+	const remember = async ( keys ) => {
+		const current = await get();
+		for ( const key of keys ) {
+			if ( ! Object.hasOwn( current, key ) ) {
+				throw new Error( `Unknown setting: ${ key }` );
+			}
+			if ( ! Object.hasOwn( originals, key ) ) {
+				originals[ key ] = current[ key ];
+			}
+		}
+		return Object.fromEntries(
+			keys.map( ( key ) => [ key, current[ key ] ] )
+		);
+	};
 
 	await use( {
 		get,
+		remember,
 		set: async ( patch ) => {
-			const current = await get();
-			for ( const key of Object.keys( patch ) ) {
-				if ( ! Object.hasOwn( originals, key ) ) {
-					originals[ key ] = current[ key ];
-				}
-			}
+			await remember( Object.keys( patch ) );
 			await post( patch );
 		},
 	} );
@@ -99,18 +109,21 @@ export const siteSettings = async ( { requestUtils }, use ) => {
 };
 
 /**
- * Reads and changes site options through WP-CLI. Teardown restores the keys passed to `set`.
+ * Reads and changes site options through WP-CLI. Teardown restores the keys passed to `remember` or `set`.
  */
 export const siteOptions = async ( { baseURL }, use ) => {
 	let originals = {};
+	const remember = async ( names ) => {
+		const current = syncOptions( baseURL, names );
+		originals = { ...current, ...originals };
+		return current;
+	};
 
 	await use( {
 		get: async ( names ) => syncOptions( baseURL, names ),
+		remember,
 		set: async ( values ) => {
-			originals = {
-				...syncOptions( baseURL, Object.keys( values ) ),
-				...originals,
-			};
+			await remember( Object.keys( values ) );
 			syncOptions( baseURL, [], values );
 		},
 	} );
