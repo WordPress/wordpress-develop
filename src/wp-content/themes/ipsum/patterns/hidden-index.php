@@ -72,4 +72,4 @@
 
 <!-- wp:template-part {"slug":"footer"} /-->
 
-<!-- wp:template-part {"slug":"search-bar","area":"uncategorized","className":"sticky-bottom"} /-->
+<!-- wp:template-part {"slug":"search-bar","area":"uncategorized","className":"is-style-sticky-bottom"} /-->

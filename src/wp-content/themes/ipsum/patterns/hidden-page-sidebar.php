@@ -37,4 +37,4 @@
 
 <!-- wp:template-part {"slug":"footer-wide","area":"footer"} /-->
 
-<!-- wp:template-part {"slug":"search-bar","className":"sticky-bottom"} /-->
+<!-- wp:template-part {"slug":"search-bar","className":"is-style-sticky-bottom"} /-->

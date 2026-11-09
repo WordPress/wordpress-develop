@@ -201,6 +201,10 @@ if ( ! function_exists( 'ipsum_register_block_styles' ) ) :
 	 * The Evening code style keeps the Evening palette's literals on purpose,
 	 * so the block reads as a dark slab under every style variation.
 	 *
+	 * Each style's CSS is an inline style, as in the default themes. Row Hover
+	 * can't move to styles/blocks/, because a theme.json css string cannot hold
+	 * its at-rules and selector lists.
+	 *
 	 * @since Ipsum 1.0
 	 *
 	 * @return void
@@ -221,6 +225,86 @@ if ( ! function_exists( 'ipsum_register_block_styles' ) ) :
 				'name'         => 'sharp',
 				'label'        => _x( 'Sharp', 'Block style label', 'ipsum' ),
 				'inline_style' => '.wp-block-site-logo.is-style-sharp{border-radius:0;}',
+			)
+		);
+
+		/*
+		 * Pins the part to the bottom of the viewport, so it belongs at the root
+		 * of the template. It keeps to its content's width at the inline end, so
+		 * the rest of the band doesn't block clicks on the page. The editors also
+		 * need the override in editor-style.css.
+		 */
+		register_block_style(
+			'core/template-part',
+			array(
+				'name'         => 'sticky-bottom',
+				'label'        => _x( 'Pinned to Bottom', 'Block style label', 'ipsum' ),
+				'inline_style' => '
+				.wp-block-template-part.is-style-sticky-bottom {
+					position: sticky;
+					inset-block-end: 0;
+					z-index: 10;
+					width: fit-content;
+					margin-inline-start: auto;
+				}',
+			)
+		);
+
+		/*
+		 * Outlines the Search button until it is hovered, focused or pressed, when
+		 * the global button states take back over. A theme.json css string would
+		 * wrap this in :where() and only tie with the global button styles.
+		 */
+		register_block_style(
+			'core/search',
+			array(
+				'name'         => 'outline',
+				'label'        => _x( 'Outline', 'Block style label', 'ipsum' ),
+				'inline_style' => '
+				.wp-block-search.is-style-outline .wp-block-search__button.wp-element-button:not(:hover):not(:focus):not(:active) {
+					background-color: var(--wp--preset--color--base);
+					border: 1px dotted var(--wp--preset--color--contrast);
+					color: var(--wp--preset--color--contrast);
+				}',
+			)
+		);
+
+		/*
+		 * Hovering any part of a post row colors the whole row and tilts its
+		 * featured image. Targets the row's child blocks, since the Group spans
+		 * the full band. Needs each post's blocks wrapped in one Group.
+		 */
+		register_block_style(
+			'core/post-template',
+			array(
+				'name'         => 'hover-together',
+				'label'        => _x( 'Row Hover', 'Block style label', 'ipsum' ),
+				'inline_style' => '
+				.wp-block-post-template.is-style-hover-together .wp-block-post > .wp-block-group,
+				.wp-block-post-template.is-style-hover-together .wp-block-post > .wp-block-group a {
+					transition: color 0.15s ease-out;
+				}
+
+				.wp-block-post-template.is-style-hover-together .wp-block-post > .wp-block-group:has(> :hover),
+				.wp-block-post-template.is-style-hover-together .wp-block-post > .wp-block-group:has(> :hover) a {
+					color: var(--wp--preset--color--accent-3);
+				}
+
+				@media (prefers-reduced-motion: no-preference) {
+					@keyframes tilt-settle {
+						35% {
+							transform: rotate(-1deg);
+						}
+
+						100% {
+							transform: rotate(0deg);
+						}
+					}
+
+					.wp-block-post-template.is-style-hover-together .wp-block-post > .wp-block-group:has(> :hover) .wp-block-post-featured-image img {
+						animation: tilt-settle 0.5s ease-out;
+					}
+				}',
 			)
 		);
 	}
