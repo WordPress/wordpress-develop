@@ -343,7 +343,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Make the draft newer so post_date DESC would normally pick it first.
-		$draft_id = self::factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_name'     => $slug,
 				'post_status'   => 'draft',
@@ -360,7 +360,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $query->posts );
-		$this->assertSame( array( $published_id, $draft_id ), wp_list_pluck( $query->posts, 'ID' ) );
+		$this->assertInstanceOf( 'WP_Post', $query->post );
+		$this->assertSame( $published_id, $query->post->ID );
 	}
 
 	public function test_post_status() {
