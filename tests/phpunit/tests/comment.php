@@ -2836,6 +2836,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		return array(
 			'reaction'           => array( 'reaction' ),
 			'reaction uppercase' => array( 'Reaction' ),
+			'reaction accented'  => array( 'reactión' ),
 			'note'               => array( 'note' ),
 		);
 	}

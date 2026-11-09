@@ -3028,6 +3028,11 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	 * them, and an update does not repeat that validation. Changing a
 	 * comment into one of those types, or one of them into a plain comment,
 	 * would produce a row that creation would have refused.
+	 *
+	 * The database compares comment types with a case- and accent-insensitive
+	 * collation, so a new type is also limited to ASCII key characters. That
+	 * way the check below sees every spelling the database would treat as a
+	 * note or reaction.
 	 */
 	$old_type = is_string( $comment['comment_type'] ) ? strtolower( $comment['comment_type'] ) : '';
 	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? strtolower( $commentarr['comment_type'] ) : $old_type;
@@ -3035,6 +3040,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if (
 		$old_type !== $new_type &&
 		(
+			! preg_match( '/^[a-z0-9_-]*$/', $new_type ) ||
 			in_array( $old_type, array( 'note', 'reaction' ), true ) ||
 			in_array( $new_type, array( 'note', 'reaction' ), true )
 		)
