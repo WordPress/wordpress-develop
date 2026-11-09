@@ -791,10 +791,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an element whose content is text is emptied for a value that
-	 * is not a token, keeps its text for a token, even one that would close the
-	 * element, and that a void element is left as it is without resolving its
-	 * reference. Each case raises the notice it names, if any.
+	 * Tests that data-wp-html is ignored on void and text-only elements without
+	 * evaluating its reference. Content is preserved, one notice names the
+	 * unsupported element, and other directives on and after it still run.
 	 *
 	 * @ticket 66246
 	 *
@@ -802,66 +801,67 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_hosts_that_cannot_hold_html
 	 *
-	 * @param string      $host     The host markup.
-	 * @param string      $expected The expected host markup.
-	 * @param string|null $notice   Text the only notice contains, or null for no notice.
+	 * @param string $host     The host markup.
+	 * @param string $expected The expected host markup.
+	 * @param string $notice   Text the only notice contains.
 	 */
-	public function test_host_that_cannot_hold_html( string $host, string $expected, ?string $notice ) {
+	public function test_host_that_cannot_hold_html( string $host, string $expected, string $notice ) {
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 		$token = $this->token();
+		$calls = 0;
 		$this->set_state(
 			array(
 				'nul'    => null,
 				'str'    => '<b>S</b>',
+				'token'  => $token,
 				'closer' => wp_interactivity_as_dangerous_html( '</textarea><b>B</b>' ),
-				'html'   => static function () use ( $token ) {
+				'html'   => static function () use ( $token, &$calls ) {
+					++$calls;
 					return $token;
 				},
 			)
 		);
-		if ( null !== $notice ) {
-			$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
-		}
-
 		$output = wp_interactivity_process_directives( $this->page( $host ) );
 
 		$this->assertSame( $this->processed_page( $expected ), $output );
-		if ( null === $notice ) {
-			$this->assertSame( array(), $this->notices, 'Expected no notice.' );
-		} else {
-			$this->assertCount( 1, $this->notices, 'Expected exactly one notice.' );
-			$this->assertStringContainsString( $notice, $this->html_notice_messages()[0] );
-		}
-		$this->assertSame( array(), $this->announced_paths(), 'Expected the void element not to resolve its reference.' );
+		$this->assertCount( 1, $this->notices, 'Expected exactly one notice.' );
+		$this->assertCount( 1, $this->html_notice_messages(), 'Expected a data-wp-html notice.' );
+		$this->assertStringContainsString( $notice, $this->html_notice_messages()[0] );
+		$this->assertSame( 0, $calls, 'Expected the reference not to be evaluated.' );
+		$this->assertSame( array(), $this->announced_paths(), 'Expected no closure to be listed.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: string, 1: string, 2: string|null }> Data provider.
+	 * @return array<string, array{ 0: string, 1: string, 2: string }> Data provider.
 	 */
 	public static function data_hosts_that_cannot_hold_html(): array {
-		return array(
-			'textarea with null'    => array(
-				'<textarea data-wp-html="state.nul">Fallback</textarea>',
-				'<textarea data-wp-html="state.nul"></textarea>',
-				null,
-			),
-			'script with a string'  => array(
-				'<script data-wp-html="state.str">var a = 1;</script>',
-				'<script data-wp-html="state.str"></script>',
-				'wp_interactivity_as_dangerous_html()',
-			),
-			'textarea with a token' => array(
-				'<textarea data-wp-html="state.closer">Fallback</textarea>',
-				'<textarea data-wp-html="state.closer">Fallback</textarea>',
-				'cannot render HTML in a <textarea> element',
-			),
-			'void element'          => array(
-				'<img data-wp-html="state.html">',
-				'<img data-wp-html="state.html">',
-				'cannot hold content',
-			),
+		$cases      = array();
+		$attributes = array(
+			'null'          => 'data-wp-html="state.nul"',
+			'string'        => 'data-wp-html="state.str"',
+			'token'         => 'data-wp-html="state.token"',
+			'closing token' => 'data-wp-html="state.closer"',
+			'closure'       => 'data-wp-html="state.html"',
+			'missing path'  => 'data-wp-html="state.missing"',
+			'empty value'   => 'data-wp-html=""',
+			'no value'      => 'data-wp-html',
 		);
+
+		foreach ( array( 'textarea', 'title', 'script', 'style', 'iframe', 'xmp', 'noembed', 'noframes', 'img', 'input' ) as $tag ) {
+			$content = in_array( $tag, array( 'img', 'input' ), true ) ? '' : 'Fallback &amp; <b>as written</b></' . $tag . '>';
+			foreach ( $attributes as $name => $attribute ) {
+				$markup                           = $attribute . ' data-wp-bind--title="state.text">' . $content;
+				$cases[ $tag . ' with ' . $name ] = array(
+					'<' . $tag . ' ' . $markup,
+					'<' . $tag . ' title="processed" ' . $markup,
+					'not supported on <' . $tag . '> elements',
+				);
+			}
+		}
+
+		return $cases;
 	}
 
 	/**

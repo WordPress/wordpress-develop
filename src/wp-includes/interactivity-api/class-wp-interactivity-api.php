@@ -1627,13 +1627,13 @@ final class WP_Interactivity_API {
 	 * A value other than a token or `null` raises a notice. A reference that
 	 * resolves to nothing does not.
 	 *
-	 * The element is processed as if it had no `data-wp-html` directive when
-	 * the client ignores the directive: when the element also carries
-	 * `data-wp-text`, `data-wp-each` or `data-wp-router-region`, which raises a
-	 * notice, or when its entries all have a suffix or unique ID or are dropped
-	 * by the client. A void element is left as it is, with a notice. An element whose
-	 * content is text, such as `textarea`, keeps that text for a token, with a
-	 * notice, and is emptied for any other value.
+	 * The element is processed as if it had no `data-wp-html` directive when it
+	 * also carries `data-wp-text`, `data-wp-each` or `data-wp-router-region`, which
+	 * raises a notice, or when its entries all have a suffix or unique ID or are
+	 * dropped by the client. The directive is also ignored, with a notice, on void
+	 * elements and on `script`, `style`, `textarea`, `title`, `iframe`, `xmp`,
+	 * `noembed` and `noframes` elements. Their content is preserved and the
+	 * reference is not evaluated.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1673,12 +1673,12 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		if ( WP_HTML_Processor::is_void( $p->get_tag() ) ) {
+		if ( ! $p->has_and_visits_its_closer_tag() ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
 					/* translators: %s: The HTML tag name of the element, in lowercase. */
-					__( 'The "data-wp-html" directive cannot set the content of a <%s> element because it cannot hold content. The element is left as it is.' ),
+					__( 'The "data-wp-html" directive is not supported on <%s> elements. The directive is ignored.' ),
 					esc_html( strtolower( $p->get_tag() ) )
 				),
 				'7.2.0'
@@ -1695,24 +1695,6 @@ final class WP_Interactivity_API {
 				__( 'The "data-wp-html" directive requires a reference that resolves to the value returned by wp_interactivity_as_dangerous_html(). Other values, such as strings of HTML, are not rendered and the content of the element is removed.' ),
 				'7.2.0'
 			);
-		}
-
-		if ( ! $p->has_and_visits_its_closer_tag() ) {
-			if ( null === $html ) {
-				$p->set_modifiable_text( '' );
-				return;
-			}
-
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: %s: The HTML tag name of the element, in lowercase. */
-					__( 'The "data-wp-html" directive cannot render HTML in a <%s> element because its content is text. The content of the element is left as it is.' ),
-					esc_html( strtolower( $p->get_tag() ) )
-				),
-				'7.2.0'
-			);
-			return;
 		}
 
 		if ( null === $html ) {
