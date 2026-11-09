@@ -5,12 +5,28 @@
  */
 class Tests_Option_Transient extends WP_UnitTestCase {
 
+	/**
+	 * Previous `$wpdb->suppress_errors()` state, restored after a test that forces a database error.
+	 *
+	 * @var bool|null
+	 */
+	private $suppress_errors = null;
+
 	public function set_up() {
 		parent::set_up();
 
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
+	}
+
+	public function tear_down() {
+		if ( null !== $this->suppress_errors ) {
+			$GLOBALS['wpdb']->suppress_errors( $this->suppress_errors );
+			$this->suppress_errors = null;
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -265,5 +281,171 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 			),
 		);
 		$this->assertSame( $expected, $a->get_events() );
+	}
+
+	/**
+	 * Tests that a new transient is not stored when its timeout cannot be saved.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_not_store_value_when_timeout_cannot_be_added() {
+		$key    = 'transient_timeout_fails';
+		$action = new MockAction();
+		add_action( "set_transient_{$key}", array( $action, 'action' ) );
+		$this->fail_insert_of_option( "_transient_timeout_{$key}" );
+
+		$this->assertFalse( set_transient( $key, 'value', 60 ), 'set_transient() should report the failure.' );
+		$this->assertFalse( get_transient( $key ), 'The transient should not be readable without a timeout.' );
+		$this->assertFalse( get_option( "_transient_{$key}" ), 'The value row should not be stored.' );
+		$this->assertSame( 0, $action->get_call_count(), 'The set_transient_{$transient} action should not fire.' );
+	}
+
+	/**
+	 * Tests that adding an expiry to a transient without a timeout does not leave a non-expiring value.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_not_store_value_when_timeout_cannot_be_added_to_existing_transient() {
+		$key = 'transient_timeout_fails_existing';
+		set_transient( $key, 'old' );
+		$this->fail_insert_of_option( "_transient_timeout_{$key}" );
+
+		$this->assertFalse( set_transient( $key, 'new', 60 ), 'set_transient() should report the failure.' );
+		$this->assertFalse( get_transient( $key ), 'The transient should not be readable without a timeout.' );
+		$this->assertFalse( get_option( "_transient_{$key}" ), 'The value row should not be stored.' );
+	}
+
+	/**
+	 * Tests that setting the same transient twice with the same expiry keeps the latest value.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_keep_latest_value_when_set_twice_with_same_expiry() {
+		$key = 'transient_set_twice';
+
+		$this->assertTrue( set_transient( $key, 'first', 60 ), 'The first value should be stored.' );
+		$this->assertTrue( set_transient( $key, 'second', 60 ), 'The second value should be stored.' );
+		$this->assertSame( 'second', get_transient( $key ), 'The latest value should be returned.' );
+	}
+
+	/**
+	 * Tests that a transient can still be set when an orphaned timeout row is left behind.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_store_value_when_orphaned_timeout_exists() {
+		$key = 'transient_orphaned_timeout';
+		set_transient( $key, 'old', 60 );
+		delete_option( "_transient_{$key}" );
+
+		$this->assertTrue( set_transient( $key, 'new', 60 ), 'set_transient() should succeed.' );
+		$this->assertSame( 'new', get_transient( $key ), 'The new value should be returned.' );
+	}
+
+	/**
+	 * Tests that a new transient is stored when another request adds the same timeout row first.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_store_value_when_timeout_was_added_concurrently() {
+		$key = 'transient_timeout_race';
+		$this->insert_option_concurrently( "_transient_timeout_{$key}" );
+
+		$this->assertTrue( set_transient( $key, 'value', 60 ), 'set_transient() should succeed.' );
+		$this->assertSame( 'value', get_transient( $key ), 'The value should be returned.' );
+	}
+
+	/**
+	 * Tests that adding an expiry to an existing transient succeeds when another request adds the same timeout first.
+	 *
+	 * @ticket 44977
+	 * @ticket 52345
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_should_store_value_when_timeout_was_added_concurrently_to_existing_transient() {
+		$key = 'transient_timeout_race_existing';
+		set_transient( $key, 'old' );
+		$this->insert_option_concurrently( "_transient_timeout_{$key}" );
+
+		$this->assertTrue( set_transient( $key, 'new', 60 ), 'set_transient() should succeed.' );
+		$this->assertSame( 'new', get_transient( $key ), 'The new value should be returned.' );
+	}
+
+	/**
+	 * Tests that get_transient() does not delete a non-autoloaded transient without a timeout.
+	 *
+	 * When a transient value option exists without autoloading (e.g. manually added with
+	 * autoload=false or migrated without a timeout), get_transient() must not treat
+	 * the missing timeout row as expired.
+	 *
+	 * @ticket 44977
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_get_transient_should_not_delete_non_autoloaded_transient_without_timeout() {
+		$key    = 'non_autoloaded_transient';
+		$option = "_transient_{$key}";
+		add_option( $option, 'custom_value', '', false );
+
+		$alloptions = wp_load_alloptions();
+		$this->assertArrayNotHasKey( $option, $alloptions, 'Option should not be autoloaded.' );
+		$this->assertFalse( get_option( "_transient_timeout_{$key}" ), 'Timeout option should not exist.' );
+
+		$this->assertSame( 'custom_value', get_transient( $key ), 'get_transient() should return the transient value.' );
+		$this->assertSame( 'custom_value', get_option( $option ), 'Transient option should not be deleted.' );
+	}
+
+	/**
+	 * Makes the INSERT query for the given option fail with a database error.
+	 *
+	 * @param string $option_name Option name whose INSERT should fail.
+	 */
+	private function fail_insert_of_option( $option_name ) {
+		global $wpdb;
+
+		$this->suppress_errors = $wpdb->suppress_errors();
+		add_filter(
+			'query',
+			static function ( $query ) use ( $option_name, $wpdb ) {
+				if ( 0 === stripos( ltrim( $query ), 'INSERT' ) && str_contains( $query, "'{$option_name}'" ) ) {
+					return str_replace( "`{$wpdb->options}`", "`{$wpdb->options}_missing`", $query );
+				}
+				return $query;
+			}
+		);
+	}
+
+	/**
+	 * Runs the INSERT query for the given option once before WordPress does, as a parallel request would.
+	 *
+	 * @param string $option_name Option name whose row is inserted concurrently.
+	 */
+	private function insert_option_concurrently( $option_name ) {
+		global $wpdb;
+
+		$filter = static function ( $query ) use ( $option_name, $wpdb, &$filter ) {
+			if ( 0 === stripos( ltrim( $query ), 'INSERT' ) && str_contains( $query, "'{$option_name}'" ) ) {
+				remove_filter( 'query', $filter );
+				$wpdb->query( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Replays core's already prepared INSERT.
+			}
+			return $query;
+		};
+		add_filter( 'query', $filter );
 	}
 }
