@@ -6635,4 +6635,166 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertSame( array(), $response->get_data()['reaction_summary'] );
 	}
+
+	/**
+	 * Creates an open note by the editor on a new post.
+	 *
+	 * @return array{int, int} The post ID and the note ID.
+	 */
+	private function create_editor_note(): array {
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		return array( $post_id, $note_id );
+	}
+
+	/**
+	 * Reads a note's reaction summary as the editor.
+	 *
+	 * @param int $note_id The note ID.
+	 * @return array<array-key, array{count: int, current_user_reaction: int}>
+	 */
+	private function get_reaction_summary( int $note_id ): array {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'context', 'edit' );
+
+		$data = rest_get_server()->dispatch( $request )->get_data();
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'reaction_summary', $data );
+		$this->assertIsArray( $data['reaction_summary'] );
+
+		/** @var array<array-key, array{count: int, current_user_reaction: int}> $summary */
+		$summary = $data['reaction_summary'];
+
+		return $summary;
+	}
+
+	/**
+	 * A reaction stored against another post is not a reaction to this note,
+	 * whatever its parent says.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_reaction_summary_ignores_reactions_stored_on_another_post(): void {
+		list( , $note_id ) = $this->create_editor_note();
+		$other_post_id     = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $other_post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$this->assertSame( array(), $this->get_reaction_summary( $note_id ) );
+	}
+
+	/**
+	 * Only the curated emoji keys are summarized.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_reaction_summary_ignores_uncurated_keys(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => 'not-an-emoji-key',
+			)
+		);
+
+		$this->assertSame( array(), $this->get_reaction_summary( $note_id ) );
+	}
+
+	/**
+	 * Rows that strip to the same key are counted together rather than the
+	 * last one overwriting the others.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_reaction_summary_accumulates_rows_that_strip_to_the_same_key(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+
+		$heart_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => '<b>2764</b>',
+			)
+		);
+
+		$summary = $this->get_reaction_summary( $note_id );
+
+		$this->assertCount( 1, $summary );
+		$this->assertArrayHasKey( '2764', $summary );
+		$this->assertSame( 2, $summary['2764']['count'] );
+		$this->assertSame( $heart_id, $summary['2764']['current_user_reaction'] );
+	}
+
+	/**
+	 * The database matches comment types case-insensitively, so the update
+	 * guard has to as well, or a row typed `Reaction` is counted as a
+	 * reaction but edited as a comment.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_update_reaction_regardless_of_type_case(): void {
+		wp_set_current_user( self::$editor_id );
+
+		list( $post_id, $note_id ) = $this->create_editor_note();
+
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'Reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
+		$request->set_param( 'content', '1f680' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '2764', $reaction->comment_content );
+	}
 }
