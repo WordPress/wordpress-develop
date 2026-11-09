@@ -435,9 +435,6 @@
 					"color": {
 						"background": "color-mix(in srgb, var(--wp--preset--color--contrast) 85%, transparent)",
 						"text": "var(--wp--preset--color--base)"
-					},
-					"outline": {
-						"offset": "4px"
 					}
 				},
 				":focus-visible": {
@@ -536,11 +533,8 @@
 								}
 							},
 							"color": {
-								"background": "color-mix(in srgb, var(--wp--preset--color--contrast) 85%, transparent)",
-								"text": "var(--wp--preset--color--base)"
-							},
-							"outline": {
-								"offset": "4px"
+								"background": "var(--wp--preset--color--accent-5)",
+								"text": "var(--wp--preset--color--accent-3)"
 							}
 						},
 						":focus-visible": {
