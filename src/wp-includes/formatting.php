@@ -4038,51 +4038,57 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = excerpt_remove_footnotes( $text );
 
 		/*
-		 * Temporarily unhook wp_filter_content_tags() since any tags
-		 * within the excerpt are stripped out. Modifying the tags here
-		 * is wasteful and can lead to bugs in the image counting logic.
+		 * Temporarily unhook 'the_content' callbacks that must not run while
+		 * generating the excerpt:
+		 *
+		 * - wp_filter_content_tags(), since any tags within the excerpt are
+		 *   stripped out. Modifying the tags here is wasteful and can lead to
+		 *   bugs in the image counting logic.
+		 * - do_blocks(), since excerpt_remove_blocks( $text ) handles block
+		 *   rendering needed for the excerpt.
+		 * - apply_block_hooks_to_content_from_post_object(), since any hooked
+		 *   blocks inserted here could never be rendered with do_blocks()
+		 *   unhooked. The callback wraps delimiter-free content in a temporary
+		 *   core/post-content wrapper block to anchor hooked blocks, so markup
+		 *   added via the 'hooked_block' filter would leak into the excerpt as
+		 *   text. It would also resolve its context from the current loop post
+		 *   via get_post() rather than the post being excerpted.
+		 *
+		 * Every registration is recorded in execution order, with its priority
+		 * and accepted arguments, so that themes or plugins which moved or
+		 * re-registered a callback are covered, and so the callbacks can be
+		 * restored afterwards in their original relative order.
 		 */
-		$filter_image_removed = remove_filter( 'the_content', 'wp_filter_content_tags', 12 );
+		global $wp_filter;
 
-		/*
-		 * Temporarily unhook do_blocks() since excerpt_remove_blocks( $text )
-		 * handles block rendering needed for excerpt.
-		 */
-		$filter_block_removed = remove_filter( 'the_content', 'do_blocks', 9 );
+		$callbacks_to_unhook = array(
+			'wp_filter_content_tags',
+			'do_blocks',
+			'apply_block_hooks_to_content_from_post_object',
+		);
+		$unhooked_callbacks  = array();
 
-		/*
-		 * Temporarily unhook apply_block_hooks_to_content_from_post_object().
-		 * The excerpt is generated from already-rendered content and
-		 * do_blocks() is unhooked above, so any hooked blocks inserted here
-		 * could never be rendered. The callback wraps delimiter-free content
-		 * in a temporary core/post-content wrapper block to anchor hooked
-		 * blocks, so the algorithm would still run and any markup added via
-		 * the 'hooked_block' filter would leak into the excerpt as text. It
-		 * would also resolve its context from the current loop post via
-		 * get_post() rather than the post being excerpted.
-		 */
-		$filter_block_hooks_removed = remove_filter( 'the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
+		if ( isset( $wp_filter['the_content'] ) ) {
+			foreach ( $wp_filter['the_content']->callbacks as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback_id => $callback ) {
+					if ( in_array( $callback_id, $callbacks_to_unhook, true ) ) {
+						$unhooked_callbacks[] = array( $callback_id, $priority, $callback['accepted_args'] );
+					}
+				}
+			}
+		}
+
+		foreach ( $unhooked_callbacks as list( $callback_id, $priority ) ) {
+			remove_filter( 'the_content', $callback_id, $priority );
+		}
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
-		// Restore the original filter if removed.
-		if ( $filter_block_removed ) {
-			add_filter( 'the_content', 'do_blocks', 9 );
-		}
-
-		if ( $filter_block_hooks_removed ) {
-			add_filter( 'the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
-		}
-
-		/*
-		 * Only restore the filter callback if it was removed above. The logic
-		 * to unhook and restore only applies on the default priority of 10,
-		 * which is generally used for the filter callback in WordPress core.
-		 */
-		if ( $filter_image_removed ) {
-			add_filter( 'the_content', 'wp_filter_content_tags', 12 );
+		// Restore the unhooked callbacks in their original order.
+		foreach ( $unhooked_callbacks as list( $callback_id, $priority, $accepted_args ) ) {
+			add_filter( 'the_content', $callback_id, $priority, $accepted_args );
 		}
 
 		/* translators: Maximum number of words used in a post excerpt. */
