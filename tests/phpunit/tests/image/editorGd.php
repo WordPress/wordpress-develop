@@ -609,19 +609,12 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$property->setValue( $gd_image_editor, $image );
+		$this->set_property_value( $gd_image_editor, 'image', $image );
 
 		// Keep the stored size in sync with the replaced image.
-		$size_property = new ReflectionProperty( $gd_image_editor, 'size' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$size_property->setAccessible( true );
-		}
-		$size_property->setValue(
+		$this->set_property_value(
 			$gd_image_editor,
+			'size',
 			array(
 				'width'  => $w,
 				'height' => $h,
@@ -630,7 +623,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
-		$flipped = $property->getValue( $gd_image_editor );
+		$flipped = $this->get_property_value( $gd_image_editor );
 
 		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
 		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
@@ -679,11 +672,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$property->setValue( $gd_image_editor, false );
+		$this->set_property_value( $gd_image_editor, 'image', false );
 
 		$result = $gd_image_editor->flip( $horz, $vert );
 
@@ -721,12 +710,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( $file );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$original = $property->getValue( $gd_image_editor );
+		$original = $this->get_property_value( $gd_image_editor );
 		$w        = imagesx( $original );
 		$h        = imagesy( $original );
 
@@ -752,7 +736,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			'Flipping should not change the size.'
 		);
 
-		$flipped = $property->getValue( $gd_image_editor );
+		$flipped = $this->get_property_value( $gd_image_editor );
 
 		foreach ( $points as list( $x, $y, $color ) ) {
 			$target_x = $mirror_x ? $w - 1 - $x : $x;
@@ -799,12 +783,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image.gif' );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$image = $property->getValue( $gd_image_editor );
+		$image = $this->get_property_value( $gd_image_editor );
 		$w     = imagesx( $image );
 		$h     = imagesy( $image );
 
@@ -822,7 +801,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
-		$flipped = $property->getValue( $gd_image_editor );
+		$flipped = $this->get_property_value( $gd_image_editor );
 
 		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
 
@@ -922,11 +901,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertTrue( $loaded, 'The test image should load.' );
 		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$flipped = $property->getValue( $gd_image_editor );
+		$flipped = $this->get_property_value( $gd_image_editor );
 
 		$save_to_file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flipped-alpha.png' );
 		$saved        = $gd_image_editor->save( $save_to_file, 'image/png' );
@@ -976,12 +951,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertSame( $rotated_editor->get_size(), $flipped_editor->get_size(), 'The sizes should match.' );
 
-		$property = new ReflectionProperty( WP_Image_Editor_GD::class, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$flipped = $property->getValue( $flipped_editor );
-		$rotated = $property->getValue( $rotated_editor );
+		$flipped = $this->get_property_value( $flipped_editor );
+		$rotated = $this->get_property_value( $rotated_editor );
 
 		$w = imagesx( $flipped );
 		$h = imagesy( $flipped );
@@ -1022,11 +993,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertTrue( $gd_image_editor->rotate( 90 ) );
 		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$image = $property->getValue( $gd_image_editor );
+		$image = $this->get_property_value( $gd_image_editor );
 
 		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 0, 0, 0, 127 ) );
 
@@ -1052,18 +1019,14 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-		$image = $property->getValue( $gd_image_editor );
+		$image = $this->get_property_value( $gd_image_editor );
 
 		imageresolution( $image, 300, 150 );
 		imageinterlace( $image, true );
 
 		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
 
-		$flipped = $property->getValue( $gd_image_editor );
+		$flipped = $this->get_property_value( $gd_image_editor );
 
 		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
 		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
