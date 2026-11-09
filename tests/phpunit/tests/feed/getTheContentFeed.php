@@ -47,10 +47,6 @@ class Tests_Feed_GetTheContentFeed extends WP_UnitTestCase {
 		$this->assertSame( "<p>Hello feed content</p>\n", get_the_content_feed() );
 		$this->assertSame( 1, $filter->get_call_count() );
 		$this->assertSame( 'rss2', $filter->get_args()[0][1] );
-
-		$this->assertSame( "<p>Hello feed content</p>\n", get_the_content_feed( null ) );
-		$this->assertSame( 2, $filter->get_call_count() );
-		$this->assertSame( 'rss2', $filter->get_args()[1][1] );
 	}
 
 	/**

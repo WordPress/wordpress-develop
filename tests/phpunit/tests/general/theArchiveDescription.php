@@ -51,6 +51,8 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 	 * @covers ::get_the_archive_description
 	 */
 	public function test_get_the_archive_description_on_post_type_archive() {
+		$this->set_permalink_structure( '' );
+
 		$this->go_to( get_post_type_archive_link( self::CPT_NAME ) );
 
 		$this->assertTrue( is_post_type_archive( self::CPT_NAME ) );

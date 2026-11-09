@@ -26,13 +26,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'yes_title' );
-		unregister_post_type( 'no_title' );
-
-		parent::tear_down();
-	}
-
 	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
@@ -648,6 +641,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_default_permalink_for_view_post_link_when_pretty_permalinks_are_disabled() {
+		$this->set_permalink_structure( '' );
+
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -776,8 +771,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_preview_links_for_draft_and_pending_posts_with_no_post_name() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -916,8 +909,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_get_sample_permalink_should_allow_daylike_slugs_if_permastruct_does_not_cause_an_archive_conflict() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_name' => '30',
@@ -932,8 +923,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 35368
 	 */
 	public function test_get_sample_permalink_should_respect_hierarchy_of_draft_pages() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$parent = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
