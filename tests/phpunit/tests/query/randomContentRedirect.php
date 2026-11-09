@@ -2769,6 +2769,14 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 					'has_archive' => 'random',
 				),
 			),
+			'rewrite slug random'    => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
 		);
 	}
 
