@@ -16,10 +16,6 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
-
-		if ( is_multisite() ) {
-			grant_super_admin( self::$admin_id );
-		}
 	}
 
 	/**
@@ -47,6 +43,10 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 			)
 		);
 		wp_set_current_user( self::$admin_id );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 
 		$this->assertSame(
 			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
