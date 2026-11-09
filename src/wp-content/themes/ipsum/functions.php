@@ -74,6 +74,9 @@ if ( ! function_exists( 'ipsum_enqueue_styles' ) ) :
 			wp_get_theme( get_template() )->get( 'Version' )
 		);
 
+		// Let WordPress inline the stylesheet, so it is not a render-blocking request.
+		wp_style_add_data( 'ipsum-style', 'path', get_parent_theme_file_path( $src ) );
+
 		// Enqueue theme stylesheet.
 		wp_enqueue_style( 'ipsum-style' );
 	}
