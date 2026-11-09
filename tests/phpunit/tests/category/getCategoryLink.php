@@ -12,12 +12,6 @@ class Tests_Category_GetCategoryLink extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 	}
-
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
 	public function test_success() {
 		$c = self::factory()->category->create();
 
