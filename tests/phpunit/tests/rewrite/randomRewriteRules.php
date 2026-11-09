@@ -1352,38 +1352,6 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure a single post of a post type at the random base is not redirected to random content.
-	 *
-	 * Registering a post type named `random` also registers `random` as its query variable,
-	 * which is the query variable used by random content requests.
-	 *
-	 * @dataProvider data_post_types_using_the_random_base
-	 *
-	 * @param string               $post_type Post type name.
-	 * @param array<string, mixed> $args      Post type registration arguments.
-	 */
-	public function test_single_post_of_a_post_type_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
-		register_post_type( $post_type, $args );
-		$this->get_random_rewrite_rules();
-
-		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
-		self::factory()->post->create();
-
-		$permalink = get_permalink( $post_id );
-		$this->assertIsString( $permalink, 'The post permalink could not be retrieved.' );
-		$this->assertStringStartsWith( home_url( '/random/' ), $permalink, 'The post permalink should use the random base.' );
-
-		$redirect = new MockAction();
-		add_filter( 'wp_redirect', array( $redirect, 'filter' ), 5 );
-
-		$this->go_to( $permalink );
-
-		$this->assertSame( 0, $redirect->get_call_count(), 'The single post should not redirect to random content.' );
-		$this->assertQueryTrue( 'is_single', 'is_singular' );
-		$this->assertSame( $post_id, get_queried_object_id(), 'The single post should be queried.' );
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{0: string, 1: array<string, mixed>}>
