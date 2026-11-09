@@ -1245,6 +1245,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
 
+	$scripts->add( 'wp-command-palette-loader', "/wp-includes/js/wp-command-palette-loader$suffix.js", array(), false, 1 );
+
 	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'common', 'jquery', 'wp-a11y', 'wp-i18n' ), false, 1 );
 	$scripts->set_translations( 'wplink' );
 	did_action( 'init' ) && $scripts->localize(
@@ -2498,9 +2500,9 @@ function wp_prefetch_admin_assets(): void {
 		 *
 		 * Scripts printed in the footer are left out even though they block DOMContentLoaded, since
 		 * they do not hold back the first paint. They are also where the bulk of the admin's bytes
-		 * are, largely the command palette's dependencies, and a prefetch of them still in flight
-		 * when the login form is submitted competes with the admin screen's own render-blocking
-		 * stylesheets and delays its first paint on a slow connection.
+		 * are, and a prefetch of them still in flight when the login form is submitted competes with
+		 * the admin screen's own render-blocking stylesheets and delays its first paint on a slow
+		 * connection.
 		 *
 		 * These are roots rather than the full set: everything they depend on is pulled in with them
 		 * below, so the set follows the dependencies declared in wp_default_scripts() and
@@ -2512,8 +2514,9 @@ function wp_prefetch_admin_assets(): void {
 		 *
 		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here: `common`
 		 * (for `jquery`) in wp-admin/admin.php, `colors` (for `wp-admin` and `buttons`) and `utils` in
-		 * wp-admin/admin-header.php, `admin-bar` in WP_Admin_Bar::initialize(), `wp-auth-check` in
-		 * wp_auth_check_load(), and `wp-commands` in wp_enqueue_command_palette_assets().
+		 * wp-admin/admin-header.php, `admin-bar` in WP_Admin_Bar::initialize(), and `wp-auth-check`
+		 * in wp_auth_check_load(). The command palette's stylesheet is not among them: admin screens
+		 * load it when the palette is first opened, see wp_enqueue_command_palette_loader().
 		 */
 		$script_roots = array(
 			'jquery',
@@ -2525,7 +2528,6 @@ function wp_prefetch_admin_assets(): void {
 			'buttons',
 			'admin-bar',
 			'wp-auth-check',
-			'wp-commands',
 		);
 	}
 
@@ -3830,12 +3832,34 @@ function wp_enqueue_classic_theme_styles() {
 /**
  * Enqueues the assets required for the Command Palette.
  *
+ * Loads the whole palette up front. Admin screens use wp_enqueue_command_palette_loader()
+ * instead, which loads the palette when it is first opened.
+ *
  * @since 6.9.0
+ * @since 7.3.0 Moved the palette's settings to wp_enqueue_command_palette_loader().
+ */
+function wp_enqueue_command_palette_assets() {
+	wp_enqueue_command_palette_loader();
+	wp_enqueue_script( 'wp-commands' );
+	wp_enqueue_style( 'wp-commands' );
+	wp_enqueue_script( 'wp-core-commands' );
+}
+
+/**
+ * Enqueues the Command Palette loader and the palette's settings.
+ *
+ * The loader adds the palette's scripts and styles to the page when the palette is first
+ * opened, with the keyboard shortcut or the toolbar button, so that they do not hold back
+ * every admin screen. Until then they wait in the template printed by
+ * wp_print_command_palette_assets_template(). A screen that already loads the commands
+ * package, such as the block editor, gets the rest of the palette up front instead.
+ *
+ * @since 7.3.0
  *
  * @global array  $menu
  * @global array  $submenu
  */
-function wp_enqueue_command_palette_assets() {
+function wp_enqueue_command_palette_loader() {
 	global $menu, $submenu;
 
 	$command_palette_settings = array(
@@ -3946,10 +3970,7 @@ function wp_enqueue_command_palette_assets() {
 		$command_palette_settings['menu_commands'] = $menu_commands;
 	}
 
-	wp_enqueue_script( 'wp-commands' );
-	// Prefetched from the login screen by wp_prefetch_admin_assets(), which needs updating if this changes.
-	wp_enqueue_style( 'wp-commands' );
-	wp_enqueue_script( 'wp-core-commands' );
+	wp_enqueue_script( 'wp-command-palette-loader' );
 
 	wp_add_inline_script(
 		'wp-core-commands',
@@ -3958,6 +3979,33 @@ function wp_enqueue_command_palette_assets() {
 			wp_json_encode( $command_palette_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		)
 	);
+
+	if ( wp_script_is( 'wp-commands', 'enqueued' ) ) {
+		wp_enqueue_style( 'wp-commands' );
+		wp_enqueue_script( 'wp-core-commands' );
+	}
+}
+
+/**
+ * Prints the Command Palette's scripts and styles into an inert template.
+ *
+ * The template holds what the palette needs and the page has not printed yet. The script
+ * enqueued by wp_enqueue_command_palette_loader() adds it to the page when the palette is
+ * first opened. Nothing is printed when the palette is already on the page.
+ *
+ * @since 7.3.0
+ */
+function wp_print_command_palette_assets_template() {
+	if ( ! wp_script_is( 'wp-command-palette-loader', 'done' ) || wp_script_is( 'wp-core-commands', 'done' ) ) {
+		return;
+	}
+
+	ob_start();
+	wp_styles()->do_items( array( 'wp-commands' ) );
+	wp_scripts()->do_items( array( 'wp-core-commands' ) );
+	$assets = ob_get_clean();
+
+	printf( "<template id=\"wp-command-palette-assets\">\n%s</template>\n", $assets );
 }
 
 /**
