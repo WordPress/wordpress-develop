@@ -2872,4 +2872,45 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Comment::class, $note );
 		$this->assertSame( 'note', $note->comment_type );
 	}
+
+	/**
+	 * Reactions are immutable and only count on their note's post, so they
+	 * have to travel with the note when it moves.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_wp_update_comment_moves_a_notes_reactions_with_it(): void {
+		$post_a_id   = self::factory()->post->create();
+		$post_b_id   = self::factory()->post->create();
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_a_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_a_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'      => $note_id,
+				'comment_post_ID' => $post_b_id,
+			),
+			true
+		);
+
+		$this->assertSame( 1, $result );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( (string) $post_b_id, $reaction->comment_post_ID );
+	}
 }

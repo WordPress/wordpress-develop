@@ -3170,6 +3170,27 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	/*
+	 * A reaction only counts on its note's post and cannot be updated on its
+	 * own, so a note's reactions move with it.
+	 */
+	if ( 'note' === $old_type && absint( $comment['comment_post_ID'] ) !== absint( $comment_post_id ) ) {
+		$reaction_ids = get_comments(
+			array(
+				'parent'  => $comment_id,
+				'type'    => 'reaction',
+				'status'  => 'any',
+				'fields'  => 'ids',
+				'orderby' => 'none',
+			)
+		);
+
+		foreach ( $reaction_ids as $reaction_id ) {
+			$wpdb->update( $wpdb->comments, array( 'comment_post_ID' => $comment_post_id ), array( 'comment_ID' => $reaction_id ) );
+			clean_comment_cache( $reaction_id );
+		}
+	}
+
 	clean_comment_cache( $comment_id );
 	wp_update_comment_count( $comment_post_id );
 
