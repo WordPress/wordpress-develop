@@ -2205,22 +2205,12 @@ function dashboard_php_nag_class( $classes ) {
  * @since 5.4.0
  */
 function wp_dashboard_site_health() {
-	$get_issues = get_transient( 'health-check-site-status-result' );
-
-	$issue_counts = array();
-
-	if ( false !== $get_issues ) {
-		$issue_counts = json_decode( $get_issues, true );
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
+	$issue_counts = WP_Site_Health::get_site_status_counts();
 
-	if ( ! is_array( $issue_counts ) || ! $issue_counts ) {
-		$issue_counts = array(
-			'good'        => 0,
-			'recommended' => 0,
-			'critical'    => 0,
-		);
-	}
-
+	$has_results  = array_sum( $issue_counts ) > 0;
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
 	<div class="health-check-widget">
@@ -2232,7 +2222,7 @@ function wp_dashboard_site_health() {
 				</svg>
 			</div>
 			<div class="site-health-progress-label">
-				<?php if ( false === $get_issues ) : ?>
+				<?php if ( ! $has_results ) : ?>
 					<?php _e( 'No information yet&hellip;' ); ?>
 				<?php else : ?>
 					<?php _e( 'Results are still loading&hellip;' ); ?>
@@ -2241,7 +2231,7 @@ function wp_dashboard_site_health() {
 		</div>
 
 		<div class="site-health-details">
-			<?php if ( false === $get_issues ) : ?>
+			<?php if ( ! $has_results ) : ?>
 				<p>
 					<?php
 					printf(
@@ -2267,7 +2257,7 @@ function wp_dashboard_site_health() {
 				</p>
 			<?php endif; ?>
 
-			<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+			<?php if ( $issues_total > 0 && $has_results ) : ?>
 				<p>
 					<?php
 					printf(
