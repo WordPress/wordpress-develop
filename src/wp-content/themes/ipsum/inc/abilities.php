@@ -90,7 +90,12 @@ if ( ! function_exists( 'ipsum_get_design_guide_schema' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @return array The output schema of the design guide ability.
+	 * @return array<string, mixed> The output schema of the design guide ability.
+	 * @phpstan-return array{
+	 *     type: 'object',
+	 *     additionalProperties: false,
+	 *     properties: array<string, array<string, mixed>>
+	 * }
 	 */
 	function ipsum_get_design_guide_schema() {
 		$string      = array( 'type' => 'string' );
@@ -254,14 +259,23 @@ if ( ! function_exists( 'ipsum_get_design_guide_presets' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array    $presets The presets from the global settings, keyed by origin.
+	 * @param mixed    $presets The presets from the global settings, keyed by origin.
 	 * @param string[] $keys    The preset properties to keep.
-	 * @return array[] The presets, with only the given properties.
+	 * @return array<int, array<string, mixed>> The presets, with only the given properties.
 	 */
 	function ipsum_get_design_guide_presets( $presets, $keys ) {
 		$items = array();
+		if ( ! is_array( $presets ) ) {
+			return $items;
+		}
 		foreach ( array( 'theme', 'custom' ) as $origin ) {
-			foreach ( $presets[ $origin ] ?? array() as $preset ) {
+			if ( ! isset( $presets[ $origin ] ) || ! is_array( $presets[ $origin ] ) ) {
+				continue;
+			}
+			foreach ( $presets[ $origin ] as $preset ) {
+				if ( ! is_array( $preset ) ) {
+					continue;
+				}
 				$item = array();
 				foreach ( $keys as $key ) {
 					if ( isset( $preset[ $key ] ) ) {
@@ -315,7 +329,7 @@ if ( ! function_exists( 'ipsum_get_design_guide_pattern_slug' ) ) :
 				}
 			)
 		);
-		if ( 1 === count( $blocks ) && 'core/pattern' === $blocks[0]['blockName'] && ! empty( $blocks[0]['attrs']['slug'] ) ) {
+		if ( 1 === count( $blocks ) && 'core/pattern' === $blocks[0]['blockName'] && isset( $blocks[0]['attrs']['slug'] ) && is_string( $blocks[0]['attrs']['slug'] ) && '' !== $blocks[0]['attrs']['slug'] ) {
 			return $blocks[0]['attrs']['slug'];
 		}
 		return null;
@@ -334,7 +348,7 @@ if ( ! function_exists( 'ipsum_get_design_guide' ) ) :
 	 *
 	 *     @type string[] $fields Optional. The sections to return. Default all of them.
 	 * }
-	 * @return array The design guide.
+	 * @return array<string, mixed> The design guide, keyed by section.
 	 */
 	function ipsum_get_design_guide( $input = array() ) {
 		$sections = array_keys( ipsum_get_design_guide_schema()['properties'] );
@@ -364,7 +378,7 @@ if ( ! function_exists( 'ipsum_get_design_guide' ) ) :
 			$roles           = ipsum_get_color_roles();
 			$guide['colors'] = array();
 			foreach ( ipsum_get_design_guide_presets( $settings['color']['palette'] ?? array(), array( 'slug', 'name', 'color' ) ) as $color ) {
-				if ( isset( $color['slug'], $roles[ $color['slug'] ] ) ) {
+				if ( isset( $color['slug'] ) && is_string( $color['slug'] ) && isset( $roles[ $color['slug'] ] ) ) {
 					$color['role'] = $roles[ $color['slug'] ];
 				}
 				$guide['colors'][] = $color;
@@ -382,7 +396,8 @@ if ( ! function_exists( 'ipsum_get_design_guide' ) ) :
 		if ( isset( $sections['typography'] ) ) {
 			$body_font   = ipsum_get_design_guide_font_slug( $styles['typography']['fontFamily'] ?? '' );
 			$block_fonts = array();
-			foreach ( $styles['blocks'] ?? array() as $block_type => $block_styles ) {
+			$blocks      = $styles['blocks'] ?? null;
+			foreach ( is_array( $blocks ) ? $blocks : array() as $block_type => $block_styles ) {
 				$block_font = ipsum_get_design_guide_font_slug( $block_styles['typography']['fontFamily'] ?? '' );
 				if ( null !== $block_font && $block_font !== $body_font ) {
 					$block_fonts[ $block_font ][] = $block_type;
@@ -427,8 +442,13 @@ if ( ! function_exists( 'ipsum_get_design_guide' ) ) :
 				if ( ! empty( $variation_styles['elements']['heading']['typography']['fontFamily'] ) ) {
 					$item['headingFont'] = ipsum_get_design_guide_font_slug( $variation_styles['elements']['heading']['typography']['fontFamily'] );
 				}
-				if ( ! empty( $variation_styles['blocks'] ) ) {
-					$item['blocks'] = array_map( 'array_keys', $variation_styles['blocks'] );
+				if ( ! empty( $variation_styles['blocks'] ) && is_array( $variation_styles['blocks'] ) ) {
+					$item['blocks'] = array_map(
+						static function ( $block_styles ) {
+							return is_array( $block_styles ) ? array_keys( $block_styles ) : array();
+						},
+						$variation_styles['blocks']
+					);
 				}
 				$guide['styleVariations'][] = $item;
 			}
@@ -459,7 +479,7 @@ if ( ! function_exists( 'ipsum_get_design_guide' ) ) :
 			);
 			$guide['patterns']  = array();
 			foreach ( WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern ) {
-				if ( empty( $pattern['filePath'] ) || ! in_array( wp_normalize_path( dirname( $pattern['filePath'] ) ), $theme_pattern_dirs, true ) ) {
+				if ( ! isset( $pattern['filePath'] ) || ! is_string( $pattern['filePath'] ) || '' === $pattern['filePath'] || ! in_array( wp_normalize_path( dirname( $pattern['filePath'] ) ), $theme_pattern_dirs, true ) ) {
 					continue;
 				}
 				$item = array(

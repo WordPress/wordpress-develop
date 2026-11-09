@@ -53,7 +53,7 @@ if ( ! function_exists( 'ipsum_enqueue_styles' ) ) :
 			'ipsum-style',
 			get_parent_theme_file_uri( 'style.css' ),
 			array(),
-			wp_get_theme()->get( 'Version' )
+			wp_get_theme( get_template() )->get( 'Version' )
 		);
 
 		// Enqueue theme stylesheet.
@@ -69,21 +69,29 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array    $source_args    Block binding source arguments.
-	 * @param WP_Block $block_instance The block instance.
-	 * @return string The call to action text.
+	 * @param array<string, mixed> $source_args    Block binding source arguments. Unused.
+	 * @param WP_Block             $block_instance The block instance.
+	 * @return string|null The call to action text, an empty string when comments
+	 *                     are closed, or null to keep the block's original content
+	 *                     when there is no post.
 	 */
 	function ipsum_comments_cta_binding( $source_args, $block_instance ) {
-		$post_id = $block_instance->context['postId'] ?? get_the_ID();
+		unset( $source_args ); // Unused, but must be accepted to get the block instance.
 
-		if ( ! comments_open( $post_id ) ) {
+		$post_id = $block_instance->context['postId'] ?? null;
+		$post    = get_post( is_numeric( $post_id ) ? (int) $post_id : null );
+		if ( ! $post ) {
+			return null;
+		}
+
+		if ( ! comments_open( $post ) ) {
 			return '';
 		}
 
-		$post_title = wp_strip_all_tags( get_the_title( $post_id ) );
+		$post_title = wp_strip_all_tags( get_the_title( $post ) );
 		$has_title  = ! empty( $post_title );
 
-		if ( get_comments_number( $post_id ) > 0 ) {
+		if ( get_comments_number( $post ) > 0 ) {
 			$text = $has_title
 				? sprintf(
 					/* translators: %s: Post title. */
@@ -101,7 +109,7 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 				: __( 'Be the first to comment', 'ipsum' );
 		}
 
-		return '<a href="' . esc_url( get_comments_link( $post_id ) ) . '">' . wp_kses_post( $text ) . '</a>';
+		return '<a href="' . esc_url( get_comments_link( $post ) ) . '">' . wp_kses_post( $text ) . '</a>';
 	}
 endif;
 
@@ -133,8 +141,9 @@ if ( ! function_exists( 'ipsum_sidebar_template_types' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array $default_template_types The default template types.
-	 * @return array The template types, with the sidebar variants added.
+	 * @param array<string, array<string, string>> $default_template_types The default template types, keyed by
+	 *                                                                     slug, each with a title and description.
+	 * @return array<string, array<string, string>> The template types, with the sidebar variants added.
 	 */
 	function ipsum_sidebar_template_types( $default_template_types ) {
 		$default_template_types['index-sidebar']   = array(
@@ -182,12 +191,14 @@ if ( ! function_exists( 'ipsum_search_aria_label_support' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array $metadata Metadata for the block type being registered.
-	 * @return array The block metadata, with ARIA label support on the Search block.
+	 * @param array<string, mixed> $metadata Metadata for the block type being registered.
+	 * @return array<string, mixed> The block metadata, with ARIA label support on the Search block.
 	 */
 	function ipsum_search_aria_label_support( $metadata ) {
 		if ( isset( $metadata['name'] ) && 'core/search' === $metadata['name'] ) {
-			$metadata['supports']['ariaLabel'] = true;
+			$supports              = isset( $metadata['supports'] ) && is_array( $metadata['supports'] ) ? $metadata['supports'] : array();
+			$supports['ariaLabel'] = true;
+			$metadata['supports']  = $supports;
 		}
 		return $metadata;
 	}
