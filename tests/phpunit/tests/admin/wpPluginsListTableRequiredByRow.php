@@ -46,7 +46,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 
 		$this->assertSame(
 			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
-			. '<p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>',
+			. '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div></div>',
 			$this->get_row( 'dependency/dependency.php' )
 		);
 	}
