@@ -36,17 +36,8 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		create_initial_taxonomies();
 		flush_rewrite_rules();
-	}
-
-	public function tear_down() {
-		unregister_post_type( 'ptawtq' );
-		unregister_post_type( 'thearray' );
-		unregister_post_type( 'test_hierarchical' );
-		parent::tear_down();
 	}
 
 	public function test_home() {
@@ -1017,8 +1008,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_single( $post_id ) );
 		$this->assertFalse( $q->is_attachment() );
 		$this->assertFalse( $q->is_404() );
-
-		$this->set_permalink_structure();
 	}
 
 	/**

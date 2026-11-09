@@ -7,7 +7,11 @@
  * A conformance kit that has only ever run against a writable provider would not
  * have proven that its own skips work.
  *
+ * @ticket 66187
+ *
  * @group secrets
+ *
+ * @coversNothing
  */
 class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conformance {
 

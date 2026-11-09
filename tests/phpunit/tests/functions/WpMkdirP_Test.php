@@ -1,9 +1,5 @@
 <?php
 
-namespace WordPress\Tests\WP_Includes\Functions;
-
-use WP_UnitTestCase;
-
 /**
  * Tests for the `wp_mkdir_p()` function.
  *
@@ -11,7 +7,7 @@ use WP_UnitTestCase;
  *
  * @covers ::wp_mkdir_p
  */
-class WpMkdirPTest extends WP_UnitTestCase {
+class Tests_Functions_WpMkdirP_Test extends WP_UnitTestCase {
 
 	/**
 	 * Temporary directories created during testing.
@@ -103,8 +99,8 @@ class WpMkdirPTest extends WP_UnitTestCase {
 	 * @ticket 57081
 	 */
 	public function test_directory_created_by_another_process_keeps_its_permissions() {
-		stream_wrapper_register( 'wpmkdirprace', WpMkdirPRaceStream::class );
-		WpMkdirPRaceStream::reset();
+		stream_wrapper_register( 'wpmkdirprace', Tests_Functions_WpMkdirP_Race_Stream::class );
+		Tests_Functions_WpMkdirP_Race_Stream::reset();
 
 		// A umask that alters the inherited bits, so the permission block is reached.
 		$previous_umask = umask( 0022 );
@@ -116,9 +112,9 @@ class WpMkdirPTest extends WP_UnitTestCase {
 			stream_wrapper_unregister( 'wpmkdirprace' );
 		}
 
-		$this->assertSame( 1, WpMkdirPRaceStream::$mkdir_calls, 'The race path was not exercised, so the rest of this test proves nothing.' );
+		$this->assertSame( 1, Tests_Functions_WpMkdirP_Race_Stream::$mkdir_calls, 'The race path was not exercised, so the rest of this test proves nothing.' );
 		$this->assertTrue( $created, 'Losing the race is not a failure: the directory exists.' );
-		$this->assertSame( 0, WpMkdirPRaceStream::$chmod_calls, 'wp_mkdir_p() must not change permissions on a directory it did not create.' );
+		$this->assertSame( 0, Tests_Functions_WpMkdirP_Race_Stream::$chmod_calls, 'wp_mkdir_p() must not change permissions on a directory it did not create.' );
 	}
 }
 
@@ -129,7 +125,7 @@ class WpMkdirPTest extends WP_UnitTestCase {
  * is the state wp_mkdir_p() sees when another process created the directory first.
  * Permission changes are counted rather than applied.
  */
-class WpMkdirPRaceStream {
+class Tests_Functions_WpMkdirP_Race_Stream {
 
 	/**
 	 * Number of permission changes attempted through this wrapper.
