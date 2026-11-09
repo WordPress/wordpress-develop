@@ -1544,6 +1544,20 @@ class WP_Rewrite {
 	 * the URL, see {@see WP_Rewrite::post_permalinks_share_random_base()}. The rules are flushed
 	 * when such a page or post changes, see {@see wp_random_content_flush_rewrite_rules_for_post()}.
 	 *
+	 * The `/random/` rule is also omitted if an existing rewrite rule matches the random base,
+	 * for example a post type archive at `/random/`. Generic catch-all rules matching any path,
+	 * such as the page and post rules, are ignored. See the {@see 'wp_rewrite_random_base_is_taken'}
+	 * filter.
+	 *
+	 * Rules added to the top of the rewrite rules, including those for post types and taxonomies,
+	 * take precedence over the random content rules. If a post type or taxonomy uses the random
+	 * base as its rewrite slug, its rules may match random archive URLs before the random content
+	 * rules do. For example, the attachment rules of a post type with the rewrite slug `random`
+	 * match `/random/category/news/`, and the rules of a hierarchical post type or taxonomy match
+	 * every URL beginning with `/random/`. Such random archive URLs display the post type or
+	 * taxonomy content instead. To use random archives on these sites, change the random base on
+	 * the Permalinks screen.
+	 *
 	 * The `random` query variable can be added to any other archive or search URL, for example
 	 * `/2026/?random`, to request a random post from that archive.
 	 *
