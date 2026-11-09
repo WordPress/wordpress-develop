@@ -1434,7 +1434,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			$args
 		);
 
-		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+		$this->expectWPIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
 
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
@@ -1491,7 +1491,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * rewrite rules for whatever post is being displayed rather than the one passed in.
 	 */
 	public function test_omitted_post_does_not_fall_back_to_the_global_post(): void {
-		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+		$this->expectWPIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
 
 		$GLOBALS['post'] = $this->create_post_object(
 			array(
@@ -1543,7 +1543,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$post_id = $this->create_post();
 		wp_delete_post( $post_id, true );
 
-		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+		$this->expectWPIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
 
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
@@ -1561,7 +1561,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			)
 		);
 
-		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+		$this->expectWPIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
 
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );

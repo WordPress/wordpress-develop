@@ -4361,6 +4361,7 @@ EOF;
 	 * @ticket 22101
 	 */
 	public function test_gallery_shortcode_when_is_feed_true() {
+		$this->set_permalink_structure( '' );
 
 		$this->go_to( '/?feed=rss2' );
 
@@ -6279,24 +6280,40 @@ EOF;
 	}
 
 	/**
-	 * Test AVIF quality filters.
+	 * Test AVIF quality filters for both Imagick and GD when AVIF support is available.
 	 *
 	 * @ticket 61614
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @dataProvider data_test_quality_with_avif_conversion_file_sizes
 	 */
-	public function test_quality_with_avif_conversion_file_sizes() {
+	public function test_quality_with_avif_conversion_file_sizes( string $editor_class ): void {
+		// Set the engine for this test.
+		add_filter(
+			'wp_image_editors',
+			function () use ( $editor_class ) {
+				return array( $editor_class );
+			}
+		);
+
 		$temp_dir = get_temp_dir();
 		$file     = $temp_dir . '/33772.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		$editor = wp_get_image_editor( $file );
-		// Only continue if the server supports AVIF.
-		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
-			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+		// Only continue if the editor is available and supports AVIF.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( sprintf( 'AVIF is not supported by the %s image editor.', $editor_class ) );
 		}
+
+		/*
+		 * Some builds report AVIF support without an encoder (see #63932).
+		 * Probe a real save so a missing encoder skips, but a failure in
+		 * WordPress itself still fails below.
+		 */
+		$probe = $editor->save( $temp_dir . '/avif-encode-probe.avif', 'image/avif' );
+		if ( is_wp_error( $probe ) ) {
+			$this->markTestSkipped( sprintf( 'The %1$s image editor cannot encode AVIF: %2$s', $editor_class, $probe->get_error_message() ) );
+		}
+		unlink( $probe['path'] );
 
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
@@ -6317,14 +6334,26 @@ EOF;
 		remove_filter( 'wp_editor_set_quality', array( $this, 'image_editor_change_quality_low' ) );
 		remove_filter( 'image_editor_output_format', array( $this, 'image_editor_output_avif' ) );
 
-		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
+		// Sub-sizes: for each size, the low quality AVIF should be smaller than the default quality AVIF.
 		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
 
-		$this->assertNotEmpty( $sizes_to_compare );
+		$this->assertNotEmpty( $sizes_to_compare, sprintf( 'No AVIF sub-sizes were generated with the %s editor.', $editor_class ) );
 
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
 		}
+	}
+
+	/**
+	 * Data provider for test_quality_with_avif_conversion_file_sizes.
+	 *
+	 * @return array<string, array{0: class-string<WP_Image_Editor>}> Array of arrays, each containing an editor class name.
+	 */
+	public static function data_test_quality_with_avif_conversion_file_sizes(): array {
+		return array(
+			'Imagick' => array( 'WP_Image_Editor_Imagick' ),
+			'GD'      => array( 'WP_Image_Editor_GD' ),
+		);
 	}
 
 	/**

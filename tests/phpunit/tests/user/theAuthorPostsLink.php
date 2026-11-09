@@ -72,6 +72,8 @@ class Tests_User_TheAuthorPostsLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_outputs_author_posts_link() {
+		$this->set_permalink_structure( '' );
+
 		$output = get_echo( 'the_author_posts_link' );
 
 		$this->assertSame( get_the_author_posts_link(), $output );

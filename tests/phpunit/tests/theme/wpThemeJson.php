@@ -10584,4 +10584,122 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertStringContainsString( '{:root :where(.custom-p.is-style-fancy){color:blue;}}', $actual );
 		$this->assertStringNotContainsString( ':root :where(p.is-style-fancy){color:', $actual );
 	}
+
+	/**
+	 * Tests that the default selectors for a block without custom selectors list the root
+	 * selector first, followed by the feature selectors in the order of
+	 * {@see WP_Theme_JSON::BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS}.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Theme_JSON::get_block_selectors
+	 */
+	public function test_get_block_selectors_builds_default_selectors_with_root_first() {
+		$block_type = new WP_Block_Type(
+			'test/selectors',
+			array(
+				'supports' => array(
+					'typography' => array( '__experimentalSelector' => '.t' ),
+					'color'      => array( '__experimentalSelector' => '.c' ),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'root'       => '.wp-block-test-selectors',
+				'color'      => array( 'root' => '.wp-block-test-selectors .c' ),
+				'typography' => array( 'root' => '.wp-block-test-selectors .t' ),
+			),
+			$this->get_block_selectors( WP_Theme_JSON::class, $block_type, '.wp-block-test-selectors' )
+		);
+	}
+
+	/**
+	 * Tests that custom selectors set by the block are returned as they are.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Theme_JSON::get_block_selectors
+	 */
+	public function test_get_block_selectors_returns_custom_selectors() {
+		$selectors  = array(
+			'color'  => array( 'text' => '.custom-text' ),
+			'root'   => '.custom-root',
+			'states' => array( '-current' => '.custom-root.is-current' ),
+		);
+		$block_type = new WP_Block_Type(
+			'test/selectors',
+			array(
+				'selectors' => $selectors,
+				'supports'  => array(
+					'color' => array( '__experimentalSelector' => '.c' ),
+				),
+			)
+		);
+
+		$this->assertSame(
+			$selectors,
+			$this->get_block_selectors( WP_Theme_JSON::class, $block_type, '.custom-root' )
+		);
+	}
+
+	/**
+	 * Tests that a feature named `root` does not replace the root selector string in the
+	 * default selectors.
+	 *
+	 * {@see WP_Theme_JSON::get_block_selectors()} reads the feature level selectors with
+	 * `static::`, so a subclass can override them. The subclass has an empty constructor, so
+	 * that creating it does not fill the shared blocks metadata cache with its feature level
+	 * selectors, which would affect later tests.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Theme_JSON::get_block_selectors
+	 */
+	public function test_get_block_selectors_keeps_root_selector_string() {
+		$subclass   = get_class(
+			new class() extends WP_Theme_JSON {
+				const BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS = array(
+					'color'      => 'root',
+					'typography' => 'typography',
+				);
+
+				public function __construct() {}
+			}
+		);
+		$block_type = new WP_Block_Type(
+			'test/selectors',
+			array(
+				'supports' => array(
+					'color'      => array( '__experimentalSelector' => '.c' ),
+					'typography' => array( '__experimentalSelector' => '.t' ),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'root'       => '.wp-block-test-selectors',
+				'typography' => array( 'root' => '.wp-block-test-selectors .t' ),
+			),
+			$this->get_block_selectors( $subclass, $block_type, '.wp-block-test-selectors' )
+		);
+	}
+
+	/**
+	 * Calls the protected {@see WP_Theme_JSON::get_block_selectors()} method.
+	 *
+	 * @param class-string<WP_Theme_JSON> $class_name    The name of WP_Theme_JSON or a subclass of it.
+	 * @param WP_Block_Type               $block_type    The block type.
+	 * @param string                      $root_selector The block's root selector.
+	 * @return mixed The selectors for the block, as returned through reflection.
+	 */
+	private function get_block_selectors( string $class_name, WP_Block_Type $block_type, string $root_selector ) {
+		$reflection = new ReflectionMethod( $class_name, 'get_block_selectors' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
+		return $reflection->invoke( null, $block_type, $root_selector );
+	}
 }

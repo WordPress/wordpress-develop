@@ -1012,7 +1012,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_event_handler_bindings
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
 	 * @param non-empty-string $attribute Directive attribute name.
 	 */
@@ -1030,7 +1030,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 */
 	public function test_wp_bind_removes_event_handler_binding_but_processes_valid_binds(): void {
 		$html     = '<button data-wp-bind--onclick="myPlugin::state.id" data-wp-bind--id="myPlugin::state.id">Text</button>';
