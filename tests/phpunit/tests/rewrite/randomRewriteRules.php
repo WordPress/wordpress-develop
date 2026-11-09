@@ -116,7 +116,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_core_random_rewrite_rules
+	 * @dataProvider data_core_random_rewrite_rules_are_registered
 	 *
 	 * @param string $regex Expected rewrite rule regex.
 	 * @param string $query Expected rewrite rule query.
@@ -133,7 +133,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_core_random_rewrite_rules(): array {
+	public static function data_core_random_rewrite_rules_are_registered(): array {
 		return array(
 			'any post'    => array( 'random/?$', 'index.php?random=1' ),
 			'category'    => array( 'random/category/(.+?)/?$', 'index.php?category_name=$matches[1]&random=1' ),
@@ -742,7 +742,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_random_urls
+	 * @dataProvider data_random_urls_resolve_to_random_query_vars
 	 *
 	 * @global WP $wp Current WordPress environment instance.
 	 *
@@ -782,7 +782,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: array<string, string>, 2?: string}>
 	 */
-	public static function data_random_urls(): array {
+	public static function data_random_urls_resolve_to_random_query_vars(): array {
 		return array(
 			'random'                     => array( '/random/', array( 'random' => '1' ) ),
 			'random without slash'       => array( '/random', array( 'random' => '1' ) ),
@@ -854,7 +854,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_pages_that_do_not_conflict
+	 * @dataProvider data_random_root_rule_is_kept_for_pages_that_do_not_conflict
 	 *
 	 * @param array<string, string|bool> $args Page arguments. A `post_parent` is replaced with a parent page ID.
 	 */
@@ -873,7 +873,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, string|bool>}>
 	 */
-	public static function data_pages_that_do_not_conflict(): array {
+	public static function data_random_root_rule_is_kept_for_pages_that_do_not_conflict(): array {
 		return array(
 			'slug starting with random' => array( array( 'post_name' => 'random-is-just-patterns-we-cant-decipher' ) ),
 			'draft page named random'   => array(
@@ -1027,7 +1027,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Rewrite::post_permalinks_share_random_base
 	 *
-	 * @dataProvider data_post_name_at_the_root_structures
+	 * @dataProvider data_random_root_rule_is_omitted_when_a_post_named_random_exists
 	 *
 	 * @param string $structure Permalink structure.
 	 */
@@ -1049,7 +1049,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_post_name_at_the_root_structures(): array {
+	public static function data_random_root_rule_is_omitted_when_a_post_named_random_exists(): array {
 		return array(
 			'post name' => array( '/%postname%/' ),
 			'pathinfo'  => array( '/index.php/%postname%/' ),
@@ -1057,7 +1057,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_posts_that_do_not_conflict
+	 * @dataProvider data_random_root_rule_is_kept_for_posts_that_do_not_conflict
 	 *
 	 * @param string                $structure Permalink structure.
 	 * @param array<string, string> $args      Post arguments.
@@ -1076,7 +1076,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: array<string, string>}>
 	 */
-	public static function data_posts_that_do_not_conflict(): array {
+	public static function data_random_root_rule_is_kept_for_posts_that_do_not_conflict(): array {
 		return array(
 			'blog prefix'              => array( '/blog/%postname%/', array() ),
 			'date and post name'       => array( '/%year%/%monthnum%/%postname%/', array() ),
