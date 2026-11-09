@@ -840,7 +840,7 @@ function wp_uninitialize_site( $site_id ) {
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS `$table`" );
 	}
 
 	/**

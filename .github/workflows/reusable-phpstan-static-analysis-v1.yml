@@ -30,6 +30,7 @@ jobs:
   # - Logs debug information.
   # - Installs Composer dependencies.
   # - Make Composer packages available globally.
+  # - Runs the tests of the WordPress-specific PHPStan extensions.
   # - Builds WordPress.
   # - Configures caching for PHPStan static analysis scans.
   # - Runs PHPStan static analysis.
@@ -74,6 +75,12 @@ jobs:
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
+
+      # The extensions in `tests/phpstan` are tested against fixtures rather than against
+      # core, so a defect in one is reported here as a failing test rather than as a
+      # change in what the analysis below reports.
+      - name: Run the tests of the PHPStan extensions
+        run: composer run phpstan:test
 
       # The directory holds more than the analysis results. PHPStan also stores what it read out of
       # each source file there, the docblocks and signatures it found, keyed by that file's contents

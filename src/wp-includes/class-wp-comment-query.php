@@ -864,7 +864,6 @@ class WP_Comment_Query {
 				// $field_value may be an array.
 				$esses = array_fill( 0, count( (array) $field_value ), '%s' );
 
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $field_value );
 			}
 		}
@@ -887,7 +886,6 @@ class WP_Comment_Query {
 
 				$esses = array_fill( 0, count( $q_values ), '%s' );
 
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $q_values );
 			}
 		}

@@ -394,7 +394,6 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 		$id = 0;
 		// This, obviously, is an incorrect prepare.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$prepared = $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE id = $id", $id );
 		$this->assertSame( "SELECT * FROM $wpdb->users WHERE id = 0", $prepared );
 	}
@@ -2278,7 +2277,6 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$sql = $wpdb->prepare( ' %s %1$c ', 'foo' );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$sql = $wpdb->prepare( " $sql %s ", 'foo' );
 
 		$this->assertSame( "  'foo' {$wpdb->placeholder_escape()}1\$c  'foo' ", $sql );

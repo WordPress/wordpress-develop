@@ -186,6 +186,35 @@ These identifiers are specific to WordPress, and can be ignored or baselined lik
 | `wordpress.hookDocReferenceHookMissing` | The referenced file exists, but documents no hook of that name. Either the reference is stale, or the canonical docblock has moved. |
 | `wordpress.hookParamCountMismatch` | The call passes a different number of arguments than the docblock documents `@param` tags for. Passing fewer risks an `ArgumentCountError` in a callback registered for the documented count; passing more silently drops the extra argument and leaves the documentation misleading. |
 
+### Checks ported from the WordPress Coding Standards
+
+Two checks of the `WordPress.DB` sniffs are implemented as PHPStan rules, on the syntax tree rather than on tokens. They replace those checks, which are disabled in `phpcs.xml.dist`. Each reports under the code of the check it ports, which is the identifier to use with `@phpstan-ignore`. Comments written for PHP_CodeSniffer, such as `phpcs:ignore`, have no effect on them:
+
+| Identifier | What it means |
+| --- | --- |
+| `WordPress.DB.PreparedSQL.InterpolatedNotPrepared` | A variable is interpolated into a double-quoted string or heredoc passed as the query of `$wpdb->query()`, `get_var()`, `get_col()`, `get_row()`, `get_results()` or `prepare()`. A property of the database object, such as `$wpdb->posts`, is allowed. Reported on the line the variable is on. |
+| `WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare` | `$wpdb->prepare()` is passed replacements, but the query holds no placeholder for them. Building the placeholders of an `IN` clause with `implode( ',', array_fill( 0, count( $values ), '%s' ) )` is recognized. Reported on the last line of the query. |
+
+They go a little further than the sniffs in two ways. The database object is recognized by type as well as by name, so a property documented as a `wpdb` is examined like `$wpdb` is. And a query passed by name, as `query:`, is examined like one passed by position.
+
+### Testing the extensions
+
+The extensions have tests of their own under [`Tests/`](Tests), built on PHPStan's test harness. The two rules are run over fixture files and the errors they report are compared with the ones expected. The visitors and the return type extension are checked through the types PHPStan infers for the `assertType()` calls in their fixtures. Reference comments resolve against a small WordPress tree of fixtures in [`Tests/data/wordpress`](Tests/data/wordpress) rather than against `src`, so a broken reference can be tested without one existing in core.
+
+Run them with:
+
+```bash
+npm run typecheck:php:test
+```
+
+or, outside the Docker environment:
+
+```bash
+composer phpstan:test
+```
+
+They also run in CI, ahead of the analysis itself.
+
 ## Ignoring and baselining errors
 
 As we adopt PHPStan iteratively, you may be faced with false positives due to legacy code, or code that is not worth changing at this time.

@@ -4604,7 +4604,7 @@ function _wp_batch_update_comment_type() {
 			"UPDATE {$wpdb->comments}
 			SET comment_type = 'comment'
 			WHERE comment_type = ''
-			AND comment_ID IN ({$comment_id_list})" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			AND comment_ID IN ({$comment_id_list})"
 		);
 
 		// Make sure to clean the comment cache.

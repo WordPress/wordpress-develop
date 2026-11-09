@@ -59,6 +59,18 @@ services:
 		tags:
 			- phpstan.rules.rule
 
+	# Ports of checks from the WordPress Coding Standards, which replace those sniffs.
+	# Each reports under the sniff code it ports.
+	-
+		class: WordPress\PHPStan\PreparedSQLRule
+		tags:
+			- phpstan.rules.rule
+
+	-
+		class: WordPress\PHPStan\PreparedSQLPlaceholdersRule
+		tags:
+			- phpstan.rules.rule
+
 	# Runs the visitors above over every file PHPStan parses, not only the ones it
 	# analyzes.
 	#
@@ -305,6 +317,10 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
+		- WpdbCall.php
+		- PreparedSQLRule.php
+		- PreparedSQLPlaceholdersRule.php
+		- Tests
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
@@ -312,6 +328,8 @@ parameters:
 		- ../../src/wp-admin/includes/ms.php
 	excludePaths:
 		analyseAndScan:
+			# Fixtures for the tests of the extensions above, which carry the errors those tests expect.
+			- Tests/data
 			# Locally installed npm dependencies, such as in bundled themes, which may include PHP files.
 			- */node_modules/*
 			# Composer dependencies of themes and plugins, which are not part of core.

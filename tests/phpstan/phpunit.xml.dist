@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	PHPUnit configuration for the tests of the PHPStan extensions in this directory.
+
+	These tests exercise the extensions themselves, with fixtures, rather than
+	analyzing WordPress. Run them with `composer phpstan:test`.
+-->
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+		bootstrap="Tests/bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
+		failOnWarning="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		>
+	<testsuites>
+		<testsuite name="phpstan-extensions">
+			<directory suffix="Test.php">Tests</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

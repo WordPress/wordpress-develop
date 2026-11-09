@@ -24,6 +24,8 @@ includes:
 	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
 	# and the list between the markers. Do not edit that list by hand.
 	# phpstan:baselines start
+	- tests/phpstan/baselines/WordPress.DB.PreparedSQL.InterpolatedNotPrepared.neon
+	- tests/phpstan/baselines/WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare.neon
 	- tests/phpstan/baselines/argument.type.neon
 	- tests/phpstan/baselines/argument.unresolvableType.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
