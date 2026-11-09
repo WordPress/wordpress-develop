@@ -137,7 +137,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		// Delete files first, then delete subdirectories.
 		foreach ( $files as $file ) {
-			if ( is_file( $file ) ) {
+			if ( is_file( $file ) || is_link( $file ) ) {
 				wp_delete_file( $file );
 			}
 		}
@@ -670,5 +670,83 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		fclose( $file );
 
 		return array( $value );
+	}
+
+	/**
+	 * When the index.php file cannot be created an error should be displayed.
+	 *
+	 * A symlink pointing into a missing directory is used instead of a read-only
+	 * directory, as file permissions are not enforced for all users and filesystems.
+	 *
+	 * @ticket 46577
+	 */
+	public function test_detects_cannot_create_index() {
+		wp_mkdir_p( self::$exports_dir );
+
+		if ( ! symlink( self::$exports_dir . 'missing-directory/index.php', self::$exports_dir . 'index.php' ) ) {
+			$this->markTestSkipped( 'A symlink could not be created in the export directory.' );
+		}
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to protect personal data export folder from browsing."}' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+	}
+
+	/**
+	 * When the JSON report cannot be opened for writing an error should be displayed.
+	 *
+	 * @ticket 46577
+	 */
+	public function test_detects_cannot_write_json() {
+		add_filter(
+			'random_password',
+			static function () {
+				return 'unwritable';
+			}
+		);
+
+		// Create a directory with the report name to ensure the function cannot open the file.
+		wp_mkdir_p( self::$exports_dir . 'wp-personal-data-file-unwritable.json' );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to open personal data export file (JSON report) for writing."}' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+	}
+
+	/**
+	 * When the HTML report cannot be opened for writing an error should be displayed.
+	 *
+	 * @ticket 46577
+	 */
+	public function test_detects_cannot_write_html() {
+		add_filter(
+			'wp_unique_filename',
+			static function () {
+				return 'unwritable.html';
+			}
+		);
+
+		// Create a directory with the report name to ensure the function cannot open the file.
+		wp_mkdir_p( self::$exports_dir . 'unwritable.html' );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to open personal data export (HTML report) for writing."}' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+	}
+
+	/**
+	 * When the archive cannot be opened for writing an error should be displayed.
+	 *
+	 * @ticket 46577
+	 */
+	public function test_detects_cannot_write_archive() {
+		update_post_meta( self::$export_request_id, '_export_file_name', 'unwritable.zip' );
+
+		// Create a directory with the archive name to ensure the function cannot open the file.
+		wp_mkdir_p( self::$exports_dir . 'unwritable.zip' );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to open personal data export file (archive) for writing."}' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 }
