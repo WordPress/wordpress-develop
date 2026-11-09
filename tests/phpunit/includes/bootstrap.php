@@ -246,10 +246,28 @@ if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
  */
 define( 'DISABLE_WP_CRON', true );
 
-define( 'WP_MEMORY_LIMIT', -1 );
-define( 'WP_MAX_MEMORY_LIMIT', -1 );
+define( 'WP_MEMORY_LIMIT', '-1' );
+define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
+
+/*
+ * Tests that cover the upload_path and upload_url_path options run in a separate process
+ * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
+ */
+if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
+
+	/*
+	 * Delete the test uploads dir exactly once per run, via an env var (we need it cos each
+	 * @runInSeparateProcess test re-executes this in its own process).
+	 */
+	$delete_tests_uploads_dir = ( false === getenv( 'WP_TESTS_UPLOADS_RUN_ID' ) );
+
+	if ( $delete_tests_uploads_dir ) {
+		putenv( 'WP_TESTS_UPLOADS_RUN_ID=' . getmypid() . '-' . uniqid() );
+	}
+}
 
 $PHP_SELF            = '/index.php';
 $GLOBALS['PHP_SELF'] = '/index.php';
@@ -269,7 +287,15 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+/*
+ * Install WordPress, unless asked not to.
+ *
+ * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
+ * while it loads this file in a child process, after the parent process has
+ * already installed WordPress. Reinstalling in every child would slow down
+ * each isolated test and drop the tables the parent process is using.
+ */
+if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
 	$core_tests = ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) ? 'run_core_tests' : 'no_core_tests';
 	$ms_tests   = $multisite ? 'run_ms_tests' : 'no_ms_tests';
 
@@ -311,6 +337,42 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 		tests_add_filter( 'pre_option_' . $key, 'wp_tests_options' );
 	}
 }
+
+/*
+ * Delete the wp-content/test-suite-uploads folder before WordPress loads.
+ *
+ * Plugins and themes may call wp_upload_dir() while loading, which creates the folder and
+ * caches it as created. Deleting it afterwards would leave a cached path that no longer exists.
+ * WordPress functions are not available yet, so this uses plain PHP.
+ */
+if ( ! empty( $delete_tests_uploads_dir ) ) {
+	$uploads_test_run_dir = ABSPATH . UPLOADS;
+
+	if ( is_dir( $uploads_test_run_dir ) ) {
+		try {
+			$uploads_test_run_files = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $uploads_test_run_dir, FilesystemIterator::SKIP_DOTS ),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+
+			foreach ( $uploads_test_run_files as $uploads_test_run_file ) {
+				// Windows removes symlinks to directories with rmdir(), not unlink().
+				if ( $uploads_test_run_file->isDir() && ( ! $uploads_test_run_file->isLink() || 'Windows' === PHP_OS_FAMILY ) ) {
+					rmdir( $uploads_test_run_file->getPathname() );
+				} else {
+					unlink( $uploads_test_run_file->getPathname() );
+				}
+			}
+
+			rmdir( $uploads_test_run_dir );
+		} catch ( UnexpectedValueException $uploads_test_run_exception ) {
+			echo 'Could not delete the test uploads directory: ' . $uploads_test_run_exception->getMessage() . PHP_EOL;
+		}
+	}
+
+	unset( $uploads_test_run_dir, $uploads_test_run_files, $uploads_test_run_file, $uploads_test_run_exception );
+}
+unset( $delete_tests_uploads_dir );
 
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
@@ -365,42 +427,88 @@ require __DIR__ . '/secrets/class-wp-secrets-keyring-conformance.php';
  * how you call phpunit has no effect.
  */
 class WP_PHPUnit_Util_Getopt {
+	/**
+	 * Groups that are skipped by default for the current test run.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $skipped_groups = array();
 
-	public function __construct( $argv ) {
+	/**
+	 * Groups that were explicitly requested via the command line.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static $requested_groups = array();
+
+	/**
+	 * Initializes the default skipped groups for the current test mode.
+	 *
+	 * @return array<string, bool> The groups skipped by default.
+	 */
+	protected static function get_default_skipped_groups() {
 		$skipped_groups = array(
-			'ajax'          => true,
-			'ms-files'      => true,
-			'external-http' => true,
+			'ajax'                    => true,
+			'ms-files'                => true,
+			'external-http'           => true,
+			'html-api-html5lib-tests' => true,
 		);
 
-		while ( current( $argv ) ) {
-			$option = current( $argv );
-			$value  = next( $argv );
+		if ( is_multisite() ) {
+			$skipped_groups['ms-excluded']    = true;
+			$skipped_groups['oembed-headers'] = true;
+		} else {
+			$skipped_groups['ms-required'] = true;
+		}
+
+		return $skipped_groups;
+	}
+
+	/**
+	 * Initializes the parsed command line state.
+	 */
+	protected static function reset() {
+		self::$skipped_groups   = self::get_default_skipped_groups();
+		self::$requested_groups = array();
+	}
+
+	public function __construct( $argv ) {
+		self::reset();
+
+		foreach ( $argv as $index => $argument ) {
+			$option = $argument;
+			$value  = isset( $argv[ $index + 1 ] ) ? $argv[ $index + 1 ] : '';
+
+			if ( 0 === strpos( $option, '--group=' ) ) {
+				$value  = substr( $option, strlen( '--group=' ) );
+				$option = '--group';
+			}
 
 			switch ( $option ) {
 				case '--exclude-group':
-					foreach ( $skipped_groups as $group_name => $skipped ) {
-						$skipped_groups[ $group_name ] = false;
-					}
-					continue 2;
+					// PHPUnit replaces XML exclusions when this option is provided.
+					// Keep our default skipped groups active unless they are requested explicitly.
+					break;
 				case '--group':
 					$groups = explode( ',', $value );
 					foreach ( $groups as $group ) {
+						self::$requested_groups[ $group ] = true;
+
 						if ( is_numeric( $group ) || preg_match( '/^(UT|Plugin)\d+$/', $group ) ) {
 							WP_UnitTestCase::forceTicket( $group );
 						}
 					}
 
-					foreach ( $skipped_groups as $group_name => $skipped ) {
+					foreach ( self::$skipped_groups as $group_name => $skipped ) {
 						if ( in_array( $group_name, $groups, true ) ) {
-							$skipped_groups[ $group_name ] = false;
+							self::$skipped_groups[ $group_name ] = false;
 						}
 					}
-					continue 2;
+					break;
 			}
 		}
 
-		$skipped_groups = array_filter( $skipped_groups );
+		$skipped_groups = array_filter( self::$skipped_groups );
 		foreach ( $skipped_groups as $group_name => $skipped ) {
 			echo sprintf( 'Not running %1$s tests. To execute these, use --group %1$s.', $group_name ) . PHP_EOL;
 		}
@@ -412,5 +520,77 @@ class WP_PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
+
+	/**
+	 * Returns the groups that are still skipped by default for this run.
+	 *
+	 * @return string[]
+	 */
+	public static function get_skipped_groups() {
+		return array_keys( array_filter( self::$skipped_groups ) );
+	}
+
+	/**
+	 * Determines whether a group was explicitly requested via the command line.
+	 *
+	 * @param string $group Group name.
+	 * @return bool Whether the group was explicitly requested.
+	 */
+	public static function is_group_requested( $group ) {
+		return isset( self::$requested_groups[ $group ] );
+	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
+
+/**
+ * Removes default-excluded tests from PHPUnit suites before class fixtures run.
+ */
+trait WP_PHPUnit_Default_Group_Filter_Methods {
+
+	/**
+	 * Filters default-excluded tests from a suite and all nested suites.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	public function start_test_suite( $suite ) {
+		$this->filter_suite( $suite );
+	}
+
+	/**
+	 * Filters a test suite recursively.
+	 *
+	 * @param PHPUnit\Framework\TestSuite $suite Test suite.
+	 */
+	protected function filter_suite( $suite ) {
+		$tests = array();
+
+		foreach ( $suite->tests() as $test ) {
+			if ( $test instanceof PHPUnit\Framework\TestSuite || $test instanceof PHPUnit_Framework_TestSuite ) {
+				$this->filter_suite( $test );
+
+				if ( count( $test ) ) {
+					$tests[] = $test;
+				}
+			} elseif ( ! method_exists( $test, 'getGroups' ) || ! WP_UnitTestCase_Base::get_default_excluded_groups_for_test( $test->getGroups() ) ) {
+				$tests[] = $test;
+			}
+		}
+
+		$suite->setTests( $tests );
+	}
+}
+
+// PHPUnit 10 and later have no TestListener interface, so the filter is not declared there.
+if ( version_compare( tests_get_phpunit_version(), '6.0', '<' ) ) {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit_Framework_TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
+	}
+} elseif ( interface_exists( 'PHPUnit\Framework\TestListener' ) ) {
+	class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
+		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
+			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
+		}
+	}
+}

@@ -10,11 +10,29 @@
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
 	 * Performs setup tasks for every test.
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'default' );
+	}
+
+	/**
+	 * Cleans up after every test.
+	 */
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+		parent::tear_down();
 	}
 
 	/**
@@ -517,6 +535,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 	 * @ticket 34073
 	 */
 	public function test_comment_permalinks_should_be_correct_when_using_default_display_callback_with_default_comment_page_oldest() {
+		$this->set_permalink_structure( '' );
+
 		$now       = time();
 		$p         = self::factory()->post->create();
 		$comment_1 = self::factory()->comment->create(
@@ -602,6 +622,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 	 * @ticket 34073
 	 */
 	public function test_comment_permalinks_should_be_correct_when_using_default_display_callback_with_default_comment_page_newest() {
+		$this->set_permalink_structure( '' );
+
 		$now       = time();
 		$p         = self::factory()->post->create();
 		$comment_1 = self::factory()->comment->create(
@@ -1048,7 +1070,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$this->assertSame( $expected['offset'], $offset );
 	}
 
-	public function data_comments_template_top_level_query_args() {
+	public static function data_comments_template_top_level_query_args() {
 		return array(
 			array(
 				array(

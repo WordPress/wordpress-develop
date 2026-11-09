@@ -25,6 +25,15 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tears down shared fixtures after class.
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wp_tests_private' );
+
+		parent::wpTearDownAfterClass();
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
@@ -68,7 +77,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data_canonical() {
+	public static function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -345,7 +354,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *    bool  Whether the 404 link is expected to redirect
 	 * }
 	 */
-	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+	public static function data_redirect_guess_404_permalink_with_custom_statuses() {
 		return array(
 			'public status'                      => array(
 				'status_args' => array( 'public' => true ),
@@ -378,6 +387,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @ticket 43056
 	 * @ticket 59795
+	 * @ticket 44964
 	 *
 	 * @dataProvider data_redirect_guess_404_permalink_post_types
 	 */
@@ -395,7 +405,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_redirect_guess_404_permalink_post_types() {
+	public static function data_redirect_guess_404_permalink_post_types() {
 		return array(
 			'single string formatted post type'    => array(
 				'original_url' => '/?name=sample-pag&post_type=page',
@@ -412,6 +422,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			'do not redirect to private post type' => array(
 				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
 				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
+			),
+			'do not leak private post type mixed in with a public one' => array(
+				'original_url' => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
+				'expected'     => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
 			),
 		);
 	}
@@ -597,6 +611,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensure encoded query string keys do not trigger a redirect on the front page.
+	 *
+	 * @ticket 44899
+	 */
+	public function test_encoded_query_string_keys_on_front_page() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $p );
+
+		$this->go_to( get_permalink( $p ) );
+
+		$url      = site_url( '/?xtor=AD-4970-%5BSocial%5D-%5B%5D-%5BPPL%5D-%5BFacebook%5D-%5B228284160&105478095%5D-%5B0%5D' );
+		$redirect = redirect_canonical( $url, false );
+
+		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
+	}
+
+	/**
 	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
 	 *
 	 * @ticket 55955
@@ -673,7 +711,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_canonical_attachment_page_redirect_with_option_disabled() {
+	public static function data_canonical_attachment_page_redirect_with_option_disabled() {
 		return array(
 			'logged out user, no parent'      => array(
 				'%%attachment_url%%',

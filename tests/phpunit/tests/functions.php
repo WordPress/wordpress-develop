@@ -144,7 +144,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[][]
 	 */
-	public function data_path_join() {
+	public static function data_path_join() {
 		return array(
 			// Absolute paths.
 			'absolute path should return path' => array(
@@ -201,7 +201,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_normalize_path( $path ) );
 	}
 
-	public function data_wp_normalize_path() {
+	public static function data_wp_normalize_path() {
 		return array(
 			// Windows paths.
 			array( 'C:\\www\\path\\', 'C:/www/path/' ),
@@ -609,7 +609,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_add_query_arg_removes_question_mark() {
+	public static function data_add_query_arg_removes_question_mark() {
 		return array(
 			'anchor'                                     => array(
 				'url'      => 'http://example.org?#anchor',
@@ -741,7 +741,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_device_can_upload() {
+	public static function data_device_can_upload() {
 		return array(
 			// iPhone iOS 5.0.1, Safari 5.1.
 			array(
@@ -1116,7 +1116,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
-	public function data_mysql_to_rfc3339() {
+	public static function data_mysql_to_rfc3339() {
 		return array(
 			array( '2016-03-15T18:54:46', '15-03-2016 18:54:46' ),
 			array( '2016-03-02T19:13:25', '2016-03-02 19:13:25' ),
@@ -1147,11 +1147,20 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35987
+	 * @ticket 65819
+	 * @covers ::wp_ext2type
 	 */
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
 		$this->assertNotEmpty( $extensions );
+
+		// Literal mappings stay independent of the current registry contents.
+		$this->assertSame( 'image', wp_ext2type( 'jpg' ) );
+		$this->assertSame( 'image', wp_ext2type( 'PNG' ) );
+		$this->assertSame( 'audio', wp_ext2type( 'mp3' ) );
+		$this->assertSame( 'video', wp_ext2type( 'mp4' ) );
+		$this->assertSame( 'document', wp_ext2type( 'pdf' ) );
 
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
@@ -1300,7 +1309,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function data_wp_get_image_mime() {
+	public static function data_wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1404,7 +1413,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_getimagesize().
 	 */
-	public function data_wp_getimagesize() {
+	public static function data_wp_getimagesize() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1613,7 +1622,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
-	public function data_wp_check_filetype_and_ext() {
+	public static function data_wp_check_filetype_and_ext() {
 		$data = array(
 			// Standard image.
 			array(
@@ -1752,6 +1761,34 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					/*
+					 * Audio wrapped in an MP4/ISO-BMFF container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/mp4, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-in-video-container.m4a',
+						'audio-in-video-container.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
+					/*
+					 * Audio wrapped in an 3GPP TS 26.244 container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/3gpp, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-only-3gp4.m4a',
+						'audio-only-3gp4.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
 					// Assorted text/* sample files
 					array(
 						DIR_TESTDATA . '/uploads/test.vtt',
@@ -1853,6 +1890,91 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that TrueType fonts are accepted whether font/ttf or font/sfnt is expected.
+	 *
+	 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to font/ttf.
+	 * Expecting each type in turn ensures that whichever one libmagic reports, a file is also
+	 * accepted when the other is expected.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @dataProvider data_wp_check_filetype_and_ext_with_ttf_mime_types
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 *
+	 * @param string $mime_type The mime type expected for TTF files.
+	 */
+	public function test_wp_check_filetype_and_ext_accepts_either_ttf_mime_type( $mime_type ) {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$detected_type = finfo_file( finfo_open( FILEINFO_MIME_TYPE ), $file );
+		if ( ! in_array( $detected_type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			$this->markTestSkipped( "This version of libmagic detects TrueType fonts as {$detected_type}." );
+		}
+
+		$filter = static function ( $mimes ) use ( $mime_type ) {
+			$mimes['ttf'] = $mime_type;
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => 'ttf',
+			'type'            => $mime_type,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_check_filetype_and_ext_with_ttf_mime_types() {
+		return array(
+			'font/ttf'  => array( 'font/ttf' ),
+			'font/sfnt' => array( 'font/sfnt' ),
+		);
+	}
+
+	/**
+	 * Tests that a font file of another format is rejected when named with a .ttf extension.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 */
+	public function test_wp_check_filetype_and_ext_rejects_other_font_formats_as_ttf() {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.woff';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$filter = static function ( $mimes ) {
+			$mimes['ttf'] = 'font/ttf';
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => false,
+			'type'            => false,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
+	}
+
+	/**
 	 * Test file path validation
 	 *
 	 * @ticket 42016
@@ -1878,7 +2000,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_validate_file() {
+	public static function data_validate_file() {
 		return array(
 
 			// Allowed files:
@@ -2145,7 +2267,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_is_stream() {
+	public static function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
 			array( 'http://example.com', true ),
@@ -2185,7 +2307,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_human_readable_duration() {
+	public static function data_human_readable_duration() {
 		return array(
 			// Valid ii:ss cases.
 			array( '0:0', '0 minutes, 0 seconds' ),
@@ -2249,7 +2371,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 
-	public function data_wp_is_json_media_type() {
+	public static function data_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
@@ -2265,11 +2387,15 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53668
+	 * @ticket 65819
+	 * @covers ::wp_get_default_extension_for_mime_type
 	 */
 	public function test_wp_get_default_extension_for_mime_type() {
 		$this->assertSame( 'jpg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpg not returned as default extension for "image/jpeg"' );
 		$this->assertNotSame( 'jpeg', wp_get_default_extension_for_mime_type( 'image/jpeg' ), 'jpeg should not be returned as default extension for "image/jpeg"' );
 		$this->assertSame( 'png', wp_get_default_extension_for_mime_type( 'image/png' ), 'png not returned as default extension for "image/png"' );
+		$this->assertSame( 'pdf', wp_get_default_extension_for_mime_type( 'application/pdf' ), 'pdf not returned as default extension for "application/pdf"' );
+		$this->assertSame( 'mp3', wp_get_default_extension_for_mime_type( 'audio/mpeg' ), 'mp3 not returned as default extension for "audio/mpeg"' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( 'wibble/wobble' ), 'false not returned for unrecognized mime type' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '' ), 'false not returned when empty string as mime type supplied' );
 		$this->assertFalse( wp_get_default_extension_for_mime_type( '   ' ), 'false not returned when empty string as mime type supplied' );

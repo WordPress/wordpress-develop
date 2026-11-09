@@ -1168,7 +1168,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_get_subtype_meta_value() {
+	public static function data_get_subtype_meta_value() {
 		return array(
 			array( 'customtax', 'test_customtax_single', true, true ),
 			array( 'customtax', 'test_customtax_multi', false, true ),
@@ -1234,8 +1234,8 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		}
 	}
 
-	public function data_set_subtype_meta_value() {
-		$data = $this->data_get_subtype_meta_value();
+	public static function data_set_subtype_meta_value() {
+		$data = self::data_get_subtype_meta_value();
 
 		foreach ( $data as $index => $dataset ) {
 			$can_write = true;

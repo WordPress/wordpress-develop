@@ -176,7 +176,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$primary_profile_url = get_admin_url( $primary->blog_id, 'profile.php' );
 
 		// Ensure the user's primary blog is not the same as the main site.
-		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $primary_profile_url, $node_my_account->href );
@@ -229,7 +229,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$user_profile_url = user_admin_url( 'profile.php' );
 
-		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
+		$this->assertNotSame( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $user_profile_url, $node_my_account->href );
@@ -276,7 +276,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_admin_bar_nodes_with_tabindex_meta() {
+	public static function data_admin_bar_nodes_with_tabindex_meta() {
 		return array(
 			array(
 				// No tabindex.
@@ -804,7 +804,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_my_sites_network_menu_items() {
+	public static function data_my_sites_network_menu_items() {
 		return array(
 			array( 'my-sites-super-admin', 'manage_network' ),
 			array( 'network-admin', 'manage_network' ),
@@ -935,6 +935,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertSame( 'John Doe', $node_my_account->meta['menu_title'] );
 
 		$this->assertSame( 'Howdy, John Doe' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
+		$this->assertStringContainsString( "<span class='username'>", $node_user_info->title );
 	}
 
 	/**
@@ -958,7 +959,122 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertSame( $current_user->user_login, wp_strip_all_tags( $node_my_account->title ) );
 		$this->assertSame( $current_user->user_login, $node_my_account->meta['menu_title'] );
 
-		$this->assertSame( 'Howdy, ' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
+		$this->assertSame( 'Howdy, ' . $current_user->user_login . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
+		$this->assertStringContainsString( "<span class='username' hidden>", $node_user_info->title );
+	}
+
+	/**
+	 * The display name and user login are escaped in the account menu.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_escapes_display_name_and_user_login() {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+
+		$current_user               = wp_get_current_user();
+		$current_user->display_name = '<svg onload=alert(1)>';
+		$current_user->user_login   = '<b>login</b>';
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringNotContainsString( '<svg', $node_my_account->title, 'The display name should be escaped in the my-account node.' );
+		$this->assertStringContainsString( '&lt;svg onload=alert(1)&gt;', $node_my_account->title );
+		$this->assertStringNotContainsString( '<svg', $node_user_info->title, 'The display name should be escaped in the user-info node.' );
+		$this->assertStringNotContainsString( '<b>login</b>', $node_user_info->title, 'The user login should be escaped in the user-info node.' );
+		$this->assertStringContainsString( '&lt;b&gt;login&lt;/b&gt;', $node_user_info->title );
+	}
+
+	/**
+	 * Tests that the toolbar has a link to skip it when rendered on 'wp_body_open'.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_render_outputs_skip_toolbar_link_when_rendered_on_wp_body_open() {
+		$admin_bar_html = $this->render_admin_bar_on_action( 'wp_body_open' );
+
+		$processor = new WP_HTML_Tag_Processor( $admin_bar_html );
+		$processor->next_tag( array( 'tag_name' => 'A' ) );
+		$this->assertSame( '#wp-toolbar-skip-target', $processor->get_attribute( 'href' ), 'The "Skip toolbar" link should be the first link in the toolbar.' );
+		$this->assertStringContainsString( '>Skip toolbar</a>', $admin_bar_html, 'The "Skip toolbar" link text should be output.' );
+
+		$this->assertGreaterThan(
+			strrpos( $admin_bar_html, 'ab-item' ),
+			strpos( $admin_bar_html, '<div id="wp-toolbar-skip-target"></div>' ),
+			'The "Skip toolbar" link target should follow all toolbar items.'
+		);
+	}
+
+	/**
+	 * Tests that the toolbar has no link to skip it when it doesn't precede the page content.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 *
+	 * @dataProvider data_render_does_not_output_skip_toolbar_link
+	 *
+	 * @param bool   $is_admin          Whether the toolbar is rendered in the admin.
+	 * @param bool   $fire_wp_body_open Whether the 'wp_body_open' action fires before the toolbar is rendered.
+	 * @param string $hook_name         The action on which the toolbar is rendered.
+	 */
+	public function test_render_does_not_output_skip_toolbar_link( $is_admin, $fire_wp_body_open, $hook_name ) {
+		if ( $is_admin ) {
+			set_current_screen( 'dashboard' );
+		}
+
+		if ( $fire_wp_body_open ) {
+			remove_all_actions( 'wp_body_open' );
+			do_action( 'wp_body_open' );
+		}
+
+		$admin_bar_html = $this->render_admin_bar_on_action( $hook_name );
+
+		$this->assertStringNotContainsString( 'wp-toolbar-skip-target', $admin_bar_html, 'The "Skip toolbar" link and its target should not be output.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_render_does_not_output_skip_toolbar_link() {
+		return array(
+			'theme without wp_body_open support' => array( false, false, 'wp_footer' ),
+			'toolbar moved to the footer'        => array( false, true, 'wp_footer' ),
+			'admin'                              => array( true, true, 'in_admin_header' ),
+		);
+	}
+
+	/**
+	 * Renders a toolbar with a single node while the given action is running.
+	 *
+	 * @param string $hook_name The action on which to render the toolbar.
+	 * @return string The toolbar HTML.
+	 */
+	private function render_admin_bar_on_action( $hook_name ) {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node( array( 'id' => 'test-node' ) );
+
+		$admin_bar_html = '';
+
+		remove_all_actions( $hook_name );
+		add_action(
+			$hook_name,
+			static function () use ( $admin_bar, &$admin_bar_html ) {
+				$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+			}
+		);
+		do_action( $hook_name );
+
+		return $admin_bar_html;
 	}
 
 	/**
@@ -988,5 +1104,204 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
+	}
+
+	/**
+	 * Tests that the Shortlink node is not added when shortlink is empty.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_does_not_add_node_when_shortlink_is_empty() {
+		$this->go_to( home_url( '/' ) );
+		$this->assertFalse( is_singular(), 'Precondition: the query should not be singular.' );
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNull( $node, 'The Shortlink node should not be added when shortlink is empty.' );
+	}
+
+	/**
+	 * Tests that the Shortlink node is added when a shortlink exists.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
+		$post_id  = self::factory()->post->create();
+		$expected = home_url( '?p=' . $post_id );
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when shortlink exists.' );
+		$this->assertSame( $expected, $node->href, 'The node href should be the post shortlink.' );
+		$this->assertSame( 'Shortlink', $node->title, 'The node title should be "Shortlink".' );
+		$this->assertStringContainsString(
+			'value="' . esc_attr( $expected ) . '"',
+			$node->meta['html'],
+			'The node HTML should contain the shortlink as the input value.'
+		);
+		$this->assertStringContainsString(
+			'aria-label="Shortlink"',
+			$node->meta['html'],
+			'The node HTML should contain "Shortlink" as the aria label.'
+		);
+	}
+
+	/**
+	 * Tests that the Shortlink node escapes the shortlink value in the HTML input value.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_escapes_shortlink_in_input_value() {
+		$expected = home_url( '?test=&quot;first&quot;&amp;coverage=&quot;second&quot;' );
+
+		add_filter(
+			'pre_get_shortlink',
+			static function () {
+				return home_url( '?test="first"&coverage="second"' );
+			}
+		);
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when a shortlink exists.' );
+		$this->assertStringContainsString(
+			'value="' . $expected . '"',
+			$node->meta['html'],
+			'The node HTML should contain the properly escaped shortlink in the input value.'
+		);
+	}
+
+	/**
+	 * Dashicons back-compat: replacing the title of the `wp-logo` node also replaces the WordPress logo.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 * @covers WP_Admin_Bar::_render_item
+	 */
+	public function test_wp_logo_node_title_replaced_without_icon_renders_no_icon(): void {
+		$title     = '<img src="https://example.org/logo.png" alt="" /> Brand';
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_wp_menu( $admin_bar );
+		$admin_bar->add_node(
+			array(
+				'id'    => 'wp-logo',
+				'title' => $title,
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'svg-icon', $html, 'The WordPress logo should not be rendered.' );
+		$this->assertStringContainsString( $title, $html, 'The new title should be rendered.' );
+	}
+
+	/**
+	 * An icon that is not registered counts as no icon, so that a Dashicon drawn for earlier versions still shows.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 *
+	 * @expectedIncorrectUsage WP_Admin_Bar::_render_item
+	 */
+	public function test_unregistered_icon_renders_no_icon_element(): void {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'my-plugin/not-registered',
+				'title' => 'Label',
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'ab-icon', $html, 'No icon element should be rendered.' );
+		$this->assertStringContainsString( 'Label', $html, 'The title should be rendered.' );
+	}
+
+	/**
+	 * Dashicons back-compat: `add_node()` used to ignore an `icon` key, so a value that is not an icon name still renders nothing.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 *
+	 * @dataProvider data_value_that_is_not_an_icon_name_renders_no_icon
+	 *
+	 * @param mixed $icon Value of the `icon` argument.
+	 */
+	public function test_value_that_is_not_an_icon_name_renders_no_icon( $icon ): void {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => $icon,
+				'title' => 'Label',
+				'href'  => 'https://example.org/',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringNotContainsString( 'ab-icon', $html, 'No icon element should be rendered.' );
+		$this->assertStringContainsString( 'Label', $html, 'The title should be rendered.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_value_that_is_not_an_icon_name_renders_no_icon(): array {
+		return array(
+			'Dashicons class'  => array( 'dashicons-admin-site' ),
+			'URL'              => array( 'https://example.org/icon.png' ),
+			'trailing newline' => array( "core/plus\n" ),
+			'empty string'     => array( '' ),
+			'false'            => array( false ),
+		);
+	}
+
+	/**
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::add_node
+	 */
+	public function test_icon_is_kept_when_node_is_updated(): void {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'icon'  => 'core-admin/plus',
+				'title' => 'Label',
+				'href'  => 'https://example.org/',
+			)
+		);
+		$admin_bar->add_node(
+			array(
+				'id'    => 'my-plugin',
+				'title' => 'New label',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
 	}
 }
