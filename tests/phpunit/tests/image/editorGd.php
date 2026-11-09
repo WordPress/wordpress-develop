@@ -554,16 +554,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( $file );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
+		$color_top_left = imagecolorat( $this->get_property_value( $gd_image_editor ), 0, 0 );
 
 		$gd_image_editor->rotate( 180 );
 
-		$this->assertSame( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 99, 99 ) );
+		$this->assertSame( $color_top_left, imagecolorat( $this->get_property_value( $gd_image_editor ), 99, 99 ) );
 	}
 
 	/**
@@ -575,16 +570,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$gd_image_editor = new WP_Image_Editor_GD( $file );
 		$gd_image_editor->load();
 
-		$property = new ReflectionProperty( $gd_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$color_top_left = imagecolorat( $property->getValue( $gd_image_editor ), 0, 0 );
+		$color_top_left = imagecolorat( $this->get_property_value( $gd_image_editor ), 0, 0 );
 
 		$gd_image_editor->flip( true, false );
 
-		$this->assertSame( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 0, 99 ) );
+		$this->assertSame( $color_top_left, imagecolorat( $this->get_property_value( $gd_image_editor ), 0, 99 ) );
 	}
 
 	/**
