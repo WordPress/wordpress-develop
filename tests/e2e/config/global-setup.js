@@ -38,9 +38,15 @@ async function globalSetup( config ) {
 	// Authenticate and save the storageState to disk.
 	await requestUtils.setupRest();
 
+	/*
+	 * Switch the theme before the other resets. switch_theme() updates the `template`
+	 * and `stylesheet` options one at a time, so a request that loads between the two
+	 * sees a mismatched theme pair and can fail with a PHP error.
+	 */
+	await requestUtils.activateTheme( 'twentytwentyone' );
+
 	// Reset the test environment before running the tests.
 	await Promise.all( [
-		requestUtils.activateTheme( 'twentytwentyone' ),
 		requestUtils.deleteAllPosts(),
 		requestUtils.deleteAllBlocks(),
 		requestUtils.resetPreferences(),
