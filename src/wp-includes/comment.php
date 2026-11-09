@@ -3040,7 +3040,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if (
 		$old_type !== $new_type &&
 		(
-			! preg_match( '/^[a-z0-9_-]*$/', $new_type ) ||
+			! preg_match( '/^[a-z0-9_-]*\z/', $new_type ) ||
 			in_array( $old_type, array( 'note', 'reaction' ), true ) ||
 			in_array( $new_type, array( 'note', 'reaction' ), true )
 		)
