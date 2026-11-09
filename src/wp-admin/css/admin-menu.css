@@ -251,6 +251,11 @@
 	margin: 0;
 }
 
+#adminmenu .wp-submenu li.wp-submenu-separator {
+	border-top: 1px solid #646970;
+	margin: 6px 12px 0;
+}
+
 #adminmenu .wp-menu-image img {
 	padding: 9px 0 0;
 	opacity: 0.6;
