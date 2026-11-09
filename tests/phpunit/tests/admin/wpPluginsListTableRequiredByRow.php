@@ -15,7 +15,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	protected static $admin_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	}
 
 	/**
-	 * Tests the row for one plugin that requires the dependency.
+	 * Tests the row for one deactivated plugin that requires the dependency.
 	 *
 	 * @ticket 65819
 	 */
