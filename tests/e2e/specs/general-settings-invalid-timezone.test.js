@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
+import { GENERAL_SETTINGS } from '../utils/locks';
 
-test.describe( 'Settings -> General', () => {
+test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {
 	const invalidTimezones = [ '', '0', 'Barry/Gary' ];
 
 	test.beforeEach( async ( { admin } ) => {
