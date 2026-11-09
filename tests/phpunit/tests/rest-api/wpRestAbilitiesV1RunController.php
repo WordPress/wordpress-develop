@@ -743,6 +743,23 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a REST client can see that the callback ran when the output is invalid.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_output_validation_error_says_the_callback_ran(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 500, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'ability_invalid_output', $data['code'] );
+		$this->assertTrue( $data['data']['callback_executed'] );
+	}
+
+	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
 	 * @return array<string, array{0: string, 1: string}>

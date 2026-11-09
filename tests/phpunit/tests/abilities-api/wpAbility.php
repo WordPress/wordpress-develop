@@ -2866,4 +2866,138 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $ability->check_permissions() );
 	}
+
+	/**
+	 * Tests that an invalid output error says the callback already ran.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_invalid_output_error_says_the_callback_ran() {
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs );
+		$result  = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
+		$this->assertSame( 1, $runs, 'The callback should have run before the output was checked.' );
+		$this->assertSame( array( 'callback_executed' => true ), $result->get_error_data() );
+	}
+
+	/**
+	 * Tests that the error says the callback ran when a filter rejects the output with `false`.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_output_rejected_by_filter_with_false_says_the_callback_ran() {
+		add_filter( 'wp_ability_validate_output', '__return_false' );
+
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs );
+		$result  = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
+		$this->assertSame( array( 'callback_executed' => true ), $result->get_error_data() );
+	}
+
+	/**
+	 * Tests that a filter's own error says the callback ran and keeps the filter's data.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_output_rejected_by_filter_with_custom_error_keeps_its_data() {
+		$filter = static function () {
+			return new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
+		};
+
+		add_filter( 'wp_ability_validate_output', $filter );
+
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs );
+		$result  = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+		$this->assertSame(
+			array(
+				'status'            => 422,
+				'callback_executed' => true,
+			),
+			$result->get_error_data()
+		);
+	}
+
+	/**
+	 * Tests that errors from before the callback runs do not say that it ran.
+	 *
+	 * @ticket 66433
+	 *
+	 * @dataProvider data_errors_before_the_callback_runs
+	 *
+	 * @param array<string, mixed> $properties Ability properties that make the call fail early.
+	 * @param mixed                $input      The input to pass to the ability.
+	 * @param string               $error_code The expected error code.
+	 */
+	public function test_errors_before_the_callback_runs_do_not_say_it_ran( array $properties, $input, string $error_code ) {
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs, $properties );
+		$result  = $ability->execute( $input );
+
+		$this->assertWPError( $result );
+		$this->assertSame( $error_code, $result->get_error_code() );
+		$this->assertSame( 0, $runs, 'The callback should not have run.' );
+		$this->assertArrayNotHasKey( 'callback_executed', (array) $result->get_error_data() );
+	}
+
+	/**
+	 * Data provider for test_errors_before_the_callback_runs_do_not_say_it_ran().
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: mixed, 2: string}>
+	 */
+	public static function data_errors_before_the_callback_runs(): array {
+		return array(
+			'invalid input'     => array(
+				array(
+					'input_schema' => array(
+						'type'        => 'integer',
+						'description' => 'Test input integer.',
+					),
+				),
+				'not a number',
+				'ability_invalid_input',
+			),
+			'permission denied' => array(
+				array( 'permission_callback' => '__return_false' ),
+				null,
+				'ability_invalid_permissions',
+			),
+		);
+	}
+
+	/**
+	 * Creates an ability whose callback counts its runs and returns output that fails the schema.
+	 *
+	 * @param int                  $runs       Incremented each time the callback runs.
+	 * @param array<string, mixed> $properties Optional. Properties to override.
+	 * @return WP_Ability The ability.
+	 */
+	private function create_ability_with_invalid_output( int &$runs, array $properties = array() ): WP_Ability {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+				),
+				'execute_callback' => static function () use ( &$runs ): int {
+					++$runs;
+
+					return 42;
+				},
+			),
+			$properties
+		);
+
+		return new WP_Ability( self::$test_ability_name, $args );
+	}
 }
