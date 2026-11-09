@@ -261,6 +261,15 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			if ( $redirect_url ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
 			}
+		} elseif ( is_page() && ! empty( $_GET['pagename'] ) && ! get_query_var( 'paged' ) && ! $redirect_url ) {
+			$redirect_url = get_permalink( $wp_query->get_queried_object_id() );
+			$redirect_obj = get_post( $wp_query->get_queried_object_id() );
+
+			if ( $redirect_url ) {
+				// Feeds and comment pages are appended to this path further down.
+				$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
+				$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
+			}
 		} elseif ( is_page() && ! is_feed() && ! $redirect_url
 			&& 'page' === get_option( 'show_on_front' ) && get_queried_object_id() === (int) get_option( 'page_on_front' )
 		) {
@@ -273,6 +282,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( $redirect_url ) {
 				$redirect['query'] = remove_query_arg( 'page_id', $redirect['query'] );
+			}
+		} elseif ( is_home() && ! empty( $_GET['pagename'] ) && ! is_feed() && ! $redirect_url
+			&& 'page' === get_option( 'show_on_front' ) && $wp_query->get_queried_object_id() === (int) get_option( 'page_for_posts' )
+		) {
+			$redirect_url = get_permalink( get_option( 'page_for_posts' ) );
+			$redirect_obj = get_post( get_option( 'page_for_posts' ) );
+
+			if ( $redirect_url ) {
+				// Paging is appended to this path further down.
+				$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
+				$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
 			}
 		} elseif ( ! empty( $_GET['m'] ) && ( is_year() || is_month() || is_day() ) ) {
 			$m = get_query_var( 'm' );
@@ -317,8 +337,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					$redirect['query'] = remove_query_arg( 'year', $redirect['query'] );
 				}
 			}
-		} elseif ( is_author() && ! empty( $_GET['author'] )
-			&& is_string( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] )
+		} elseif ( is_author()
+			&& ( ( ! empty( $_GET['author'] ) && is_string( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] ) )
+				|| ( ! empty( $_GET['author_name'] ) && is_string( $_GET['author_name'] ) ) )
 		) {
 			$author = get_userdata( get_query_var( 'author' ) );
 
@@ -329,7 +350,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect_obj = $author;
 
 				if ( $redirect_url ) {
-					$redirect['query'] = remove_query_arg( 'author', $redirect['query'] );
+					// Paging and feeds are appended to this path further down.
+					$redirect['path']  = parse_url( $redirect_url, PHP_URL_PATH );
+					$redirect['query'] = remove_query_arg( array( 'author', 'author_name' ), $redirect['query'] );
 				}
 			}
 		} elseif ( is_category() || is_tag() || is_tax() ) { // Terms (tags/categories).
@@ -366,6 +389,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 						}
 
 						$rewrite_vars = array_diff( array_keys( $wp_query->query ), array_keys( $_GET ) );
+
+						/*
+						 * _post_format_request() adds a `post_type` query var to every post format request.
+						 * It is not part of the requested URL, so it does not come from the rewrite rules.
+						 */
+						if ( 'post_format' === $obj->taxonomy ) {
+							$rewrite_vars = array_diff( $rewrite_vars, array( 'post_type' ) );
+						}
 
 						// Check to see if all the query vars are coming from the rewrite, none are set via $_GET.
 						if ( ! array_diff( $rewrite_vars, array_keys( $_GET ) ) ) {
