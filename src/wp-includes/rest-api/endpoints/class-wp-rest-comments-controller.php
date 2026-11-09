@@ -731,6 +731,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// A note reply must answer a note on the same post.
+		if ( ! empty( $request['type'] ) && 'note' === $request['type'] && ! empty( $request['parent'] ) ) {
+			$parent_note = get_comment( absint( $request['parent'] ) );
+
+			if (
+				! $parent_note ||
+				'note' !== $parent_note->comment_type ||
+				( ! empty( $request['post'] ) && (int) $parent_note->comment_post_ID !== absint( $request['post'] ) )
+			) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A note reply must be attached to a note on the same post.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
 		/*
 		 * The canonical reaction key, populated once validated below so the
 		 * stored content matches what was validated (not the raw input).

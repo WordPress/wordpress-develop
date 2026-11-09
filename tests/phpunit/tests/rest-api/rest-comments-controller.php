@@ -6797,4 +6797,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertInstanceOf( WP_Comment::class, $reaction );
 		$this->assertSame( '2764', $reaction->comment_content );
 	}
+
+	/**
+	 * A note reply has to sit on the same post as the note it answers, or a
+	 * user could thread their own note under one on a post they cannot read.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_create_note_reply_under_note_on_another_post(): void {
+		list( , $note_id ) = $this->create_editor_note();
+		$post_b_id         = self::factory()->post->create();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'post', $post_b_id );
+		$request->set_param( 'parent', $note_id );
+		$request->set_param( 'content', 'Reply from another post' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
+	}
 }
