@@ -4819,7 +4819,7 @@ function wp_json_file_decode( $filename, $options = array() ) {
 		);
 		return null;
 	}
-	if ( ! is_readable( $normalize_filename ) ) {
+	if ( ! is_file( $normalize_filename ) || ! is_readable( $normalize_filename ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			sprintf(
