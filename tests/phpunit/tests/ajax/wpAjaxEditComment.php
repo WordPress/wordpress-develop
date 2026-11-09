@@ -376,4 +376,70 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 		$this->assertSame( (string) $target_post_id, $comment->comment_post_ID );
 	}
+
+	/**
+	 * An author who can reply beneath a note on their own post must not be
+	 * able to turn that reply into a reaction attributed to someone else.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_convert_comment_into_reaction(): void {
+		$this->_setRole( 'author' );
+
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$post_id  = self::factory()->post->create( array( 'post_author' => get_current_user_id() ) );
+		$note_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+
+		// Step 1: reply beneath the note with an ordinary comment.
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_post_ID']             = $post_id;
+		$_POST['comment_ID']                  = $note_id;
+		$_POST['content']                     = 'Ordinary reply';
+
+		try {
+			$this->_handleAjax( 'replyto-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$replies = get_comments(
+			array(
+				'post_id' => $post_id,
+				'parent'  => $note_id,
+				'type'    => 'comment',
+				'status'  => 'all',
+				'fields'  => 'ids',
+			)
+		);
+		$this->assertCount( 1, $replies );
+		$reply_id = (int) $replies[0];
+
+		// Step 2: edit the reply into a reaction owned by the administrator.
+		$_POST                                = array();
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $reply_id;
+		$_POST['content']                     = '2764';
+		$_POST['comment_type']                = 'reaction';
+		$_POST['user_id']                     = $admin_id;
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( 'comment', $reply->comment_type );
+		$this->assertSame( 'Ordinary reply', $reply->comment_content );
+		$this->assertSame( (string) get_current_user_id(), $reply->user_id );
+	}
 }

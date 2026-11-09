@@ -3023,6 +3023,29 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
+	/*
+	 * Notes and reactions are validated as a set when the REST API creates
+	 * them, and an update does not repeat that validation. Changing a
+	 * comment into one of those types, or one of them into a plain comment,
+	 * would produce a row that creation would have refused.
+	 */
+	$old_type = is_string( $comment['comment_type'] ) ? strtolower( $comment['comment_type'] ) : '';
+	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? strtolower( $commentarr['comment_type'] ) : $old_type;
+
+	if (
+		$old_type !== $new_type &&
+		(
+			in_array( $old_type, array( 'note', 'reaction' ), true ) ||
+			in_array( $new_type, array( 'note', 'reaction' ), true )
+		)
+	) {
+		if ( $wp_error ) {
+			return new WP_Error( 'comment_type_immutable', __( 'Comments cannot be converted to or from notes and reactions.' ) );
+		} else {
+			return false;
+		}
+	}
+
 	// Make sure that the comment post ID is valid (if specified).
 	if ( ! empty( $commentarr['comment_post_ID'] ) && ! get_post( $commentarr['comment_post_ID'] ) ) {
 		if ( $wp_error ) {

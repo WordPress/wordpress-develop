@@ -2776,4 +2776,67 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 		$this->assertSame( (string) $parent_id, $comment->comment_parent );
 	}
+
+	/**
+	 * @ticket security-2719
+	 *
+	 * @dataProvider data_restricted_comment_types
+	 *
+	 * @param string $type Type the comment must not be converted into.
+	 */
+	public function test_wp_update_comment_refuses_to_convert_a_comment_into_a_note_or_reaction( string $type ): void {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'   => $comment_id,
+				'comment_type' => $type,
+			),
+			true
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
+	 * @ticket security-2719
+	 */
+	public function test_wp_update_comment_refuses_to_convert_a_note_into_a_comment(): void {
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'   => $note_id,
+				'comment_type' => 'comment',
+			),
+			true
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_restricted_comment_types(): array {
+		return array(
+			'reaction'           => array( 'reaction' ),
+			'reaction uppercase' => array( 'Reaction' ),
+			'note'               => array( 'note' ),
+		);
+	}
 }
