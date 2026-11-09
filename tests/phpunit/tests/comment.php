@@ -2841,4 +2841,35 @@ class Tests_Comment extends WP_UnitTestCase {
 			'note'               => array( 'note' ),
 		);
 	}
+
+	/**
+	 * A case-only change would store a type most of core compares strictly.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_wp_update_comment_refuses_a_case_only_change_to_a_note_type(): void {
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'   => $note_id,
+				'comment_type' => 'NOTE',
+			),
+			true
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( 'note', $note->comment_type );
+	}
 }

@@ -3030,19 +3030,20 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	 * would produce a row that creation would have refused.
 	 *
 	 * The database compares comment types with a case- and accent-insensitive
-	 * collation, so a new type is also limited to ASCII key characters. That
-	 * way the check below sees every spelling the database would treat as a
-	 * note or reaction.
+	 * collation while most of core compares them strictly, so the raw values
+	 * are compared here and a new type is limited to ASCII key characters.
+	 * That way a spelling the database would treat as a note or reaction, or
+	 * a case-only change to one, is refused as well.
 	 */
-	$old_type = is_string( $comment['comment_type'] ) ? strtolower( $comment['comment_type'] ) : '';
-	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? strtolower( $commentarr['comment_type'] ) : $old_type;
+	$old_type = is_string( $comment['comment_type'] ) ? $comment['comment_type'] : '';
+	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? $commentarr['comment_type'] : $old_type;
 
 	if (
 		$old_type !== $new_type &&
 		(
-			! preg_match( '/^[a-z0-9_-]*\z/', $new_type ) ||
-			in_array( $old_type, array( 'note', 'reaction' ), true ) ||
-			in_array( $new_type, array( 'note', 'reaction' ), true )
+			! preg_match( '/^[a-z0-9_-]*\z/i', $new_type ) ||
+			in_array( strtolower( $old_type ), array( 'note', 'reaction' ), true ) ||
+			in_array( strtolower( $new_type ), array( 'note', 'reaction' ), true )
 		)
 	) {
 		if ( $wp_error ) {
