@@ -1423,22 +1423,6 @@ class WP_Rewrite {
 		 */
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
 
-		// Random content rewrite rules.
-		$random_rewrite = $this->random_rewrite_rules();
-
-		/**
-		 * Filters rewrite rules used for random content redirects.
-		 *
-		 * Likely random content rules would include `/random/`, as well as
-		 * term, author and post type archives prefixed with the random base,
-		 * for example `/random/category/news/`.
-		 *
-		 * @since 7.2.0
-		 *
-		 * @param array<string, string> $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
-		 */
-		$random_rewrite = apply_filters( 'random_rewrite_rules', $random_rewrite );
-
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
@@ -1485,7 +1469,35 @@ class WP_Rewrite {
 			$this->extra_rules_top = array_merge( $this->extra_rules_top, $rules );
 		}
 
-		// Put them together.
+		/*
+		 * Random content rewrite rules.
+		 *
+		 * The random content rules check whether an existing rule already uses the
+		 * random base. The page and post rules are generic catch-all rules matching
+		 * any path, so are not checked. Pages and posts at the random base are
+		 * accounted for separately by WP_Rewrite::random_rewrite_rules().
+		 */
+		$random_rewrite = $this->random_rewrite_rules(
+			array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $this->extra_rules )
+		);
+
+		/**
+		 * Filters rewrite rules used for random content redirects.
+		 *
+		 * Likely random content rules would include `/random/`, as well as
+		 * term, author and post type archives prefixed with the random base,
+		 * for example `/random/category/news/`.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param array<string, string> $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
+		 */
+		$random_rewrite = apply_filters( 'random_rewrite_rules', $random_rewrite );
+
+		/*
+		 * Put them together, with the random content rules ahead of the generic rules
+		 * such as the page and post rules which would otherwise match them first.
+		 */
 		if ( $this->use_verbose_page_rules ) {
 			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $random_rewrite, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
@@ -1539,17 +1551,23 @@ class WP_Rewrite {
 	 *
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
+	 * @param array<string, string>|null $existing_rules Optional. Existing rewrite rules to check for rules using the
+	 *                                                  random base, keyed by their regex pattern. Generic catch-all
+	 *                                                  rules, such as the page and post rules, should not be included
+	 *                                                  as they match any path. Default null, the extra rules added
+	 *                                                  via WP_Rewrite::add_rule() and WP_Rewrite::add_permastruct().
 	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 *
 	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
-	public function random_rewrite_rules(): array {
+	public function random_rewrite_rules( ?array $existing_rules = null ): array {
 		if ( ! wp_is_random_content_redirect_enabled() ) {
 			return array();
 		}
 
-		$random_slug = $this->get_random_base();
-		$random_base = $this->root . $random_slug;
+		$random_slug         = $this->get_random_base();
+		$random_base         = $this->root . $random_slug;
+		$catch_all_test_base = "{$this->root}catchall{$random_slug}"; // No hyphens to account for [A-z0-9] rules.
 
 		$rules = array();
 
@@ -1563,6 +1581,66 @@ class WP_Rewrite {
 			$random_base_posts,
 			fn( $random_base_post ) => $random_base_post instanceof WP_Post && is_post_publicly_viewable( $random_base_post )
 		);
+
+		if ( ! $random_base_is_taken ) {
+			/*
+			 * WP::parse_request() trims slashes from the requested path before matching
+			 * it against the rules, so the path is matched without a trailing slash
+			 * regardless of the permalink structure.
+			 */
+			$random_base_path = untrailingslashit( $random_base );
+
+			/*
+			 * The generic catch-all page and post rules match any path, including the
+			 * random base, so are excluded from the existing rules. Pages and posts at
+			 * the random base, which these rules serve, are accounted for above.
+			 */
+			$existing_rules ??= array_merge( $this->extra_rules_top, $this->extra_rules );
+
+			foreach ( $existing_rules as $regex => $query ) {
+				/*
+				 * Match the same way WP::parse_request() does, so the regex is anchored to
+				 * the start of the path whether or not it includes a leading caret.
+				 *
+				 * Matching the regex rather than comparing strings accounts for rules
+				 * written in any form, such as `random/?$`, `^random/?$`, `(random|pens)/?$`,
+				 * `(rand)om/?$` or `[r]andom/?$`, while rules for similarly named paths,
+				 * such as `randomful/?$` or `random-ful/?$`, do not match.
+				 *
+				 * A rule requiring a trailing slash, such as `^random/(.*)?`, never matches
+				 * a request for the random base, so it does not take it.
+				 */
+				$pattern = "#^{$regex}#";
+				if ( ! preg_match( $pattern, $random_base_path ) ) {
+					continue;
+				}
+
+				/*
+				 * Generic catch-all rules, such as `(.+?)/?$` or `([^/]+)/?$`, match any
+				 * path including the random base. A rule also matching a path other than
+				 * the random base, for example `notrandom`, is a catch-all rule so does
+				 * not take the random base.
+				 */
+				if ( preg_match( $pattern, $catch_all_test_base ) ) {
+					continue;
+				}
+
+				$random_base_is_taken = true;
+				break;
+			}
+		}
+
+		/**
+		 * Filter whether the Random Redirect base is taken.
+		 *
+		 * Determine whether the random base redirect is taken. The random base may be
+		 * modified depending on the site's language or permalink settings. Always determin
+		 * the value from the second parameter, `$random_base`.
+		 *
+		 * @param bool   $random_base_is_taken Whether the random base is known to be taken.
+		 * @param string $random_base          The random base slug for the site.
+		 */
+		$random_base_is_taken = apply_filters( 'wp_rewrite_random_base_is_taken', $random_base_is_taken, $random_base );
 
 		if ( ! $random_base_is_taken ) {
 			$rules[ $random_base . '/?$' ] = $this->index . '?random=1';
