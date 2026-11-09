@@ -463,7 +463,7 @@ class ftp_base {
 		if(!$this->_exec("SYST", "systype")) return FALSE;
 		if(!$this->_checkCode()) return FALSE;
 		$DATA = explode(" ", $this->_message);
-		return array($DATA[1], $DATA[3]);
+		return array($DATA[1], $DATA[3] ?? null);
 	}
 
 	function delete($pathname) {
