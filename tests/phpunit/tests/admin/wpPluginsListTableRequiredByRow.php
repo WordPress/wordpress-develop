@@ -85,13 +85,16 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 * @param array $dependencies The dependency slugs of each plugin, keyed by plugin file.
 	 */
 	private function set_dependencies( $dependencies ) {
-		$plugins = array();
+		$plugins        = array();
+		$dependent_slugs = array();
 		foreach ( array_keys( $dependencies ) as $file ) {
-			$plugins[ $file ] = array( 'Name' => ucfirst( dirname( $file ) ) . ' Plugin' );
+			$plugins[ $file ]         = array( 'Name' => ucfirst( dirname( $file ) ) . ' Plugin' );
+			$dependent_slugs[ $file ] = dirname( $file );
 		}
 
 		$this->set_property_value( 'plugins', $plugins );
 		$this->set_property_value( 'dependencies', $dependencies );
+		$this->set_property_value( 'dependent_slugs', $dependent_slugs );
 	}
 
 	/**
