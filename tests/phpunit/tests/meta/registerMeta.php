@@ -10,6 +10,13 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	protected static $user_id;
 	protected static $blog_id;
 
+	public function set_up() {
+		parent::set_up();
+
+		// These tests inspect the complete registry, independently of bootstrap registrations.
+		$this->unregister_all_meta_keys();
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id    = $factory->post->create( array( 'post_type' => 'page' ) );
 		self::$term_id    = $factory->term->create( array( 'taxonomy' => 'category' ) );
@@ -611,7 +618,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		return 'even';
 	}
 
-	public function data_get_default_data() {
+	public static function data_get_default_data() {
 		return array(
 			'single string key with single ask '          => array(
 				array(
@@ -953,7 +960,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_get_invalid_default_data() {
+	public static function data_get_invalid_default_data() {
 		return array(
 			array(
 				array(
@@ -1106,7 +1113,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_get_types_and_subtypes() {
+	public static function data_get_types_and_subtypes() {
 		return array(
 			array( 'post', 'page' ),
 			array( 'term', 'category' ),

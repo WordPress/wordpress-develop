@@ -48,6 +48,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	private static $property_core_orig_value;
 
 	/**
+	 * WP_Theme_JSON_Resolver::$merged property.
+	 *
+	 * @var ReflectionProperty
+	 */
+	private static $property_merged;
+
+	/**
 	 * Theme root directory.
 	 *
 	 * @var string|null
@@ -60,11 +67,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @var array|null
 	 */
 	private $orig_theme_dir;
-
-	/**
-	 * @var array|null
-	 */
-	private $queries;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
@@ -87,6 +89,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			static::$property_core->setAccessible( true );
 		}
 		static::$property_core_orig_value = static::$property_core->getValue();
+
+		static::$property_merged = new ReflectionProperty( WP_Theme_JSON_Resolver::class, 'merged' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			static::$property_merged->setAccessible( true );
+		}
 	}
 
 	public static function tear_down_after_class() {
@@ -108,7 +115,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
-		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -330,7 +336,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_not_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_not_cached() {
 		return array(
 			'origin: core; cache: empty'       => array(
 				'origin' => 'core',
@@ -405,7 +411,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_are_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_are_cached() {
 		return array(
 			'core'   => array( 'core' ),
 			'blocks' => array( 'blocks' ),
@@ -450,7 +456,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_core_data() {
+	public static function data_get_core_data() {
 		return array(
 			'When both caches are empty'     => array(
 				'should_fire_filter' => true,
@@ -983,7 +989,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_merged_data_returns_origin() {
+	public static function data_get_merged_data_returns_origin() {
 		return array(
 			'origin_default' => array(
 				'origin'             => 'default',
@@ -1067,7 +1073,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_style_variations() {
+	public static function data_get_style_variations() {
 		return array(
 			// @ticket 57545
 			'theme_style_variations' => array(
@@ -1532,5 +1538,189 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unregister_block_style( 'core/media-text', 'block-style-variation-a' );
 
 		$this->assertSameSetsWithIndex( $expected, $actual, 'Merged variation styles do not match.' );
+	}
+
+	/**
+	 * @ticket 66280
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 */
+	public function test_get_merged_data_returns_a_separate_instance_per_call(): void {
+		$first  = WP_Theme_JSON_Resolver::get_merged_data();
+		$second = WP_Theme_JSON_Resolver::get_merged_data();
+
+		$this->assertNotSame( $first, $second, 'Each call should return its own instance.' );
+		$this->assertSameSetsWithIndex(
+			$first->get_raw_data(),
+			$second->get_raw_data(),
+			'Repeated calls should return equivalent data.'
+		);
+	}
+
+	/**
+	 * @ticket 66280
+	 * @dataProvider data_merged_data_origins
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 *
+	 * @param string $origin Origin to request.
+	 */
+	public function test_get_merged_data_returns_the_memoized_data( string $origin ): void {
+		WP_Theme_JSON_Resolver::get_merged_data( $origin );
+
+		$sentinel = $this->replace_merged_data_with_sentinel( $origin );
+		$result   = WP_Theme_JSON_Resolver::get_merged_data( $origin );
+
+		$this->assertSame(
+			'sentinel',
+			$result->get_raw_data()['styles']['color']['text'] ?? null,
+			'The second call should return the data memoized by the first.'
+		);
+		$this->assertNotSame( $sentinel, $result, 'A copy of the memoized data should be returned, not the memoized instance.' );
+	}
+
+	/**
+	 * Callers are free to modify the returned data. WP_Theme_JSON::resolve_variables()
+	 * does exactly that, so a modification must not be observable by the next caller.
+	 *
+	 * @ticket 66280
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 */
+	public function test_get_merged_data_is_not_affected_by_modifying_the_result(): void {
+		// A style referencing a preset is injected because no bundled theme fixture has one that resolves.
+		$filter = static function ( WP_Theme_JSON_Data $theme_json ): WP_Theme_JSON_Data {
+			return $theme_json->update_with(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array(
+						'typography' => array(
+							'fontFamilies' => array(
+								array(
+									'slug'       => 'test-font',
+									'name'       => 'Test Font',
+									'fontFamily' => 'Test Font, sans-serif',
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'typography' => array( 'fontFamily' => 'var(--wp--preset--font-family--test-font)' ),
+					),
+				)
+			);
+		};
+		add_filter( 'wp_theme_json_data_theme', $filter );
+		$path = array( 'typography', 'fontFamily' );
+
+		$before   = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
+		$resolved = _wp_array_get(
+			WP_Theme_JSON::resolve_variables( WP_Theme_JSON_Resolver::get_merged_data() )->get_raw_data()['styles'],
+			$path
+		);
+		$after    = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
+
+		$this->assertSame( 'var(--wp--preset--font-family--test-font)', $before, 'The theme data should reference a preset.' );
+		$this->assertSame( 'Test Font, sans-serif', $resolved, 'Expected the preset reference to resolve.' );
+		$this->assertSame( $before, $after, 'Resolving variables should not affect subsequent calls.' );
+	}
+
+	/**
+	 * @ticket 66280
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 */
+	public function test_get_merged_data_reflects_blocks_registered_after_a_previous_call(): void {
+		// The first call records the registered blocks and stores the data; the second returns it.
+		WP_Theme_JSON_Resolver::get_merged_data();
+		WP_Theme_JSON_Resolver::get_merged_data();
+
+		register_block_type(
+			'test/block-gap',
+			array(
+				'supports' => array(
+					'__experimentalStyle' => array(
+						'spacing' => array( 'blockGap' => '77px' ),
+					),
+				),
+			)
+		);
+
+		$styles = WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'];
+
+		unregister_block_type( 'test/block-gap' );
+
+		$this->assertSame(
+			'77px',
+			$styles['blocks']['test/block-gap']['spacing']['blockGap'] ?? null,
+			'Data for a block registered after a previous call should be present.'
+		);
+	}
+
+	/**
+	 * @ticket 66280
+	 * @dataProvider data_merged_data_origins
+	 * @covers WP_Theme_JSON_Resolver::clean_cached_data
+	 *
+	 * @param string $origin Origin to request.
+	 */
+	public function test_clean_cached_data_refreshes_merged_data( string $origin ): void {
+		WP_Theme_JSON_Resolver::get_merged_data( $origin );
+		$this->replace_merged_data_with_sentinel( $origin );
+
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
+		$this->assertNotSame(
+			'sentinel',
+			WP_Theme_JSON_Resolver::get_merged_data( $origin )->get_raw_data()['styles']['color']['text'] ?? null,
+			'Cleaning the cached data should discard the memoized merged data.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_merged_data_origins(): array {
+		return array(
+			'default' => array( 'default' ),
+			'blocks'  => array( 'blocks' ),
+			'theme'   => array( 'theme' ),
+			'custom'  => array( 'custom' ),
+		);
+	}
+
+	/**
+	 * @ticket 66280
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 */
+	public function test_switching_theme_refreshes_merged_data(): void {
+		switch_theme( 'block-theme' );
+		$before = wp_list_pluck( WP_Theme_JSON_Resolver::get_merged_data()->get_settings()['color']['palette']['theme'] ?? array(), 'slug' );
+
+		switch_theme( 'default' );
+		$after = wp_list_pluck( WP_Theme_JSON_Resolver::get_merged_data()->get_settings()['color']['palette']['theme'] ?? array(), 'slug' );
+
+		$this->assertContains( 'light', $before, 'The block theme palette should be present while it is active.' );
+		$this->assertNotContains( 'light', $after, 'Switching themes should refresh the merged data.' );
+	}
+
+	/**
+	 * Replaces the memoized merged data for an origin with a recognizable instance.
+	 *
+	 * @param string $origin Origin to replace the data for.
+	 * @return WP_Theme_JSON The instance now memoized for the origin.
+	 */
+	private function replace_merged_data_with_sentinel( string $origin ): WP_Theme_JSON {
+		$sentinel = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array( 'color' => array( 'text' => 'sentinel' ) ),
+			)
+		);
+
+		$merged = static::$property_merged->getValue();
+		$this->assertArrayHasKey( $origin, $merged, 'The merged data should be stored for the origin before it is replaced.' );
+		$merged[ $origin ] = $sentinel;
+		static::$property_merged->setValue( null, $merged );
+
+		return $sentinel;
 	}
 }

@@ -81,7 +81,7 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_should_not_switch_to_same_user_type_equivalency(): array {
+	public static function data_should_not_switch_to_same_user_type_equivalency(): array {
 		return array(
 			'integer' => array( 'type_function' => 'intval' ),
 			'string'  => array( 'type_function' => 'strval' ),
