@@ -9561,8 +9561,7 @@ function wp_verify_fast_hash(
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
- * @param array $new_item The application password details. The `name` and `app_id`
- *                        values are slashed.
+ * @param array $new_item The application password details.
  */
 function wp_application_password_created_notification( $user_id, $new_item ) {
 	$send = true;
@@ -9586,10 +9585,6 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	/**
 	 * Filters whether to send the application password created notification email.
 	 *
-	 * The user-supplied values in `$new_item` (`name` and `app_id`) are slashed,
-	 * matching the `wp_create_application_password` action. Callbacks should pass
-	 * them through wp_unslash() before using them for display or comparison.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @param bool    $send     Whether to send the email notification.
@@ -9598,8 +9593,8 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *     The details about the created password.
 	 *
 	 *     @type string $uuid      The unique identifier for the application password.
-	 *     @type string $app_id    A UUID provided by the application to uniquely identify it. Slashed.
-	 *     @type string $name      The name of the application password. Slashed.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
 	 *     @type string $password  A one-way hash of the password.
 	 *     @type int    $created   Unix timestamp of when the password was created.
 	 *     @type null   $last_used Null.
@@ -9647,13 +9642,6 @@ All at ###SITENAME###
 	/**
 	 * Filters the contents of the email notification sent to a user when a new application password is created.
 	 *
-	 * The user-supplied values in `$new_item` (`name` and `app_id`) are slashed,
-	 * matching the `wp_create_application_password` action. Callbacks should pass
-	 * them through wp_unslash() before using them for display or comparison,
-	 * including when adding them to the email message.
-	 *
-	 * The values in `$email` and `$user` are not slashed.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @param array   $email {
@@ -9676,8 +9664,8 @@ All at ###SITENAME###
 	 *     The details about the created password.
 	 *
 	 *     @type string $uuid      The unique identifier for the application password.
-	 *     @type string $app_id    A UUID provided by the application to uniquely identify it. Slashed.
-	 *     @type string $name      The name of the application password. Slashed.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
 	 *     @type string $password  A one-way hash of the password.
 	 *     @type int    $created   Unix timestamp of when the password was created.
 	 *     @type null   $last_used Null.
@@ -9687,7 +9675,7 @@ All at ###SITENAME###
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
-	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', wp_unslash( $new_item['name'] ), $email['message'] );
+	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
 	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
