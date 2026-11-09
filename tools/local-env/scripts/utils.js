@@ -28,6 +28,26 @@ const local_env_utils = {
 	},
 
 	/**
+	 * Loads the settings in .env into `process.env`.
+	 *
+	 * Variables that are already set in the environment take precedence over the values in .env.
+	 * Values are not expanded: Docker Compose expands `${VAR}` references itself when it reads .env.
+	 */
+	load_env: function() {
+		try {
+			process.loadEnvFile( join( repo_root, '.env' ) );
+		} catch ( e ) {
+			/*
+			 * The script should still run when the .env file is missing, falling back to the defined
+			 * default values. Missing .env files are already detected and noted by ensure_env_file().
+			 */
+			if ( e.code !== 'ENOENT' ) {
+				console.warn( `Could not load the .env file. ${ e.message }` );
+			}
+		}
+	},
+
+	/**
 	 * Runs a Docker Compose command, re-attempting it when it fails.
 	 *
 	 * Any command that reaches a registry can fail for reasons that clear on their own, such as

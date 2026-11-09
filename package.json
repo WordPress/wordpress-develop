@@ -55,8 +55,6 @@
 		"@wordpress/prettier-config": "4.51.0",
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
-		"dotenv": "17.4.2",
-		"dotenv-expand": "13.0.0",
 		"grunt": "1.6.2",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.1",

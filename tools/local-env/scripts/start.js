@@ -1,13 +1,11 @@
 /* jshint node:true */
 
-const dotenv       = require( 'dotenv' );
-const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 
 local_env_utils.ensure_env_file();
 
-dotenvExpand.expand( dotenv.config() );
+local_env_utils.load_env();
 
 // Check if the Docker service is running.
 try {
