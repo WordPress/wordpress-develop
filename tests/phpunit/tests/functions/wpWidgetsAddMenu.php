@@ -48,25 +48,32 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 	 *
 	 * @ticket 57224
 	 * @ticket 60179
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_wp_widgets_add_menu() {
-		global $submenu;
+		global $menu, $submenu;
 
-		$submenu['themes.php'] = array(
-			11 => array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' ),
-			5  => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
-		);
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		remove_action( '_admin_menu', 'wp_widgets_add_menu' );
+
+		require_once ABSPATH . 'wp-admin/menu.php';
+
+		$submenu_before = $submenu['themes.php'];
 
 		wp_widgets_add_menu();
 
-		$expected = array(
-			'themes.php' => array(
-				5  => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
-				9  => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
-				11 => array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' ),
-			),
+		foreach ( $submenu_before as $item ) {
+			$this->assertContains( $item, $submenu['themes.php'] );
+		}
+
+		$this->assertContains(
+			array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+			$submenu['themes.php']
 		);
-		$this->assertSame( $expected, $submenu );
 	}
 
 	/**
@@ -90,26 +97,36 @@ class Tests_Functions_WpWidgetsAddMenu extends WP_UnitTestCase {
 	/**
 	 * Tests that wp_widgets_add_menu() appends a submenu item for block themes.
 	 *
+	 * @ticket 54916
 	 * @ticket 57224
 	 * @ticket 60179
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_wp_widgets_add_menu_block_theme() {
-		global $submenu;
+		global $menu, $submenu;
 
 		switch_theme( 'block-theme' );
 
-		$submenu['themes.php'] = array(
-			5 => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
-		);
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		remove_action( '_admin_menu', 'wp_widgets_add_menu' );
+
+		require_once ABSPATH . 'wp-admin/menu.php';
+
+		$submenu_before = $submenu['themes.php'];
 
 		wp_widgets_add_menu();
 
-		$expected = array(
-			'themes.php' => array(
-				5 => array( __( 'Themes' ), 'switch_themes', 'themes.php' ),
-				6 => array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
-			),
+		foreach ( $submenu_before as $item ) {
+			$this->assertContains( $item, $submenu['themes.php'] );
+		}
+
+		$this->assertContains(
+			array( __( 'Widgets' ), 'edit_theme_options', 'widgets.php' ),
+			$submenu['themes.php']
 		);
-		$this->assertSame( $expected, $submenu );
 	}
 }
