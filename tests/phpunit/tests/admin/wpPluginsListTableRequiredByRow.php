@@ -12,6 +12,12 @@ require_once __DIR__ . '/plugin-dependencies/base.php';
  */
 class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_UnitTestCase {
 
+	protected static $admin_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	/**
 	 * Tests that nothing is output for a plugin that no plugin requires.
 	 *
@@ -36,10 +42,11 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 				'unrelated/unrelated.php' => array( 'other' ),
 			)
 		);
+		wp_set_current_user( self::$admin_id );
 
 		$this->assertSame(
 			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
-			. '<p>Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.</p></div>',
+			. '<p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>',
 			$this->get_row( 'dependency/dependency.php' )
 		);
 	}
