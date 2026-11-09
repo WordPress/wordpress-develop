@@ -16,6 +16,10 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
 	}
 
 	/**
