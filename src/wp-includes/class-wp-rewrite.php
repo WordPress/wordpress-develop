@@ -1631,16 +1631,22 @@ class WP_Rewrite {
 		}
 
 		/**
-		 * Filter whether the Random Redirect base is taken.
+		 * Filters whether the random content redirect base is taken.
 		 *
-		 * Determine whether the random base redirect is taken. The random base may be
-		 * modified depending on the site's language or permalink settings. Always determin
-		 * the value from the second parameter, `$random_base`.
+		 * When the random base is taken, the `/random/` rewrite rule is omitted. The random
+		 * base may vary depending on the site's language or permalink settings, so always
+		 * determine the value from the `$random_base` or `$random_slug` parameters.
+		 *
+		 * @since 7.2.0
 		 *
 		 * @param bool   $random_base_is_taken Whether the random base is known to be taken.
-		 * @param string $random_base          The random base slug for the site.
+		 * @param string $random_base          The random base for the site, including the PATHINFO
+		 *                                     prefix when using PATHINFO permalinks, for example
+		 *                                     `random` or `index.php/random`.
+		 * @param string $random_slug          The random base slug for the site, without the PATHINFO
+		 *                                     prefix, for example `random`.
 		 */
-		$random_base_is_taken = apply_filters( 'wp_rewrite_random_base_is_taken', $random_base_is_taken, $random_base );
+		$random_base_is_taken = apply_filters( 'wp_rewrite_random_base_is_taken', $random_base_is_taken, $random_base, $random_slug );
 
 		if ( ! $random_base_is_taken ) {
 			$rules[ $random_base . '/?$' ] = $this->index . '?random=1';
