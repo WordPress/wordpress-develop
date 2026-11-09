@@ -20,7 +20,7 @@ class Tests_Comment_wpBatchUpdateCommentType extends WP_UnitTestCase {
 			"UPDATE {$wpdb->comments}
 			SET comment_type = ''
 			WHERE comment_type = 'comment'
-			AND comment_ID in ({$comment_id_list})" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			AND comment_ID in ({$comment_id_list})"
 		);
 
 		clean_comment_cache( $comment_ids );

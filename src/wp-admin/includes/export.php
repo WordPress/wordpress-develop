@@ -108,7 +108,6 @@ function export_wp( $args = array() ) {
 		$post_types = get_post_types( array( 'can_export' => true ) );
 		$esses      = array_fill( 0, count( $post_types ), '%s' );
 
-		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		$where = $wpdb->prepare( "{$wpdb->posts}.post_type IN (" . implode( ',', $esses ) . ')', $post_types );
 	}
 

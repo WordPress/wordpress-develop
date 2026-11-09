@@ -134,7 +134,6 @@ function _delete_all_data() {
 		$wpdb->term_relationships,
 		$wpdb->termmeta,
 	) as $table ) {
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
 	}
 
@@ -142,7 +141,6 @@ function _delete_all_data() {
 		$wpdb->terms,
 		$wpdb->term_taxonomy,
 	) as $table ) {
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table} WHERE term_id != 1" );
 	}
 

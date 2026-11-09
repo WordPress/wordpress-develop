@@ -544,7 +544,6 @@ function drop_tables() {
 	global $wpdb;
 	$tables = $wpdb->get_col( 'SHOW TABLES;' );
 	foreach ( $tables as $table ) {
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 	}
 }

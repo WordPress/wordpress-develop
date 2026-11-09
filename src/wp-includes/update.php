@@ -119,7 +119,6 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	$table_names   = implode( "','", $wpdb->tables() );
 	$myisam_tables = $wpdb->get_results(
 		$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
 			"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
 			DB_NAME,
 			'MyISAM'

@@ -169,7 +169,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		foreach ( $wpdb->tables( 'blog', false ) as $table ) {
 			$suppress = $wpdb->suppress_errors();
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
 
 			$wpdb->suppress_errors( $suppress );
@@ -178,7 +177,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			$this->assertNotEmpty( $table_fields );
 
 			// And the table should not be empty, unless commentmeta, termmeta, or links.
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$result = $wpdb->get_results( "SELECT * FROM $prefix$table LIMIT 1" );
 
 			if ( 'commentmeta' === $table || 'termmeta' === $table || 'links' === $table ) {
@@ -252,7 +250,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		foreach ( $wpdb->tables( 'blog', false ) as $table ) {
 			$suppress = $wpdb->suppress_errors();
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
 
 			$wpdb->suppress_errors( $suppress );
@@ -293,7 +290,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		foreach ( $wpdb->tables( 'blog', false ) as $table ) {
 			$suppress = $wpdb->suppress_errors();
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
 
 			$wpdb->suppress_errors( $suppress );
@@ -334,7 +330,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		foreach ( $wpdb->tables( 'blog', false ) as $table ) {
 			$suppress = $wpdb->suppress_errors();
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
 
 			$wpdb->suppress_errors( $suppress );

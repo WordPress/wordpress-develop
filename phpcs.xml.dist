@@ -125,7 +125,11 @@
 	#############################################################################
 	-->
 
-	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress-Core">
+		<!-- PHPStan reports these, under the same codes. See tests/phpstan/README.md. -->
+		<exclude name="WordPress.DB.PreparedSQL.InterpolatedNotPrepared"/>
+		<exclude name="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare"/>
+	</rule>
 
 
 	<!--
@@ -139,9 +143,6 @@
 		<type>warning</type>
 		<!-- Exclude the unit tests as no warnings are allowed there. Note: these issues should be fixed and the exclude removed! -->
 		<exclude-pattern>/tests/phpunit/*</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
-		<type>warning</type>
 	</rule>
 	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
 		<type>warning</type>
@@ -313,9 +314,6 @@
 
 	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders
 		 (as the handling of those are being tested). -->
-	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">
-		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
-	</rule>
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder">
 		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
 	</rule>
