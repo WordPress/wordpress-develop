@@ -1860,7 +1860,7 @@ function is_blog_installed() {
 			continue;
 		}
 
-		$described_table = $wpdb->get_results( "DESCRIBE $table;" );
+		$described_table = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i;', $table ) );
 		if (
 			( ! $described_table && empty( $wpdb->last_error ) ) ||
 			( is_array( $described_table ) && 0 === count( $described_table ) )
