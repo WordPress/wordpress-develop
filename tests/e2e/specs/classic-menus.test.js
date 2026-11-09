@@ -28,6 +28,7 @@ test.describe( 'Classic Menus', () => {
 		await page.locator( '#save_menu_footer' ).click();
 
 		// The screen reloads into the edit state for the new menu.
+		await expect( page ).toHaveURL( /[?&]menu=[1-9]\d*/ );
 		await expect(
 			page.getByRole( 'textbox', { name: 'Menu Name' } )
 		).toHaveValue( 'E2E Menu' );
@@ -67,6 +68,9 @@ test.describe( 'Classic Menus', () => {
 		// See https://core.trac.wordpress.org/ticket/65684.
 		await page.locator( '#save_menu_footer' ).focus();
 		await page.keyboard.press( 'Enter' );
+		await expect( page.locator( '#message' ) ).toContainText(
+			'E2E Menu has been updated.'
+		);
 
 		// The location assignment persists.
 		await expect
