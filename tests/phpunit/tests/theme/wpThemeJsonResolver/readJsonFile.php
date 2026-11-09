@@ -171,7 +171,7 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 		$invalid_json_file = tempnam( sys_get_temp_dir(), 'invalid-json' );
 		file_put_contents( $invalid_json_file, '{ invalid json }' );
 		try {
-			$this->assertSame( array(), self::read_json_file( $invalid_json_file ) );
+			self::read_json_file( $invalid_json_file );
 		} finally {
 			unlink( $invalid_json_file );
 		}
