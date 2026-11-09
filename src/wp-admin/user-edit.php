@@ -472,7 +472,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" aria-describedby="user-login-description" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text ltr" /> <span class="description" id="user-login-description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" aria-describedby="user-login-description" value="<?php echo esc_attr( $profile_user->user_login ); ?>"<?php echo is_email( $profile_user->user_login ) ? ' data-is-email="true"' : ''; ?> readonly="readonly" class="regular-text ltr" /> <span class="description" id="user-login-description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -551,7 +551,10 @@ switch ( $action ) {
 								<?php
 									$public_display                     = array();
 									$public_display['display_nickname'] = $profile_user->nickname;
+
+								if ( ! is_email( $profile_user->user_login ) ) {
 									$public_display['display_username'] = $profile_user->user_login;
+								}
 
 								if ( ! empty( $profile_user->first_name ) ) {
 									$public_display['display_firstname'] = $profile_user->first_name;

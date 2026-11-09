@@ -29,9 +29,12 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 		$user = get_userdata( $user_id );
 		$this->assertInstanceOf( 'WP_User', $user, 'get_userdata should return a WP_User instance.' );
 
-		$this->assertSame( 'User', $user->display_name, 'display_name should default to "User" when login is an email.' );
-		$this->assertSame( 'User', $user->nickname, 'nickname should default to "User" when login is an email.' );
-		$this->assertStringStartsWith( 'user-', $user->user_nicename, 'user_nicename should start with "user-" prefix.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->display_name, 'display_name should default to "User <suffix>" when login is an email.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->nickname, 'nickname should default to "User <suffix>" when login is an email.' );
+		$this->assertMatchesRegularExpression( '/^user-[0-9a-f]{8}$/', $user->user_nicename, 'user_nicename should start with "user-" prefix followed by hex suffix.' );
+		$suffix = substr( $user->user_nicename, 5 );
+		$this->assertSame( 'User ' . $suffix, $user->display_name, 'display_name should share the same random suffix as user_nicename.' );
+		$this->assertSame( 'User ' . $suffix, $user->nickname, 'nickname should share the same random suffix as user_nicename.' );
 		$this->assertStringNotContainsString( '@', $user->user_nicename, 'user_nicename must not contain "@".' );
 		$this->assertStringNotContainsString( 'example.com', $user->user_nicename, 'user_nicename must not contain the email domain.' );
 		$this->assertLessThanOrEqual( 50, strlen( $user->user_nicename ), 'user_nicename must not exceed 50 characters.' );
@@ -58,7 +61,7 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 
 		$user = get_userdata( $user_id );
 		$this->assertSame( 'Jane Doe', $user->display_name, 'display_name should be built from first and last name.' );
-		$this->assertSame( 'User', $user->nickname, 'nickname should still default to "User" when not explicitly supplied.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->nickname, 'nickname should still default to "User <suffix>" when not explicitly supplied.' );
 	}
 
 	/**
@@ -183,6 +186,8 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 		$user2 = get_userdata( $user_id2 );
 
 		$this->assertNotSame( $user1->user_nicename, $user2->user_nicename, 'Generated user_nicename values must be unique.' );
+		$this->assertNotSame( $user1->display_name, $user2->display_name, 'Generated display_name values must be unique.' );
+		$this->assertNotSame( $user1->nickname, $user2->nickname, 'Generated nickname values must be unique.' );
 	}
 
 	/**
@@ -232,9 +237,9 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 		$this->assertNotWPError( $user_id, 'wp_create_user should succeed.' );
 
 		$user = get_userdata( $user_id );
-		$this->assertSame( 'User', $user->display_name, 'display_name should default to "User".' );
-		$this->assertSame( 'User', $user->nickname, 'nickname should default to "User".' );
-		$this->assertStringStartsWith( 'user-', $user->user_nicename, 'user_nicename should start with "user-".' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->display_name, 'display_name should default to "User <suffix>".' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->nickname, 'nickname should default to "User <suffix>".' );
+		$this->assertMatchesRegularExpression( '/^user-[0-9a-f]{8}$/', $user->user_nicename, 'user_nicename should start with "user-".' );
 	}
 
 	/**
@@ -255,9 +260,9 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 		$this->assertNotWPError( $user_id, 'wp_insert_user should succeed with complex email format.' );
 
 		$user = get_userdata( $user_id );
-		$this->assertSame( 'User', $user->display_name, 'display_name should default to "User" for complex email logins.' );
-		$this->assertSame( 'User', $user->nickname, 'nickname should default to "User" for complex email logins.' );
-		$this->assertStringStartsWith( 'user-', $user->user_nicename, 'user_nicename should use random slug prefix.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->display_name, 'display_name should default to "User <suffix>" for complex email logins.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->nickname, 'nickname should default to "User <suffix>" for complex email logins.' );
+		$this->assertMatchesRegularExpression( '/^user-[0-9a-f]{8}$/', $user->user_nicename, 'user_nicename should use random slug prefix.' );
 		$this->assertStringNotContainsString( 'First.Last', $user->user_nicename, 'user_nicename must not leak the email local-part.' );
 		$this->assertStringNotContainsString( 'sub.domain', $user->user_nicename, 'user_nicename must not leak the email domain.' );
 	}
@@ -296,5 +301,201 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 		$this->assertSame( 'Filtered Display', $user->display_name, 'pre_user_display_name filter should override display_name.' );
 		$this->assertSame( 'Filtered Nick', $user->nickname, 'pre_user_nickname filter should override nickname.' );
 		$this->assertSame( 'filtered-slug', $user->user_nicename, 'pre_user_nicename filter should override user_nicename.' );
+	}
+
+	/**
+	 * Tests that email usernames do not leak into downstream consumer outputs:
+	 * post bylines, feeds, comment authors, and REST API user responses.
+	 *
+	 * @ticket 66446
+	 */
+	public function test_email_login_downstream_privacy_in_bylines_comments_and_rest() {
+		$email   = 'author.privacy@example.com';
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => $email,
+				'user_email' => $email,
+				'user_pass'  => 'Password123!',
+				'role'       => 'author',
+			)
+		);
+
+		$this->assertNotWPError( $user_id, 'Author creation should succeed.' );
+
+		// 1. Post byline & author link.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => $user_id,
+				'post_title'   => 'Sample Post',
+				'post_content' => 'Sample content.',
+			)
+		);
+
+		$post                  = get_post( $post_id );
+		$GLOBALS['post']       = $post;
+		$GLOBALS['authordata'] = get_userdata( $user_id );
+
+		$byline = get_the_author();
+		$this->assertStringNotContainsString( '@', $byline, 'Post byline must not contain "@".' );
+		$this->assertStringNotContainsString( 'example.com', $byline, 'Post byline must not contain the email domain.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $byline, 'Post byline should match "User <suffix>".' );
+
+		$author_url = get_author_posts_url( $user_id );
+		$this->assertStringNotContainsString( '@', $author_url, 'Author posts URL must not contain "@".' );
+		$this->assertStringNotContainsString( 'example.com', $author_url, 'Author posts URL must not contain the email domain.' );
+
+		// 2. Comments via comment submission by logged-in user.
+		wp_set_current_user( $user_id );
+		$comment = wp_handle_comment_submission(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment'         => 'A test comment.',
+				'comment_parent'  => 0,
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Comment', $comment, 'wp_handle_comment_submission should return a WP_Comment.' );
+		$this->assertStringNotContainsString( '@', $comment->comment_author, 'Comment author must not contain "@".' );
+		$this->assertStringNotContainsString( 'example.com', $comment->comment_author, 'Comment author must not contain email domain.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $comment->comment_author, 'Comment author should match "User <suffix>".' );
+
+		// 3. REST API response via controller.
+		$controller = new WP_REST_Users_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/users/' . $user_id );
+		$request->set_param( 'id', $user_id );
+		$request->set_param( 'context', 'view' );
+		$response = $controller->get_item( $request );
+		$data     = $response->get_data();
+
+		$this->assertStringNotContainsString( '@', $data['name'], 'REST user name must not contain "@".' );
+		$this->assertStringNotContainsString( 'example.com', $data['name'], 'REST user name must not contain email domain.' );
+		$this->assertStringNotContainsString( '@', $data['slug'], 'REST user slug must not contain "@".' );
+		$this->assertStringNotContainsString( 'example.com', $data['slug'], 'REST user slug must not contain email domain.' );
+	}
+
+	/**
+	 * Tests that user profile public display options omit user_login when it is an email address.
+	 *
+	 * @ticket 66446
+	 */
+	public function test_profile_screen_public_display_options_omits_email_username() {
+		$email   = 'profile.email@example.com';
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => $email,
+				'user_email' => $email,
+				'user_pass'  => 'Password123!',
+			)
+		);
+
+		$profile_user                       = get_userdata( $user_id );
+		$public_display                     = array();
+		$public_display['display_nickname'] = $profile_user->nickname;
+
+		if ( ! is_email( $profile_user->user_login ) ) {
+			$public_display['display_username'] = $profile_user->user_login;
+		}
+
+		$this->assertArrayNotHasKey( 'display_username', $public_display, 'display_username should be excluded from public display options when login is an email.' );
+		$this->assertContains( $profile_user->nickname, $public_display, 'Nickname should be available in public display options.' );
+
+		// Standard username should include display_username.
+		$std_user_id                     = self::factory()->user->create( array( 'user_login' => 'standardprofile' ) );
+		$std_user                        = get_userdata( $std_user_id );
+		$std_display                     = array();
+		$std_display['display_nickname'] = $std_user->nickname;
+
+		if ( ! is_email( $std_user->user_login ) ) {
+			$std_display['display_username'] = $std_user->user_login;
+		}
+
+		$this->assertArrayHasKey( 'display_username', $std_display, 'display_username should be included for standard usernames.' );
+	}
+
+	/**
+	 * Tests that wpmu_create_user() safely anonymizes defaults when given an email username on Multisite.
+	 *
+	 * @ticket 66446
+	 * @group ms-required
+	 */
+	public function test_wpmu_create_user_with_email_login_anonymizes_defaults() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Multisite only.' );
+		}
+
+		$email   = 'ms.member@example.com';
+		$user_id = wpmu_create_user( $email, 'Password123!', $email );
+
+		$this->assertIsInt( $user_id, 'wpmu_create_user should succeed and return integer ID.' );
+
+		$user = get_userdata( $user_id );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->display_name, 'display_name should default to "User <suffix>" on Multisite.' );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $user->nickname, 'nickname should default to "User <suffix>" on Multisite.' );
+		$this->assertMatchesRegularExpression( '/^user-[0-9a-f]{8}$/', $user->user_nicename, 'user_nicename should start with "user-" on Multisite.' );
+	}
+
+	/**
+	 * Tests that updating an existing user whose display_name is already an email address
+	 * preserves the display_name without altering it.
+	 *
+	 * @ticket 66446
+	 */
+	public function test_wp_update_user_preserves_existing_email_display_name() {
+		// Simulate a legacy account created prior to this privacy change where display_name was saved as the email.
+		$user_id = wp_insert_user(
+			array(
+				'user_login'   => 'legacyuser',
+				'user_email'   => 'legacy@example.com',
+				'user_pass'    => 'Password123!',
+				'display_name' => 'legacy@example.com',
+			)
+		);
+
+		$user_before = get_userdata( $user_id );
+		$this->assertSame( 'legacy@example.com', $user_before->display_name, 'Initial display_name should be set to email.' );
+
+		// Update another field without specifying display_name.
+		$updated_id = wp_update_user(
+			array(
+				'ID'          => $user_id,
+				'description' => 'Updated biography text.',
+			)
+		);
+
+		$this->assertSame( $user_id, $updated_id, 'wp_update_user should succeed.' );
+
+		$user_after = get_userdata( $user_id );
+		$this->assertSame( 'legacy@example.com', $user_after->display_name, 'Existing display_name must remain unchanged after update.' );
+		$this->assertSame( 'Updated biography text.', $user_after->description, 'Description should be updated.' );
+	}
+
+	/**
+	 * Tests that updating a standard non-email user preserves or derives nicename correctly.
+	 *
+	 * @ticket 66446
+	 */
+	public function test_wp_insert_user_update_with_standard_user_preserves_nicename() {
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => 'standardupdater',
+				'user_email' => 'standardupdater@example.com',
+				'user_pass'  => 'Password123!',
+			)
+		);
+
+		$user_before = get_userdata( $user_id );
+		$this->assertSame( 'standardupdater', $user_before->user_nicename, 'Initial nicename should match login.' );
+
+		$updated_id = wp_update_user(
+			array(
+				'ID'          => $user_id,
+				'description' => 'Bio update.',
+			)
+		);
+
+		$this->assertSame( $user_id, $updated_id, 'wp_update_user should return the user ID.' );
+
+		$user_after = get_userdata( $user_id );
+		$this->assertSame( 'standardupdater', $user_after->user_nicename, 'Standard user nicename should be preserved.' );
 	}
 }
