@@ -1567,19 +1567,36 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the random base is taken filter receives the detected value and the random base.
+	 * Ensure the random base is taken filter receives the detected value, the random base and the random slug.
 	 */
 	public function test_random_base_is_taken_filter_receives_the_detected_value_and_random_base(): void {
 		add_rewrite_rule( '^random/?$', 'index.php?pagename=wptests-taken', 'top' );
 
 		$filter = new MockAction();
-		add_filter( 'wp_rewrite_random_base_is_taken', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'wp_rewrite_random_base_is_taken', array( $filter, 'filter' ), 10, 3 );
 
 		$this->get_random_rewrite_rules();
 
 		$args = $filter->get_args();
 		$this->assertNotEmpty( $args, 'The filter was not called.' );
-		$this->assertSame( array( true, 'random' ), end( $args ), 'The filter should receive whether the base is taken and the random base.' );
+		$this->assertSame( array( true, 'random', 'random' ), end( $args ), 'The filter should receive whether the base is taken, the random base and the random slug.' );
+	}
+
+	/**
+	 * Ensure the random base is taken filter receives the random base with the PATHINFO prefix and the random slug without it.
+	 */
+	public function test_random_base_is_taken_filter_receives_the_random_base_and_slug_with_pathinfo_permalinks(): void {
+		$this->set_permalink_structure( '/index.php/%postname%/' );
+		create_initial_taxonomies();
+
+		$filter = new MockAction();
+		add_filter( 'wp_rewrite_random_base_is_taken', array( $filter, 'filter' ), 10, 3 );
+
+		$this->get_random_rewrite_rules();
+
+		$args = $filter->get_args();
+		$this->assertNotEmpty( $args, 'The filter was not called with PATHINFO permalinks.' );
+		$this->assertSame( array( false, 'index.php/random', 'random' ), end( $args ), 'The filter should receive the random base with the PATHINFO prefix and the random slug without it.' );
 	}
 
 	/**
