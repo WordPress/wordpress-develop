@@ -4824,7 +4824,7 @@ function wp_json_file_decode( $filename, $options = array() ) {
 			__FUNCTION__,
 			sprintf(
 			/* translators: %s: Path to the JSON file. */
-				__( 'File %s is not readable' ),
+				__( '%s is not a readable file.' ),
 				$filename
 			)
 		);
