@@ -668,7 +668,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 * Random rules must be matched before any other rule matching the same URL,
 	 * such as the greedy page and post rules.
 	 *
-	 * @dataProvider data_permalink_structures
+	 * @dataProvider data_random_rewrite_rules_precede_other_matching_rules
 	 *
 	 * @param string $structure Permalink structure.
 	 */
@@ -706,7 +706,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_permalink_structures(): array {
+	public static function data_random_rewrite_rules_precede_other_matching_rules(): array {
 		return array(
 			'post name'          => array( '/%postname%/' ),
 			'verbose page rules' => array( '/%category%/%postname%/' ),
@@ -721,9 +721,16 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @param string                $path           Request path.
 	 * @param array<string, string> $expected_query Expected query variables.
+	 * @param string                $structure      Optional. Permalink structure. Default empty, the
+	 *                                              structure set up for each test.
 	 */
-	public function test_random_urls_resolve_to_random_query_vars( $path, $expected_query ): void {
+	public function test_random_urls_resolve_to_random_query_vars( $path, $expected_query, string $structure = '' ): void {
 		global $wp;
+
+		if ( '' !== $structure ) {
+			$this->set_permalink_structure( $structure );
+			create_initial_taxonomies();
+		}
 
 		register_taxonomy( 'wptests_genre', 'post', array( 'rewrite' => array( 'slug' => 'genre' ) ) );
 		register_post_type(
@@ -746,56 +753,58 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: array<string, string>}>
+	 * @return array<string, array{0: string, 1: array<string, string>, 2?: string}>
 	 */
 	public static function data_random_urls(): array {
 		return array(
-			'random'                    => array( '/random/', array( 'random' => '1' ) ),
-			'random without slash'      => array( '/random', array( 'random' => '1' ) ),
-			'random category'           => array(
+			'random'                     => array( '/random/', array( 'random' => '1' ) ),
+			'random without slash'       => array( '/random', array( 'random' => '1' ) ),
+			'random, verbose page rules' => array( '/random/', array( 'random' => '1' ), '/%category%/%postname%/' ),
+			'random, date and name'      => array( '/random/', array( 'random' => '1' ), '/%year%/%monthnum%/%postname%/' ),
+			'random category'            => array(
 				'/random/category/news/',
 				array(
 					'random'        => '1',
 					'category_name' => 'news',
 				),
 			),
-			'random child category'     => array(
+			'random child category'      => array(
 				'/random/category/news/local/',
 				array(
 					'random'        => '1',
 					'category_name' => 'news/local',
 				),
 			),
-			'random tag'                => array(
+			'random tag'                 => array(
 				'/random/tag/featured/',
 				array(
 					'random' => '1',
 					'tag'    => 'featured',
 				),
 			),
-			'random author'             => array(
+			'random author'              => array(
 				'/random/author/admin/',
 				array(
 					'random'      => '1',
 					'author_name' => 'admin',
 				),
 			),
-			'random custom taxonomy'    => array(
+			'random custom taxonomy'     => array(
 				'/random/genre/sci-fi/',
 				array(
 					'random'        => '1',
 					'wptests_genre' => 'sci-fi',
 				),
 			),
-			'random post type archive'  => array(
+			'random post type archive'   => array(
 				'/random/books/',
 				array(
 					'random'    => '1',
 					'post_type' => 'wptests_book',
 				),
 			),
-			'query string random'       => array( '/?random', array( 'random' => '' ) ),
-			'query string random value' => array( '/?random=1', array( 'random' => '1' ) ),
+			'query string random'        => array( '/?random', array( 'random' => '' ) ),
+			'query string random value'  => array( '/?random=1', array( 'random' => '1' ) ),
 		);
 	}
 
@@ -1282,29 +1291,6 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 			'trailing slash'    => array( '/%postname%/', '/random/' ),
 			'no trailing slash' => array( '/%postname%', '/random' ),
 		);
-	}
-
-	/**
-	 * Ensure a request for the random base matches the root rule.
-	 *
-	 * Random content rules must be matched ahead of the generic post and page rules.
-	 *
-	 * @dataProvider data_permalink_structures
-	 *
-	 * @global WP $wp Current WordPress environment instance.
-	 *
-	 * @param string $structure Permalink structure.
-	 */
-	public function test_random_base_request_matches_the_root_rule( string $structure ): void {
-		global $wp;
-
-		$this->set_permalink_structure( $structure );
-		create_initial_taxonomies();
-		flush_rewrite_rules();
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertSame( 'random/?$', $wp->matched_rule, 'The random base should be matched by the root rule.' );
 	}
 
 	/**
