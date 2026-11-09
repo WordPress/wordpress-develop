@@ -4,6 +4,7 @@
  * Slug: ipsum/hidden-page
  * Template Types: page
  * Inserter: no
+ * Description: The Pages template. It has the header, the featured image, title and content, the footer, and the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0

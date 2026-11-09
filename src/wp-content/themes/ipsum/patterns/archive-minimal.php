@@ -5,7 +5,7 @@
  * Categories: posts
  * Block Types: core/query
  * Viewport width: 1280
- * Description: Big post titles and a whisper of meta — nothing else.
+ * Description: Big post titles and a whisper of meta, nothing else.
  *
  * @package Ipsum
  * @since Ipsum 1.0

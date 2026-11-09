@@ -18,7 +18,7 @@
 <figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-metal-table.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'A dark metal tabletop on a single thin leg against a hazy sky.', 'Alt text for the metal table image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -26,7 +26,7 @@
 <figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-staircase.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'A black staircase climbing a white wall.', 'Alt text for the staircase image', 'ipsum' ); ?>" style="aspect-ratio:3/4;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -36,7 +36,7 @@
 <!-- /wp:column -->
 
 <!-- wp:column {"style":{"spacing":{"blockGap":"0"}}} -->
-<div class="wp-block-column"><!-- wp:spacer {"height":"var:preset|spacing|50","metadata":{"name":"<?php echo esc_html_x( 'R', 'Name of the offset spacer', 'ipsum' ); ?>"}} -->
+<div class="wp-block-column"><!-- wp:spacer {"height":"var:preset|spacing|50","metadata":{"name":"<?php echo esc_html_x( 'Column Offset', 'Name of the spacer that offsets the middle gallery column', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -44,7 +44,7 @@
 <figure class="wp-block-image size-large"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-monobloc-front.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'A blurred plastic chair in blue and cream tones.', 'Alt text for the monobloc chair image', 'ipsum' ); ?>" style="aspect-ratio:3/4;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -52,7 +52,7 @@
 <figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-polygons.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'Rows of glossy black hollow cones catching the light.', 'Alt text for the polygons image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -66,7 +66,7 @@
 <figure class="wp-block-image size-large"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-capital.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'A capital A pressed into brushed metal.', 'Alt text for the capital letter image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 
@@ -74,7 +74,7 @@
 <figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_parent_theme_file_uri( 'assets/images/ipsum-desk-fan.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'A desk fan blurred mid-spin against a blue background.', 'Alt text for the desk fan image', 'ipsum' ); ?>" style="aspect-ratio:3/4;object-fit:cover"/></figure>
 <!-- /wp:image -->
 
-<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'XS', 'Name of the small spacer', 'ipsum' ); ?>"}} -->
+<!-- wp:spacer {"height":"var:preset|spacing|30","metadata":{"name":"<?php echo esc_html_x( 'Image Gap', 'Name of the spacer between gallery images', 'ipsum' ); ?>"}} -->
 <div style="height:var(--wp--preset--spacing--30)" aria-hidden="true" class="wp-block-spacer"></div>
 <!-- /wp:spacer -->
 

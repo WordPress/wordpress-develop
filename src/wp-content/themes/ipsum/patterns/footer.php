@@ -5,7 +5,7 @@
  * Categories: footer
  * Block Types: core/template-part/footer
  * Viewport width: 1280
- * Description: The theme’s default footer — credit line and social links in a compact row.
+ * Description: The theme’s default footer, with the credit line and social links in a compact row.
  *
  * @package Ipsum
  * @since Ipsum 1.0

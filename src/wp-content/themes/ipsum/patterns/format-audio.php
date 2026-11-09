@@ -2,9 +2,10 @@
 /**
  * Title: Format Audio
  * Slug: ipsum/format-audio
- * Categories: posts
+ * Categories: ipsum_post-format
+ * Keywords: audio, podcast, episode, music, player
  * Viewport width: 1280
- * Description: An audio-format post body — cover art, title and a one-line description over the player.
+ * Description: An audio-format post body. It has cover art, a title and a one-line description over the player.
  *
  * @package Ipsum
  * @since Ipsum 1.0

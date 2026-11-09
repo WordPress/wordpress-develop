@@ -4,7 +4,7 @@
  * Slug: ipsum/text-statement
  * Categories: text
  * Viewport width: 1280
- * Description: A one-line statement on the toast card — the opening quotation mark on top, centered, with room for a single link.
+ * Description: A one-line statement on an inverted card. It has the opening quotation mark on top, centered, and room for a single link.
  *
  * @package Ipsum
  * @since Ipsum 1.0

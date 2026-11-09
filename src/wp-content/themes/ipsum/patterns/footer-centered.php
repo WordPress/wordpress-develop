@@ -5,7 +5,7 @@
  * Categories: footer
  * Block Types: core/template-part/footer
  * Viewport width: 1280
- * Description: A centered footer on the toast card — the site name as a cropped wordmark over the tagline, with the credit line beneath.
+ * Description: A centered footer on an inverted card. The site name runs as a cropped wordmark over the tagline, with the credit line beneath.
  *
  * @package Ipsum
  * @since Ipsum 1.0

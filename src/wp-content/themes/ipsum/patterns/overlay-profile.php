@@ -3,9 +3,10 @@
  * Title: Overlay Profile
  * Slug: ipsum/overlay-profile
  * Categories: navigation
+ * Keywords: menu, author, profile, subscribe
  * Block Types: core/template-part/navigation-overlay
  * Viewport width: 1280
- * Description: A navigation overlay led by the author — avatar, name and role over the menu, extra links, and a full-width subscribe button.
+ * Description: A navigation overlay led by the author. It has the author’s avatar, name and role over the menu, extra links, and a full-width subscribe button.
  *
  * @package Ipsum
  * @since Ipsum 1.0

@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-single-sidebar
  * Template Types: single
  * Inserter: no
- * Description: A single post beside a classic sidebar with categories and recent posts, on the wide width.
+ * Description: The Single Posts Sidebar template. It has the post with its tags, author card, Comments and Keep Reading sections beside the Sidebar part on the wide width, between the header and the wide footer, with the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -26,7 +26,7 @@
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Date and Categories', 'Name of the group holding the post date and categories', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
 <div class="wp-block-group"><!-- wp:post-date /-->
 
-<!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
+<!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Meta Separator', 'Name of the paragraph separating post meta items', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
 <p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
@@ -62,7 +62,7 @@
 <!-- /wp:column -->
 
 <!-- wp:column {"width":"33.33%"} -->
-<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","area":"uncategorized"} /--></div>
+<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:template-part {"slug":"sidebar","area":"uncategorized","tagName":"aside"} /--></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></main>
 <!-- /wp:group -->

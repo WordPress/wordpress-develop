@@ -5,7 +5,7 @@
  * Categories: posts
  * Block Types: core/query
  * Viewport width: 1280
- * Description: Featured image beside title and meta in a responsive row — the image takes a fixed width on desktop and the full width on small screens.
+ * Description: Featured image beside title and meta in a responsive row. The image takes a fixed width on desktop and the full width on small screens.
  *
  * @package Ipsum
  * @since Ipsum 1.0

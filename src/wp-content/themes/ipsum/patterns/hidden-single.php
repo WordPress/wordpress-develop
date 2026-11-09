@@ -4,6 +4,7 @@
  * Slug: ipsum/hidden-single
  * Template Types: single
  * Inserter: no
+ * Description: The Single Posts template. It has the header, the featured image, title, date and categories, content, tags and author card, then the Comments and Keep Reading sections, the footer, and the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -23,7 +24,7 @@
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Date and Categories', 'Name of the group holding the post date and categories', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
 <div class="wp-block-group"><!-- wp:post-date /-->
 
-<!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
+<!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Meta Separator', 'Name of the paragraph separating post meta items', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
 <p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 

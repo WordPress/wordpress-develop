@@ -2,9 +2,10 @@
 /**
  * Title: Format Link
  * Slug: ipsum/format-link
- * Categories: posts
+ * Categories: ipsum_post-format
+ * Keywords: link, bookmark, url
  * Viewport width: 1280
- * Description: A link-format post body — a bold line about the destination, with the link set off by a dotted rule.
+ * Description: A link-format post body. It has a bold line about the destination, with the link set off by a dotted rule.
  *
  * @package Ipsum
  * @since Ipsum 1.0

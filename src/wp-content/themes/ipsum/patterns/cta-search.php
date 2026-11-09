@@ -1,10 +1,10 @@
 <?php
 /**
- * Title: CTA Search
+ * Title: Search Call to Action
  * Slug: ipsum/cta-search
  * Categories: call-to-action
  * Viewport width: 1280
- * Description: A search invitation — a display heading over the search field.
+ * Description: A search invitation, with a display heading over the search field.
  *
  * @package Ipsum
  * @since Ipsum 1.0

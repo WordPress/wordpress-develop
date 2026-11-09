@@ -4,7 +4,7 @@
  * Slug: ipsum/about-row
  * Categories: about
  * Viewport width: 1280
- * Description: An about section on a dark band — the blog’s story beside the author’s square portrait, under a fit-text heading.
+ * Description: An about section on an inverted band. The blog’s story runs beside the author’s square portrait, under a fit-text heading.
  *
  * @package Ipsum
  * @since Ipsum 1.0

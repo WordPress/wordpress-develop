@@ -5,7 +5,7 @@
  * Categories: posts
  * Block Types: core/query
  * Viewport width: 1280
- * Description: A lean chronological list — titles, dates, categories, and reading time. Inherits the template’s query; turn that off when using it inside a page.
+ * Description: A lean chronological list of titles, dates, categories, and reading time. It inherits the template’s query, so turn that off when using it inside a page.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -20,13 +20,13 @@
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Date and Categories', 'Name of the group holding the post date and categories', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|20","padding":{"bottom":"var:preset|spacing|50"}},"border":{"bottom":{"color":"var:preset|color|accent-6","style":"dotted","width":"1px"},"top":[],"right":[],"left":[]}},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
 <div class="wp-block-group" style="border-bottom-color:var(--wp--preset--color--accent-6);border-bottom-style:dotted;border-bottom-width:1px;padding-bottom:var(--wp--preset--spacing--50)"><!-- wp:post-date {"format":"M j"} /-->
 
-<!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
+<!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Meta Separator', 'Name of the paragraph separating post meta items', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
 <p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:post-terms {"term":"category"} /-->
 
-<!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
+<!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Meta Separator', 'Name of the paragraph separating post meta items', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
 <p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 

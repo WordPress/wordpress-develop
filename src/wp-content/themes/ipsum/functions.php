@@ -193,6 +193,14 @@ if ( ! function_exists( 'ipsum_register_pattern_categories' ) ) :
 				'description' => __( 'Full page layouts, ready to be applied to a page.', 'ipsum' ),
 			)
 		);
+
+		register_block_pattern_category(
+			'ipsum_post-format',
+			array(
+				'label'       => _x( 'Post formats', 'Block pattern category', 'ipsum' ),
+				'description' => __( 'Layouts for post formats, like audio and link posts.', 'ipsum' ),
+			)
+		);
 	}
 endif;
 add_action( 'init', 'ipsum_register_pattern_categories' );

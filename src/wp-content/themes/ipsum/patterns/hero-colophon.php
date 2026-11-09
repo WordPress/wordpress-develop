@@ -3,9 +3,10 @@
  * Title: Hero Colophon
  * Slug: ipsum/hero-colophon
  * Categories: banner, about, header
+ * Keywords: about, author, bio, introduction
  * Block Types: core/template-part/header
  * Viewport width: 1280
- * Description: A blogger card introducing the person behind the blog — site icon, greeting, short bio and the menu.
+ * Description: A tinted blogger card introducing the person behind the blog. It has the site icon, a greeting, a short bio and the menu.
  *
  * @package Ipsum
  * @since Ipsum 1.0
