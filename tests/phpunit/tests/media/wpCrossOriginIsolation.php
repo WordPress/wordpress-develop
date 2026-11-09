@@ -6,6 +6,7 @@
  * @group media
  * @covers ::wp_set_up_cross_origin_isolation
  * @covers ::wp_send_document_isolation_policy_header
+ * @covers ::wp_is_cross_origin_isolated_request
  * @covers ::wp_is_client_side_media_processing_enabled
  */
 class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
@@ -119,6 +120,32 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
 		$this->assertTrue( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header should be sent for Chrome 137.' );
+	}
+
+	/**
+	 * @ticket 66490
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_sending_header_marks_request_isolated(): void {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		$this->assertFalse( wp_is_cross_origin_isolated_request(), 'The request should not be isolated before the header is sent.' );
+
+		wp_send_document_isolation_policy_header();
+
+		$this->assertTrue( wp_is_cross_origin_isolated_request(), 'The request should be isolated once core sends the header.' );
+	}
+
+	/**
+	 * @ticket 66490
+	 */
+	public function test_request_not_isolated_when_header_not_sent(): void {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
+
+		$this->assertFalse( wp_send_document_isolation_policy_header() );
+		$this->assertFalse( wp_is_cross_origin_isolated_request(), 'The request should not be isolated when the header was not sent.' );
 	}
 
 	/**
