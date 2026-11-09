@@ -275,7 +275,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	 * Notes and reactions are created through the REST API, which enforces
 	 * their invariants. The reply handler must not mint them.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 *
 	 * @dataProvider data_restricted_comment_types
 	 *
@@ -331,7 +331,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * A reply whose parent is on a different post is stored unthreaded.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_reply_to_comment_on_another_post_is_not_threaded(): void {
 		$this->_setRole( 'administrator' );

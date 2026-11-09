@@ -6683,7 +6683,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A reaction stored against another post is not a reaction to this note,
 	 * whatever its parent says.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_reaction_summary_ignores_reactions_stored_on_another_post(): void {
 		list( , $note_id ) = $this->create_editor_note();
@@ -6706,7 +6706,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Only the curated emoji keys are summarized.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_reaction_summary_ignores_uncurated_keys(): void {
 		list( $post_id, $note_id ) = $this->create_editor_note();
@@ -6729,7 +6729,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Rows that strip to the same key are counted together rather than the
 	 * last one overwriting the others.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_reaction_summary_accumulates_rows_that_strip_to_the_same_key(): void {
 		list( $post_id, $note_id ) = $this->create_editor_note();
@@ -6769,7 +6769,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * guard has to as well, or a row typed `Reaction` is counted as a
 	 * reaction but edited as a comment.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_update_reaction_regardless_of_type_case(): void {
 		wp_set_current_user( self::$editor_id );
@@ -6802,7 +6802,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A note reply has to sit on the same post as the note it answers, or a
 	 * user could thread their own note under one on a post they cannot read.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_create_note_reply_under_note_on_another_post(): void {
 		list( , $note_id ) = $this->create_editor_note();

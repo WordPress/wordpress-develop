@@ -98,7 +98,7 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 	 * Reactions are immutable, whoever asks: XML-RPC needs no nonce, so it
 	 * must not be the one writer that lets a reaction be rewritten.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_edit_reaction(): void {
 		$contributor_id = $this->make_user_by_role( 'contributor' );

@@ -2659,7 +2659,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Reactions are validated as a set when created and are immutable after
 	 * that, for every writer that reaches wp_update_comment().
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 *
 	 * @dataProvider data_reaction_comment_types
 	 *
@@ -2721,7 +2721,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * A parent on another post is dropped, like a parent in an invalid status.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_wp_new_comment_drops_parent_from_another_post(): void {
 		$post_id       = self::factory()->post->create();
@@ -2751,7 +2751,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * A parent on the same post is kept.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_wp_new_comment_keeps_parent_from_same_post(): void {
 		$post_id   = self::factory()->post->create();
@@ -2778,7 +2778,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket security-2719
+	 * @ticket 66635
 	 *
 	 * @dataProvider data_restricted_comment_types
 	 *
@@ -2805,7 +2805,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_wp_update_comment_refuses_to_convert_a_note_into_a_comment(): void {
 		$post_id = self::factory()->post->create();
@@ -2845,7 +2845,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * A case-only change would store a type most of core compares strictly.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_wp_update_comment_refuses_a_case_only_change_to_a_note_type(): void {
 		$post_id = self::factory()->post->create();
@@ -2877,7 +2877,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Reactions are immutable and only count on their note's post, so they
 	 * have to travel with the note when it moves.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_wp_update_comment_moves_a_notes_reactions_with_it(): void {
 		$post_a_id   = self::factory()->post->create();

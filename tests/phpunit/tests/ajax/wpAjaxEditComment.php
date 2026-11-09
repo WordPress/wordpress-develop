@@ -278,7 +278,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * admin-ajax writer has to refuse too, or anyone who can edit the post
 	 * rewrites and reattributes other users' reactions.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_edit_reaction(): void {
 		$this->_setRole( 'contributor' );
@@ -317,7 +317,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * Moving a comment requires edit access to the destination post, not only
 	 * to the post it is on.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_move_comment_to_post_user_cannot_edit(): void {
 		$this->_setRole( 'contributor' );
@@ -352,7 +352,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * A user who can edit both posts can still move a comment between them.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_can_move_comment_to_post_user_can_edit(): void {
 		$this->_setRole( 'editor' );
@@ -381,7 +381,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * An author who can reply beneath a note on their own post must not be
 	 * able to turn that reply into a reaction attributed to someone else.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_convert_comment_into_reaction(): void {
 		$this->_setRole( 'author' );
@@ -447,7 +447,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * A post ID of zero skips the destination check and would orphan the
 	 * comment, which drops its capability mapping to the post.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_detach_comment_from_its_post(): void {
 		$this->_setRole( 'contributor' );
@@ -489,7 +489,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * The new parent has to be on the post the comment is moving to, not the
 	 * one it is leaving.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_move_comment_under_parent_on_the_post_it_leaves(): void {
 		$this->_setRole( 'editor' );
@@ -522,7 +522,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 * A reply cannot move to another post while still threaded under a
 	 * comment on the post it leaves.
 	 *
-	 * @ticket security-2719
+	 * @ticket 66635
 	 */
 	public function test_cannot_move_reply_away_from_its_parent(): void {
 		$this->_setRole( 'editor' );
