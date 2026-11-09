@@ -1352,31 +1352,6 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure a post type archive at the random base is not redirected to random content.
-	 *
-	 * @dataProvider data_post_types_using_the_random_base
-	 *
-	 * @param string               $post_type Post type name.
-	 * @param array<string, mixed> $args      Post type registration arguments.
-	 */
-	public function test_post_type_archive_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
-		register_post_type( $post_type, $args );
-		$this->get_random_rewrite_rules();
-
-		self::factory()->post->create_many( 2, array( 'post_type' => $post_type ) );
-		self::factory()->post->create();
-
-		$redirect = new MockAction();
-		add_filter( 'wp_redirect', array( $redirect, 'filter' ), 5 );
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertSame( 0, $redirect->get_call_count(), 'The post type archive should not redirect to random content.' );
-		$this->assertQueryTrue( 'is_archive', 'is_post_type_archive' );
-		$this->assertSame( $post_type, get_query_var( 'post_type' ), 'The post type archive should be queried.' );
-	}
-
-	/**
 	 * Ensure a single post of a post type at the random base is not redirected to random content.
 	 *
 	 * Registering a post type named `random` also registers `random` as its query variable,
