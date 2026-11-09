@@ -253,13 +253,9 @@ test.describe( 'Moderate Comments', () => {
 		await firstRow.getByRole( 'checkbox' ).check();
 		await secondRow.getByRole( 'checkbox' ).check();
 		await page
-			.getByLabel( 'Select bulk action' )
-			.first()
+			.locator( '#bulk-action-selector-top' )
 			.selectOption( 'spam' );
-		await page
-			.getByRole( 'button', { name: 'Apply', exact: true } )
-			.first()
-			.click();
+		await page.locator( '#doaction' ).click();
 
 		await expect
 			.poll( () => getCommentStatus( requestUtils, comment.id ), {
