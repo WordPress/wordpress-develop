@@ -33,6 +33,15 @@ $value = apply_filters( 'filter', $foo );
 assertType( 'string', $value );
 
 /**
+ * A PHPStan-specific type, which takes precedence over the one in `@param`.
+ *
+ * @param string $foo Hello, World.
+ * @phpstan-param non-empty-string $foo
+ */
+$value = apply_filters( 'filter', $foo );
+assertType( 'non-empty-string', $value );
+
+/**
  * Multiple lines and multiple parameters.
  *
  * @param string $foo Hello.
