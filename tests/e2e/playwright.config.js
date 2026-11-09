@@ -37,6 +37,7 @@ const config = defineConfig( {
 	...baseConfig,
 	globalSetup: require.resolve( './config/global-setup.js' ),
 	workers: '50%',
+	retries: process.env.CI ? 1 : 0,
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
