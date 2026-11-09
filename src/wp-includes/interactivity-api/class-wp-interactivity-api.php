@@ -1613,14 +1613,11 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the `data-wp-html` directive.
 	 *
-	 * It renders the element as the client hydrates it. The client never
-	 * processes the content of an element that carries a `data-wp-html` entry
-	 * without a suffix, so no directive inside that content is processed here
-	 * either. The entry without a unique ID then decides the content: the HTML
-	 * of the token its reference resolves to, written as given, or nothing for
-	 * any other value. See {@see wp_interactivity_as_dangerous_html()} for the
-	 * risks of marking HTML as trusted. An element with only unique-ID entries
-	 * keeps its content as written.
+	 * Only an entry without a suffix or a unique ID controls the content: the
+	 * HTML of the token its reference resolves to, written as given, or nothing
+	 * for any other value. No directive inside that content is processed. See
+	 * {@see wp_interactivity_as_dangerous_html()} for the risks of marking HTML
+	 * as trusted.
 	 *
 	 * HTML that closes the element, or that the browser moves out of it, such
 	 * as a `div` in a `p`, is still written as given. The browser places the part
@@ -1633,8 +1630,8 @@ final class WP_Interactivity_API {
 	 * The element is processed as if it had no `data-wp-html` directive when
 	 * the client ignores the directive: when the element also carries
 	 * `data-wp-text`, `data-wp-each` or `data-wp-router-region`, which raises a
-	 * notice, or when its entries all have a suffix or are dropped by the
-	 * client. A void element is left as it is, with a notice. An element whose
+	 * notice, or when its entries all have a suffix or unique ID or are dropped
+	 * by the client. A void element is left as it is, with a notice. An element whose
 	 * content is text, such as `textarea`, keeps that text for a token, with a
 	 * notice, and is emptied for any other value.
 	 *
@@ -1668,14 +1665,11 @@ final class WP_Interactivity_API {
 			}
 		}
 
-		$entries = array_filter( $directives['html'], fn( $entry ) => null === $entry['suffix'] );
-		if ( empty( $entries ) ) {
-			return;
-		}
-
-		$host_entry = array_find( $entries, fn( $entry ) => null === $entry['unique_id'] );
+		$host_entry = array_find(
+			$directives['html'],
+			fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id']
+		);
 		if ( null === $host_entry ) {
-			$p->next_balanced_tag_closer_tag();
 			return;
 		}
 

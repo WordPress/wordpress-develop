@@ -712,9 +712,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 	/**
 	 * Tests that no directive inside the content of an element that carries a
-	 * `data-wp-html` entry without a suffix is processed, and that no
-	 * derived-state closure referenced only there runs: an element with only a
-	 * unique-ID entry keeps its content as written, and hosts get the content
+	 * `data-wp-html` entry without a suffix or unique ID is processed, and that
+	 * no derived-state closure referenced only there runs. Hosts get the content
 	 * their reference decides.
 	 *
 	 * @ticket 66246
@@ -736,7 +735,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 		$output = wp_interactivity_process_directives(
 			$this->page(
-				'<div data-wp-html---x="state.html">' . $content . '</div>' .
 				'<div data-wp-html="state.nul">' . $content . '</div>' .
 				'<div data-wp-html="state.html">' . $content . '</div>'
 			)
@@ -744,13 +742,52 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$this->processed_page(
-				'<div data-wp-html---x="state.html">' . $content . '</div>' .
 				'<div data-wp-html="state.nul"></div>' .
 				'<div data-wp-html="state.html">' . self::MARKER_HTML . '</div>'
 			),
 			$output
 		);
 		$this->assertSame( array(), $this->announced_paths(), 'Expected no closure to be listed.' );
+	}
+
+	/**
+	 * Tests that a unique-ID entry is ignored without evaluating its reference,
+	 * while its children are processed and their derived state is tracked.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_unique_id_entry_does_not_prevent_processing_children() {
+		$html_calls  = 0;
+		$label_calls = 0;
+		$token       = $this->token();
+		$this->set_state(
+			array(
+				'html'  => static function () use ( &$html_calls, $token ) {
+					++$html_calls;
+					return $token;
+				},
+				'label' => static function () use ( &$label_calls ) {
+					++$label_calls;
+					return 'derived';
+				},
+			)
+		);
+
+		$output = wp_interactivity_process_directives(
+			$this->page( '<div data-wp-html---x="state.html"><span data-wp-text="state.label">Fallback</span></div>' )
+		);
+
+		$this->assertSame(
+			$this->processed_page( '<div data-wp-html---x="state.html"><span data-wp-text="state.label">derived</span></div>' ),
+			$output
+		);
+		$this->assertSame( 0, $html_calls, 'Expected the unique-ID reference not to be evaluated.' );
+		$this->assertSame( 1, $label_calls, 'Expected the child reference to be evaluated once.' );
+		$this->assertSame( array( 'test' => array( 'state.label' ) ), $this->announced_paths() );
+		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
 	}
 
 	/**
