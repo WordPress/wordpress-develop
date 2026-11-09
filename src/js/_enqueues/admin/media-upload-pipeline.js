@@ -479,12 +479,13 @@ window.wp = window.wp || {};
 	 * would check its type against the allowed types the page was rendered
 	 * with instead of the uploader's own filters, which a plugin can extend
 	 * for a single frame. For the same reason an image of a type the page
-	 * was not rendered with stays classic, so the server decides. Audio also keeps the title and description that
-	 * media_handle_upload() derives from its ID3 tags, which the REST
-	 * endpoint does not. JPEG and PNG images stay classic too while
-	 * plupload's own client-side resize is enabled (the "Scale images"
-	 * setting, or a `resize` passed through `plupload_init`): plupload
-	 * scales those down before uploading them, the pipeline would not.
+	 * was not rendered with stays classic, so the server decides. Audio
+	 * also keeps the title and description that media_handle_upload()
+	 * derives from its ID3 tags, which the REST endpoint does not. JPEG
+	 * and PNG images stay classic too while plupload's own client-side
+	 * resize is enabled (the "Scale images" setting, or a `resize` passed
+	 * through `plupload_init`): plupload scales those down before
+	 * uploading them, the pipeline would not.
 	 *
 	 * The whole batch stays classic when a file cannot be re-queued on
 	 * plupload or is already plupload's: plupload returns no native File
