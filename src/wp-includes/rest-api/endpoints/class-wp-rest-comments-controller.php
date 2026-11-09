@@ -738,7 +738,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if (
 				! $parent_note ||
 				'note' !== $parent_note->comment_type ||
-				( ! empty( $request['post'] ) && (int) $parent_note->comment_post_ID !== absint( $request['post'] ) )
+				( ! empty( $request['post'] ) && absint( $request['post'] ) !== (int) $parent_note->comment_post_ID )
 			) {
 				return new WP_Error(
 					'rest_comment_invalid_parent',
