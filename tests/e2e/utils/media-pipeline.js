@@ -18,6 +18,10 @@ export const TEST_AUDIO_PATH = path.join(
 	'../assets/test-audio.wav'
 );
 
+// An SVG: like any file that is not an image the pipeline can process, it
+// stays on the classic upload path.
+export const TEST_SVG_PATH = path.join( __dirname, '../assets/sample.svg' );
+
 // A REST error the pipeline surfaces as-is: its message matches none of the
 // transient patterns @wordpress/upload-media retries on.
 export const SIMULATED_ERROR = {
