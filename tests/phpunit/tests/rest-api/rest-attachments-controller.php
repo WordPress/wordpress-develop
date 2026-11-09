@@ -2855,6 +2855,91 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that sub-sizes generated on the server are not limited by the
+	 * site's upload space.
+	 *
+	 * On the classic path, only the original upload is checked against the
+	 * space quota (check_upload_size() on `wp_handle_upload_prefilter`). The
+	 * image editor then writes sub-sizes even when that upload used the last
+	 * of the space. This is the baseline for
+	 * test_sideload_sub_size_after_multisite_upload_space_is_used().
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers ::wp_update_image_subsizes
+	 */
+	public function test_server_sub_sizes_after_multisite_upload_space_is_used(): void {
+		// Upload the original without sub-sizes, while there is space left.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+
+		$this->assertEmpty( wp_get_attachment_metadata( $attachment_id )['sizes'], 'The original should have no sub-sizes yet.' );
+
+		// The original used the last of the space.
+		add_filter( 'get_space_allowed', '__return_zero' );
+		update_site_option( 'upload_space_check_disabled', false );
+		$this->assertSame( 0, get_upload_space_available(), 'The site should have no upload space left.' );
+
+		$metadata = wp_update_image_subsizes( $attachment_id );
+
+		$this->assertIsArray( $metadata, 'Generating sub-sizes should succeed.' );
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'The server should generate a thumbnail.' );
+	}
+
+	/**
+	 * Tests that a client-generated sub-size can be sideloaded after the
+	 * original upload used the last of the site's upload space.
+	 *
+	 * With client-side media processing, the browser uploads the original,
+	 * then sideloads each sub-size, and every sideload is checked against the
+	 * space quota. The server generates the same sub-sizes regardless of the
+	 * quota on the classic path (see
+	 * test_server_sub_sizes_after_multisite_upload_space_is_used()), so the
+	 * sideload should not be rejected for lack of space.
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_after_multisite_upload_space_is_used(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		// Upload the original while there is space left.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'The original upload should succeed.' );
+
+		$attachment_id = $response->get_data()['id'];
+
+		// The original used the last of the space.
+		add_filter( 'get_space_allowed', '__return_zero' );
+		$this->assertSame( 0, get_upload_space_available(), 'The site should have no upload space left.' );
+
+		// A thumbnail, as the client would sideload it.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'Sideloading a sub-size should succeed. Response: ' . wp_json_encode( $response->get_data() )
+		);
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are created.
 	 *
