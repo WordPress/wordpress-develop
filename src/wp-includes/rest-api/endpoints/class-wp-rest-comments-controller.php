@@ -1167,10 +1167,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * is re-checked here. Allowing an update would let anyone who can edit
 		 * the note's post reattribute a reaction to another user, move it to a
 		 * note on a post they cannot edit, or store a duplicate or invalid
-		 * key. Removing a reaction is a delete.
-		 *
-		 * The database compares comment types case-insensitively, so match
-		 * the way it does: a row typed `Reaction` is still a reaction.
+		 * key. Removing a reaction is a delete. strtolower() matches the
+		 * database's case-insensitive type comparison.
 		 */
 		if ( 'reaction' === strtolower( $comment->comment_type ) ) {
 			return new WP_Error(
@@ -2372,11 +2370,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			...$note_ids
 		);
 
-		/*
-		 * Join the parent note and require the reaction to be stored on the
-		 * note's post. create_item() guarantees that, so a row where the two
-		 * differ was written by something else and is not this note's reaction.
-		 */
+		// Only reactions stored on their note's post count, which is what create_item() writes.
 		$from  = "FROM $wpdb->comments AS r INNER JOIN $wpdb->comments AS n";
 		$from .= ' ON n.comment_ID = r.comment_parent AND n.comment_post_ID = r.comment_post_ID AND n.comment_type = \'note\'';
 		$where = "WHERE r.comment_type = 'reaction' AND r.comment_approved = '1' AND $parent_in";
@@ -2418,7 +2412,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$emoji_key = wp_strip_all_tags( $row->comment_content );
 			$key       = $note_id . ':' . $emoji_key;
 
-			// Only the curated emoji are reactions; anything else is not summarized.
+			// Only curated emoji keys are summarized.
 			if ( ! in_array( $emoji_key, $allowed_keys, true ) ) {
 				continue;
 			}

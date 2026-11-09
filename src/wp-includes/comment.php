@@ -3010,10 +3010,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	}
 
 	/*
-	 * Reactions are immutable. The REST API validates a reaction's author,
-	 * parent note, post and emoji key together when creating it, and nothing
-	 * re-checks that set on update, so an update could reattribute, move or
-	 * re-key the reaction. Removing a reaction is a delete.
+	 * Reactions are immutable. Their author, parent note, post and key are
+	 * only validated together on creation. Removing one is a delete.
 	 */
 	if ( is_string( $comment['comment_type'] ) && 'reaction' === strtolower( $comment['comment_type'] ) ) {
 		if ( $wp_error ) {
@@ -3024,16 +3022,10 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	}
 
 	/*
-	 * Notes and reactions are validated as a set when the REST API creates
-	 * them, and an update does not repeat that validation. Changing a
-	 * comment into one of those types, or one of them into a plain comment,
-	 * would produce a row that creation would have refused.
-	 *
-	 * The database compares comment types with a case- and accent-insensitive
-	 * collation while most of core compares them strictly, so the raw values
-	 * are compared here and a new type is limited to ASCII key characters.
-	 * That way a spelling the database would treat as a note or reaction, or
-	 * a case-only change to one, is refused as well.
+	 * A comment cannot become a note or reaction, or stop being one, since
+	 * only creation validates those types. Raw values are compared and the
+	 * new type limited to ASCII because the collation is case- and
+	 * accent-insensitive while core compares types strictly.
 	 */
 	$old_type = is_string( $comment['comment_type'] ) ? $comment['comment_type'] : '';
 	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? $commentarr['comment_type'] : $old_type;
@@ -3170,10 +3162,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
-	/*
-	 * A reaction only counts on its note's post and cannot be updated on its
-	 * own, so a note's reactions move with it.
-	 */
+	// Reactions only count on their note's post and cannot be updated alone, so they move with the note.
 	if ( 'note' === $old_type && absint( $comment['comment_post_ID'] ) !== absint( $comment_post_id ) ) {
 		$reaction_ids = get_comments(
 			array(

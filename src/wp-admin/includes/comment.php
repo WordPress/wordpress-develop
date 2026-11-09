@@ -65,10 +65,8 @@ function edit_comment() {
 	$post_id = (int) $comment->comment_post_ID;
 
 	/*
-	 * 'edit_comment' only covers the post the comment is on. Moving it to
-	 * another post needs edit access to that post as well, and a comment
-	 * cannot be detached from its post: with no post, 'edit_comment' would
-	 * no longer map to that post's capabilities.
+	 * Moving to another post needs edit access there. Without a post,
+	 * 'edit_comment' no longer maps to any post's capabilities.
 	 */
 	if ( isset( $_POST['comment_post_ID'] ) && absint( $_POST['comment_post_ID'] ) !== $post_id ) {
 		$post_id = absint( $_POST['comment_post_ID'] );
@@ -178,11 +176,7 @@ function edit_comment() {
 		}
 	}
 
-	/*
-	 * A comment moving to another post cannot stay threaded under a comment
-	 * on the post it leaves. The new-parent checks above only run when the
-	 * parent changes, so cover the parent it keeps here.
-	 */
+	// The checks above only run when the parent changes. A kept parent must be on the destination post too.
 	if ( $post_id !== (int) $comment->comment_post_ID ) {
 		$kept_parent = isset( $_POST['comment_parent'] ) ? absint( $_POST['comment_parent'] ) : (int) $comment->comment_parent;
 

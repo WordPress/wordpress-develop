@@ -1311,14 +1311,8 @@ function wp_ajax_replyto_comment( $action ) {
 	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
 	/*
-	 * Notes and reactions are created through the REST API, which validates
-	 * their author, parent, post and content together. Refuse them here so this
-	 * handler cannot store rows that validation would have rejected.
-	 *
-	 * The database compares comment types with a case- and accent-insensitive
-	 * collation, so a type that only differs from `reaction` by case or accents
-	 * would still be queried as one. Limit the type to ASCII key characters so
-	 * the check below sees every spelling the database would match.
+	 * Notes and reactions are only created through the REST API. The ASCII
+	 * limit also catches spellings the accent-insensitive collation would match.
 	 */
 	if (
 		! preg_match( '/^[a-z0-9_-]+\z/i', $comment_type ) ||
