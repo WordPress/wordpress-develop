@@ -16,8 +16,10 @@ Tags: one-column, featured-images, full-site-editing, block-patterns, rtl-langua
 
 /* Crossfade page transition */
 
-@view-transition {
-	navigation: auto;
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
 }
 
 /* Font smoothing */
