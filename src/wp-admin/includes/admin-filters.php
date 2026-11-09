@@ -40,6 +40,7 @@ add_filter( 'media_upload_tabs', 'update_gallery_tab' );
 // Admin color schemes.
 add_action( 'admin_init', 'register_admin_color_schemes', 1 );
 add_action( 'admin_head', 'wp_color_scheme_settings' );
+add_action( 'admin_enqueue_scripts', 'wp_color_scheme_menu_icon_styles' );
 add_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
 
 // Misc hooks.
@@ -121,7 +122,6 @@ add_action( 'install_themes_pre_theme-information', 'install_theme_information' 
 add_action( 'admin_init', 'default_password_nag_handler' );
 
 add_action( 'admin_notices', 'default_password_nag' );
-add_action( 'admin_notices', 'new_user_email_admin_notice' );
 
 add_action( 'profile_update', 'default_password_nag_edit_user', 10, 2 );
 

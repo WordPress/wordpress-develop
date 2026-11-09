@@ -480,7 +480,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( ' loading="lazy"', $html );
 	}
 
-	public function data_post_thumbnail_size_filter_complex() {
+	public static function data_post_thumbnail_size_filter_complex() {
 		return array(
 			array( 0, 'medium' ),
 			array( 1, 'thumbnail' ),

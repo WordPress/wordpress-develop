@@ -29,7 +29,7 @@ class Tests_Includes_UploadSnapshot extends PHPUnit_Adapter_TestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_initial_uploads() {
+	public static function data_initial_uploads() {
 		return array(
 			'empty uploads'   => array( array() ),
 			'existing upload' => array( array( 'existing.jpg' ) ),

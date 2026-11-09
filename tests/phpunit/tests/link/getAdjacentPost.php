@@ -2,6 +2,8 @@
 /**
  * @group link
  * @covers ::get_adjacent_post
+ * @covers ::get_previous_post
+ * @covers ::get_next_post
  */
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	protected $exclude_term;
@@ -52,9 +54,11 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
+		$this->assertSame( $post_one->ID, get_previous_post()->ID );
+		$this->assertSame( $post_three->ID, get_next_post()->ID );
 
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', true ) );
-		$this->assertNotEquals( $post_two, get_adjacent_post( false, '', false ) );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', true )->ID );
+		$this->assertNotSame( $post_two->ID, get_adjacent_post( false, '', false )->ID );
 
 		// Test category adjacency.
 		$this->go_to( get_permalink( $post_one->ID ) );
@@ -567,12 +571,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$first_run = get_adjacent_post( false, '', true );
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
-		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
+		$this->assertNotSame( $post_two->ID, $first_run->ID, 'Got second post when on second post' );
 
 		// Query count to test caching.
 		$num_queries = get_num_queries();
 		$second_run  = get_adjacent_post( false, '', true );
-		$this->assertNotEquals( $post_two, $second_run, 'Got second post when on second post on second run' );
+		$this->assertNotSame( $post_two->ID, $second_run->ID, 'Got second post when on second post on second run' );
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $second_run, 'Did not get first post when on second post on second run' );
 		$this->assertSame( $num_queries, get_num_queries() );

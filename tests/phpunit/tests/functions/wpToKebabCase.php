@@ -33,7 +33,7 @@ class Tests_Functions_wpToKebabCase extends WP_UnitTestCase {
 	 *     @type string $expected   Expected return value.
 	 * }
 	 */
-	public function data_wp_to_kebab_case() {
+	public static function data_wp_to_kebab_case() {
 		return array(
 			array( 'white', 'white' ),
 			array( 'white+black', 'white-black' ),
