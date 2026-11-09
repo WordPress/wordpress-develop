@@ -6996,14 +6996,15 @@ function wp_send_document_isolation_policy_header(): bool {
 /**
  * Whether the current request has been set up for cross-origin isolation.
  *
- * True once wp_set_up_cross_origin_isolation() has sent the
+ * True once wp_send_document_isolation_policy_header() has sent the
  * Document-Isolation-Policy header for the screen being rendered, which is
  * what lets scripts that need a cross-origin isolated page, such as the
  * client-side media upload integration, decide whether to load at all.
  *
- * A plugin can isolate a screen on its own by sending the header directly,
- * as the Gutenberg plugin does on the block editor screens, so a header
- * already queued for the response counts too.
+ * A header a plugin sends itself does not count, since the plugin may
+ * isolate its screen for reasons of its own. To run the client-side
+ * pipeline on a screen core does not isolate, call
+ * wp_send_document_isolation_policy_header().
  *
  * @since 7.2.0
  *
@@ -7014,13 +7015,6 @@ function wp_send_document_isolation_policy_header(): bool {
 function wp_is_cross_origin_isolated_request(): bool {
 	global $_wp_cross_origin_isolated;
 
-	if ( true === $_wp_cross_origin_isolated ) {
-		return true;
-	}
-
-	return array_any(
-		headers_list(),
-		fn( $header ) => 0 === stripos( $header, 'Document-Isolation-Policy:' )
-	);
+	return true === $_wp_cross_origin_isolated;
 }
 
