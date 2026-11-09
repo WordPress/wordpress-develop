@@ -1371,6 +1371,42 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that _flip_image_resource() returns an image with alpha blending disabled.
+	 *
+	 * The previous implementation always returned a new image with alpha blending
+	 * disabled, even if the input had it enabled and no axis was flipped.
+	 *
+	 * Alpha blending only affects drawing onto the image, so it is detected by
+	 * drawing a fully transparent pixel: with blending disabled, it replaces the
+	 * existing pixel instead of being blended into it.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_disables_alpha_blending( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// New truecolor images have alpha blending enabled.
+		$image = imagecreatetruecolor( 3, 2 );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		imagesetpixel( $flipped, 0, 0, imagecolorallocatealpha( $flipped, 0, 0, 0, 127 ) );
+
+		$this->assertSame( 127, ( imagecolorat( $flipped, 0, 0 ) >> 24 ) & 0x7F, 'Alpha blending should be disabled after flipping.' );
+	}
+
+	/**
 	 * Tests that _flip_image_resource() resets the resolution and interlace setting to GD's defaults.
 	 *
 	 * The previous implementation always copied into a new image, which starts
