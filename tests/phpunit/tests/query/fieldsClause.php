@@ -43,11 +43,6 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 		register_post_type( 'wptests_pt' );
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'wptests_pt' );
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests limiting the WP_Query fields to the ID and parent sub-set.
 	 *
