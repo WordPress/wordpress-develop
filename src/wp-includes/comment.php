@@ -2532,6 +2532,15 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$commentdata['comment_parent'] = ( 'approved' === $parent_status || 'unapproved' === $parent_status ) ? $commentdata['comment_parent'] : 0;
 
+	// A comment on another post cannot be the parent.
+	if ( $commentdata['comment_parent'] > 0 ) {
+		$parent = get_comment( $commentdata['comment_parent'] );
+
+		if ( ! $parent || (int) $parent->comment_post_ID !== $commentdata['comment_post_ID'] ) {
+			$commentdata['comment_parent'] = 0;
+		}
+	}
+
 	$commentdata['comment_author_IP'] = preg_replace( '/[^0-9a-fA-F:., ]/', '', $commentdata['comment_author_IP'] );
 
 	$commentdata['comment_agent'] = substr( $commentdata['comment_agent'], 0, 254 );
@@ -2995,6 +3004,20 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if ( empty( $comment ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
+		} else {
+			return false;
+		}
+	}
+
+	/*
+	 * Reactions are immutable. The REST API validates a reaction's author,
+	 * parent note, post and emoji key together when creating it, and nothing
+	 * re-checks that set on update, so an update could reattribute, move or
+	 * re-key the reaction. Removing a reaction is a delete.
+	 */
+	if ( is_string( $comment['comment_type'] ) && 'reaction' === strtolower( $comment['comment_type'] ) ) {
+		if ( $wp_error ) {
+			return new WP_Error( 'comment_reaction_immutable', __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ) );
 		} else {
 			return false;
 		}

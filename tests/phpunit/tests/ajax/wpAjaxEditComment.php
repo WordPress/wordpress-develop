@@ -242,4 +242,138 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
 		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
+
+	/**
+	 * Creates an administrator's open note and approved reaction on a post.
+	 *
+	 * @param int $post_id  Post to attach the note to.
+	 * @param int $admin_id User who owns the note and reaction.
+	 * @return int The reaction ID.
+	 */
+	private function create_admin_reaction( int $post_id, int $admin_id ): int {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => $admin_id,
+				'comment_content'  => '2764',
+			)
+		);
+	}
+
+	/**
+	 * Reactions are immutable. The REST API refuses to update them, and the
+	 * admin-ajax writer has to refuse too, or anyone who can edit the post
+	 * rewrites and reattributes other users' reactions.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_edit_reaction(): void {
+		$this->_setRole( 'contributor' );
+
+		$admin_id    = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$draft_id    = self::factory()->post->create(
+			array(
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+			)
+		);
+		$reaction_id = $this->create_admin_reaction( $draft_id, $admin_id );
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $reaction_id;
+		$_POST['content']                     = 'rewritten';
+		$_POST['newcomment_author']           = 'Forged';
+		$_POST['newcomment_author_email']     = 'forged@example.org';
+		$_POST['user_id']                     = get_current_user_id();
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to edit a reaction.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '2764', $reaction->comment_content );
+		$this->assertSame( (string) $admin_id, $reaction->user_id );
+		$this->assertSame( '', $reaction->comment_author_email );
+	}
+
+	/**
+	 * Moving a comment requires edit access to the destination post, not only
+	 * to the post it is on.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_move_comment_to_post_user_cannot_edit(): void {
+		$this->_setRole( 'contributor' );
+
+		$admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$draft_id      = self::factory()->post->create(
+			array(
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+			)
+		);
+		$admin_post_id = self::factory()->post->create( array( 'post_author' => $admin_id ) );
+		$comment_id    = self::factory()->comment->create( array( 'comment_post_ID' => $draft_id ) );
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $comment_id;
+		$_POST['content']                     = 'Moved';
+		$_POST['comment_post_ID']             = $admin_post_id;
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to move the comment.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $draft_id, $comment->comment_post_ID );
+	}
+
+	/**
+	 * A user who can edit both posts can still move a comment between them.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_can_move_comment_to_post_user_can_edit(): void {
+		$this->_setRole( 'editor' );
+
+		$source_post_id = self::factory()->post->create();
+		$target_post_id = self::factory()->post->create();
+		$comment_id     = self::factory()->comment->create( array( 'comment_post_ID' => $source_post_id ) );
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $comment_id;
+		$_POST['content']                     = 'Moved';
+		$_POST['comment_post_ID']             = $target_post_id;
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $target_post_id, $comment->comment_post_ID );
+	}
 }

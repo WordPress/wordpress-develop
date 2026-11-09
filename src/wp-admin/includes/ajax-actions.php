@@ -1310,6 +1310,15 @@ function wp_ajax_replyto_comment( $action ) {
 
 	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
+	/*
+	 * Notes and reactions are created through the REST API, which validates
+	 * their author, parent, post and content together. Refuse them here so this
+	 * handler cannot store rows that validation would have rejected.
+	 */
+	if ( in_array( strtolower( $comment_type ), array( 'note', 'reaction' ), true ) ) {
+		wp_die( -1 );
+	}
+
 	$comment_parent = 0;
 
 	if ( isset( $_POST['comment_ID'] ) ) {

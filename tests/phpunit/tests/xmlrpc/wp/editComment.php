@@ -93,4 +93,60 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertSame( 'trash', get_comment( $comment_id )->comment_approved );
 	}
+
+	/**
+	 * Reactions are immutable, whoever asks: XML-RPC needs no nonce, so it
+	 * must not be the one writer that lets a reaction be rewritten.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_cannot_edit_reaction(): void {
+		$contributor_id = $this->make_user_by_role( 'contributor' );
+		$admin_id       = $this->make_user_by_role( 'administrator' );
+		$draft_id       = self::factory()->post->create(
+			array(
+				'post_author' => $contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$note_id        = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $draft_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+		$reaction_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $draft_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => $admin_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_editComment(
+			array(
+				1,
+				'contributor',
+				'contributor',
+				$reaction_id,
+				array(
+					'content' => 'rewritten',
+					'author'  => 'Forged',
+				),
+			)
+		);
+
+		$this->assertIXRError( $result );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '2764', $reaction->comment_content );
+		$this->assertSame( $admin_id, (int) $reaction->user_id );
+	}
 }

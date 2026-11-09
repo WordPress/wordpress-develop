@@ -2654,4 +2654,126 @@ class Tests_Comment extends WP_UnitTestCase {
 			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
 		}
 	}
+
+	/**
+	 * Reactions are validated as a set when created and are immutable after
+	 * that, for every writer that reaches wp_update_comment().
+	 *
+	 * @ticket security-2719
+	 *
+	 * @dataProvider data_reaction_comment_types
+	 *
+	 * @param string $type The stored comment type.
+	 */
+	public function test_wp_update_comment_refuses_to_update_a_reaction( string $type ): void {
+		$user_id     = self::factory()->user->create();
+		$post_id     = self::factory()->post->create();
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $user_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => $type,
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => $user_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$update = array(
+			'comment_ID'      => $reaction_id,
+			'comment_content' => '1f680',
+			'user_id'         => $user_id + 1,
+		);
+
+		$result = wp_update_comment( $update, true );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_reaction_immutable', $result->get_error_code() );
+
+		$this->assertFalse( wp_update_comment( $update ) );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '2764', $reaction->comment_content );
+		$this->assertSame( (string) $user_id, $reaction->user_id );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_reaction_comment_types(): array {
+		return array(
+			'canonical type'   => array( 'reaction' ),
+			'capitalized type' => array( 'Reaction' ),
+		);
+	}
+
+	/**
+	 * A parent on another post is dropped, like a parent in an invalid status.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_wp_new_comment_drops_parent_from_another_post(): void {
+		$post_id       = self::factory()->post->create();
+		$other_post_id = self::factory()->post->create();
+		$parent_id     = self::factory()->comment->create( array( 'comment_post_ID' => $other_post_id ) );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => $post_id,
+				'comment_parent'       => $parent_id,
+				'comment_author'       => 'Comment Author',
+				'comment_author_email' => 'comment@example.org',
+				'comment_author_url'   => '',
+				'comment_content'      => 'Reply across posts',
+				'comment_type'         => 'comment',
+				'user_id'              => 0,
+			)
+		);
+
+		$this->assertIsInt( $comment_id );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( '0', $comment->comment_parent );
+	}
+
+	/**
+	 * A parent on the same post is kept.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_wp_new_comment_keeps_parent_from_same_post(): void {
+		$post_id   = self::factory()->post->create();
+		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => $post_id,
+				'comment_parent'       => $parent_id,
+				'comment_author'       => 'Comment Author',
+				'comment_author_email' => 'comment@example.org',
+				'comment_author_url'   => '',
+				'comment_content'      => 'Threaded reply',
+				'comment_type'         => 'comment',
+				'user_id'              => 0,
+			)
+		);
+
+		$this->assertIsInt( $comment_id );
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $parent_id, $comment->comment_parent );
+	}
 }

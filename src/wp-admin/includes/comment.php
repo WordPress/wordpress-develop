@@ -56,6 +56,19 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
+	/*
+	 * 'edit_comment' only covers the post the comment is on. Moving it to
+	 * another post needs edit access to that post as well.
+	 */
+	if ( ! empty( $_POST['comment_post_ID'] ) ) {
+		$comment = get_comment( absint( $_POST['comment_ID'] ) );
+		$post_id = absint( $_POST['comment_post_ID'] );
+
+		if ( $comment && $post_id !== (int) $comment->comment_post_ID && ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
+		}
+	}
+
 	if ( isset( $_POST['newcomment_author'] ) ) {
 		$_POST['comment_author'] = $_POST['newcomment_author'];
 	}

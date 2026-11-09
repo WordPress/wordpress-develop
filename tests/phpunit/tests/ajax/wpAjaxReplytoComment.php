@@ -270,4 +270,93 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	public function _pre_comment_approved_filter( $approved, $commentdata ) {
 		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment.', 403 );
 	}
+
+	/**
+	 * Notes and reactions are created through the REST API, which enforces
+	 * their invariants. The reply handler must not mint them.
+	 *
+	 * @ticket security-2719
+	 *
+	 * @dataProvider data_restricted_comment_types
+	 *
+	 * @param string $type The comment type to request.
+	 */
+	public function test_cannot_reply_with_restricted_comment_type( string $type ): void {
+		$this->_setRole( 'administrator' );
+
+		$post_id   = self::factory()->post->create();
+		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $parent_id;
+		$_POST['content']                     = '2764';
+		$_POST['comment_post_ID']             = $post_id;
+		$_POST['comment_type']                = $type;
+
+		try {
+			$this->_handleAjax( 'replyto-comment' );
+			$this->fail( 'The handler should have refused the comment type.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( '-1', $e->getMessage() );
+		}
+
+		$this->assertSame(
+			array(),
+			get_comments(
+				array(
+					'type'   => $type,
+					'status' => 'any',
+					'fields' => 'ids',
+				)
+			),
+			'No comment of the restricted type should have been created.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_restricted_comment_types(): array {
+		return array(
+			'reaction'              => array( 'reaction' ),
+			'reaction, capitalized' => array( 'Reaction' ),
+			'note'                  => array( 'note' ),
+			'note, capitalized'     => array( 'Note' ),
+		);
+	}
+
+	/**
+	 * A reply whose parent is on a different post is stored unthreaded.
+	 *
+	 * @ticket security-2719
+	 */
+	public function test_reply_to_comment_on_another_post_is_not_threaded(): void {
+		$this->_setRole( 'administrator' );
+
+		$post_id       = self::factory()->post->create();
+		$other_post    = self::factory()->post->create();
+		$other_comment = self::factory()->comment->create( array( 'comment_post_ID' => $other_post ) );
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $other_comment;
+		$_POST['content']                     = 'Reply across posts';
+		$_POST['comment_post_ID']             = $post_id;
+
+		try {
+			$this->_handleAjax( 'replyto-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
+		$this->assertInstanceOf( SimpleXMLElement::class, $xml );
+
+		$comment = get_comment( (int) $xml->response[0]->comment['id'] );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+
+		$this->assertSame( (string) $post_id, $comment->comment_post_ID );
+		$this->assertSame( '0', $comment->comment_parent, 'A parent on another post should be dropped.' );
+	}
 }
