@@ -902,6 +902,7 @@ module.exports = function(grunt) {
 				src: [
 					'wp-content/themes/twentytwentytwo/style.css',
 					'wp-content/themes/twentytwentyfive/style.css',
+					'wp-content/themes/ipsum/style.css',
 				]
 			}
 		},
