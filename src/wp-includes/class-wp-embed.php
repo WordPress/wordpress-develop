@@ -45,6 +45,72 @@ class WP_Embed {
 		// After a post is saved, cache oEmbed items via Ajax.
 		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
 		add_action( 'edit_page_form', array( $this, 'maybe_run_ajax_cache' ) );
+
+		// Register oEmbed meta cleanup on post save.
+		add_action( 'save_post', array( $this, 'maybe_delete_orphaned_oembed_meta' ), 10, 3 );
+	}
+
+	/**
+	 * Deletes orphaned oEmbed post meta when a post is saved.
+	 *
+	 * Removes any oEmbed cache post meta entries that no longer correspond to
+	 * an embed block or auto-embed URL in the post content. This helps prevent
+	 * orphaned oEmbed cache data from accumulating when embeds are removed.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 */
+	public function maybe_delete_orphaned_oembed_meta( $post_id, $post ) {
+		// Only run for posts, not revisions or autosaves.
+		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+			return;
+		}
+
+		$content    = $post->post_content;
+		$embed_urls = array();
+
+		// Collect embed URLs from Gutenberg embed blocks.
+		if ( function_exists( 'has_blocks' ) && has_blocks( $content ) ) {
+			$blocks = parse_blocks( $content );
+			foreach ( $blocks as $block ) {
+				if ( isset( $block['blockName'] ) && 'core/embed' === $block['blockName'] && ! empty( $block['attrs']['url'] ) ) {
+					$embed_urls[] = $block['attrs']['url'];
+				}
+			}
+		}
+
+		// Collect classic auto-embed URLs.
+		$lines = preg_split( '/\r\n|\r|\n/', $content );
+		foreach ( $lines as $line ) {
+			$line = trim( $line );
+			if ( filter_var( $line, FILTER_VALIDATE_URL ) ) {
+				$embed_urls[] = $line;
+			}
+		}
+		$embed_urls = array_unique( $embed_urls );
+
+		// Remove orphaned oEmbed meta.
+		$meta = get_post_meta( $post_id );
+		foreach ( $meta as $meta_key => $values ) {
+			if ( 0 === strpos( $meta_key, '_oembed_' ) ) {
+				$key_suffix = substr( $meta_key, 8 );
+				$found      = false;
+				foreach ( $embed_urls as $url ) {
+					$expected_suffix = md5( $url . serialize( wp_embed_defaults( $url ) ) );
+					if ( $key_suffix === $expected_suffix ) {
+						$found = true;
+						break;
+					}
+				}
+				if ( ! $found ) {
+					delete_post_meta( $post_id, $meta_key );
+					$time_key = '_oembed_time_' . $key_suffix;
+					delete_post_meta( $post_id, $time_key );
+				}
+			}
+		}
 	}
 
 	/**
