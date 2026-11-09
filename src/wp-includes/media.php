@@ -6885,9 +6885,9 @@ function wp_get_media_library_upload_settings(): array {
  * browser honors Document-Isolation-Policy: without isolation the page never
  * becomes cross-origin isolated, the script would no-op, and the whole
  * wp-upload-media dependency chain would be loaded for nothing. The same
- * goes for a screen wp_set_up_cross_origin_isolation() did not isolate,
- * such as the Customizer or the Site Icon picker: the media frame loads
- * there too, but its uploads stay on the classic path.
+ * goes for a screen wp_send_document_isolation_policy_header() did not
+ * isolate, such as the Customizer or the Site Icon picker: the media frame
+ * loads there too, but its uploads stay on the classic path.
  *
  * The screen script self-guards at runtime too: when the browser turns out
  * not to be isolated or lacks client-side media support, it no-ops and the
@@ -6945,7 +6945,8 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
  * Covers every `wp.media` frame that uploads through `wp.Uploader`: the
  * Media Library grid and the media modal the block editor, the site editor
  * and the block widgets screen open. wp_enqueue_media() calls this on any
- * screen that was cross-origin isolated, so it rarely needs calling directly.
+ * screen wp_send_document_isolation_policy_header() isolated, so it rarely
+ * needs calling directly.
  *
  * @since 7.2.0
  */
@@ -6971,6 +6972,9 @@ function wp_enqueue_media_new_upload(): void {
  * is needed on scripts, styles, images, audio, or video for the page to work.
  * Forcing `crossorigin="anonymous"` would turn those into CORS requests
  * and break any resource served without `Access-Control-Allow-Origin`.
+ *
+ * Sending the header also opts the screen's media frames into client-side
+ * uploads, so call this before wp_enqueue_media() runs.
  *
  * @since 7.2.0
  *
@@ -7004,7 +7008,7 @@ function wp_send_document_isolation_policy_header(): bool {
  * A header a plugin sends itself does not count, since the plugin may
  * isolate its screen for reasons of its own. To run the client-side
  * pipeline on a screen core does not isolate, call
- * wp_send_document_isolation_policy_header().
+ * wp_send_document_isolation_policy_header() before wp_enqueue_media().
  *
  * @since 7.2.0
  *
