@@ -1337,7 +1337,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	/**
 	 * Ensure a post type archive at the random base takes precedence over the root rule.
 	 *
-	 * @dataProvider data_post_types_using_the_random_base
+	 * @dataProvider data_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
@@ -1356,7 +1356,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: array<string, mixed>}>
 	 */
-	public static function data_post_types_using_the_random_base(): array {
+	public static function data_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base(): array {
 		return array(
 			'post type named random' => array(
 				'random',
