@@ -1001,7 +1001,7 @@ class WP_Ability {
 		 * Filters whether to short-circuit ability execution.
 		 *
 		 * Returning a value other than the received default bypasses the rest of `execute()` —
-		 * input normalization, input validation, permission checks, the registered execute callback,
+		 * input preparation, permission checks, the registered execute callback,
 		 * output validation, and the surrounding actions — and the value is returned to the caller
 		 * as-is. Useful for cached responses, rate limiting, maintenance mode, and test mocking.
 		 *
@@ -1048,7 +1048,7 @@ class WP_Ability {
 		}
 
 		/**
-		 * Fires before an ability gets executed, after input validation and permissions check.
+		 * Fires before an ability gets executed, after input preparation and permissions check.
 		 *
 		 * @since 6.9.0
 		 * @since 7.1.0 Added the `$ability` parameter.

@@ -256,7 +256,7 @@ declare( strict_types = 1 );
  *  2. `wp_pre_execute_ability` filter, which can short-circuit the rest of execution.
  *  3. `wp_ability_normalize_input` and `wp_ability_validate_input` filters, while the
  *     input is prepared. The input validation filter runs only when a non-empty input
- *     schema is defined.
+ *     schema is defined. Sanitization has no filter.
  *  4. `wp_ability_permission_result` filter.
  *  5. `wp_before_execute_ability` action.
  *  6. `wp_ability_execute_result` and `wp_ability_validate_output` filters.
