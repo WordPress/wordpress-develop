@@ -5,7 +5,7 @@
  * a real keyring under the conformance suite without needing that code to also
  * exercise libsodium.
  */
-class Mock_Keyring implements WP_Secrets_Keyring {
+class Mock_Keyring extends WP_Secrets_Keyring {
 
 	const MARKER = 'mock-wrapped:';
 
