@@ -146,7 +146,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_compat_fields() {
+	public static function data_compat_fields() {
 		return array(
 			'_show_split_view'     => array(
 				'property_name' => '_show_split_view',

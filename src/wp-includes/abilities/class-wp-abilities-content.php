@@ -988,12 +988,12 @@ final class WP_Abilities_Content {
 				'type'                 => 'object',
 				'additionalProperties' => false,
 				'properties'           => array(
-					'local' => array(
+					'site' => array(
 						'type'        => array( 'string', 'null' ),
 						'format'      => 'date-time',
 						'description' => __( "The publication date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
 					),
-					'gmt'   => array(
+					'gmt'  => array(
 						'type'        => array( 'string', 'null' ),
 						'format'      => 'date-time',
 						'description' => __( 'The publication date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
@@ -1005,12 +1005,12 @@ final class WP_Abilities_Content {
 				'type'                 => 'object',
 				'additionalProperties' => false,
 				'properties'           => array(
-					'local' => array(
+					'site' => array(
 						'type'        => array( 'string', 'null' ),
 						'format'      => 'date-time',
 						'description' => __( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
 					),
-					'gmt'   => array(
+					'gmt'  => array(
 						'type'        => array( 'string', 'null' ),
 						'format'      => 'date-time',
 						'description' => __( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
@@ -1336,10 +1336,10 @@ final class WP_Abilities_Content {
 	 * Returns a user when the current user may see them as an author.
 	 *
 	 * The current user may see themselves, the users they can edit, every user when they can
-	 * list users, and otherwise the authors of posts they can read in a post type exposed to
-	 * abilities: this ability returns those posts with their author, so the author is already
-	 * in view. Which post types the REST API exposes plays no part. A user the current user
-	 * may not see is reported like a missing one.
+	 * list users, and otherwise the authors of posts they can read in a publicly viewable post
+	 * type exposed to abilities: this ability returns those posts with their author, so the
+	 * author is already in view. Which post types the REST API exposes plays no part. A user
+	 * the current user may not see is reported like a missing one.
 	 *
 	 * The `author` field and the `author` slug filter share this rule, so the filter never
 	 * confirms a slug the field withholds. The post count is kept per author for the query,
@@ -1361,7 +1361,7 @@ final class WP_Abilities_Content {
 		}
 
 		if ( ! isset( $this->visible_authors[ $user_id ] ) ) {
-			$post_types                        = get_post_types( array( 'show_in_abilities' => true ), 'names' );
+			$post_types                        = array_values( array_filter( get_post_types( array( 'show_in_abilities' => true ), 'names' ), 'is_post_type_viewable' ) );
 			$this->visible_authors[ $user_id ] = (int) count_user_posts( $user_id, $post_types ) > 0;
 		}
 
@@ -1460,8 +1460,8 @@ final class WP_Abilities_Content {
 
 		foreach ( array( 'date', 'modified' ) as $field ) {
 			$dates = array();
-			if ( $this->is_field_requested( "{$field}.local", $fields ) ) {
-				$dates['local'] = $this->format_date( $post, $field, false );
+			if ( $this->is_field_requested( "{$field}.site", $fields ) ) {
+				$dates['site'] = $this->format_date( $post, $field, false );
 			}
 			if ( $this->is_field_requested( "{$field}.gmt", $fields ) ) {
 				$dates['gmt'] = $this->format_date( $post, $field, true );
@@ -1549,8 +1549,8 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param mixed $required Whether the post currently requires a password.
-	 * @param mixed $post     The post being checked; a WP_Post when invoked by the core filter.
+	 * @param bool         $required Whether the post currently requires a password.
+	 * @param WP_Post|null $post     The post being checked, or null if no post is found.
 	 * @return bool Whether the post still requires a password.
 	 */
 	private function allow_password_content( $required, $post ): bool {

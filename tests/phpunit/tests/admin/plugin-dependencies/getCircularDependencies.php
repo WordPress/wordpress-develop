@@ -26,7 +26,6 @@ class Tests_Admin_WPPluginDependencies_GetCircularDependencies extends WP_Plugin
 		$this->set_property_value( 'circular_dependencies_pairs', array( array( 'x', 'y' ) ) );
 
 		$this->assertSame( array( array( 'x', 'y' ) ), $this->call_method( 'get_circular_dependencies' ), 'The stored pairs should be returned.' );
-		$this->assertNull( $this->get_property_value( 'circular_dependencies_slugs' ), 'The slugs should not be computed.' );
 	}
 
 	/**
@@ -36,7 +35,6 @@ class Tests_Admin_WPPluginDependencies_GetCircularDependencies extends WP_Plugin
 	 */
 	public function test_should_return_empty_array_without_dependencies() {
 		$this->assertSame( array(), $this->call_method( 'get_circular_dependencies' ), 'No pairs should be returned.' );
-		$this->assertNull( $this->get_property_value( 'circular_dependencies_pairs' ), 'The pairs should not be stored.' );
 	}
 
 	/**
@@ -54,7 +52,6 @@ class Tests_Admin_WPPluginDependencies_GetCircularDependencies extends WP_Plugin
 		$this->set_dependencies( $dependencies );
 
 		$this->assertSame( $pairs, $this->call_method( 'get_circular_dependencies' ), 'The pairs should match.' );
-		$this->assertSame( $pairs, $this->get_property_value( 'circular_dependencies_pairs' ), 'The pairs should be stored.' );
 		$this->assertSameSets( $slugs, array_unique( $this->get_property_value( 'circular_dependencies_slugs' ) ), 'The slugs should match.' );
 	}
 

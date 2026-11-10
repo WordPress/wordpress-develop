@@ -390,6 +390,72 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 	}
 
 	/**
+	 * Tests that the `skip_to_balanced_tag_closer` method replaces exactly the
+	 * content between the opener tag and its matching closer tag, writing it as
+	 * given, and leaves the cursor on that closer tag without scanning the new
+	 * content.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::skip_to_balanced_tag_closer
+	 */
+	public function test_skip_to_balanced_tag_closer_replaces_the_content() {
+		$p = new WP_Interactivity_API_Directives_Processor( '<div id="host"><div>Nested</div><p>Text</div><div id="after">After</div>' );
+		$p->next_tag();
+
+		$this->assertTrue( $p->skip_to_balanced_tag_closer( '<b>New</b></div><div id="new">' ) );
+		$this->assertSame( 'DIV', $p->get_tag() );
+		$this->assertTrue( $p->is_tag_closer() );
+
+		$p->next_tag();
+		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Expected the next tag to be the one after the closer tag.' );
+		$this->assertSame( '<div id="host"><b>New</b></div><div id="new"></div><div id="after">After</div>', $p->get_updated_html() );
+	}
+
+	/**
+	 * Tests that the `skip_to_balanced_tag_closer` method reports a missing
+	 * closer tag and replaces nothing.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::skip_to_balanced_tag_closer
+	 */
+	public function test_skip_to_balanced_tag_closer_without_a_matching_closer_tag() {
+		$content = '<div><div>Missing closing div</div>';
+		$p       = new WP_Interactivity_API_Directives_Processor( $content );
+		$p->next_tag();
+
+		$this->assertFalse( $p->skip_to_balanced_tag_closer( 'New text' ) );
+		$this->assertFalse( $p->next_tag(), 'Expected the cursor to be at the end of the HTML.' );
+		$this->assertSame( $content, $p->get_updated_html() );
+	}
+
+	/**
+	 * Tests that the `skip_to_balanced_tag_closer` method replaces the content
+	 * of every element of a long document in one processor: more often than the
+	 * HTML API allows seeking, while the processor applies its queue of updates
+	 * on its own, and after an attribute update on each opener tag.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::skip_to_balanced_tag_closer
+	 */
+	public function test_skip_to_balanced_tag_closer_replaces_every_content_of_a_long_document() {
+		$count    = 2 * WP_HTML_Tag_Processor::MAX_SEEK_OPS;
+		$p        = new WP_Interactivity_API_Directives_Processor( str_repeat( '<div>Old <span>text</span></div>', $count ) );
+		$expected = '';
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			$this->assertTrue( $p->next_tag( 'div' ) );
+			$p->set_attribute( 'data-index', (string) $i );
+			$this->assertTrue( $p->skip_to_balanced_tag_closer( "<i>{$i}</i>" ) );
+			$expected .= "<div data-index=\"{$i}\"><i>{$i}</i></div>";
+		}
+
+		$this->assertSame( $expected, $p->get_updated_html() );
+	}
+
+	/**
 	 * Tests the `has_and_visits_its_closer_tag` method.
 	 *
 	 * @ticket 60356

@@ -686,13 +686,11 @@ class WP_Theme_JSON {
 	 * The valid pseudo-selectors that can be used for blocks.
 	 *
 	 * @since 7.0.0
-	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_PSEUDO_SELECTORS = array(
-		'core/button'             => array( ':hover', ':focus', ':focus-visible', ':active' ),
-		'core/navigation-link'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
-		'core/navigation-submenu' => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/button'          => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-link' => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -711,12 +709,10 @@ class WP_Theme_JSON {
 	 * `.wp-block-navigation-item.current-menu-item:hover`.
 	 *
 	 * @since 7.1.0
-	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_CUSTOM_STATES = array(
-		'core/navigation-link'    => array( '-current' ),
-		'core/navigation-submenu' => array( '-current' ),
+		'core/navigation-link' => array( '-current' ),
 	);
 
 	/**
@@ -746,7 +742,13 @@ class WP_Theme_JSON {
 	 *
 	 *     @type bool $include_desktop Whether to include the desktop media query. Default false.
 	 * }
-	 * @return array Responsive media queries.
+	 * @return array<string, string> Responsive media queries, keyed by style-state name.
+	 *
+	 * @phpstan-return array{
+	 *     '@mobile'?: non-falsy-string,
+	 *     '@tablet'?: non-falsy-string,
+	 *     '@desktop'?: non-falsy-string,
+	 * }
 	 */
 	public static function get_viewport_media_queries( $viewport_settings = null, $options = array() ) {
 		$breakpoints = self::sanitize_viewport_settings( $viewport_settings );
@@ -1947,9 +1949,7 @@ class WP_Theme_JSON {
 					$style_selectors = $block_metadata['styleVariations'] ?? array();
 
 					foreach ( $registered_styles[ $block_name ] as $block_style ) {
-						if ( ! isset( $style_selectors[ $block_style['name'] ] ) ) {
-							$style_selectors[ $block_style['name'] ] = static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
-						}
+						$style_selectors[ $block_style['name'] ] ??= static::get_block_style_variation_selector( $block_style['name'], $block_metadata['selector'] );
 					}
 
 					static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
@@ -2697,9 +2697,7 @@ class WP_Theme_JSON {
 
 				$target = self::get_feature_selector( $feature_selectors, $preset_metadata['path'][0], $selector );
 
-				if ( ! isset( $vars_by_selector[ $target ] ) ) {
-					$vars_by_selector[ $target ] = array();
-				}
+				$vars_by_selector[ $target ] ??= array();
 
 				foreach ( $values_by_slug as $slug => $value ) {
 					$vars_by_selector[ $target ][] = array(
@@ -5997,24 +5995,26 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param object $block_type    The block type.
-	 * @param string $root_selector The block's root selector.
-	 * @return array The custom selectors set by the block.
+	 * @param WP_Block_Type $block_type    The block type.
+	 * @param string        $root_selector The block's root selector.
+	 * @return array<string, string|array<string, string>> The custom selectors set by the block.
+	 *
+	 * @phpstan-return array{ root?: string, ...<string, string|array<string, string>> }
 	 */
 	protected static function get_block_selectors( $block_type, $root_selector ) {
 		if ( ! empty( $block_type->selectors ) ) {
 			return $block_type->selectors;
 		}
 
-		$selectors = array( 'root' => $root_selector );
+		$feature_selectors = array();
 		foreach ( static::BLOCK_SUPPORT_FEATURE_LEVEL_SELECTORS as $key => $feature ) {
 			$feature_selector = wp_get_block_css_selector( $block_type, $key );
 			if ( null !== $feature_selector ) {
-				$selectors[ $feature ] = array( 'root' => $feature_selector );
+				$feature_selectors[ $feature ] = array( 'root' => $feature_selector );
 			}
 		}
 
-		return $selectors;
+		return array( 'root' => $root_selector ) + $feature_selectors;
 	}
 
 	/**
@@ -6061,7 +6061,7 @@ class WP_Theme_JSON {
 	 * @return array<string, array[]> The style declarations for the node's features with custom
 	 *                                selectors, keyed by selector.
 	 *
-	 * @phpstan-param array{ selectors?: array<string, string|array<string, string>> } $metadata
+	 * @phpstan-param array{ selectors?: array{ root?: string, ...<string, string|array<string, string>> } } $metadata
 	 * @phpstan-return array<string, list<array{ name: non-falsy-string, value: scalar }>>
 	 */
 	protected function get_feature_declarations_for_node( $metadata, &$node ) {

@@ -46,6 +46,12 @@ class Tests_Term_TermDescription extends WP_UnitTestCase {
 		);
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Tests that term_description() returns the formatted description for a given term ID.
 	 *
