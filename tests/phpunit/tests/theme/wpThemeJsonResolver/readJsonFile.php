@@ -148,6 +148,7 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 		}
 
 		$this->expectNotice();
+		$this->expectNoticeMessage( 'is not a readable file.' );
 
 		$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
 		chmod( $unreadable_file, 0000 );
