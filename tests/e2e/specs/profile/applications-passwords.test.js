@@ -8,7 +8,11 @@ const TEST_APPLICATION_NAME = 'Test Application';
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
 		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
-			const applicationPasswords = new ApplicationPasswords( { requestUtils, admin, page } );
+			const applicationPasswords = new ApplicationPasswords( {
+				requestUtils,
+				admin,
+				page,
+			} );
 
 			// Revoke before the test too: a run that was interrupted leaves passwords behind.
 			await applicationPasswords.delete();
