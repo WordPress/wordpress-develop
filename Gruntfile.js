@@ -12,6 +12,15 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
+		/*
+		 * With --symlink, when building into /src, the wp-admin and wp-includes scripts that are copied unchanged from
+		 * /src/js/_enqueues are symlinked instead, so that edits to them take effect without a rebuild.
+		 *
+		 * This is opt-in because Docker Desktop's file sharing can keep serving the previous entry for a path whose
+		 * file is replaced, by a symlink or by a file in place of one, failing to read it until the containers are
+		 * restarted (`npm run env:restart`). For the same reason, the links in place are kept by later builds.
+		 */
+		linkScripts = WORKING_DIR === SOURCE_DIR && grunt.option( 'symlink' ) === true,
 		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
@@ -263,14 +272,28 @@ module.exports = function(grunt) {
 			css: cssFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
-			js: jsFiles.map( function( file ) {
+			js: linkScripts ? {
+				// Clean the files in wp-admin/js one by one, so that the links in place are kept. See the link task.
+				src: jsFiles.map( function( file ) {
+					return setFilePath( WORKING_DIR, 'wp-admin/js/' === file ? 'wp-admin/js/**' : file );
+				} ),
+				filter: function( filepath ) {
+					return ! isLinkedScriptPath( filepath );
+				}
+			} : jsFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
 
 			// Clean files built by Webpack.
-			'webpack-assets': webpackFiles.map( function( file ) {
-				return setFilePath( WORKING_DIR, file );
-			} ),
+			'webpack-assets': {
+				src: webpackFiles.map( function( file ) {
+					return setFilePath( WORKING_DIR, file );
+				} ),
+				// Keep the link to media-editor.js, which media-*.js matches. See the link task.
+				filter: function( filepath ) {
+					return ! linkScripts || ! isLinkedScriptPath( filepath );
+				}
+			},
 
 			/*
 			 * Clean files sourced from the downloaded zip file built by the Gutenberg repository.
@@ -2019,16 +2042,6 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	/*
-	 * With --symlink, when building into /src, the wp-admin and wp-includes scripts that are copied unchanged from
-	 * /src/js/_enqueues are symlinked instead, so that edits to them take effect without a rebuild.
-	 *
-	 * This is opt-in because Docker Desktop's file sharing can keep serving the previous entry for a path whose file is
-	 * replaced by a symlink, failing to read it until the containers are restarted (`npm run env:restart`). As the
-	 * build cleans the scripts first, this can happen after every build.
-	 */
-	var linkScripts = WORKING_DIR === SOURCE_DIR && grunt.option( 'symlink' ) === true;
-
 	grunt.registerTask( 'copy:js', 'Copies JavaScript files from npm packages, vendor libraries, wp-admin, and wp-includes.', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -2048,6 +2061,29 @@ module.exports = function(grunt) {
 		} catch ( e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Checks whether a path is a script's symlink as created by the link task, or a directory that holds one.
+	 *
+	 * @param {string} filepath Path to check.
+	 * @return {boolean} Whether the path is or holds a script's symlink.
+	 */
+	function isLinkedScriptPath( filepath ) {
+		var files = Object.assign( {},
+			grunt.config( [ 'copy', 'admin-js', 'files' ] ),
+			grunt.config( [ 'copy', 'includes-js', 'files' ] )
+		);
+
+		filepath = filepath.replace( /\/$/, '' );
+
+		return Object.keys( files ).some( function( dest ) {
+			if ( dest.indexOf( filepath + '/' ) === 0 ) {
+				return true;
+			}
+			return dest === filepath && isSymlink( dest ) &&
+				fs.readlinkSync( dest ) === path.relative( path.dirname( dest ), files[ dest ][ 0 ] );
+		} );
 	}
 
 	grunt.registerTask( 'link', 'Symlinks the files of a copy task to their sources, falling back to copying them where symlinks cannot be created.', function( target ) {

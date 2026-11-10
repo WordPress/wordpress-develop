@@ -84,7 +84,9 @@ The JavaScript files in `src/wp-admin/js` and `src/wp-includes/js` that are copi
 npm run build:dev -- --symlink
 ```
 
-If the local environment then cannot load these files, which can happen with Docker Desktop, restart it with `npm run env:restart`.
+The option also applies to the build that the watcher runs when it starts, as in `npm run dev -- --symlink`. Later builds with the option keep the links in place, while a build without it replaces them with copies again.
+
+If the local environment then cannot load these files, which can happen with Docker Desktop after switching between links and copies, restart it with `npm run env:restart`.
 
 #### To run a [WP-CLI](https://make.wordpress.org/cli/handbook/) command
 
