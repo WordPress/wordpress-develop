@@ -1874,11 +1874,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides transports and input sources for input that fails coercion.
+	 * Provides transports and input sources for input that fails sanitization.
 	 *
 	 * @return array
 	 */
-	public static function data_coercion_error_inputs(): array {
+	public static function data_sanitization_error_inputs(): array {
 		return array(
 			'query input'      => array( 'GET', 'request' ),
 			'JSON input'       => array( 'POST', 'request' ),
@@ -1888,15 +1888,15 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that coercion failures use existing REST error handling before permission checks.
+	 * Tests that sanitization failures use existing REST error handling before permission checks.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_coercion_error_inputs
+	 * @dataProvider data_sanitization_error_inputs
 	 *
 	 * @param string $method HTTP method.
-	 * @param string $source Source of the input that fails coercion.
+	 * @param string $source Source of the input that fails sanitization.
 	 */
-	public function test_coercion_error_returns_400( string $method, string $source ): void {
+	public function test_sanitization_error_returns_400( string $method, string $source ): void {
 		$input  = array( '1', '01' );
 		$schema = array(
 			'type'        => 'array',
@@ -1916,13 +1916,13 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		}
 
 		$unexpected_callback = function () {
-			$this->fail( 'Coercion errors must stop permission checks and execution.' );
+			$this->fail( 'Sanitization errors must stop permission checks and execution.' );
 		};
 		$this->register_test_ability(
-			'test/coercion-error',
+			'test/sanitization-error',
 			array(
-				'label'               => 'Coercion Error',
-				'description'         => 'Rejects inputs that cannot be coerced.',
+				'label'               => 'Sanitization Error',
+				'description'         => 'Rejects inputs that cannot be sanitized.',
 				'category'            => 'general',
 				'input_schema'        => $schema,
 				'permission_callback' => $unexpected_callback,
@@ -1934,14 +1934,14 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$response = $this->dispatch_run( $method, 'test/coercion-error', 'request' === $source ? $input : null );
+		$response = $this->dispatch_run( $method, 'test/sanitization-error', 'request' === $source ? $input : null );
 		$this->assertSame( 400, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_input', $data['code'] );
 	}
 
 	/**
-	 * Data provider for input that coercion must not rescue.
+	 * Data provider for input that sanitization must not rescue.
 	 *
 	 * @return array<string, array{0: array, 1: array}> Schema and the invalid raw input.
 	 */
@@ -1972,11 +1972,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that coercion never rescues otherwise-invalid input.
+	 * Tests that sanitization never rescues otherwise-invalid input.
 	 *
-	 * Sanitizing invalid input could silently change what is accepted, so coercion runs only on
-	 * input that already validates. Invalid input therefore still returns the authoritative
-	 * `ability_invalid_input` (400) from validation.
+	 * Sanitizing invalid input could silently change what is accepted, so sanitization
+	 * runs only on input that already validates. Invalid input therefore still reports
+	 * the `ability_invalid_input` error from validation.
 	 *
 	 * @ticket 65594
 	 *
@@ -1995,10 +1995,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `validate_input()` decides what gets coerced, filters included.
+	 * Tests that `validate_input()` decides what gets sanitized, filters included.
 	 *
-	 * Coercion gates on `validate_input()`, not the raw schema, so a `wp_ability_validate_input`
-	 * filter that accepts input the schema rejects makes that input coerced too.
+	 * Sanitization gates on `validate_input()`, not the raw schema, so a
+	 * `wp_ability_validate_input` filter that accepts input the schema rejects makes
+	 * that input sanitized too.
 	 *
 	 * @ticket 65594
 	 */
