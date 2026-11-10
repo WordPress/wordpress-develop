@@ -746,6 +746,10 @@ function wp_render_block_states_support( $block_content, $block ) {
 		return $block_content;
 	}
 
+	if ( block_has_support( $block_type, array( 'transform', 'translate' ), false ) ) {
+		$style = wp_get_block_style_with_filled_translate( $style, $block_name, $block['attrs']['className'] ?? null );
+	}
+
 	$supported_pseudo_states  = WP_Theme_JSON::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ?? array();
 	$css_rules                = array();
 	$default_root_style       = wp_get_root_state_style(
