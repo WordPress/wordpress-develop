@@ -142,7 +142,14 @@ abstract class WP_Secrets_Provider {
 	 *                                    'updated'.
 	 * @return true|WP_Error
 	 */
-	abstract public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null );
+	abstract public function set(
+		string $name,
+		#[\SensitiveParameter]
+		$value,
+		bool $network = false,
+		bool $needs_rotation = false,
+		?string $action = null
+	);
 
 	/**
 	 * Deletes a secret.
