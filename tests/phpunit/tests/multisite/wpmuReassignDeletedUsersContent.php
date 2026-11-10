@@ -56,8 +56,8 @@ if ( is_multisite() ) :
 				array( 1 => 'delete', self::$site_b => 'delete' )
 			);
 
-			$this->assertNull( $this->get_post_on_site( 1, $posts[1] ) );
-			$this->assertNull( $this->get_post_on_site( self::$site_b, $posts[ self::$site_b ] ) );
+			$this->assertSame( 'trash', get_post_status( $this->get_post_on_site( 1, $posts[1] ) ) );
+			$this->assertSame( 'trash', get_post_status( $this->get_post_on_site( self::$site_b, $posts[ self::$site_b ] ) ) );
 		}
 
 		/**
@@ -74,7 +74,7 @@ if ( is_multisite() ) :
 
 			$this->assertInstanceOf( WP_Post::class, $reassigned_post );
 			$this->assertSame( (string) self::$heir, $reassigned_post->post_author );
-			$this->assertNull( $this->get_post_on_site( self::$site_b, $posts[ self::$site_b ] ) );
+			$this->assertSame( 'trash', get_post_status( $this->get_post_on_site( self::$site_b, $posts[ self::$site_b ] ) ) );
 		}
 
 		/**
