@@ -64,19 +64,67 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source check recommends defining WP_SECRETS_KEY when it is not set.
+	 * Ensure that the key source check offers a generated define line when WP_SECRETS_KEY is not defined.
+	 *
+	 * Runs in a separate process, where the test bootstrap does not define WP_SECRETS_KEY.
 	 *
 	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
-	public function test_key_source_test_recommends_a_dedicated_key_by_default(): void {
-		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
-			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
-		}
-
+	public function test_key_source_test_offers_a_generated_key_when_none_is_defined(): void {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended without WP_SECRETS_KEY.' );
-		$this->assertStringContainsString( 'WP_SECRETS_KEY', $result['description'], 'The description should recommend defining WP_SECRETS_KEY.' );
+		$this->assertStringContainsString( 'Add this line', $result['description'], 'The description should ask for the line to be added.' );
+		$this->assertMatchesRegularExpression( '/define\( &#039;WP_SECRETS_KEY&#039;, &#039;([A-Za-z0-9+\/]{43}=)&#039; \);/', $result['description'], 'The description should contain a define line with a base64-encoded 32-byte key.' );
+	}
+
+	/**
+	 * Ensure that the key source check offers a replacement line when WP_SECRETS_KEY is the placeholder.
+	 *
+	 * Runs in a separate process because WP_SECRETS_KEY is a constant and cannot be
+	 * undefined for later tests.
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_offers_a_replacement_for_the_placeholder(): void {
+		define( 'WP_SECRETS_KEY', 'put your unique phrase here' );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended for the placeholder.' );
+		$this->assertStringContainsString( 'Replace the <code>WP_SECRETS_KEY</code> line', $result['description'], 'The description should ask for the line to be replaced.' );
+	}
+
+	/**
+	 * Ensure that the key source check still detects a missing key on a translated site.
+	 *
+	 * The key source text is translated, so the check must not depend on it.
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_offers_a_generated_key_on_a_translated_site(): void {
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return '%s is not defined' === $text ? '%s ist nicht definiert' : $translation;
+			},
+			10,
+			2
+		);
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended without WP_SECRETS_KEY on a translated site.' );
+		$this->assertStringContainsString( 'Add this line', $result['description'], 'The description should ask for the line to be added on a translated site.' );
 	}
 
 	/**

@@ -30,17 +30,15 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 
 /*
- * The Secrets API will not derive a key from the placeholder salts that
- * wp-tests-config-sample.php ships with, so give the suite a fixed test key.
+ * The Secrets API needs WP_SECRETS_KEY, which wp-tests-config-sample.php does not
+ * define, so give the suite a fixed test key.
  *
  * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
  * while it loads this file in a child process, and the Secrets API tests that
  * run isolated do so precisely to define WP_SECRETS_KEY themselves, or to
  * leave it undefined.
  */
-if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] )
-	&& defined( 'LOGGED_IN_KEY' ) && 'put your unique phrase here' === LOGGED_IN_KEY
-) {
+if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
 	define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
 }
 require_once __DIR__ . '/functions.php';
