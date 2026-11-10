@@ -1476,9 +1476,14 @@ class WP_Rewrite {
 		 * random base. The page and post rules are generic catch-all rules matching
 		 * any path, so are not checked. Pages and posts at the random base are
 		 * accounted for separately by WP_Rewrite::random_rewrite_rules().
+		 *
+		 * Rules added to the bottom are not checked either. The page and post rules
+		 * precede them, so they are never matched for the random base. A bottom rule
+		 * using the same regex as the random root rule replaces its query instead,
+		 * taking its position ahead of the page and post rules.
 		 */
 		$random_rewrite = $this->random_rewrite_rules(
-			array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $this->extra_rules )
+			array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite )
 		);
 
 		/**
@@ -1568,8 +1573,9 @@ class WP_Rewrite {
 	 * @param string[]|null $existing_rules Optional. Existing rewrite rules to check for rules using the
 	 *                                      random base, keyed by their regex pattern. Generic catch-all
 	 *                                      rules, such as the page and post rules, should not be included
-	 *                                      as they match any path. Default null, the extra rules added
-	 *                                      via WP_Rewrite::add_rule() and WP_Rewrite::add_permastruct().
+	 *                                      as they match any path. Nor should rules added to the bottom,
+	 *                                      as the page and post rules precede them. Default null, the
+	 *                                      rules added to the top via WP_Rewrite::add_rule().
 	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 *
 	 * @phpstan-return array<non-falsy-string, non-falsy-string>
@@ -1608,8 +1614,11 @@ class WP_Rewrite {
 			 * The generic catch-all page and post rules match any path, including the
 			 * random base, so are excluded from the existing rules. Pages and posts at
 			 * the random base, which these rules serve, are accounted for above.
+			 *
+			 * Rules added to the bottom are excluded as the page and post rules precede
+			 * them, see WP_Rewrite::rewrite_rules().
 			 */
-			$existing_rules ??= array_merge( $this->extra_rules_top, $this->extra_rules );
+			$existing_rules ??= $this->extra_rules_top;
 
 			foreach ( $existing_rules as $regex => $query ) {
 				/*
