@@ -182,6 +182,28 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_object_response( 'view', $response, 'cpt_template' );
 	}
 
+	/**
+	 * Tests that registering a post type with a null template normalizes to an empty array.
+	 *
+	 * @ticket 61477
+	 * @ticket 65817
+	 */
+	public function test_get_item_template_null_cpt() {
+		register_post_type(
+			'cpt_template_null',
+			array(
+				'show_in_rest' => true,
+				'template'     => null,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template_null' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( array(), $data['template'] );
+	}
+
 	public function test_get_item_page() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/page' );
 		$response = rest_get_server()->dispatch( $request );

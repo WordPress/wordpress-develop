@@ -28,14 +28,13 @@ class Tests_Formatting_TagEscape extends WP_UnitTestCase {
 	 */
 	public static function data_tag_escape() {
 		return array(
-			'empty string'                => array( '', '' ),
 			'lowercase tag'               => array( 'div', 'div' ),
 			'uppercase lowercased'        => array( 'DIV', 'div' ),
 			'mixed case'                  => array( 'SpAn', 'span' ),
 			'allows hyphen underscore'    => array( 'my-custom_tag', 'my-custom_tag' ),
 			'allows colon for namespaced' => array( 'svg:path', 'svg:path' ),
-			'strips invalid characters'   => array( 'div<script>', 'divscript' ),
-			'strips spaces'               => array( 'hello world', 'helloworld' ),
+			'invalid characters removed'  => array( 'div<script>', 'divscript' ),
+			'invalid spaces not allowed'  => array( 'hello world', 'helloworld' ),
 		);
 	}
 

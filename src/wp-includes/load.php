@@ -831,6 +831,10 @@ function wp_using_ext_object_cache( $using = null ) {
  * Runs once, before must-use plugins load, so that every interface a drop-in's
  * classes implement already exists and every plugin sees the drop-in's provider.
  *
+ * The drop-in sets its overrides in the `$wp_secrets_provider`, `$wp_secrets_store`
+ * and `$wp_secrets_keyring` globals. They are declared global before the require, so
+ * a plain assignment such as `$wp_secrets_keyring = new My_Keyring();` works.
+ *
  * Sets `$GLOBALS['wp_secrets_dropin_loaded']` as soon as the file is found, whether
  * or not it then loads cleanly: wp_using_secrets_dropin() reports presence, not
  * health.
@@ -849,6 +853,12 @@ function wp_using_ext_object_cache( $using = null ) {
  *
  * @since 7.2.0
  * @access private
+ *
+ * @global bool                $wp_secrets_dropin_loaded Whether a secrets.php drop-in file was found.
+ * @global bool                $wp_secrets_dropin_broken Whether the drop-in failed to load or left an invalid override.
+ * @global WP_Secrets_Provider $wp_secrets_provider      Optional. Provider override set by the drop-in.
+ * @global WP_Secrets_Store    $wp_secrets_store         Optional. Store override set by the drop-in.
+ * @global WP_Secrets_Keyring  $wp_secrets_keyring       Optional. Keyring override set by the drop-in.
  */
 function wp_load_secrets_dropin(): void {
 	static $loaded = false;
@@ -866,6 +876,12 @@ function wp_load_secrets_dropin(): void {
 	}
 
 	$GLOBALS['wp_secrets_dropin_loaded'] = true;
+
+	/*
+	 * The drop-in is required inside this function. Declaring the overrides global
+	 * lets it set them as plain variables, as db.php does with $wpdb.
+	 */
+	global $wp_secrets_provider, $wp_secrets_store, $wp_secrets_keyring;
 
 	try {
 		require $dropin_path;

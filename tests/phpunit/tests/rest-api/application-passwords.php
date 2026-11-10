@@ -48,7 +48,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $expected['error_message'], $actual->get_error_message( $expected['error_code'] ) );
 	}
 
-	public function data_create_new_application_password_validation() {
+	public static function data_create_new_application_password_validation() {
 		return array(
 			'application_password_empty_name when no args' => array(
 				'expected' => array(
@@ -101,7 +101,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $args['name'], $new_item['name'] );
 	}
 
-	public function data_create_new_application_password() {
+	public static function data_create_new_application_password() {
 		return array(
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
@@ -126,7 +126,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( $expected, WP_Application_Passwords::application_name_exists_for_user( self::$user_id, $name ) );
 	}
 
-	public function data_application_name_exists_for_user() {
+	public static function data_application_name_exists_for_user() {
 		return array(
 			array( false, 'test1' ),
 			array( false, 'baz' ),
@@ -172,7 +172,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertSame( 'Could not find an application password with that id.', $actual->get_error_message( 'application_password_not_found' ) );
 	}
 
-	public function data_update_application_password() {
+	public static function data_update_application_password() {
 		return array(
 			'should not update when no values given to update' => array(
 				'update'   => array(),
@@ -197,5 +197,132 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertNotWPError( $created, 'First attempt to create an application password should not return an error' );
 		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
 		$this->assertNotWPError( $created, 'Second attempt to create an application password should not return an error' );
+	}
+
+	/**
+	 * @ticket 63927
+	 *
+	 * @covers WP_Application_Passwords::create_new_application_password
+	 */
+	public function test_create_new_application_password_unslashes_values() {
+		$name   = 'Bob\'s "Tool" \\ Backslash';
+		$app_id = '\\"app\'';
+		$action = new MockAction();
+		add_action( 'wp_create_application_password', array( $action, 'action' ), 10, 4 );
+
+		list( , $new_item ) = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			wp_slash(
+				array(
+					'name'   => $name,
+					'app_id' => $app_id,
+				)
+			)
+		);
+
+		$this->assertSame( $name, $new_item['name'], 'The returned name should be unslashed.' );
+		$this->assertSame( $app_id, $new_item['app_id'], 'The returned app ID should be unslashed.' );
+
+		$args = $action->get_args();
+		$this->assertCount( 1, $args, 'The action should fire once.' );
+		$this->assertSame( $new_item, $args[0][1], 'The action should receive the unslashed item.' );
+		$this->assertSame( $name, $args[0][3]['name'], 'The action should receive the unslashed name argument.' );
+		$this->assertSame( $app_id, $args[0][3]['app_id'], 'The action should receive the unslashed app ID argument.' );
+
+		$stored = WP_Application_Passwords::get_user_application_password( self::$user_id, $new_item['uuid'] );
+		$this->assertSame( $name, $stored['name'], 'The stored name should match the unslashed name.' );
+		$this->assertSame( $app_id, $stored['app_id'], 'The stored app ID should match the unslashed app ID.' );
+	}
+
+	/**
+	 * @ticket 63927
+	 *
+	 * @covers WP_Application_Passwords::update_application_password
+	 */
+	public function test_update_application_password_unslashes_values() {
+		$name = 'Bob\'s "Tool" \\ Backslash';
+
+		list( , $original ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'App' ) );
+
+		$action = new MockAction();
+		add_action( 'wp_update_application_password', array( $action, 'action' ), 10, 3 );
+
+		$updated = WP_Application_Passwords::update_application_password( self::$user_id, $original['uuid'], wp_slash( array( 'name' => $name ) ) );
+
+		$this->assertTrue( $updated, 'The application password should be updated.' );
+
+		$args = $action->get_args();
+		$this->assertCount( 1, $args, 'The action should fire once.' );
+		$this->assertSame( $name, $args[0][1]['name'], 'The action should receive the unslashed item name.' );
+		$this->assertSame( array( 'name' => $name ), $args[0][2], 'The action should receive the unslashed update.' );
+
+		$stored = WP_Application_Passwords::get_user_application_password( self::$user_id, $original['uuid'] );
+		$this->assertSame( $name, $stored['name'], 'The stored name should match the unslashed name.' );
+	}
+
+	/**
+	 * @ticket 63927
+	 *
+	 * @covers WP_Application_Passwords::update_application_password
+	 */
+	public function test_update_application_password_passes_stored_name_when_name_not_updated() {
+		$name = 'Bob\'s "Tool" \\ Backslash';
+
+		list( , $original ) = WP_Application_Passwords::create_new_application_password( self::$user_id, wp_slash( array( 'name' => $name ) ) );
+
+		$action = new MockAction();
+		add_action( 'wp_update_application_password', array( $action, 'action' ), 10, 3 );
+
+		WP_Application_Passwords::update_application_password( self::$user_id, $original['uuid'], array() );
+
+		$args = $action->get_args();
+		$this->assertCount( 1, $args, 'The action should fire once.' );
+		$this->assertSame( $name, $args[0][1]['name'] );
+	}
+
+	/**
+	 * @ticket 63927
+	 *
+	 * @covers WP_Application_Passwords::update_application_password
+	 */
+	public function test_update_application_password_with_same_slashed_name_does_not_save() {
+		$name = 'Bob\'s "Tool" \\ Backslash';
+
+		list( , $original ) = WP_Application_Passwords::create_new_application_password( self::$user_id, wp_slash( array( 'name' => $name ) ) );
+
+		$action = new MockAction();
+		add_action( 'update_user_meta', array( $action, 'action' ) );
+
+		$updated = WP_Application_Passwords::update_application_password( self::$user_id, $original['uuid'], wp_slash( array( 'name' => $name ) ) );
+
+		$this->assertTrue( $updated, 'Updating with an unchanged name should succeed.' );
+		$this->assertSame( 0, $action->get_call_count(), 'Updating with an unchanged name should not save.' );
+	}
+
+	/**
+	 * Ensures saving one application password does not strip backslashes from the others.
+	 *
+	 * @ticket 63927
+	 *
+	 * @covers WP_Application_Passwords::create_new_application_password
+	 * @covers WP_Application_Passwords::update_application_password
+	 * @covers WP_Application_Passwords::record_application_password_usage
+	 * @covers WP_Application_Passwords::delete_application_password
+	 */
+	public function test_backslashes_in_stored_names_survive_later_saves() {
+		$name = 'C:\\Apps\\Tool';
+
+		list( , $item )  = WP_Application_Passwords::create_new_application_password( self::$user_id, wp_slash( array( 'name' => $name ) ) );
+		list( , $other ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'Other' ) );
+		$this->assertSame( $name, WP_Application_Passwords::get_user_application_password( self::$user_id, $item['uuid'] )['name'], 'After creating another password.' );
+
+		WP_Application_Passwords::update_application_password( self::$user_id, $other['uuid'], array( 'name' => 'Other Updated' ) );
+		$this->assertSame( $name, WP_Application_Passwords::get_user_application_password( self::$user_id, $item['uuid'] )['name'], 'After updating another password.' );
+
+		WP_Application_Passwords::record_application_password_usage( self::$user_id, $other['uuid'] );
+		$this->assertSame( $name, WP_Application_Passwords::get_user_application_password( self::$user_id, $item['uuid'] )['name'], 'After recording usage of another password.' );
+
+		WP_Application_Passwords::delete_application_password( self::$user_id, $other['uuid'] );
+		$this->assertSame( $name, WP_Application_Passwords::get_user_application_password( self::$user_id, $item['uuid'] )['name'], 'After deleting another password.' );
 	}
 }

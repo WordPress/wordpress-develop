@@ -134,7 +134,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $wpdb->esc_like( $input ) );
 	}
 
-	public function data_esc_like() {
+	public static function data_esc_like() {
 		return array(
 			'single percent'    => array(
 				'howdy%',
@@ -177,7 +177,7 @@ class Tests_DB extends WP_UnitTestCase {
 		return $this->assertSame( $result, $wpdb->get_var( $wpdb->prepare( 'SELECT %s LIKE %s', $data, $wpdb->esc_like( $like ) ) ) );
 	}
 
-	public function data_like_query() {
+	public static function data_like_query() {
 		return array(
 			array(
 				'aaa',
@@ -456,7 +456,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $prepared );
 	}
 
-	public function data_prepare_incorrect_arg_count() {
+	public static function data_prepare_incorrect_arg_count() {
 		global $wpdb;
 
 		$placeholder_escape = $wpdb->placeholder_escape();
@@ -681,7 +681,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *     @type array|string|null $last_result The value to assign to `$wpdb->last_result`.
 	 *     @type int|string        $column      The column index to retrieve.
 	 */
-	public function data_get_col() {
+	public static function data_get_col() {
 		global $wpdb;
 
 		return array(
@@ -813,7 +813,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 21212
 	 * @ticket 32763
 	 */
-	public function data_get_table_from_query() {
+	public static function data_get_table_from_query() {
 		$table       = 'a_test_table_name';
 		$more_tables = array(
 			// table_name => expected_value
@@ -944,7 +944,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
 	}
 
-	public function data_get_table_from_query_false() {
+	public static function data_get_table_from_query_false() {
 		$table = 'a_test_table_name';
 		return array(
 			array( "LOL THIS ISN'T EVEN A QUERY $table" ),
@@ -962,7 +962,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 38751
 	 */
-	public function data_get_escaped_table_from_show_query() {
+	public static function data_get_escaped_table_from_show_query() {
 		return array(
 			// Equality.
 			array( "SHOW TABLE STATUS WHERE Name = 'test_name'", 'test_name' ),
@@ -989,7 +989,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_process_field_formats() {
+	public static function data_process_field_formats() {
 		$core_db_fields_no_format_specified = array(
 			array(
 				'post_content' => 'foo',
@@ -1281,7 +1281,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_process_single_field_invalid_data() {
+	public static function data_process_single_field_invalid_data() {
 		return array(
 			'too long'      => array(
 				'data'           => array( 'post_status' => str_repeat( 'a', 21 ) ),
@@ -1299,7 +1299,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_process_multiple_fields_invalid_data() {
+	public static function data_process_multiple_fields_invalid_data() {
 		return array(
 			'too long'      => array(
 				'data'           => array(
@@ -1599,7 +1599,7 @@ class Tests_DB extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_prepare_with_placeholders() {
+	public static function data_prepare_with_placeholders() {
 		global $wpdb;
 
 		$placeholder_escape = $wpdb->placeholder_escape();
@@ -2078,7 +2078,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property() {
+	public static function data_prepare_should_respect_the_allow_unsafe_unquoted_parameters_property() {
 		global $wpdb;
 
 		$placeholder_escape = $wpdb->placeholder_escape();
@@ -2183,7 +2183,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_escape_and_prepare() {
+	public static function data_escape_and_prepare() {
 		global $wpdb;
 
 		$placeholder_escape = $wpdb->placeholder_escape();
@@ -2306,7 +2306,7 @@ class Tests_DB extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_parse_db_host() {
+	public static function data_parse_db_host() {
 		return array(
 			array(
 				'',    // DB_HOST.
