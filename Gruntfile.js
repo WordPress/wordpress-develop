@@ -25,10 +25,6 @@ module.exports = function(grunt) {
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
-		// Scripts that are loaded as modules, which are minified by their own uglify tasks.
-		uglifyModules = [
-			'wp-includes/js/wp-emoji-loader.js'
-		],
 		buildFiles = [
 			'*.php',
 			'*.txt',
@@ -1242,9 +1238,8 @@ module.exports = function(grunt) {
 					'!{wp-admin,wp-includes}/**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-				].concat( uglifyModules.map( function( file ) {
-					return '!' + file; // This is a module. See the emoji-loader task below.
-				} ) )
+					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
+				]
 			},
 			'emoji-loader': {
 				options: {
@@ -1288,18 +1283,6 @@ module.exports = function(grunt) {
 				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js'
 			},
 			dynamic: {
-				expand: true,
-				cwd: WORKING_DIR,
-				dest: WORKING_DIR,
-				ext: '.min.js',
-				src: []
-			},
-			// Changed files that are loaded as modules, minified with the options of the emoji-loader task.
-			'dynamic-module': {
-				options: {
-					module: true,
-					toplevel: true,
-				},
 				expand: true,
 				cwd: WORKING_DIR,
 				dest: WORKING_DIR,
@@ -1691,8 +1674,8 @@ module.exports = function(grunt) {
 					'**/node_modules/**',
 					'vendor/**',
 					BUILD_DIR + '**',
-					// Third-party plugins.
-					SOURCE_DIR + 'wp-content/plugins/**',
+					// Third-party plugins, other than those that the build copies.
+					SOURCE_DIR + 'wp-content/plugins/!(index.php|hello.php|akismet)/**',
 					// Third-party themes.
 					SOURCE_DIR + 'wp-content/themes/!(twenty*|ipsum|index.php)/**',
 					// Uploads, translations, and other content that is not part of the build.
@@ -1706,14 +1689,14 @@ module.exports = function(grunt) {
 			 */
 			all: {
 				files: [],
-				tasks: ['watch-dynamic:all', 'clean:dynamic', 'copy:dynamic'],
+				tasks: ['watch-dynamic:all', 'clean:dynamic', 'copy:dynamic', 'copy:dynamic-js'],
 				options: {
 					dot: true
 				}
 			},
 			'js-enqueues': {
 				files: [SOURCE_DIR + 'js/_enqueues/**/*.js'],
-				tasks: ['watch-dynamic:js-enqueues', 'clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic', 'uglify:dynamic-module'],
+				tasks: ['watch-dynamic:js-enqueues', 'clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic', 'watch-uglify'],
 				options: {
 					dot: true
 				}
@@ -1739,13 +1722,16 @@ module.exports = function(grunt) {
 				}
 			},
 			colors: {
-				files: [SOURCE_DIR + 'wp-admin/css/colors/**'],
+				files: [SOURCE_DIR + 'wp-admin/css/colors/**/*.scss'],
 				tasks: ['sass:colors']
 			},
 			rtl: {
 				files: [
 					SOURCE_DIR + 'wp-admin/css/*.css',
-					SOURCE_DIR + 'wp-includes/css/*.css'
+					SOURCE_DIR + 'wp-includes/css/*.css',
+					// Built stylesheets, written next to the sources with --dev.
+					'!' + SOURCE_DIR + '{wp-admin,wp-includes}/css/*.min.css',
+					'!' + SOURCE_DIR + '{wp-admin,wp-includes}/css/*-rtl*.css'
 				],
 				tasks: ['watch-dynamic:rtl', 'rtlcss:dynamic']
 			},
@@ -1770,10 +1756,29 @@ module.exports = function(grunt) {
 		// When building into /src, there is nothing for the `all` watch target to copy, so its files are not watched.
 		delete grunt.config.data._watch.all;
 	} else {
-		// Watch the files that the copy:files task copies from /src, so that a change is copied as by the build.
+		/*
+		 * Watch the files that the copy:files task copies from /src, so that a change is copied as by the build,
+		 * including the sources it copies to other paths, such as _index.php.
+		 */
 		grunt.config( [ '_watch', 'all', 'files' ], grunt.config( 'copy.files.files' )[0].src.map( function( pattern ) {
 			return pattern.charAt( 0 ) === '!' ? '!' + SOURCE_DIR + pattern.slice( 1 ) : SOURCE_DIR + pattern;
-		} ) );
+		} ).concat( Object.keys( getMappedBuildFiles() ).map( function( dest ) {
+			return getMappedBuildFiles()[ dest ];
+		} ) ) );
+	}
+
+	/*
+	 * The `phpunit` watch target, also added here rather than only by the `watch` task, so that the watch task has
+	 * it after restarting for a change to this file.
+	 */
+	if ( /^_?watch:phpunit$/.test( grunt.cli.tasks[ 0 ] ) || 'undefined' !== typeof grunt.option( 'phpunit' ) ) {
+		grunt.config( [ '_watch', 'phpunit' ], {
+			files: [
+				SOURCE_DIR + '**/*.php',
+				'tests/phpunit/**/*.php'
+			],
+			tasks: [ 'phpunit:default' ]
+		} );
 	}
 
 
@@ -1859,16 +1864,6 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'watch', 'Watches files for changes and runs the related tasks. Use watch:phpunit or --phpunit to also run PHPUnit tests.', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
 			grunt.task.run( 'build' );
-		}
-
-		if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] || 'undefined' !== typeof grunt.option( 'phpunit' ) ) {
-			grunt.config.data._watch.phpunit = {
-				files: [
-					SOURCE_DIR + '**/*.php',
-					'tests/phpunit/**/*.php'
-				],
-				tasks: [ 'phpunit:default' ]
-			};
 		}
 
 		grunt.task.run( '_' + this.nameArgs );
@@ -2063,6 +2058,9 @@ module.exports = function(grunt) {
 		}
 	}
 
+	// The scripts' symlinks in place before the build, and the directories that hold them, keyed by path.
+	var linkedScriptPaths = null;
+
 	/**
 	 * Checks whether a path is a script's symlink as created by the link task, or a directory that holds one.
 	 *
@@ -2070,20 +2068,27 @@ module.exports = function(grunt) {
 	 * @return {boolean} Whether the path is or holds a script's symlink.
 	 */
 	function isLinkedScriptPath( filepath ) {
-		var files = Object.assign( {},
-			grunt.config( [ 'copy', 'admin-js', 'files' ] ),
-			grunt.config( [ 'copy', 'includes-js', 'files' ] )
-		);
+		var files, dest;
 
-		filepath = filepath.replace( /\/$/, '' );
+		// Collect the links and the directories that hold them once, as the clean tasks check each path.
+		if ( ! linkedScriptPaths ) {
+			linkedScriptPaths = {};
+			files = Object.assign( {},
+				grunt.config( [ 'copy', 'admin-js', 'files' ] ),
+				grunt.config( [ 'copy', 'includes-js', 'files' ] )
+			);
+			Object.keys( files ).forEach( function( linkPath ) {
+				if ( ! isSymlink( linkPath ) || fs.readlinkSync( linkPath ) !== path.relative( path.dirname( linkPath ), files[ linkPath ][ 0 ] ) ) {
+					return;
+				}
+				linkedScriptPaths[ linkPath ] = true;
+				for ( dest = path.dirname( linkPath ); dest !== '.' && ! linkedScriptPaths[ dest ]; dest = path.dirname( dest ) ) {
+					linkedScriptPaths[ dest ] = true;
+				}
+			} );
+		}
 
-		return Object.keys( files ).some( function( dest ) {
-			if ( dest.indexOf( filepath + '/' ) === 0 ) {
-				return true;
-			}
-			return dest === filepath && isSymlink( dest ) &&
-				fs.readlinkSync( dest ) === path.relative( path.dirname( dest ), files[ dest ][ 0 ] );
-		} );
+		return !! linkedScriptPaths[ filepath.replace( /\/$/, '' ) ];
 	}
 
 	grunt.registerTask( 'link', 'Symlinks the files of a copy task to their sources, falling back to copying them where symlinks cannot be created.', function( target ) {
@@ -2666,6 +2671,9 @@ module.exports = function(grunt) {
 	 */
 	var watchedChanges = {};
 
+	// The uglify targets to run for the changed scripts that the uglify:core task does not minify.
+	var watchedUglifyTargets = [];
+
 	grunt.event.on( 'watch', function( action, filepath, target ) {
 		if ( [ 'all', 'rtl', 'js-enqueues', 'js-webpack' ].indexOf( target ) === -1 ) {
 			return;
@@ -2690,11 +2698,14 @@ module.exports = function(grunt) {
 		if ( filepath.indexOf( SOURCE_DIR + 'js/_enqueues/vendor/' ) === 0 ) {
 			configs = grunt.config( [ 'copy', 'vendor-js', 'files' ] );
 
-			// For each glob matcher check if it matches.
+			// Find the glob matcher that copies it. The other entries map files from node_modules.
 			for ( i = 0; i < configs.length; i++ ) {
-				relative = path.relative( configs[ i ].cwd, filepath );
+				if ( ! configs[ i ].cwd ) {
+					continue;
+				}
+				relative = path.relative( configs[ i ].cwd, filepath ).replace( /\\/g, '/' );
 
-				if ( require( 'minimatch' ).match( configs[ i ].src, relative, {} ).length ) {
+				if ( relative.indexOf( '../' ) !== 0 && grunt.file.isMatch( configs[ i ].src, relative ) ) {
 					return { dest: configs[ i ].dest + relative, src: filepath };
 				}
 			}
@@ -2715,6 +2726,53 @@ module.exports = function(grunt) {
 		return null;
 	}
 
+	/**
+	 * Gets the files in /src that the copy:files task copies to another path, such as _index.php to index.php.
+	 *
+	 * @return {Object<string, string>} Source paths, keyed by their destinations.
+	 */
+	function getMappedBuildFiles() {
+		var mapped = {};
+
+		grunt.config( 'copy.files.files' ).forEach( function( files ) {
+			// Skip the entries of glob patterns, which have a src or cwd.
+			if ( files.src || files.cwd ) {
+				return;
+			}
+			Object.keys( files ).forEach( function( dest ) {
+				if ( 0 === files[ dest ][ 0 ].indexOf( SOURCE_DIR ) ) {
+					mapped[ dest ] = files[ dest ][ 0 ];
+				}
+			} );
+		} );
+
+		return mapped;
+	}
+
+	/**
+	 * Gets the uglify target that minifies a script in the build.
+	 *
+	 * @param {string} dest Path of the script, relative to the working directory.
+	 * @return {?string} The name of the uglify target, or null if the script is not minified.
+	 */
+	function getUglifyTarget( dest ) {
+		var targets = grunt.config( 'uglify' );
+
+		return Object.keys( targets ).filter( function( name ) {
+			var target = targets[ name ];
+			var relative;
+
+			if ( 'options' === name || 'dynamic' === name ) {
+				return false;
+			}
+			if ( ! target.expand ) {
+				return target.src === WORKING_DIR + dest;
+			}
+			relative = path.relative( target.cwd, WORKING_DIR + dest ).replace( /\\/g, '/' );
+			return relative.indexOf( '../' ) !== 0 && grunt.file.isMatch( target.src, relative );
+		} )[ 0 ] || null;
+	}
+
 	/*
 	 * Updates the `:dynamic` configurations so that only the changed files are updated.
 	 *
@@ -2722,17 +2780,18 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'watch-dynamic', 'Configures the dynamic tasks of a watch target for the files changed since they last ran.', function( target ) {
 		var changes = watchedChanges[ target ] || {};
+		var mappedBuildFiles = getMappedBuildFiles();
 		var deleted = [];
 		var copyFiles = {};
 		var minify = [];
-		var minifyModules = [];
+		var uglifyTargets = [];
 		var changed = [];
 
 		delete watchedChanges[ target ];
 
 		Object.keys( changes ).forEach( function( filepath ) {
 			var action = changes[ filepath ];
-			var copy, dest;
+			var copy, dest, uglifyTarget;
 
 			if ( target === 'js-enqueues' ) {
 				copy = getEnqueuedScriptCopy( filepath );
@@ -2740,7 +2799,7 @@ module.exports = function(grunt) {
 					grunt.log.writeln( 'Not built: ' + filepath );
 					return;
 				}
-				dest = path.relative( WORKING_DIR, copy.dest );
+				dest = path.relative( WORKING_DIR, copy.dest ).replace( /\\/g, '/' );
 
 				if ( action === 'deleted' ) {
 					// A symlink to the deleted file no longer exists for the clean task, so it is removed here.
@@ -2757,10 +2816,12 @@ module.exports = function(grunt) {
 					copyFiles[ copy.dest ] = [ copy.src ];
 				}
 
-				if ( uglifyModules.indexOf( dest ) !== -1 ) {
-					minifyModules.push( dest );
-				} else {
+				// Minify the script as the build does: with uglify:core, or by running the target that minifies it.
+				uglifyTarget = getUglifyTarget( dest );
+				if ( 'core' === uglifyTarget ) {
 					minify.push( dest );
+				} else if ( uglifyTarget && uglifyTargets.indexOf( uglifyTarget ) === -1 ) {
+					uglifyTargets.push( uglifyTarget );
 				}
 			} else if ( target === 'js-webpack' ) {
 				// Check only the files built by webpack.
@@ -2772,6 +2833,15 @@ module.exports = function(grunt) {
 						'wp-includes/js/media-views.js'
 					];
 				}
+			} else if ( target === 'all' && Object.keys( mappedBuildFiles ).some( function( mappedDest ) {
+				return mappedBuildFiles[ mappedDest ] === filepath;
+			} ) ) {
+				// Copy a file that the build copies to another path, such as _index.php to index.php.
+				Object.keys( mappedBuildFiles ).forEach( function( mappedDest ) {
+					if ( action !== 'deleted' && mappedBuildFiles[ mappedDest ] === filepath ) {
+						copyFiles[ mappedDest ] = [ filepath ];
+					}
+				} );
 			} else if ( action === 'deleted' ) {
 				deleted.push( path.relative( SOURCE_DIR, filepath ) );
 			} else {
@@ -2783,12 +2853,20 @@ module.exports = function(grunt) {
 
 		if ( target === 'all' ) {
 			grunt.config( [ 'copy', 'dynamic', 'src' ], changed );
+			grunt.config( [ 'copy', 'dynamic-js', 'files' ], copyFiles );
 		} else if ( target === 'rtl' ) {
 			grunt.config( [ 'rtlcss', 'dynamic', 'src' ], changed );
 		} else if ( target === 'js-enqueues' ) {
 			grunt.config( [ 'copy', 'dynamic-js', 'files' ], copyFiles );
 			grunt.config( [ 'uglify', 'dynamic', 'src' ], minify );
-			grunt.config( [ 'uglify', 'dynamic-module', 'src' ], minifyModules );
+			watchedUglifyTargets = uglifyTargets;
 		}
+	} );
+
+	grunt.registerTask( 'watch-uglify', 'Runs the uglify targets for the changed scripts that uglify:core does not minify.', function() {
+		grunt.task.run( watchedUglifyTargets.map( function( name ) {
+			return 'uglify:' + name;
+		} ) );
+		watchedUglifyTargets = [];
 	} );
 };

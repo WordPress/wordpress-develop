@@ -20,7 +20,13 @@
  *
  * The tasks run in the watch process, and a `watch` event is emitted for each
  * change of a target before they run, so that a listener can configure them for
- * the changed files.
+ * the changed files. Changes made while tasks run are run once they finish. When
+ * a task fails, the rest of its target's tasks are skipped, and those of the
+ * other targets still run. A reload happens after the tasks of the other
+ * changes made with it have run.
+ *
+ * A target's tasks must not write files that match its own patterns, which
+ * would run them again without end.
  *
  * @package WordPress
  */
@@ -28,6 +34,7 @@
 const path = require( 'path' );
 const { spawn } = require( 'child_process' );
 const chokidar = require( 'chokidar' );
+const { Minimatch } = require( 'minimatch' );
 
 /**
  * Time to wait for more changes before running the tasks, in milliseconds.
@@ -98,11 +105,25 @@ module.exports = ( grunt ) => {
 	let resume = null;
 	let timer = null;
 	let reload = false;
+	let restartPending = false;
 	let startedAt = null;
+	let currentTarget = null;
 
 	// Changed files since the tasks last ran, keyed by path, and the targets to run for them.
 	const changes = new Map();
 	const queuedTargets = new Set();
+
+	// The targets whose tasks are queued in the current run, until each one's tasks finish.
+	let runningTargets = [];
+
+	grunt.registerTask( '_watch-target', 'Marks the tasks of a watch target as started or finished.', ( step, name ) => {
+		if ( 'start' === step ) {
+			currentTarget = name;
+		} else {
+			currentTarget = null;
+			runningTargets = runningTargets.filter( ( running ) => running !== name );
+		}
+	} );
 
 	/**
 	 * Gets the configuration of a target.
@@ -119,6 +140,20 @@ module.exports = ( grunt ) => {
 			tasks: [].concat( target.tasks || [] ),
 			options: target.options || {},
 		};
+	}
+
+	/**
+	 * Gets the tasks to run for targets, each between the tasks that mark it as started and finished.
+	 *
+	 * @param {string[]} names The target names.
+	 *
+	 * @return {string[]} The tasks.
+	 */
+	function getTasks( names ) {
+		return names.flatMap( ( name ) => [ '_watch-target:start:' + name ].concat(
+			getTarget( name ).tasks,
+			'_watch-target:done:' + name
+		) );
 	}
 
 	/**
@@ -167,7 +202,6 @@ module.exports = ( grunt ) => {
 	 */
 	function runQueued() {
 		const done = resume;
-		const tasks = [];
 
 		timer = null;
 		if ( ! done ) {
@@ -178,24 +212,20 @@ module.exports = ( grunt ) => {
 			grunt.log.ok( 'File "' + filepath + '" ' + action + '.' );
 		} );
 
+		// Restart once the tasks for the other changes have run, as the new process does not see those changes.
 		if ( reload ) {
-			restart();
-			return;
+			restartPending = true;
+			reload = false;
 		}
 
-		targetNames.forEach( ( name ) => {
-			if ( queuedTargets.has( name ) ) {
-				tasks.push( ...getTarget( name ).tasks );
-			}
-		} );
-
+		runningTargets = targetNames.filter( ( name ) => queuedTargets.has( name ) );
 		changes.clear();
 		queuedTargets.clear();
 		resume = null;
 		startedAt = Date.now();
 
 		// Run the watch task again after the tasks, to wait for the next changes.
-		grunt.task.run( tasks.concat( nameArgs ) );
+		grunt.task.run( getTasks( runningTargets ).concat( nameArgs ) );
 		done();
 	}
 
@@ -237,9 +267,15 @@ module.exports = ( grunt ) => {
 			} );
 		} );
 
+		/*
+		 * Skip the rest of the failed target's tasks, but still run those of the other targets in the run. A task
+		 * can report more than one failure, after which the same targets are queued again.
+		 */
 		function rerun() {
+			runningTargets = runningTargets.filter( ( running ) => running !== currentTarget );
+			currentTarget = null;
 			grunt.task.clearQueue();
-			grunt.task.run( nameArgs );
+			grunt.task.run( getTasks( runningTargets ).concat( nameArgs ) );
 		}
 
 		grunt.warn = grunt.fail.warn = ( error ) => {
@@ -260,19 +296,21 @@ module.exports = ( grunt ) => {
 	 * @param {Function} onReady Called once the initial scan is complete.
 	 */
 	function startWatching( onReady ) {
-		const ignored = ( grunt.config( [ taskName, 'options', 'ignored' ] ) || [] ).flatMap(
-			// Match each ignored directory itself, so that it is not searched.
-			( pattern ) => pattern.endsWith( '/**' ) ? [ pattern, pattern.slice( 0, -3 ) ] : [ pattern ]
-		);
+		// Compiled once, as every path found is checked against them.
+		const ignored = ( grunt.config( [ taskName, 'options', 'ignored' ] ) || [] )
+			.flatMap(
+				// Match each ignored directory itself, so that it is not searched.
+				( pattern ) => pattern.endsWith( '/**' ) ? [ pattern, pattern.slice( 0, -3 ) ] : [ pattern ]
+			)
+			.map( ( pattern ) => new Minimatch( pattern, { dot: true } ) );
 		const patterns = targetNames.flatMap( ( name ) => getTarget( name ).files );
 
 		watcher = chokidar.watch( getWatchPaths( patterns ), {
 			ignoreInitial: true,
-			ignored: ( filepath ) => grunt.file.isMatch(
-				{ dot: true },
-				ignored,
-				path.relative( process.cwd(), filepath ).replace( /\\/g, '/' )
-			),
+			ignored: ( filepath ) => {
+				const relative = path.relative( process.cwd(), filepath ).replace( /\\/g, '/' );
+				return ignored.some( ( matcher ) => matcher.match( relative ) );
+			},
 		} );
 
 		watcher.on( 'all', recordChange );
@@ -288,6 +326,11 @@ module.exports = ( grunt ) => {
 		resume = this.async();
 
 		if ( watcher ) {
+			if ( restartPending ) {
+				restart();
+				return;
+			}
+
 			if ( startedAt ) {
 				grunt.log.writeln( ( 'Completed in ' + ( ( Date.now() - startedAt ) / 1000 ).toFixed( 3 ) + 's at ' + new Date().toString() ).cyan + ' - Waiting...' );
 				startedAt = null;
