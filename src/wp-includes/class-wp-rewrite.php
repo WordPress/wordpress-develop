@@ -1469,22 +1469,20 @@ class WP_Rewrite {
 			$this->extra_rules_top = array_merge( $this->extra_rules_top, $rules );
 		}
 
+		// Random content rewrite rules.
+		$random_rewrite = $this->random_rewrite_rules();
+
 		/*
-		 * Random content rewrite rules.
+		 * Rules added to the top, including those for post types and taxonomies, take
+		 * precedence over random content rules using the same regex, for example a post
+		 * type archive at `/random/`.
 		 *
-		 * The random content rules check whether an existing rule already uses the
-		 * random base. The page and post rules are generic catch-all rules matching
-		 * any path, so are not checked. Pages and posts at the random base are
-		 * accounted for separately by WP_Rewrite::random_rewrite_rules().
-		 *
-		 * Rules added to the bottom are not checked either. The page and post rules
-		 * precede them, so they are never matched for the random base. A bottom rule
-		 * using the same regex as the random root rule replaces its query instead,
-		 * taking its position ahead of the page and post rules.
+		 * Rules added to the top are merged ahead of the random content rules, so without
+		 * this, the random content rule's query would replace the query of a rule using the
+		 * same regex. Rules added to the top using a different regex for the same path,
+		 * such as `^random/?$`, already take precedence as they are matched first.
 		 */
-		$random_rewrite = $this->random_rewrite_rules(
-			array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite )
-		);
+		$random_rewrite = array_diff_key( $random_rewrite, $this->extra_rules_top );
 
 		/**
 		 * Filters rewrite rules used for random content redirects.
@@ -1549,19 +1547,21 @@ class WP_Rewrite {
 	 * the URL, see {@see WP_Rewrite::post_permalinks_share_random_base()}. The rules are flushed
 	 * when such a page or post changes, see {@see wp_random_content_flush_rewrite_rules_for_post()}.
 	 *
-	 * The `/random/` rule is also omitted if an existing rewrite rule matches the random base,
-	 * for example a post type archive at `/random/`. Generic catch-all rules matching any path,
-	 * such as the page and post rules, are ignored. See the {@see 'wp_rewrite_random_base_is_taken'}
+	 * Whether the `/random/` rule is omitted can be changed with the {@see 'wp_rewrite_random_base_is_taken'}
 	 * filter.
 	 *
 	 * Rules added to the top of the rewrite rules, including those for post types and taxonomies,
-	 * take precedence over the random content rules. If a post type or taxonomy uses the random
-	 * base as its rewrite slug, its rules may match random archive URLs before the random content
-	 * rules do. For example, the attachment rules of a post type with the rewrite slug `random`
-	 * match `/random/category/news/`, and the rules of a hierarchical post type or taxonomy match
-	 * every URL beginning with `/random/`. Such random archive URLs display the post type or
-	 * taxonomy content instead. To use random archives on these sites, change the random base on
-	 * the Permalinks screen.
+	 * take precedence over the random content rules. When the rewrite rules are generated, random
+	 * content rules using the same regex as a rule added to the top are omitted, see
+	 * {@see WP_Rewrite::rewrite_rules()}. For example, a post type archive at `/random/` replaces
+	 * the `/random/` rule.
+	 *
+	 * If a post type or taxonomy uses the random base as its rewrite slug, its rules may match
+	 * random archive URLs before the random content rules do. For example, the attachment rules
+	 * of a post type with the rewrite slug `random` match `/random/category/news/`, and the rules
+	 * of a hierarchical post type or taxonomy match every URL beginning with `/random/`. Such
+	 * random archive URLs display the post type or taxonomy content instead. To use random
+	 * archives on these sites, change the random base on the Permalinks screen.
 	 *
 	 * The `random` query variable can be added to any other archive or search URL, for example
 	 * `/2026/?random`, to request a random post from that archive.
@@ -1570,24 +1570,17 @@ class WP_Rewrite {
 	 *
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
-	 * @param string[]|null $existing_rules Optional. Existing rewrite rules to check for rules using the
-	 *                                      random base, keyed by their regex pattern. Generic catch-all
-	 *                                      rules, such as the page and post rules, should not be included
-	 *                                      as they match any path. Nor should rules added to the bottom,
-	 *                                      as the page and post rules precede them. Default null, the
-	 *                                      rules added to the top via WP_Rewrite::add_rule().
 	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 *
 	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
-	public function random_rewrite_rules( ?array $existing_rules = null ): array {
+	public function random_rewrite_rules(): array {
 		if ( ! wp_is_random_content_redirect_enabled() ) {
 			return array();
 		}
 
-		$random_slug         = $this->get_random_base();
-		$random_base         = $this->root . $random_slug;
-		$catch_all_test_base = "{$this->root}catchall{$random_slug}"; // No hyphens to account for [A-z0-9] rules.
+		$random_slug = $this->get_random_base();
+		$random_base = $this->root . $random_slug;
 
 		$rules = array();
 
@@ -1601,57 +1594,6 @@ class WP_Rewrite {
 			$random_base_posts,
 			fn( $random_base_post ) => $random_base_post instanceof WP_Post && is_post_publicly_viewable( $random_base_post )
 		);
-
-		if ( ! $random_base_is_taken ) {
-			/*
-			 * WP::parse_request() trims slashes from the requested path before matching
-			 * it against the rules, so the path is matched without a trailing slash
-			 * regardless of the permalink structure.
-			 */
-			$random_base_path = untrailingslashit( $random_base );
-
-			/*
-			 * The generic catch-all page and post rules match any path, including the
-			 * random base, so are excluded from the existing rules. Pages and posts at
-			 * the random base, which these rules serve, are accounted for above.
-			 *
-			 * Rules added to the bottom are excluded as the page and post rules precede
-			 * them, see WP_Rewrite::rewrite_rules().
-			 */
-			$existing_rules ??= $this->extra_rules_top;
-
-			foreach ( $existing_rules as $regex => $query ) {
-				/*
-				 * Match the same way WP::parse_request() does, so the regex is anchored to
-				 * the start of the path whether or not it includes a leading caret.
-				 *
-				 * Matching the regex rather than comparing strings accounts for rules
-				 * written in any form, such as `random/?$`, `^random/?$`, `(random|pens)/?$`,
-				 * `(rand)om/?$` or `[r]andom/?$`, while rules for similarly named paths,
-				 * such as `randomful/?$` or `random-ful/?$`, do not match.
-				 *
-				 * A rule requiring a trailing slash, such as `^random/(.*)?`, never matches
-				 * a request for the random base, so it does not take it.
-				 */
-				$pattern = "#^{$regex}#";
-				if ( ! preg_match( $pattern, $random_base_path ) ) {
-					continue;
-				}
-
-				/*
-				 * Generic catch-all rules, such as `(.+?)/?$` or `([^/]+)/?$`, match any
-				 * path including the random base. A rule also matching a path other than
-				 * the random base, for example `notrandom`, is a catch-all rule so does
-				 * not take the random base.
-				 */
-				if ( preg_match( $pattern, $catch_all_test_base ) ) {
-					continue;
-				}
-
-				$random_base_is_taken = true;
-				break;
-			}
-		}
 
 		/**
 		 * Filters whether the random content redirect base is taken.
