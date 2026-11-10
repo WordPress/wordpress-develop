@@ -9,6 +9,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 import {
 	TEST_IMAGE_PATH,
 	TEST_AUDIO_PATH,
+	TEST_SVG_PATH,
 	SIMULATED_ERROR,
 	UNDECODABLE_HEIC,
 	failMediaCreate,
@@ -563,6 +564,96 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'leaves files that are not processable images to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		// A plugin can allow an extra type on its own uploader, as page
+		// builders do for SVG, without adding it to the allowed mime types
+		// the page was rendered with.
+		await overridePluploadDefaults( page, {
+			filters: { mime_types: [ { extensions: 'svg' } ] },
+		} );
+		await stubClassicUpload( page );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_SVG_PATH );
+
+		// The uploader's own filter decides, so the file reaches the server
+		// instead of being rejected in the browser.
+		await expect
+			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect(
+			page.locator( '.upload-error-message', {
+				hasText: 'not allowed to upload this file type',
+			} )
+		).toHaveCount( 0 );
+	} );
+
+	test( 'leaves images of a type the page was not rendered with to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		// A plugin can allow an image type only for its own requests, so
+		// the allowed mime types the page was rendered with leave it out
+		// while the uploader's own filter lets it through.
+		await page.addInitScript( () => {
+			let settings;
+			Object.defineProperty( window, '_wpMediaUploadPipelineSettings', {
+				configurable: true,
+				get() {
+					return settings;
+				},
+				set( value ) {
+					settings = value;
+					const allowed = value && value.allowedMimeTypes;
+					for ( const extension in allowed || {} ) {
+						if ( 'image/jpeg' === allowed[ extension ] ) {
+							delete allowed[ extension ];
+						}
+					}
+				},
+			} );
+		} );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		const counts = countUploadRequests( page );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		// The server decides, as it would without the pipeline.
+		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( page.locator( '.upload-error' ) ).toHaveCount( 0 );
 	} );
 
 	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
