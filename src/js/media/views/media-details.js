@@ -179,27 +179,6 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	scrollToTop: function() {
 		this.$( '.embed-media-settings' ).scrollTop( 0 );
 	}
-},/** @lends wp.media.view.MediaDetails */{
-	instances : 0,
-	/**
-	 * When multiple players in the DOM contain the same src, things get weird.
-	 *
-	 * @param {HTMLElement} elem The HTML element containing the media sources to be prepared.
-	 * @return {HTMLElement} The prepared element.
-	 */
-	prepareSrc : function( elem ) {
-		var i = MediaDetails.instances++;
-		_.each( $( elem ).find( 'source' ), function( source ) {
-			source.src = [
-				source.src,
-				source.src.indexOf('?') > -1 ? '&' : '?',
-				'_=',
-				i
-			].join('');
-		} );
-
-		return elem;
-	}
 });
 
 module.exports = MediaDetails;

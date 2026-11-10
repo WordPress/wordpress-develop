@@ -25,7 +25,7 @@ AudioDetails = MediaDetails.extend(/** @lends wp.media.view.AudioDetails.prototy
 			if ( audio.is(':hidden') ) {
 				audio.show();
 			}
-			this.media = MediaDetails.prepareSrc( audio.get(0) );
+			this.media = audio.get(0);
 		} else {
 			audio.hide();
 			this.media = false;
