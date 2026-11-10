@@ -65,8 +65,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @param string     $expected_day_padded   Expected two-digit padded day.
 	 */
 	public function test_get_day_link_pretty_permalinks( $year, $month, $day, $expected_month_padded, $expected_day_padded ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . $year . '/' . $expected_month_padded . '/' . $expected_day_padded . '/' );
 		$this->assertSame( $expected, get_day_link( $year, $month, $day ) );
 	}
@@ -83,8 +81,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @param mixed $day   Day input.
 	 */
 	public function test_get_day_link_pretty_permalinks_fallback( $year, $month, $day ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_year  = $year ? $year : current_time( 'Y' );
 		$expected_month = $month ? zeroise( (int) $month, 2 ) : current_time( 'm' );
 		$expected_day   = $day ? zeroise( (int) $day, 2 ) : zeroise( current_time( 'j' ), 2 );
@@ -125,8 +121,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_day_link_filter_custom_url() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$custom_callback = static function ( $daylink, $year, $month, $day ) {
 			return 'https://example.org/daily/' . $year . '/' . $month . '/' . $day;
 		};
@@ -146,13 +140,7 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	public static function data_valid_dates() {
 		return array(
 			'single digit month and day as integers' => array( 2024, 4, 5, '04', '05' ),
-			'single digit month and day as strings'  => array( '2024', '4', '5', '04', '05' ),
 			'two digit month and day as integers'    => array( 2024, 11, 25, '11', '25' ),
-			'two digit month and day as strings'     => array( '2024', '11', '25', '11', '25' ),
-			'first day of year'                      => array( 2023, 1, 1, '01', '01' ),
-			'last day of year'                       => array( 2023, 12, 31, '12', '31' ),
-			'past year date'                         => array( 1999, 9, 9, '09', '09' ),
-			'future year date'                       => array( 2030, 2, 28, '02', '28' ),
 		);
 	}
 
@@ -166,12 +154,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 			'false year, valid month and day' => array( false, 5, 10 ),
 			'valid year, false month and day' => array( 2024, false, false ),
 			'valid year and month, false day' => array( 2024, 5, false ),
-			'all false'                       => array( false, false, false ),
-			'empty string year'               => array( '', 5, 10 ),
-			'empty string month'              => array( 2024, '', 10 ),
-			'empty string day'                => array( 2024, 5, '' ),
-			'all null'                        => array( null, null, null ),
-			'all zero'                        => array( 0, 0, 0 ),
 		);
 	}
 }

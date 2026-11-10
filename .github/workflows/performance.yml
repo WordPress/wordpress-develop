@@ -44,15 +44,18 @@ on:
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       - '.github/actions/setup-npm/**'
+      - '.github/actions/download-with-retry/**'
+      - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/workflows/performance.yml'
       - '.github/workflows/reusable-performance-*.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

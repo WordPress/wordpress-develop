@@ -4,87 +4,20 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 /**
- * External dependencies
+ * Internal dependencies
  */
-import path from 'path';
-
-// A 640x480 image: it must be larger than at least one registered sub-size
-// (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
-const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
+import {
+	TEST_IMAGE_PATH,
+	SIMULATED_ERROR,
+	countUploadRequests,
+	failMediaCreate,
+	tile,
+} from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the modal's
 // "Select Files" button; setting files on it triggers FilesAdded, the same
 // event a file dropped on the modal fires.
 const FILE_INPUT_SELECTOR = '.media-modal .moxie-shim-html5 input[type="file"]';
-
-// A REST error the pipeline surfaces as-is: its message matches none of the
-// transient patterns @wordpress/upload-media retries on.
-const SIMULATED_ERROR = {
-	code: 'rest_upload_simulated_failure',
-	message: 'Simulated server failure for testing',
-	data: { status: 500 },
-};
-
-/**
- * Counts the POST requests that upload a file, per transport.
- *
- * The REST route may be a pretty permalink (/wp/v2/media) or the plain form
- * (index.php?rest_route=%2Fwp%2Fv2%2Fmedia), so match on the decoded URL.
- *
- * @param {import('@playwright/test').Page} page
- * @return {{ asyncUpload: number, create: number, sideload: number, finalize: number }} Live counts.
- */
-function countUploadRequests( page ) {
-	const counts = { asyncUpload: 0, create: 0, sideload: 0, finalize: 0 };
-	page.on( 'request', ( request ) => {
-		if ( request.method() !== 'POST' ) {
-			return;
-		}
-		const url = request.url();
-		if ( url.includes( '/async-upload.php' ) ) {
-			counts.asyncUpload++;
-			return;
-		}
-		const decoded = decodeURIComponent( url );
-		if ( /\/wp\/v2\/media\/\d+\/sideload/.test( decoded ) ) {
-			counts.sideload++;
-		} else if ( /\/wp\/v2\/media\/\d+\/finalize/.test( decoded ) ) {
-			counts.finalize++;
-		} else if ( /\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) ) {
-			counts.create++;
-		}
-	} );
-	return counts;
-}
-
-/**
- * Fails the request that creates the attachment, leaving sub-size and
- * finalize requests alone.
- *
- * @param {import('@playwright/test').Page} page
- */
-async function failMediaCreate( page ) {
-	await page.route(
-		( url ) => {
-			const decoded = decodeURIComponent( url.href );
-			return (
-				/\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) &&
-				! /\/(sideload|finalize)/.test( decoded )
-			);
-		},
-		async ( route ) => {
-			if ( route.request().method() !== 'POST' ) {
-				await route.continue();
-				return;
-			}
-			await route.fulfill( {
-				status: 500,
-				contentType: 'application/json',
-				body: JSON.stringify( SIMULATED_ERROR ),
-			} );
-		}
-	);
-}
 
 /**
  * Opens the media modal from a new Image block and switches to its upload tab.
@@ -94,12 +27,21 @@ async function failMediaCreate( page ) {
  * @return {Promise<import('@playwright/test').Locator>} The modal.
  */
 async function openModalFromImageBlock( page, editor ) {
+	// Blocks inserted before the editor sets up the post are reset away.
+	await expect(
+		editor.canvas.getByRole( 'textbox', { name: 'Add title' } )
+	).toBeVisible();
 	await editor.insertBlock( { name: 'core/image' } );
 	await editor.canvas.getByRole( 'button', { name: 'Media Library' } ).click();
 
-	const modal = page.locator( '.media-modal' );
+	const modal = page.getByRole( 'dialog', {
+		name: 'Select or Upload Media',
+		exact: true,
+	} );
 	await expect( modal ).toBeVisible();
-	await modal.locator( '.media-router' ).getByText( 'Upload files' ).click();
+	await modal
+		.getByRole( 'tab', { name: 'Upload files', exact: true } )
+		.click();
 
 	return modal;
 }
@@ -189,7 +131,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 
 		// A settled tile is not on its own proof that this upload finished:
 		// the modal leaves the upload tab for the library grid as soon as the
@@ -206,10 +148,9 @@ test.describe( 'Media modal client-side uploads', () => {
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await finalized;
 
-		await expect( modal.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0,
-			{ timeout: 60_000 }
-		);
+		await expect( tile( modal, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 60_000,
+		} );
 
 		// The original upload and every sub-size go through the REST API,
 		// the upload is finalized exactly once, and nothing goes through the
@@ -233,7 +174,9 @@ test.describe( 'Media modal client-side uploads', () => {
 			.getByRole( 'button', { name: 'Select', exact: true } )
 			.click();
 		await expect(
-			editor.canvas.locator( 'figure.wp-block-image img' )
+			editor.canvas
+				.getByRole( 'document', { name: 'Block: Image' } )
+				.locator( 'img' )
 		).toHaveAttribute( 'src', attachment.source_url );
 	} );
 
@@ -254,25 +197,25 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The modal's uploader status lists the error the same way it lists
 		// a classic upload error: file name and the server's message.
-		const error = modal.locator( '.upload-error' ).first();
+		const error = modal
+			.locator( '.upload-error' )
+			.filter( { hasText: 'test-image.jpg' } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
-		await expect( error.locator( '.upload-error-filename' ) ).toHaveText(
-			'test-image.jpg'
-		);
-		await expect( error.locator( '.upload-error-message' ) ).toHaveText(
-			SIMULATED_ERROR.message
-		);
+		await expect(
+			error.getByText( 'test-image.jpg', { exact: true } )
+		).toBeVisible();
+		await expect(
+			error.getByText( SIMULATED_ERROR.message, { exact: true } )
+		).toBeVisible();
 
 		// The placeholder tile is removed rather than left spinning, and the
 		// failure did not retry through async-upload.php.
-		await expect( modal.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0
-		);
+		await expect( tile( modal, 'uploading…' ) ).toHaveCount( 0 );
 		expect( counts.asyncUpload ).toBe( 0 );
 	} );
 
@@ -299,7 +242,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached' } );
+		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
 		const classicUpload = page.waitForRequest(
 			( request ) =>
 				request.method() === 'POST' &&
@@ -340,15 +283,19 @@ test.describe( 'Media modal client-side uploads', () => {
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect( modal.locator( 'li.attachment.uploading' ) ).toHaveCount(
-			0,
-			{ timeout: 60_000 }
-		);
+		await expect( tile( modal, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 60_000,
+		} );
+		// The frame selects the file it just uploaded.
 		await expect(
-			modal.locator( 'li.attachment' ).first()
+			modal.getByRole( 'checkbox', {
+				name: 'test-image',
+				checked: true,
+				exact: true,
+			} )
 		).toBeVisible();
 
 		// Classic plupload handled the upload end to end.
