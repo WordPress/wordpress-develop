@@ -28,12 +28,12 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Option_Store implements the WP_Secrets_Store interface.
+	 * Ensure that WP_Secrets_Option_Store extends WP_Secrets_Store.
 	 *
 	 * @coversNothing
 	 */
-	public function test_implements_the_store_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Option_Store(), 'WP_Secrets_Option_Store should implement WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
+	public function test_extends_the_store_class(): void {
+		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Option_Store(), 'WP_Secrets_Option_Store should extend WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the class it extends, so removing it fails a test.)
 	}
 
 	/**
