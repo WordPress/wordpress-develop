@@ -3727,7 +3727,8 @@ class WP_Query {
 		 * Filters the number of found posts for the query.
 		 *
 		 * @since 2.1.0
-		 * @since 7.2.0 A negative return value is clamped to zero.
+		 * @since 7.2.0 A negative return value is clamped to zero, as is a negative count from the
+		 *              {@see 'found_posts_query'} query before it is passed to this filter.
 		 *
 		 * @param int      $found_posts The number of posts found.
 		 * @param WP_Query $query       The WP_Query instance (passed by reference).
