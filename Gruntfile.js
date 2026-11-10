@@ -30,6 +30,7 @@ module.exports = function(grunt) {
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
+			'!wp-content/themes/ipsum/node_modules/**',
 		],
 
 		// All built CSS files, in /src or /build.
@@ -902,6 +903,7 @@ module.exports = function(grunt) {
 				src: [
 					'wp-content/themes/twentytwentytwo/style.css',
 					'wp-content/themes/twentytwentyfive/style.css',
+					'wp-content/themes/ipsum/style.css',
 				]
 			}
 		},
