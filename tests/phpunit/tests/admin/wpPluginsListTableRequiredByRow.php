@@ -44,14 +44,59 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 		);
 		wp_set_current_user( self::$admin_id );
 
-		if ( is_multisite() ) {
-			grant_super_admin( self::$admin_id );
+		$notice = '';
+		if ( ! is_multisite() ) {
+			$notice = '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>';
 		}
 
 		$this->assertSame(
 			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
-			. '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div></div>',
+			. $notice . '</div>',
 			$this->get_row( 'dependency/dependency.php' )
+		);
+	}
+
+	/**
+	 * Tests the deletion notice on the network Plugins screen.
+	 *
+	 * @ticket 65819
+	 * @group ms-required
+	 *
+	 * @dataProvider data_network_admin_permissions
+	 *
+	 * @param bool $is_super_admin Whether the current user is a super admin.
+	 */
+	public function test_should_show_network_deletion_notice_only_to_super_admins( $is_super_admin ) {
+		$this->set_dependencies( array( 'dependent/dependent.php' => array( 'dependency' ) ) );
+		wp_set_current_user( self::$admin_id );
+
+		if ( $is_super_admin ) {
+			$this->assertTrue( grant_super_admin( self::$admin_id ) );
+		}
+
+		$this->assertSame( $is_super_admin, current_user_can( 'delete_plugins' ) );
+
+		$notice = '';
+		if ( $is_super_admin ) {
+			$notice = '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>';
+		}
+
+		$this->assertSame(
+			'<div class="required-by"><p><strong>Required by:</strong> Dependent Plugin</p>'
+			. $notice . '</div>',
+			$this->get_row( 'dependency/dependency.php', 'plugins-network' )
+		);
+	}
+
+	/**
+	 * Provides users with and without network plugin deletion permissions.
+	 *
+	 * @return array[]
+	 */
+	public static function data_network_admin_permissions() {
+		return array(
+			'site administrator' => array( false ),
+			'super admin'        => array( true ),
 		);
 	}
 
@@ -105,10 +150,11 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 * Returns the "Required by" row of a plugin.
 	 *
 	 * @param string $plugin_file The plugin file.
+	 * @param string $screen      The Plugins screen.
 	 * @return string The output.
 	 */
-	private function get_row( $plugin_file ) {
-		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
+	private function get_row( $plugin_file, $screen = 'plugins' ) {
+		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => $screen ) );
 
 		$method = new ReflectionMethod( $table, 'add_dependents_to_dependency_plugin_row' );
 		if ( PHP_VERSION_ID < 80100 ) {
