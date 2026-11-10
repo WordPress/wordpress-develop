@@ -23,7 +23,8 @@
  * the changed files. Changes made while tasks run are run once they finish. When
  * a task fails, the rest of its target's tasks are skipped, and those of the
  * other targets still run. A reload happens after the tasks of the other
- * changes made with it, or while its tasks ran, have run.
+ * changes made with it, or while its tasks ran, have run. The new process is
+ * handed the changes made while it starts, which the previous one still watches.
  *
  * A target's tasks must not write files that match its own patterns, which
  * would run them again without end.
@@ -41,6 +42,12 @@ const chokidar = require( 'chokidar' );
  * An editor or a version control checkout often changes several files at once.
  */
 const DEBOUNCE_DELAY = 250;
+
+/**
+ * Environment variable set for a watch process started by a reload, which takes over the changes that the
+ * previous process saw while it started.
+ */
+const HAND_OFF_ENV = 'WP_WATCH_HAND_OFF';
 
 /**
  * Change actions, keyed by the chokidar event names.
@@ -107,6 +114,10 @@ module.exports = ( grunt ) => {
 	let restartPending = false;
 	let startedAt = null;
 	let currentTarget = null;
+	let failureReported = false;
+
+	// The changes seen while restarting, as chokidar event names and paths, to hand to the new process.
+	let handOffChanges = null;
 
 	// Changed files since the tasks last ran, keyed by path, and the targets to run for them.
 	const changes = new Map();
@@ -116,6 +127,7 @@ module.exports = ( grunt ) => {
 	let runningTargets = [];
 
 	grunt.registerTask( '_watch-target', 'Marks the tasks of a watch target as started or finished.', ( step, name ) => {
+		failureReported = false;
 		if ( 'start' === step ) {
 			currentTarget = name;
 		} else {
@@ -166,6 +178,12 @@ module.exports = ( grunt ) => {
 		let matched = false;
 
 		if ( ! action ) {
+			return;
+		}
+
+		// Once restarting, the changes are for the new process, which is handed them when it is ready.
+		if ( handOffChanges ) {
+			handOffChanges.push( [ event, filepath ] );
 			return;
 		}
 
@@ -233,19 +251,53 @@ module.exports = ( grunt ) => {
 	 */
 	function restart() {
 		grunt.log.writeln( 'Reloading watch config...'.cyan );
-		watcher.close();
+
+		/*
+		 * Keep watching until the new process is ready, which can take several seconds for its initial scan, and
+		 * hand it the changes seen meanwhile, which it would otherwise miss.
+		 */
+		handOffChanges = [];
 
 		const child = spawn(
 			process.execPath,
 			process.execArgv.concat( process.argv[ 1 ], nameArgs, grunt.option.flags() ),
-			{ stdio: 'inherit' }
+			{
+				stdio: [ 'inherit', 'inherit', 'inherit', 'ipc' ],
+				env: { ...process.env, [ HAND_OFF_ENV ]: '1' },
+			}
 		);
+		child.on( 'message', ( message ) => {
+			if ( ! message || 'watch-ready' !== message.type ) {
+				return;
+			}
+			watcher.close();
+			child.send( { type: 'watch-changes', changes: handOffChanges }, () => child.disconnect() );
+			handOffChanges = [];
+		} );
 		child.on( 'exit', ( code ) => process.exit( code === null ? 1 : code ) );
 
 		// Stop the new process with this one, which only waits for it.
 		[ 'SIGINT', 'SIGTERM', 'SIGHUP' ].forEach( ( signal ) => {
 			process.on( signal, () => child.kill( signal ) );
 		} );
+	}
+
+	/**
+	 * Takes over the changes that the previous watch process saw while this one started, when started by a reload.
+	 *
+	 * The previous process keeps watching until this one reports that it is ready, then hands over its changes.
+	 */
+	function takeOverChanges() {
+		if ( ! process.send || ! process.env[ HAND_OFF_ENV ] ) {
+			return;
+		}
+
+		process.on( 'message', ( message ) => {
+			if ( message && 'watch-changes' === message.type ) {
+				message.changes.forEach( ( [ event, filepath ] ) => recordChange( event, filepath ) );
+			}
+		} );
+		process.send( { type: 'watch-ready' } );
 	}
 
 	/**
@@ -267,8 +319,7 @@ module.exports = ( grunt ) => {
 		} );
 
 		/*
-		 * Skip the rest of the failed target's tasks, but still run those of the other targets in the run. A task
-		 * can report more than one failure, after which the same targets are queued again.
+		 * Skip the rest of the failed target's tasks, but still run those of the other targets in the run.
 		 */
 		function rerun() {
 			runningTargets = runningTargets.filter( ( running ) => running !== currentTarget );
@@ -277,15 +328,32 @@ module.exports = ( grunt ) => {
 			grunt.task.run( getTasks( runningTargets ).concat( nameArgs ) );
 		}
 
-		grunt.warn = grunt.fail.warn = ( error ) => {
-			grunt.log.writeln( ( 'Warning: ' + ( typeof error === 'string' ? error : error.message ) ).yellow );
-			if ( ! grunt.option( 'force' ) ) {
-				rerun();
+		/*
+		 * Unlike grunt's own handlers, which exit, these return to the failed task, which can then fail again on
+		 * the result it did not get, as grunt-contrib-uglify does after "Uglification failed.". Only the first
+		 * failure is reported, until the next task starts.
+		 */
+		function reportFailure( prefix, error ) {
+			const message = prefix + ( typeof error === 'string' ? error : error.message );
+
+			if ( failureReported ) {
+				grunt.verbose.writeln( message );
+				return;
 			}
+			failureReported = true;
+			grunt.log.writeln( 'Fatal error: ' === prefix ? message.red : message.yellow );
+			rerun();
+		}
+
+		grunt.warn = grunt.fail.warn = ( error ) => {
+			if ( grunt.option( 'force' ) ) {
+				grunt.log.writeln( ( 'Warning: ' + ( typeof error === 'string' ? error : error.message ) ).yellow );
+				return;
+			}
+			reportFailure( 'Warning: ', error );
 		};
 		grunt.fatal = grunt.fail.fatal = ( error ) => {
-			grunt.log.writeln( ( 'Fatal error: ' + ( typeof error === 'string' ? error : error.message ) ).red );
-			rerun();
+			reportFailure( 'Fatal error: ', error );
 		};
 	}
 
@@ -324,6 +392,7 @@ module.exports = ( grunt ) => {
 		taskName = this.name;
 		nameArgs = this.nameArgs;
 		resume = this.async();
+		failureReported = false;
 
 		if ( watcher ) {
 			if ( startedAt ) {
@@ -353,6 +422,9 @@ module.exports = ( grunt ) => {
 		}
 
 		keepWatchingOnFailure();
-		startWatching( () => grunt.log.writeln( 'Waiting...' ) );
+		startWatching( () => {
+			grunt.log.writeln( 'Waiting...' );
+			takeOverChanges();
+		} );
 	};
 };
