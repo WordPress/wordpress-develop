@@ -98,7 +98,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'], 'The key source status should be recommended for the placeholder.' );
-		$this->assertStringContainsString( 'Replace the WP_SECRETS_KEY line', $result['description'], 'The description should ask for the line to be replaced.' );
+		$this->assertStringContainsString( 'Replace the <code>WP_SECRETS_KEY</code> line', $result['description'], 'The description should ask for the line to be replaced.' );
 	}
 
 	/**

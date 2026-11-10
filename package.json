@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "c035c1a649ef68f5c1646694cf440df1d7ae6e62",
+		"sha": "1b0dc90c700746b108e080263a4dc67707b750a1",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -55,7 +55,6 @@
 		"@wordpress/prettier-config": "4.51.0",
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
-		"cssnano": "7.1.9",
 		"dotenv": "17.4.2",
 		"dotenv-expand": "13.0.0",
 		"grunt": "1.6.2",
@@ -155,6 +154,7 @@
 		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"typecheck:php": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan --",
 		"typecheck:php:baselines": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:baselines --",
+		"typecheck:php:fix": "node ./tools/local-env/scripts/docker.js run --rm php composer phpstan:fix --",
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && npm run build:gutenberg"
