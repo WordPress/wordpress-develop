@@ -221,7 +221,7 @@ class Tests_Block_Bindings_InnerBlocks extends WP_UnitTestCase {
 		remove_filter( 'block_bindings_source_value', $record );
 
 		$this->assertNotContains( 'innerBlocks', $requested );
-		$this->assertStringContainsString( '>Default</p>', $output );
+		$this->assertSame( $this->render_group( array() ), $output );
 	}
 
 	/**
