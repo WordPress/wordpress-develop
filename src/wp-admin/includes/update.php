@@ -495,7 +495,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		)
 	);
 
-	if ( is_network_admin() || ! is_multisite() ) {
+	if ( is_network_admin() || is_blog_admin() ) {
 		if ( is_network_admin() ) {
 			$active_class = is_plugin_active_for_network( $file ) ? ' active' : '';
 		} else {
@@ -518,7 +518,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			$notice_type
 		);
 
-		if ( ! current_user_can( 'update_plugins' ) ) {
+		if ( ! current_user_can( 'update_plugins' ) || ( is_multisite() && ! is_network_admin() ) ) {
 			printf(
 				/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number. */
 				__( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>.' ),
