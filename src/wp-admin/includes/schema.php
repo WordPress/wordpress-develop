@@ -274,7 +274,7 @@ CREATE TABLE $wpdb->blogmeta (
 CREATE TABLE $wpdb->registration_log (
 	ID bigint(20) unsigned NOT NULL auto_increment,
 	email varchar(255) NOT NULL default '',
-	IP varchar(30) NOT NULL default '',
+	IP varchar(39) NOT NULL default '',
 	blog_id bigint(20) unsigned NOT NULL default '0',
 	date_registered datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (ID),
