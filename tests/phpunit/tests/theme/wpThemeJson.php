@@ -896,6 +896,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Tests that feature selectors defined as `__experimentalSelector` inside
 	 * the `supports` property are correctly output in the stylesheet.
+	 *
+	 * @ticket 66640
 	 */
 	public function test_get_stylesheet_with_deprecated_feature_level_selectors() {
 		register_block_type(
