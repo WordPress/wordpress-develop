@@ -66,6 +66,15 @@ class WP_Block {
 	protected $registry;
 
 	/**
+	 * The blocks whose inner blocks a block bindings source supplied are
+	 * rendering, outermost first, each with the request it made to the source.
+	 *
+	 * @since 7.3.0
+	 * @var array[]
+	 */
+	private static $rendering_inner_blocks = array();
+
+	/**
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
@@ -353,13 +362,14 @@ class WP_Block {
 				}
 			}
 
-			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
-			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
+			$source_args = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
 
 			if ( 'innerBlocks' === $attribute_name ) {
-				$this->replace_inner_blocks( $source_value );
+				$this->replace_inner_blocks( $block_binding_source, $source_args );
 				continue;
 			}
+
+			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
 			// If the value is not null, process the HTML based on the block and the attribute.
 			if ( ! is_null( $source_value ) ) {
@@ -374,16 +384,32 @@ class WP_Block {
 	 * Replaces the inner blocks of the block with the ones a block bindings
 	 * source supplies, before they render.
 	 *
+	 * Not while the inner blocks the source supplied for the same request
+	 * render: the block then keeps its own inner blocks, and the source isn't
+	 * asked. This way sources whose values bind each other's, directly or
+	 * through content that loads as it renders, like the menu of a Navigation
+	 * block, can't render forever. Bindings that ask a source something else
+	 * still resolve, inside supplied inner blocks too.
+	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed $value The value of the source.
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
 	 */
-	private function replace_inner_blocks( $value ) {
+	private function replace_inner_blocks( WP_Block_Bindings_Source $source, array $source_args ) {
+		$request = $this->get_inner_blocks_request( $source, $source_args );
+		foreach ( self::$rendering_inner_blocks as $rendering ) {
+			if ( $rendering['request'] === $request ) {
+				return;
+			}
+		}
+
+		$value = $source->get_value( $source_args, $this, 'innerBlocks' );
 		if ( ! self::is_inner_blocks_value( $value ) ) {
 			return;
 		}
 
-		$blocks        = self::parse_bound_inner_blocks( $value );
+		$blocks        = $this->parse_bound_inner_blocks( $value, $source, $source_args );
 		$inner_content = self::get_inner_content_with_slots( $this->parsed_block['innerContent'] ?? null, count( $blocks ) );
 		if ( null === $inner_content ) {
 			return;
@@ -394,6 +420,54 @@ class WP_Block {
 		$this->parsed_block['innerHTML']    = implode( '', array_filter( $inner_content, 'is_string' ) );
 		$this->inner_blocks                 = new WP_Block_List( array() );
 		$this->refresh_parsed_block_dependents();
+
+		self::$rendering_inner_blocks[] = array(
+			'block'   => $this,
+			'request' => $request,
+		);
+	}
+
+	/**
+	 * Returns what the block asks its block bindings source for `innerBlocks`:
+	 * the source, the arguments of the binding, and the context the source
+	 * uses.
+	 *
+	 * Two blocks with the same request get the same inner blocks from the
+	 * source.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
+	 * @return array The request.
+	 */
+	private function get_inner_blocks_request( WP_Block_Bindings_Source $source, array $source_args ): array {
+		$context = array();
+		foreach ( (array) $source->uses_context as $context_name ) {
+			if ( array_key_exists( $context_name, $this->context ) ) {
+				$context[ $context_name ] = $this->context[ $context_name ];
+			}
+		}
+		return array( $source->name, $source_args, $context );
+	}
+
+	/**
+	 * Stops tracking the block, once it has rendered, if the inner blocks a
+	 * source supplied for it were rendering.
+	 *
+	 * The blocks still rendering inside it, if any, stopped with it: a block
+	 * that doesn't finish rendering, because of an exception, never gets here,
+	 * so they are forgotten along with it.
+	 *
+	 * @since 7.3.0
+	 */
+	private function forget_rendered_inner_blocks() {
+		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
+			if ( $rendering['block'] === $this ) {
+				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
+				return;
+			}
+		}
 	}
 
 	/**
@@ -401,8 +475,9 @@ class WP_Block {
 	 * blocks.
 	 *
 	 * Serialized block markup supplies them, and an empty string supplies none.
-	 * Any other value, like the plain text of a field, leaves the block with its
-	 * own inner blocks.
+	 * Markup supplies them when the first block delimiter the block parser
+	 * finds, after any whitespace, opens a block. Any other value, like the
+	 * plain text of a field, leaves the block with its own inner blocks.
 	 *
 	 * @since 7.3.0
 	 *
@@ -410,7 +485,21 @@ class WP_Block {
 	 * @return bool Whether the value supplies inner blocks.
 	 */
 	private static function is_inner_blocks_value( $value ): bool {
-		return '' === $value || ( is_string( $value ) && str_starts_with( ltrim( $value, " \t\n\f\r" ), '<!-- wp:' ) );
+		if ( '' === $value ) {
+			return true;
+		}
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$processor = new WP_Block_Processor( $value );
+		while ( $processor->next_token() ) {
+			if ( $processor->is_html() && ! $processor->is_non_whitespace_html() ) {
+				continue;
+			}
+			return ! $processor->is_html() && $processor->opens_block();
+		}
+		return false;
 	}
 
 	/**
@@ -418,20 +507,43 @@ class WP_Block {
 	 *
 	 * The markup never went through the filters that sanitize post content on
 	 * save, and the user who supplied it may not be allowed unfiltered HTML, so
-	 * it is sanitized as on save, attributes of its blocks included. Its embeds
-	 * are expanded as the embeds of the content were, before its blocks render.
+	 * by default it is sanitized as on save, attributes of its blocks included.
+	 * Its embeds are expanded as the embeds of the content were, before its
+	 * blocks render.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @global WP_Embed $wp_embed WordPress Embed object.
 	 *
-	 * @param string $markup The serialized blocks.
+	 * @param string                   $markup      The serialized blocks.
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
 	 * @return array[] The parsed blocks.
 	 */
-	private static function parse_bound_inner_blocks( string $markup ): array {
+	private function parse_bound_inner_blocks( string $markup, WP_Block_Bindings_Source $source, array $source_args ): array {
 		global $wp_embed;
 
-		$markup = wp_kses_post( $markup );
+		/**
+		 * Filters whether the inner blocks a block bindings source supplies are
+		 * sanitized before they render.
+		 *
+		 * By default the markup is sanitized as the post content of a user
+		 * without the `unfiltered_html` capability, since the user who supplied
+		 * it is unknown: `wp_kses_post()` removes the HTML that user may not
+		 * publish, in the attributes of the blocks included. A source whose
+		 * markup comes from trusted code, not from users, may keep it as
+		 * supplied. Custom CSS is removed from the blocks either way.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param bool     $sanitize       Whether to sanitize the markup. Default true.
+		 * @param string   $source_name    The name of the source.
+		 * @param array    $source_args    The arguments of the binding.
+		 * @param WP_Block $block_instance The block whose inner blocks the source supplies.
+		 */
+		if ( apply_filters( 'block_bindings_sanitize_inner_blocks', true, $source->name, $source_args, $this ) ) {
+			$markup = wp_kses_post( $markup );
+		}
 		if ( $wp_embed instanceof WP_Embed ) {
 			$markup = $wp_embed->run_shortcode( $markup );
 			$markup = $wp_embed->autoembed( $markup );
@@ -444,12 +556,7 @@ class WP_Block {
 	 * Prepares the blocks a block bindings source supplies, and their inner
 	 * blocks, to render.
 	 *
-	 * Removes their `innerBlocks` bindings: none of them gets its inner blocks
-	 * from a source, so that two sources whose values bind each other's can't
-	 * render forever. Removes the bindings and metadata this leaves empty, as
-	 * the editor does.
-	 *
-	 * Also removes their custom CSS, which only users who can edit CSS may add:
+	 * Removes their custom CSS, which only users who can edit CSS may add:
 	 * whoever supplied the value is unknown.
 	 *
 	 * @since 7.3.0
@@ -466,15 +573,6 @@ class WP_Block {
 				}
 			}
 
-			if ( isset( $block['attrs']['metadata']['bindings']['innerBlocks'] ) ) {
-				unset( $block['attrs']['metadata']['bindings']['innerBlocks'] );
-				if ( empty( $block['attrs']['metadata']['bindings'] ) ) {
-					unset( $block['attrs']['metadata']['bindings'] );
-				}
-				if ( empty( $block['attrs']['metadata'] ) ) {
-					unset( $block['attrs']['metadata'] );
-				}
-			}
 			$block['innerBlocks'] = self::prepare_bound_inner_blocks( $block['innerBlocks'] );
 		}
 		return $blocks;
@@ -898,6 +996,8 @@ class WP_Block {
 				wp_enqueue_style( $view_style_handle );
 			}
 		}
+
+		$this->forget_rendered_inner_blocks();
 
 		/**
 		 * Filters the content of a single block.
