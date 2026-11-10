@@ -1565,11 +1565,11 @@ class WP_Rewrite {
 	 *
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
-	 * @param array<string, string>|null $existing_rules Optional. Existing rewrite rules to check for rules using the
-	 *                                                  random base, keyed by their regex pattern. Generic catch-all
-	 *                                                  rules, such as the page and post rules, should not be included
-	 *                                                  as they match any path. Default null, the extra rules added
-	 *                                                  via WP_Rewrite::add_rule() and WP_Rewrite::add_permastruct().
+	 * @param string[]|null $existing_rules Optional. Existing rewrite rules to check for rules using the
+	 *                                      random base, keyed by their regex pattern. Generic catch-all
+	 *                                      rules, such as the page and post rules, should not be included
+	 *                                      as they match any path. Default null, the extra rules added
+	 *                                      via WP_Rewrite::add_rule() and WP_Rewrite::add_permastruct().
 	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 *
 	 * @phpstan-return array<non-falsy-string, non-falsy-string>
