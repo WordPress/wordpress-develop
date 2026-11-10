@@ -179,9 +179,7 @@ test( 'bulk edits only the selected posts', async ( {
 			.getByRole( 'checkbox' )
 			.check();
 	}
-	await page
-		.locator( '#bulk-action-selector-top' )
-		.selectOption( 'edit' );
+	await page.locator( '#bulk-action-selector-top' ).selectOption( 'edit' );
 	await page.locator( '#doaction' ).click();
 	const bulkEdit = page.getByRole( 'region', {
 		name: 'Bulk Edit',

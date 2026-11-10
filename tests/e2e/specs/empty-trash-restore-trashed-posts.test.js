@@ -135,27 +135,21 @@ test( 'bulk trashes only the selected posts', async ( {
 			.getByRole( 'checkbox' )
 			.check();
 	}
-	await page
-		.locator( '#bulk-action-selector-top' )
-		.selectOption( 'trash' );
+	await page.locator( '#bulk-action-selector-top' ).selectOption( 'trash' );
 	await page.locator( '#doaction' ).click();
 	await expect( page.locator( '#message' ) ).toContainText(
 		'2 posts moved to the Trash.'
 	);
 
 	for ( const post of posts.slice( 0, 2 ) ) {
-		await expect( page.locator( `#post-${ post.id }` ) ).toHaveCount(
-			0
-		);
+		await expect( page.locator( `#post-${ post.id }` ) ).toHaveCount( 0 );
 		const savedPost = await requestUtils.rest( {
 			path: `/wp/v2/posts/${ post.id }`,
 			params: { context: 'edit' },
 		} );
 		expect( savedPost.status ).toBe( 'trash' );
 	}
-	await expect(
-		page.locator( `#post-${ posts[ 2 ].id }` )
-	).toBeVisible();
+	await expect( page.locator( `#post-${ posts[ 2 ].id }` ) ).toBeVisible();
 	const control = await requestUtils.rest( {
 		path: `/wp/v2/posts/${ posts[ 2 ].id }`,
 		params: { context: 'edit' },
