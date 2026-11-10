@@ -2656,65 +2656,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A parent on another post is dropped, like a parent in an invalid status.
-	 *
-	 * @ticket 66635
-	 */
-	public function test_wp_new_comment_drops_parent_from_another_post(): void {
-		$post_id       = self::factory()->post->create();
-		$other_post_id = self::factory()->post->create();
-		$parent_id     = self::factory()->comment->create( array( 'comment_post_ID' => $other_post_id ) );
-
-		$comment_id = wp_new_comment(
-			array(
-				'comment_post_ID'      => $post_id,
-				'comment_parent'       => $parent_id,
-				'comment_author'       => 'Comment Author',
-				'comment_author_email' => 'comment@example.org',
-				'comment_author_url'   => '',
-				'comment_content'      => 'Reply across posts',
-				'comment_type'         => 'comment',
-				'user_id'              => 0,
-			)
-		);
-
-		$this->assertIsInt( $comment_id );
-
-		$comment = get_comment( $comment_id );
-		$this->assertInstanceOf( WP_Comment::class, $comment );
-		$this->assertSame( '0', $comment->comment_parent );
-	}
-
-	/**
-	 * A parent on the same post is kept.
-	 *
-	 * @ticket 66635
-	 */
-	public function test_wp_new_comment_keeps_parent_from_same_post(): void {
-		$post_id   = self::factory()->post->create();
-		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
-
-		$comment_id = wp_new_comment(
-			array(
-				'comment_post_ID'      => $post_id,
-				'comment_parent'       => $parent_id,
-				'comment_author'       => 'Comment Author',
-				'comment_author_email' => 'comment@example.org',
-				'comment_author_url'   => '',
-				'comment_content'      => 'Threaded reply',
-				'comment_type'         => 'comment',
-				'user_id'              => 0,
-			)
-		);
-
-		$this->assertIsInt( $comment_id );
-
-		$comment = get_comment( $comment_id );
-		$this->assertInstanceOf( WP_Comment::class, $comment );
-		$this->assertSame( (string) $parent_id, $comment->comment_parent );
-	}
-
-	/**
 	 * The rules for notes and reactions belong to the request handlers.
 	 * wp_update_comment() stays unrestricted, like other low-level writers.
 	 *

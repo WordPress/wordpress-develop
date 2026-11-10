@@ -2532,15 +2532,6 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$commentdata['comment_parent'] = ( 'approved' === $parent_status || 'unapproved' === $parent_status ) ? $commentdata['comment_parent'] : 0;
 
-	// A comment on another post cannot be the parent.
-	if ( $commentdata['comment_parent'] > 0 ) {
-		$parent = get_comment( $commentdata['comment_parent'] );
-
-		if ( ! $parent || (int) $parent->comment_post_ID !== $commentdata['comment_post_ID'] ) {
-			$commentdata['comment_parent'] = 0;
-		}
-	}
-
 	$commentdata['comment_author_IP'] = preg_replace( '/[^0-9a-fA-F:., ]/', '', $commentdata['comment_author_IP'] );
 
 	$commentdata['comment_agent'] = substr( $commentdata['comment_agent'], 0, 254 );
