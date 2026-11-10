@@ -303,27 +303,36 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a name with a trailing newline cannot overwrite the secret stored under the name without it.
+	 *
 	 * The options API trims option names, so a name with a trailing newline
 	 * would share a row with the name without it while encrypting for itself.
 	 *
 	 * @ticket 66414
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_secrets_validate_name
 	 */
 	public function test_a_trailing_newline_name_cannot_overwrite_the_secret_without_it(): void {
 		wp_set_secret( 'myplugin/api-key', 'value-plain' );
 
 		$result = wp_set_secret( "myplugin/api-key\n", 'value-newline' );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
+		$this->assertWPError( $result, 'Setting a secret under a name with a trailing newline should fail.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code(), 'The error should report an invalid name.' );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
 
-		$this->assertInstanceOf( WP_Secret::class, $secret );
-		$this->assertSame( 'value-plain', $secret->reveal() );
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The secret stored under the name without the newline should still be readable.' );
+		$this->assertSame( 'value-plain', $secret->reveal(), 'The secret should keep the value it was stored with.' );
 	}
 
 	/**
+	 * Ensure that an exception thrown while setting a secret does not expose the value in its stack trace.
+	 *
 	 * @ticket 66414
+	 *
+	 * @covers ::wp_set_secret
 	 *
 	 * @requires PHP 8.2
 	 */
@@ -347,7 +356,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			$exception = $e;
 		}
 
-		$this->assertInstanceOf( RuntimeException::class, $exception );
+		$this->assertInstanceOf( RuntimeException::class, $exception, 'The exception thrown by the listener should reach the caller.' );
 
 		$string_args = array();
 		foreach ( $exception->getTrace() as $frame ) {
@@ -359,11 +368,15 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		}
 
 		$this->assertContains( 'myplugin/api-key', $string_args, 'The trace should include the other arguments.' );
-		$this->assertNotContains( 'a-plaintext-value-that-must-not-leak', $string_args );
+		$this->assertNotContains( 'a-plaintext-value-that-must-not-leak', $string_args, 'The trace should not include the secret value.' );
 	}
 
 	/**
+	 * Ensure that parameters receiving a secret value or key material are marked with the SensitiveParameter attribute.
+	 *
 	 * @ticket 66414
+	 *
+	 * @coversNothing
 	 *
 	 * @requires PHP 8.2
 	 *
@@ -377,7 +390,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 		foreach ( $reflection->getParameters() as $reflection_parameter ) {
 			if ( $parameter === $reflection_parameter->getName() ) {
-				$this->assertNotEmpty( $reflection_parameter->getAttributes( SensitiveParameter::class ) );
+				$this->assertNotEmpty( $reflection_parameter->getAttributes( SensitiveParameter::class ), "Parameter \${$parameter} should have the SensitiveParameter attribute." );
 				return;
 			}
 		}
@@ -386,6 +399,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
 	 * @return array<string, array{0: callable-string|array{0: class-string, 1: string}, 1: string}>
 	 */
 	public static function data_parameters_that_receive_a_secret_value(): array {
