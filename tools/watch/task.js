@@ -34,7 +34,6 @@
 const path = require( 'path' );
 const { spawn } = require( 'child_process' );
 const chokidar = require( 'chokidar' );
-const { Minimatch } = require( 'minimatch' );
 
 /**
  * Time to wait for more changes before running the tasks, in milliseconds.
@@ -302,7 +301,8 @@ module.exports = ( grunt ) => {
 				// Match each ignored directory itself, so that it is not searched.
 				( pattern ) => pattern.endsWith( '/**' ) ? [ pattern, pattern.slice( 0, -3 ) ] : [ pattern ]
 			)
-			.map( ( pattern ) => new Minimatch( pattern, { dot: true } ) );
+			// Grunt's own minimatch, which it provides for its file matching.
+			.map( ( pattern ) => new grunt.file.minimatch.Minimatch( pattern, { dot: true } ) );
 		const patterns = targetNames.flatMap( ( name ) => getTarget( name ).files );
 
 		watcher = chokidar.watch( getWatchPaths( patterns ), {

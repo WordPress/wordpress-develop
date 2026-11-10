@@ -2816,6 +2816,10 @@ module.exports = function(grunt) {
 					} else {
 						deleted.push( dest );
 					}
+					// Every uglify target writes the minified script next to the script, with a .min.js extension.
+					if ( getUglifyTarget( dest ) ) {
+						deleted.push( dest.replace( /\.js$/, '.min.js' ) );
+					}
 					return;
 				}
 
