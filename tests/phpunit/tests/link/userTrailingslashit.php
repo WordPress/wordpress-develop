@@ -14,8 +14,6 @@ class Tests_Link_UserTrailingslashit extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_user_trailingslashit_when_trailing_slashes_enabled() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( 'https://example.org/sample-post/', user_trailingslashit( 'https://example.org/sample-post' ) );
 	}
 
@@ -36,8 +34,6 @@ class Tests_Link_UserTrailingslashit extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_user_trailingslashit_filter_modifies_url() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$filter_cb = static function ( $url, $type_of_url ) {
 			return $url . '?custom_arg=' . $type_of_url;
 		};
