@@ -2271,12 +2271,13 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
  * @global string|null                        $plugin_page        The plugin page slug being loaded.
  * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
+ * @global string                             $typenow            The post type of the current screen.
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page(): bool {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$plugin_page, $_registered_pages;
+		$plugin_page, $_registered_pages, $typenow;
 
 	$parent = get_admin_page_parent();
 
@@ -2300,7 +2301,17 @@ function user_can_access_admin_page(): bool {
 		if ( isset( $_wp_menu_nopriv[ $pagenow ] ) ) {
 			return false;
 		}
-		if ( isset( $_wp_submenu_nopriv[ $pagenow ][ $pagenow ] ) ) {
+
+		/*
+		 * The bare 'edit.php' and 'post-new.php' menu items only apply to the 'post' post type. A post type which
+		 * is a submenu of another menu has no 'post-new.php' item of its own, so it must not inherit the
+		 * restrictions of the Posts menu. Access for these screens is checked against the post type's capabilities
+		 * by the screens themselves.
+		 */
+		$is_other_post_type_screen = ! empty( $typenow ) && 'post' !== $typenow
+			&& in_array( $pagenow, array( 'edit.php', 'post-new.php' ), true );
+
+		if ( ! $is_other_post_type_screen && isset( $_wp_submenu_nopriv[ $pagenow ][ $pagenow ] ) ) {
 			return false;
 		}
 		if ( isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $pagenow ][ $plugin_page ] ) ) {
@@ -2311,7 +2322,7 @@ function user_can_access_admin_page(): bool {
 		}
 
 		foreach ( array_keys( $_wp_submenu_nopriv ) as $key ) {
-			if ( isset( $_wp_submenu_nopriv[ $key ][ $pagenow ] ) ) {
+			if ( ! $is_other_post_type_screen && isset( $_wp_submenu_nopriv[ $key ][ $pagenow ] ) ) {
 				return false;
 			}
 			if ( isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $key ][ $plugin_page ] ) ) {
