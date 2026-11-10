@@ -1669,18 +1669,20 @@ module.exports = function(grunt) {
 					'vendor/**',
 					BUILD_DIR + '**',
 					// Third-party plugins.
-					SOURCE_DIR + 'wp-content/plugins/**'
+					SOURCE_DIR + 'wp-content/plugins/**',
+					// Third-party themes.
+					SOURCE_DIR + 'wp-content/themes/!(twenty*|ipsum|index.php)/**',
+					// Uploads, translations, and other content that is not part of the build.
+					SOURCE_DIR + 'wp-content/!(index.php|plugins|themes)/**'
 				]
 			},
 			/*
-			 * Copies changed files from /src to /build. When building into /src with --dev, there is nothing to
-			 * copy, so this target is removed below.
+			 * Copies changed files from /src to /build. Its files are those of the copy:files task, set below, so
+			 * that the same files are copied as by the build. When building into /src with --dev, there is nothing to
+			 * copy, so this target is removed.
 			 */
 			all: {
-				files: [
-					SOURCE_DIR + '**',
-					'!' + SOURCE_DIR + 'js/**/*.js'
-				],
+				files: [],
 				tasks: ['watch-dynamic:all', 'clean:dynamic', 'copy:dynamic'],
 				options: {
 					dot: true
@@ -1733,19 +1735,22 @@ module.exports = function(grunt) {
 		}
 	});
 
-	/*
-	 * When building into /src, there is nothing for the `all` watch target to copy, so its files are not watched.
-	 */
-	if ( WORKING_DIR === SOURCE_DIR ) {
-		delete grunt.config.data._watch.all;
-	}
-
 	// Allow builds to be minimal.
 	if( grunt.option( 'minimal-copy' ) ) {
 		var copyFilesOptions = grunt.config.get( 'copy.files.files' );
 		copyFilesOptions[0].src.push( '!wp-content/plugins/**' );
 		copyFilesOptions[0].src.push( '!wp-content/themes/!(twenty*|ipsum)/**' );
 		grunt.config.set( 'copy.files.files', copyFilesOptions );
+	}
+
+	if ( WORKING_DIR === SOURCE_DIR ) {
+		// When building into /src, there is nothing for the `all` watch target to copy, so its files are not watched.
+		delete grunt.config.data._watch.all;
+	} else {
+		// Watch the files that the copy:files task copies from /src, so that a change is copied as by the build.
+		grunt.config( [ '_watch', 'all', 'files' ], grunt.config( 'copy.files.files' )[0].src.map( function( pattern ) {
+			return pattern.charAt( 0 ) === '!' ? '!' + SOURCE_DIR + pattern.slice( 1 ) : SOURCE_DIR + pattern;
+		} ) );
 	}
 
 
