@@ -3660,7 +3660,11 @@ function register_new_user( $user_login, $user_email ) {
 
 	$user_pass = wp_generate_password( 12, false );
 	$user_id   = wp_create_user( $sanitized_user_login, $user_pass, $user_email );
-	if ( ! $user_id || is_wp_error( $user_id ) ) {
+	if ( is_wp_error( $user_id ) ) {
+		return $user_id;
+	}
+
+	if ( ! $user_id ) {
 		$errors->add(
 			'registerfail',
 			sprintf(
