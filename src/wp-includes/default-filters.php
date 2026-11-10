@@ -785,6 +785,7 @@ add_filter( 'oembed_dataparse', 'wp_filter_oembed_iframe_title_attribute', 5, 3 
 add_filter( 'oembed_dataparse', 'wp_filter_oembed_result', 10, 3 );
 add_filter( 'oembed_response_data', 'get_oembed_response_data_rich', 10, 4 );
 add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
+add_filter( 'oembed_fetch_url', 'wp_oembed_add_vimeo_start_time', 10, 2 );
 
 // Capabilities.
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
