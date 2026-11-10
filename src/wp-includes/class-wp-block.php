@@ -419,6 +419,8 @@ class WP_Block {
 		$this->parsed_block['innerContent'] = $inner_content;
 		$this->parsed_block['innerHTML']    = implode( '', array_filter( $inner_content, 'is_string' ) );
 		$this->inner_blocks                 = new WP_Block_List( array() );
+		$this->inner_content                = $inner_content;
+		$this->inner_html                   = $this->parsed_block['innerHTML'];
 		$this->refresh_parsed_block_dependents();
 
 		self::$rendering_inner_blocks[] = array(
@@ -429,8 +431,8 @@ class WP_Block {
 
 	/**
 	 * Returns what the block asks its block bindings source for `innerBlocks`:
-	 * the source, the arguments of the binding, and the context the source
-	 * uses.
+	 * the source, the arguments of the binding, the context the source uses,
+	 * and the attributes of the block.
 	 *
 	 * Two blocks with the same request get the same inner blocks from the
 	 * source.
@@ -448,7 +450,7 @@ class WP_Block {
 				$context[ $context_name ] = $this->context[ $context_name ];
 			}
 		}
-		return array( $source->name, $source_args, $context );
+		return array( $source->name, $source_args, $context, $this->attributes );
 	}
 
 	/**
@@ -533,6 +535,10 @@ class WP_Block {
 		 * publish, in the attributes of the blocks included. A source whose
 		 * markup comes from trusted code, not from users, may keep it as
 		 * supplied. Custom CSS is removed from the blocks either way.
+		 *
+		 * Sanitizing keeps the block delimiters that `serialize_blocks()`
+		 * writes, which escapes the characters `wp_kses_post()` rewrites
+		 * inside comments.
 		 *
 		 * @since 7.3.0
 		 *
