@@ -1027,7 +1027,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$is_apple_os     = (bool) preg_match( "/{$apple_pattern}/i", $_SERVER['HTTP_USER_AGENT'] ?? '' );
 	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
 	$title           = sprintf(
-		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
+		'<span class="ab-label"><kbd dir="ltr">%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
 		__( 'Open command palette' ),
