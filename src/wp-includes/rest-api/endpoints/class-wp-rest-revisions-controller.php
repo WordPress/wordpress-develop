@@ -703,6 +703,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			/** This filter is documented in wp-includes/post-template.php */
 			$data['content']['rendered'] = apply_filters( 'the_content', $post->post_content );
 		}
+		if ( rest_is_content_blocks_requested( $request, $fields ) ) {
+			$data['content']['blocks'] = rest_prepare_blocks_for_response( parse_blocks( $post->post_content ) );
+		}
 
 		if ( rest_is_field_included( 'excerpt', $fields ) ) {
 			$data['excerpt'] = array();
