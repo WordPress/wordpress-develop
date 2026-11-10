@@ -27,7 +27,6 @@ declare(strict_types=1);
 
 namespace WordPress\PHPStan;
 
-use FilesystemIterator;
 use PhpParser\Comment\Doc;
 use PhpParser\Error as PhpParserError;
 use PhpParser\ErrorHandler\Collecting;
@@ -42,13 +41,11 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PHPStan\Analyser\DependencyTracker;
 use PHPStan\Analyser\Scope;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\FileTypeMapper;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 
 /**
  * Bridges the docblock attached to a hook call by HookDocsVisitor to PHPStan's
@@ -102,18 +99,6 @@ class HookDocBlock {
 		'apply_filters',
 		'apply_filters_deprecated',
 		'apply_filters_ref_array',
-	);
-
-	/**
-	 * Directories, relative to the WordPress root, scanned for reference comments
-	 * when hashing the docblocks that call sites can inherit.
-	 *
-	 * @see HookDocBlock::getScannedFiles()
-	 */
-	private const SCANNED_DIRECTORIES = array(
-		'wp-admin',
-		'wp-includes',
-		'wp-content/themes',
 	);
 
 	/**
@@ -179,110 +164,6 @@ class HookDocBlock {
 	}
 
 	/**
-	 * Returns a hash of every hook docblock that a call site can inherit through a
-	 * "documented elsewhere" reference comment.
-	 *
-	 * Those docblocks are read with plain file I/O, so PHPStan's dependency graph
-	 * does not know that the referencing files depend on them: editing a canonical
-	 * docblock re-analyzes only the file it lives in, leaving the cached results of
-	 * every referencing file in place. Folding this hash into the result cache key
-	 * invalidates the cache when an inheritable docblock changes, and only then.
-	 *
-	 * @see HookDocsResultCacheMetaExtension
-	 *
-	 * @return non-falsy-string
-	 */
-	public function getReferencedHookDocsHash(): string {
-		$docs = array();
-
-		foreach ( $this->getScannedFiles() as $file ) {
-			$code = file_get_contents( $file );
-
-			if ( false === $code || ! str_contains( $code, 'is documented in' ) ) {
-				continue;
-			}
-
-			if ( ! preg_match_all( self::REFERENCE_PATTERN, $code, $matches ) ) {
-				continue;
-			}
-
-			foreach ( $matches[1] as $reference_path ) {
-				$target = $this->resolveReferencePath( $file, $reference_path );
-
-				if ( null === $target ) {
-					continue;
-				}
-
-				// Key on the path relative to the WordPress root so the hash does not
-				// depend on where the checkout lives.
-				$key = $this->getRootRelativePath( $target );
-
-				$docs[ $key ] ??= $this->getHookDocs( $target );
-			}
-		}
-
-		ksort( $docs );
-
-		return md5( (string) json_encode( $docs ) );
-	}
-
-	/**
-	 * Returns the files scanned for reference comments: the WordPress directories
-	 * that can contain them, plus the PHP files at the root of the install.
-	 *
-	 * `wp-content/plugins` is deliberately not scanned. A checkout may have plugins
-	 * carrying large `vendor` and `node_modules` trees, and core's reference comments
-	 * only ever point within core.
-	 *
-	 * @return list<string> Absolute file paths.
-	 */
-	private function getScannedFiles(): array {
-		$files = array();
-
-		foreach ( self::SCANNED_DIRECTORIES as $directory ) {
-			$path = $this->wordpressRoot . '/' . $directory;
-
-			if ( ! is_dir( $path ) ) {
-				continue;
-			}
-
-			$iterator = new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator( $path, FilesystemIterator::SKIP_DOTS )
-			);
-
-			foreach ( $iterator as $file ) {
-				if ( $file instanceof SplFileInfo && $file->isFile() && 'php' === strtolower( $file->getExtension() ) ) {
-					$files[] = $file->getPathname();
-				}
-			}
-		}
-
-		$root_files = glob( $this->wordpressRoot . '/*.php' );
-
-		if ( is_array( $root_files ) ) {
-			$files = array_merge( $files, $root_files );
-		}
-
-		return $files;
-	}
-
-	/**
-	 * Expresses an absolute path relative to the WordPress root when it sits inside
-	 * it, so that hashes do not depend on the checkout location.
-	 *
-	 * Paths reached through a reference comment are canonical, so the canonical root is
-	 * what they are relative to.
-	 *
-	 * @param string $path Absolute path.
-	 * @return string
-	 */
-	private function getRootRelativePath( string $path ): string {
-		$prefix = $this->canonicalWordpressRoot . '/';
-
-		return str_starts_with( $path, $prefix ) ? substr( $path, strlen( $prefix ) ) : $path;
-	}
-
-	/**
 	 * Resolves the documentation for a hook call: the docblock written above it, or
 	 * the canonical docblock a "documented elsewhere" comment points at.
 	 *
@@ -295,8 +176,14 @@ class HookDocBlock {
 	 * parameters. `problem` says why it could not be resolved, when the reason is one
 	 * worth reporting.
 	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
+	 * A canonical docblock is read with plain file I/O, so PHPStan's dependency graph
+	 * cannot see that the referencing file depends on it. Resolving a reference
+	 * therefore declares that dependency on the scope, and the result cache
+	 * re-analyzes the referencing file when the file it resolved to changes, or when
+	 * a file it would resolve to first is created.
+	 *
+	 * @param FuncCall                $function_call Hook function call node.
+	 * @param Scope&DependencyTracker $scope         Analysis scope.
 	 * @return HookDocumentation|null Null when no docblock precedes the call.
 	 * @throws ShouldNotHappenException
 	 */
@@ -336,7 +223,7 @@ class HookDocBlock {
 		}
 
 		$reference_path = $matches[1];
-		$target_file    = $this->resolveReferencePath( $scope->getFile(), $reference_path );
+		$target_file    = $this->resolveReferencePath( $scope->getFile(), $reference_path, $scope );
 
 		// The referenced file could not be located up the directory tree.
 		if ( null === $target_file ) {
@@ -378,8 +265,8 @@ class HookDocBlock {
 	/**
 	 * Resolves the docblock preceding the given function call, if any.
 	 *
-	 * @param FuncCall $function_call Hook function call node.
-	 * @param Scope    $scope         Analysis scope.
+	 * @param FuncCall                $function_call Hook function call node.
+	 * @param Scope&DependencyTracker $scope         Analysis scope.
 	 * @return ResolvedPhpDocBlock|null Resolved docblock, or null when none precedes
 	 *                                  the call or a reference cannot be resolved.
 	 * @throws ShouldNotHappenException
@@ -790,16 +677,21 @@ class HookDocBlock {
 	 *
 	 * Only the single named file is ever tested; no directory is enumerated.
 	 *
-	 * @param string $current_file   Absolute path to the file with the reference comment.
-	 * @param string $reference_path Root-relative path (e.g. "wp-includes/media.php").
+	 * Every candidate tested is declared as a dependency of the file being analyzed,
+	 * not only the one that resolves. A candidate tested before the hit decides the
+	 * result by being absent, so creating it changes which file the reference names.
+	 *
+	 * @param string            $current_file   Absolute path to the file with the reference comment.
+	 * @param string            $reference_path Root-relative path (e.g. "wp-includes/media.php").
+	 * @param DependencyTracker $tracker        Tracker for the file being analyzed.
 	 * @return string|null Absolute path to the referenced file, or null when it cannot be located.
 	 */
-	private function resolveReferencePath( string $current_file, string $reference_path ): ?string {
+	private function resolveReferencePath( string $current_file, string $reference_path, DependencyTracker $tracker ): ?string {
 		$reference_path = ltrim( $reference_path, '/' );
 		$dir            = dirname( $current_file );
 
 		while ( $dir === $this->wordpressRoot || str_starts_with( $dir, $this->wordpressRoot . '/' ) ) {
-			$target = $this->resolveWithinRoot( $dir . '/' . $reference_path );
+			$target = $this->resolveWithinRoot( $dir . '/' . $reference_path, $tracker );
 			if ( null !== $target ) {
 				return $target;
 			}
@@ -813,7 +705,7 @@ class HookDocBlock {
 		}
 
 		// The file holding the comment is not in the tree, so resolve against the root.
-		return $this->resolveWithinRoot( $this->wordpressRoot . '/' . $reference_path );
+		return $this->resolveWithinRoot( $this->wordpressRoot . '/' . $reference_path, $tracker );
 	}
 
 	/**
@@ -830,10 +722,17 @@ class HookDocBlock {
 	 * them working while ensuring a reference cannot reach a file outside it. That
 	 * matters because whatever resolution finds is then read and parsed.
 	 *
-	 * @param string $candidate Absolute candidate path, possibly containing dot segments.
+	 * The candidate is tracked as given rather than canonicalized. It need not exist,
+	 * and when it does, its contents are hashed through any symlink or dot segment,
+	 * which is the file that is read.
+	 *
+	 * @param string            $candidate Absolute candidate path, possibly containing dot segments.
+	 * @param DependencyTracker $tracker   Tracker for the file being analyzed.
 	 * @return string|null Canonical path, or null when it is not a file inside the tree.
 	 */
-	private function resolveWithinRoot( string $candidate ): ?string {
+	private function resolveWithinRoot( string $candidate, DependencyTracker $tracker ): ?string {
+		$tracker->trackFileDependency( $candidate );
+
 		if ( ! is_file( $candidate ) ) {
 			return null;
 		}

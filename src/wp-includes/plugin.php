@@ -43,17 +43,11 @@ if ( $wp_filter ) {
 	$wp_filter = array();
 }
 
-if ( ! isset( $wp_actions ) ) {
-	$wp_actions = array();
-}
+$wp_actions ??= array();
 
-if ( ! isset( $wp_filters ) ) {
-	$wp_filters = array();
-}
+$wp_filters ??= array();
 
-if ( ! isset( $wp_current_filter ) ) {
-	$wp_current_filter = array();
-}
+$wp_current_filter ??= array();
 
 /**
  * Adds a callback function to a filter hook.
@@ -284,7 +278,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
- * @phpstan-param Maybe_Callable|false $callback
+ * @phpstan-param callable|string|array{0: string|object, 1: string}|false $callback
  * @phpstan-return (
  *     $callback is false
  *         ? bool
@@ -324,7 +318,7 @@ function has_filter( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         filter callback. Default 10.
  * @return bool Whether the function existed before it was removed.
- * @phpstan-param Maybe_Callable $callback
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  */
 function remove_filter( $hook_name, $callback, $priority = 10 ) {
 	global $wp_filter;
@@ -606,7 +600,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
- * @phpstan-param Maybe_Callable|false $callback
+ * @phpstan-param callable|string|array{0: string|object, 1: string}|false $callback
  * @phpstan-return (
  *     $callback is false
  *         ? bool
@@ -638,7 +632,7 @@ function has_action( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         action callback. Default 10.
  * @return bool Whether the function is removed.
- * @phpstan-param Maybe_Callable $callback
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  */
 function remove_action( $hook_name, $callback, $priority = 10 ) {
 	return remove_filter( $hook_name, $callback, $priority );
@@ -896,6 +890,8 @@ function plugin_dir_url( $file ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'activate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): mixed $callback
  */
 function register_activation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -919,6 +915,8 @@ function register_activation_hook( $file, $callback ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'deactivate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): mixed $callback
  */
 function register_deactivation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -950,6 +948,8 @@ function register_deactivation_hook( $file, $callback ) {
  * @param string   $file     Plugin file.
  * @param callable $callback The callback to run when the hook is called. Must be
  *                           a static method or function.
+ *
+ * @phpstan-param (callable-string|array{class-string, non-empty-string})&(callable(): mixed) $callback
  */
 function register_uninstall_hook( $file, $callback ) {
 	if ( is_array( $callback ) && is_object( $callback[0] ) ) {
@@ -1019,7 +1019,7 @@ function _wp_call_all_hook( $args ) {
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
  * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
- * @phpstan-param Maybe_Callable $callback
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  * @phpstan-return non-decimal-int-string|null
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {

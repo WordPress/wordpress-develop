@@ -109,12 +109,17 @@ class WP_Admin_Bar {
 	 * @since 3.1.0
 	 * @since 4.5.0 Added the ability to pass 'lang' and 'dir' meta data.
 	 * @since 6.5.0 Added the ability to pass 'menu_title' for an ARIA menu name.
+	 * @since 7.2.0 Added the `icon` argument.
 	 *
 	 * @param array $args {
 	 *     Arguments for adding a node.
 	 *
 	 *     @type string $id     ID of the item.
 	 *     @type string $title  Title of the node.
+	 *     @type string $icon   Optional. Namespaced icon name in the form "collection/icon-name",
+	 *                          e.g. 'core-admin/pin'. Rendered before the title, and hides a
+	 *                          Dashicon that the node draws in an empty `<span class="ab-icon">`
+	 *                          or on `.ab-item::before`. Ignored if the icon is not registered.
 	 *     @type string $parent Optional. ID of the parent node.
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
@@ -146,6 +151,7 @@ class WP_Admin_Bar {
 		$defaults = array(
 			'id'     => false,
 			'title'  => false,
+			'icon'   => false,
 			'parent' => false,
 			'href'   => false,
 			'group'  => false,
@@ -454,6 +460,7 @@ class WP_Admin_Bar {
 
 	/**
 	 * @since 3.3.0
+	 * @since 7.2.0 Added a link to skip the toolbar when it is rendered at the start of the page.
 	 *
 	 * @param object $root
 	 */
@@ -467,10 +474,19 @@ class WP_Admin_Bar {
 			$class .= ' mobile';
 		}
 
+		/*
+		 * On the front end, add a link to reach the toolbar when it is rendered in the footer
+		 * by themes without 'wp_body_open' support, or to skip it when it precedes the content.
+		 */
+		$skip_to_toolbar   = ! is_admin() && ! did_action( 'wp_body_open' );
+		$skip_past_toolbar = ! is_admin() && did_action( 'wp_body_open' ) && ! doing_action( 'wp_footer' );
+
 		?>
 		<div id="wpadminbar" class="<?php echo $class; ?>">
-			<?php if ( ! is_admin() && ! did_action( 'wp_body_open' ) ) { ?>
+			<?php if ( $skip_to_toolbar ) { ?>
 				<a class="screen-reader-shortcut" href="#wp-toolbar" tabindex="1"><?php _e( 'Skip to toolbar' ); ?></a>
+			<?php } elseif ( $skip_past_toolbar ) { ?>
+				<a class="screen-reader-shortcut" href="#wp-toolbar-skip-target"><?php _e( 'Skip toolbar' ); ?></a>
 			<?php } ?>
 			<div class="quicklinks" id="wp-toolbar" role="navigation" aria-label="<?php esc_attr_e( 'Toolbar' ); ?>">
 				<?php
@@ -479,6 +495,9 @@ class WP_Admin_Bar {
 				}
 				?>
 			</div>
+			<?php if ( $skip_past_toolbar ) { ?>
+				<div id="wp-toolbar-skip-target"></div>
+			<?php } ?>
 		</div>
 
 		<?php
@@ -575,6 +594,26 @@ class WP_Admin_Bar {
 			$menuclass = ' class="' . esc_attr( trim( $menuclass ) ) . '"';
 		}
 
+		$icon_name = $node->icon;
+
+		$icon = '';
+		if ( wp_is_valid_icon_name( $icon_name ) ) {
+			$icon = _wp_admin_bar_icon( $icon_name );
+
+			if ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Icon name, 2: Admin bar node ID. */
+						__( 'The icon "%1$s" of the admin bar node "%2$s" is not registered.' ),
+						$icon_name,
+						$node->id
+					),
+					'7.2.0'
+				);
+			}
+		}
+
 		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
@@ -597,7 +636,7 @@ class WP_Admin_Bar {
 			}
 		}
 
-		echo ">{$arrow}{$node->title}";
+		echo ">{$arrow}{$icon}{$node->title}";
 
 		if ( $has_link ) {
 			echo '</a>';
