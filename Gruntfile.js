@@ -1510,6 +1510,22 @@ module.exports = function(grunt) {
 				dest: SOURCE_DIR
 			}
 		},
+		cwebp: {
+			dynamic: {
+				options: {
+					q: 80
+				},
+				files: [{
+					expand: true,
+					cwd: SOURCE_DIR,
+					src: [
+						'wp-{admin,includes}/images/**/*.webp',
+						'wp-content/themes/**/*.webp'
+					],
+					dest: SOURCE_DIR
+				}],
+			}
+		},
 		replace: {
 			'emoji-regex': {
 				options: {
@@ -1938,7 +1954,7 @@ module.exports = function(grunt) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
-						if ( [ 'png', 'jpg', 'gif', 'jpeg' ].some( testExtension ) ) {
+						if ( [ 'png', 'jpg', 'gif', 'jpeg', 'webp' ].some( testExtension ) ) {
 							grunt.log.writeln( 'Image files modified. Minifying.' );
 							taskList.push( 'precommit:image' );
 						}
