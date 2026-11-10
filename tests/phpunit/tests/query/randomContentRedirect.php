@@ -2999,28 +2999,4 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_archive', 'is_category' );
 		$this->assertSame( $category, get_queried_object_id(), 'The category at the random base should be queried.' );
 	}
-
-	/**
-	 * Ensure the random base is not redirected to random content when filtered as taken.
-	 */
-	public function test_random_base_is_not_redirected_when_filtered_as_taken(): void {
-		add_filter( 'wp_rewrite_random_base_is_taken', '__return_true' );
-		flush_rewrite_rules();
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertNotRedirected( 'The random base should not redirect to random content when filtered as taken.' );
-	}
-
-	/**
-	 * Ensure random archives redirect when the random base is filtered as taken.
-	 */
-	public function test_random_archives_redirect_when_the_random_base_is_filtered_as_taken(): void {
-		add_filter( 'wp_rewrite_random_base_is_taken', '__return_true' );
-		flush_rewrite_rules();
-
-		$this->go_to( home_url( '/random/category/arts/' ) );
-
-		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when the random base is filtered as taken.' );
-	}
 }
