@@ -128,7 +128,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source check recommends regenerating a WP_SECRETS_KEY not in base64 form.
+	 * Ensure that the key source check says a legacy-form WP_SECRETS_KEY can still be replaced before secrets exist.
 	 *
 	 * Runs in a separate process because WP_SECRETS_KEY is a constant and cannot be
 	 * undefined for later tests.
@@ -144,7 +144,103 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'], 'A legacy WP_SECRETS_KEY should produce a recommended status.' );
-		$this->assertStringContainsString( 'generate-key', $result['description'], 'The description should mention generate-key for regenerating the key.' );
+		$this->assertStringContainsString( 'can still be replaced', $result['description'], 'The description should say that the key can still be replaced.' );
+		$this->assertStringNotContainsString( 'generate-key', $result['description'], 'The description should not mention generate-key, which is not a core or WP-CLI command.' );
+	}
+
+	/**
+	 * Ensure that the key source check says to keep a legacy-form WP_SECRETS_KEY once secrets are stored.
+	 *
+	 * Replacing the key then would make the stored secrets unreadable.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_warns_to_keep_a_legacy_key_once_secrets_are_stored(): void {
+		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'], 'A legacy WP_SECRETS_KEY with stored secrets should produce a recommended status.' );
+		$this->assertStringContainsString( 'Keep its current value', $result['description'], 'The description should say to keep the current value.' );
+	}
+
+	/**
+	 * Ensure that the key source check is critical when the key cannot unwrap the stored root key.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 */
+	public function test_key_source_test_is_critical_when_the_key_does_not_match_the_stored_secrets(): void {
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
+
+		// Stands in for a root key that was wrapped with a different site key.
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, base64_encode( random_bytes( 72 ) ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'], 'A key that cannot unwrap the root key should produce a critical status.' );
+		$this->assertStringContainsString( 'Restoring the previous value', $result['description'], 'The description should say that restoring the previous value fixes it.' );
+	}
+
+	/**
+	 * Ensure that the key source check is critical when WP_SECRETS_KEY was removed after secrets were stored.
+	 *
+	 * The root key is wrapped with a keyring that reads WP_SECRETS_KEY_PREVIOUS,
+	 * because WP_SECRETS_KEY can only be defined once in a process.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_critical_when_the_key_was_removed_after_secrets_were_stored(): void {
+		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'P', 32 ) ) );
+
+		$previous = new WP_Secrets_Config_Key_Provider( true );
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $previous->wrap( random_bytes( 32 ) ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'], 'A removed WP_SECRETS_KEY with stored secrets should produce a critical status.' );
+		$this->assertStringContainsString( '<code>WP_SECRETS_KEY</code> was changed or removed', $result['description'], 'The description should say that WP_SECRETS_KEY was changed or removed.' );
+	}
+
+	/**
+	 * Ensure that the key source check reports the error of a drop-in keyring that cannot unwrap the root key.
+	 *
+	 * A keyring from a secrets.php drop-in fails for its own reasons, such as an
+	 * unreachable key service. The result reports its error, and does not send
+	 * the site owner to wp-config.php.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_reports_the_error_of_a_dropin_keyring_that_cannot_unwrap(): void {
+		$keyring = new Mock_Keyring();
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $keyring->wrap( random_bytes( 32 ) ) );
+		$keyring->configure_fail_unwrap();
+
+		$GLOBALS['wp_secrets_keyring'] = $keyring;
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'], 'A drop-in keyring that cannot unwrap the root key should produce a critical status.' );
+		$this->assertStringContainsString( 'unwrap() configured to fail', $result['description'], 'The description should contain the keyring\'s own error.' );
+		$this->assertStringNotContainsString( 'WP_SECRETS_KEY', $result['description'], 'The description should not mention WP_SECRETS_KEY for a drop-in keyring.' );
 	}
 
 	/**
@@ -183,6 +279,95 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'critical', $result['status'], 'A broken secrets drop-in should produce a critical status.' );
+	}
+
+	/**
+	 * Ensure that the key source check is critical for a broken drop-in on a translated site.
+	 *
+	 * The broken keyring describes itself with a translated string.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_critical_when_the_keyring_is_broken_on_a_translated_site(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return 'broken secrets.php drop-in' === $text ? 'defektes secrets.php-Drop-in' : $translation;
+			},
+			10,
+			2
+		);
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'], 'A broken secrets drop-in should produce a critical status on a translated site.' );
+	}
+
+	/**
+	 * Ensure that the key source check passes when a drop-in replaces the provider.
+	 *
+	 * A provider from a secrets.php drop-in does not use the default keyring.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_good_when_a_dropin_replaces_the_provider(): void {
+		$provider = $this->createMock( WP_Secrets_Provider::class );
+		$provider->method( 'get_label' )->willReturn( 'Example Vault' );
+
+		$GLOBALS['wp_secrets_provider'] = $provider;
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'good', $result['status'], 'A provider drop-in should produce a good status.' );
+		$this->assertStringContainsString( 'Example Vault', $result['description'], 'The description should name the provider.' );
+	}
+
+	/**
+	 * Ensure that the undecryptable check is critical when the secrets cannot be listed.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_undecryptable
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_undecryptable_test_is_critical_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_undecryptable();
+
+		$this->assertSame( 'critical', $result['status'], 'A provider that cannot list secrets should produce a critical status.' );
+	}
+
+	/**
+	 * Ensure that the rotation check is recommended when the secrets cannot be listed.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_test_needs_rotation
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_needs_rotation_test_is_recommended_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_needs_rotation();
+
+		$this->assertSame( 'recommended', $result['status'], 'A provider that cannot list secrets should produce a recommended status.' );
 	}
 
 	/**
@@ -313,6 +498,31 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( ( new WP_Secrets_Config_Key_Provider() )->get_key_source(), $fields['key_source']['value'], 'The key source should be reported from the keyring in use.' );
 		$this->assertSame( '1', $fields['record_version']['value'], 'The record version should be reported as 1.' );
 		$this->assertSame( '1', $fields['site_secret_count']['value'], 'The site secret count should be 1.' );
+	}
+
+	/**
+	 * Ensure that the debug information does not describe the keyring when a drop-in replaces the provider.
+	 *
+	 * A provider from a secrets.php drop-in does not use the default keyring.
+	 *
+	 * @ticket 66380
+	 *
+	 * @covers ::wp_secrets_site_health_debug_info
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_debug_info_does_not_describe_the_keyring_when_a_dropin_replaces_the_provider(): void {
+		$provider = $this->createMock( WP_Secrets_Provider::class );
+		$provider->method( 'get_label' )->willReturn( 'Example Vault' );
+		$provider->method( 'list_secrets' )->willReturn( array() );
+
+		$GLOBALS['wp_secrets_provider'] = $provider;
+
+		$fields = $this->debug_fields( wp_secrets_site_health_debug_info( array() ) );
+
+		$this->assertSame( 'Not used by the provider', $fields['keyring_class']['value'], 'The keyring class should be marked as not used.' );
+		$this->assertSame( 'Not used by the provider', $fields['key_source']['value'], 'The key source should be marked as not used.' );
 	}
 
 	/**
