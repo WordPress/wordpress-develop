@@ -304,7 +304,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -327,14 +327,15 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 7, $data, 'Response should contain all fields.' );
+		$this->assertCount( 8, $data, 'Response should contain all fields.' );
 		$this->assertSame( 'test/calculator', $data['name'] );
 		$this->assertSame( 'Calculator', $data['label'] );
 		$this->assertSame( 'Performs basic calculations', $data['description'] );
 		$this->assertSame( 'math', $data['category'] );
+		$this->assertSame( array(), $data['required_capabilities'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
@@ -353,7 +354,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
@@ -373,7 +374,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
@@ -386,14 +387,12 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test getting a non-existent ability returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/non/existent' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
@@ -408,7 +407,67 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/not-show-in-rest' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
+	}
+
+	/**
+	 * Test that an ability with only the `public` meta flag is exposed in REST.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_get_item_public_meta_exposes_in_rest(): void {
+		$this->register_test_ability(
+			'test/public-ability',
+			array(
+				'label'               => 'Public Ability',
+				'description'         => 'Exposed in REST via the public meta flag.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'public' => true,
+				),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-ability' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['meta']['public'] );
+		$this->assertTrue( $data['meta']['show_in_rest'] );
+	}
+
+	/**
+	 * Test that an explicit `show_in_rest` value of false hides an ability even when `public` is true.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_get_item_public_true_show_in_rest_false_is_hidden(): void {
+		$this->register_test_ability(
+			'test/public-optout',
+			array(
+				'label'               => 'Public Opt-out',
+				'description'         => 'Opts out of REST exposure despite the public meta flag.',
+				'category'            => 'general',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'public'       => true,
+					'show_in_rest' => false,
+				),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-optout' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
@@ -426,7 +485,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -439,15 +498,15 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'per_page', 10 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_abilities = count( wp_get_abilities() ) - 1; // Exclude the one that doesn't show in REST.
-		$this->assertEquals( $total_abilities, (int) $headers['X-WP-Total'] );
-		$this->assertEquals( ceil( $total_abilities / 10 ), (int) $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_abilities, $headers['X-WP-Total'] );
+		$this->assertSame( (string) ceil( $total_abilities / 10 ), $headers['X-WP-TotalPages'] );
 	}
 
 	/**
@@ -529,7 +588,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'page', 2 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 5, $data );
 
@@ -541,7 +600,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$page1_names    = wp_list_pluck( $page1_response->get_data(), 'name' );
 		$page2_names    = wp_list_pluck( $data, 'name' );
 
-		$this->assertNotEquals( $page1_names, $page2_names );
+		$this->assertNotSame( $page1_names, $page2_names );
 	}
 
 	/**
@@ -610,7 +669,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$properties = $schema['properties'];
 
 		// Assert the count of properties to catch when new keys are added
-		$this->assertCount( 7, $properties, 'Schema should have exactly 7 properties. If this fails, update this test to include the new property.' );
+		$this->assertCount( 8, $properties, 'Schema should have exactly 8 properties. If this fails, update this test to include the new property.' );
 
 		// Check all expected properties exist
 		$this->assertArrayHasKey( 'name', $properties );
@@ -620,6 +679,23 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'output_schema', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
+		$this->assertArrayHasKey( 'required_capabilities', $properties );
+	}
+
+	/**
+	 * Test that the item schema declares the `public` meta property.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_get_schema_meta_declares_public(): void {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities' );
+		$response = $this->server->dispatch( $request );
+		$data     = $response->get_data();
+
+		$meta_properties = $data['schema']['properties']['meta']['properties'];
+
+		$this->assertArrayHasKey( 'public', $meta_properties );
+		$this->assertSame( 'boolean', $meta_properties['public']['type'] );
 	}
 
 	/**
@@ -651,7 +727,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		wp_unregister_ability( 'test-hyphen/ability' );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -659,7 +735,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_ability_names_provider(): array {
+	public static function data_invalid_ability_names_provider(): array {
 		return array(
 			'@ symbol'          => array( 'test@ability' ),
 			'space'             => array( 'test ability' ),
@@ -685,15 +761,14 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/' . $name );
 		$response = $this->server->dispatch( $request );
 		// Should return 404 as the regex pattern won't match
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
 	 * Test extremely long ability names.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
+	 * @ticket 65644
 	 */
 	public function test_extremely_long_ability_names(): void {
 		// Create a very long but valid ability name
@@ -703,7 +778,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		// Should return 404 as ability doesn't exist
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -711,7 +786,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, mixed>}>
 	 */
-	public function data_invalid_pagination_params_provider(): array {
+	public static function data_invalid_pagination_params_provider(): array {
 		return array(
 			'Zero page'            => array( array( 'page' => 0 ) ),
 			'Negative page'        => array( array( 'page' => -1 ) ),
@@ -760,7 +835,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'category', 'math' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -792,7 +867,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'category', 'nonexistent' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -1193,5 +1268,75 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		// Output schemas are normalized the same way.
 		$this->assertSame( array( 'id' ), $data['output_schema']['required'] );
 		$this->assertArrayNotHasKey( 'required', $data['output_schema']['properties']['id'] );
+	}
+
+	/**
+	 * Registers an ability that only administrators can run.
+	 */
+	private function register_admin_only_ability(): void {
+		$this->register_test_ability(
+			'test/admin-only',
+			array(
+				'label'                 => 'Admin only',
+				'description'           => 'Requires the manage_options capability.',
+				'category'              => 'general',
+				'execute_callback'      => '__return_true',
+				'required_capabilities' => array( 'manage_options' ),
+				'meta'                  => array( 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * Test that the response includes the required capabilities.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_get_item_includes_required_capabilities(): void {
+		$this->register_admin_only_ability();
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/admin-only' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'manage_options' ), $response->get_data()['required_capabilities'] );
+	}
+
+	/**
+	 * Test that the has_required_capabilities parameter excludes abilities whose declared capabilities the current user lacks.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities(): void {
+		$this->register_admin_only_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertContains( 'test/admin-only', $names, 'Abilities are not filtered by capabilities by default.' );
+
+		$request->set_param( 'has_required_capabilities', 'true' );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertNotContains( 'test/admin-only', $names );
+		$this->assertContains( 'test/calculator', $names, 'Abilities without required capabilities stay in the result.' );
+	}
+
+	/**
+	 * Test that the has_required_capabilities parameter keeps abilities whose declared capabilities an administrator has.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_as_administrator(): void {
+		$this->register_admin_only_ability();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'has_required_capabilities', true );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertContains( 'test/admin-only', $names );
 	}
 }

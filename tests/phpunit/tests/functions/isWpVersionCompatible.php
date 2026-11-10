@@ -60,7 +60,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_wp_version_compatible() {
+	public static function data_is_wp_version_compatible() {
 		$wp_version     = wp_get_wp_version();
 		$version_parts  = explode( '.', $wp_version );
 		$lower_version  = $version_parts;
@@ -152,7 +152,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers() {
+	public static function data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers() {
 		return array(
 			'an incorrect trailing .0 and the same version' => array(
 				'required' => '5.2.0',
@@ -224,7 +224,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_wp_version_compatible_with_development_versions() {
+	public static function data_is_wp_version_compatible_with_development_versions() {
 		// For consistent results, remove possible suffixes.
 		list( $version ) = explode( '-', wp_get_wp_version() );
 

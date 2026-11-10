@@ -35,4 +35,39 @@ class Tests_Functions_WpDeleteFile extends WP_UnitTestCase {
 		$this->assertFileDoesNotExist( $file, "$file already existed as a file before testing." );
 		$this->assertFalse( wp_delete_file( $file ), 'Attempting to delete a non-existent file should return false.' );
 	}
+
+	/**
+	 * @ticket 59788
+	 */
+	public function test_wp_delete_file_does_not_delete_when_filter_returns_empty() {
+		$file = wp_tempnam( 'a_file_that_exists.txt' );
+
+		add_filter( 'wp_delete_file', '__return_empty_string' );
+
+		$this->assertFalse( wp_delete_file( $file ), 'wp_delete_file() should return false when the filter returns an empty path.' );
+		$this->assertFileExists( $file, 'The file should not be deleted when the filter returns an empty path.' );
+
+		unlink( $file );
+	}
+
+	/**
+	 * @ticket 59788
+	 */
+	public function test_wp_delete_file_deletes_the_filtered_path() {
+		$file     = wp_tempnam( 'a_file_that_exists.txt' );
+		$filtered = wp_tempnam( 'a_filtered_file.txt' );
+
+		add_filter(
+			'wp_delete_file',
+			static function () use ( $filtered ) {
+				return $filtered;
+			}
+		);
+
+		$this->assertTrue( wp_delete_file( $file ), 'wp_delete_file() should return true when the filtered path is deleted.' );
+		$this->assertFileDoesNotExist( $filtered, 'The filtered path should be deleted.' );
+		$this->assertFileExists( $file, 'The original path should not be deleted when the filter changes it.' );
+
+		unlink( $file );
+	}
 }
