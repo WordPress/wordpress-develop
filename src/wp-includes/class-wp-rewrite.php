@@ -1547,9 +1547,6 @@ class WP_Rewrite {
 	 * the URL, see {@see WP_Rewrite::post_permalinks_share_random_base()}. The rules are flushed
 	 * when such a page or post changes, see {@see wp_random_content_flush_rewrite_rules_for_post()}.
 	 *
-	 * Whether the `/random/` rule is omitted can be changed with the {@see 'wp_rewrite_random_base_is_taken'}
-	 * filter.
-	 *
 	 * Rules added to the top of the rewrite rules, including those for post types and taxonomies,
 	 * take precedence over the random content rules. When the rewrite rules are generated, random
 	 * content rules using the same regex as a rule added to the top are omitted, see
@@ -1594,24 +1591,6 @@ class WP_Rewrite {
 			$random_base_posts,
 			fn( $random_base_post ) => $random_base_post instanceof WP_Post && is_post_publicly_viewable( $random_base_post )
 		);
-
-		/**
-		 * Filters whether the random content redirect base is taken.
-		 *
-		 * When the random base is taken, the `/random/` rewrite rule is omitted. The random
-		 * base may vary depending on the site's language or permalink settings, so always
-		 * determine the value from the `$random_base` or `$random_slug` parameters.
-		 *
-		 * @since 7.2.0
-		 *
-		 * @param bool   $random_base_is_taken Whether the random base is known to be taken.
-		 * @param string $random_base          The random base for the site, including the PATHINFO
-		 *                                     prefix when using PATHINFO permalinks, for example
-		 *                                     `random` or `index.php/random`.
-		 * @param string $random_slug          The random base slug for the site, without the PATHINFO
-		 *                                     prefix, for example `random`.
-		 */
-		$random_base_is_taken = apply_filters( 'wp_rewrite_random_base_is_taken', $random_base_is_taken, $random_base, $random_slug );
 
 		if ( ! $random_base_is_taken ) {
 			$rules[ $random_base . '/?$' ] = $this->index . '?random=1';
