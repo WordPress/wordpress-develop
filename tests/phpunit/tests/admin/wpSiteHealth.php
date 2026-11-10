@@ -557,6 +557,43 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a row count threshold is not exceeded when the table has fewer rows.
+	 *
+	 * With InnoDB, the row counts are estimates, so this is only tested with SQLite,
+	 * where the rows are counted exactly.
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::should_suggest_persistent_object_cache()
+	 */
+	public function test_object_cache_row_count_threshold_not_exceeded_with_sqlite() {
+		global $wpdb;
+
+		if ( 'sqlite' !== $wpdb->dbengine ) {
+			$this->markTestSkipped( 'This test requires SQLite.' );
+		}
+
+		$options_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->options" );
+
+		add_filter(
+			'site_status_persistent_object_cache_thresholds',
+			static function () use ( $options_count ) {
+				return array(
+					'alloptions_count' => PHP_INT_MAX,
+					'alloptions_bytes' => PHP_INT_MAX,
+					'comments_count'   => PHP_INT_MAX,
+					'options_count'    => $options_count + 1,
+					'posts_count'      => PHP_INT_MAX,
+					'terms_count'      => PHP_INT_MAX,
+					'users_count'      => PHP_INT_MAX,
+				);
+			}
+		);
+
+		$this->assertFalse( $this->instance->should_suggest_persistent_object_cache() );
+	}
+
+	/**
 	 * Data provider for test_object_cache_thresholds().
 	 *
 	 * @ticket 56040
@@ -647,6 +684,115 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
+	}
+
+	/**
+	 * Tests that the database tests match the database engine.
+	 *
+	 * @covers ::get_tests()
+	 */
+	public function test_get_tests_includes_database_tests_for_database_engine() {
+		global $wpdb;
+
+		$tests = WP_Site_Health::get_tests();
+
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			$this->assertArrayHasKey( 'sqlite_version', $tests['direct'] );
+			$this->assertArrayHasKey( 'sqlite_database_location', $tests['direct'] );
+			$this->assertArrayNotHasKey( 'sql_server', $tests['direct'], 'SQLite has no database server to test.' );
+		} else {
+			$this->assertArrayHasKey( 'sql_server', $tests['direct'] );
+			$this->assertArrayNotHasKey( 'sqlite_version', $tests['direct'] );
+			$this->assertArrayNotHasKey( 'sqlite_database_location', $tests['direct'] );
+		}
+	}
+
+	/**
+	 * @covers ::get_test_sqlite_version()
+	 */
+	public function test_get_test_sqlite_version() {
+		global $wpdb;
+
+		if ( 'sqlite' !== $wpdb->dbengine ) {
+			$this->markTestSkipped( 'This test requires SQLite.' );
+		}
+
+		$result = $this->instance->get_test_sqlite_version();
+
+		$this->assertSame( 'sqlite_version', $result['test'] );
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertStringContainsString( $wpdb->dbh->get_sqlite_version(), $result['description'] );
+	}
+
+	/**
+	 * @covers ::get_test_sqlite_database_location()
+	 */
+	public function test_get_test_sqlite_database_location() {
+		global $wpdb;
+
+		if ( 'sqlite' !== $wpdb->dbengine ) {
+			$this->markTestSkipped( 'This test requires SQLite.' );
+		}
+
+		$result = $this->instance->get_test_sqlite_database_location();
+
+		$this->assertSame( 'sqlite_database_location', $result['test'] );
+		$this->assertSame( 'recommended', $result['status'], 'The test database should be in the wp-content directory.' );
+		$this->assertStringContainsString( '<code>DB_PATH</code>', $result['description'] );
+	}
+
+	/**
+	 * @covers ::is_in_web_root()
+	 *
+	 * @dataProvider data_is_in_web_root
+	 *
+	 * @param string $path     The file path.
+	 * @param bool   $expected Whether the path is in the web root.
+	 */
+	public function test_is_in_web_root( $path, $expected ) {
+		$this->assertSame( $expected, $this->is_in_web_root( $path ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_is_in_web_root() {
+		return array(
+			'WordPress directory'                  => array( ABSPATH . 'db.sqlite', true ),
+			'content directory'                    => array( WP_CONTENT_DIR . '/database/db.sqlite', true ),
+			'parent directory'                     => array( dirname( ABSPATH ) . '/db.sqlite', false ),
+			'sibling directory with a name prefix' => array( untrailingslashit( ABSPATH ) . '-db/db.sqlite', false ),
+		);
+	}
+
+	/**
+	 * @covers ::is_in_web_root()
+	 */
+	public function test_is_in_web_root_includes_document_root() {
+		$server = $_SERVER;
+
+		$_SERVER['DOCUMENT_ROOT'] = dirname( ABSPATH );
+		$in_web_root              = $this->is_in_web_root( dirname( ABSPATH ) . '/db.sqlite' );
+		$_SERVER                  = $server;
+
+		$this->assertTrue( $in_web_root );
+	}
+
+	/**
+	 * Calls the private WP_Site_Health::is_in_web_root() method.
+	 *
+	 * @param string $path The file path.
+	 * @return bool Whether the path is in the web root.
+	 */
+	private function is_in_web_root( $path ) {
+		$method = new ReflectionMethod( $this->instance, 'is_in_web_root' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		return $method->invoke( $this->instance, $path );
 	}
 
 	/**

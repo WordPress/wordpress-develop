@@ -528,6 +528,10 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$this->markTestSkipped( "MariaDB doesn't support this data set. See https://core.trac.wordpress.org/ticket/33171." );
 		}
 
+		if ( 'big5' === $new_charset && 'sqlite' === self::$_wpdb->dbengine ) {
+			$this->markTestSkipped( 'SQLite stores all text as UTF-8, and it cannot convert text to the big5 character set.' );
+		}
+
 		self::$_wpdb->charset = $new_charset;
 		self::$_wpdb->set_charset( self::$_wpdb->dbh, $new_charset );
 

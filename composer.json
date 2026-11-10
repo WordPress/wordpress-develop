@@ -35,6 +35,7 @@
 		"ext-mysqli": "*",
 		"ext-opcache": "*",
 		"ext-openssl": "*",
+		"ext-pdo_sqlite": "*",
 		"ext-redis": "*",
 		"ext-shmop": "*",
 		"ext-simplexml": "*",

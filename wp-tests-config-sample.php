@@ -44,6 +44,13 @@ define( 'DB_HOST', 'localhost' );
 define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
 
+/*
+ * Test with an SQLite database (experimental).
+ * SQLite doesn't use the database user, password, and host. The database directory must exist.
+ */
+// define( 'DB_ENGINE', 'sqlite' );
+// define( 'DB_PATH', ABSPATH . 'wp-content/database/.ht.tests.sqlite' );
+
 /**#@+
  * Authentication Unique Keys and Salts.
  *

@@ -51,14 +51,15 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  *
- * @property      mysqli_result|bool|null         $result              Result of the last query.
- * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
- * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
- * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
- * @property      string                          $dbuser              Database username.
- * @property      string                          $dbname              Database name.
- * @property      string                          $dbhost              Database host.
- * @property      mysqli|false|null               $dbh                 Database handle.
+ * @property      mysqli_result|PDOStatement|bool|null $result              Result of the last query.
+ * @property-read bool                                 $check_current_query Whether the current query needs to be confidence checked.
+ * @property      array<int, stdClass|false>|null      $col_info            Saved info on the table column.
+ * @property      int                                  $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                               $dbuser              Database username.
+ * @property      string                               $dbname              Database name.
+ * @property      string                               $dbhost              Database host.
+ * @property      string                               $dbengine            Database engine.
+ * @property      mysqli|WP_MySQL_On_SQLite|false|null $dbh                 Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {
@@ -153,12 +154,14 @@ class wpdb {
 	 *
 	 * - `mysqli_result` instance for successful SELECT, SHOW, DESCRIBE, or EXPLAIN queries
 	 * - `true` for other query types that were successful
+	 * - `PDOStatement` instance for all successful queries when using SQLite
 	 * - `null` if a query is yet to be made or if the result has since been flushed
 	 * - `false` if the query returned an error
 	 *
 	 * @since 0.71
+	 * @since 7.3.0 Added the `PDOStatement` type for SQLite.
 	 *
-	 * @var mysqli_result|bool|null
+	 * @var mysqli_result|PDOStatement|bool|null
 	 */
 	protected $result;
 
@@ -612,17 +615,33 @@ class wpdb {
 	protected $dbhost;
 
 	/**
+	 * Database engine.
+	 *
+	 * Possible values:
+	 *
+	 * - `mysql` for MySQL or MariaDB
+	 * - `sqlite` for SQLite, using the MySQL emulation of the `WP_MySQL_On_SQLite` driver
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected $dbengine;
+
+	/**
 	 * Database handle.
 	 *
 	 * Possible values:
 	 *
 	 * - `mysqli` instance during normal operation
+	 * - `WP_MySQL_On_SQLite` instance during normal operation with SQLite
 	 * - `null` if the connection is yet to be made or has been closed
 	 * - `false` if the connection has failed
 	 *
 	 * @since 0.71
+	 * @since 7.3.0 Added the `WP_MySQL_On_SQLite` type for SQLite.
 	 *
-	 * @var mysqli|false|null
+	 * @var mysqli|WP_MySQL_On_SQLite|false|null
 	 */
 	protected $dbh;
 
@@ -643,7 +662,10 @@ class wpdb {
 	 * database drop-in (db.php) will skip these checks, but setting this to true
 	 * will force the checks to occur.
 	 *
+	 * This is also true for SQLite, as it is used through a MySQL emulation layer.
+	 *
 	 * @since 3.3.0
+	 * @since 7.3.0 Set to true for SQLite.
 	 *
 	 * @var bool
 	 */
@@ -757,20 +779,27 @@ class wpdb {
 	 * of the class properties and connection to the database.
 	 *
 	 * @since 2.0.8
+	 * @since 7.3.0 Added the `$dbengine` parameter.
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/3354
 	 *
-	 * @param string $dbuser     Database user.
-	 * @param string $dbpassword Database password.
-	 * @param string $dbname     Database name.
-	 * @param string $dbhost     Database host.
+	 * @param string      $dbuser     Database user.
+	 * @param string      $dbpassword Database password.
+	 * @param string      $dbname     Database name.
+	 * @param string      $dbhost     Database host.
+	 * @param string|null $dbengine   Optional. Database engine. Accepts 'mysql' or 'sqlite'.
+	 *                                SQLite uses the database file set by the `DB_PATH` constant,
+	 *                                and it ignores the user, password, and host. Pass 'mysql'
+	 *                                to connect to a MySQL database from a site that uses SQLite.
+	 *                                Default is the engine set by the `DB_ENGINE` constant, or 'mysql'.
 	 */
 	public function __construct(
 		$dbuser,
 		#[\SensitiveParameter]
 		$dbpassword,
 		$dbname,
-		$dbhost
+		$dbhost,
+		$dbengine = null
 	) {
 		if ( WP_DEBUG && WP_DEBUG_DISPLAY ) {
 			$this->show_errors();
@@ -780,6 +809,10 @@ class wpdb {
 		$this->dbpassword = $dbpassword;
 		$this->dbname     = $dbname;
 		$this->dbhost     = $dbhost;
+
+		// Database drop-ins that extend wpdb don't pass the engine, so default to the configured one.
+		$dbengine       = $dbengine ?? ( defined( 'DB_ENGINE' ) ? DB_ENGINE : 'mysql' );
+		$this->dbengine = 'sqlite' === $dbengine ? 'sqlite' : 'mysql';
 
 		// wp-config.php creation will manually connect when ready.
 		if ( defined( 'WP_SETUP_CONFIG' ) ) {
@@ -885,6 +918,7 @@ class wpdb {
 	 * For example, when able, utf8mb4 should be used instead of utf8.
 	 *
 	 * @since 4.6.0
+	 * @since 7.3.0 Always uses utf8mb4 for SQLite.
 	 *
 	 * @param string $charset The character set to check.
 	 * @param string $collate The collation to check.
@@ -896,11 +930,14 @@ class wpdb {
 	 * }
 	 */
 	public function determine_charset( $charset, $collate ) {
-		if ( ( ! ( $this->dbh instanceof mysqli ) ) || empty( $this->dbh ) ) {
+		$is_sqlite = 'sqlite' === $this->dbengine;
+
+		if ( empty( $this->dbh ) || ! ( $is_sqlite || $this->dbh instanceof mysqli ) ) {
 			return compact( 'charset', 'collate' );
 		}
 
-		if ( 'utf8' === $charset ) {
+		// SQLite stores all text as UTF-8.
+		if ( 'utf8' === $charset || $is_sqlite ) {
 			$charset = 'utf8mb4';
 		}
 
@@ -925,10 +962,12 @@ class wpdb {
 	 * Sets the connection's character set.
 	 *
 	 * @since 3.1.0
+	 * @since 7.3.0 Added support for the `WP_MySQL_On_SQLite` connection.
 	 *
-	 * @param mysqli $dbh     The connection returned by `mysqli_connect()`.
-	 * @param string $charset Optional. The character set. Default null.
-	 * @param string $collate Optional. The collation. Default null.
+	 * @param mysqli|WP_MySQL_On_SQLite $dbh     The connection returned by `mysqli_connect()`,
+	 *                                           or the SQLite connection.
+	 * @param string                    $charset Optional. The character set. Default null.
+	 * @param string                    $collate Optional. The collation. Default null.
 	 */
 	public function set_charset( $dbh, $charset = null, $collate = null ) {
 		if ( ! isset( $charset ) ) {
@@ -940,7 +979,7 @@ class wpdb {
 		if ( $this->has_cap( 'collation' ) && ! empty( $charset ) ) {
 			$set_charset_succeeded = true;
 
-			if ( function_exists( 'mysqli_set_charset' ) && $this->has_cap( 'set_charset' ) ) {
+			if ( $dbh instanceof mysqli && $this->has_cap( 'set_charset' ) ) {
 				$set_charset_succeeded = mysqli_set_charset( $dbh, $charset );
 			}
 
@@ -949,7 +988,12 @@ class wpdb {
 				if ( ! empty( $collate ) ) {
 					$query .= $this->prepare( ' COLLATE %s', $collate );
 				}
-				mysqli_query( $dbh, $query );
+
+				if ( $dbh instanceof mysqli ) {
+					mysqli_query( $dbh, $query );
+				} else {
+					$dbh->query( $query );
+				}
 			}
 		}
 	}
@@ -964,14 +1008,20 @@ class wpdb {
 	 * @param array $modes Optional. A list of SQL modes to set. Default empty array.
 	 */
 	public function set_sql_mode( $modes = array() ) {
+		$is_sqlite = 'sqlite' === $this->dbengine;
+
 		if ( empty( $modes ) ) {
-			$res = mysqli_query( $this->dbh, 'SELECT @@SESSION.sql_mode' );
+			if ( $is_sqlite ) {
+				$res = $this->dbh->query( 'SELECT @@SESSION.sql_mode' );
+			} else {
+				$res = mysqli_query( $this->dbh, 'SELECT @@SESSION.sql_mode' );
+			}
 
 			if ( empty( $res ) ) {
 				return;
 			}
 
-			$modes_array = mysqli_fetch_array( $res );
+			$modes_array = $is_sqlite ? $res->fetch( PDO::FETCH_NUM ) : mysqli_fetch_array( $res );
 
 			if ( empty( $modes_array[0] ) ) {
 				return;
@@ -999,7 +1049,11 @@ class wpdb {
 
 		$modes_str = implode( ',', $modes );
 
-		mysqli_query( $this->dbh, "SET SESSION sql_mode='$modes_str'" );
+		if ( $is_sqlite ) {
+			$this->dbh->query( "SET SESSION sql_mode='$modes_str'" );
+		} else {
+			mysqli_query( $this->dbh, "SET SESSION sql_mode='$modes_str'" );
+		}
 	}
 
 	/**
@@ -1200,13 +1254,20 @@ class wpdb {
 	 * The database name will be changed based on the current database connection.
 	 * On failure, the execution will bail and display a DB error.
 	 *
+	 * With SQLite, there is only one database, so this does nothing.
+	 *
 	 * @since 0.71
+	 * @since 7.3.0 Does nothing for SQLite.
 	 *
 	 * @param string $db  Database name.
 	 * @param mysqli $dbh Optional. Database connection.
 	 *                    Defaults to the current database handle.
 	 */
 	public function select( $db, $dbh = null ) {
+		if ( 'sqlite' === $this->dbengine ) {
+			return;
+		}
+
 		if ( is_null( $dbh ) ) {
 			$dbh = $this->dbh;
 		}
@@ -1278,7 +1339,10 @@ class wpdb {
 	/**
 	 * Real escape using mysqli_real_escape_string().
 	 *
+	 * With SQLite, this uses the MySQL-compatible escaping of WP_MySQL_On_SQLite::quote().
+	 *
 	 * @since 2.8.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @see mysqli_real_escape_string()
 	 *
@@ -1291,7 +1355,12 @@ class wpdb {
 		}
 
 		if ( $this->dbh ) {
-			$escaped = mysqli_real_escape_string( $this->dbh, $data );
+			if ( 'sqlite' === $this->dbengine ) {
+				// Strip the surrounding quotes, as mysqli_real_escape_string() doesn't add them.
+				$escaped = substr( $this->dbh->quote( $data ), 1, -1 );
+			} else {
+				$escaped = mysqli_real_escape_string( $this->dbh, $data );
+			}
 		} else {
 			$class = get_class( $this );
 
@@ -1828,7 +1897,7 @@ class wpdb {
 		global $EZSQL_ERROR;
 
 		if ( ! $str ) {
-			$str = mysqli_error( $this->dbh );
+			$str = 'sqlite' === $this->dbengine ? $this->last_error : mysqli_error( $this->dbh );
 		}
 
 		$EZSQL_ERROR[] = array(
@@ -1965,6 +2034,8 @@ class wpdb {
 			while ( mysqli_more_results( $this->dbh ) ) {
 				mysqli_next_result( $this->dbh );
 			}
+		} elseif ( $this->result instanceof PDOStatement ) {
+			$this->result = null;
 		}
 	}
 
@@ -1976,6 +2047,7 @@ class wpdb {
 	 * @since 3.0.0
 	 * @since 3.9.0 Added `$allow_bail` parameter.
 	 * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool True with a successful connection, false on failure.
@@ -1983,45 +2055,49 @@ class wpdb {
 	public function db_connect( $allow_bail = true ) {
 		$this->is_mysql = true;
 
-		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
-
-		/*
-		 * Switch error reporting off because WordPress handles its own.
-		 * This is due to the default value change from `MYSQLI_REPORT_OFF`
-		 * to `MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT` in PHP 8.1.
-		 */
-		mysqli_report( MYSQLI_REPORT_OFF );
-
-		$this->dbh = mysqli_init();
-
-		$host    = $this->dbhost;
-		$port    = null;
-		$socket  = null;
-		$is_ipv6 = false;
-
-		$host_data = $this->parse_db_host( $this->dbhost );
-		if ( $host_data ) {
-			list( $host, $port, $socket, $is_ipv6 ) = $host_data;
-		}
-
-		/*
-		 * If using the `mysqlnd` library, the IPv6 address needs to be enclosed
-		 * in square brackets, whereas it doesn't while using the `libmysqlclient` library.
-		 * @link https://bugs.php.net/bug.php?id=67563
-		 */
-		if ( $is_ipv6 && extension_loaded( 'mysqlnd' ) ) {
-			$host = "[$host]";
-		}
-
-		if ( WP_DEBUG ) {
-			mysqli_real_connect( $this->dbh, $host, $this->dbuser, $this->dbpassword, null, $port, $socket, $client_flags );
+		if ( 'sqlite' === $this->dbengine ) {
+			$this->dbh = $this->connect_sqlite();
 		} else {
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			@mysqli_real_connect( $this->dbh, $host, $this->dbuser, $this->dbpassword, null, $port, $socket, $client_flags );
-		}
+			$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
 
-		if ( $this->dbh->connect_errno ) {
-			$this->dbh = null;
+			/*
+			 * Switch error reporting off because WordPress handles its own.
+			 * This is due to the default value change from `MYSQLI_REPORT_OFF`
+			 * to `MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT` in PHP 8.1.
+			 */
+			mysqli_report( MYSQLI_REPORT_OFF );
+
+			$this->dbh = mysqli_init();
+
+			$host    = $this->dbhost;
+			$port    = null;
+			$socket  = null;
+			$is_ipv6 = false;
+
+			$host_data = $this->parse_db_host( $this->dbhost );
+			if ( $host_data ) {
+				list( $host, $port, $socket, $is_ipv6 ) = $host_data;
+			}
+
+			/*
+			 * If using the `mysqlnd` library, the IPv6 address needs to be enclosed
+			 * in square brackets, whereas it doesn't while using the `libmysqlclient` library.
+			 * @link https://bugs.php.net/bug.php?id=67563
+			 */
+			if ( $is_ipv6 && extension_loaded( 'mysqlnd' ) ) {
+				$host = "[$host]";
+			}
+
+			if ( WP_DEBUG ) {
+				mysqli_real_connect( $this->dbh, $host, $this->dbuser, $this->dbpassword, null, $port, $socket, $client_flags );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				@mysqli_real_connect( $this->dbh, $host, $this->dbuser, $this->dbpassword, null, $port, $socket, $client_flags );
+			}
+
+			if ( $this->dbh->connect_errno ) {
+				$this->dbh = null;
+			}
 		}
 
 		if ( ! $this->dbh && $allow_bail ) {
@@ -2040,18 +2116,32 @@ class wpdb {
 
 			$message = '<h1>' . __( 'Error establishing a database connection' ) . "</h1>\n";
 
-			$message .= '<p>' . sprintf(
-				/* translators: 1: wp-config.php, 2: Database host. */
-				__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
-				'<code>wp-config.php</code>',
-				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
-			) . "</p>\n";
+			if ( 'sqlite' === $this->dbengine ) {
+				$message .= '<p>' . sprintf(
+					/* translators: 1: DB_PATH, 2: wp-config.php */
+					__( 'This means that the SQLite database file set by %1$s in your %2$s file could not be opened.' ),
+					'<code>DB_PATH</code>',
+					'<code>wp-config.php</code>'
+				) . "</p>\n";
 
-			$message .= "<ul>\n";
-			$message .= '<li>' . __( 'Are you sure you have the correct username and password?' ) . "</li>\n";
-			$message .= '<li>' . __( 'Are you sure you have typed the correct hostname?' ) . "</li>\n";
-			$message .= '<li>' . __( 'Are you sure the database server is running?' ) . "</li>\n";
-			$message .= "</ul>\n";
+				$message .= "<ul>\n";
+				$message .= '<li>' . __( 'Are you sure the database file path is correct?' ) . "</li>\n";
+				$message .= '<li>' . __( 'Are you sure the web server can write to the database file and its directory?' ) . "</li>\n";
+				$message .= "</ul>\n";
+			} else {
+				$message .= '<p>' . sprintf(
+					/* translators: 1: wp-config.php, 2: Database host. */
+					__( 'This either means that the username and password information in your %1$s file is incorrect or that contact with the database server at %2$s could not be established. This could mean your host&#8217;s database server is down.' ),
+					'<code>wp-config.php</code>',
+					'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
+				) . "</p>\n";
+
+				$message .= "<ul>\n";
+				$message .= '<li>' . __( 'Are you sure you have the correct username and password?' ) . "</li>\n";
+				$message .= '<li>' . __( 'Are you sure you have typed the correct hostname?' ) . "</li>\n";
+				$message .= '<li>' . __( 'Are you sure the database server is running?' ) . "</li>\n";
+				$message .= "</ul>\n";
+			}
 
 			$message .= '<p>' . sprintf(
 				/* translators: %s: Support forums URL. */
@@ -2149,11 +2239,17 @@ class wpdb {
 	 * If `$allow_bail` is false, the lack of database connection will need to be handled manually.
 	 *
 	 * @since 3.9.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool Whether the connection is up. Exits if down and $allow_bail is true.
 	 */
 	public function check_connection( $allow_bail = true ) {
+		// An SQLite database has no server connection that could be lost, so there is nothing to retry.
+		if ( 'sqlite' === $this->dbengine ) {
+			return ! empty( $this->dbh ) || $this->db_connect( $allow_bail );
+		}
+
 		// Check if the connection is alive.
 		if ( ! empty( $this->dbh ) && mysqli_query( $this->dbh, 'DO 1' ) !== false ) {
 			return true;
@@ -2298,12 +2394,14 @@ class wpdb {
 
 		$this->_do_query( $query );
 
+		$is_sqlite = 'sqlite' === $this->dbengine;
+
 		// Database server has gone away, try to reconnect.
 		$mysql_errno = 0;
 
 		if ( $this->dbh instanceof mysqli ) {
 			$mysql_errno = mysqli_errno( $this->dbh );
-		} else {
+		} elseif ( ! $is_sqlite ) {
 			/*
 			 * $dbh is defined, but isn't a real connection.
 			 * Something has gone horribly wrong, let's try a reconnect.
@@ -2320,10 +2418,10 @@ class wpdb {
 			}
 		}
 
-		// If there is an error then take note of it.
+		// If there is an error then take note of it. For SQLite, wpdb::_do_query() does this.
 		if ( $this->dbh instanceof mysqli ) {
 			$this->last_error = mysqli_error( $this->dbh );
-		} else {
+		} elseif ( ! $is_sqlite ) {
 			$this->last_error = __( 'Unable to retrieve the error message from the database server' );
 		}
 
@@ -2338,13 +2436,13 @@ class wpdb {
 		}
 
 		if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', $query ) ) {
-			$return_val = $this->result;
+			$return_val = $is_sqlite ? true : $this->result;
 		} elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', $query ) ) {
-			$this->rows_affected = mysqli_affected_rows( $this->dbh );
+			$this->rows_affected = $is_sqlite ? $this->result->rowCount() : mysqli_affected_rows( $this->dbh );
 
 			// Take note of the insert_id.
 			if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
-				$this->insert_id = mysqli_insert_id( $this->dbh );
+				$this->insert_id = $is_sqlite ? (int) $this->dbh->lastInsertId() : mysqli_insert_id( $this->dbh );
 			}
 
 			// Return number of rows affected.
@@ -2357,6 +2455,9 @@ class wpdb {
 					$this->last_result[ $num_rows ] = $row;
 					++$num_rows;
 				}
+			} elseif ( $this->result instanceof PDOStatement && $this->result->columnCount() > 0 ) {
+				$this->last_result = $this->result->fetchAll( PDO::FETCH_OBJ );
+				$num_rows          = count( $this->last_result );
 			}
 
 			// Log and return the number of rows selected.
@@ -2370,7 +2471,10 @@ class wpdb {
 	/**
 	 * Internal function to perform the mysqli_query() call.
 	 *
+	 * With SQLite, this runs the query through the SQLite connection, and takes note of any error.
+	 *
 	 * @since 3.9.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @see wpdb::query()
 	 *
@@ -2382,7 +2486,16 @@ class wpdb {
 		}
 
 		if ( ! empty( $this->dbh ) ) {
-			$this->result = mysqli_query( $this->dbh, $query );
+			if ( 'sqlite' === $this->dbengine ) {
+				try {
+					$this->result = $this->dbh->query( $query );
+				} catch ( PDOException $e ) {
+					$this->result     = false;
+					$this->last_error = $e->getMessage();
+				}
+			} else {
+				$this->result = mysqli_query( $this->dbh, $query );
+			}
 		}
 
 		++$this->num_queries;
@@ -3963,17 +4076,45 @@ class wpdb {
 	/**
 	 * Loads the column metadata from the last query.
 	 *
+	 * With SQLite, the metadata uses the same properties as mysqli_fetch_field().
+	 *
 	 * @since 3.5.0
+	 * @since 7.3.0 Added support for SQLite.
 	 */
 	protected function load_col_info() {
-		if ( $this->col_info || ! $this->result instanceof mysqli_result ) {
+		if ( $this->col_info ) {
 			return;
 		}
 
-		$num_fields = mysqli_num_fields( $this->result );
+		if ( $this->result instanceof mysqli_result ) {
+			$num_fields = mysqli_num_fields( $this->result );
 
-		for ( $i = 0; $i < $num_fields; $i++ ) {
-			$this->col_info[ $i ] = mysqli_fetch_field( $this->result );
+			for ( $i = 0; $i < $num_fields; $i++ ) {
+				$this->col_info[ $i ] = mysqli_fetch_field( $this->result );
+			}
+		} elseif ( $this->result instanceof WP_MySQL_On_SQLite_Statement ) {
+			$num_fields = $this->result->columnCount();
+
+			for ( $i = 0; $i < $num_fields; $i++ ) {
+				$meta = $this->result->getColumnMeta( $i );
+
+				// The SQLite driver adds the "mysqli:*" metadata that PDO doesn't have.
+				$this->col_info[ $i ] = (object) array(
+					'name'       => $meta['name'],
+					'orgname'    => $meta['mysqli:orgname'],
+					'table'      => $meta['table'],
+					'orgtable'   => $meta['mysqli:orgtable'],
+					'def'        => '',
+					'db'         => $meta['mysqli:db'],
+					'catalog'    => 'def',
+					'max_length' => 0,
+					'length'     => $meta['len'],
+					'charsetnr'  => $meta['mysqli:charsetnr'],
+					'flags'      => $meta['mysqli:flags'],
+					'type'       => $meta['mysqli:type'],
+					'decimals'   => $meta['precision'],
+				);
+			}
 		}
 	}
 
@@ -4048,7 +4189,9 @@ class wpdb {
 		if ( $this->show_errors ) {
 			$error = '';
 
-			if ( $this->dbh instanceof mysqli ) {
+			if ( 'sqlite' === $this->dbengine ) {
+				$error = htmlspecialchars( (string) $this->last_error, ENT_QUOTES );
+			} elseif ( $this->dbh instanceof mysqli ) {
 				$error = mysqli_error( $this->dbh );
 			} elseif ( mysqli_connect_errno() ) {
 				$error = mysqli_connect_error();
@@ -4074,6 +4217,7 @@ class wpdb {
 	 * Closes the current database connection.
 	 *
 	 * @since 4.5.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @return bool True if the connection was successfully closed,
 	 *              false if it wasn't, or if the connection doesn't exist.
@@ -4083,7 +4227,18 @@ class wpdb {
 			return false;
 		}
 
-		$closed = mysqli_close( $this->dbh );
+		if ( 'sqlite' === $this->dbengine ) {
+			/*
+			 * PDO closes the connection only when nothing references it anymore,
+			 * so roll back any open transaction now, as closing a connection would.
+			 */
+			if ( $this->dbh->inTransaction() ) {
+				$this->dbh->rollBack();
+			}
+			$closed = true;
+		} else {
+			$closed = mysqli_close( $this->dbh );
+		}
 
 		if ( $closed ) {
 			$this->dbh           = null;
@@ -4241,11 +4396,84 @@ class wpdb {
 	/**
 	 * Returns the raw version string of the database server.
 	 *
+	 * With SQLite, this is the version of the emulated MySQL server.
+	 *
 	 * @since 5.5.0
+	 * @since 7.3.0 Added support for SQLite.
 	 *
 	 * @return string Database server version as a string.
 	 */
 	public function db_server_info() {
+		if ( 'sqlite' === $this->dbengine ) {
+			return $this->dbh->getAttribute( PDO::ATTR_SERVER_VERSION );
+		}
+
 		return mysqli_get_server_info( $this->dbh );
+	}
+
+	/**
+	 * Connects to the SQLite database at the `DB_PATH` path.
+	 *
+	 * The bundled MySQL-on-SQLite driver is loaded only when it isn't loaded yet,
+	 * so that a `db.php` drop-in, such as the one from the SQLite Database
+	 * Integration plugin, can provide its own version of the driver.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_MySQL_On_SQLite|null The SQLite connection, or null on failure.
+	 */
+	private function connect_sqlite() {
+		if ( ! class_exists( 'WP_MySQL_On_SQLite', false ) ) {
+			require_once ABSPATH . WPINC . '/database/mysql-on-sqlite/load.php';
+		}
+
+		// A relative path would resolve to a different file for each working directory.
+		if ( ! defined( 'DB_PATH' ) || ( ':memory:' !== DB_PATH && ! path_is_absolute( DB_PATH ) ) ) {
+			$this->last_error = 'DB_PATH must be set to an absolute path of the SQLite database file.';
+			return null;
+		}
+
+		/*
+		 * SQLite creates a missing database file. An empty database would make the site
+		 * look not installed, and anyone could install it. Over the web, only allow that
+		 * in the wp-config.php setup, which creates the database.
+		 */
+		$can_create = defined( 'WP_SETUP_CONFIG' ) || ( 'cli' === PHP_SAPI && wp_installing() );
+		if ( ':memory:' !== DB_PATH && ! $can_create && ! file_exists( DB_PATH ) ) {
+			$this->last_error = 'The SQLite database file does not exist.';
+			return null;
+		}
+
+		/*
+		 * The driver may need to rebuild its MySQL information schema, which uses
+		 * wp_get_db_schema() and the $wpdb global. When this is the main instance,
+		 * the global isn't set until the constructor finishes, so set it early.
+		 */
+		$GLOBALS['wpdb'] ??= $this;
+
+		try {
+			$dbh = new WP_MySQL_On_SQLite(
+				sprintf(
+					'mysql-on-sqlite:path=%s;dbname=%s',
+					// Semicolons must be doubled in a PDO DSN.
+					str_replace( ';', ';;', DB_PATH ),
+					str_replace( ';', ';;', $this->dbname )
+				),
+				null,
+				null,
+				array(
+					'sqlite_busy_timeout' => defined( 'SQLITE_BUSY_TIMEOUT' ) ? SQLITE_BUSY_TIMEOUT : null,
+					'sqlite_journal_mode' => defined( 'SQLITE_JOURNAL_MODE' ) ? SQLITE_JOURNAL_MODE : null,
+				)
+			);
+		} catch ( Exception $e ) {
+			$this->last_error = $e->getMessage();
+			return null;
+		}
+
+		// Fetch all values as strings, like mysqli does.
+		$dbh->setAttribute( PDO::ATTR_STRINGIFY_FETCHES, true );
+
+		return $dbh;
 	}
 }

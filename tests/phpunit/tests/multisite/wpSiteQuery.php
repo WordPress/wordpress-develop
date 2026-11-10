@@ -677,13 +677,15 @@ class Tests_Multisite_wpSiteQuery extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( self::$site_ids['www.w.org/make/'], $found[0] );
+
+		// Sites with the same domain have no defined order, which differs between database engines.
 		$expected = array(
-			self::$site_ids['www.w.org/make/'],
 			self::$site_ids['make.wordpress.org/'],
 			self::$site_ids['make.wordpress.org/foo/'],
 		);
 
-		$this->assertSame( $expected, $found );
+		$this->assertSameSets( $expected, array_slice( $found, 1 ) );
 	}
 
 	public function test_wp_site_query_by_search_with_text_in_path_exclude_domain_from_search() {

@@ -85,4 +85,66 @@ class Tests_DB_RealEscape extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that special characters are escaped like mysqli_real_escape_string() escapes them.
+	 *
+	 * This ensures that all database engines escape strings the same way.
+	 *
+	 * @dataProvider data_real_escape_special_characters
+	 *
+	 * @param string $input    The input to escape.
+	 * @param string $expected The expected function output.
+	 */
+	public function test_real_escape_special_characters( $input, $expected ) {
+		global $wpdb;
+
+		$this->assertSame( $expected, $wpdb->_real_escape( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_real_escape_special_characters() {
+		return array(
+			'NUL character'          => array(
+				'input'    => "a\0b",
+				'expected' => 'a\0b',
+			),
+			'newline'                => array(
+				'input'    => "a\nb",
+				'expected' => 'a\nb',
+			),
+			'carriage return'        => array(
+				'input'    => "a\rb",
+				'expected' => 'a\rb',
+			),
+			'backslash'              => array(
+				'input'    => 'a\b',
+				'expected' => 'a\\\\b',
+			),
+			'single quote'           => array(
+				'input'    => "a'b",
+				'expected' => "a\\'b",
+			),
+			'double quote'           => array(
+				'input'    => 'a"b',
+				'expected' => 'a\"b',
+			),
+			'Control+Z character'    => array(
+				'input'    => "a\x1ab",
+				'expected' => 'a\Zb',
+			),
+			'multibyte characters'   => array(
+				'input'    => "\u{017E}lu\u{0165}ou\u{010D}k\u{00FD} k\u{016F}\u{0148} \u{1F600}",
+				'expected' => "\u{017E}lu\u{0165}ou\u{010D}k\u{00FD} k\u{016F}\u{0148} \u{1F600}",
+			),
+			'all special characters' => array(
+				'input'    => "\0\n\r\\'\"\x1a",
+				'expected' => '\0\n\r\\\\\\\'\"\Z',
+			),
+		);
+	}
 }

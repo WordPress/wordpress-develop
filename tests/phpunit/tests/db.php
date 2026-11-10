@@ -783,6 +783,10 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_mysqli_flush_sync() {
 		global $wpdb;
 
+		if ( 'sqlite' === $wpdb->dbengine ) {
+			$this->markTestSkipped( 'This test requires mysqli, and SQLite does not support stored procedures.' );
+		}
+
 		$suppress = $wpdb->suppress_errors( true );
 
 		$wpdb->query( 'DROP PROCEDURE IF EXISTS `test_mysqli_flush_sync_procedure`' );
@@ -1485,6 +1489,131 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->close() );
 
 		$wpdb->check_connection();
+	}
+
+	/**
+	 * Tests that closing the connection discards changes of an open transaction.
+	 *
+	 * Each test runs in a transaction, see WP_UnitTestCase_Base::start_transaction().
+	 *
+	 * @covers wpdb::close
+	 */
+	public function test_close_discards_open_transaction() {
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->options,
+			array(
+				'option_name'  => 'test_close_discards_open_transaction',
+				'option_value' => 'before close',
+			)
+		);
+
+		$this->assertTrue( $wpdb->close() );
+		$this->assertTrue( $wpdb->check_connection() );
+
+		$value = $wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = 'test_close_discards_open_transaction'" );
+		$this->assertNull( $value, 'The insert of the open transaction should be discarded.' );
+
+		// The database must not stay locked by the closed connection.
+		$rows = $wpdb->insert(
+			$wpdb->options,
+			array(
+				'option_name'  => 'test_close_discards_open_transaction',
+				'option_value' => 'after close',
+			)
+		);
+		$this->assertSame( 1, $rows, 'The database should be writable after the connection is closed.' );
+
+		$wpdb->delete( $wpdb->options, array( 'option_name' => 'test_close_discards_open_transaction' ) );
+	}
+
+	/**
+	 * Tests that the database engine is set from the constructor argument.
+	 *
+	 * @dataProvider data_constructor_sets_dbengine
+	 *
+	 * @covers wpdb::__construct
+	 *
+	 * @param mixed  $dbengine The database engine passed to the constructor.
+	 * @param string $expected The expected database engine.
+	 */
+	public function test_constructor_sets_dbengine( $dbengine, $expected ) {
+		$db = new class( '', '', '', '', $dbengine ) extends wpdb {
+			public function db_connect( $allow_bail = true ) {
+				return false;
+			}
+		};
+
+		$this->assertSame( $expected, $db->dbengine );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_constructor_sets_dbengine() {
+		return array(
+			'mysql'                  => array( 'mysql', 'mysql' ),
+			'sqlite'                 => array( 'sqlite', 'sqlite' ),
+			'unknown engine'         => array( 'pgsql', 'mysql' ),
+			'empty string'           => array( '', 'mysql' ),
+			'case-sensitive engines' => array( 'SQLite', 'mysql' ),
+		);
+	}
+
+	/**
+	 * Tests that the database engine defaults to the engine set by the `DB_ENGINE` constant,
+	 * so that database drop-ins that extend wpdb keep working with SQLite.
+	 *
+	 * @covers wpdb::__construct
+	 */
+	public function test_constructor_uses_configured_dbengine_by_default() {
+		$db = new class( '', '', '', '' ) extends wpdb {
+			public function db_connect( $allow_bail = true ) {
+				return false;
+			}
+		};
+
+		$expected = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
+		$this->assertSame( $expected, $db->dbengine );
+	}
+
+	/**
+	 * @covers ::require_wp_db
+	 */
+	public function test_main_instance_uses_configured_dbengine() {
+		global $wpdb;
+
+		$expected = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
+		$this->assertSame( $expected, $wpdb->dbengine );
+	}
+
+	/**
+	 * @covers wpdb::query
+	 */
+	public function test_query_returns_true_for_schema_changes() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->query( "CREATE TABLE {$wpdb->prefix}test_query_returns_true ( id int )" ), 'CREATE should return true.' );
+		$this->assertTrue( $wpdb->query( "ALTER TABLE {$wpdb->prefix}test_query_returns_true ADD COLUMN name varchar(20)" ), 'ALTER should return true.' );
+		$this->assertTrue( $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}test_query_returns_true" ), 'TRUNCATE should return true.' );
+		$this->assertTrue( $wpdb->query( "DROP TABLE {$wpdb->prefix}test_query_returns_true" ), 'DROP should return true.' );
+	}
+
+	/**
+	 * @covers wpdb::query
+	 */
+	public function test_query_returns_false_and_sets_error_for_invalid_query() {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors( true );
+		$result   = $wpdb->query( "SELECT * FROM {$wpdb->prefix}nonexistent_table" );
+		$wpdb->suppress_errors( $suppress );
+
+		$this->assertFalse( $result, 'An invalid query should return false.' );
+		$this->assertStringContainsString( 'nonexistent_table', $wpdb->last_error, 'The error should name the missing table.' );
 	}
 
 	/**
