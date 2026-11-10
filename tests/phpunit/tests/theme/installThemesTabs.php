@@ -32,6 +32,19 @@ class Tests_Theme_InstallThemesTabs extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+	}
+
+	/**
+	 * Tear down test fixtures after all tests run.
+	 */
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
 	}
 
 	/**

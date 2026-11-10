@@ -194,6 +194,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
+	<?php
 	if ( ! empty( $tabs['upload'] ) && current_user_can( 'upload_themes' ) ) {
 		echo ' <button type="button" class="upload-view-toggle page-title-action hide-if-no-js" aria-expanded="false">' . __( 'Upload Theme' ) . '</button>';
 	}
