@@ -106,12 +106,12 @@ function wp_secrets_site_health_test_key_source(): array {
 			'good',
 			sprintf(
 				'<p>%s</p>',
-				esc_html(
-					sprintf(
-						/* translators: %s: Name of the active secrets provider. */
-						__( 'Secrets are protected by the provider of the secrets.php drop-in: %s. WP_SECRETS_KEY is not used.' ),
-						$provider->get_label()
-					)
+				sprintf(
+					/* translators: 1: secrets.php, 2: Name of the active secrets provider, 3: WP_SECRETS_KEY */
+					__( 'Secrets are protected by the provider of the %1$s drop-in: %2$s. %3$s is not used.' ),
+					'<code>secrets.php</code>',
+					esc_html( $provider->get_label() ),
+					'<code>WP_SECRETS_KEY</code>'
 				)
 			)
 		);
@@ -151,11 +151,16 @@ function wp_secrets_site_health_test_key_source(): array {
 			 * its error is the useful part.
 			 */
 			$cause = $keyring instanceof WP_Secrets_Config_Key_Provider
-				? __( 'This happens when WP_SECRETS_KEY was changed or removed after secrets were stored. Restoring the previous value fixes it.' )
+				? sprintf(
+					/* translators: %s: WP_SECRETS_KEY */
+					__( 'This happens when %s was changed or removed after secrets were stored. Restoring the previous value fixes it.' ),
+					'<code>WP_SECRETS_KEY</code>'
+				)
 				: sprintf(
-					/* translators: %s: Error message from the keyring. */
-					__( 'The keyring of the secrets.php drop-in reported: %s' ),
-					$root_key->get_error_message()
+					/* translators: 1: secrets.php, 2: Error message from the keyring. */
+					__( 'The keyring of the %1$s drop-in reported: %2$s' ),
+					'<code>secrets.php</code>',
+					esc_html( $root_key->get_error_message() )
 				);
 
 			return wp_secrets_site_health_result(
@@ -165,7 +170,7 @@ function wp_secrets_site_health_test_key_source(): array {
 				sprintf(
 					'<p>%s</p><p>%s</p>',
 					esc_html__( 'The configured key cannot decrypt the root key that protects the stored secrets, so no secret can be read or saved.' ),
-					esc_html( $cause )
+					$cause
 				)
 			);
 		}
@@ -181,8 +186,16 @@ function wp_secrets_site_health_test_key_source(): array {
 			sprintf(
 				'<p>%s</p>',
 				$has_root_key
-					? esc_html__( 'WP_SECRETS_KEY is defined, but not as a base64-encoded random 32-byte value. Keep its current value: secrets are already encrypted with it, and changing it makes them unreadable.' )
-					: esc_html__( 'WP_SECRETS_KEY is defined, but not as a base64-encoded random 32-byte value. No secrets are stored yet, so it can still be replaced with such a value.' )
+					? sprintf(
+						/* translators: %s: WP_SECRETS_KEY */
+						__( '%s is defined, but not as a base64-encoded random 32-byte value. Keep its current value: secrets are already encrypted with it, and changing it makes them unreadable.' ),
+						'<code>WP_SECRETS_KEY</code>'
+					)
+					: sprintf(
+						/* translators: %s: WP_SECRETS_KEY */
+						__( '%s is defined, but not as a base64-encoded random 32-byte value. No secrets are stored yet, so it can still be replaced with such a value.' ),
+						'<code>WP_SECRETS_KEY</code>'
+					)
 			)
 		);
 	}
@@ -303,7 +316,11 @@ function wp_secrets_site_health_test_undecryptable(): array {
 			'<p>%s</p><ul>%s</ul><p>%s</p>',
 			esc_html__( 'The following secrets exist but could not be decrypted with the current key.' ),
 			$items,
-			esc_html__( 'This can happen after WP_SECRETS_KEY was changed or removed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' )
+			sprintf(
+				/* translators: %s: WP_SECRETS_KEY */
+				__( 'This can happen after %s was changed or removed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' ),
+				'<code>WP_SECRETS_KEY</code>'
+			)
 		)
 	);
 }

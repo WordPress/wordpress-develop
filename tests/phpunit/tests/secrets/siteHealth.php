@@ -212,7 +212,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'critical', $result['status'], 'A removed WP_SECRETS_KEY with stored secrets should produce a critical status.' );
-		$this->assertStringContainsString( 'WP_SECRETS_KEY was changed or removed', $result['description'], 'The description should say that WP_SECRETS_KEY was changed or removed.' );
+		$this->assertStringContainsString( '<code>WP_SECRETS_KEY</code> was changed or removed', $result['description'], 'The description should say that WP_SECRETS_KEY was changed or removed.' );
 	}
 
 	/**
