@@ -76,6 +76,16 @@ npm run dev
 
 To stop the watcher, press `ctrl+c`.
 
+The watcher relies on the file system events of your operating system. Where these are not delivered, such as on a network drive or for a Windows drive accessed from WSL, set the `CHOKIDAR_USEPOLLING=1` environment variable to check the files for changes periodically instead.
+
+The JavaScript files in `src/wp-admin/js` and `src/wp-includes/js` that are copied unchanged from `src/js/_enqueues` can be symlinked instead, so that changes to them take effect without the watcher:
+
+```
+npm run build:dev -- --symlink
+```
+
+If the local environment then cannot load these files, which can happen with Docker Desktop, restart it with `npm run env:restart`.
+
 #### To run a [WP-CLI](https://make.wordpress.org/cli/handbook/) command
 
 ```

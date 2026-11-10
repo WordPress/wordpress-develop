@@ -16,6 +16,10 @@ module.exports = function(grunt) {
 		autoprefixer = require( 'autoprefixer' ),
 		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
+		// Scripts that are loaded as modules, which are minified by their own uglify tasks.
+		uglifyModules = [
+			'wp-includes/js/wp-emoji-loader.js'
+		],
 		buildFiles = [
 			'*.php',
 			'*.txt',
@@ -139,8 +143,7 @@ module.exports = function(grunt) {
 			'copy',
 			'cssmin',
 			'jshint',
-			'uglify',
-			'watch'
+			'uglify'
 		],
 		'standard': [
 			'banner',
@@ -1216,8 +1219,9 @@ module.exports = function(grunt) {
 					'!{wp-admin,wp-includes}/**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
-				]
+				].concat( uglifyModules.map( function( file ) {
+					return '!' + file; // This is a module. See the emoji-loader task below.
+				} ) )
 			},
 			'emoji-loader': {
 				options: {
@@ -1261,6 +1265,18 @@ module.exports = function(grunt) {
 				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js'
 			},
 			dynamic: {
+				expand: true,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
+				ext: '.min.js',
+				src: []
+			},
+			// Changed files that are loaded as modules, minified with the options of the emoji-loader task.
+			'dynamic-module': {
+				options: {
+					module: true,
+					toplevel: true,
+				},
 				expand: true,
 				cwd: WORKING_DIR,
 				dest: WORKING_DIR,
@@ -1646,29 +1662,35 @@ module.exports = function(grunt) {
 		},
 		_watch: {
 			options: {
-				interval: 2000
+				// Directories that are never watched, so that they are not searched.
+				ignored: [
+					'**/.{svn,git}/**',
+					'**/node_modules/**',
+					'vendor/**',
+					BUILD_DIR + '**',
+					// Third-party plugins.
+					SOURCE_DIR + 'wp-content/plugins/**'
+				]
 			},
+			/*
+			 * Copies changed files from /src to /build. When building into /src with --dev, there is nothing to
+			 * copy, so this target is removed below.
+			 */
 			all: {
 				files: [
 					SOURCE_DIR + '**',
-					'!' + SOURCE_DIR + 'js/**/*.js',
-					// Ignore version control directories.
-					'!' + SOURCE_DIR + '**/.{svn,git}/**',
-					// Ignore third-party plugins.
-					'!' + SOURCE_DIR + 'wp-content/plugins/**'
+					'!' + SOURCE_DIR + 'js/**/*.js'
 				],
-				tasks: ['clean:dynamic', 'copy:dynamic'],
+				tasks: ['watch-dynamic:all', 'clean:dynamic', 'copy:dynamic'],
 				options: {
-					dot: true,
-					spawn: false
+					dot: true
 				}
 			},
 			'js-enqueues': {
 				files: [SOURCE_DIR + 'js/_enqueues/**/*.js'],
-				tasks: ['clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic'],
+				tasks: ['watch-dynamic:js-enqueues', 'clean:dynamic', 'copy:dynamic-js', 'uglify:dynamic', 'uglify:dynamic-module'],
 				options: {
-					dot: true,
-					spawn: false
+					dot: true
 				}
 			},
 			'js-webpack': {
@@ -1677,17 +1699,19 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/_enqueues/**/*.js',
 					'webpack-dev.config.js'
 				],
-				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic'],
+				tasks: ['watch-dynamic:js-webpack', 'clean:dynamic', 'webpack:dev'],
 				options: {
-					dot: true,
-					spawn: false
+					dot: true
 				}
 			},
 			config: {
 				files: [
 					'Gruntfile.js',
 					'webpack.config.js'
-				]
+				],
+				options: {
+					reload: true
+				}
 			},
 			colors: {
 				files: [SOURCE_DIR + 'wp-admin/css/colors/**'],
@@ -1698,10 +1722,7 @@ module.exports = function(grunt) {
 					SOURCE_DIR + 'wp-admin/css/*.css',
 					SOURCE_DIR + 'wp-includes/css/*.css'
 				],
-				tasks: ['rtlcss:dynamic'],
-				options: {
-					spawn: false
-				}
+				tasks: ['watch-dynamic:rtl', 'rtlcss:dynamic']
 			},
 			test: {
 				files: [
@@ -1711,6 +1732,13 @@ module.exports = function(grunt) {
 			}
 		}
 	});
+
+	/*
+	 * When building into /src, there is nothing for the `all` watch target to copy, so its files are not watched.
+	 */
+	if ( WORKING_DIR === SOURCE_DIR ) {
+		delete grunt.config.data._watch.all;
+	}
 
 	// Allow builds to be minimal.
 	if( grunt.option( 'minimal-copy' ) ) {
@@ -1798,7 +1826,7 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.renameTask( 'watch', '_watch' );
+	grunt.registerTask( '_watch', 'Runs the tasks of the watch targets whose files change.', require( './tools/watch/task.js' )( grunt ) );
 
 	grunt.registerTask( 'watch', 'Watches files for changes and runs the related tasks. Use watch:phpunit or --phpunit to also run PHPUnit tests.', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
@@ -1807,7 +1835,10 @@ module.exports = function(grunt) {
 
 		if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] || 'undefined' !== typeof grunt.option( 'phpunit' ) ) {
 			grunt.config.data._watch.phpunit = {
-				files: [ '**/*.php' ],
+				files: [
+					SOURCE_DIR + '**/*.php',
+					'tests/phpunit/**/*.php'
+				],
 				tasks: [ 'phpunit:default' ]
 			};
 		}
@@ -1983,12 +2014,102 @@ module.exports = function(grunt) {
 		}
 	} );
 
+	/*
+	 * With --symlink, when building into /src, the wp-admin and wp-includes scripts that are copied unchanged from
+	 * /src/js/_enqueues are symlinked instead, so that edits to them take effect without a rebuild.
+	 *
+	 * This is opt-in because Docker Desktop's file sharing can keep serving the previous entry for a path whose file is
+	 * replaced by a symlink, failing to read it until the containers are restarted (`npm run env:restart`). As the
+	 * build cleans the scripts first, this can happen after every build.
+	 */
+	var linkScripts = WORKING_DIR === SOURCE_DIR && grunt.option( 'symlink' ) === true;
+
 	grunt.registerTask( 'copy:js', 'Copies JavaScript files from npm packages, vendor libraries, wp-admin, and wp-includes.', [
 		'copy:npm-packages',
 		'copy:vendor-js',
-		'copy:admin-js',
-		'copy:includes-js'
+		linkScripts ? 'link:admin-js' : 'copy:admin-js',
+		linkScripts ? 'link:includes-js' : 'copy:includes-js'
 	] );
+
+	/**
+	 * Checks whether a path is a symlink, including one whose target no longer exists.
+	 *
+	 * @param {string} filepath Path to check.
+	 * @return {boolean} Whether the path is a symlink.
+	 */
+	function isSymlink( filepath ) {
+		try {
+			return fs.lstatSync( filepath ).isSymbolicLink();
+		} catch ( e ) {
+			return false;
+		}
+	}
+
+	grunt.registerTask( 'link', 'Symlinks the files of a copy task to their sources, falling back to copying them where symlinks cannot be created.', function( target ) {
+		var files = grunt.config( [ 'copy', target, 'files' ] );
+		var linked = 0;
+		var unchanged = 0;
+		var copied = 0;
+		var canLink = true;
+
+		if ( ! files ) {
+			grunt.fail.warn( 'The copy:' + target + ' task has no files to link.' );
+			return;
+		}
+
+		Object.keys( files ).forEach( function( dest ) {
+			var src = files[ dest ][ 0 ];
+			var linkTarget = path.relative( path.dirname( dest ), src );
+
+			/*
+			 * Keep a link that is already in place. Docker Desktop's file sharing can keep serving the previous
+			 * entry for a path that is replaced, failing to read it until the containers are restarted.
+			 */
+			if ( isSymlink( dest ) && fs.readlinkSync( dest ) === linkTarget && grunt.file.exists( src ) ) {
+				unchanged++;
+				return;
+			}
+
+			// Remove the previous copy or link, so that neither is written through.
+			if ( isSymlink( dest ) || grunt.file.exists( dest ) ) {
+				fs.unlinkSync( dest );
+			}
+
+			// Like the copy task, skip a source that does not exist.
+			if ( ! grunt.file.exists( src ) ) {
+				grunt.verbose.writeln( 'Source file ' + src + ' not found.' );
+				return;
+			}
+			grunt.file.mkdir( path.dirname( dest ) );
+
+			if ( canLink ) {
+				try {
+					// A relative link also resolves inside the Docker containers, which mount the repository elsewhere.
+					fs.symlinkSync( linkTarget, dest, 'file' );
+					linked++;
+					return;
+				} catch ( e ) {
+					// Creating symlinks on Windows requires Developer Mode or administrator rights.
+					if ( [ 'EPERM', 'EACCES', 'ENOTSUP', 'ENOSYS' ].indexOf( e.code ) === -1 ) {
+						throw e;
+					}
+					canLink = false;
+					grunt.log.writeln( 'Symlinks cannot be created (' + e.code + '), so the files are copied instead.' );
+				}
+			}
+
+			grunt.file.copy( src, dest );
+			copied++;
+		} );
+
+		grunt.log.ok( 'Linked ' + linked + ' ' + grunt.util.pluralize( linked, 'file/files' ) +
+			( unchanged ? ', kept ' + unchanged + ' existing ' + grunt.util.pluralize( unchanged, 'link/links' ) : '' ) +
+			( copied ? ', copied ' + copied + ' ' + grunt.util.pluralize( copied, 'file/files' ) : '' ) + '.' );
+
+		if ( linked ) {
+			grunt.log.writeln( 'If the local environment cannot read the linked files, restart it with `npm run env:restart`.' );
+		}
+	} );
 
 	grunt.registerTask( 'uglify:all', 'Minifies all JavaScript files.', [
 		'uglify:core',
@@ -2496,104 +2617,137 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', 'Runs the build task.', ['build']);
 
 	/*
-	 * Automatically updates the `:dynamic` configurations
-	 * so that only the changed files are updated.
+	 * Changes seen by each watch target since its tasks last ran, keyed by file path.
+	 *
+	 * The watch task runs the tasks of a target once for all the changes made within its debounce delay, so the
+	 * changes are collected here and the `:dynamic` configurations are set from all of them when the tasks run,
+	 * by the `watch-dynamic` task, which each target runs first.
 	 */
-	grunt.event.on( 'watch', function( action, filepath, target ) {
-		var src;
+	var watchedChanges = {};
 
-		// Only configure the dynamic tasks based on known targets.
-		if ( [ 'all', 'rtl', 'webpack', 'js-enqueues', 'js-webpack' ].indexOf( target ) === -1 ) {
+	grunt.event.on( 'watch', function( action, filepath, target ) {
+		if ( [ 'all', 'rtl', 'js-enqueues', 'js-webpack' ].indexOf( target ) === -1 ) {
 			return;
 		}
+
+		watchedChanges[ target ] = watchedChanges[ target ] || {};
 
 		// Normalize filepath for Windows.
-		filepath = filepath.replace( /\\/g, '/' );
+		watchedChanges[ target ][ filepath.replace( /\\/g, '/' ) ] = action;
+	} );
 
-		// If the target is a file in the restructured js src.
-		if ( target === 'js-enqueues' ) {
-			var files = {};
-			var configs, dest;
+	/**
+	 * Gets the destination of a file in the restructured js src, relative to the working directory.
+	 *
+	 * @param {string} filepath Path of the source file.
+	 * @return {?{dest: string, src: string}} The destination and source of the copy, or null if the file is not copied.
+	 */
+	function getEnqueuedScriptCopy( filepath ) {
+		var configs, i, dest, relative;
 
-			// If it's a vendor file which are configured with glob matchers.
-			if ( filepath.indexOf( SOURCE_DIR + 'js/_enqueues/vendor/' ) === 0 ) {
-				// Grab the glob matchers from the copy task.
-				configs = grunt.config( [ 'copy', 'vendor-js', 'files' ] );
+		// If it's a vendor file which are configured with glob matchers.
+		if ( filepath.indexOf( SOURCE_DIR + 'js/_enqueues/vendor/' ) === 0 ) {
+			configs = grunt.config( [ 'copy', 'vendor-js', 'files' ] );
 
-				// For each glob matcher check if it matches and if so set the variables for our dynamic tasks.
-				for ( var i = 0; i < configs.length; i++ ) {
-					var config = configs[ i ];
-					var relative = path.relative( config.cwd, filepath );
-					var minimatch = require('minimatch');
+			// For each glob matcher check if it matches.
+			for ( i = 0; i < configs.length; i++ ) {
+				relative = path.relative( configs[ i ].cwd, filepath );
 
-					if ( minimatch.match( config.src, relative, {} ) ) {
-						dest = config.dest + relative;
-						src = [ path.relative( WORKING_DIR, dest ) ];
-						files[ dest ] = [ filepath ];
-						break;
-					}
-				}
-			// Or if it's another file which has a straight mapping.
-			} else {
-				configs = Object.assign( {},
-					grunt.config( [ 'copy', 'admin-js', 'files' ] ),
-					grunt.config( [ 'copy', 'includes-js', 'files' ] )
-				);
-
-				for ( dest in configs ) {
-					// If a file in the mapping matches then set the variables for our dynamic tasks.
-					if ( dest && configs.hasOwnProperty( dest ) && configs[ dest ][0] === './' + filepath ) {
-						files[ dest ] = configs[ dest ];
-						src = [ path.relative( WORKING_DIR, dest ) ];
-						break;
-					}
+				if ( require( 'minimatch' ).match( configs[ i ].src, relative, {} ).length ) {
+					return { dest: configs[ i ].dest + relative, src: filepath };
 				}
 			}
-
-			// Configure our dynamic-js copy task which uses a file mapping rather than simply copying from src to build.
-			if ( action !== 'deleted' ) {
-				grunt.config( [ 'copy', 'dynamic-js', 'files' ], files );
-			}
-		// For the webpack builds configure the task to only check those files built by webpack.
-		} else if ( target === 'js-webpack' ) {
-			src = [
-				'wp-includes/js/media-audiovideo.js',
-				'wp-includes/js/media-grid.js',
-				'wp-includes/js/media-models.js',
-				'wp-includes/js/media-views.js'
-			];
-		// Else simply use the path relative to the source directory.
-		} else {
-			src = [ path.relative( SOURCE_DIR, filepath ) ];
+			return null;
 		}
 
-		if ( ! src ) {
-			grunt.warn( 'Failed to determine the destination file.' );
-			return;
-		}
+		// Or if it's another file which has a straight mapping.
+		configs = Object.assign( {},
+			grunt.config( [ 'copy', 'admin-js', 'files' ] ),
+			grunt.config( [ 'copy', 'includes-js', 'files' ] )
+		);
 
-		if ( action === 'deleted' ) {
-			// Clean up only those files that were deleted.
-			grunt.config( [ 'clean', 'dynamic', 'src' ], src );
-		} else {
-			if ( ! grunt.option( 'dev' ) ) {
-				// Otherwise copy over only the changed file.
-				grunt.config(['copy', 'dynamic', 'src'], src);
+		for ( dest in configs ) {
+			if ( configs.hasOwnProperty( dest ) && configs[ dest ][ 0 ] === './' + filepath ) {
+				return { dest: dest, src: configs[ dest ][ 0 ] };
 			}
+		}
+		return null;
+	}
 
-			// For javascript also minify and validate the changed file.
+	/*
+	 * Updates the `:dynamic` configurations so that only the changed files are updated.
+	 *
+	 * Every configuration a target uses is set each time, so that none is left over from an earlier run.
+	 */
+	grunt.registerTask( 'watch-dynamic', 'Configures the dynamic tasks of a watch target for the files changed since they last ran.', function( target ) {
+		var changes = watchedChanges[ target ] || {};
+		var deleted = [];
+		var copyFiles = {};
+		var minify = [];
+		var minifyModules = [];
+		var changed = [];
+
+		delete watchedChanges[ target ];
+
+		Object.keys( changes ).forEach( function( filepath ) {
+			var action = changes[ filepath ];
+			var copy, dest;
+
 			if ( target === 'js-enqueues' ) {
-				grunt.config( [ 'uglify', 'dynamic', 'src' ], src );
-				grunt.config( [ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
+				copy = getEnqueuedScriptCopy( filepath );
+				if ( ! copy ) {
+					grunt.log.writeln( 'Not built: ' + filepath );
+					return;
+				}
+				dest = path.relative( WORKING_DIR, copy.dest );
+
+				if ( action === 'deleted' ) {
+					// A symlink to the deleted file no longer exists for the clean task, so it is removed here.
+					if ( isSymlink( copy.dest ) ) {
+						fs.unlinkSync( copy.dest );
+					} else {
+						deleted.push( dest );
+					}
+					return;
+				}
+
+				// A symlink already has the changes, and copying onto it would write the file onto itself.
+				if ( ! isSymlink( copy.dest ) ) {
+					copyFiles[ copy.dest ] = [ copy.src ];
+				}
+
+				if ( uglifyModules.indexOf( dest ) !== -1 ) {
+					minifyModules.push( dest );
+				} else {
+					minify.push( dest );
+				}
+			} else if ( target === 'js-webpack' ) {
+				// Check only the files built by webpack.
+				if ( action === 'deleted' ) {
+					deleted = [
+						'wp-includes/js/media-audiovideo.js',
+						'wp-includes/js/media-grid.js',
+						'wp-includes/js/media-models.js',
+						'wp-includes/js/media-views.js'
+					];
+				}
+			} else if ( action === 'deleted' ) {
+				deleted.push( path.relative( SOURCE_DIR, filepath ) );
+			} else {
+				changed.push( path.relative( SOURCE_DIR, filepath ) );
 			}
-			// For webpack only validate the file, minification is handled by webpack itself.
-			if ( target === 'js-webpack' ) {
-				grunt.config( [ 'dynamic', 'files', 'src' ], src.map( function( dir ) { return  WORKING_DIR + dir; } ) );
-			}
-			// For css run the rtl task on just the changed file.
-			if ( target === 'rtl' ) {
-				grunt.config( [ 'rtlcss', 'dynamic', 'src' ], src );
-			}
+		} );
+
+		grunt.config( [ 'clean', 'dynamic', 'src' ], deleted );
+
+		if ( target === 'all' ) {
+			grunt.config( [ 'copy', 'dynamic', 'src' ], changed );
+		} else if ( target === 'rtl' ) {
+			grunt.config( [ 'rtlcss', 'dynamic', 'src' ], changed );
+		} else if ( target === 'js-enqueues' ) {
+			grunt.config( [ 'copy', 'dynamic-js', 'files' ], copyFiles );
+			grunt.config( [ 'uglify', 'dynamic', 'src' ], minify );
+			grunt.config( [ 'uglify', 'dynamic-module', 'src' ], minifyModules );
 		}
-	});
+	} );
 };
