@@ -32,6 +32,13 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 	private static $test_plugin;
 
 	/**
+	 * Test dependency plugin data.
+	 *
+	 * @var stdClass
+	 */
+	private static $dependency_plugin;
+
+	/**
 	 * Sets up properties and adds a test plugin before any tests run.
 	 */
 	public static function set_up_before_class() {
@@ -42,12 +49,18 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 		$role_name = 'wp_get_plugin_action_button-test-role';
 		add_role( $role_name, 'Test Role' );
 
-		self::$role        = get_role( $role_name );
-		self::$user_id     = self::factory()->user->create( array( 'role' => $role_name ) );
-		self::$test_plugin = (object) array(
+		self::$role              = get_role( $role_name );
+		self::$user_id           = self::factory()->user->create( array( 'role' => $role_name ) );
+		self::$test_plugin       = (object) array(
 			'name'    => 'My Plugin',
 			'slug'    => 'my-plugin',
 			'version' => '1.0.0',
+		);
+		self::$dependency_plugin = (object) array(
+			'name'    => 'My Dependency Plugin',
+			'slug'    => 'my-dependency-plugin',
+			'version' => '1.0.0',
+			'file'    => 'my-dependency-plugin/my_dependency_plugin.php',
 		);
 
 		mkdir( WP_PLUGIN_DIR . '/' . self::$test_plugin->slug );
@@ -55,6 +68,14 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 			WP_PLUGIN_DIR . '/' . self::$test_plugin->slug . '/my_plugin.php',
 			"<?php\n/**\n* Plugin Name: " . self::$test_plugin->name . "\n* Version: " . self::$test_plugin->version . "\n*/"
 		);
+
+		mkdir( WP_PLUGIN_DIR . '/' . self::$dependency_plugin->slug );
+		file_put_contents(
+			WP_PLUGIN_DIR . '/' . self::$dependency_plugin->file,
+			"<?php\n/**\n* Plugin Name: " . self::$dependency_plugin->name . "\n* Version: " . self::$dependency_plugin->version . "\n*/"
+		);
+
+		wp_clean_plugins_cache( false );
 	}
 
 	/**
@@ -67,6 +88,11 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 
 		unlink( WP_PLUGIN_DIR . '/' . self::$test_plugin->slug . '/my_plugin.php' );
 		rmdir( WP_PLUGIN_DIR . '/' . self::$test_plugin->slug );
+
+		unlink( WP_PLUGIN_DIR . '/' . self::$dependency_plugin->file );
+		rmdir( WP_PLUGIN_DIR . '/' . self::$dependency_plugin->slug );
+
+		wp_clean_plugins_cache( false );
 	}
 
 	/**
@@ -151,5 +177,36 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 
 		$this->assertIsString( $actual, 'A string should be returned.' );
 		$this->assertNotEmpty( $actual, 'An empty string should not be returned.' );
+	}
+
+	/**
+	 * Tests that the Activate button is enabled when a dependency is network-active.
+	 *
+	 * @ticket 65759
+	 *
+	 * @group ms-required
+	 */
+	public function test_should_enable_activate_button_when_dependency_is_network_active() {
+		$test_plugin                   = clone self::$test_plugin;
+		$test_plugin->requires_plugins = array( self::$dependency_plugin->slug );
+
+		wp_set_current_user( self::$user_id );
+		grant_super_admin( self::$user_id );
+
+		$activation_result = activate_plugin( self::$dependency_plugin->file, '', true );
+
+		$actual = wp_get_plugin_action_button(
+			$test_plugin->name,
+			$test_plugin,
+			true,
+			true
+		);
+
+		deactivate_plugins( self::$dependency_plugin->file, true, true );
+		revoke_super_admin( self::$user_id );
+
+		$this->assertNull( $activation_result, 'The dependency plugin should be network-activated.' );
+		$this->assertStringContainsString( 'activate-now', $actual, 'An enabled Activate button should be returned.' );
+		$this->assertStringNotContainsString( 'button-disabled', $actual, 'The Activate button should not be disabled.' );
 	}
 }
