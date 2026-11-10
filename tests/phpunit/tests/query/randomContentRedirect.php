@@ -2950,7 +2950,36 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'requires a sub path'      => array( '^random/(.*)?', 'top' ),
 			'catch-all'                => array( '(.+?)/?$', 'bottom' ),
 			'single segment catch-all' => array( '([^/]+)/?$', 'bottom' ),
+			'bottom anchored match'    => array( '^random/?$', 'bottom' ),
+			'bottom alternation'       => array( '(random|pens|pencils)/?$', 'bottom' ),
+			'bottom unterminated'      => array( 'random', 'bottom' ),
 		);
+	}
+
+	/**
+	 * Ensure a bottom rule using the random root rule's regex takes the random base.
+	 *
+	 * Rules added to the bottom are preceded by the generic page and post rules, so are
+	 * never matched for the random base. A bottom rule using the same regex as the random
+	 * root rule replaces the root rule's query while keeping its position ahead of the
+	 * page and post rules, so takes the random base.
+	 */
+	public function test_bottom_rule_using_the_random_root_rule_regex_takes_the_random_base(): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( 'random/?$', 'index.php?pagename=wptests-taken', 'bottom' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A bottom rule using the root rule regex should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_page', 'is_singular' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page served by the bottom rule using the root rule regex should be queried.' );
 	}
 
 	/**
