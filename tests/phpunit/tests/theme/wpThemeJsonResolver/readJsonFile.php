@@ -162,6 +162,18 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests reading a directory instead of a file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_read_json_file_with_directory() {
+		$directory = DIR_TESTDATA . '/themedir1/block-theme';
+		$this->expectNotice();
+		$this->expectNoticeMessage( "{$directory} is not a readable file." );
+		self::read_json_file( $directory );
+	}
+
+	/**
 	 * Tests reading a file with invalid JSON.
 	 *
 	 * @ticket 64620
