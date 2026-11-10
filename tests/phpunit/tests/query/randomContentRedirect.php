@@ -2872,8 +2872,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure the random base is not redirected to random content when an existing rule takes it.
 	 *
-	 * The dataProvider supplies a top-priority rewrite rule, each one a different regex spelling that 
-	 * matches the path `/random` and points to a specific `page`. This ensures that rewrite rule 
+	 * The dataProvider supplies a top-priority rewrite rule, each one a different regex spelling that
+	 * matches the path `/random` and points to a specific `page`. This ensures that rewrite rule
 	 * takes priority over the random ones.
 	 *
 	 * @dataProvider data_random_base_is_not_redirected_when_an_existing_rule_takes_it
