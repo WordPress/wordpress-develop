@@ -176,7 +176,7 @@ class WP_Block_Type {
 	/**
 	 * Serialized block pattern used to render the block.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 * @var string|null
 	 */
 	public $pattern = null;
@@ -318,7 +318,7 @@ class WP_Block_Type {
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
 	 * @since 6.5.0 Added the `allowed_blocks`, `variation_callback`, and `view_style_handles` properties.
-	 * @since 7.1.0 Added the `pattern` property.
+	 * @since 7.3.0 Added the `pattern` property.
 	 *
 	 * @see register_block_type()
 	 *

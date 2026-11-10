@@ -63,7 +63,7 @@ add_filter( 'register_block_type_args', 'wp_mark_auto_generate_control_attribute
 /**
  * Configures server-side rendering for auto-registered blocks with a pattern.
  *
- * @since 7.1.0
+ * @since 7.3.0
  * @access private
  *
  * @param array<string, mixed> $args       Arguments passed to `register_block_type()`.

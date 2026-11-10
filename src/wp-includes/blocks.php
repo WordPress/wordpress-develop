@@ -3325,7 +3325,7 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
  *
  * @access private
  * @since 7.0.0
- * @since 7.1.0 Added pattern markup to the auto-registration data.
+ * @since 7.3.0 Added pattern markup to the auto-registration data.
  */
 function _wp_enqueue_auto_register_blocks() {
 	$auto_register_blocks         = array();
