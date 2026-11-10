@@ -216,6 +216,9 @@ function wpmu_delete_user( $id ) {
 /**
  * Reassigns the content of users about to be deleted from the network.
  *
+ * Sites whose content is being deleted are left alone, because wpmu_delete_user()
+ * deletes the user's posts and links on every site the user still belongs to.
+ *
  * @since 7.3.0
  * @access private
  *
@@ -231,8 +234,6 @@ function _wpmu_reassign_deleted_users_content( $reassign_users, $content_actions
 		foreach ( $sites as $site_id => $reassign_user_id ) {
 			if ( isset( $content_actions[ $site_id ][ $user_id ] ) && 'reassign' === $content_actions[ $site_id ][ $user_id ] ) {
 				remove_user_from_blog( $user_id, $site_id, (int) $reassign_user_id );
-			} else {
-				remove_user_from_blog( $user_id, $site_id );
 			}
 		}
 	}
