@@ -1757,8 +1757,8 @@ module.exports = function(grunt) {
 		delete grunt.config.data._watch.all;
 	} else {
 		/*
-		 * Watch the files that the copy:files task copies from /src, so that a change is copied as by the build,
-		 * including the sources it copies to other paths, such as _index.php.
+		 * Watch the files that the copy:files task copies, so that a change is copied as by the build, including
+		 * the sources it copies to other paths, such as _index.php, and wp-config-sample.php from the root.
 		 */
 		grunt.config( [ '_watch', 'all', 'files' ], grunt.config( 'copy.files.files' )[0].src.map( function( pattern ) {
 			return pattern.charAt( 0 ) === '!' ? '!' + SOURCE_DIR + pattern.slice( 1 ) : SOURCE_DIR + pattern;
@@ -2727,7 +2727,8 @@ module.exports = function(grunt) {
 	}
 
 	/**
-	 * Gets the files in /src that the copy:files task copies to another path, such as _index.php to index.php.
+	 * Gets the files that the copy:files task copies other than by its glob patterns in /src: those it copies to
+	 * another path, such as _index.php to index.php, and wp-config-sample.php from the root.
 	 *
 	 * @return {Object<string, string>} Source paths, keyed by their destinations.
 	 */
@@ -2735,8 +2736,15 @@ module.exports = function(grunt) {
 		var mapped = {};
 
 		grunt.config( 'copy.files.files' ).forEach( function( files ) {
-			// Skip the entries of glob patterns, which have a src or cwd.
-			if ( files.src || files.cwd ) {
+			// Skip the entries of glob patterns, which have a cwd.
+			if ( files.cwd ) {
+				return;
+			}
+			// A single file copied into a directory, such as wp-config-sample.php.
+			if ( files.src ) {
+				[].concat( files.src ).forEach( function( src ) {
+					mapped[ files.dest + path.basename( src ) ] = src;
+				} );
 				return;
 			}
 			Object.keys( files ).forEach( function( dest ) {
@@ -2836,9 +2844,14 @@ module.exports = function(grunt) {
 			} else if ( target === 'all' && Object.keys( mappedBuildFiles ).some( function( mappedDest ) {
 				return mappedBuildFiles[ mappedDest ] === filepath;
 			} ) ) {
-				// Copy a file that the build copies to another path, such as _index.php to index.php.
+				// Copy a file that the build copies to another path, such as _index.php to index.php, or delete the copy.
 				Object.keys( mappedBuildFiles ).forEach( function( mappedDest ) {
-					if ( action !== 'deleted' && mappedBuildFiles[ mappedDest ] === filepath ) {
+					if ( mappedBuildFiles[ mappedDest ] !== filepath ) {
+						return;
+					}
+					if ( action === 'deleted' ) {
+						deleted.push( path.relative( WORKING_DIR, mappedDest ).replace( /\\/g, '/' ) );
+					} else {
 						copyFiles[ mappedDest ] = [ filepath ];
 					}
 				} );

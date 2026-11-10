@@ -23,7 +23,7 @@
  * the changed files. Changes made while tasks run are run once they finish. When
  * a task fails, the rest of its target's tasks are skipped, and those of the
  * other targets still run. A reload happens after the tasks of the other
- * changes made with it have run.
+ * changes made with it, or while its tasks ran, have run.
  *
  * A target's tasks must not write files that match its own patterns, which
  * would run them again without end.
@@ -326,19 +326,21 @@ module.exports = ( grunt ) => {
 		resume = this.async();
 
 		if ( watcher ) {
-			if ( restartPending ) {
-				restart();
-				return;
-			}
-
 			if ( startedAt ) {
 				grunt.log.writeln( ( 'Completed in ' + ( ( Date.now() - startedAt ) / 1000 ).toFixed( 3 ) + 's at ' + new Date().toString() ).cyan + ' - Waiting...' );
 				startedAt = null;
 			}
 
-			// Run the changes made while the tasks ran.
-			if ( changes.size && ! timer ) {
-				runQueued();
+			// Run the changes made while the tasks ran, now or once the debounce timer fires, before any restart.
+			if ( changes.size ) {
+				if ( ! timer ) {
+					runQueued();
+				}
+				return;
+			}
+
+			if ( restartPending ) {
+				restart();
 			}
 			return;
 		}
