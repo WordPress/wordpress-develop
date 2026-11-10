@@ -1,12 +1,8 @@
 /**
- * External dependencies
+ * Internal dependencies
  */
-import { randomUUID } from 'node:crypto';
-
-/**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
+import { signIn } from '../fixtures/user';
 
 test.describe( 'Quick Draft', () => {
 	test.beforeEach( async ({ requestUtils }) => {
@@ -218,32 +214,13 @@ async function saveDashboardPreference( page, action, change ) {
 test.describe( 'Dashboard preferences', () => {
 	test.use( { storageState: { cookies: [], origins: [] } } );
 	let dashboard;
-	let user;
 
-	test.beforeEach( async ( { page, requestUtils, baseURL } ) => {
-		user = undefined;
-		const username = `e2e-dashboard-${ randomUUID() }`;
-		const password = randomUUID();
-		user = await requestUtils.createUser( {
-			username,
-			password,
-			email: `${ username }@example.org`,
+	test.beforeEach( async ( { page, userFactory, baseURL } ) => {
+		const { username, password } = await userFactory.create( {
 			roles: [ 'administrator' ],
 		} );
 		dashboard = page;
-		await dashboard.goto( new URL( 'wp-login.php', baseURL ).href );
-		const usernameField = dashboard.getByLabel(
-			'Username or Email Address',
-			{ exact: true }
-		);
-		await expect( usernameField ).toBeFocused();
-		await usernameField.fill( username );
-		await dashboard
-			.getByLabel( 'Password', { exact: true } )
-			.fill( password );
-		await dashboard
-			.getByRole( 'button', { name: 'Log In', exact: true } )
-			.click();
+		await signIn( dashboard, username, password );
 		await expect(
 			dashboard.getByRole( 'heading', { name: 'Dashboard', exact: true } )
 		).toBeVisible();
@@ -254,28 +231,6 @@ test.describe( 'Dashboard preferences', () => {
 		expect( response.ok() ).toBe( true );
 		await response.dispose();
 		await dashboard.goto( new URL( 'wp-admin/index.php', baseURL ).href );
-	} );
-
-	test.afterEach( async ( { requestUtils } ) => {
-		if ( user ) {
-			// User deletion only trashes posts; permanently delete this user's Quick Draft auto-drafts first.
-			const drafts = await requestUtils.rest( {
-				path: '/wp/v2/posts',
-				params: { author: user.id, status: 'auto-draft', per_page: 100 },
-			} );
-			for ( const draft of drafts ) {
-				await requestUtils.rest( {
-					method: 'DELETE',
-					path: `/wp/v2/posts/${ draft.id }`,
-					params: { force: true },
-				} );
-			}
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/users/${ user.id }`,
-				params: { force: true, reassign: false },
-			} );
-		}
 	} );
 
 	test( 'keeps the Welcome panel dismissed after reload', async () => {
