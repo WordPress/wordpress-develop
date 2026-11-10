@@ -322,8 +322,9 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	/**
 	 * Whether a candidate key constant value is usable as key material.
 	 *
-	 * It must be a non-empty string, must not be the wp-config-sample.php
-	 * placeholder, and must not equal any of the authentication keys and salts.
+	 * It must be a string that is not empty or only whitespace, must not be the
+	 * wp-config-sample.php placeholder, and must not equal any of the authentication
+	 * keys and salts.
 	 *
 	 * Takes explicit arguments rather than reading the constants directly so the
 	 * decision logic is testable without touching real constants, which – once
@@ -340,7 +341,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 */
 	private function is_usable_key_value( $value, array $auth_values ): bool {
 		return is_string( $value )
-			&& '' !== $value
+			&& '' !== trim( $value )
 			&& self::KNOWN_PLACEHOLDER !== $value
 			&& ! in_array( $value, $auth_values, true );
 	}

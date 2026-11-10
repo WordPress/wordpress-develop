@@ -263,6 +263,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 			'the value of a key or salt'    => array( 'a real salt', array( 'a real salt', 'another salt' ), false ),
 			'a translated, unfilled sample' => array( $translated, array_fill( 0, 8, $translated ), false ),
 			'empty'                         => array( '', array(), false ),
+			'empty when trimmed'            => array( '   ', array(), false ),
 			'null (undefined)'              => array( null, array(), false ),
 			'not a string'                  => array( 12345, array(), false ),
 		);

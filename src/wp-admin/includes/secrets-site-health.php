@@ -121,11 +121,32 @@ function wp_secrets_site_health_test_key_source(): array {
 			sprintf(
 				'<p>%s</p><p>%s</p><p><code>%s</code></p><p>%s</p>',
 				$is_defined
-					? esc_html__( 'WP_SECRETS_KEY is defined in wp-config.php, but its value cannot be used: it is empty, still the placeholder from wp-config-sample.php, or the same as one of the authentication keys and salts. Plugins cannot store API keys and other credentials with the Secrets API until it is fixed.' )
-					: esc_html__( 'WP_SECRETS_KEY is not defined in wp-config.php. Plugins cannot store API keys and other credentials with the Secrets API until it is.' ),
+					? sprintf(
+						/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php, 3: wp-config-sample.php */
+						__( '%1$s is defined in %2$s, but its value cannot be used: it is empty, still the placeholder from %3$s, or the same as one of the authentication keys and salts. Plugins cannot store API keys and other credentials with the Secrets API until it is fixed.' ),
+						'<code>WP_SECRETS_KEY</code>',
+						'<code>wp-config.php</code>',
+						'<code>wp-config-sample.php</code>'
+					)
+					: sprintf(
+						/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php */
+						__( '%1$s is not defined in %2$s. Plugins cannot store API keys and other credentials with the Secrets API until it is.' ),
+						'<code>WP_SECRETS_KEY</code>',
+						'<code>wp-config.php</code>'
+					),
 				$is_defined
-					? esc_html__( 'Replace the WP_SECRETS_KEY line in wp-config.php with this one:' )
-					: esc_html__( 'Add this line to wp-config.php, above the line reading "That\'s all, stop editing!":' ),
+					? sprintf(
+						/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php */
+						__( 'Replace the %1$s line in %2$s with this one:' ),
+						'<code>WP_SECRETS_KEY</code>',
+						'<code>wp-config.php</code>'
+					)
+					: sprintf(
+						/* translators: 1: wp-config.php, 2: Translated version of "That's all, stop editing! Happy publishing." */
+						__( 'Add this line to %1$s, above the line reading %2$s:' ),
+						'<code>wp-config.php</code>',
+						'<code>/* ' . __( 'That&#8217;s all, stop editing! Happy publishing.' ) . ' */</code>'
+					),
 				esc_html( $example ),
 				esc_html__( 'A new value is generated each time this page loads. Keep a copy of the one you use with your backups: secrets stored with it cannot be read without it.' )
 			)
