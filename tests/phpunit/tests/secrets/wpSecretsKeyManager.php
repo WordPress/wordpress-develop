@@ -361,7 +361,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$manager       = new WP_Secrets_Key_Manager( $right_keyring );
 		$manager->get_root_key();
 
-		$wrong_keyring = new class() implements WP_Secrets_Keyring {
+		$wrong_keyring = new class() extends WP_Secrets_Keyring {
 			/**
 			 * @param string $key_material Raw key material.
 			 * @return string

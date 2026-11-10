@@ -253,4 +253,34 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$this->assertWPError( wp_retire_secret_version( 'myplugin/api-key' ), 'wp_retire_secret_version() should return a WP_Error when the drop-in is broken.' );
 		$this->assertFalse( wp_secrets_provider_is_writable(), 'The provider should not report as writable when the drop-in is broken.' );
 	}
+
+	/**
+	 * Ensure that the provider, store and keyring extension points are abstract classes.
+	 *
+	 * They are abstract classes rather than interfaces so a later release can add a
+	 * method with a default implementation without breaking existing drop-ins.
+	 *
+	 * @coversNothing
+	 *
+	 * @dataProvider data_extension_points_are_abstract_classes
+	 *
+	 * @param string $class_name Name of the extension point.
+	 */
+	public function test_extension_points_are_abstract_classes( string $class_name ): void {
+		$reflection = new ReflectionClass( $class_name );
+
+		$this->assertFalse( $reflection->isInterface(), "{$class_name} should not be an interface." );
+		$this->assertTrue( $reflection->isAbstract(), "{$class_name} should be an abstract class." );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_extension_points_are_abstract_classes(): array {
+		return array(
+			'provider' => array( 'WP_Secrets_Provider' ),
+			'store'    => array( 'WP_Secrets_Store' ),
+			'keyring'  => array( 'WP_Secrets_Keyring' ),
+		);
+	}
 }

@@ -31,12 +31,12 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring.
+	 * Ensure that WP_Secrets_Config_Key_Provider extends WP_Secrets_Keyring.
 	 *
 	 * @coversNothing
 	 */
-	public function test_implements_the_keyring_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider(), 'WP_Secrets_Config_Key_Provider should implement WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
+	public function test_extends_the_keyring_class(): void {
+		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider(), 'WP_Secrets_Config_Key_Provider should extend WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the class it extends, so removing it fails a test.)
 	}
 
 	/**

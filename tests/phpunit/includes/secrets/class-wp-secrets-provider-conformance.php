@@ -3,7 +3,7 @@
  * Conformance suite for WP_Secrets_Provider implementations.
  *
  * Extend this, return a provider from provider(), and the contract every provider
- * is held to gets checked against it. The point is that "implements
+ * is held to gets checked against it. The point is that "extends
  * WP_Secrets_Provider" is a claim PHP can verify about method names and nothing
  * else – it cannot tell you that absence is reported as null rather than false, or
  * that an unreachable backend fails closed instead of looking empty, and those are
