@@ -25,10 +25,12 @@ module.exports = function(grunt) {
 			'wp-content/index.php',
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
+			'wp-content/themes/ipsum/**',
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
+			'!wp-content/themes/ipsum/node_modules/**',
 		],
 
 		// All built CSS files, in /src or /build.
@@ -901,6 +903,7 @@ module.exports = function(grunt) {
 				src: [
 					'wp-content/themes/twentytwentytwo/style.css',
 					'wp-content/themes/twentytwentyfive/style.css',
+					'wp-content/themes/ipsum/style.css',
 				]
 			}
 		},
@@ -1715,7 +1718,7 @@ module.exports = function(grunt) {
 	if( grunt.option( 'minimal-copy' ) ) {
 		var copyFilesOptions = grunt.config.get( 'copy.files.files' );
 		copyFilesOptions[0].src.push( '!wp-content/plugins/**' );
-		copyFilesOptions[0].src.push( '!wp-content/themes/!(twenty*)/**' );
+		copyFilesOptions[0].src.push( '!wp-content/themes/!(twenty*|ipsum)/**' );
 		grunt.config.set( 'copy.files.files', copyFilesOptions );
 	}
 

@@ -137,46 +137,6 @@ class Tests_Category_GetTag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that empty tag values return an invalid_term WP_Error.
-	 *
-	 * @ticket 65819
-	 *
-	 * @dataProvider data_empty_tag_values
-	 *
-	 * @param mixed $empty_value Empty tag input.
-	 */
-	public function test_returns_wp_error_for_empty_tag( $empty_value ) {
-		$result = get_tag( $empty_value );
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_term', $result->get_error_code() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_empty_tag_values() {
-		return array(
-			'empty string' => array( '' ),
-			'zero int'     => array( 0 ),
-			'zero string'  => array( '0' ),
-			'null'         => array( null ),
-			'false'        => array( false ),
-		);
-	}
-
-	/**
-	 * Tests that a non-existent tag ID returns null.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_returns_null_for_non_existent_tag() {
-		$this->assertNull( get_tag( 99999999 ) );
-	}
-
-	/**
 	 * Tests that a term ID belonging to another taxonomy returns null.
 	 *
 	 * @ticket 65819

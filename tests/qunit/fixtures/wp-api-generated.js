@@ -13527,9 +13527,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13559,9 +13557,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13593,9 +13589,7 @@ mockedApiResponse.revision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.postAutosaves = [
@@ -13620,9 +13614,7 @@ mockedApiResponse.postAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13654,9 +13646,7 @@ mockedApiResponse.autosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.PagesCollection = [
@@ -13825,9 +13815,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13857,9 +13845,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13891,9 +13877,7 @@ mockedApiResponse.pageRevision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.pageAutosaves = [
@@ -13918,9 +13902,7 @@ mockedApiResponse.pageAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13952,9 +13934,7 @@ mockedApiResponse.pageAutosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.MediaCollection = [

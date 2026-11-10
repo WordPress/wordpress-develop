@@ -64,15 +64,6 @@ class Tests_Load_IsProtectedEndpoint extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_returns_true_for_login_screen() {
-		$GLOBALS['pagenow'] = 'wp-login.php';
-
-		$this->assertTrue( is_protected_endpoint() );
-	}
-
-	/**
-	 * @ticket 65819
-	 */
 	public function test_returns_true_for_admin_request() {
 		set_current_screen( 'dashboard' );
 

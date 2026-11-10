@@ -274,10 +274,13 @@ function create_initial_taxonomies() {
  *                         Default empty array.
  * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
- * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
- *                         one element from the array needs to match; 'and' means all elements must match.
+ * @param string $operator Optional. The logical operation to perform. Accepts 'and', 'or', or 'not'. 'or'
+ *                         means only one element from the array needs to match; 'and' means all elements
+ *                         must match; 'not' means no elements may match. The value is case-insensitive.
  *                         Default 'and'.
  * @return string[]|WP_Taxonomy[] An array of taxonomy names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Taxonomy> )
  */
 function get_taxonomies( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -375,6 +378,7 @@ function get_taxonomy( $taxonomy ) {
  * @param string $taxonomy Name of taxonomy object.
  * @return bool Whether the taxonomy exists.
  *
+ * @phpstan-assert-if-true =non-falsy-string $taxonomy
  * @phpstan-return ( $taxonomy is non-falsy-string ? bool : false )
  */
 function taxonomy_exists( $taxonomy ) {
@@ -3727,10 +3731,7 @@ function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	}
 
 	if ( wp_defer_term_counting() ) {
-		if ( ! isset( $_deferred[ $taxonomy ] ) ) {
-			$_deferred[ $taxonomy ] = array();
-		}
-		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ], $terms ) );
+		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ] ?? array(), $terms ) );
 		return true;
 	}
 
@@ -4033,9 +4034,6 @@ function update_object_term_cache( $object_ids, $object_type ) {
 	foreach ( $non_cached_ids as $id ) {
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( ! isset( $object_terms[ $id ][ $taxonomy ] ) ) {
-				if ( ! isset( $object_terms[ $id ] ) ) {
-					$object_terms[ $id ] = array();
-				}
 				$object_terms[ $id ][ $taxonomy ] = array();
 			}
 		}
@@ -4525,10 +4523,8 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 
 	// Keep a record of term_ids that have been split, keyed by old term_id. See wp_get_split_term().
 	if ( $record ) {
-		$split_term_data = get_option( '_split_terms', array() );
-		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
-		}
+		$split_term_data               = get_option( '_split_terms', array() );
+		$split_term_data[ $term_id ] ??= array();
 
 		$split_term_data[ $term_id ][ $term_taxonomy->taxonomy ] = $new_term_id;
 		update_option( '_split_terms', $split_term_data );
@@ -4633,9 +4629,7 @@ function _wp_batch_split_terms() {
 			continue;
 		}
 
-		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
-		}
+		$split_term_data[ $term_id ] ??= array();
 
 		// Keep track of taxonomies whose hierarchies need flushing.
 		if ( ! isset( $taxonomies[ $shared_tt->taxonomy ] ) ) {

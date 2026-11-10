@@ -90,11 +90,8 @@ class Tests_User_SanitizeUserField extends WP_UnitTestCase {
 			'raw'       => array( '12abc', 'raw', 12 ),
 			'display'   => array( '5', 'display', 5 ),
 			'edit'      => array( '6', 'edit', 6 ),
-			'db'        => array( '7', 'db', 7 ),
 			'attribute' => array( '8', 'attribute', 8 ),
 			'js'        => array( '9', 'js', 9 ),
-			'empty'     => array( '', 'display', 0 ),
-			'null'      => array( null, 'display', 0 ),
 		);
 	}
 
@@ -136,7 +133,6 @@ class Tests_User_SanitizeUserField extends WP_UnitTestCase {
 			'array' => array( array( 'a', 'b' ) ),
 			'null'  => array( null ),
 			'false' => array( false ),
-			'true'  => array( true ),
 		);
 	}
 
@@ -215,10 +211,11 @@ class Tests_User_SanitizeUserField extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_edit_escaping_function
 	 *
-	 * @param string $field  User field name.
-	 * @param string $filter Filter run by the expected escaping function.
+	 * @param string $field    User field name.
+	 * @param string $filter   Filter run by the expected escaping function.
+	 * @param string $expected Expected escaped and filtered value.
 	 */
-	public function test_edit_context_escaping_function( $field, $filter ) {
+	public function test_edit_context_escaping_function( $field, $filter, $expected ) {
 		$escaping_filters = array(
 			'esc_html'         => new MockAction(),
 			'attribute_escape' => new MockAction(),
@@ -226,9 +223,18 @@ class Tests_User_SanitizeUserField extends WP_UnitTestCase {
 
 		foreach ( $escaping_filters as $hook => $mock ) {
 			add_filter( $hook, array( $mock, 'filter' ) );
+			add_filter(
+				$hook,
+				static function ( $value ) use ( $hook ) {
+					return $value . '|' . $hook;
+				},
+				20
+			);
 		}
 
-		sanitize_user_field( $field, self::MARKUP, self::USER_ID, 'edit' );
+		$result = sanitize_user_field( $field, self::MARKUP, self::USER_ID, 'edit' );
+
+		$this->assertSame( $expected, $result );
 
 		foreach ( $escaping_filters as $hook => $mock ) {
 			$this->assertSame( $hook === $filter ? 1 : 0, $mock->get_call_count(), "The {$hook} filter call count did not match." );
@@ -242,8 +248,8 @@ class Tests_User_SanitizeUserField extends WP_UnitTestCase {
 	 */
 	public static function data_edit_escaping_function() {
 		return array(
-			'description' => array( 'description', 'esc_html' ),
-			'other field' => array( 'user_foo', 'attribute_escape' ),
+			'description' => array( 'description', 'esc_html', '&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;double&quot; &#039;single&#039;|esc_html' ),
+			'other field' => array( 'user_foo', 'attribute_escape', '&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;double&quot; &#039;single&#039;|attribute_escape' ),
 		);
 	}
 

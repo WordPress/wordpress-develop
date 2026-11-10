@@ -122,7 +122,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromFile extends WP_Block_Te
 	 *
 	 * @return array[]
 	 */
-	public function data_build_template_injects_theme_attribute() {
+	public static function data_build_template_injects_theme_attribute() {
 		return array(
 			'a template with a template part block'  => array(
 				'filename' => 'template-with-template-part.html',

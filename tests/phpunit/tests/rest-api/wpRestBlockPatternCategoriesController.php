@@ -99,10 +99,26 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$orig_registry              = null;
 	}
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'emptytheme' );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
@@ -262,10 +278,48 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Pattern_Categories_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$category = array(
+			'name'        => 'featured',
+			'label'       => 'Featured',
+			'description' => 'Featured patterns',
+		);
+
+		$endpoint = new WP_REST_Block_Pattern_Categories_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$response = $endpoint->prepare_item_for_response( $category, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'featured', $data['name'] );
+		$this->assertSame( 'Featured', $data['label'] );
+		$this->assertSame( 'Featured patterns', $data['description'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Pattern_Categories_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$category = array(
+			'name'        => 'featured',
+			'label'       => 'Featured',
+			'description' => 'Featured patterns',
+		);
+
+		$endpoint = new WP_REST_Block_Pattern_Categories_Controller();
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name' );
+
+		$response = $endpoint->prepare_item_for_response( $category, $request );
+		$this->assertSame( array( 'name' => 'featured' ), $response->get_data() );
 	}
 
 	/**

@@ -64,9 +64,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -113,6 +113,7 @@ jobs:
           - db-version: '9.4'
           - db-version: '9.5'
           - db-version: '9.6'
+          - db-version: '26.7'
           # No PHP 8.5 + Memcached support yet.
           - php: '8.5'
             memcached: true

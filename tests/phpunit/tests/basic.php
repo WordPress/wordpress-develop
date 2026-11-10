@@ -112,7 +112,7 @@ class Tests_Basic extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_package_lock_json() {
+	public static function data_package_lock_json() {
 		return array(
 			'top level' => array( 'version' ),
 			'package'   => array( 'packages..version' ),

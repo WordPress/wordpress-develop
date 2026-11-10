@@ -9,17 +9,15 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 import path from 'path';
 
 test( 'Test dismissing failed upload works correctly', async ({ page, admin, requestUtils }) => {
-	// Log in before visiting admin page.
-	await requestUtils.login();
 	await admin.visitAdminPage( '/media-new.php' );
 
 	// It takes a moment for the multi-file uploader to become available.
-	await page.waitForLoadState('load');
+	const input = page.locator( '#plupload-upload-ui input[type="file"]' );
+	await expect( input ).toBeAttached( { timeout: 10_000 } );
 
 	const testImagePath = path.join(__dirname, '../assets/sample.svg');
 
 	// Upload a file that will fail.
-	const input = page.locator( '#plupload-upload-ui input[type="file"]' );
 	await input.setInputFiles( testImagePath );
 
 	// Ensure the error message is visible.

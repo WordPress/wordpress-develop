@@ -14,6 +14,8 @@ on:
       - 'src/**.php'
       - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
+      - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/actions/setup-npm/**'
       - '.github/workflows/upgrade-develop-testing.yml'
@@ -29,6 +31,8 @@ on:
       - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
       - '.github/actions/setup-npm/**'
+      - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   schedule:
@@ -37,9 +41,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.

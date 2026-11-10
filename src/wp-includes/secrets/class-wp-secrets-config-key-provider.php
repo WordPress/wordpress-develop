@@ -84,7 +84,10 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @param string $key_material Raw key material to protect.
 	 * @return string|WP_Error
 	 */
-	public function wrap( string $key_material ) {
+	public function wrap(
+		#[\SensitiveParameter]
+		string $key_material
+	) {
 		if ( '' === $key_material ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_VALUE,
@@ -261,13 +264,10 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @phpstan-assert-if-true non-empty-string $logged_in_salt
 	 */
 	private function are_usable_salt_values( $logged_in_key, $logged_in_salt ): bool {
-		foreach ( array( $logged_in_key, $logged_in_salt ) as $value ) {
-			if ( ! is_string( $value ) || '' === $value || self::KNOWN_PLACEHOLDER === $value ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all(
+			array( $logged_in_key, $logged_in_salt ),
+			fn( $value ) => is_string( $value ) && '' !== $value && self::KNOWN_PLACEHOLDER !== $value
+		);
 	}
 
 	/**

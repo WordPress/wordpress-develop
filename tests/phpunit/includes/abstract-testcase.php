@@ -33,6 +33,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * Metadata state before each class's fixtures are created, keyed by class.
+	 *
+	 * @var array[]
+	 */
+	private static $meta_before_class = array();
+
+	/**
+	 * Metadata state before the current test, or null when setup was bypassed.
+	 *
+	 * @var array|null
+	 */
+	private $original_meta_state;
+
+	/**
+	 * The options table rows before the first test class ran, keyed by option name.
+	 *
+	 * @var object[]|null
+	 */
+	private static $original_options = null;
+
+	/**
+	 * The network's super admins before the first test class ran, or null if not multisite or unset.
+	 *
+	 * @var string[]|null
+	 */
+	private static $original_site_admins = null;
+
+	/**
 	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
 	 *
 	 * @var string|null
@@ -95,7 +123,30 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$wpdb->db_connect();
 		ini_set( 'display_errors', 1 );
 
-		$class = get_called_class();
+		/*
+		 * Options and super admins to restore after each class, see restore_options().
+		 * An installed site always has options: no rows means the query failed, and
+		 * restoring to an empty snapshot would delete them all.
+		 */
+		if ( null === self::$original_options ) {
+			$rows = self::get_option_rows();
+
+			if ( $rows ) {
+				self::$original_options     = $rows;
+				self::$original_site_admins = is_multisite() ? get_site_option( 'site_admins', null ) : null;
+			}
+		}
+
+		/*
+		 * Start from the data a fresh install has. A process-isolated test runs this
+		 * again in its own process, on top of the class fixtures the parent process
+		 * already committed, and would collide with them, e.g. a second `User 1`.
+		 */
+		_delete_all_data();
+		self::flush_cache();
+
+		$class                             = get_called_class();
+		self::$meta_before_class[ $class ] = self::backup_meta_state();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
 			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
@@ -114,12 +165,71 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
 		}
 
+		if ( isset( self::$meta_before_class[ $class ] ) ) {
+			self::restore_meta_state( self::$meta_before_class[ $class ] );
+			unset( self::$meta_before_class[ $class ] );
+		}
+
+		/*
+		 * The cache still holds values the tests' rollbacks undid, and the cleanup reads
+		 * options, e.g. update_site_option() would not restore `site_admins` if a rolled
+		 * back test left the original value in the cache.
+		 */
+		self::flush_cache();
+
 		_delete_all_data();
+		self::restore_options();
 		self::flush_cache();
 
 		self::commit_transaction();
 
 		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Fetches the options table rows, keyed by option name.
+	 *
+	 * @return object[] The rows.
+	 */
+	private static function get_option_rows() {
+		global $wpdb;
+
+		return $wpdb->get_results( "SELECT option_name, option_value, autoload FROM {$wpdb->options}", OBJECT_K );
+	}
+
+	/**
+	 * Restores the options table rows, and the network's super admins, to the ones
+	 * before the first test class ran.
+	 *
+	 * A test class commits the options it changes while setting up or tearing down,
+	 * e.g. a deleted `blogdescription` or super admins replaced with a fixture user,
+	 * and they would leak into the next classes.
+	 */
+	private static function restore_options() {
+		global $wpdb;
+
+		// No snapshot if no class ran the parent set_up_before_class(), e.g. Text_Diff_Check_Test.
+		if ( null === self::$original_options ) {
+			return;
+		}
+
+		$current = self::get_option_rows();
+
+		foreach ( array_keys( array_diff_key( $current, self::$original_options ) ) as $name ) {
+			$wpdb->delete( $wpdb->options, array( 'option_name' => $name ) );
+		}
+
+		foreach ( self::$original_options as $name => $row ) {
+			if ( isset( $current[ $name ] ) && (array) $current[ $name ] === (array) $row ) {
+				continue;
+			}
+
+			$wpdb->replace( $wpdb->options, (array) $row );
+		}
+
+		if ( null !== self::$original_site_admins ) {
+			update_site_option( 'site_admins', self::$original_site_admins );
+		}
 	}
 
 	/**
@@ -142,6 +252,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->_backup_hooks();
 		}
 
+		$this->original_meta_state = self::backup_meta_state();
+
 		$this->clean_up_global_scope();
 
 		$this->original_locale             = $GLOBALS['locale'] ?? null;
@@ -159,8 +271,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$this->reset_post_statuses();
 			$this->reset__SERVER();
 
-			if ( $wp_rewrite->permalink_structure ) {
-				$this->set_permalink_structure( '' );
+			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+				$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+			} else {
+				// Discard endpoints and extra rules added by previous tests.
+				$wp_rewrite->init();
 			}
 		}
 
@@ -174,6 +289,31 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		) {
 			add_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX, 3 );
 		}
+	}
+
+	/**
+	 * Returns the default-excluded groups that apply to a test and were not explicitly requested.
+	 *
+	 * @param string[] $groups Test groups.
+	 * @return string[] Matching excluded groups.
+	 */
+	public static function get_default_excluded_groups_for_test( array $groups ) {
+		$default_excluded_groups = WP_PHPUnit_Util_Getopt::get_skipped_groups();
+
+		foreach ( $groups as $group ) {
+			if ( WP_PHPUnit_Util_Getopt::is_group_requested( $group ) ) {
+				return array();
+			}
+		}
+
+		return array_values(
+			array_filter(
+				$groups,
+				static function ( $group ) use ( $default_excluded_groups ) {
+					return in_array( $group, $default_excluded_groups, true );
+				}
+			)
+		);
 	}
 
 	/**
@@ -206,11 +346,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * Reset permalinks before the transaction rolls back so the in-memory rewrite state
 		 * remains synchronized with the restored database option for subsequent class fixtures.
 		 */
-		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && $wp_rewrite->permalink_structure ) {
-			$this->set_permalink_structure( '' );
+		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
+			$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		}
 
 		$wpdb->query( 'ROLLBACK' );
+
+		/*
+		 * A persistent object cache still holds the values the rollback just undid.
+		 * Flush it now: a process-isolated test bootstraps WordPress against it
+		 * before its own set_up() runs, and would act on the stale values,
+		 * e.g. a rolled back `theme_switched` option rebuilding the sidebars.
+		 */
+		if ( wp_using_ext_object_cache() ) {
+			self::flush_cache();
+		}
 
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
@@ -268,6 +418,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
+		if ( null !== $this->original_meta_state ) {
+			self::restore_meta_state( $this->original_meta_state );
+		}
 		wp_set_current_user( 0 );
 
 		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
@@ -510,6 +663,57 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		);
 
 		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+	}
+
+	/**
+	 * Captures registrations and their hooks without re-registering metadata.
+	 *
+	 * The hooks also include legacy registrations without a registry entry and
+	 * callbacks added independently of register_meta().
+	 *
+	 * @return array Metadata registry and cloned metadata hooks.
+	 */
+	private static function backup_meta_state() {
+		$state = array(
+			'keys'  => $GLOBALS['wp_meta_keys'] ?? array(),
+			'hooks' => array(),
+		);
+
+		foreach ( $GLOBALS['wp_filter'] as $name => $hook ) {
+			if ( self::is_meta_hook( $name ) ) {
+				$state['hooks'][ $name ] = clone $hook;
+			}
+		}
+
+		return $state;
+	}
+
+	/**
+	 * Restores metadata hooks after the ordinary hook baseline has been restored.
+	 *
+	 * @param array $state Metadata state captured before the test or class.
+	 */
+	private static function restore_meta_state( $state ) {
+		$GLOBALS['wp_meta_keys'] = $state['keys'];
+
+		foreach ( array_keys( $GLOBALS['wp_filter'] ) as $name ) {
+			if ( self::is_meta_hook( $name ) ) {
+				unset( $GLOBALS['wp_filter'][ $name ] );
+			}
+		}
+		foreach ( $state['hooks'] as $name => $hook ) {
+			$GLOBALS['wp_filter'][ $name ] = clone $hook;
+		}
+	}
+
+	/**
+	 * Identifies the dynamic hooks used by metadata registrations and defaults.
+	 *
+	 * @param string $name Hook name.
+	 * @return bool Whether the hook belongs to the metadata state.
+	 */
+	private static function is_meta_hook( $name ) {
+		return (bool) preg_match( '/^(?:sanitize|auth)_.+_meta_|^default_.+_metadata$/', $name );
 	}
 
 	/**

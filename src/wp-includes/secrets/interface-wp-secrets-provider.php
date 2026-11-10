@@ -112,6 +112,15 @@ interface WP_Secrets_Provider {
 	 * the situation it matters most, so WP_Secrets_Provider_Conformance checks it.
 	 * A write that fails fires nothing.
 	 *
+	 * Writing the value a secret already holds is not a rotation. A settings form
+	 * that saves every field on every submit does this routinely, so a provider
+	 * that keeps a previous version must not discard it for an unchanged write;
+	 * doing so would end a rotation's grace period early, with every consumer
+	 * still on the old credential losing access. WP_Secrets_Provider_Conformance
+	 * checks this. Treating the write as a no-op that fires nothing is preferred,
+	 * but a provider that cannot tell the value is unchanged without an additional
+	 * read may write it and report it.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string      $name           The secret's name.
@@ -129,7 +138,14 @@ interface WP_Secrets_Provider {
 	 *                                    'updated'.
 	 * @return true|WP_Error
 	 */
-	public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null );
+	public function set(
+		string $name,
+		#[\SensitiveParameter]
+		$value,
+		bool $network = false,
+		bool $needs_rotation = false,
+		?string $action = null
+	);
 
 	/**
 	 * Deletes a secret.

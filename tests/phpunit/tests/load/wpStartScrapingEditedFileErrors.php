@@ -20,7 +20,7 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		parent::set_up();
 
 		foreach ( array( 'wp_scrape_key', 'wp_scrape_nonce' ) as $key ) {
-			$this->original_request[ $key ] = array_key_exists( $key, $_REQUEST ) ? $_REQUEST[ $key ] : null;
+			$this->original_request[ $key ] = $_REQUEST[ $key ] ?? null;
 			unset( $_REQUEST[ $key ] );
 		}
 	}

@@ -20,7 +20,6 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 
 		$this->home_url = get_option( 'home' );
@@ -294,7 +293,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_url_to_postid_host_matching() {
+	public static function data_url_to_postid_host_matching() {
 		return array(
 			'the site host'              => array( 'example.com', true ),
 			'the site host with www'     => array( 'www.example.com', true ),
@@ -371,7 +370,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		);
 
 		$this->go_to( $not_a_home_url . 'page' );
-		$this->assertNotEquals(
+		$this->assertNotSame(
 			array(
 				'page'     => '',
 				'pagename' => 'page',
@@ -502,8 +501,6 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @ticket 39373
 	 */
 	public function test_url_to_postid_should_bail_when_host_does_not_match() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$post_id   = self::factory()->post->create( array( 'post_name' => 'foo-bar-baz' ) );
 		$permalink = get_permalink( $post_id );
 		$url       = str_replace( home_url(), 'http://some-other-domain.com', get_permalink( $post_id ) );

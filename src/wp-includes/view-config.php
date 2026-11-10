@@ -45,6 +45,8 @@ function wp_get_entity_view_config_hook_name( $kind, $name ) {
  * returns `false`.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty excerpt and a missing author,
+ *              and summarizes the `date` panel with the `publish_date` field.
  *
  * @return array The default form configuration.
  */
@@ -69,8 +71,9 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'     => 'excerpt',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(
@@ -93,9 +96,21 @@ function _wp_get_default_posttype_form() {
 					'sticky',
 				),
 			),
-			'date',
+			array(
+				'id'     => 'date',
+				'layout' => array(
+					'type'    => 'panel',
+					'summary' => 'publish_date',
+				),
+			),
 			'slug',
-			'author',
+			array(
+				'id'     => 'author',
+				'layout' => array(
+					'type'                   => 'panel',
+					'showPlaceholderIfEmpty' => true,
+				),
+			),
 			'template',
 			array(
 				'id'       => 'discussion',
@@ -331,6 +346,7 @@ function _wp_get_entity_view_config_posttype_page( $data ) {
  * Provides the view configuration for the `wp_block` post type.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty excerpt.
  *
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
@@ -417,8 +433,9 @@ function _wp_get_entity_view_config_posttype_wp_block( $data ) {
 			array(
 				'id'     => 'excerpt',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(
@@ -552,6 +569,7 @@ function _wp_get_entity_view_config_posttype_wp_template_part( $data ) {
  * Provides the view configuration for the `wp_template` post type.
  *
  * @since 7.1.0
+ * @since 7.2.0 Shows a placeholder for an empty description.
  *
  * @param WP_View_Config_Data $data The view configuration container for the entity.
  * @return WP_View_Config_Data The updated view configuration container.
@@ -722,8 +740,9 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 			array(
 				'id'     => 'description',
 				'layout' => array(
-					'type'          => 'panel',
-					'labelPosition' => 'top',
+					'type'                   => 'panel',
+					'labelPosition'          => 'top',
+					'showPlaceholderIfEmpty' => true,
 				),
 			),
 			array(
@@ -813,7 +832,13 @@ function _wp_get_entity_view_config_posttype_attachment( $data ) {
 						'layout' => $regular_layout,
 					),
 					'date',
-					'author',
+					array(
+						'id'     => 'author',
+						'layout' => array(
+							'type'                   => 'panel',
+							'showPlaceholderIfEmpty' => true,
+						),
+					),
 					'filename',
 					'mime_type',
 					'filesize',

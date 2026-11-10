@@ -21,7 +21,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '7.0.0'
+        default: '7.1.0'
       TARGET_SHA:
         description: 'SHA hash of the target commit used for "before" measurements.'
         required: true
@@ -140,8 +140,12 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ inputs.php-version }}
-          tools: wp-cli
           coverage: none
+
+      - name: Set up WP-CLI
+        if: ${{ inputs.subject == 'base' }}
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/setup-wp-cli
 
       - name: Log debug information
         run: |
@@ -155,6 +159,9 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        # A hung install would otherwise run until the 6 hour job limit. The cap
+        # leaves room for slow downloads.
+        timeout-minutes: 15
         run: npm exec --no -- playwright install --with-deps chromium
 
       - name: Start Docker environment
@@ -198,9 +205,11 @@ jobs:
 
       - name: Set the environment to the baseline version
         if: ${{ inputs.subject == 'base' }}
-        run: |
-          VERSION="${BASE_TAG%.0}"
-          wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"
+        # WP-CLI requests the release from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, and `--force` lets a retry overwrite files.
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: wp core download --version="${BASE_TAG%.0}" --force --path="${LOCAL_DIR}"
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
@@ -232,12 +241,29 @@ jobs:
           npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
 
+      - name: Download WordPress Importer plugin
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
+        uses: $/.github/actions/download-with-retry
+        with:
+          url: https://downloads.wordpress.org/plugin/wordpress-importer.latest-stable.zip
+          output: wordpress-importer.zip
+
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
+        run: |
+          npm run env:cli -- plugin install wordpress-importer.zip --activate --path="/var/www/${LOCAL_DIR}"
+          rm wordpress-importer.zip
+
+      - name: Download mock data
+        uses: $/.github/actions/download-with-retry
+        with:
+          url: https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          output: themeunittestdata.wordpress.xml
 
       - name: Import mock data
+        # The importer waits up to 300 s per attachment download and skips the ones that
+        # fail: the cap leaves room for a stalled attachment, not a hung import.
+        timeout-minutes: 15
         run: |
-          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
 
@@ -267,13 +293,15 @@ jobs:
           cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
 
       - name: Run performance tests
+        id: performance-tests
         run: npm run test:performance
         env:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        # Without test results, a failed setup step would report a second failure here.
+        if: ${{ always() && steps.performance-tests.outcome != 'skipped' }}
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}
           path: artifacts
