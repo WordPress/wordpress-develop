@@ -578,6 +578,461 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that flip() moves every pixel to its mirrored position.
+	 *
+	 * A small non-square image with a distinct color per pixel is used so that
+	 * mixed up axes, off-by-one shifts and duplicated edges are all detected.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_moves_every_pixel( $horz, $vert ) {
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
+			}
+		}
+
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$this->set_property_value( $gd_image_editor, 'image', $image );
+
+		// Keep the stored size in sync with the replaced image.
+		$this->set_property_value(
+			$gd_image_editor,
+			'size',
+			array(
+				'width'  => $w,
+				'height' => $h,
+			)
+		);
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $this->get_property_value( $gd_image_editor );
+
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Data provider with every combination of flip axes.
+	 *
+	 * @return array[]
+	 */
+	public static function data_flip_axes() {
+		return array(
+			'no flip'         => array( false, false ),
+			'vertical flip'   => array( true, false ),
+			'horizontal flip' => array( false, true ),
+			'both'            => array( true, true ),
+		);
+	}
+
+	/**
+	 * Tests that flip() returns a WP_Error when no valid GD image is loaded.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_returns_error_for_invalid_image( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$this->set_property_value( $gd_image_editor, 'image', false );
+
+		$result = $gd_image_editor->flip( $horz, $vert );
+
+		$this->assertWPError( $result, 'flip() should return a WP_Error when no valid image is loaded.' );
+		$this->assertSame( 'image_flip_error', $result->get_error_code(), 'The error code should be image_flip_error.' );
+	}
+
+	/**
+	 * Tests that maybe_exif_rotate() flips images whose EXIF orientation requires a flip.
+	 *
+	 * This is the most common way to reach flip(): uploading a mirrored or
+	 * upside-down JPEG. The image is only flipped, so its size does not change
+	 * and every pixel must end up at its mirrored position.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_maybe_exif_rotate_flips_image
+	 *
+	 * @covers WP_Image_Editor::maybe_exif_rotate
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param int  $orientation EXIF orientation value.
+	 * @param bool $mirror_x    Whether the image should be mirrored left to right.
+	 * @param bool $mirror_y    Whether the image should be mirrored top to bottom.
+	 */
+	public function test_maybe_exif_rotate_flips_image( $orientation, $mirror_x, $mirror_y ) {
+		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
+
+		// The fixture has orientation 3. Override it to cover the other flip-only orientations.
+		$filter = static function () use ( $orientation ) {
+			return $orientation;
+		};
+		add_filter( 'wp_image_maybe_exif_rotate', $filter );
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+
+		$original = $this->get_property_value( $gd_image_editor );
+		$w        = imagesx( $original );
+		$h        = imagesy( $original );
+
+		// Snapshot a grid of pixels, since flip() modifies the image in place.
+		$points = array();
+		foreach ( array( 0, (int) ( $w / 3 ), (int) ( $w / 2 ), $w - 1 ) as $x ) {
+			foreach ( array( 0, (int) ( $h / 3 ), (int) ( $h / 2 ), $h - 1 ) as $y ) {
+				$points[] = array( $x, $y, imagecolorat( $original, $x, $y ) );
+			}
+		}
+
+		$result = $gd_image_editor->maybe_exif_rotate();
+
+		remove_filter( 'wp_image_maybe_exif_rotate', $filter );
+
+		$this->assertTrue( $result, 'maybe_exif_rotate() should return true.' );
+		$this->assertSame(
+			array(
+				'width'  => $w,
+				'height' => $h,
+			),
+			$gd_image_editor->get_size(),
+			'Flipping should not change the size.'
+		);
+
+		$flipped = $this->get_property_value( $gd_image_editor );
+
+		foreach ( $points as list( $x, $y, $color ) ) {
+			$target_x = $mirror_x ? $w - 1 - $x : $x;
+			$target_y = $mirror_y ? $h - 1 - $y : $y;
+
+			$this->assertSame(
+				$color,
+				imagecolorat( $flipped, $target_x, $target_y ),
+				"Pixel ($x,$y) did not move to ($target_x,$target_y)."
+			);
+		}
+	}
+
+	/**
+	 * Data provider for test_maybe_exif_rotate_flips_image().
+	 *
+	 * @return array[]
+	 */
+	public static function data_maybe_exif_rotate_flips_image() {
+		return array(
+			'orientation 2: mirrored horizontally' => array( 2, true, false ),
+			'orientation 3: upside down'           => array( 3, true, true ),
+			'orientation 4: mirrored vertically'   => array( 4, false, true ),
+		);
+	}
+
+	/**
+	 * Tests that flip() converts palette images to truecolor, like the previous implementation.
+	 *
+	 * The previous implementation always copied into a new truecolor image.
+	 * Code that saves or streams the flipped image as WebP relies on that,
+	 * since imagewebp() rejects palette images.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_converts_palette_image_to_truecolor( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image.gif' );
+		$gd_image_editor->load();
+
+		$image = $this->get_property_value( $gd_image_editor );
+		$w     = imagesx( $image );
+		$h     = imagesy( $image );
+
+		$this->assertFalse( imageistruecolor( $image ), 'The fixture should be a palette image.' );
+
+		// Snapshot every pixel as a truecolor value, since flip() modifies the image in place.
+		$colors = array();
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$rgba = imagecolorsforindex( $image, imagecolorat( $image, $x, $y ) );
+
+				$colors[ $y ][ $x ] = ( $rgba['alpha'] << 24 ) | ( $rgba['red'] << 16 ) | ( $rgba['green'] << 8 ) | $rgba['blue'];
+			}
+		}
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $this->get_property_value( $gd_image_editor );
+
+		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$colors[ $source_y ][ $source_x ],
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Tests that a flipped palette image can be saved as WebP.
+	 *
+	 * imagewebp() rejects palette images with a warning and writes an empty file,
+	 * so this fails unless flip() returns a truecolor image.
+	 *
+	 * @ticket 66113
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 * @covers WP_Image_Editor_GD::save
+	 */
+	public function test_flipped_palette_image_can_be_saved_as_webp() {
+		if ( ! WP_Image_Editor_GD::supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'This GD build does not support WebP.' );
+		}
+
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image.gif' );
+		$gd_image_editor->load();
+
+		$this->assertTrue( $gd_image_editor->flip( true, false ) );
+
+		$save_to_file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flipped-palette.webp' );
+		$saved        = $gd_image_editor->save( $save_to_file, 'image/webp' );
+
+		$this->assertNotWPError( $saved, 'Saving the flipped image as WebP should not fail.' );
+
+		$size     = wp_getimagesize( $saved['path'] );
+		$filesize = filesize( $saved['path'] );
+
+		unlink( $saved['path'] );
+
+		$this->assertGreaterThan( 0, $filesize, 'The saved WebP file should not be empty.' );
+		$this->assertIsArray( $size, 'The saved WebP file should be a valid image.' );
+		$this->assertSame( 'image/webp', $size['mime'], 'The saved file should be a WebP image.' );
+		$this->assertSame( array( 50, 50 ), array( $size[0], $size[1] ), 'The saved image size should not change.' );
+	}
+
+	/**
+	 * Tests that flip() keeps the alpha channel of every pixel, in memory and after saving as PNG.
+	 *
+	 * Fully transparent pixels are left out on purpose: their hidden RGB value
+	 * is not visible and is not guaranteed to survive saving.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_keeps_alpha_channel( $horz, $vert ) {
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			// Alpha values from 0 (opaque) to 125, all distinct.
+			$alpha = ( $y * 3 + $x ) * 25;
+
+			return ( $alpha << 24 ) | ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		imagealphablending( $image, false );
+		imagesavealpha( $image, true );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
+			}
+		}
+
+		$source_file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flip-alpha.png' );
+		imagepng( $image, $source_file );
+
+		$gd_image_editor = new WP_Image_Editor_GD( $source_file );
+		$loaded          = $gd_image_editor->load();
+
+		unlink( $source_file );
+
+		$this->assertTrue( $loaded, 'The test image should load.' );
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $this->get_property_value( $gd_image_editor );
+
+		$save_to_file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flipped-alpha.png' );
+		$saved        = $gd_image_editor->save( $save_to_file, 'image/png' );
+
+		$this->assertNotWPError( $saved, 'Saving the flipped image as PNG should not fail.' );
+
+		$reloaded = imagecreatefrompng( $saved['path'] );
+		unlink( $saved['path'] );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+				$expected = $color( $source_x, $source_y );
+
+				$this->assertSame(
+					$expected,
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y) with its alpha in memory."
+				);
+				$this->assertSame(
+					$expected,
+					imagecolorat( $reloaded, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y) with its alpha after saving."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Tests that flipping along both axes gives the same image as rotating by 180 degrees.
+	 *
+	 * @ticket 66113
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 */
+	public function test_flip_both_axes_matches_rotate_180() {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$flipped_editor = new WP_Image_Editor_GD( $file );
+		$flipped_editor->load();
+		$this->assertTrue( $flipped_editor->flip( true, true ) );
+
+		$rotated_editor = new WP_Image_Editor_GD( $file );
+		$rotated_editor->load();
+		$this->assertTrue( $rotated_editor->rotate( 180 ) );
+
+		$this->assertSame( $rotated_editor->get_size(), $flipped_editor->get_size(), 'The sizes should match.' );
+
+		$flipped = $this->get_property_value( $flipped_editor );
+		$rotated = $this->get_property_value( $rotated_editor );
+
+		$w = imagesx( $flipped );
+		$h = imagesy( $flipped );
+
+		// Count mismatches instead of asserting each pixel, since the image is large.
+		$mismatches = 0;
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				if ( imagecolorat( $flipped, $x, $y ) !== imagecolorat( $rotated, $x, $y ) ) {
+					++$mismatches;
+				}
+			}
+		}
+
+		$this->assertSame( 0, $mismatches, 'Every pixel should match the image rotated by 180 degrees.' );
+	}
+
+	/**
+	 * Tests that flip() disables alpha blending, including after rotate() enabled it.
+	 *
+	 * Alpha blending only affects drawing onto the image, so it is detected by
+	 * drawing a fully transparent pixel: with blending disabled, it replaces the
+	 * existing pixel instead of being blended into it.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_disables_alpha_blending_after_rotate( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$this->assertTrue( $gd_image_editor->rotate( 90 ) );
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$image = $this->get_property_value( $gd_image_editor );
+
+		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 0, 0, 0, 127 ) );
+
+		$this->assertSame( 127, ( imagecolorat( $image, 0, 0 ) >> 24 ) & 0x7F, 'Alpha blending should be disabled after flipping.' );
+	}
+
+	/**
+	 * Tests that flip() resets the resolution and interlace setting to GD's defaults.
+	 *
+	 * The previous implementation always copied into a new image, which starts
+	 * at 96 DPI with interlacing disabled, like rotate(), crop() and resize().
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_resets_resolution_and_interlace( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$image = $this->get_property_value( $gd_image_editor );
+
+		imageresolution( $image, 300, 150 );
+		imageinterlace( $image, true );
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $this->get_property_value( $gd_image_editor );
+
+		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
+		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
+	}
+
+	/**
 	 * Tests that an image created with WP_Image_Editor_GD preserves alpha with no resizing.
 	 *
 	 * @ticket 23039
