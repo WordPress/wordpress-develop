@@ -93,6 +93,18 @@ class WP_Script_Modules {
 	private $modules_with_missing_dependencies = array();
 
 	/**
+	 * List of handles for scripts encountered which have missing script module dependencies.
+	 *
+	 * A handle is added to this list when it is discovered to have script module dependencies that are not
+	 * registered. At this time, a warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this
+	 * list, so that duplicate warnings don't occur.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private $scripts_with_missing_module_dependencies = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -367,7 +379,8 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints translations for all enqueued script modules.
+	 * Prints translations for the enqueued script modules and for the script
+	 * modules in the import map.
 	 *
 	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
 	 * the translated strings for each script module. This must run before
@@ -379,10 +392,11 @@ class WP_Script_Modules {
 	 * {@see WP_Script_Modules::set_translations()}.
 	 *
 	 * @since 7.0.0
+	 * @since 7.2.0 Translations of the script module dependencies ('module_dependencies') of scripts, and of their
+	 *              dependencies, are now printed.
 	 */
 	public function print_script_module_translations(): void {
-		// Collect all module IDs that will be on the page (enqueued + their dependencies).
-		$module_ids = $this->get_sorted_dependencies( $this->queue );
+		$module_ids = $this->get_loadable_script_module_ids();
 
 		$set_locale_data_js_function = <<<'JS'
 		( domain, translations ) => {
@@ -684,7 +698,10 @@ class WP_Script_Modules {
 						}
 					}
 
-					if ( count( $missing_module_dependencies ) > 0 ) {
+					if (
+						count( $missing_module_dependencies ) > 0 &&
+						! in_array( $handle, $this->scripts_with_missing_module_dependencies, true )
+					) {
 						_doing_it_wrong(
 							'WP_Scripts::add_data',
 							sprintf(
@@ -696,6 +713,7 @@ class WP_Script_Modules {
 							),
 							'7.0.0'
 						);
+						$this->scripts_with_missing_module_dependencies[] = $handle;
 					}
 				}
 
@@ -721,6 +739,27 @@ class WP_Script_Modules {
 			}
 		}
 		return array( 'imports' => $imports );
+	}
+
+	/**
+	 * Gets the IDs of the script modules that can load on the page, sorted based on their dependencies.
+	 *
+	 * These are the enqueued script modules and the script modules in the import map: the dependencies of the
+	 * enqueued script modules, the script module dependencies ('module_dependencies') of scripts, and the
+	 * dependencies of those. Dependencies come before the script modules that depend on them, and a script module
+	 * with a dependency that is not registered is left out.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] Sorted list of script module IDs.
+	 */
+	private function get_loadable_script_module_ids(): array {
+		return $this->get_sorted_dependencies(
+			array_merge(
+				$this->queue,
+				array_keys( $this->get_import_map()['imports'] )
+			)
+		);
 	}
 
 	/**
@@ -1014,21 +1053,13 @@ class WP_Script_Modules {
 	 * form `wp-script-module-data-{$module_id}`.
 	 */
 	public function print_script_module_data(): void {
-		$modules = array();
-		foreach ( array_unique( $this->queue ) as $id ) {
-			if ( '@wordpress/a11y' === $id ) {
-				$this->a11y_available = true;
-			}
-			$modules[ $id ] = true;
-		}
-		foreach ( array_keys( $this->get_import_map()['imports'] ) as $id ) {
-			if ( '@wordpress/a11y' === $id ) {
-				$this->a11y_available = true;
-			}
-			$modules[ $id ] = true;
+		$module_ids = $this->get_loadable_script_module_ids();
+
+		if ( in_array( '@wordpress/a11y', $module_ids, true ) ) {
+			$this->a11y_available = true;
 		}
 
-		foreach ( array_keys( $modules ) as $module_id ) {
+		foreach ( $module_ids as $module_id ) {
 			/**
 			 * Filters data associated with a given Script Module.
 			 *
