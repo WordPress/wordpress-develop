@@ -1896,6 +1896,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$fields = $this->get_fields_for_response( $request );
+		$schema = $this->get_item_schema();
+
+		/*
+		 * Some controllers, such as the synced patterns controller, remove the
+		 * `rendered` properties from the schema, since a block only renders in the
+		 * context of a post or page. Skip the rendering passes for those fields.
+		 */
+		$can_render_title   = isset( $schema['properties']['title']['properties']['rendered'] );
+		$can_render_content = isset( $schema['properties']['content']['properties']['rendered'] );
 
 		// Base fields for every post.
 		$data = array();
@@ -1975,7 +1984,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
 			$data['title']['raw'] = $post->post_title;
 		}
-		if ( rest_is_field_included( 'title.rendered', $fields ) ) {
+		if ( $can_render_title && rest_is_field_included( 'title.rendered', $fields ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			add_filter( 'private_title_format', array( $this, 'protected_title_format' ) );
 
@@ -2001,7 +2010,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( 'content.raw', $fields ) ) {
 			$data['content']['raw'] = $post->post_content;
 		}
-		if ( rest_is_field_included( 'content.rendered', $fields ) ) {
+		if ( $can_render_content && rest_is_field_included( 'content.rendered', $fields ) ) {
 			/** This filter is documented in wp-includes/post-template.php */
 			$data['content']['rendered'] = post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content );
 		}

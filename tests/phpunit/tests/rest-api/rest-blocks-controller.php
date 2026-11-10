@@ -222,6 +222,55 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Check that the rendering callbacks for the stripped `rendered` fields do not run.
+	 *
+	 * `title.rendered` and `content.rendered` are removed from the pattern schema
+	 * and response, so the `the_title` and `the_content` passes should not run at all.
+	 *
+	 * @ticket 66644
+	 */
+	public function test_rendered_fields_are_not_rendered() {
+		wp_set_current_user( self::$user_ids['author'] );
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => 'wp_block',
+				'post_status'  => 'publish',
+				'post_title'   => 'Pattern with excerpt',
+				'post_content' => '<!-- wp:paragraph --><p>Hello!</p><!-- /wp:paragraph -->',
+				'post_excerpt' => 'Pattern excerpt',
+			)
+		);
+
+		$the_content_calls = 0;
+		$the_title_calls   = 0;
+
+		$count_the_content = static function ( $content ) use ( &$the_content_calls ) {
+			$the_content_calls++;
+			return $content;
+		};
+		$count_the_title = static function ( $title ) use ( &$the_title_calls ) {
+			$the_title_calls++;
+			return $title;
+		};
+
+		add_filter( 'the_content', $count_the_content );
+		add_filter( 'the_title', $count_the_title );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/blocks/' . $post_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'the_content', $count_the_content );
+		remove_filter( 'the_title', $count_the_title );
+
+		wp_delete_post( $post_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 0, $the_content_calls );
+		$this->assertSame( 0, $the_title_calls );
+	}
+
+	/**
 	 * Check that the `wp_pattern_sync_status` postmeta is moved from meta array to top
 	 * level of response.
 	 *
