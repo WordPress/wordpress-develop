@@ -125,9 +125,9 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 	 * @ticket 64620
 	 */
 	public function test_read_json_file_with_non_existent_file() {
-		$this->expectNotice();
-
 		$non_existent_file = DIR_TESTDATA . '/non-existent.json';
+		$this->expectNotice();
+		$this->expectNoticeMessage( "File {$non_existent_file} doesn't exist!" );
 		// we get an error, not an empty array
 		self::read_json_file( $non_existent_file );
 	}
