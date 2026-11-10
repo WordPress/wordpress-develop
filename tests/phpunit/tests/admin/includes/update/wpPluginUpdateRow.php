@@ -405,7 +405,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 * @return string The markup.
 	 */
 	private function get_details_link( $label_name ) {
-		$url = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_multisite() ? 'network/' : '' )
+		$url = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_network_admin() ? 'network/' : '' )
 			. 'plugin-install.php?tab=plugin-information&#038;plugin=my-plugin&#038;section=changelog&#038;TB_iframe=true&#038;width=600&#038;height=800';
 
 		return '<a href="' . $url . '" class="thickbox open-plugin-details-modal" aria-label="View ' . $label_name . ' version 2.0.0 details">View version 2.0.0 details</a>';
