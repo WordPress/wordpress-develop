@@ -6,6 +6,7 @@ import { test as base, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
+import { postFactory } from './post';
 import { muPlugin, siteOptions, siteSettings } from './site';
 
 export const test = base.extend( {
@@ -17,6 +18,7 @@ export const test = base.extend( {
 		await context.close();
 	},
 	muPlugin,
+	postFactory,
 	siteOptions,
 	siteSettings,
 } );
