@@ -68,6 +68,48 @@ class Tests_Secrets_WpIsSecretsApiAvailable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the API is available when WP_SECRETS_KEY unwraps the stored root key.
+	 *
+	 * @covers ::wp_is_secrets_api_available
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_available_when_the_key_unwraps_the_root_key(): void {
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Storing a secret should succeed and create the root key.' );
+		$this->assertNotFalse( get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'A root key should be stored after the first write.' );
+		$this->assertTrue( wp_is_secrets_api_available(), 'The API should be available when the key unwraps the stored root key.' );
+	}
+
+	/**
+	 * Ensure that the API is unavailable when WP_SECRETS_KEY cannot unwrap the stored root key.
+	 *
+	 * This is a site that stored secrets under one key, then defined another without
+	 * re-wrapping the root key.
+	 *
+	 * @covers ::wp_is_secrets_api_available
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_unavailable_when_the_key_cannot_unwrap_the_root_key(): void {
+		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'p', 32 ) ) );
+
+		$wrapped = ( new WP_Secrets_Config_Key_Provider( true ) )->wrap( random_bytes( 32 ) );
+
+		$this->assertIsString( $wrapped, 'Wrapping a root key under the previous key should succeed.' );
+
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $wrapped );
+
+		$this->assertFalse( wp_is_secrets_api_available(), 'The API should be unavailable when the key cannot unwrap the stored root key.' );
+		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'value' ), 'A write should fail when the API reports itself unavailable.' );
+		$this->assertSame( $wrapped, get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'The stored root key should be left unchanged.' );
+	}
+
+	/**
 	 * Ensure that the API is unavailable when the secrets.php drop-in failed to load.
 	 *
 	 * @covers ::wp_is_secrets_api_available
