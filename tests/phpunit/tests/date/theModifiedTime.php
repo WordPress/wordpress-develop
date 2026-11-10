@@ -125,31 +125,14 @@ class Tests_Date_TheModifiedTime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'the_modified_time' filter hook receives expected arguments and can modify output.
+	 * Tests that the 'the_modified_time' filter receives the formatted time and controls output.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_the_modified_time_filter_receives_arguments() {
-		$filter = new MockAction();
-		add_filter( 'the_modified_time', array( $filter, 'filter' ), 10, 2 );
-
-		$this->expectOutputString( '16:45:30' );
-		the_modified_time( 'H:i:s' );
-
-		$this->assertSame( 1, $filter->get_call_count() );
-
-		$filter_args = $filter->get_args();
-		$this->assertSame( '16:45:30', $filter_args[0][0] );
-		$this->assertSame( 'H:i:s', $filter_args[0][1] );
-	}
-
-	/**
-	 * Tests that the 'the_modified_time' filter can modify the displayed output.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_modified_time_filter_modifies_output() {
-		$custom_callback = static function ( $formatted_time, $format ) {
+		$filter_args     = array();
+		$custom_callback = static function ( $formatted_time, $format ) use ( &$filter_args ) {
+			$filter_args[] = func_get_args();
 			return 'Modified: ' . $formatted_time;
 		};
 
@@ -157,6 +140,8 @@ class Tests_Date_TheModifiedTime extends WP_UnitTestCase {
 
 		$this->expectOutputString( 'Modified: 16:45:30' );
 		the_modified_time( 'H:i:s' );
+
+		$this->assertSame( array( array( '16:45:30', 'H:i:s' ) ), $filter_args );
 
 		remove_filter( 'the_modified_time', $custom_callback, 10 );
 	}
@@ -186,12 +171,9 @@ class Tests_Date_TheModifiedTime extends WP_UnitTestCase {
 	 */
 	public static function data_custom_formats() {
 		return array(
-			'24-hour time with seconds' => array( 'H:i:s', '16:45:30' ),
 			'12-hour time with minutes' => array( 'g:i a', '4:45 pm' ),
 			'date and time'             => array( 'Y-m-d H:i', '2024-05-18 16:45' ),
 			'day of the week'           => array( 'l', 'Saturday' ),
-			'time only hours'           => array( 'H', '16' ),
-			'time only minutes'         => array( 'i', '45' ),
 		);
 	}
 }

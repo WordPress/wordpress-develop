@@ -12,7 +12,7 @@
  *
  * @covers ::wp_debug_mode
  */
-class Test_WP_Debug_Mode extends WP_UnitTestCase {
+class Tests_WP_Debug_Mode extends WP_UnitTestCase {
 	/**
 	 * Original error_reporting level.
 	 *

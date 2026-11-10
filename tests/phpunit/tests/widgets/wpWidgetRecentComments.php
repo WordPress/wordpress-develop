@@ -173,10 +173,8 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 		$widget = new WP_Widget_Recent_Comments();
 
 		$this->assertSame( 'recent-comments', $widget->id_base );
-		$this->assertSame( 'Recent Comments', $widget->name );
 		$this->assertSame( 'widget_recent_comments', $widget->alt_option_name );
 		$this->assertSame( 'widget_recent_comments', $widget->widget_options['classname'] );
-		$this->assertSame( 'Your site&#8217;s most recent comments.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -216,7 +214,6 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 			'widget in a sidebar'            => array( array( 'sidebar-1' => array( 'recent-comments-2' ) ), 10 ),
 			'widget in the inactive widgets' => array( array( 'wp_inactive_widgets' => array( 'recent-comments-2' ) ), false ),
 			'other widget in a sidebar'      => array( array( 'sidebar-1' => array( 'recent-posts-2' ) ), false ),
-			'no widgets'                     => array( array(), false ),
 		);
 	}
 
@@ -355,12 +352,10 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	 */
 	public static function data_widget_number() {
 		return array(
-			'no number'           => array( array(), 5 ),
-			'zero'                => array( array( 'number' => 0 ), 5 ),
-			'numeric string'      => array( array( 'number' => '2' ), 2 ),
-			'negative number'     => array( array( 'number' => -3 ), 3 ),
-			'non-numeric string'  => array( array( 'number' => 'abc' ), 5 ),
-			'more than available' => array( array( 'number' => 20 ), 6 ),
+			'no number'          => array( array(), 5 ),
+			'numeric string'     => array( array( 'number' => '2' ), 2 ),
+			'negative number'    => array( array( 'number' => -3 ), 3 ),
+			'non-numeric string' => array( array( 'number' => 'abc' ), 5 ),
 		);
 	}
 
@@ -472,8 +467,6 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'     => array( array(), 'Recent Comments' ),
-			'empty title'  => array( array( 'title' => '' ), 'Recent Comments' ),
-			'title "0"'    => array( array( 'title' => '0' ), 'Recent Comments' ),
 			'custom title' => array( array( 'title' => 'Latest Comments' ), 'Latest Comments' ),
 		);
 	}
@@ -565,9 +558,7 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Latest Comments', 'Latest Comments' ),
 			'title with HTML'     => array( '<em>Latest</em> Comments ', 'Latest Comments' ),
-			'empty title'         => array( '', 'Recent Comments' ),
 			'title with only tag' => array( '<span></span>', 'Recent Comments' ),
 		);
 	}

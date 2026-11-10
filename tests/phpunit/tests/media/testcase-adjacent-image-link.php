@@ -37,6 +37,12 @@ abstract class WP_Test_Adjacent_Image_Link_TestCase extends WP_UnitTestCase {
 		}
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Sets up the test scenario.
 	 *
