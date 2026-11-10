@@ -173,6 +173,87 @@ class Tests_Dependencies_WpCommandPaletteLoader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the palette's action fires when the palette is loaded up front, and not when it
+	 * is loaded on demand.
+	 *
+	 * @ticket 66642
+	 *
+	 * @dataProvider data_enqueue_command_palette_assets_action
+	 *
+	 * @param bool $screen_loads_commands_package Whether the screen enqueues a script depending on wp-commands.
+	 * @param int  $expected_count                Expected number of times the action fires.
+	 */
+	public function test_loader_fires_action_only_when_palette_loads_up_front( bool $screen_loads_commands_package, int $expected_count ): void {
+		$action = new MockAction();
+		add_action( 'enqueue_command_palette_assets', array( $action, 'action' ) );
+
+		if ( $screen_loads_commands_package ) {
+			wp_register_script( 'test-editor', '/test-editor.js', array( 'wp-commands' ) );
+			wp_enqueue_script( 'test-editor' );
+		}
+
+		wp_enqueue_command_palette_loader();
+
+		$this->assertSame( $expected_count, $action->get_call_count() );
+	}
+
+	/**
+	 * Data provider for test_loader_fires_action_only_when_palette_loads_up_front().
+	 *
+	 * @return array<string, array{ 0: bool, 1: int }>
+	 */
+	public function data_enqueue_command_palette_assets_action(): array {
+		return array(
+			'palette loaded on demand' => array( false, 0 ),
+			'palette loaded up front'  => array( true, 1 ),
+		);
+	}
+
+	/**
+	 * Tests that enqueuing the palette's assets directly fires the palette's action.
+	 *
+	 * @ticket 66642
+	 */
+	public function test_enqueue_assets_fires_action(): void {
+		$action = new MockAction();
+		add_action( 'enqueue_command_palette_assets', array( $action, 'action' ) );
+
+		wp_enqueue_command_palette_assets();
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
+
+	/**
+	 * Tests that scripts and styles enqueued on the palette's action go into the template,
+	 * with their localized data, while what the page itself enqueued stays out of it.
+	 *
+	 * @ticket 66642
+	 */
+	public function test_template_holds_assets_enqueued_on_action(): void {
+		wp_register_script( 'test-page-script', '/test-page-script.js' );
+		wp_enqueue_script( 'test-page-script' );
+
+		add_action(
+			'enqueue_command_palette_assets',
+			static function () {
+				wp_enqueue_script( 'test-palette-commands', '/test-palette-commands.js', array( 'wp-commands' ) );
+				wp_localize_script( 'test-palette-commands', 'testPaletteCommands', array( 'label' => 'Test command' ) );
+				wp_enqueue_style( 'test-palette-commands', '/test-palette-commands.css' );
+			}
+		);
+
+		wp_enqueue_command_palette_loader();
+		wp_scripts()->done[] = 'wp-command-palette-loader';
+
+		$output = get_echo( 'wp_print_command_palette_assets_template' );
+
+		$this->assertStringContainsString( '/test-palette-commands.js', $output );
+		$this->assertStringContainsString( 'var testPaletteCommands = {"label":"Test command"};', $output );
+		$this->assertStringContainsString( '/test-palette-commands.css', $output );
+		$this->assertStringNotContainsString( '/test-page-script.js', $output, 'Expected the page\'s own scripts not to be printed into the template.' );
+	}
+
+	/**
 	 * Tests that no template is printed when the palette is already on the page, or the loader is not.
 	 *
 	 * @ticket 66642

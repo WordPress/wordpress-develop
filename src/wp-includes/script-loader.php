@@ -3839,10 +3839,8 @@ function wp_enqueue_classic_theme_styles() {
  * @since 7.3.0 Moved the palette's settings to wp_enqueue_command_palette_loader().
  */
 function wp_enqueue_command_palette_assets() {
-	wp_enqueue_command_palette_loader();
 	wp_enqueue_script( 'wp-commands' );
-	wp_enqueue_style( 'wp-commands' );
-	wp_enqueue_script( 'wp-core-commands' );
+	wp_enqueue_command_palette_loader();
 }
 
 /**
@@ -3983,13 +3981,25 @@ function wp_enqueue_command_palette_loader() {
 	if ( wp_script_is( 'wp-commands', 'enqueued' ) ) {
 		wp_enqueue_style( 'wp-commands' );
 		wp_enqueue_script( 'wp-core-commands' );
+
+		/**
+		 * Fires when the Command Palette's scripts and styles are enqueued.
+		 *
+		 * Scripts and styles that add commands to the palette should be enqueued on this
+		 * action. On screens that load the palette when it is first opened, the action fires
+		 * in the admin footer, and what is enqueued on it is loaded together with the palette.
+		 *
+		 * @since 7.3.0
+		 */
+		do_action( 'enqueue_command_palette_assets' );
 	}
 }
 
 /**
  * Prints the Command Palette's scripts and styles into an inert template.
  *
- * The template holds what the palette needs and the page has not printed yet. The script
+ * The template holds what the palette needs and the page has not printed yet, including the
+ * scripts and styles enqueued on the {@see 'enqueue_command_palette_assets'} action. The script
  * enqueued by wp_enqueue_command_palette_loader() adds it to the page when the palette is
  * first opened. Nothing is printed when the palette is already on the page.
  *
@@ -4000,9 +4010,20 @@ function wp_print_command_palette_assets_template() {
 		return;
 	}
 
+	$scripts                = wp_scripts();
+	$styles                 = wp_styles();
+	$scripts_queued_by_page = $scripts->queue;
+	$styles_queued_by_page  = $styles->queue;
+
+	/** This action is documented in wp-includes/script-loader.php */
+	do_action( 'enqueue_command_palette_assets' );
+
+	$palette_scripts = array_merge( array( 'wp-core-commands' ), array_diff( $scripts->queue, $scripts_queued_by_page ) );
+	$palette_styles  = array_merge( array( 'wp-commands' ), array_diff( $styles->queue, $styles_queued_by_page ) );
+
 	ob_start();
-	wp_styles()->do_items( array( 'wp-commands' ) );
-	wp_scripts()->do_items( array( 'wp-core-commands' ) );
+	$styles->do_items( $palette_styles );
+	$scripts->do_items( $palette_scripts );
 	$assets = ob_get_clean();
 
 	printf( "<template id=\"wp-command-palette-assets\">\n%s</template>\n", $assets );
