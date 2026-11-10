@@ -62,16 +62,40 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
-	$post_id = (int) $comment->comment_post_ID;
+	$post_id  = (int) $comment->comment_post_ID;
+	$old_type = strtolower( $comment->comment_type );
+
+	// Reactions are only validated on creation. Removing one is a delete.
+	if ( 'reaction' === $old_type ) {
+		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ) );
+	}
+
+	/*
+	 * A comment cannot become a note or reaction, or stop being one. The new
+	 * type is limited to ASCII because the collation is case- and
+	 * accent-insensitive while core compares types strictly.
+	 */
+	if ( isset( $_POST['comment_type'] ) && $_POST['comment_type'] !== $comment->comment_type ) {
+		$new_type = is_string( $_POST['comment_type'] ) ? $_POST['comment_type'] : '';
+
+		if (
+			! preg_match( '/^[a-z0-9_-]*\z/i', $new_type ) ||
+			'note' === $old_type ||
+			in_array( strtolower( $new_type ), array( 'note', 'reaction' ), true )
+		) {
+			wp_die( __( 'Sorry, you are not allowed to change the comment type.' ) );
+		}
+	}
 
 	/*
 	 * Moving to another post needs edit access there. Without a post,
-	 * 'edit_comment' no longer maps to any post's capabilities.
+	 * 'edit_comment' no longer maps to any post's capabilities. A note
+	 * stays on its post, since its reactions would not follow it.
 	 */
 	if ( isset( $_POST['comment_post_ID'] ) && absint( $_POST['comment_post_ID'] ) !== $post_id ) {
 		$post_id = absint( $_POST['comment_post_ID'] );
 
-		if ( ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( 'note' === $old_type || ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 	}

@@ -3009,42 +3009,6 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 		}
 	}
 
-	/*
-	 * Reactions are immutable. Their author, parent note, post and key are
-	 * only validated together on creation. Removing one is a delete.
-	 */
-	if ( is_string( $comment['comment_type'] ) && 'reaction' === strtolower( $comment['comment_type'] ) ) {
-		if ( $wp_error ) {
-			return new WP_Error( 'comment_reaction_immutable', __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ) );
-		} else {
-			return false;
-		}
-	}
-
-	/*
-	 * A comment cannot become a note or reaction, or stop being one, since
-	 * only creation validates those types. Raw values are compared and the
-	 * new type limited to ASCII because the collation is case- and
-	 * accent-insensitive while core compares types strictly.
-	 */
-	$old_type = is_string( $comment['comment_type'] ) ? $comment['comment_type'] : '';
-	$new_type = isset( $commentarr['comment_type'] ) && is_string( $commentarr['comment_type'] ) ? $commentarr['comment_type'] : $old_type;
-
-	if (
-		$old_type !== $new_type &&
-		(
-			! preg_match( '/^[a-z0-9_-]*\z/i', $new_type ) ||
-			in_array( strtolower( $old_type ), array( 'note', 'reaction' ), true ) ||
-			in_array( strtolower( $new_type ), array( 'note', 'reaction' ), true )
-		)
-	) {
-		if ( $wp_error ) {
-			return new WP_Error( 'comment_type_immutable', __( 'Comments cannot be converted to or from notes and reactions.' ) );
-		} else {
-			return false;
-		}
-	}
-
 	// Make sure that the comment post ID is valid (if specified).
 	if ( ! empty( $commentarr['comment_post_ID'] ) && ! get_post( $commentarr['comment_post_ID'] ) ) {
 		if ( $wp_error ) {
@@ -3159,24 +3123,6 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if ( isset( $commentarr['comment_meta'] ) && is_array( $commentarr['comment_meta'] ) ) {
 		foreach ( $commentarr['comment_meta'] as $meta_key => $meta_value ) {
 			update_comment_meta( $comment_id, $meta_key, $meta_value );
-		}
-	}
-
-	// Reactions only count on their note's post and cannot be updated alone, so they move with the note.
-	if ( 'note' === $old_type && absint( $comment['comment_post_ID'] ) !== absint( $comment_post_id ) ) {
-		$reaction_ids = get_comments(
-			array(
-				'parent'  => $comment_id,
-				'type'    => 'reaction',
-				'status'  => 'any',
-				'fields'  => 'ids',
-				'orderby' => 'none',
-			)
-		);
-
-		foreach ( $reaction_ids as $reaction_id ) {
-			$wpdb->update( $wpdb->comments, array( 'comment_post_ID' => $comment_post_id ), array( 'comment_ID' => $reaction_id ) );
-			clean_comment_cache( $reaction_id );
 		}
 	}
 

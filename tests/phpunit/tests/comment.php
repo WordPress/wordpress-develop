@@ -2656,69 +2656,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Reactions are validated as a set when created and are immutable after
-	 * that, for every writer that reaches wp_update_comment().
-	 *
-	 * @ticket 66635
-	 *
-	 * @dataProvider data_reaction_comment_types
-	 *
-	 * @param string $type The stored comment type.
-	 */
-	public function test_wp_update_comment_refuses_to_update_a_reaction( string $type ): void {
-		$user_id     = self::factory()->user->create();
-		$post_id     = self::factory()->post->create();
-		$note_id     = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 0,
-				'user_id'          => $user_id,
-				'comment_content'  => 'Editorial note',
-			)
-		);
-		$reaction_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => $type,
-				'comment_parent'   => $note_id,
-				'comment_approved' => 1,
-				'user_id'          => $user_id,
-				'comment_content'  => '2764',
-			)
-		);
-
-		$update = array(
-			'comment_ID'      => $reaction_id,
-			'comment_content' => '1f680',
-			'user_id'         => $user_id + 1,
-		);
-
-		$result = wp_update_comment( $update, true );
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_reaction_immutable', $result->get_error_code() );
-
-		$this->assertFalse( wp_update_comment( $update ) );
-
-		$reaction = get_comment( $reaction_id );
-		$this->assertInstanceOf( WP_Comment::class, $reaction );
-		$this->assertSame( '2764', $reaction->comment_content );
-		$this->assertSame( (string) $user_id, $reaction->user_id );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{string}>
-	 */
-	public function data_reaction_comment_types(): array {
-		return array(
-			'canonical type'   => array( 'reaction' ),
-			'capitalized type' => array( 'Reaction' ),
-		);
-	}
-
-	/**
 	 * A parent on another post is dropped, like a parent in an invalid status.
 	 *
 	 * @ticket 66635
@@ -2778,120 +2715,23 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 66635
-	 *
-	 * @dataProvider data_restricted_comment_types
-	 *
-	 * @param string $type Type the comment must not be converted into.
-	 */
-	public function test_wp_update_comment_refuses_to_convert_a_comment_into_a_note_or_reaction( string $type ): void {
-		$post_id    = self::factory()->post->create();
-		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
-
-		$result = wp_update_comment(
-			array(
-				'comment_ID'   => $comment_id,
-				'comment_type' => $type,
-			),
-			true
-		);
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
-
-		$comment = get_comment( $comment_id );
-		$this->assertInstanceOf( WP_Comment::class, $comment );
-		$this->assertSame( 'comment', $comment->comment_type );
-	}
-
-	/**
-	 * @ticket 66635
-	 */
-	public function test_wp_update_comment_refuses_to_convert_a_note_into_a_comment(): void {
-		$post_id = self::factory()->post->create();
-		$note_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 0,
-			)
-		);
-
-		$result = wp_update_comment(
-			array(
-				'comment_ID'   => $note_id,
-				'comment_type' => 'comment',
-			),
-			true
-		);
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
-	}
-
-	/**
-	 * @return array<string, array{string}>
-	 */
-	public function data_restricted_comment_types(): array {
-		return array(
-			'reaction'           => array( 'reaction' ),
-			'reaction uppercase' => array( 'Reaction' ),
-			'reaction accented'  => array( 'reactión' ),
-			'reaction newline'   => array( "reaction\n" ),
-			'note'               => array( 'note' ),
-		);
-	}
-
-	/**
-	 * A case-only change would store a type most of core compares strictly.
+	 * The rules for notes and reactions belong to the request handlers.
+	 * wp_update_comment() stays unrestricted, like other low-level writers.
 	 *
 	 * @ticket 66635
 	 */
-	public function test_wp_update_comment_refuses_a_case_only_change_to_a_note_type(): void {
-		$post_id = self::factory()->post->create();
-		$note_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 0,
-			)
-		);
-
-		$result = wp_update_comment(
-			array(
-				'comment_ID'   => $note_id,
-				'comment_type' => 'NOTE',
-			),
-			true
-		);
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_type_immutable', $result->get_error_code() );
-
-		$note = get_comment( $note_id );
-		$this->assertInstanceOf( WP_Comment::class, $note );
-		$this->assertSame( 'note', $note->comment_type );
-	}
-
-	/**
-	 * Reactions are immutable and only count on their note's post, so they
-	 * have to travel with the note when it moves.
-	 *
-	 * @ticket 66635
-	 */
-	public function test_wp_update_comment_moves_a_notes_reactions_with_it(): void {
-		$post_a_id   = self::factory()->post->create();
-		$post_b_id   = self::factory()->post->create();
+	public function test_wp_update_comment_does_not_restrict_reactions(): void {
+		$post_id     = self::factory()->post->create();
 		$note_id     = self::factory()->comment->create(
 			array(
-				'comment_post_ID'  => $post_a_id,
+				'comment_post_ID'  => $post_id,
 				'comment_type'     => 'note',
 				'comment_approved' => 0,
 			)
 		);
 		$reaction_id = self::factory()->comment->create(
 			array(
-				'comment_post_ID'  => $post_a_id,
+				'comment_post_ID'  => $post_id,
 				'comment_type'     => 'reaction',
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
@@ -2901,8 +2741,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$result = wp_update_comment(
 			array(
-				'comment_ID'      => $note_id,
-				'comment_post_ID' => $post_b_id,
+				'comment_ID'      => $reaction_id,
+				'comment_content' => '1f680',
 			),
 			true
 		);
@@ -2911,6 +2751,6 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$reaction = get_comment( $reaction_id );
 		$this->assertInstanceOf( WP_Comment::class, $reaction );
-		$this->assertSame( (string) $post_b_id, $reaction->comment_post_ID );
+		$this->assertSame( '1f680', $reaction->comment_content );
 	}
 }

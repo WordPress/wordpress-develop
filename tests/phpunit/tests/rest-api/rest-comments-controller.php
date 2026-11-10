@@ -6799,6 +6799,29 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Moving a note would leave its reactions on the post it left.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_note_to_another_post(): void {
+		wp_set_current_user( self::$editor_id );
+
+		list( $post_id, $note_id ) = $this->create_editor_note();
+
+		$other_post_id = self::factory()->post->create();
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'post', $other_post_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_note_post_immutable', $response, 400 );
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_id, $note->comment_post_ID );
+	}
+
+	/**
 	 * A note reply has to sit on the same post as the note it answers, or a
 	 * user could thread their own note under one on a post they cannot read.
 	 *

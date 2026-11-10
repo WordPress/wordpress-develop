@@ -553,4 +553,89 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$this->assertInstanceOf( WP_Comment::class, $reply );
 		$this->assertSame( (string) $post_a_id, $reply->comment_post_ID );
 	}
+
+	/**
+	 * Moving a note would leave its reactions on the post it left.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_note_to_another_post(): void {
+		$this->_setRole( 'editor' );
+
+		$source_post_id = self::factory()->post->create();
+		$target_post_id = self::factory()->post->create();
+		$note_id        = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $source_post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $note_id;
+		$_POST['content']                     = 'Moved';
+		$_POST['comment_post_ID']             = $target_post_id;
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to move the note.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $source_post_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * A note cannot stop being one, including by a change of case.
+	 *
+	 * @ticket 66635
+	 *
+	 * @dataProvider data_types_a_note_cannot_become
+	 *
+	 * @param string $type The requested comment type.
+	 */
+	public function test_cannot_convert_note_into_another_type( string $type ): void {
+		$this->_setRole( 'editor' );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $note_id;
+		$_POST['content']                     = 'Converted';
+		$_POST['comment_type']                = $type;
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to change the note type.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( 'note', $note->comment_type );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_types_a_note_cannot_become(): array {
+		return array(
+			'comment'        => array( 'comment' ),
+			'uppercase note' => array( 'NOTE' ),
+		);
+	}
 }

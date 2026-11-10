@@ -1249,6 +1249,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					array( 'status' => 403 )
 				);
 			}
+
+			// A note stays on its post, since its reactions would not follow it.
+			if ( 'note' === $comment->comment_type && $post->ID !== (int) $comment->comment_post_ID ) {
+				return new WP_Error(
+					'rest_comment_note_post_immutable',
+					__( 'Notes cannot be moved to another post.' ),
+					array( 'status' => 400 )
+				);
+			}
 		}
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
