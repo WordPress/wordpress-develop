@@ -1101,7 +1101,12 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php
+		-
+			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php
 		-
 			message: '#^Parameter \#1 \$data_object of method WP_REST_Controller\:\:update_additional_fields_for_object\(\) expects object, array given\.$#'
@@ -1111,12 +1116,22 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php
+		-
+			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php
 		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php
+		-
+			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php
 		-
 			message: '#^Parameter \#2 \$value of method WP_HTTP_Response\:\:header\(\) expects string, int given\.$#'
