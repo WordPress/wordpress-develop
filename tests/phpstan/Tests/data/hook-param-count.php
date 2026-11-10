@@ -142,3 +142,17 @@ $value = apply_filters( $hook_name, $value, $context );
  * @param string $value Value.
  */
 do_action( "wp_tests_{$type}_fired", $value, $context );
+
+/**
+ * One parameter, two arguments in the array.
+ *
+ * @param string $value Value.
+ */
+$value = apply_filters_ref_array( 'ref_array_filter_long', array( $value, $context ) );
+
+/**
+ * One parameter, two arguments in the array.
+ *
+ * @param string $value Value.
+ */
+do_action_deprecated( 'deprecated_action_long', array( $value, $context ), '6.0.0' );

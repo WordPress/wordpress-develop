@@ -1,6 +1,6 @@
 <?php
 /**
- * Helper declarations for the fixtures, reflected through `scanFiles` in tests.neon.
+ * Helper declarations for the fixtures, loaded through `bootstrapFiles` in tests.neon.
  *
  * @package WordPress
  */

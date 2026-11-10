@@ -80,6 +80,7 @@ jobs:
       # core, so a defect in one is reported here as a failing test rather than as a
       # change in what the analysis below reports.
       - name: Run the tests of the PHPStan extensions
+        if: ${{ hashFiles('tests/phpstan/phpunit.xml.dist') != '' }}
         run: composer run phpstan:test
 
       # The directory holds more than the analysis results. PHPStan also stores what it read out of

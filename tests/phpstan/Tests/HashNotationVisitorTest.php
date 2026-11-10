@@ -53,6 +53,19 @@ final class HashNotationVisitorTest extends TestCase {
 				),
 				array( '@phpstan-param array{post_type?: string, post_author?: int, ...} $args' ),
 			),
+			'param key marked required is required'       => array(
+				self::fn(
+					'
+					 * @param array $args {
+					 *     Arguments.
+					 *
+					 *     @type string $hostname Required. Server hostname.
+					 *     @type int    $port     Port.
+					 * }
+					'
+				),
+				array( '@phpstan-param array{hostname: string, port?: int, ...} $args' ),
+			),
 			'return hash is sealed with required keys'    => array(
 				self::fn(
 					'

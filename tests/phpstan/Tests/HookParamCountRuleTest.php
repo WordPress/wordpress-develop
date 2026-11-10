@@ -57,6 +57,8 @@ final class HookParamCountRuleTest extends RuleTestCase {
 				array( 'apply_filters() for hook "index_template_hierarchy" provides 2 arguments, but the hook is documented with 1 parameter.', 119 ),
 				array( 'apply_filters() for hook "malformed_tag" provides 2 arguments, but the hook is documented with 1 parameter.', 135 ),
 				array( 'do_action() for hook "wp_tests_{$type}_fired" provides 2 arguments, but the hook is documented with 1 parameter.', 144 ),
+				array( 'apply_filters_ref_array() for hook "ref_array_filter_long" provides 2 arguments, but the hook is documented with 1 parameter.', 151 ),
+				array( 'do_action_deprecated() for hook "deprecated_action_long" provides 2 arguments, but the hook is documented with 1 parameter.', 158 ),
 			)
 		);
 	}
