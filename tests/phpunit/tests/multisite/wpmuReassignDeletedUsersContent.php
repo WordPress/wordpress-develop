@@ -53,7 +53,10 @@ if ( is_multisite() ) :
 			$posts = $this->create_posts_on_both_sites();
 
 			$this->reassign_and_delete(
-				array( 1 => 'delete', self::$site_b => 'delete' )
+				array(
+					1             => 'delete',
+					self::$site_b => 'delete',
+				)
 			);
 
 			$this->assertSame( 'trash', get_post_status( $this->get_post_on_site( 1, $posts[1] ) ) );
@@ -67,7 +70,10 @@ if ( is_multisite() ) :
 			$posts = $this->create_posts_on_both_sites();
 
 			$this->reassign_and_delete(
-				array( 1 => 'reassign', self::$site_b => 'delete' )
+				array(
+					1             => 'reassign',
+					self::$site_b => 'delete',
+				)
 			);
 
 			$reassigned_post = $this->get_post_on_site( 1, $posts[1] );
@@ -84,8 +90,18 @@ if ( is_multisite() ) :
 			$this->create_posts_on_both_sites();
 
 			_wpmu_reassign_deleted_users_content(
-				$this->build_reassign_users( array( 1 => 'delete', self::$site_b => 'delete' ) ),
-				$this->build_content_actions( array( 1 => 'delete', self::$site_b => 'delete' ) )
+				$this->build_reassign_users(
+					array(
+						1             => 'delete',
+						self::$site_b => 'delete',
+					)
+				),
+				$this->build_content_actions(
+					array(
+						1             => 'delete',
+						self::$site_b => 'delete',
+					)
+				)
 			);
 
 			$this->assertTrue( is_user_member_of_blog( self::$author, 1 ) );
