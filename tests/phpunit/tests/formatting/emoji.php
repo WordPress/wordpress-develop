@@ -403,7 +403,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_staticize_emoji_ignored_tags() {
+	public static function data_wp_staticize_emoji_ignored_tags() {
 		return array(
 			'code'     => array( 'code' ),
 			'pre'      => array( 'pre' ),
@@ -433,7 +433,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_staticize_emoji_ignore_block_boundaries() {
+	public static function data_wp_staticize_emoji_ignore_block_boundaries() {
 		return array(
 			'emoji after closing tag is staticized'        => array( '<pre class="wp-block-code">&#x1f642;</pre>&#x1f642;', 1 ),
 			'code block markup'                            => array( '<pre class="wp-block-code"><code>&#x1f642;</code></pre>', 0 ),
@@ -444,6 +444,15 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			'custom element starting with ignored name'    => array( '<code-snippet>&#x1f642;</code-snippet>&#x1f642;', 2 ),
 			'unknown element starting with ignored name'   => array( '<preview>&#x1f642;</preview>&#x1f642;', 2 ),
 			'element name prefixed by ignored script name' => array( '<script-loader>&#x1f642;</script-loader>&#x1f642;', 2 ),
+			'greater-than sign in attribute value'         => array( '<img alt="1 > 0 &#x1f642;" src="a.png">&#x1f642;', 1 ),
+			'ignored tag with greater-than in attribute'   => array( '<pre title="a > b">&#x1f642;</pre>&#x1f642;', 1 ),
+			'closing tag lookalike in attribute value'     => array( '<pre><span title="</pre>">&#x1f642;</span></pre>&#x1f642;', 1 ),
+			'emoji inside HTML comment'                    => array( '<!-- 1 > 0 &#x1f642; -->&#x1f642;', 1 ),
+			'ignored tag inside HTML comment'              => array( '<!-- > <pre> -->&#x1f642;', 1 ),
+			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> -->&#x1f642;</pre>&#x1f642;', 1 ),
+			'nested ignored tags'                          => array( '<pre><code>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
+			'same ignored tag nested'                      => array( '<code><code>&#x1f642;</code>&#x1f642;</code>&#x1f642;', 1 ),
+			'less-than sign in text'                       => array( '1 < 2 &#x1f642; <p>&#x1f642;</p>', 2 ),
 		);
 	}
 }
