@@ -115,6 +115,12 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		}
 	}
 
+	public function tear_down() {
+		unregister_post_type( 'taco' );
+
+		parent::tear_down();
+	}
+
 	public function test_wp_list_pages_default() {
 		$args = array(
 			'echo' => false,
@@ -514,8 +520,6 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		);
 
 		$output = wp_list_pages( $args );
-
-		_unregister_post_type( $args['post_type'] );
 
 		$this->assertNotEmpty(
 			$output,
