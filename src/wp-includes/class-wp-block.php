@@ -397,7 +397,6 @@ class WP_Block {
 	 * @param array                    $source_args The arguments of the binding.
 	 */
 	private function replace_inner_blocks( WP_Block_Bindings_Source $source, array $source_args ) {
-		self::forget_blocks_that_stopped_rendering();
 		$request = $this->get_inner_blocks_request( $source, $source_args );
 		foreach ( self::$rendering_inner_blocks as $rendering ) {
 			if ( $rendering['request'] === $request ) {
@@ -461,43 +460,15 @@ class WP_Block {
 	 * source supplied for it were rendering.
 	 *
 	 * The blocks still rendering inside it, if any, stopped with it, so they
-	 * are forgotten along with it.
+	 * are forgotten along with it. A block that stops rendering with an
+	 * exception is forgotten too, so that it doesn't count as rendering for
+	 * the rest of the request when something catches the exception.
 	 *
 	 * @since 7.3.0
 	 */
 	private function forget_rendered_inner_blocks() {
 		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
 			if ( $rendering['block'] === $this ) {
-				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
-				return;
-			}
-		}
-	}
-
-	/**
-	 * Stops tracking the blocks whose supplied inner blocks were rendering when
-	 * the blocks themselves stopped rendering with an exception.
-	 *
-	 * A block that doesn't finish rendering never forgets its supplied inner
-	 * blocks itself. If something catches the exception and goes on rendering,
-	 * the block would otherwise count as rendering for the rest of the request.
-	 * A block is rendering while its `render()` call is on the call stack.
-	 *
-	 * @since 7.3.0
-	 */
-	private static function forget_blocks_that_stopped_rendering() {
-		if ( empty( self::$rendering_inner_blocks ) ) {
-			return;
-		}
-
-		$rendering_blocks = array();
-		foreach ( debug_backtrace( DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS ) as $frame ) {
-			if ( isset( $frame['object'] ) && $frame['object'] instanceof WP_Block && 'render' === $frame['function'] ) {
-				$rendering_blocks[] = $frame['object'];
-			}
-		}
-		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
-			if ( ! in_array( $rendering['block'], $rendering_blocks, true ) ) {
 				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
 				return;
 			}
@@ -928,6 +899,8 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @since 6.5.0 Added block bindings processing.
 	 * @since 7.1.0 Preserve inner blocks when binding a rich text attribute.
+	 * @since 7.3.0 Stop tracking the inner blocks a block bindings source supplied once
+	 *              the block has rendered, whether or not it finished.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -977,146 +950,148 @@ class WP_Block {
 			)
 		);
 
-		// Process the block bindings and get attributes updated with the values from the sources.
-		$computed_attributes = $this->process_block_bindings();
-		if ( ! empty( $computed_attributes ) ) {
-			// Merge the computed attributes with the original attributes.
-			$this->attributes = array_merge( $this->attributes, $computed_attributes );
-		}
+		try {
+			// Process the block bindings and get attributes updated with the values from the sources.
+			$computed_attributes = $this->process_block_bindings();
+			if ( ! empty( $computed_attributes ) ) {
+				// Merge the computed attributes with the original attributes.
+				$this->attributes = array_merge( $this->attributes, $computed_attributes );
+			}
 
-		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
-		$block_content = '';
+			$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
+			$block_content = '';
 
-		/*
-		 * Byte offsets in $block_content where each inner block's rendered output
-		 * begins. Block bindings rich-text replacement uses these to stop at the
-		 * first inner block inside a selector, so it replaces only the block's own
-		 * rich text and never the markup produced by nested inner blocks.
-		 *
-		 * They are only collected when the block has bound attributes to resolve;
-		 * otherwise they are never read, so recording them would add work to every
-		 * block render for no benefit.
-		 */
-		$inner_block_offsets = array();
-		$collect_offsets     = ! empty( $computed_attributes );
+			/*
+			 * Byte offsets in $block_content where each inner block's rendered output
+			 * begins. Block bindings rich-text replacement uses these to stop at the
+			 * first inner block inside a selector, so it replaces only the block's own
+			 * rich text and never the markup produced by nested inner blocks.
+			 *
+			 * They are only collected when the block has bound attributes to resolve;
+			 * otherwise they are never read, so recording them would add work to every
+			 * block render for no benefit.
+			 */
+			$inner_block_offsets = array();
+			$collect_offsets     = ! empty( $computed_attributes );
 
-		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
-			$index = 0;
+			if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
+				$index = 0;
 
-			foreach ( $this->inner_content as $chunk ) {
-				if ( is_string( $chunk ) ) {
-					$block_content .= $chunk;
-				} else {
-					if ( $collect_offsets ) {
-						$inner_block_offsets[] = strlen( $block_content );
-					}
-					$inner_block  = $this->inner_blocks[ $index ];
-					$parent_block = $this;
-
-					/** This filter is documented in wp-includes/blocks.php */
-					$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
-
-					if ( ! is_null( $pre_render ) ) {
-						$block_content .= $pre_render;
+				foreach ( $this->inner_content as $chunk ) {
+					if ( is_string( $chunk ) ) {
+						$block_content .= $chunk;
 					} else {
-						$source_block        = $inner_block->parsed_block;
-						$inner_block_context = $inner_block->context;
+						if ( $collect_offsets ) {
+							$inner_block_offsets[] = strlen( $block_content );
+						}
+						$inner_block  = $this->inner_blocks[ $index ];
+						$parent_block = $this;
 
 						/** This filter is documented in wp-includes/blocks.php */
-						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
+						$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
 
-						/** This filter is documented in wp-includes/blocks.php */
-						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+						if ( ! is_null( $pre_render ) ) {
+							$block_content .= $pre_render;
+						} else {
+							$source_block        = $inner_block->parsed_block;
+							$inner_block_context = $inner_block->context;
 
-						/*
-						 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
-						 * Therefore the second condition is irrelevant if the first one is satisfied.
-						 */
-						if ( $inner_block->context !== $inner_block_context ) {
-							$inner_block->refresh_context_dependents();
-						} elseif ( $inner_block->parsed_block !== $source_block ) {
-							$inner_block->refresh_parsed_block_dependents();
+							/** This filter is documented in wp-includes/blocks.php */
+							$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
+
+							/** This filter is documented in wp-includes/blocks.php */
+							$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+							/*
+							 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
+							 * Therefore the second condition is irrelevant if the first one is satisfied.
+							 */
+							if ( $inner_block->context !== $inner_block_context ) {
+								$inner_block->refresh_context_dependents();
+							} elseif ( $inner_block->parsed_block !== $source_block ) {
+								$inner_block->refresh_parsed_block_dependents();
+							}
+
+							$block_content .= $inner_block->render();
 						}
 
-						$block_content .= $inner_block->render();
+						++$index;
+					}
+				}
+			}
+
+			if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
+				foreach ( $computed_attributes as $attribute_name => $source_value ) {
+					$updated_block_content = $this->replace_html( $block_content, $attribute_name, $source_value, $inner_block_offsets );
+
+					/*
+					 * The offsets describe $block_content as it was assembled. A
+					 * replacement that modifies the markup shifts byte positions, so
+					 * once the content changes the remaining attributes fall back to
+					 * offset-free replacement rather than clamp at a stale position.
+					 * Attributes that leave the markup untouched keep the offsets
+					 * valid: the computed `metadata` attribute produced by a pattern
+					 * overrides `__default` binding has no HTML source, so it must
+					 * not invalidate the offsets for the rich text that follows it.
+					 */
+					if ( $updated_block_content !== $block_content ) {
+						$inner_block_offsets = array();
 					}
 
-					++$index;
+					$block_content = $updated_block_content;
 				}
 			}
-		}
 
-		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
-			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$updated_block_content = $this->replace_html( $block_content, $attribute_name, $source_value, $inner_block_offsets );
+			if ( $is_dynamic ) {
+				$global_post = $post;
+				$parent      = WP_Block_Supports::$block_to_render;
 
-				/*
-				 * The offsets describe $block_content as it was assembled. A
-				 * replacement that modifies the markup shifts byte positions, so
-				 * once the content changes the remaining attributes fall back to
-				 * offset-free replacement rather than clamp at a stale position.
-				 * Attributes that leave the markup untouched keep the offsets
-				 * valid: the computed `metadata` attribute produced by a pattern
-				 * overrides `__default` binding has no HTML source, so it must
-				 * not invalidate the offsets for the rich text that follows it.
-				 */
-				if ( $updated_block_content !== $block_content ) {
-					$inner_block_offsets = array();
+				WP_Block_Supports::$block_to_render = $this->parsed_block;
+
+				$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
+
+				WP_Block_Supports::$block_to_render = $parent;
+
+				$post = $global_post;
+			}
+
+			if ( ( ! empty( $this->block_type->script_handles ) ) ) {
+				foreach ( $this->block_type->script_handles as $script_handle ) {
+					wp_enqueue_script( $script_handle );
 				}
-
-				$block_content = $updated_block_content;
 			}
-		}
 
-		if ( $is_dynamic ) {
-			$global_post = $post;
-			$parent      = WP_Block_Supports::$block_to_render;
-
-			WP_Block_Supports::$block_to_render = $this->parsed_block;
-
-			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
-
-			WP_Block_Supports::$block_to_render = $parent;
-
-			$post = $global_post;
-		}
-
-		if ( ( ! empty( $this->block_type->script_handles ) ) ) {
-			foreach ( $this->block_type->script_handles as $script_handle ) {
-				wp_enqueue_script( $script_handle );
+			if ( ! empty( $this->block_type->view_script_handles ) ) {
+				foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
+					wp_enqueue_script( $view_script_handle );
+				}
 			}
-		}
 
-		if ( ! empty( $this->block_type->view_script_handles ) ) {
-			foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
-				wp_enqueue_script( $view_script_handle );
+			if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+				foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
+					wp_enqueue_script_module( $view_script_module_id );
+				}
 			}
-		}
 
-		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
-			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
-				wp_enqueue_script_module( $view_script_module_id );
+			/*
+			 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
+			 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
+			 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+			 */
+			if ( ( ! empty( $this->block_type->style_handles ) ) ) {
+				foreach ( $this->block_type->style_handles as $style_handle ) {
+					wp_enqueue_style( $style_handle );
+				}
 			}
-		}
 
-		/*
-		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
-		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
-		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
-		 */
-		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
-			foreach ( $this->block_type->style_handles as $style_handle ) {
-				wp_enqueue_style( $style_handle );
+			if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
+				foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
+					wp_enqueue_style( $view_style_handle );
+				}
 			}
+		} finally {
+			$this->forget_rendered_inner_blocks();
 		}
-
-		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
-			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
-				wp_enqueue_style( $view_style_handle );
-			}
-		}
-
-		$this->forget_rendered_inner_blocks();
 
 		/**
 		 * Filters the content of a single block.
