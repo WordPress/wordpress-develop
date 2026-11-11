@@ -93,18 +93,6 @@ class WP_Script_Modules {
 	private $modules_with_missing_dependencies = array();
 
 	/**
-	 * List of handles for scripts encountered which have missing script module dependencies.
-	 *
-	 * A handle is added to this list when it is discovered to have script module dependencies that are not
-	 * registered. At this time, a warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this
-	 * list, so that duplicate warnings don't occur.
-	 *
-	 * @since 7.2.0
-	 * @var string[]
-	 */
-	private $scripts_with_missing_module_dependencies = array();
-
-	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -698,10 +686,7 @@ class WP_Script_Modules {
 						}
 					}
 
-					if (
-						count( $missing_module_dependencies ) > 0 &&
-						! in_array( $handle, $this->scripts_with_missing_module_dependencies, true )
-					) {
+					if ( count( $missing_module_dependencies ) > 0 ) {
 						_doing_it_wrong(
 							'WP_Scripts::add_data',
 							sprintf(
@@ -713,7 +698,6 @@ class WP_Script_Modules {
 							),
 							'7.0.0'
 						);
-						$this->scripts_with_missing_module_dependencies[] = $handle;
 					}
 				}
 
@@ -742,19 +726,18 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Gets the IDs of the script modules that can load on the page, sorted based on their dependencies.
+	 * Gets the IDs of the enqueued script modules and of the script modules in the import map.
 	 *
-	 * These are the enqueued script modules and the script modules in the import map: the dependencies of the
-	 * enqueued script modules, the script module dependencies ('module_dependencies') of scripts, and the
-	 * dependencies of those. Dependencies come before the script modules that depend on them, and a script module
-	 * with a dependency that is not registered is left out.
+	 * The script modules in the import map are the dependencies of the enqueued script modules, the script module
+	 * dependencies ('module_dependencies') of scripts, and the dependencies of those. The enqueued script modules
+	 * come first, followed by the script modules in the import map.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return string[] Sorted list of script module IDs.
+	 * @return string[] List of script module IDs.
 	 */
 	private function get_loadable_script_module_ids(): array {
-		return $this->get_sorted_dependencies(
+		return array_unique(
 			array_merge(
 				$this->queue,
 				array_keys( $this->get_import_map()['imports'] )

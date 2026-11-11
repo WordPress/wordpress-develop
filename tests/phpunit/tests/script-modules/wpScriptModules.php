@@ -2976,8 +2976,26 @@ HTML;
 	}
 
 	/**
+	 * Registers a script that is printed in the footer and has the given script module dependencies.
+	 *
+	 * @param array<string|array<string, string>> $module_dependencies The 'module_dependencies' of the script.
+	 */
+	private function register_script_with_module_dependencies( array $module_dependencies ): void {
+		wp_register_script(
+			'script',
+			'/script.js',
+			array(),
+			false,
+			array(
+				'in_footer'           => true,
+				'module_dependencies' => $module_dependencies,
+			)
+		);
+	}
+
+	/**
 	 * Tests that print_script_module_translations() outputs translations for a script module that only a script
-	 * depends on, after the translations of the static and dynamic dependencies of that script module.
+	 * depends on, and for the static and dynamic dependencies of that script module.
 	 *
 	 * @ticket 66591
 	 *
@@ -3002,24 +3020,16 @@ HTML;
 				),
 			)
 		);
-		wp_enqueue_script(
-			'script',
-			'/script.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => $module_dependencies,
-			)
-		);
+		$this->register_script_with_module_dependencies( $module_dependencies );
+		wp_enqueue_script( 'script' );
 		$this->add_script_module_translations( array( 'imported-module', 'static-dependency', 'dynamic-dependency' ) );
 
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
-		$this->assertSame(
-			array( 'static-dependency', 'dynamic-dependency', 'imported-module' ),
+		$this->assertSameSets(
+			array( 'imported-module', 'static-dependency', 'dynamic-dependency' ),
 			$this->get_printed_script_module_ids( $output, 'wp-script-module-translation-data-' ),
-			'Translations should be printed once for each dependency of the imported script module, and then for the imported script module.'
+			'Translations should be printed once for the imported script module and once for each of its dependencies.'
 		);
 		$this->assertStringContainsString( 'Hola desde imported-module', $output, 'Output should contain the translations of the imported script module.' );
 	}
@@ -3052,136 +3062,53 @@ HTML;
 	}
 
 	/**
-	 * Tests that print_script_module_translations() outputs translations for the script module dependencies of a
-	 * script that is only a dependency of the enqueued script.
+	 * Tests that print_script_module_translations() outputs translations once for the script module dependency of a
+	 * script, and only when that script is enqueued or is a dependency of an enqueued script.
 	 *
 	 * @ticket 66591
 	 *
+	 * @dataProvider data_enqueued_scripts_and_script_modules
+	 *
 	 * @covers WP_Script_Modules::print_script_module_translations
 	 * @covers WP_Script_Modules::get_loadable_script_module_ids
+	 *
+	 * @param string[] $enqueued_scripts        Handles of the scripts to enqueue.
+	 * @param string[] $enqueued_script_modules IDs of the script modules to enqueue.
+	 * @param string[] $expected                IDs of the script modules that translations should be printed for.
 	 */
-	public function test_print_script_module_translations_includes_module_dependencies_of_script_dependencies() {
+	public function test_print_script_module_translations_includes_module_dependencies_of_enqueued_scripts_once( array $enqueued_scripts, array $enqueued_script_modules, array $expected ) {
 		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
-		wp_register_script(
-			'script-dependency',
-			'/script-dependency.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => array( 'imported-module' ),
-			)
-		);
-		wp_enqueue_script( 'script', '/script.js', array( 'script-dependency' ), false, array( 'in_footer' => true ) );
+		$this->register_script_with_module_dependencies( array( 'imported-module' ) );
+		wp_register_script( 'dependent-script', '/dependent-script.js', array( 'script' ), false, array( 'in_footer' => true ) );
+		foreach ( $enqueued_scripts as $handle ) {
+			wp_enqueue_script( $handle );
+		}
+		foreach ( $enqueued_script_modules as $id ) {
+			$this->script_modules->enqueue( $id );
+		}
 		$this->add_script_module_translations( array( 'imported-module' ) );
 
 		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
 
-		$this->assertSame( array( 'imported-module' ), $this->get_printed_script_module_ids( $output, 'wp-script-module-translation-data-' ) );
+		$this->assertSame( $expected, $this->get_printed_script_module_ids( $output, 'wp-script-module-translation-data-' ) );
 	}
 
 	/**
-	 * Tests that print_script_module_translations() outputs nothing for the script module dependencies of a script
-	 * that is not enqueued.
+	 * Data provider.
 	 *
-	 * @ticket 66591
-	 *
-	 * @covers WP_Script_Modules::print_script_module_translations
-	 * @covers WP_Script_Modules::get_loadable_script_module_ids
+	 * @return array<string, array{ 0: string[], 1: string[], 2: string[] }>
 	 */
-	public function test_print_script_module_translations_outputs_nothing_for_module_dependencies_of_script_not_enqueued() {
-		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
-		wp_register_script(
-			'script',
-			'/script.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => array( 'imported-module' ),
-			)
+	public static function data_enqueued_scripts_and_script_modules(): array {
+		return array(
+			'a dependency of the enqueued script'   => array( array( 'dependent-script' ), array(), array( 'imported-module' ) ),
+			'a script that is not enqueued'         => array( array(), array(), array() ),
+			'a script module that is also enqueued' => array( array( 'script' ), array( 'imported-module' ), array( 'imported-module' ) ),
 		);
-		$this->add_script_module_translations( array( 'imported-module' ) );
-
-		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
-
-		$this->assertEmpty( $output );
-	}
-
-	/**
-	 * Tests that print_script_module_translations() outputs the translations of a script module once when it is both
-	 * enqueued and a script module dependency of a script.
-	 *
-	 * @ticket 66591
-	 *
-	 * @covers WP_Script_Modules::print_script_module_translations
-	 * @covers WP_Script_Modules::get_loadable_script_module_ids
-	 */
-	public function test_print_script_module_translations_outputs_once_for_enqueued_module_dependency_of_script() {
-		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js' );
-		$this->script_modules->enqueue( 'imported-module' );
-		wp_enqueue_script(
-			'script',
-			'/script.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => array( 'imported-module' ),
-			)
-		);
-		$this->add_script_module_translations( array( 'imported-module' ) );
-
-		$output = get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
-
-		$this->assertSame( array( 'imported-module' ), $this->get_printed_script_module_ids( $output, 'wp-script-module-translation-data-' ) );
-	}
-
-	/**
-	 * Tests that a missing script module dependency of a script triggers a single _doing_it_wrong() notice, even
-	 * though the import map, the translations and the data all look the script module dependencies up.
-	 *
-	 * @ticket 66591
-	 *
-	 * @covers WP_Script_Modules::get_import_map
-	 * @covers WP_Script_Modules::print_import_map
-	 * @covers WP_Script_Modules::print_script_module_translations
-	 * @covers WP_Script_Modules::print_script_module_data
-	 */
-	public function test_missing_module_dependency_of_script_triggers_doing_it_wrong_once() {
-		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
-
-		$notices = 0;
-		add_action(
-			'doing_it_wrong_run',
-			static function ( $function_name ) use ( &$notices ) {
-				if ( 'WP_Scripts::add_data' === $function_name ) {
-					++$notices;
-				}
-			}
-		);
-		wp_enqueue_script(
-			'script',
-			'/script.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => array( 'does-not-exist' ),
-			)
-		);
-
-		get_echo( array( $this->script_modules, 'print_import_map' ) );
-		get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
-		get_echo( array( $this->script_modules, 'print_script_module_data' ) );
-
-		$this->assertSame( 1, $notices, 'The missing script module dependency should trigger a single notice.' );
 	}
 
 	/**
 	 * Tests that print_script_module_translations() and print_script_module_data() output for the same script
-	 * modules, in the same order: the enqueued ones and the ones in the import map, with dependencies before the
-	 * script modules that depend on them.
+	 * modules, in the same order: the enqueued ones and the ones in the import map.
 	 *
 	 * @ticket 66591
 	 *
@@ -3190,8 +3117,8 @@ HTML;
 	 * @covers WP_Script_Modules::get_loadable_script_module_ids
 	 */
 	public function test_print_script_module_translations_and_data_output_for_the_same_script_modules() {
-		$sorted_loadable_ids = array( 'enqueued-dependency', 'enqueued-module', 'imported-dependency', 'imported-module' );
-		$all_ids             = array_merge( $sorted_loadable_ids, array( 'not-loadable' ) );
+		$loadable_ids = array( 'enqueued-module', 'enqueued-dependency', 'imported-module', 'imported-dependency' );
+		$all_ids      = array_merge( $loadable_ids, array( 'not-loadable' ) );
 
 		$this->script_modules->register( 'enqueued-dependency', '/wp-includes/js/enqueued-dependency.js' );
 		$this->script_modules->register( 'enqueued-module', '/wp-includes/js/enqueued-module.js', array( 'enqueued-dependency' ) );
@@ -3199,16 +3126,8 @@ HTML;
 		$this->script_modules->register( 'imported-dependency', '/wp-includes/js/imported-dependency.js' );
 		$this->script_modules->register( 'imported-module', '/wp-includes/js/imported-module.js', array( 'imported-dependency' ) );
 		$this->script_modules->register( 'not-loadable', '/wp-includes/js/not-loadable.js' );
-		wp_enqueue_script(
-			'script',
-			'/script.js',
-			array(),
-			false,
-			array(
-				'in_footer'           => true,
-				'module_dependencies' => array( 'imported-module' ),
-			)
-		);
+		$this->register_script_with_module_dependencies( array( 'imported-module' ) );
+		wp_enqueue_script( 'script' );
 		$this->add_script_module_translations( $all_ids );
 		foreach ( $all_ids as $id ) {
 			add_filter(
@@ -3229,11 +3148,86 @@ HTML;
 			'wp-script-module-data-'
 		);
 
-		$this->assertSame(
-			$sorted_loadable_ids,
+		$this->assertSameSets(
+			$loadable_ids,
 			$translation_ids,
-			'Translations should be printed for the enqueued script module and the script module that a script depends on, each after its dependency.'
+			'Translations should be printed for the enqueued script module, the script module that a script depends on, and their dependencies.'
 		);
 		$this->assertSame( $translation_ids, $data_ids, 'Data should be printed for the same script modules as translations, in the same order.' );
+	}
+
+	/**
+	 * Tests that print_script_module_translations() and print_script_module_data() output for a script module that
+	 * a script depends on when its dependencies include one that is not registered, or are circular.
+	 *
+	 * The script module is in the import map, so it can still load.
+	 *
+	 * @ticket 66591
+	 *
+	 * @dataProvider data_unregistered_or_circular_dependencies
+	 *
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::print_script_module_data
+	 * @covers WP_Script_Modules::get_loadable_script_module_ids
+	 *
+	 * @param array<string, string[]> $dependencies The dependencies of each script module to register, keyed by
+	 *                                              script module ID.
+	 */
+	public function test_print_script_module_translations_and_data_output_with_unregistered_or_circular_dependencies( array $dependencies ) {
+		$ids = array_keys( $dependencies );
+
+		foreach ( $dependencies as $id => $dependency_ids ) {
+			$this->script_modules->register( $id, "/wp-includes/js/{$id}.js", $dependency_ids );
+			add_filter(
+				"script_module_data_{$id}",
+				static function ( $data ) {
+					$data['foo'] = 'bar';
+					return $data;
+				}
+			);
+		}
+		$this->register_script_with_module_dependencies( array( 'imported-module' ) );
+		wp_enqueue_script( 'script' );
+		$this->add_script_module_translations( $ids );
+
+		$translation_ids = $this->get_printed_script_module_ids(
+			get_echo( array( $this->script_modules, 'print_script_module_translations' ) ),
+			'wp-script-module-translation-data-'
+		);
+		$data_ids        = $this->get_printed_script_module_ids(
+			get_echo( array( $this->script_modules, 'print_script_module_data' ) ),
+			'wp-script-module-data-'
+		);
+
+		$this->assertSameSets( $ids, $translation_ids, 'Translations should be printed for the imported script module and its registered dependency.' );
+		$this->assertSameSets( $ids, $data_ids, 'Data should be printed for the imported script module and its registered dependency.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: array<string, string[]> }>
+	 */
+	public static function data_unregistered_or_circular_dependencies(): array {
+		return array(
+			'a dependency that is not registered' => array(
+				array(
+					'imported-module' => array( 'dependency', 'not-registered' ),
+					'dependency'      => array(),
+				),
+			),
+			'a circular dependency'               => array(
+				array(
+					'imported-module' => array( 'dependency' ),
+					'dependency'      => array( 'imported-module' ),
+				),
+			),
+			'a dependency on itself'              => array(
+				array(
+					'imported-module' => array( 'imported-module', 'dependency' ),
+					'dependency'      => array(),
+				),
+			),
+		);
 	}
 }
