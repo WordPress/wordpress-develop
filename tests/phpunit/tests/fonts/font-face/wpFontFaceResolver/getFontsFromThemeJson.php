@@ -12,6 +12,8 @@
  *
  * @covers WP_Font_Face_Resolver::get_fonts_from_theme_json
  */
+require_once dirname( __DIR__ ) . '/base.php';
+
 class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
 
@@ -247,5 +249,178 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 				'expected_name' => 'DM Sans',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 66429
+	 */
+	public function test_should_trigger_notice_when_theme_font_file_does_not_exist() {
+		switch_theme( static::FONTS_THEME );
+
+		$fonts = array(
+			array(
+				'fontFamily' => 'Missing Font',
+				'slug'       => 'missing-font',
+				'fontFace'   => array(
+					array(
+						'fontFamily' => 'Missing Font',
+						'fontStyle'  => 'normal',
+						'fontWeight' => '400',
+						'src'        => array(
+							'file:./assets/fonts/non-existent-font.woff2',
+						),
+					),
+				),
+			),
+		);
+
+		$replace_fonts = static function ( $theme_json_data ) use ( $fonts ) {
+			$data = $theme_json_data->get_data();
+			$data['settings']['typography']['fontFamilies']['theme'] = $fonts;
+			return new WP_Theme_JSON_Data( $data );
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
+
+		$this->expectNotice();
+		$this->expectNoticeMessage(
+			'WP_Font_Face_Resolver::to_theme_file_uri(): The font file "assets/fonts/non-existent-font.woff2" referenced in theme.json does not exist.'
+		);
+
+		WP_Font_Face_Resolver::get_fonts_from_theme_json();
+	}
+
+	/**
+	 * @ticket 66429
+	 */
+	public function test_should_trigger_notice_when_font_face_is_not_array() {
+		$method = new ReflectionMethod( 'WP_Font_Face_Resolver', 'parse_settings' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$settings = array(
+			'typography' => array(
+				'fontFamilies' => array(
+					'theme' => array(
+						array(
+							'fontFamily' => 'Invalid FontFace',
+							'slug'       => 'invalid-font-face',
+							'fontFace'   => 'invalid-string',
+						),
+					),
+				),
+			),
+		);
+
+		$this->expectNotice();
+		$this->expectNoticeMessage(
+			'WP_Font_Face_Resolver::parse_settings(): The theme.json fontFace definition must be an array.'
+		);
+
+		$actual = $method->invoke( null, $settings );
+		$this->assertSame( array(), $actual, 'Expected fonts array to be empty when fontFace is invalid.' );
+	}
+
+	/**
+	 * @ticket 66429
+	 */
+	public function test_should_trigger_notice_when_font_family_is_missing_for_font_face() {
+		switch_theme( static::FONTS_THEME );
+
+		$fonts = array(
+			array(
+				'slug'     => 'missing-family',
+				'fontFace' => array(
+					array(
+						'src' => array( 'file:./assets/fonts/dm-sans/DMSans-Regular.woff2' ),
+					),
+				),
+			),
+		);
+
+		$replace_fonts = static function ( $theme_json_data ) use ( $fonts ) {
+			$data = $theme_json_data->get_data();
+			$data['settings']['typography']['fontFamilies']['theme'] = $fonts;
+			return new WP_Theme_JSON_Data( $data );
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
+
+		$this->expectNotice();
+		$this->expectNoticeMessage(
+			'WP_Font_Face_Resolver::parse_settings(): A font family definition in theme.json with "fontFace" must have a non-empty string "fontFamily".'
+		);
+
+		$actual = WP_Font_Face_Resolver::get_fonts_from_theme_json();
+		$this->assertSame( array(), $actual, 'Expected fonts array to be empty when fontFamily is missing.' );
+	}
+
+	/**
+	 * @ticket 66429
+	 */
+	public function test_should_trigger_notice_when_font_face_item_is_not_array() {
+		switch_theme( static::FONTS_THEME );
+
+		$fonts = array(
+			array(
+				'fontFamily' => 'Item Not Array',
+				'slug'       => 'item-not-array',
+				'fontFace'   => array(
+					'invalid-item',
+				),
+			),
+		);
+
+		$replace_fonts = static function ( $theme_json_data ) use ( $fonts ) {
+			$data = $theme_json_data->get_data();
+			$data['settings']['typography']['fontFamilies']['theme'] = $fonts;
+			return new WP_Theme_JSON_Data( $data );
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
+
+		$this->expectNotice();
+		$this->expectNoticeMessage(
+			'WP_Font_Face_Resolver::convert_font_face_properties(): Each item in the theme.json fontFace array must be an array of properties.'
+		);
+
+		$actual = WP_Font_Face_Resolver::get_fonts_from_theme_json();
+		$this->assertSame( array(), $actual, 'Expected fonts array to be empty when fontFace item is not an array.' );
+	}
+
+	/**
+	 * @ticket 66429
+	 */
+	public function test_should_trigger_notice_when_font_face_item_missing_src() {
+		switch_theme( static::FONTS_THEME );
+
+		$fonts = array(
+			array(
+				'fontFamily' => 'Missing Src',
+				'slug'       => 'missing-src',
+				'fontFace'   => array(
+					array(
+						'fontStyle'  => 'normal',
+						'fontWeight' => '400',
+					),
+				),
+			),
+		);
+
+		$replace_fonts = static function ( $theme_json_data ) use ( $fonts ) {
+			$data = $theme_json_data->get_data();
+			$data['settings']['typography']['fontFamilies']['theme'] = $fonts;
+			return new WP_Theme_JSON_Data( $data );
+		};
+
+		add_filter( 'wp_theme_json_data_theme', $replace_fonts );
+
+		$this->expectNotice();
+		$this->expectNoticeMessage(
+			'WP_Font_Face_Resolver::convert_font_face_properties(): Font face for "Missing Src" in theme.json is missing the required "src" property.'
+		);
+
+		WP_Font_Face_Resolver::get_fonts_from_theme_json();
 	}
 }

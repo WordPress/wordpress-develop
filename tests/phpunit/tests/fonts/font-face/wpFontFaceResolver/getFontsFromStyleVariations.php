@@ -12,6 +12,8 @@
  *
  * @covers WP_Font_Face_Resolver::get_fonts_from_style_variations
  */
+require_once dirname( __DIR__ ) . '/base.php';
+
 class Tests_Fonts_WPFontFaceResolver_GetFontsFromStyleVariations extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
 
