@@ -528,4 +528,170 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$after = get_post( $post_id );
 		$this->assertSame( '0000-00-00 00:00:00', $after->post_date_gmt );
 	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_string_post_date_is_accepted(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$date_string = '1984-01-11 05:00:00';
+		$result      = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_date' => $date_string ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_string_post_date_gmt_is_accepted(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$date_string = '1984-01-11 05:00:00';
+		$result      = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_date_gmt' => $date_string ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_string_if_not_modified_since_is_accepted(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$struct = array(
+			'post_title'            => 'Updated',
+			'if_not_modified_since' => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_date_post_date_returns_error(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$struct = array( 'post_date' => array( '1984-01-11 05:00:00' ) );
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
+
+	/**
+	 * Ensure a stored modified date that is not a string skips the `if_not_modified_since` check
+	 * instead of causing a fatal error.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_non_string_stored_modified_date_skips_if_not_modified_since(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$cached_post                    = (object) get_object_vars( get_post( $post_id ) );
+		$cached_post->post_modified_gmt = array( 'not a date' );
+		wp_cache_set( $post_id, $cached_post, 'posts' );
+
+		$struct = array(
+			'post_title'            => 'Updated',
+			'if_not_modified_since' => new IXR_Date( time() ),
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
+	}
+
+	/**
+	 * Ensure an `if_not_modified_since` date that cannot be parsed is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_unparseable_if_not_modified_since_returns_error(): void {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+
+		$struct = array(
+			'post_title'            => 'Updated',
+			'if_not_modified_since' => 'not a date',
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+		$this->assertNotSame( 'Updated', get_post( $post_id )->post_title );
+	}
+
+	/**
+	 * Ensure a `post_date` string that cannot be parsed is rejected instead of resetting the date.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_unparseable_post_date_returns_error(): void {
+		$editor_id   = $this->make_user_by_role( 'editor' );
+		$date_string = '2020-05-05 05:05:05';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author'   => $editor_id,
+				'post_status'   => 'publish',
+				'post_date'     => $date_string,
+				'post_date_gmt' => $date_string,
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_date' => 'not a date' ) ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
+
+	/**
+	 * Ensure an empty `post_date_gmt` leaves the existing date unchanged, as it does for `wp.newPost`.
+	 *
+	 * @ticket 66107
+	 */
+	public function test_empty_post_date_gmt_keeps_existing_date(): void {
+		$editor_id   = $this->make_user_by_role( 'editor' );
+		$date_string = '2020-05-05 05:05:05';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_author'   => $editor_id,
+				'post_status'   => 'publish',
+				'post_date'     => $date_string,
+				'post_date_gmt' => $date_string,
+			)
+		);
+
+		$struct = array(
+			'post_title'    => 'Updated',
+			'post_date_gmt' => '0000-00-00 00:00:00',
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
+		$this->assertSame( $date_string, get_post( $post_id )->post_date );
+	}
 }
