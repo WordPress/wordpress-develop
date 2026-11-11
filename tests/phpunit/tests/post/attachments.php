@@ -552,4 +552,40 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
 		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
 	}
+
+	/**
+	 * Tests that false is passed to the filter and returned when no icon matches.
+	 *
+	 * @dataProvider data_wp_mime_type_icon_without_matching_icon
+	 *
+	 * @param int|string $mime MIME type or attachment ID.
+	 */
+	public function test_wp_mime_type_icon_without_matching_icon( $mime ) {
+		// With no icon files available, not even the default icon can match.
+		wp_cache_set( 'icon_files', array() );
+
+		$filtered_icons = array();
+		add_filter(
+			'wp_mime_type_icon',
+			static function ( $icon ) use ( &$filtered_icons ) {
+				$filtered_icons[] = $icon;
+				return $icon;
+			}
+		);
+
+		$this->assertFalse( wp_mime_type_icon( $mime ), 'Expected false to be returned.' );
+		$this->assertSame( array( false ), $filtered_icons, 'Expected false to be passed to the filter.' );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_without_matching_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|string }>
+	 */
+	public static function data_wp_mime_type_icon_without_matching_icon(): array {
+		return array(
+			'nonexistent attachment ID' => array( 0 ),
+			'unknown MIME type'         => array( 'foo/bar' ),
+		);
+	}
 }

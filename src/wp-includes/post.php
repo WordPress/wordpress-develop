@@ -7636,11 +7636,15 @@ function wp_attachment_is_image( $post = null ) {
  *
  * @param string|int $mime          MIME type or attachment ID.
  * @param string     $preferred_ext File format to prefer in return. Default '.png'.
- * @return string|false Icon, false otherwise.
+ * @return string|false Icon URL, or false if no icon was found.
  */
 function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
+	$icon = false;
 	if ( ! is_numeric( $mime ) ) {
-		$icon = wp_cache_get( "mime_type_icon_$mime" );
+		$cached_icon = wp_cache_get( "mime_type_icon_$mime" );
+		if ( is_string( $cached_icon ) ) {
+			$icon = $cached_icon;
+		}
 	}
 
 	// Check if preferred file format variable is present and is a validly formatted file extension.
@@ -7773,8 +7777,9 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string|false $icon    Path to the mime type icon, or false if no icon was found.
-	 * @param string       $mime    Mime type.
+	 * @param string|false $icon    URL of the mime type icon, or false if no icon was found.
+	 * @param string|int   $mime    Mime type, or 0 if an attachment ID was passed for a
+	 *                              nonexistent attachment.
 	 * @param int          $post_id Attachment ID. Will equal 0 if the function passed
 	 *                              the mime type.
 	 */
