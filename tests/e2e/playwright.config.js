@@ -23,10 +23,8 @@ const SERIAL_SPECS = [
 	'gutenberg-plugin.test.js',
 	'plugins.test.js',
 	'themes.test.js',
-	// These delete all posts or media, including other workers' content.
+	// This deletes all posts, including other workers' content.
 	'empty-trash.test.js',
-	'media-library-client-side-upload.test.js',
-	'media-modal-client-side-upload.test.js',
 ];
 
 const config = defineConfig( {
