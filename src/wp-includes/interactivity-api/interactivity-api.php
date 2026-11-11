@@ -83,12 +83,15 @@ function wp_interactivity_config( string $store_namespace, array $config = array
 }
 
 /**
- * Generates a `data-wp-context` directive attribute by encoding a context
+ * Generates a complete `data-wp-context` HTML attribute by encoding a context
  * array.
  *
  * This helper function simplifies the creation of `data-wp-context` directives
- * by providing a way to pass an array of data, which encodes into a JSON string
- * safe for direct use as a HTML attribute value.
+ * by encoding an array of context data as JSON and returning a full HTML
+ * attribute (name and value) that is already escaped and safe to print.
+ *
+ * Do not pass the return value through escaping functions such as
+ * `wp_kses_data()`; the attribute is ready for direct output.
  *
  * Example:
  *
@@ -98,8 +101,9 @@ function wp_interactivity_config( string $store_namespace, array $config = array
  *
  * @param array  $context         The array of context data to encode.
  * @param string $store_namespace Optional. The unique store namespace identifier.
- * @return string A complete `data-wp-context` directive with a JSON encoded value representing the context array and
- *                the store namespace if specified.
+ * @return string A complete `data-wp-context` HTML attribute ready for direct
+ *                output, with a JSON-encoded value representing the context
+ *                array and the store namespace if specified.
  */
 function wp_interactivity_data_wp_context( array $context, string $store_namespace = '' ): string {
 	return 'data-wp-context=\'' .
