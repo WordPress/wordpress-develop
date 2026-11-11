@@ -111,9 +111,7 @@
 						const node = addedNode instanceof Text ? addedNode.parentElement : addedNode;
 
 						if (
-							node instanceof HTMLElement
-							&& test( node.textContent )
-							&& ! isExcludedFromParsing( node )
+							node instanceof HTMLElement && test( node.textContent ) && ! isExcludedFromParsing( node )
 						) {
 							parse( node );
 						}
