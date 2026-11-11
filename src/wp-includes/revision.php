@@ -1024,7 +1024,7 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 	// Add post option exclusively.
 	$lock   = "revision-upgrade-{$post->ID}";
 	$now    = time();
-	$result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, 'off') /* LOCK */", $lock, $now ) );
+	$result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s) /* LOCK */", $lock, $now, WP_Option_Autoload::OFF ) );
 
 	if ( ! $result ) {
 		// If we couldn't get a lock, see how old the previous lock is.
