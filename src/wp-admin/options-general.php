@@ -23,7 +23,7 @@ $parent_file = 'options-general.php';
 $timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 
 $new_admin_email         = get_option( 'new_admin_email' );
-$pending_new_admin_email = $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email;
+$pending_new_admin_email = $new_admin_email && 0 !== strcasecmp( get_option( 'admin_email' ), $new_admin_email );
 
 add_action( 'admin_head', 'options_general_add_js' );
 

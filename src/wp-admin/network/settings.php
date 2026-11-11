@@ -155,7 +155,7 @@ if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] && ! isset( $_GET[
 }
 
 $new_network_admin_email         = get_site_option( 'new_admin_email' );
-$pending_new_network_admin_email = $new_network_admin_email && get_site_option( 'admin_email' ) !== $new_network_admin_email;
+$pending_new_network_admin_email = $new_network_admin_email && 0 !== strcasecmp( get_site_option( 'admin_email' ), $new_network_admin_email );
 ?>
 
 <div class="wrap">
