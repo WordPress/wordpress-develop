@@ -549,35 +549,9 @@ switch ( $action ) {
 						<td>
 							<select name="display_name" id="display_name">
 								<?php
-									$public_display                     = array();
-									$public_display['display_nickname'] = $profile_user->nickname;
-
-								if ( ! is_email( $profile_user->user_login ) ) {
-									$public_display['display_username'] = $profile_user->user_login;
-								}
-
-								if ( ! empty( $profile_user->first_name ) ) {
-									$public_display['display_firstname'] = $profile_user->first_name;
-								}
-
-								if ( ! empty( $profile_user->last_name ) ) {
-									$public_display['display_lastname'] = $profile_user->last_name;
-								}
-
-								if ( ! empty( $profile_user->first_name ) && ! empty( $profile_user->last_name ) ) {
-									$public_display['display_firstlast'] = $profile_user->first_name . ' ' . $profile_user->last_name;
-									$public_display['display_lastfirst'] = $profile_user->last_name . ' ' . $profile_user->first_name;
-								}
-
-								if ( ! in_array( $profile_user->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.
-									$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
-								}
-
-								$public_display = array_map( 'trim', $public_display );
-								$public_display = array_unique( $public_display );
-
-								?>
-								<?php foreach ( $public_display as $id => $item ) : ?>
+								$public_display = wp_get_user_profile_display_name_options( $profile_user );
+								foreach ( $public_display as $item ) :
+									?>
 									<option <?php selected( $profile_user->display_name, $item ); ?>><?php echo esc_html( $item ); ?></option>
 								<?php endforeach; ?>
 							</select>

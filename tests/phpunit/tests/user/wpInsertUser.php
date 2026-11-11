@@ -374,11 +374,74 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_insert_user() preserves existing display_name and nickname on update when omitted.
+	 *
+	 * When integrations call wp_insert_user() to update specific fields (e.g. description),
+	 * omitted display_name and nickname must remain unchanged across successive updates.
+	 *
+	 * @ticket 66446
+	 */
+	public function test_wp_insert_user_preserves_display_name_and_nickname_on_update_when_omitted() {
+		$email   = 'sync.update@example.com';
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => $email,
+				'user_email' => $email,
+				'user_pass'  => 'Password123!',
+			)
+		);
+
+		$initial_user         = get_userdata( $user_id );
+		$initial_display_name = $initial_user->display_name;
+		$initial_nickname     = $initial_user->nickname;
+		$initial_nicename     = $initial_user->user_nicename;
+
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $initial_display_name );
+		$this->assertMatchesRegularExpression( '/^User [0-9a-f]{8}$/', $initial_nickname );
+
+		// First update: change description, omitting name fields.
+		$update_1_id = wp_insert_user(
+			array(
+				'ID'          => $user_id,
+				'user_login'  => $email,
+				'description' => 'First sync update.',
+			)
+		);
+		$this->assertSame( $user_id, $update_1_id );
+
+		$user_after_first_update = get_userdata( $user_id );
+		$this->assertSame( $initial_display_name, $user_after_first_update->display_name, 'display_name should be preserved after first update.' );
+		$this->assertSame( $initial_nickname, $user_after_first_update->nickname, 'nickname should be preserved after first update.' );
+		$this->assertSame( $initial_nicename, $user_after_first_update->user_nicename, 'user_nicename should be preserved after first update.' );
+		$this->assertSame( 'First sync update.', $user_after_first_update->description );
+
+		// Second update: change description again, omitting name fields.
+		$update_2_id = wp_insert_user(
+			array(
+				'ID'          => $user_id,
+				'user_login'  => $email,
+				'description' => 'Second sync update.',
+			)
+		);
+		$this->assertSame( $user_id, $update_2_id );
+
+		$user_after_second_update = get_userdata( $user_id );
+		$this->assertSame( $initial_display_name, $user_after_second_update->display_name, 'display_name should remain unchanged across subsequent updates.' );
+		$this->assertSame( $initial_nickname, $user_after_second_update->nickname, 'nickname should remain unchanged across subsequent updates.' );
+		$this->assertSame( $initial_nicename, $user_after_second_update->user_nicename, 'user_nicename should remain unchanged across subsequent updates.' );
+		$this->assertSame( 'Second sync update.', $user_after_second_update->description );
+	}
+
+	/**
 	 * Tests that user profile public display options omit user_login when it is an email address.
+	 *
+	 * Tests both the initial render and subsequent display options after editing the nickname.
 	 *
 	 * @ticket 66446
 	 */
 	public function test_profile_screen_public_display_options_omits_email_username() {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
 		$email   = 'profile.email@example.com';
 		$user_id = wp_insert_user(
 			array(
@@ -388,28 +451,50 @@ class Tests_User_WpInsertUser extends WP_UnitTestCase {
 			)
 		);
 
-		$profile_user                       = get_userdata( $user_id );
-		$public_display                     = array();
-		$public_display['display_nickname'] = $profile_user->nickname;
+		$profile_user   = get_userdata( $user_id );
+		$public_display = wp_get_user_profile_display_name_options( $profile_user );
 
-		if ( ! is_email( $profile_user->user_login ) ) {
-			$public_display['display_username'] = $profile_user->user_login;
-		}
+		$this->assertNotContains( $email, $public_display, 'Email address must not be present in public display options on initial render.' );
+		$this->assertContains( $profile_user->nickname, $public_display, 'Default anonymous nickname should be present in public display options.' );
 
-		$this->assertArrayNotHasKey( 'display_username', $public_display, 'display_username should be excluded from public display options when login is an email.' );
-		$this->assertContains( $profile_user->nickname, $public_display, 'Nickname should be available in public display options.' );
+		// Update nickname and verify the dropdown updates to include it while still omitting email login.
+		wp_update_user(
+			array(
+				'ID'       => $user_id,
+				'nickname' => 'UpdatedNickname',
+			)
+		);
 
-		// Standard username should include display_username.
-		$std_user_id                     = self::factory()->user->create( array( 'user_login' => 'standardprofile' ) );
-		$std_user                        = get_userdata( $std_user_id );
-		$std_display                     = array();
-		$std_display['display_nickname'] = $std_user->nickname;
+		$updated_user           = get_userdata( $user_id );
+		$updated_public_display = wp_get_user_profile_display_name_options( $updated_user );
 
-		if ( ! is_email( $std_user->user_login ) ) {
-			$std_display['display_username'] = $std_user->user_login;
-		}
+		$this->assertContains( 'UpdatedNickname', $updated_public_display, 'Updated nickname should be available in public display options.' );
+		$this->assertNotContains( $email, $updated_public_display, 'Email address must still be omitted after editing nickname.' );
 
-		$this->assertArrayHasKey( 'display_username', $std_display, 'display_username should be included for standard usernames.' );
+		// Add first and last name to verify full name combinations while still omitting email address.
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'first_name' => 'Jane',
+				'last_name'  => 'Doe',
+			)
+		);
+
+		$named_user           = get_userdata( $user_id );
+		$named_public_display = wp_get_user_profile_display_name_options( $named_user );
+
+		$this->assertContains( 'Jane', $named_public_display, 'First name should be in display options.' );
+		$this->assertContains( 'Doe', $named_public_display, 'Last name should be in display options.' );
+		$this->assertContains( 'Jane Doe', $named_public_display, 'First and last name should be in display options.' );
+		$this->assertContains( 'Doe Jane', $named_public_display, 'Last and first name should be in display options.' );
+		$this->assertNotContains( $email, $named_public_display, 'Email address must not be present when first/last names are populated.' );
+
+		// Standard username should include user_login in public display options.
+		$std_user_id        = self::factory()->user->create( array( 'user_login' => 'standardprofile' ) );
+		$std_user           = get_userdata( $std_user_id );
+		$std_public_display = wp_get_user_profile_display_name_options( $std_user );
+
+		$this->assertContains( 'standardprofile', $std_public_display, 'Standard non-email user_login should be included in display options.' );
 	}
 
 	/**

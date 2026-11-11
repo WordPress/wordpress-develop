@@ -568,6 +568,55 @@ function default_password_nag() {
 }
 
 /**
+ * Computes the public display name options for the user profile screen.
+ *
+ * Excludes the user login from display options when the username is an email address,
+ * preventing email exposure in public author links, feeds, and bylines.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_User|int $user User object or user ID.
+ * @return string[] Array of unique display name choices.
+ */
+function wp_get_user_profile_display_name_options( $user ): array {
+	if ( ! $user instanceof WP_User ) {
+		$user = get_userdata( $user );
+	}
+
+	if ( ! $user ) {
+		return array();
+	}
+
+	$public_display                     = array();
+	$public_display['display_nickname'] = $user->nickname;
+
+	if ( ! is_email( $user->user_login ) ) {
+		$public_display['display_username'] = $user->user_login;
+	}
+
+	if ( ! empty( $user->first_name ) ) {
+		$public_display['display_firstname'] = $user->first_name;
+	}
+
+	if ( ! empty( $user->last_name ) ) {
+		$public_display['display_lastname'] = $user->last_name;
+	}
+
+	if ( ! empty( $user->first_name ) && ! empty( $user->last_name ) ) {
+		$public_display['display_firstlast'] = $user->first_name . ' ' . $user->last_name;
+		$public_display['display_lastfirst'] = $user->last_name . ' ' . $user->first_name;
+	}
+
+	if ( ! in_array( $user->display_name, $public_display, true ) ) {
+		$public_display = array( 'display_displayname' => $user->display_name ) + $public_display;
+	}
+
+	$public_display = array_map( 'trim', $public_display );
+
+	return array_values( array_unique( $public_display ) );
+}
+
+/**
  * Optional SSL preference that can be turned on by hooking to the 'personal_options' action.
  *
  * See the {@see 'personal_options'} action.
