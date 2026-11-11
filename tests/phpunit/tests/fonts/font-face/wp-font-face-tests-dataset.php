@@ -15,7 +15,7 @@ trait WP_Font_Face_Tests_Datasets {
 	 *
 	 * @return array
 	 */
-	public function data_should_print_given_fonts() {
+	public static function data_should_print_given_fonts() {
 		return array(
 			'single truetype format font'    => array(
 				'fonts'    => array(
@@ -236,6 +236,51 @@ CSS
 @font-face{font-family:Piazzolla;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/piazzolla500.ttf') format('truetype');font-stretch:normal;}
 @font-face{font-family:Lobster;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/lobster400.ttf') format('truetype');font-stretch:normal;}
 @font-face{font-family:Lobster;font-style:normal;font-weight:500;font-display:fallback;src:url('https://example.org/fonts/lobster500.ttf') format('truetype');font-stretch:normal;}
+CSS
+				,
+			),
+			'variation settings string'      => array(
+				'fonts'    => array(
+					'Inter' =>
+						array(
+							array(
+								'src'                     =>
+									array(
+										'https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf',
+									),
+								'font-family'             => 'Inter',
+								'font-style'              => 'normal',
+								'font-weight'             => '400',
+								'font-variation-settings' => '"slnt" 0, "wght" 400',
+							),
+						),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf') format('truetype');font-variation-settings:"slnt" 0, "wght" 400;}
+CSS
+				,
+			),
+			'variation settings array'       => array(
+				'fonts'    => array(
+					'Inter' =>
+						array(
+							array(
+								'src'                     =>
+									array(
+										'https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf',
+									),
+								'font-family'             => 'Inter',
+								'font-style'              => 'normal',
+								'font-weight'             => '400',
+								'font-variation-settings' => array(
+									'slnt' => 0,
+									'wght' => 400,
+								),
+							),
+						),
+				),
+				'expected' => <<<CSS
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/inter/Inter-VariableFont_slnt,wght.ttf') format('truetype');font-variation-settings:"slnt" 0, "wght" 400;}
 CSS
 				,
 			),
