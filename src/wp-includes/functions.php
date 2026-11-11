@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require ABSPATH . WPINC . '/class-wp-option-autoload.php';
 require ABSPATH . WPINC . '/option.php';
 
 /**
