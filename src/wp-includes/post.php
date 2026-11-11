@@ -7782,7 +7782,7 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	 * @param string|int   $mime    Mime type, or 0 if an attachment ID was passed for a
 	 *                              nonexistent attachment.
 	 * @param int          $post_id Attachment ID. Will equal 0 if the function passed
-	 *                              the mime type.
+	 *                              the mime type or the attachment does not exist.
 	 */
 	return apply_filters( 'wp_mime_type_icon', $icon, $mime, $post_id );
 }
