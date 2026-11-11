@@ -93,6 +93,7 @@ class Tests_wp_ajax_send_attachment_to_editor extends WP_Ajax_UnitTestCase {
 
 		// Verify that the attachment was attached to the post.
 		$attachment = get_post( self::$attachment_id );
+		// Keep assertEquals() because WP_Post::$post_parent is a numeric string from the database while the fixture ID is an integer.
 		$this->assertEquals( self::$post_id, $attachment->post_parent, 'Attachment should be attached to the post' );
 	}
 
