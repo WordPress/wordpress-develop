@@ -1935,6 +1935,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 								'show_option_none'  => __( 'Main Page (no parent)' ),
 								'option_none_value' => 0,
 								'sort_column'       => 'menu_order, post_title',
+								'fields'            => array( 'post_author', 'post_date', 'post_date_gmt', 'post_title', 'comment_status', 'ping_status', 'post_password', 'post_name', 'post_modified', 'post_modified_gmt', 'guid', 'menu_order', 'post_mime_type', 'comment_count' ),
 							);
 
 							if ( $bulk ) {
