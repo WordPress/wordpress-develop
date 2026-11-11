@@ -384,8 +384,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 		$taxonomy = $this->screen->taxonomy;
 
 		$default_term_label = '';
-		if ( $tag->term_id === (int) get_option( 'default_' . $taxonomy )
-			|| $tag->term_id === (int) get_option( 'default_term_' . $taxonomy )
+		if ( (int) get_option( 'default_' . $taxonomy ) === $tag->term_id
+			|| (int) get_option( 'default_term_' . $taxonomy ) === $tag->term_id
 		) {
 			$default_term_label = ' &mdash; <span class="taxonomy-default-label">' . __( 'Default' ) . '</span>';
 		}
