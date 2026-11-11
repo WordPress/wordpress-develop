@@ -3306,8 +3306,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
-				$type = false;
-				$ext  = false;
+				/*
+				 * Audio stored in an MP4/ISO-BMFF container (such as .m4a and .m4b, and
+				 * some .mp3 files produced by mobile recorders) is frequently detected as
+				 * video/mp4. Allow these known audio-in-video-container confusions rather
+				 * than rejecting a legitimate audio file whose major types don't match.
+				 * Also allow `video/3gpp`, as a RFC 3839 specification-compliant container
+				 * for audio-only content.
+				 */
+				$cross_container_types = array(
+					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
+				);
+
+				if ( empty( $cross_container_types[ $type ] )
+					|| ! in_array( $real_mime, $cross_container_types[ $type ], true )
+				) {
+					$type = false;
+					$ext  = false;
+				}
 			}
 		} elseif ( 'text/plain' === $real_mime ) {
 			// A few common file types are occasionally detected as text/plain; allow those.
@@ -9569,6 +9585,8 @@ function wp_verify_fast_hash(
 /**
  * Sends an email to the user when a new application password is created.
  *
+ * Hooked to the {@see 'wp_create_application_password'} action.
+ *
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
@@ -9598,9 +9616,19 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool    $send  Whether to send the email notification.
-	 * @param WP_User $user  The user object.
-	 * @param array   $new_item The application password details.
+	 * @param bool    $send     Whether to send the email notification.
+	 * @param WP_User $user     The user object.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
 
@@ -9661,7 +9689,17 @@ All at ###SITENAME###
 	 *     @type string $headers Headers.
 	 * }
 	 * @param WP_User $user     The user object.
-	 * @param array   $new_item The application password details.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 

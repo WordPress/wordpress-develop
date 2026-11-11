@@ -439,16 +439,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
 		$imagick_image_editor->load();
 
-		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
+		$color_top_left = $this->get_property_value( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 
 		$imagick_image_editor->rotate( 180 );
 
-		$this->assertSame( $color_top_left, $property->getValue( $imagick_image_editor )->getImagePixelColor( 99, 99 )->getColor() );
+		$this->assertSame( $color_top_left, $this->get_property_value( $imagick_image_editor )->getImagePixelColor( 99, 99 )->getColor() );
 	}
 
 	/**
@@ -460,16 +455,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
 		$imagick_image_editor->load();
 
-		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$property->setAccessible( true );
-		}
-
-		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
+		$color_top_left = $this->get_property_value( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 
 		$imagick_image_editor->flip( true, false );
 
-		$this->assertSame( $color_top_left, $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 99 )->getColor() );
+		$this->assertSame( $color_top_left, $this->get_property_value( $imagick_image_editor )->getImagePixelColor( 0, 99 )->getColor() );
 	}
 
 	/**

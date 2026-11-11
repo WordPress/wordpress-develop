@@ -1455,7 +1455,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{array<int, mixed>}>
 	 */
-	public function data_invalid_arguments(): array {
+	public static function data_invalid_arguments(): array {
 		return array(
 			'nulls'                              => array( array( null, null, false, null ) ),
 			'strings'                            => array( array( 'random', 'random', 'yes', 'random' ) ),
