@@ -1958,6 +1958,70 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 24142
+	 * @dataProvider data_get_items_with_zero_page_size
+	 *
+	 * @param string          $method         HTTP method to use.
+	 * @param int|string|bool $posts_per_page Filtered page size.
+	 * @param string          $hook           Hook used to set the page size.
+	 * @param int             $page           Page number to request.
+	 */
+	public function test_get_items_with_zero_page_size( $method, $posts_per_page, $hook, $page ) {
+		if ( 'pre_get_posts' === $hook ) {
+			add_action(
+				$hook,
+				static function ( $query ) use ( $posts_per_page ) {
+					$query->set( 'posts_per_page', $posts_per_page );
+				}
+			);
+		} else {
+			add_filter(
+				$hook,
+				static function ( $args ) use ( $posts_per_page ) {
+					$args['posts_per_page'] = $posts_per_page;
+					return $args;
+				}
+			);
+		}
+
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
+		$request->set_param( 'page', $page );
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
+		$this->assertSame( 0, $headers['X-WP-Total'] );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'] );
+		$this->assertArrayNotHasKey( 'Link', $headers );
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function data_get_items_with_zero_page_size() {
+		$data = array();
+
+		$page_sizes = array(
+			'zero'        => 0,
+			'false'       => false,
+			'string zero' => '0',
+		);
+
+		foreach ( array( 'GET', 'HEAD' ) as $method ) {
+			foreach ( $page_sizes as $label => $posts_per_page ) {
+				foreach ( array( 'rest_post_query', 'pre_get_posts' ) as $hook ) {
+					foreach ( array( 1, 2 ) as $page ) {
+						$data[ "$method with $label via $hook on page $page" ] = array( $method, $posts_per_page, $hook, $page );
+					}
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
 	 *
 	 * @return array
@@ -2085,11 +2149,27 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $private_post_id, $data[0]['id'] );
 	}
 
-	public function test_get_items_invalid_per_page() {
+	/**
+	 * @ticket 24142
+	 * @dataProvider data_get_items_invalid_per_page
+	 *
+	 * @param int $per_page Invalid page size.
+	 */
+	public function test_get_items_invalid_per_page( $per_page ) {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_query_params( array( 'per_page' => -1 ) );
+		$request->set_query_params( array( 'per_page' => $per_page ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function data_get_items_invalid_per_page() {
+		return array(
+			'negative' => array( -1 ),
+			'zero'     => array( 0 ),
+		);
 	}
 
 	/**
