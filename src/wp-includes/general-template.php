@@ -2452,16 +2452,16 @@ function wp_get_archives( $args = '' ) {
 			$start_of_week = get_option( 'start_of_week' );
 			$date_format   = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
-				if ( $result->week !== $arc_w_last ) {
+				if ( $result->yr . '-' . $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
-					$arc_w_last     = $result->week;
+					$arc_w_last     = $result->yr . '-' . $result->week;
 					$arc_week       = get_weekstartend( $result->yyyymmdd, $start_of_week );
 					$arc_week_start = date_i18n( $date_format, $arc_week['start'] );
 					$arc_week_end   = date_i18n( $date_format, $arc_week['end'] );
 					$url            = add_query_arg(
 						array(
-							'm' => $arc_year,
-							'w' => $result->week,
+							'year' => $arc_year,
+							'w'    => $result->week,
 						),
 						home_url( '/' )
 					);
