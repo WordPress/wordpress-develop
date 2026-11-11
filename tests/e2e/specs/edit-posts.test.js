@@ -16,7 +16,7 @@ test.describe( 'Edit Posts', () => {
 		);
 	}
 
-	test( 'displays a message in the posts table when no posts are present',async ( {
+	test( 'displays a message in the posts table when a search finds no posts',async ( {
 		admin,
 		page,
 	} ) => {
