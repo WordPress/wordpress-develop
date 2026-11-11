@@ -2984,6 +2984,35 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * @ticket 66652
+	 *
+	 * @covers WP_REST_Posts_Controller::check_template
+	 */
+	public function test_create_item_with_non_string_template() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$request->set_body_params( array( 'template' => array( '' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertSame( 'template is not of type string.', $response->get_data()['data']['params']['template'] );
+	}
+
+	/**
+	 * @ticket 66652
+	 *
+	 * @covers WP_REST_Posts_Controller::check_template
+	 */
+	public function test_update_item_with_non_string_template() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( array( 'template' => array( 'post-my-test-template.php' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
 	 * @ticket 38877
 	 */
 	public function test_create_item_with_template_none() {

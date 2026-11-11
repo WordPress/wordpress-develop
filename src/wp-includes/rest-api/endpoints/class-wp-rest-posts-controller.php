@@ -1643,6 +1643,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return true;
 		}
 
+		$valid = rest_validate_request_arg( $template, $request, 'template' );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
 		if ( $request['id'] ) {
 			$post             = get_post( $request['id'] );
 			$current_template = get_page_template_slug( $request['id'] );
