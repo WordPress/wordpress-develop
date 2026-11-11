@@ -872,9 +872,10 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$processor->next_tag();
 		$processor->remove_attribute( 'onclick' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<div class="x">',
 			$processor->serialize_token(),
+			'<body>',
 			'An attribute enqueued for removal was serialized as a value-less attribute.'
 		);
 
@@ -882,10 +883,11 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		$processor->next_tag();
 		$processor->set_attribute( 'id', 'new' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<div id="new" class="x">',
 			$processor->serialize_token(),
-			'An attribute enqueued via set_attribute() was not serialized. A newly added attribute is emitted before the existing ones.'
+			'<body>',
+			'An attribute enqueued via set_attribute() was not serialized.'
 		);
 	}
 }

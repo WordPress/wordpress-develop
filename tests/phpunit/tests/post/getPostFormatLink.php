@@ -55,6 +55,8 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 * @param string $format Post format slug.
 	 */
 	public function test_get_post_format_link_with_plain_permalinks( $format ) {
+		$this->set_permalink_structure( '' );
+
 		$expected = home_url( '?post_format=' . $format );
 		$this->assertSame( $expected, get_post_format_link( $format ) );
 	}
@@ -69,7 +71,6 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 * @param string $format Post format slug.
 	 */
 	public function test_get_post_format_link_with_pretty_permalinks( $format ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		add_permastruct( 'post_format', 'type/%post_format%' );
 
 		$expected = home_url( '/type/' . $format . '/' );
@@ -86,6 +87,8 @@ class Tests_Post_GetPostFormatLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_post_format_link_custom_format_term() {
+		$this->set_permalink_structure( '' );
+
 		wp_insert_term(
 			'post-format-custom',
 			'post_format',

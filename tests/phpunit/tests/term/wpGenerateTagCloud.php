@@ -5,12 +5,6 @@
 class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	protected $terms = array();
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Testing when passed $tags array is empty
 	 *
