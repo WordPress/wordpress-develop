@@ -57,7 +57,7 @@ if ( ! current_user_can( $capability ) ) {
 // Handle admin email change requests.
 if ( ! empty( $_GET['adminhash'] ) ) {
 	$new_admin_details = get_option( 'adminhash' );
-	$redirect          = 'options-general.php?updated=false';
+	$redirect          = add_query_arg( array( 'updated' => 'false' ), 'options-general.php' );
 
 	if ( is_array( $new_admin_details )
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
@@ -66,7 +66,13 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
-		$redirect = 'options-general.php?updated=true';
+		$redirect = add_query_arg(
+			array(
+				'updated'             => 'true',
+				'admin_email_updated' => 'true',
+			),
+			'options-general.php',
+		);
 	}
 
 	wp_redirect( admin_url( $redirect ) );
@@ -431,6 +437,10 @@ foreach ( (array) $options as $option ) :
 		&& str_ends_with( $option->option_name, '_api_key' )
 	) {
 		// Mask connector API keys and prevent updates from this screen.
+		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$disabled = true;
+	} elseif ( WP_Secrets_Key_Manager::ROOT_KEY_OPTION === $option->option_name ) {
+		// Replacing the root key makes every stored secret unreadable.
 		$value    = _wp_connectors_mask_api_key( $option->option_value );
 		$disabled = true;
 	} else {

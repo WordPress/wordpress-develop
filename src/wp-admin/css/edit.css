@@ -23,7 +23,6 @@
 	overflow: hidden;
 }
 
-#save-action .spinner,
 #show-comments a {
 	float: left;
 }
@@ -71,6 +70,7 @@
 	color: #646970;
 	position: absolute;
 	font-size: 1.7em;
+	line-height: 1;
 	padding: 10px;
 	pointer-events: none;
 }

@@ -208,7 +208,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ 0: mixed }>
 	 */
-	public function data_non_array_stored_metadata_values(): array {
+	public static function data_non_array_stored_metadata_values(): array {
 		return array(
 			'string'  => array( 'not-an-array' ),
 			'integer' => array( 1 ),
@@ -222,7 +222,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ 0: mixed }>
 	 */
-	public function data_non_array_sizes_values(): array {
+	public static function data_non_array_sizes_values(): array {
 		return array(
 			'null'          => array( null ),
 			'empty string'  => array( '' ),
@@ -237,7 +237,7 @@ class Tests_Post_WpGetAttachmentMetadata extends WP_UnitTestCase {
 	 *
 	 * @return array<non-empty-string, array{ 0: mixed }>
 	 */
-	public function data_non_array_filter_return_values(): array {
+	public static function data_non_array_filter_return_values(): array {
 		return array(
 			'null'          => array( null ),
 			'empty string'  => array( '' ),

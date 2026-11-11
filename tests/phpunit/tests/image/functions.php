@@ -1,5 +1,7 @@
 <?php
 
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+
 /**
  * @group image
  * @group media
@@ -27,12 +29,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+
 	/**
 	 * Gets the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
-	private function get_image_editor_engine_classes() {
+	private static function get_image_editor_engine_classes() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -50,8 +53,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_image_editor_engine_classes() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
+	public static function data_image_editor_engine_classes() {
+		return self::text_array_to_dataprovider( self::get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -92,7 +95,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_positive() {
+	public static function data_file_is_valid_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -117,7 +120,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'avif-transparent.avif',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -140,7 +143,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_negative() {
+	public static function data_file_is_valid_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -148,7 +151,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.sgi',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -170,7 +173,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_positive() {
+	public static function data_file_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -201,7 +204,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'avif-transparent.avif';
 		}
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -223,7 +226,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_negative() {
+	public static function data_file_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -240,7 +243,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.heic',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -314,8 +317,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_wp_save_image_file() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -435,7 +438,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+	public static function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
 		return array(
 			'true'  => array(
 				'callback' => '__return_true',
@@ -568,8 +571,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_inferred_mime_types_when_saving_an_image() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_inferred_mime_types_when_saving_an_image() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -617,7 +620,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
 		$editor = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 	}
 
 	/**
@@ -635,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor = new $class_name( DIR_TESTDATA );
 		$loaded = $editor->load();
 
-		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertWPError( $loaded, 'Loading a directory did not result in a WP_Error.' );
 		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
 	}
 
@@ -667,25 +670,29 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_crop_image
-	 * @group external-http
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+		WP_Test_Stream::$data['s.w.org']['/screenshots/3.9/dashboard.png'] = file_get_contents( DIR_TESTDATA . '/images/canola.jpg' );
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		try {
+			$file = wp_crop_image(
+				'https://s.w.org/screenshots/3.9/dashboard.png',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100,
+				false,
+				DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+			WP_Test_Stream::$data = array();
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
@@ -713,7 +720,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 	}
 
 	/**
@@ -721,16 +728,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
-		$file = wp_crop_image(
-			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+
+		try {
+			$file = wp_crop_image(
+				'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+		}
+
+		$this->assertWPError( $file );
+		$this->assertSame( 'error_loading_image', $file->get_error_code() );
 	}
 
 	/**
@@ -756,7 +772,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 
 		WP_Image_Editor_Mock::$save_return = array();
 	}
@@ -1083,7 +1099,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_exif_frac2dec() {
+	public static function data_wp_exif_frac2dec() {
 		return array(
 			'invalid input: null'              => array(
 				'fraction' => null,
@@ -1186,5 +1202,284 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'expect'   => 2,
 			),
 		);
+	}
+
+	/**
+	 * Tests that _flip_image_resource() mirrors every pixel for each flip mode.
+	 *
+	 * A small non-square image with a distinct color per pixel is used so that
+	 * mixed up axes, off-by-one shifts and duplicated edges are all detected.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
+			}
+		}
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( is_gd_image( $flipped ), 'A GD image should be returned.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Data provider for test_flip_image_resource().
+	 *
+	 * @return array[]
+	 */
+	public static function data_flip_image_resource() {
+		return array(
+			'no flip'         => array( false, false ),
+			'vertical flip'   => array( true, false ),
+			'horizontal flip' => array( false, true ),
+			'both'            => array( true, true ),
+		);
+	}
+
+	/**
+	 * Tests that _flip_image_resource() returns a truecolor image for a palette image.
+	 *
+	 * The previous implementation always copied into a new truecolor image.
+	 * A small palette image with a distinct color per pixel is used, so every
+	 * pixel can be checked at its mirrored position.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_converts_palette_image_to_truecolor( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreate( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$rgb = $color( $x, $y );
+				imagesetpixel( $image, $x, $y, imagecolorallocate( $image, ( $rgb >> 16 ) & 0xFF, ( $rgb >> 8 ) & 0xFF, $rgb & 0xFF ) );
+			}
+		}
+
+		$this->assertFalse( imageistruecolor( $image ), 'The test image should be a palette image.' );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Tests that _flip_image_resource() returns an image that keeps its alpha channel when saved as PNG.
+	 *
+	 * The previous implementation always returned a new image with alpha saving
+	 * enabled, even if the input had it disabled and no axis was flipped.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_enables_alpha_saving( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// A single half-transparent pixel, so its position does not change when flipped.
+		$image = imagecreatetruecolor( 1, 1 );
+		imagealphablending( $image, false );
+		imagesavealpha( $image, false );
+		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 200, 100, 50, 64 ) );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flip-image-resource-alpha.png' );
+		imagepng( $flipped, $file );
+		$reloaded = imagecreatefrompng( $file );
+		unlink( $file );
+
+		$this->assertSame( 64, ( imagecolorat( $reloaded, 0, 0 ) >> 24 ) & 0x7F, 'The alpha channel should be kept when saving as PNG.' );
+	}
+
+	/**
+	 * Tests that _flip_image_resource() returns an image with alpha blending disabled.
+	 *
+	 * The previous implementation always returned a new image with alpha blending
+	 * disabled, even if the input had it enabled and no axis was flipped.
+	 *
+	 * Alpha blending only affects drawing onto the image, so it is detected by
+	 * drawing a fully transparent pixel: with blending disabled, it replaces the
+	 * existing pixel instead of being blended into it.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_disables_alpha_blending( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// New truecolor images have alpha blending enabled.
+		$image = imagecreatetruecolor( 3, 2 );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		imagesetpixel( $flipped, 0, 0, imagecolorallocatealpha( $flipped, 0, 0, 0, 127 ) );
+
+		$this->assertSame( 127, ( imagecolorat( $flipped, 0, 0 ) >> 24 ) & 0x7F, 'Alpha blending should be disabled after flipping.' );
+	}
+
+	/**
+	 * Tests that _flip_image_resource() resets the resolution and interlace setting to GD's defaults.
+	 *
+	 * The previous implementation always copied into a new image, which starts
+	 * at 96 DPI with interlacing disabled, like _rotate_image_resource() and
+	 * _crop_image_resource().
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_resets_resolution_and_interlace( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$image = imagecreatetruecolor( 3, 2 );
+		imageresolution( $image, 300, 150 );
+		imageinterlace( $image, true );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
+		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
+	}
+}
+
+/**
+ * Mock stream wrapper for simulating HTTP/HTTPS image requests.
+ */
+class WP_Test_Stream_Http_Mock extends WP_Test_Stream {
+
+	/**
+	 * Opens a URL. Fails if no fixture data has been registered for the path.
+	 *
+	 * @param string $path        URL to open.
+	 * @param string $mode        Mode used to open the file.
+	 * @param int    $options     Options.
+	 * @param string $opened_path Opened path.
+	 * @return bool True on success, false if file does not exist.
+	 */
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		$components = array_merge(
+			array(
+				'host' => '',
+				'path' => '',
+			),
+			parse_url( $path )
+		);
+		$bucket     = $components['host'];
+		$file       = $components['path'] ? $components['path'] : '/';
+
+		if ( ! isset( self::$data[ $bucket ][ $file ] ) ) {
+			return false;
+		}
+
+		return parent::stream_open( $path, $mode, $options, $opened_path );
+	}
+
+	/**
+	 * Simulates url_stat() for URLs. Real HTTP/HTTPS URLs return false from url_stat()/is_file().
+	 *
+	 * @param string $path  URL.
+	 * @param int    $flags Flags.
+	 * @return false Always false for remote URLs.
+	 */
+	public function url_stat( $path, $flags ) {
+		return false;
 	}
 }
