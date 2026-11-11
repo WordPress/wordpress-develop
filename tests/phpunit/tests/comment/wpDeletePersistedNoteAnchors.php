@@ -67,9 +67,10 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 		$value = _wp_sanitize_note_anchor(
 			array(
 				array(
-					'path'    => array( 0, 2 ),
+					'path'    => array( 0, '2' ),
 					'content' => "<!-- wp:paragraph {\"metadata\":{\"noteId\":[3]}} -->\n<p><mark class=\"wp-note\" data-id=\"new\">Hi</mark><script>alert(1)</script></p>\n<!-- /wp:paragraph -->",
 				),
+				'not an anchor',
 			)
 		);
 
