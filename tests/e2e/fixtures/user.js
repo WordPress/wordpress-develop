@@ -43,15 +43,19 @@ async function findUserId( requestUtils, username ) {
 }
 
 async function deleteUser( requestUtils, id ) {
-	// User deletion only trashes posts; permanently delete this user's Quick Draft auto-drafts first.
-	const drafts = await requestUtils.rest( {
+	// User deletion only trashes posts, so permanently delete them first. `any` skips `trash` and `auto-draft`.
+	const posts = await requestUtils.rest( {
 		path: '/wp/v2/posts',
-		params: { author: id, status: 'auto-draft', per_page: 100 },
+		params: {
+			author: id,
+			status: 'any,trash,auto-draft',
+			per_page: 100,
+		},
 	} );
-	for ( const draft of drafts ) {
+	for ( const post of posts ) {
 		await requestUtils.rest( {
 			method: 'DELETE',
-			path: `/wp/v2/posts/${ draft.id }`,
+			path: `/wp/v2/posts/${ post.id }`,
 			params: { force: true },
 		} );
 	}

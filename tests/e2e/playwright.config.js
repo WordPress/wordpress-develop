@@ -24,10 +24,7 @@ const SERIAL_SPECS = [
 	'plugins.test.js',
 	'themes.test.js',
 	// These delete all posts or media, including other workers' content.
-	'cache-control-headers-directives.test.js',
-	'dashboard.test.js',
-	'edit-posts.test.js',
-	'empty-trash-restore-trashed-posts.test.js',
+	'empty-trash.test.js',
 	'media-library-client-side-upload.test.js',
 	'media-modal-client-side-upload.test.js',
 	'media-new-client-side-upload.test.js',
