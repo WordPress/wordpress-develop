@@ -1846,16 +1846,16 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *
  * @since 2.3.0
  *
- * @param string $field    Term field to sanitize.
- * @param string $value    Search for this term value.
- * @param int    $term_id  Term ID.
- * @param string $taxonomy Taxonomy name.
- * @param string $context  Context in which to sanitize the term field.
- *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                         'attribute', or 'js'.
+ * @param string     $field    Term field to sanitize.
+ * @param string|int $value    Search for this term value.
+ * @param int        $term_id  Term ID.
+ * @param string     $taxonomy Taxonomy name.
+ * @param string     $context  Context in which to sanitize the term field.
+ *                             Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                             'attribute', or 'js'.
  * @return mixed Sanitized field.
  *
- * @phpstan-template T of string
+ * @phpstan-template T of string|int
  * @phpstan-param T $value
  * @phpstan-return (
  *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
