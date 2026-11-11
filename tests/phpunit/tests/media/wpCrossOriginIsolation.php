@@ -89,6 +89,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		}
 
 		$GLOBALS['current_screen'] = null;
+		unset( $GLOBALS['_wp_cross_origin_isolated'] );
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
