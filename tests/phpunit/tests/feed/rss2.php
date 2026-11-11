@@ -77,7 +77,6 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// This seems to break something.
 		update_option( 'use_smilies', false );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		create_initial_taxonomies();
 	}
 
@@ -243,9 +242,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		foreach ( $items as $key => $item ) {
 
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
@@ -331,9 +331,10 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
 			// Get post for comparison.
-			$guid = xml_find( $items[ $key ]['child'], 'guid' );
-			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$guid    = xml_find( $items[ $key ]['child'], 'guid' );
+			$post_id = url_to_postid( $guid[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
@@ -539,7 +540,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 
-	public function data_get_feed_build_date() {
+	public static function data_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),

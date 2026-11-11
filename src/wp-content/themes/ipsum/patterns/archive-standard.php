@@ -5,15 +5,15 @@
  * Categories: posts
  * Block Types: core/query
  * Viewport width: 1280
- * Description: Featured image, title, meta, and an excerpt with a Read more link — the classic listing.
+ * Description: The classic listing. Each post shows its featured image, title, meta, and an excerpt with a Read more link.
  *
  * @package Ipsum
  * @since Ipsum 1.0
  */
 
 ?>
-<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"categories":["posts"],"name":"<?php echo esc_html_x( 'Archive Standard', 'Name of the Archive Standard query', 'ipsum' ); ?>"},"align":"full","layout":{"type":"default"}} -->
-<div class="wp-block-query alignfull"><!-- wp:post-template {"className":"hover-together","style":{"spacing":{"blockGap":"var:preset|spacing|70"}},"layout":{"type":"default"}} -->
+<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"name":"<?php echo esc_html_x( 'Archive Standard', 'Name of the Archive Standard query', 'ipsum' ); ?>"},"align":"full","layout":{"type":"default"}} -->
+<div class="wp-block-query alignfull"><!-- wp:post-template {"className":"is-style-hover-together","style":{"spacing":{"blockGap":"var:preset|spacing|70"}},"layout":{"type":"default"}} -->
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Post Template Wrapper', 'Name of the group wrapping each post in a list', 'ipsum' ); ?>"},"style":{"spacing":{"margin":{"bottom":"var:preset|spacing|60"},"padding":{"bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
 <div class="wp-block-group" style="margin-bottom:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)"><!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Featured Image Wrapper', 'Name of the group wrapping the featured image', 'ipsum' ); ?>"},"layout":{"type":"default"}} -->
 <div class="wp-block-group"><!-- wp:post-featured-image {"isLink":true,"sizeSlug":"large","style":{"spacing":{"padding":{"bottom":"var:preset|spacing|20"}}}} /--></div>
@@ -23,10 +23,10 @@
 <div class="wp-block-group"><!-- wp:post-title {"isLink":true,"fontSize":"2-x-large"} /-->
 
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Date and Categories', 'Name of the group holding the post date and categories', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
-<div class="wp-block-group"><!-- wp:post-date {"isLink":true} /-->
+<div class="wp-block-group"><!-- wp:post-date /-->
 
-<!-- wp:paragraph {"metadata":{"name":"·"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
-<p class="has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( '·', 'ipsum' ); ?></p>
+<!-- wp:paragraph {"metadata":{"name":"<?php echo esc_html_x( 'Meta Separator', 'Name of the paragraph separating post meta items', 'ipsum' ); ?>"},"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"small"} -->
+<p class="has-small-font-size" style="font-style:normal;font-weight:600"><span aria-hidden="true"><?php esc_html_e( '·', 'ipsum' ); ?></span></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:post-terms {"term":"category"} /--></div>
@@ -36,7 +36,7 @@
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Post Template Copy', 'Name of the group holding the post excerpt and read more link', 'ipsum' ); ?>"},"layout":{"type":"constrained","justifyContent":"left"}} -->
 <div class="wp-block-group"><!-- wp:post-excerpt {"showMoreOnNewLine":false} /-->
 
-<!-- wp:read-more {"content":"<?php esc_attr_e( 'Read more ›', 'ipsum' ); ?>"} /--></div>
+<!-- wp:read-more {"content":"<?php esc_attr_e( 'Read more', 'ipsum' ); ?>\u003cspan aria-hidden=\u0022true\u0022\u003e <?php esc_attr_e( '›', 'ipsum' ); ?>\u003c/span\u003e"} /--></div>
 <!-- /wp:group --></div>
 <!-- /wp:group -->
 <!-- /wp:post-template -->
