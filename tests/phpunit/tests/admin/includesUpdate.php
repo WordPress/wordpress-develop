@@ -31,6 +31,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		delete_site_transient( 'update_themes' );
 		remove_all_filters( 'all_plugins' );
 		remove_all_filters( 'pre_site_transient_update_plugins' );
+		wp_cache_delete( 'plugins', 'plugins' );
 
 		parent::tear_down();
 	}
@@ -621,5 +622,123 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 				array( 'theme' ),
 			),
 		);
+	}
+
+	/**
+	 * Ensure that a plugin translation update is named after the plugin with that slug in
+	 * the plugin update data, not after a plugin whose main file has the same name.
+	 *
+	 * @ticket 66663
+	 */
+	public function test_wp_get_translation_update_plugin_names_prefers_slugs_from_plugin_update_data() {
+		// get_plugins() reads installed plugins from this cache entry.
+		wp_cache_set(
+			'plugins',
+			array(
+				'' => array(
+					'bar/bar.php'  => array(
+						'Name' => 'Bar',
+					),
+					'zeta/bar.php' => array(
+						'Name' => 'Zeta',
+					),
+				),
+			),
+			'plugins'
+		);
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'no_update' => array(
+					'bar/bar.php'  => (object) array(
+						'slug' => 'bar',
+					),
+					'zeta/bar.php' => (object) array(
+						'slug' => 'zeta',
+					),
+				),
+			)
+		);
+
+		$plugin_names = wp_get_translation_update_plugin_names();
+
+		$this->assertSame( 'Bar', $plugin_names['bar'], 'The slug from the plugin update data should name the plugin that has it.' );
+		$this->assertSame( 'Zeta', $plugin_names['zeta'], 'The other plugin should keep its own slug.' );
+	}
+
+	/**
+	 * Ensure that a plugin directory name takes precedence over another plugin's main file name.
+	 *
+	 * @ticket 66663
+	 */
+	public function test_wp_get_translation_update_plugin_names_prefers_directories_over_main_file_names() {
+		// get_plugins() reads installed plugins from this cache entry.
+		wp_cache_set(
+			'plugins',
+			array(
+				'' => array(
+					'bar/plugin.php' => array(
+						'Name' => 'Bar',
+					),
+					'zeta/bar.php'   => array(
+						'Name' => 'Zeta',
+					),
+				),
+			),
+			'plugins'
+		);
+
+		$this->assertSame(
+			'Bar',
+			wp_get_translation_update_name(
+				(object) array(
+					'type' => 'plugin',
+					'slug' => 'bar',
+				)
+			),
+			'The plugin in the bar directory should name the update for the bar slug.'
+		);
+	}
+
+	/**
+	 * Ensure that processing the selection again with only the selected updates, as the
+	 * Updates screen does after asking for filesystem credentials, keeps the deferrals
+	 * made by the first request.
+	 *
+	 * @ticket 66663
+	 */
+	public function test_wp_process_translation_update_selection_after_filesystem_credentials_keeps_deferrals() {
+		$updates = array();
+
+		foreach ( array( 'first-plugin', 'second-plugin' ) as $slug ) {
+			$updates[ $slug ] = (object) array(
+				'type'     => 'plugin',
+				'slug'     => $slug,
+				'language' => 'de_DE',
+				'version'  => '1.0.0',
+			);
+		}
+
+		set_site_transient(
+			'update_plugins',
+			(object) array(
+				'translations' => array_map( 'get_object_vars', array_values( $updates ) ),
+			)
+		);
+
+		$first_id  = wp_get_translation_update_id( $updates['first-plugin'] );
+		$second_id = wp_get_translation_update_id( $updates['second-plugin'] );
+
+		// The Updates screen form, with only the first update selected.
+		$selected = wp_process_translation_update_selection( array( $first_id, $second_id ), array( $first_id ) );
+
+		$this->assertSame( array( $first_id ), array_keys( $selected ), 'The first request should select the checked update.' );
+
+		// The filesystem credentials form posts back only the selected updates.
+		$selected = wp_process_translation_update_selection( array( $first_id ), array( $first_id ) );
+
+		$this->assertSame( array( $first_id ), array_keys( $selected ), 'The request after the credentials form should select the same update.' );
+		$this->assertSame( array( $second_id ), array_keys( wp_get_deferred_translation_updates() ), 'The update deferred by the first request should stay deferred.' );
 	}
 }
