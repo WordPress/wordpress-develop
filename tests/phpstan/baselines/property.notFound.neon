@@ -259,11 +259,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-term-query.php
 		-
-			message: '#^Access to an undefined property WP_Query\:\:\$comments_by_type\.$#'
-			identifier: property.notFound
-			count: 3
-			path: ../../../src/wp-includes/comment-template.php
-		-
 			message: '#^Access to an undefined property WP_Post\:\:\$attr_title\.$#'
 			identifier: property.notFound
 			count: 2

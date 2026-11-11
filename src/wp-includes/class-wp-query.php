@@ -172,6 +172,16 @@ class WP_Query {
 	public $comment;
 
 	/**
+	 * Comments for the current post, keyed by comment type.
+	 *
+	 * Set by comments_template() and wp_list_comments() when comments are separated by type.
+	 *
+	 * @since 7.2.0 Declared a previously dynamic property.
+	 * @var ?array<string, WP_Comment[]>
+	 */
+	public $comments_by_type;
+
+	/**
 	 * The number of found posts for the current query.
 	 *
 	 * If limit clause was not used, equals $post_count.
