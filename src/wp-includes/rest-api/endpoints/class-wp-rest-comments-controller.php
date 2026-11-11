@@ -174,7 +174,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					);
 				}
 
-				if ( $post && $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+				if ( $post && $is_note && ! _wp_post_type_supports_notes( $post->post_type ) ) {
 					if ( current_user_can( 'edit_post', $post->ID ) ) {
 						return new WP_Error(
 							'rest_comment_not_supported_post_type',
@@ -656,6 +656,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * repeat what that check already did.
 		 */
 		if ( $is_note ) {
+			$post = get_post( (int) $request['post'] );
+
+			if ( 'note' === $request['type'] && $post instanceof WP_Post ) {
+				return $this->check_note_lock_permission( $request, $post );
+			}
+
 			return true;
 		}
 
@@ -1188,7 +1194,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return true;
+		return $this->check_note_lock_for_comment( $request, $comment );
 	}
 
 	/**
@@ -1358,7 +1364,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return true;
+		return $this->check_note_lock_for_comment( $request, $comment );
 	}
 
 	/**
@@ -2633,7 +2639,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+		if ( ! _wp_post_type_supports_notes( $post->post_type ) ) {
 			return new WP_Error(
 				'rest_comment_not_supported_post_type',
 				__( 'Sorry, this post type does not support notes.' ),
@@ -2689,24 +2695,97 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if post type supports notes.
+	 * Determines which note actions a request performs.
 	 *
-	 * @since 6.9.0
+	 * @since 7.2.0
 	 *
-	 * @param string $post_type Post type name.
-	 * @return bool True if post type supports notes, false otherwise.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param WP_Comment|null $comment The targeted note, or null when creating one.
+	 * @return string[] The actions the request performs.
 	 */
-	private function check_post_type_supports_notes( $post_type ) {
-		$supports = get_all_post_type_supports( $post_type );
-
-		if ( ! isset( $supports['editor'] ) ) {
-			return false;
+	private function get_note_request_actions( $request, $comment ) {
+		if ( 'DELETE' === $request->get_method() ) {
+			return array( 'delete' );
 		}
 
-		if ( ! is_array( $supports['editor'] ) ) {
-			return false;
+		// Creating a note: a resolution marker, a reply, or a new thread.
+		if ( ! $comment instanceof WP_Comment ) {
+			$meta = $request['meta'];
+
+			if ( is_array( $meta ) && isset( $meta['_wp_note_status'] ) ) {
+				return array( 'resolve' );
+			}
+
+			return empty( $request['parent'] ) ? array( 'create' ) : array( 'reply' );
 		}
 
-		return array_any( $supports['editor'], fn( $item ) => ! empty( $item['notes'] ) );
+		$actions = array();
+
+		if ( null !== $request['content'] ) {
+			$actions[] = 'edit';
+		}
+
+		/*
+		 * A status change is the resolve/reopen toggle rather than an edit. Only a
+		 * change counts: re-sending the status the note already has mutates nothing.
+		 */
+		if ( null !== $request['status'] &&
+			$this->prepare_status_response( $request['status'] ) !== $this->prepare_status_response( $comment->comment_approved )
+		) {
+			$actions[] = 'resolve';
+		}
+
+		// Any other field on the note (author, date, meta) counts as an edit.
+		return empty( $actions ) ? array( 'edit' ) : $actions;
+	}
+
+	/**
+	 * Checks whether a lock forbids what a request does to an existing comment.
+	 *
+	 * Anything that is not a note, and any note whose post has gone missing, is
+	 * left to the rest of the controller to deal with.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param WP_Comment      $comment The targeted comment.
+	 * @return true|WP_Error True when nothing is locked, error object otherwise.
+	 */
+	private function check_note_lock_for_comment( $request, $comment ) {
+		if ( 'note' !== $comment->comment_type ) {
+			return true;
+		}
+
+		$post = get_post( (int) $comment->comment_post_ID );
+
+		if ( ! $post instanceof WP_Post ) {
+			return true;
+		}
+
+		return $this->check_note_lock_permission( $request, $post, $comment );
+	}
+
+	/**
+	 * Checks whether a lock forbids the note actions a request performs.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param WP_Post         $post    The post the note belongs to.
+	 * @param WP_Comment|null $comment Optional. The targeted note. Null when creating one. Default null.
+	 * @return true|WP_Error True when nothing is locked, error object otherwise.
+	 */
+	private function check_note_lock_permission( $request, $post, $comment = null ) {
+		foreach ( $this->get_note_request_actions( $request, $comment ) as $action ) {
+			if ( wp_note_action_is_locked( $action, $post, $comment ) ) {
+				return new WP_Error(
+					'rest_notes_locked',
+					__( 'Notes are locked for this post.' ),
+					array( 'status' => 403 )
+				);
+			}
+		}
+
+		return true;
 	}
 }
