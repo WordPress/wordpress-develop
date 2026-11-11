@@ -140,6 +140,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Returns the default view configuration for the given entity type.
 	 *
 	 * @since 7.1.0
+	 * @since 7.3.0 Added the item count of each view in the `page` view list.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -160,6 +161,21 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'view_list'       => wp_prepare_json_value_for_client( $config['view_list'], $schema['properties']['view_list'] ),
 			'form'            => wp_prepare_json_value_for_client( $config['form'], $schema['properties']['form'] ),
 		);
+
+		/*
+		 * The counts are added here rather than through the view config filter,
+		 * so that they are computed from the view list after every filter has
+		 * changed it. The counting is skipped when the request leaves out the
+		 * view list, such as the editor's request for the form alone.
+		 */
+		if (
+			'postType' === $kind &&
+			'page' === $name &&
+			rest_is_field_included( 'view_list', $this->get_fields_for_response( $request ) ) &&
+			is_array( $response['view_list'] )
+		) {
+			$response['view_list'] = _wp_add_counts_to_view_list( 'page', $response['view_list'], $response['default_view'], $response['default_layouts'] );
+		}
 
 		return rest_ensure_response( $response );
 	}
@@ -185,6 +201,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
 	 * @since 7.1.0
+	 * @since 7.3.0 Added the `count` property to the view list entries.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -314,6 +331,11 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 									),
 									$view_base_properties
 								),
+							),
+							'count' => array(
+								'description' => __( 'Number of items the view holds.' ),
+								'type'        => 'integer',
+								'readonly'    => true,
 							),
 						),
 					),
