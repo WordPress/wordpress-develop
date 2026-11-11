@@ -5011,12 +5011,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					array_filter(
 						$emojis,
 						static function ( $emoji ): bool {
-							return ! is_array( $emoji ) || '2764' !== ( $emoji['hexKey'] ?? '' );
+							return ! is_array( $emoji ) || '2764' !== ( $emoji['hex_key'] ?? '' );
 						}
 					)
 				);
 				$emojis[] = array(
-					'hexKey' => '1F984',
+					'hex_key' => '1F984',
 					'label'  => 'unicorn',
 				);
 				return $emojis;

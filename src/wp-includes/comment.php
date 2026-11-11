@@ -395,42 +395,42 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
  *     The emoji, in display order.
  *
  *     @type array ...$0 {
- *         @type string $hexKey The emoji's hex key, e.g. `2764`.
- *         @type string $label  The emoji's name, lowercase, e.g. `heart`.
+ *         @type string $hex_key The emoji's hex key, e.g. `2764`.
+ *         @type string $label   The emoji's name, lowercase, e.g. `heart`.
  *     }
  * }
  *
- * @phpstan-return list<array{ hexKey: lowercase-string&non-empty-string, label: string }>
+ * @phpstan-return list<array{ hex_key: lowercase-string&non-empty-string, label: string }>
  */
 function wp_get_note_reaction_emojis(): array {
 	// Labels are lowercase since they also appear mid-sentence, e.g. in the reaction pill's tooltip.
 	$default_emojis = array(
 		array(
-			'hexKey' => '1f44d',
+			'hex_key' => '1f44d',
 			'label'  => _x( 'thumbs up', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '2795',
+			'hex_key' => '2795',
 			'label'  => _x( 'plus', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '2764',
+			'hex_key' => '2764',
 			'label'  => _x( 'heart', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '1f389',
+			'hex_key' => '1f389',
 			'label'  => _x( 'celebration', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '1f604',
+			'hex_key' => '1f604',
 			'label'  => _x( 'smile', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '1f440',
+			'hex_key' => '1f440',
 			'label'  => _x( 'eyes', 'emoji reaction' ),
 		),
 		array(
-			'hexKey' => '1f680',
+			'hex_key' => '1f680',
 			'label'  => _x( 'rocket', 'emoji reaction' ),
 		),
 	);
@@ -454,8 +454,8 @@ function wp_get_note_reaction_emojis(): array {
 	 *     The emoji to offer, in display order.
 	 *
 	 *     @type array ...$0 {
-	 *         @type string $hexKey The emoji's hex key, e.g. `1f984`.
-	 *         @type string $label  The emoji's name, lowercase, e.g. `unicorn`.
+	 *         @type string $hex_key The emoji's hex key, e.g. `1f984`.
+	 *         @type string $label   The emoji's name, lowercase, e.g. `unicorn`.
 	 *     }
 	 * }
 	 */
@@ -468,18 +468,18 @@ function wp_get_note_reaction_emojis(): array {
 	// Drop malformed entries and duplicate keys, keeping the first label.
 	$sanitized = array();
 	foreach ( $emojis as $emoji ) {
-		if ( ! is_array( $emoji ) || ! isset( $emoji['hexKey'], $emoji['label'] ) || ! is_string( $emoji['label'] ) ) {
+		if ( ! is_array( $emoji ) || ! isset( $emoji['hex_key'], $emoji['label'] ) || ! is_string( $emoji['label'] ) ) {
 			continue;
 		}
 
-		$hex_key = wp_normalize_note_reaction_key( $emoji['hexKey'] );
+		$hex_key = wp_normalize_note_reaction_key( $emoji['hex_key'] );
 		$label   = sanitize_text_field( $emoji['label'] );
 		if ( '' === $hex_key || '' === $label || isset( $sanitized[ $hex_key ] ) ) {
 			continue;
 		}
 
 		$sanitized[ $hex_key ] = array(
-			'hexKey' => $hex_key,
+			'hex_key' => $hex_key,
 			'label'  => $label,
 		);
 	}
@@ -500,7 +500,7 @@ function wp_get_note_reaction_emojis(): array {
  * @phpstan-return list<lowercase-string&non-empty-string>
  */
 function wp_get_note_reaction_keys(): array {
-	return array_column( wp_get_note_reaction_emojis(), 'hexKey' );
+	return array_column( wp_get_note_reaction_emojis(), 'hex_key' );
 }
 
 /**
