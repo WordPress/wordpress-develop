@@ -28,8 +28,6 @@ const SERIAL_SPECS = [
 	'dashboard.test.js',
 	'edit-posts.test.js',
 	'empty-trash-restore-trashed-posts.test.js',
-	'media-library-client-side-upload.test.js',
-	'media-modal-client-side-upload.test.js',
 ];
 
 const config = defineConfig( {
