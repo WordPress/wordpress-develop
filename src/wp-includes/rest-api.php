@@ -9,8 +9,6 @@
 
 /**
  * Version number for our API.
- *
- * @var string
  */
 define( 'REST_API_VERSION', '2.0' );
 
@@ -481,7 +479,6 @@ function rest_api_loaded() {
 	 * Whether this is a REST Request.
 	 *
 	 * @since 4.4.0
-	 * @var bool
 	 */
 	define( 'REST_REQUEST', true );
 
