@@ -136,12 +136,13 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 * Tests that calc, clamp, min, max, and minmax CSS functions are allowed.
 	 *
 	 * @ticket 56467
+	 * @ticket 65738
 	 *
 	 * @covers ::get_declarations_string
 	 * @covers ::filter_declaration
 	 */
 	public function test_should_allow_css_functions_and_strip_unsafe_css_values() {
-		$input_declarations                        = array(
+		$input_declarations = array(
 			'background'       => 'var(--wp--preset--color--primary, 10px)', // Simple var().
 			'font-size'        => 'clamp(36.00rem, calc(32.00rem + 10.00vw), 40.00rem)', // Nested clamp().
 			'width'            => 'min(150vw, 100px)',
@@ -152,21 +153,13 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'line-height'      => 'url("https://wordpress.org")',
 			'margin'           => 'illegalfunction(30px)',
 		);
-		$css_declarations                          = new WP_Style_Engine_CSS_Declarations( $input_declarations );
-		$safecss_filter_attr_allow_css_mock_action = new MockAction();
+		$css_declarations   = new WP_Style_Engine_CSS_Declarations( $input_declarations );
 
 		// filter_declaration() is called in get_declarations_string().
-		add_filter( 'safecss_filter_attr_allow_css', array( $safecss_filter_attr_allow_css_mock_action, 'filter' ) );
 		$css_declarations_string = $css_declarations->get_declarations_string();
 
 		$this->assertSame(
-			9,
-			$safecss_filter_attr_allow_css_mock_action->get_call_count(),
-			'"safecss_filter_attr_allow_css" filters were not applied to CSS declaration values.'
-		);
-
-		$this->assertSame(
-			'background:var(--wp--preset--color--primary, 10px);font-size:clamp(36.00rem, calc(32.00rem + 10.00vw), 40.00rem);width:min(150vw, 100px);min-width:max(150vw, 100px);max-width:minmax(400px, 50%);padding:calc(80px * -1);background-image:url("https://wordpress.org");',
+			'background:var(--wp--preset--color--primary, 10px);font-size:clamp(36.00rem, calc(32.00rem + 10.00vw), 40.00rem);width:min(150vw, 100px);min-width:max(150vw, 100px);max-width:minmax(400px, 50%);padding:calc(80px * -1);background-image:url("https://wordpress.org");line-height:url("https://wordpress.org");',
 			$css_declarations_string,
 			'Unsafe values were not removed'
 		);
