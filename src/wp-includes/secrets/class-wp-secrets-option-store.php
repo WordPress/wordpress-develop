@@ -163,7 +163,7 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 		$pattern = $wpdb->esc_like( $prefix ) . '%';
 
 		if ( $network && is_multisite() ) {
-			$option_names = $wpdb->get_col(
+			$result = $wpdb->query(
 				$wpdb->prepare(
 					"SELECT meta_key FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s AND site_id = %d",
 					$pattern,
@@ -171,7 +171,7 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 				)
 			);
 		} else {
-			$option_names = $wpdb->get_col(
+			$result = $wpdb->query(
 				$wpdb->prepare(
 					"SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
 					$pattern
@@ -179,12 +179,18 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 			);
 		}
 
-		if ( ! is_array( $option_names ) ) {
+		/*
+		 * Failure is taken from wpdb::query(), because wpdb::get_col() returns an
+		 * empty array for a failed query, which would read as no secrets.
+		 */
+		if ( false === $result ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
 				__( 'Could not list secrets.' )
 			);
 		}
+
+		$option_names = $wpdb->get_col();
 
 		$names = array();
 
