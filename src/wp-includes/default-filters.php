@@ -58,11 +58,14 @@ if ( is_admin() ) {
 	add_filter( 'comment_text', 'wp_kses_post' );
 }
 
-// Email saves.
+/*
+ * Email saves. These filters return unslashed data. Some callers pass slashed
+ * data, which `sanitize_email()` unslashes by removing the backslashes.
+ */
 foreach ( array( 'pre_comment_author_email', 'pre_user_email' ) as $filter ) {
 	add_filter( $filter, 'trim' );
 	add_filter( $filter, 'sanitize_email' );
-	add_filter( $filter, 'wp_filter_kses' );
+	add_filter( $filter, 'wp_kses_data' );
 }
 
 // Email admin display.
