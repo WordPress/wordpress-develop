@@ -158,4 +158,136 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertNull( $option, 'Querying option table should not return transient on multisite.' );
 	}
+
+	/**
+	 * Tests that set_site_transient() rejects names that are not non-empty strings.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_invalid_site_transient_names
+	 * @expectedIncorrectUsage set_site_transient
+	 *
+	 * @covers ::set_site_transient
+	 * @covers ::_wp_is_valid_transient_name
+	 *
+	 * @param mixed $transient Transient name.
+	 */
+	public function test_set_site_transient_should_reject_invalid_name( $transient ) {
+		$this->assertFalse( set_site_transient( $transient, 'value' ), 'set_site_transient() should return false.' );
+		$this->assertFalse( get_site_option( '_site_transient_' ), 'No option should be added for an empty transient name.' );
+	}
+
+	/**
+	 * Tests that get_site_transient() rejects names that are not non-empty strings.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_invalid_site_transient_names
+	 * @expectedIncorrectUsage get_site_transient
+	 *
+	 * @covers ::get_site_transient
+	 * @covers ::_wp_is_valid_transient_name
+	 *
+	 * @param mixed $transient Transient name.
+	 */
+	public function test_get_site_transient_should_reject_invalid_name( $transient ) {
+		$this->assertFalse( get_site_transient( $transient ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_site_transient_names() {
+		return array(
+			'empty string'    => array( '' ),
+			'whitespace only' => array( '   ' ),
+			'null'            => array( null ),
+			'boolean false'   => array( false ),
+			'boolean true'    => array( true ),
+			'integer zero'    => array( 0 ),
+			'integer one'     => array( 1 ),
+			'empty array'     => array( array() ),
+			'object'          => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * Tests that set_site_transient() accepts a name at the 167 character limit.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_site_transient_names_at_length_limit
+	 *
+	 * @covers ::set_site_transient
+	 * @covers ::get_site_transient
+	 * @covers ::delete_site_transient
+	 * @covers ::_wp_is_valid_transient_name_length
+	 *
+	 * @param string $transient Transient name.
+	 */
+	public function test_set_site_transient_should_accept_name_at_length_limit( $transient ) {
+		$this->assertTrue( set_site_transient( $transient, 'value', HOUR_IN_SECONDS ), 'set_site_transient() should return true.' );
+		$this->assertNotFalse( get_site_option( '_site_transient_timeout_' . $transient ), 'The timeout option should be stored.' );
+		$this->assertSame( 'value', get_site_transient( $transient ), 'get_site_transient() should return the stored value.' );
+		$this->assertTrue( delete_site_transient( $transient ), 'delete_site_transient() should return true.' );
+		$this->assertFalse( get_site_transient( $transient ), 'get_site_transient() should return false after deletion.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_site_transient_names_at_length_limit() {
+		return array(
+			'167 single-byte characters' => array( str_repeat( 'a', 167 ) ),
+			'167 multibyte characters'   => array( str_repeat( 'é', 167 ) ),
+		);
+	}
+
+	/**
+	 * Tests that set_site_transient() rejects a name over the 167 character limit.
+	 *
+	 * @ticket 58903
+	 *
+	 * @dataProvider data_site_transient_names_over_length_limit
+	 * @expectedIncorrectUsage set_site_transient
+	 *
+	 * @covers ::set_site_transient
+	 * @covers ::_wp_is_valid_transient_name_length
+	 *
+	 * @param string $transient Transient name.
+	 */
+	public function test_set_site_transient_should_reject_name_over_length_limit( $transient ) {
+		$this->assertFalse( set_site_transient( $transient, 'value' ), 'set_site_transient() should return false.' );
+		$this->assertFalse( get_site_option( '_site_transient_' . $transient ), 'No option should be added.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_site_transient_names_over_length_limit() {
+		return array(
+			'168 single-byte characters' => array( str_repeat( 'a', 168 ) ),
+			'168 multibyte characters'   => array( str_repeat( 'é', 168 ) ),
+		);
+	}
+
+	/**
+	 * Tests that delete_site_transient() can still remove a site transient stored with an empty name.
+	 *
+	 * @ticket 58903
+	 *
+	 * @covers ::delete_site_transient
+	 */
+	public function test_delete_site_transient_should_delete_site_transient_with_empty_name() {
+		add_site_option( '_site_transient_', 'value' );
+
+		$this->assertTrue( delete_site_transient( '' ), 'delete_site_transient() should return true.' );
+		$this->assertFalse( get_site_option( '_site_transient_' ), 'The option should be deleted.' );
+	}
 }
