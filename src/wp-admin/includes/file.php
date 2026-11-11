@@ -2352,6 +2352,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  *
  * @since 2.5.0
  * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
+ * @since 7.3.0 Added support for the `FTP_HOST_FINGERPRINT` constant.
  *
  * @global string $pagenow The filename of the current screen.
  *
@@ -2456,6 +2457,9 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		}
 	}
 
+	// The host key fingerprint is only trusted from its constant, never from the form or a stored value.
+	$credentials['fingerprint'] = defined( 'FTP_HOST_FINGERPRINT' ) ? FTP_HOST_FINGERPRINT : '';
+
 	// Sanitize the hostname, some people might pass in odd data.
 	$credentials['hostname'] = preg_replace( '|\w+://|', '', $credentials['hostname'] ); // Strip any schemes off.
 
@@ -2493,7 +2497,8 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 			$stored_credentials['password'],
 			$stored_credentials['port'],
 			$stored_credentials['private_key'],
-			$stored_credentials['public_key']
+			$stored_credentials['public_key'],
+			$stored_credentials['fingerprint']
 		);
 
 		if ( ! wp_installing() ) {
