@@ -36,7 +36,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 	 */
 	public function test_revisions_stores_meta_values_with_slashes( $passed, $expected ) {
 		// Set up a new post.
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		// And update to store an initial revision.
 		wp_update_post(
@@ -85,7 +85,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 	/**
 	 * Provide data for the slashed data tests.
 	 */
-	public function slashed_data_provider() {
+	public static function slashed_data_provider() {
 		return array(
 			array(
 				'some\text',
@@ -117,7 +117,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		 */
 
 		// Set up a new post.
-		$post_id          = $this->factory->post->create();
+		$post_id          = self::factory()->post->create();
 		$original_post_id = $post_id;
 
 		// And update to store an initial revision.
@@ -412,7 +412,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 			)
@@ -463,7 +463,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		add_filter( 'wp_post_revision_meta_keys', array( $this, 'add_revisioned_keys' ) );
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 				'meta_input'   => array(
@@ -508,7 +508,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		);
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 				'meta_input'   => array(
@@ -574,7 +574,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		register_post_meta( $post_type, $meta_key, $args );
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 				'post_type'    => $post_type,
@@ -603,7 +603,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		$GLOBALS['wp_meta_keys'] = array();
 	}
 
-	public function data_register_post_meta_supports_revisions() {
+	public static function data_register_post_meta_supports_revisions() {
 		return array(
 			array( 'post', 'registered_key1', array( 'single' => true ), false ),
 			array(
@@ -661,7 +661,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		}
 
 		// Create a test post.
-		$page_id = $this->factory->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'    => $post_type,
 				'post_content' => 'some initial content',
@@ -698,7 +698,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 	/**
 	 * Provide data for the page post type tests.
 	 */
-	public function page_post_type_data_provider() {
+	public static function page_post_type_data_provider() {
 		return array(
 			array(
 				'Test string',

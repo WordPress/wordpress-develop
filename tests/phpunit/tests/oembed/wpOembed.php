@@ -197,6 +197,8 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_main() {
+		$this->set_permalink_structure( '' );
+
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$user_id   = self::$user_id;
@@ -311,5 +313,63 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 		$result = $oembed->get_provider( 'https://example.site/video/123' );
 
 		$this->assertSame( 'https://example.site/api/oembed', $result );
+	}
+	/**
+	 * Tests that ReverbNation URLs use the legacy.reverbnation.com oEmbed endpoint.
+	 *
+	 * @ticket 65819
+	 * @ticket 66079
+	 *
+	 * @covers ::get_provider
+	 *
+	 * @dataProvider data_reverbnation_urls
+	 *
+	 * @param string $url ReverbNation URL.
+	 */
+	public function test_get_provider_uses_legacy_reverbnation_endpoint( $url ) {
+		$this->assertSame( 'https://legacy.reverbnation.com/oembed', ( new WP_oEmbed() )->get_provider( $url, array( 'discover' => false ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_reverbnation_urls() {
+		return array(
+			'www subdomain'    => array( 'https://www.reverbnation.com/artist/song/123' ),
+			'legacy subdomain' => array( 'https://legacy.reverbnation.com/artist/song/123' ),
+			'no subdomain'     => array( 'https://reverbnation.com/artist' ),
+			'http scheme'      => array( 'http://www.reverbnation.com/artist' ),
+		);
+	}
+
+	/**
+	 * Tests that someecards.com URLs no longer match a trusted oEmbed provider.
+	 *
+	 * @ticket 65819
+	 * @ticket 66078
+	 *
+	 * @covers ::get_provider
+	 *
+	 * @dataProvider data_someecards_urls
+	 *
+	 * @param string $url someecards.com URL.
+	 */
+	public function test_get_provider_does_not_match_someecards( $url ) {
+		$this->assertFalse( ( new WP_oEmbed() )->get_provider( $url, array( 'discover' => false ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_someecards_urls() {
+		return array(
+			'card'       => array( 'https://www.someecards.com/birthday-cards/funny-birthday-card/' ),
+			'user card'  => array( 'https://www.someecards.com/usercards/viewcard/MjAxMy0xMjM0NTY3ODk/' ),
+			'short link' => array( 'https://some.ly/abc123' ),
+		);
 	}
 }

@@ -8,12 +8,17 @@ const TEST_APPLICATION_NAME = 'Test Application';
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
 		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
-			await use( new ApplicationPasswords( { requestUtils, admin, page } ) );
-		},
-	} );
+			const applicationPasswords = new ApplicationPasswords( {
+				requestUtils,
+				admin,
+				page,
+			} );
 
-	test.beforeEach(async ( { applicationPasswords } ) => {
-		await applicationPasswords.delete();
+			// Revoke before the test too: a run that was interrupted leaves passwords behind.
+			await applicationPasswords.delete();
+			await use( applicationPasswords );
+			await applicationPasswords.delete();
+		},
 	} );
 
 	test('should correctly create a new application password', async ( {
@@ -50,7 +55,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeButton ).toBeVisible();
 
 		// Revoke password.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeButton.click();
 
 		await expect(
@@ -73,7 +78,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeAllButton ).toBeVisible();
 
 		// Confirms revoking action.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeAllButton.click();
 
 		await expect(

@@ -5,7 +5,7 @@
  *
  * @covers ::array_any
  */
-class Test_Compat_arrayAny extends WP_UnitTestCase {
+class Tests_Compat_arrayAny extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_any() is always available (either from PHP or WP).
@@ -34,7 +34,7 @@ class Test_Compat_arrayAny extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_any(): array {
+	public static function data_array_any(): array {
 		return array(
 			'empty array' => array(
 				'expected' => false,

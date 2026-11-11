@@ -18,6 +18,12 @@
  * baseline, and retiring one that has reached zero, therefore need no manual
  * edit of the configuration.
  *
+ * With `--prune`, nothing is analyzed: the baselines that no longer list any
+ * entries are deleted, and the list in the configuration is updated to match. That
+ * completes running PHPStan with `--fix`, which removes the entries of fixed
+ * errors in place but leaves a baseline it has emptied behind, and so
+ * `composer phpstan:fix` runs it with `--prune` after `--fix`.
+ *
  * The intermediate baseline is generated in PHPStan's PHP format and read back
  * with `require`, so the entries arrive as an array. Nothing has to parse, or
  * re-escape, the message patterns.
@@ -29,6 +35,7 @@
  *     composer phpstan:baselines -- --identifier=variable.undefined,isset.variable
  *     composer phpstan:baselines -- --identifier=isset.variable --identifier=empty.variable
  *     composer phpstan:baselines -- --combined > all-errors.neon
+ *     composer phpstan:baselines -- --prune
  *
  * @package WordPress
  */
@@ -48,6 +55,13 @@ const BASELINES_START_MARKER = '# phpstan:baselines start';
  */
 const BASELINES_END_MARKER = '# phpstan:baselines end';
 
+/**
+ * The configuration analyzed when `--config` does not name one.
+ *
+ * Relative to the repository root.
+ */
+const DEFAULT_CONFIG = 'phpstan.neon.dist';
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -64,11 +78,12 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 }
 array_shift( $args );
 
-$config_option    = 'phpstan.neon.dist';
+$config_option    = DEFAULT_CONFIG;
 $output_option    = 'tests/phpstan/baselines';
 $memory_limit     = '2G';
 $only_identifiers = array();
 $combined         = false;
+$prune            = false;
 
 foreach ( $args as $arg ) {
 	if ( '--help' === $arg || '-h' === $arg ) {
@@ -78,6 +93,11 @@ foreach ( $args as $arg ) {
 
 	if ( '--combined' === $arg ) {
 		$combined = true;
+		continue;
+	}
+
+	if ( '--prune' === $arg ) {
+		$prune = true;
 		continue;
 	}
 
@@ -119,15 +139,63 @@ if ( ! is_file( $config_path ) ) {
 }
 
 /*
- * The temporary configuration has to sit beside the original, because a neon
- * file's `includes` entries resolve relative to its own directory.
+ * Pruning needs no analysis. Running PHPStan with `--fix` lowers the counts of the
+ * entries whose errors were fixed and removes those that no longer match, but when
+ * it removes the last entry of a baseline it leaves the file behind, as
+ * `ignoreErrors: []`. That file suppresses nothing, so all that remains is to
+ * delete it and drop it from the configuration's `includes`, which is known from
+ * the file alone.
  */
+if ( $prune ) {
+	if ( $combined ) {
+		fwrite( STDERR, "--prune and --combined cannot be used together.\n" );
+		exit( 1 );
+	}
+
+	$pruned = 0;
+
+	foreach ( find_baselines( $output_dir ) as $file ) {
+		$identifier = basename( $file, '.neon' );
+
+		if ( $only_identifiers && ! in_array( $identifier, $only_identifiers, true ) ) {
+			continue;
+		}
+
+		$is_empty = is_empty_baseline( read_file( $file ) );
+
+		if ( null === $is_empty ) {
+			fwrite( STDERR, sprintf( "%s: no `ignoreErrors` list found, left untouched.\n", $output_option . '/' . basename( $file ) ) );
+			continue;
+		}
+
+		if ( ! $is_empty ) {
+			continue;
+		}
+
+		if ( ! unlink( $file ) ) {
+			fwrite( STDERR, sprintf( "%s: could not be deleted.\n", $output_option . '/' . basename( $file ) ) );
+			exit( 1 );
+		}
+
+		printf( "%s: no entries remain, file deleted.\n", $output_option . '/' . basename( $file ) );
+		++$pruned;
+	}
+
+	if ( 0 === $pruned ) {
+		echo "No empty baselines found.\n";
+	}
+
+	update_config_includes( $config_path, $config_option, $output_dir );
+	exit( 0 );
+}
+
 /*
- * Both temporary files sit beside the configuration, and so inside the
+ * All three temporary files sit beside the configuration, and so inside the
  * repository, for two separate reasons.
  *
  * A neon file's `includes` resolve relative to its own directory, so the copy of
- * the configuration has to live where the original did.
+ * the configuration, and the wrapper including it, have to live where the
+ * original did.
  *
  * PHPStan writes a PHP baseline's paths as __DIR__ followed by a relative chain,
  * which it can only produce when the baseline shares an ancestry with the files
@@ -135,12 +203,14 @@ if ( ! is_file( $config_path ) ) {
  * it emits `__DIR__ . '//absolute/path'` instead, and every path in it then
  * resolves to somewhere under that directory rather than to the source file.
  */
-$temp_config   = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid() . '.neon';
-$temp_baseline = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid() . '.php';
+$temp_prefix   = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid();
+$temp_config   = $temp_prefix . '.neon';
+$temp_stripped = $temp_prefix . '-stripped.neon';
+$temp_baseline = $temp_prefix . '.php';
 
 register_shutdown_function(
-	static function () use ( $temp_config, $temp_baseline ): void {
-		foreach ( array( $temp_config, $temp_baseline ) as $file ) {
+	static function () use ( $temp_config, $temp_stripped, $temp_baseline ): void {
+		foreach ( array( $temp_config, $temp_stripped, $temp_baseline ) as $file ) {
 			if ( is_file( $file ) ) {
 				unlink( $file );
 			}
@@ -148,7 +218,67 @@ register_shutdown_function(
 	}
 );
 
-file_put_contents( $temp_config, strip_baseline_includes( $config_path, $output_dir ) );
+file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir ) );
+
+/*
+ * The analysis gets a scratch directory of its own, rather than the `tmpDir` that
+ * `tests/phpstan/base.neon` configures for everything else.
+ *
+ * That directory holds more than the analysis results. PHPStan also stores what
+ * it read out of each source file there, the docblocks and signatures it found,
+ * keyed by that file's contents and nothing else. The extensions in this
+ * directory change what reading a file yields without changing the file:
+ * HashNotationVisitor rewrites a docblock in the syntax tree, and the bytes on
+ * disk stay as they were.
+ *
+ * That rewriting only reaches the files PHPStan routes to its rich parser, which
+ * is the set of files being analyzed. A run narrowed to a few paths — an editor
+ * analyzing the file being typed in, or one scoped to a diff — therefore caches
+ * the unrewritten reading of every file outside those paths, and a later full run
+ * sharing the directory restores it. The baseline generated from that run records
+ * messages derived from types the extensions would have replaced.
+ *
+ * A directory only ever written by this script cannot be poisoned that way,
+ * because this script only ever analyzes the full set of configured paths.
+ */
+$analysis_tmp_dir = $repo_root . '/.cache/baselines';
+
+/*
+ * A configuration other than the default gets a directory to itself.
+ *
+ * "The full set of configured paths" is only as wide as the configuration saying
+ * what they are, and `--config` can name one covering less than the default does.
+ * A run of that configuration is a full run of it, but measured against the
+ * default it is a narrowed one, and it would leave behind the same unrewritten
+ * readings of everything it does not cover. Keying the directory on the
+ * configuration keeps each one's reflection to itself.
+ */
+$config_relative = trim( normalize_path( $config_option ), '/' );
+
+if ( DEFAULT_CONFIG !== $config_relative ) {
+	$analysis_tmp_dir .= '-' . (string) preg_replace( '/[^A-Za-z0-9._]+/', '-', $config_relative );
+}
+
+/*
+ * `tmpDir` is set in a wrapper including the stripped copy, rather than in the
+ * copy itself, because neon rejects a duplicated key and the copy already carries
+ * the `parameters` section it was made from. A file's own parameters win over
+ * those of the files it includes, so the wrapper's `tmpDir` is the one that takes
+ * effect.
+ */
+file_put_contents(
+	$temp_config,
+	sprintf(
+		<<<'NEON'
+		includes:
+			- %s
+		parameters:
+			tmpDir: %s
+		NEON,
+		basename( $temp_stripped ),
+		quote_neon_value( $analysis_tmp_dir )
+	)
+);
 
 /*
  * PHPStan reports on stdout, which --combined reserves for the baseline itself,
@@ -280,6 +410,11 @@ function get_usage(): string {
 		                       Default: tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk.
+		  --prune              Without analyzing anything, delete the baselines that no
+		                       longer list any entries, such as one emptied by running
+		                       PHPStan with --fix, and update the configuration's
+		                       `includes` to match. With --identifier, only those
+		                       baselines are considered.
 		  --memory-limit=<v>   Passed through to PHPStan. Default: 2G
 		  -h, --help           Show this message.
 
@@ -297,13 +432,19 @@ function get_usage(): string {
 		  Inspect everything as one baseline without writing any files:
 		    composer phpstan:baselines -- --combined
 
+		  Remove the entries of fixed errors, and any baseline left empty:
+		    composer phpstan:fix
+
+		  Remove only the baselines that list no entries:
+		    composer phpstan:baselines -- --prune
+
 		TEXT;
 }
 
 /**
  * Reads a file, failing loudly rather than continuing with false.
  *
- * @param non-falsy-string $path Absolute path to the file.
+ * @param non-empty-string $path Absolute path to the file.
  * @return string File contents.
  */
 function read_file( string $path ): string {
@@ -464,6 +605,53 @@ function find_baselines( string $output_dir ): array {
 	}
 
 	return $files;
+}
+
+/**
+ * Determines whether a baseline ignores no errors.
+ *
+ * That is the case when its `ignoreErrors` is an empty inline list, as PHPStan's
+ * `--fix` writes after removing the last entry, or a key with nothing nested under
+ * it. Only whole-line comments are skipped, since a message pattern such as
+ * `'#^…$#'` contains `#` and so a trailing comment cannot be told apart from it
+ * without parsing the NEON.
+ *
+ * @param string $contents Baseline file contents.
+ * @return bool|null Whether the baseline is empty, or null when it has no `ignoreErrors` key.
+ */
+function is_empty_baseline( string $contents ): ?bool {
+	$lines = explode( "\n", $contents );
+
+	foreach ( $lines as $i => $line ) {
+		if ( 1 !== preg_match( '/^(\s*)ignoreErrors:\s*(.*)$/', $line, $matches ) ) {
+			continue;
+		}
+
+		$value = trim( $matches[2] );
+
+		if ( '' !== $value && '#' !== $value[0] ) {
+			return 1 === preg_match( '/^\[\s*\](\s*#.*)?$/', $value );
+		}
+
+		// Nothing after the key, so its value is whatever is nested beneath it.
+		$indent = strlen( $matches[1] );
+
+		foreach ( array_slice( $lines, $i + 1 ) as $next ) {
+			$trimmed = trim( $next );
+
+			if ( '' === $trimmed || '#' === $trimmed[0] ) {
+				continue;
+			}
+
+			$next_indent = strlen( $next ) - strlen( ltrim( $next ) );
+
+			return $next_indent <= $indent;
+		}
+
+		return true;
+	}
+
+	return null;
 }
 
 /**
