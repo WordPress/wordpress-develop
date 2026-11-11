@@ -2478,7 +2478,7 @@ function wp_insert_user( $userdata ) {
 	$meta = array();
 
 	if ( empty( $userdata['nickname'] ) ) {
-		if ( $update && ! empty( $old_user_data->nickname ) ) {
+		if ( $update && is_email( $user_login ) && ! empty( $old_user_data->nickname ) ) {
 			$nickname = $old_user_data->nickname;
 		} elseif ( is_email( $user_login ) ) {
 			$nickname = 'User ' . $email_login_suffix;
@@ -2522,7 +2522,7 @@ function wp_insert_user( $userdata ) {
 
 	if ( empty( $userdata['display_name'] ) ) {
 		if ( $update ) {
-			if ( ! empty( $old_user_data->display_name ) ) {
+			if ( is_email( $user_login ) && ! empty( $old_user_data->display_name ) ) {
 				$display_name = $old_user_data->display_name;
 			} elseif ( is_email( $user_login ) ) {
 				$display_name = 'User ' . $email_login_suffix;

@@ -549,7 +549,7 @@ switch ( $action ) {
 						<td>
 							<select name="display_name" id="display_name">
 								<?php
-								$public_display = wp_get_user_profile_display_name_options( $profile_user );
+								$public_display = _wp_get_user_profile_display_name_options( $profile_user );
 								foreach ( $public_display as $item ) :
 									?>
 									<option <?php selected( $profile_user->display_name, $item ); ?>><?php echo esc_html( $item ); ?></option>

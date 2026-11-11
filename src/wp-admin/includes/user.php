@@ -574,11 +574,12 @@ function default_password_nag() {
  * preventing email exposure in public author links, feeds, and bylines.
  *
  * @since 7.2.0
+ * @access private
  *
  * @param WP_User|int $user User object or user ID.
  * @return string[] Array of unique display name choices.
  */
-function wp_get_user_profile_display_name_options( $user ): array {
+function _wp_get_user_profile_display_name_options( $user ) {
 	if ( ! $user instanceof WP_User ) {
 		$user = get_userdata( $user );
 	}
