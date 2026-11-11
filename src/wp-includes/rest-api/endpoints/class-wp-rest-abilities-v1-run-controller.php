@@ -155,7 +155,8 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
 	 */
 	public function check_ability_permissions( $request ) {
-		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
+		$name    = $request['name'];
+		$ability = is_string( $name ) && wp_has_ability( $name ) ? wp_get_ability( $name ) : null;
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
 				'rest_ability_not_found',
