@@ -584,7 +584,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 */
 	public static function data_wp_mime_type_icon_without_matching_icon(): array {
 		return array(
-			'nonexistent attachment ID' => array( 0 ),
+			'nonexistent attachment ID' => array( PHP_INT_MAX ),
 			'unknown MIME type'         => array( 'foo/bar' ),
 		);
 	}
