@@ -1789,14 +1789,13 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  *
  * @since 2.3.0
  *
- * @param array|object $term     The term to check.
- * @param string       $taxonomy The taxonomy name to use.
- * @param string       $context  Optional. Context in which to sanitize the term.
- *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                               'attribute', or 'js'. Default 'display'.
+ * @param array<string, mixed>|object $term     The term to check.
+ * @param string                     $taxonomy The taxonomy name to use.
+ * @param string                     $context  Optional. Context in which to sanitize the term.
+ *                                             Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                                             'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized (will be the same type as `$term`).
  *
- * @phpstan-param object|array<string, mixed> $term
  * @phpstan-return (
  *     $term is WP_Term ? WP_Term : (
  *         $term is array ? array<string, mixed> : object
