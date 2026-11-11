@@ -9,6 +9,7 @@ import {
 	UNDECODABLE_HEIC,
 	failMediaCreate,
 	stubClassicUpload,
+	trackUploads,
 	withoutHeicDecoder,
 } from '../utils/media-pipeline';
 
@@ -26,29 +27,6 @@ function editLinks( page ) {
 	return page
 		.locator( '#media-items' )
 		.getByRole( 'link', { name: 'Edit', exact: true } );
-}
-
-/**
- * Tracks each attachment the page creates, so that the attachments fixture
- * deletes it.
- *
- * Core sends the id in a header before it makes the sub-sizes, so an upload
- * that fails after the attachment is saved is tracked too.
- *
- * @param {import('@playwright/test').Page} page
- * @param {Object}                          attachments The attachments fixture.
- * @return {number[]} The attachment ids, in the order they were created.
- */
-function trackUploads( page, attachments ) {
-	const ids = [];
-	page.on( 'response', ( response ) => {
-		const id = Number( response.headers()[ 'x-wp-upload-attachment-id' ] );
-		if ( id > 0 ) {
-			ids.push( id );
-			attachments.track( id );
-		}
-	} );
-	return ids;
 }
 
 /**

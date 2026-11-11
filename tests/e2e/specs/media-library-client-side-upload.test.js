@@ -1,11 +1,7 @@
 /**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
-
-/**
  * Internal dependencies
  */
+import { test, expect } from '../fixtures';
 import {
 	TEST_IMAGE_PATH,
 	TEST_AUDIO_PATH,
@@ -17,6 +13,9 @@ import {
 	withoutHeicDecoder,
 	countUploadRequests,
 	tile,
+	titleOf,
+	trackUploads,
+	uniqueFile,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
@@ -89,10 +88,6 @@ async function suppressProviderRender( page ) {
 }
 
 test.describe( 'Media Library grid client-side uploads', () => {
-	test.afterEach( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllMedia();
-	} );
-
 	test( 'sends the Document-Isolation-Policy header on the grid', async ( {
 		page,
 		admin,
@@ -141,6 +136,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
+		attachments,
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
@@ -182,12 +178,14 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		const ids = trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The finalized attachment resolves to a normal (non-uploading) tile.
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -203,9 +201,8 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		// The finalized attachment carries the browser-generated sub-sizes
 		// in its metadata (the 640x480 source is larger than thumbnail and
 		// medium), and the sideloaded thumbnail file really exists.
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids[ 0 ] }`,
 		} );
 		const sizes = attachment.media_details.sizes || {};
 		expect( Object.keys( sizes ) ).toEqual(
@@ -221,6 +218,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'warns before leaving while a pipeline upload is in flight', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -252,9 +250,11 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			{ timeout: 60_000 }
 		);
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 		await sideloadRequested;
 
 		// A synthetic cancelable event exercises the guard's listener
@@ -272,7 +272,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -330,6 +330,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'falls back to the classic uploader when the page is not isolated', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// Blocking the Document-Isolation-Policy header reproduces every
 		// browser that ignores it: the page is not isolated, the script
@@ -366,11 +367,13 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -382,6 +385,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'uploads several files at once, including duplicates', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -405,20 +409,26 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		// The same file twice exercises the shared-identity path: both
 		// tiles must track progress and resolve independently.
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
+		await fileInput.setInputFiles( [ file, file ] );
 
 		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
 			timeout: 90_000,
 		} );
-		await expect( tile( page, 'test-image' ) ).toHaveCount( 2 );
+		await expect( tile( page, titleOf( file ) ) ).toHaveCount( 2 );
 		expect( finalizeCount ).toBe( 2 );
 	} );
 
-	test( 'reports pipeline progress on the tile', async ( { page, admin } ) => {
+	test( 'reports pipeline progress on the tile', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
 		const isolated = await page.evaluate( () =>
@@ -461,9 +471,11 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			};
 		} );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 		await sideloadRequested;
 
 		await expect
@@ -484,7 +496,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 	} );
@@ -505,18 +517,19 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		await failMediaCreate( page );
 
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The error lands in the grid's error sidebar exactly like a classic
 		// upload error: the file name and the server's message.
 		const error = page
 			.locator( '.upload-error' )
-			.filter( { hasText: 'test-image.jpg' } );
+			.filter( { hasText: file.name } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
 		await expect(
-			error.getByText( 'test-image.jpg', { exact: true } )
+			error.getByText( file.name, { exact: true } )
 		).toBeVisible();
 		await expect(
 			error.getByText( SIMULATED_ERROR.message, { exact: true } )
@@ -528,6 +541,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'leaves audio files to the classic uploader', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -554,11 +568,13 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_AUDIO_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_AUDIO_PATH );
+		await fileInput.setInputFiles( file );
 
-		await expect( tile( page, 'test-audio' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -589,9 +605,10 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		const counts = countUploadRequests( page );
 
+		const file = uniqueFile( TEST_SVG_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_SVG_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The uploader's own filter decides, so the file reaches the server
 		// instead of being rejected in the browser.
@@ -609,6 +626,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'leaves images of a type the page was not rendered with to the classic uploader', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// A plugin can allow an image type only for its own requests, so
 		// the allowed mime types the page was rendered with leave it out
@@ -643,12 +661,14 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		const counts = countUploadRequests( page );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The server decides, as it would without the pipeline.
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
@@ -659,6 +679,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -684,14 +705,17 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
+		const image = uniqueFile( TEST_IMAGE_PATH );
+		const audio = uniqueFile( TEST_AUDIO_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
+		await fileInput.setInputFiles( [ image, audio ] );
 
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( image ) ) ).toBeVisible( {
 			timeout: 90_000,
 		} );
-		await expect( tile( page, 'test-audio' ) ).toBeVisible();
+		await expect( tile( page, titleOf( audio ) ) ).toBeVisible();
 
 		// The image went through the pipeline, the audio file through plupload.
 		expect( restCreateCount ).toBe( 1 );
@@ -701,6 +725,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
@@ -736,11 +761,13 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -751,6 +778,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// The store is configured by rendering a provider, which delivers
 		// its settings asynchronously. Never rendering it reproduces a file
@@ -775,11 +803,13 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		const counts = countUploadRequests( page );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -808,9 +838,10 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		const counts = countUploadRequests( page );
 
+		const file = uniqueFile( UNDECODABLE_HEIC );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( UNDECODABLE_HEIC );
+		await fileInput.setInputFiles( file );
 
 		// The pipeline's decode failure is not shown; the file is re-queued
 		// on the classic uploader, which posts it to async-upload.php.
@@ -845,18 +876,19 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		const counts = countUploadRequests( page );
 
+		const file = uniqueFile( UNDECODABLE_HEIC );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( UNDECODABLE_HEIC );
+		await fileInput.setInputFiles( file );
 
 		// Nothing can convert the file, so the pipeline's message (which
 		// explains the platform limitation) is what the user sees.
 		const error = page
 			.locator( '.upload-error' )
-			.filter( { hasText: UNDECODABLE_HEIC.name } );
+			.filter( { hasText: file.name } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
 		await expect(
-			error.getByText( UNDECODABLE_HEIC.name, { exact: true } )
+			error.getByText( file.name, { exact: true } )
 		).toBeVisible();
 		await expect(
 			error.locator( '.upload-error-message' )
@@ -868,6 +900,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'deletes the attachment when finalizing the upload fails', async ( {
 		page,
 		admin,
+		attachments,
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
@@ -894,24 +927,25 @@ test.describe( 'Media Library grid client-side uploads', () => {
 				} )
 		);
 
+		const ids = trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		await expect(
-			page
-				.locator( '.upload-error' )
-				.filter( { hasText: 'test-image.jpg' } )
+			page.locator( '.upload-error' ).filter( { hasText: file.name } )
 		).toBeVisible( { timeout: 60_000 } );
 
 		// Nothing is left behind for a retry to duplicate.
+		expect( ids ).toHaveLength( 1 );
 		await expect
 			.poll(
 				async () =>
 					(
 						await requestUtils.rest( {
 							path: '/wp/v2/media',
-							params: { per_page: 100 },
+							params: { include: ids.join( ',' ) },
 						} )
 					).length,
 				{ timeout: 30_000 }

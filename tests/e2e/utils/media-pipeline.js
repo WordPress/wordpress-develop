@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -41,6 +42,68 @@ export const UNDECODABLE_HEIC = {
 		path.join( __dirname, '../../phpunit/data/images/test-image.heic' )
 	),
 };
+
+const MIME_TYPES = {
+	'.jpg': 'image/jpeg',
+	'.svg': 'image/svg+xml',
+	'.wav': 'audio/wav',
+};
+
+/**
+ * Gives a test file a unique name, so the attachment it becomes has a unique
+ * title and other workers' uploads never match its tile.
+ *
+ * @param {string|{ name: string, mimeType: string, buffer: Buffer }} file A path, or a file payload.
+ * @return {{ name: string, mimeType: string, buffer: Buffer }} The payload to pass to setInputFiles().
+ */
+export function uniqueFile( file ) {
+	if ( typeof file === 'string' ) {
+		const mimeType = MIME_TYPES[ path.extname( file ) ];
+		if ( ! mimeType ) {
+			throw new Error( `uniqueFile: no MIME type for ${ file }` );
+		}
+		file = {
+			name: path.basename( file ),
+			mimeType,
+			buffer: fs.readFileSync( file ),
+		};
+	}
+	return { ...file, name: `${ randomUUID() }${ path.extname( file.name ) }` };
+}
+
+/**
+ * The tile name of an uploaded file: the attachment title, which the server
+ * takes from the file name.
+ *
+ * @param {{ name: string }} file
+ * @return {string} The file name without its extension.
+ */
+export function titleOf( file ) {
+	return path.parse( file.name ).name;
+}
+
+/**
+ * Tracks each attachment the page creates, so that the attachments fixture
+ * deletes it.
+ *
+ * Core sends the id in a header before it makes the sub-sizes, so an upload
+ * that fails after the attachment is saved is tracked too.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {Object}                          attachments The attachments fixture.
+ * @return {number[]} The attachment ids, in the order they were created.
+ */
+export function trackUploads( page, attachments ) {
+	const ids = [];
+	page.on( 'response', ( response ) => {
+		const id = Number( response.headers()[ 'x-wp-upload-attachment-id' ] );
+		if ( id > 0 ) {
+			ids.push( id );
+			attachments.track( id );
+		}
+	} );
+	return ids;
+}
 
 /**
  * Fails the request that creates the attachment, leaving sub-size and
