@@ -333,7 +333,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @covers ::lazyload_term_meta
 	 *
-	 * @expectedWPDeprecated WP_Metadata_Lazyloader::lazyload_term_meta
+	 * @expectedDeprecated WP_Metadata_Lazyloader::lazyload_term_meta
 	 */
 	public function test_lazyload_term_meta_is_deprecated_and_primes_term_meta() {
 		$lazyloader = new WP_Metadata_Lazyloader();
@@ -352,7 +352,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @covers ::lazyload_comment_meta
 	 *
-	 * @expectedWPDeprecated WP_Metadata_Lazyloader::lazyload_comment_meta
+	 * @expectedDeprecated WP_Metadata_Lazyloader::lazyload_comment_meta
 	 */
 	public function test_lazyload_comment_meta_is_deprecated_and_primes_comment_meta() {
 		$lazyloader = new WP_Metadata_Lazyloader();

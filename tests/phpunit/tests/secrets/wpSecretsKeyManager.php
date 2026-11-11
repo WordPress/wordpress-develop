@@ -150,7 +150,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	public function test_get_master_key_reports_an_invalid_scope_as_a_wp_error(): void {
 		$manager = new WP_Secrets_Key_Manager();
 
-		$this->expectWPIncorrectUsage( 'WP_Secrets_Key_Manager::get_master_key' );
+		$this->setExpectedIncorrectUsage( 'WP_Secrets_Key_Manager::get_master_key' );
 
 		$result = $manager->get_master_key( 'bogus' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
@@ -170,7 +170,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	public function test_get_master_key_reports_an_invalid_site_id_as_a_wp_error( $site_id ): void {
 		$manager = new WP_Secrets_Key_Manager();
 
-		$this->expectWPIncorrectUsage( 'WP_Secrets_Key_Manager::get_master_key' );
+		$this->setExpectedIncorrectUsage( 'WP_Secrets_Key_Manager::get_master_key' );
 
 		$result = $manager->get_master_key( 'site', $site_id );
 

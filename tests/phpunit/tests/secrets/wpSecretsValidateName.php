@@ -90,7 +90,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * @param string $name An unnamespaced name that must be accepted.
 	 */
 	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ): void {
-		$this->expectWPIncorrectUsage( 'wp_secrets_validate_name' );
+		$this->setExpectedIncorrectUsage( 'wp_secrets_validate_name' );
 
 		$this->assertTrue( wp_secrets_validate_name( $name ), 'An unnamespaced name should be accepted.' );
 	}

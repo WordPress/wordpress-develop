@@ -42,7 +42,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	/**
 	 * @ticket 22896
 	 *
-	 * @expectedWPIncorrectUsage wp_deregister_script
+	 * @expectedIncorrectUsage wp_deregister_script
 	 *
 	 * @covers ::wp_script_is
 	 */

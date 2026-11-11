@@ -121,7 +121,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	/**
 	 * @ticket 24932
 	 *
-	 * @expectedWPIncorrectUsage add_theme_support( 'html5' )
+	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5() {
 		remove_theme_support( 'html5' );
@@ -143,7 +143,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	/**
 	 * @ticket 24932
 	 *
-	 * @expectedWPIncorrectUsage add_theme_support( 'html5' )
+	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5_subset() {
 		remove_theme_support( 'html5' );
@@ -176,7 +176,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	/**
 	 * @ticket 24932
 	 *
-	 * @expectedWPIncorrectUsage add_theme_support( 'html5' )
+	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5_invalid() {
 		remove_theme_support( 'html5' );
@@ -188,7 +188,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	/**
 	 * @ticket 51390
 	 *
-	 * @expectedWPIncorrectUsage add_theme_support( 'post-formats' )
+	 * @expectedIncorrectUsage add_theme_support( 'post-formats' )
 	 */
 	public function test_supports_post_formats_doing_it_wrong() {
 		// The second parameter should be an array.

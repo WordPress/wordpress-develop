@@ -749,7 +749,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_query_before_after() {
 		// Valid values.
@@ -796,7 +796,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_query_before_after_with_month() {
 		// Both are valid.
@@ -842,7 +842,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_week() {
 		// Valid values.
@@ -895,7 +895,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_month() {
 		// Valid values.
@@ -913,7 +913,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_day() {
 		// Valid values.
@@ -970,7 +970,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_hour() {
 		// Valid values.
@@ -988,7 +988,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_minute() {
 		// Valid values.
@@ -1006,7 +1006,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_second() {
 		// Valid values.
@@ -1024,7 +1024,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_day_of_week() {
 		// Valid values.
@@ -1042,7 +1042,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28063
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_day_of_week_iso() {
 		// Valid values.
@@ -1060,7 +1060,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25834
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_day_of_year() {
 		// Valid values.
@@ -1122,7 +1122,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31001
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_validate_date_values_should_process_array_value_for_day_when_values_are_invalid() {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );

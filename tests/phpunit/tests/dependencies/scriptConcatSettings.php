@@ -60,7 +60,7 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @expectedWPDeprecated script_concat_settings
+	 * @expectedDeprecated script_concat_settings
 	 */
 	public function test_concatenate_scripts_global_defaults_to_false(): void {
 		set_current_screen( 'dashboard' );
@@ -75,7 +75,7 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 63017
 	 *
-	 * @expectedWPDeprecated script_concat_settings
+	 * @expectedDeprecated script_concat_settings
 	 */
 	public function test_compression_globals_default_to_false(): void {
 		// The result of the compression test, which used to turn the compression globals on.
@@ -92,7 +92,7 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 63017
 	 *
-	 * @expectedWPDeprecated script_concat_settings
+	 * @expectedDeprecated script_concat_settings
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -113,7 +113,7 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 63017
 	 *
-	 * @expectedWPDeprecated script_concat_settings
+	 * @expectedDeprecated script_concat_settings
 	 */
 	public function test_compression_globals_already_set_are_kept(): void {
 		$GLOBALS['compress_scripts'] = true;

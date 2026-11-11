@@ -118,7 +118,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_invalid_name(): void {
 		$this->simulate_doing_wp_abilities_init_action();
@@ -133,7 +133,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage wp_register_ability
+	 * @expectedIncorrectUsage wp_register_ability
 	 */
 	public function test_register_ability_no_abilities_api_init_action(): void {
 		$this->assertFalse( doing_action( 'wp_abilities_api_init' ) );
@@ -148,7 +148,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_register_ability_no_init_action(): void {
 		global $wp_actions;
@@ -226,7 +226,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * Tests that registering an ability requires a category.
 	 *
 	 * @ticket 65569
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_without_category_fails(): void {
 		$this->simulate_doing_wp_abilities_init_action();
@@ -305,7 +305,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		// Try again with an invalid class throws a doing it wrong.
-		$this->expectWPIncorrectUsage( WP_Abilities_Registry::class . '::register' );
+		$this->setExpectedIncorrectUsage( WP_Abilities_Registry::class . '::register' );
 		wp_register_ability(
 			self::$test_ability_name,
 			array_merge(
@@ -463,7 +463,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_unregister_ability_no_init_action(): void {
 		global $wp_actions;
@@ -510,7 +510,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_get_ability_no_init_action(): void {
 		global $wp_actions;
@@ -574,7 +574,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_has_ability_no_init_action(): void {
 		global $wp_actions;
@@ -630,7 +630,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_get_abilities_no_init_action(): void {
 		global $wp_actions;

@@ -134,7 +134,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 *
 	 * @ticket 60698
 	 *
-	 * @expectedWPIncorrectUsage WP_Token_Map::from_array
+	 * @expectedIncorrectUsage WP_Token_Map::from_array
 	 */
 	public function test_rejects_words_which_are_too_long() {
 		$normal_length = str_pad( '', 255, '.' );

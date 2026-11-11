@@ -8,7 +8,7 @@
 class Tests_Formatting_LikeEscape extends WP_UnitTestCase {
 	/**
 	 * @ticket 10041
-	 * @expectedWPDeprecated like_escape
+	 * @expectedDeprecated like_escape
 	 */
 	public function test_like_escape() {
 

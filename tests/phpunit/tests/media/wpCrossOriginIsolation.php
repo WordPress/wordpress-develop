@@ -328,7 +328,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @ticket 65930
 	 *
-	 * @expectedWPDeprecated wp_start_cross_origin_isolation_output_buffer
+	 * @expectedDeprecated wp_start_cross_origin_isolation_output_buffer
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -352,7 +352,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @ticket 65930
 	 *
-	 * @expectedWPDeprecated wp_add_crossorigin_attributes
+	 * @expectedDeprecated wp_add_crossorigin_attributes
 	 *
 	 * @dataProvider data_cross_origin_elements
 	 *

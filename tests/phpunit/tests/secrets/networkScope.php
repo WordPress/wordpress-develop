@@ -169,7 +169,7 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	 * @covers ::_wp_secrets_get
 	 */
 	public function test_an_invalid_version_is_a_wp_error_same_as_site_scope(): void {
-		$this->expectWPIncorrectUsage( '_wp_secrets_get' );
+		$this->setExpectedIncorrectUsage( '_wp_secrets_get' );
 
 		$result = wp_get_network_secret( 'myplugin/api-key', 'not-a-real-version' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 

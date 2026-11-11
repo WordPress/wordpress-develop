@@ -109,7 +109,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_a_registered_field_is_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Fields_Registry::register' );
 		$registered = $this->register_fields(
 			'postType',
@@ -143,7 +143,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_the_same_field_twice_keeps_the_first_definition() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Fields_Registry::register' );
 		$registered = $this->register_fields(
 			'postType',
@@ -357,7 +357,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_a_field_with_an_unknown_type_is_reported() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Fields_Registry::register' );
 		$registered = $this->register_fields(
 			'postType',
@@ -389,7 +389,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_updating_an_unregistered_field_is_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
 		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::update' );
 		$updated  = array();
 		$this->on_entity_fields_api_init(
@@ -432,8 +432,8 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_an_invalid_definition_is_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
 		$reported   = &$this->record_notices( 'WP_Entity_Fields_Registry::register' );
 		$registered = null;
 		$updated    = null;
@@ -491,7 +491,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_with_an_invalid_origin_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$registered = null;
 		$this->on_entity_fields_api_init(
 			static function () use ( &$registered ) {
@@ -509,7 +509,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_fields_that_are_not_a_list_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$registered = null;
 		$this->on_entity_fields_api_init(
 			static function () use ( &$registered ) {
@@ -529,7 +529,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_unregistering_with_an_invalid_entity_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
 		$results = array();
 		$this->on_entity_fields_api_init(
 			static function () use ( &$results ) {
@@ -555,7 +555,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_unregistering_with_an_invalid_id_skips_it() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
 		$unregistered = null;
 		$this->on_entity_fields_api_init(
 			static function () use ( &$unregistered ) {
@@ -578,7 +578,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_registering_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 
@@ -595,7 +595,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_updating_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 
@@ -627,7 +627,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	 * @ticket 66229
 	 */
 	public function test_unregistering_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 
@@ -647,7 +647,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	public function test_reading_before_init_does_not_fire_the_action() {
 		global $wp_actions;
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::initialize' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::initialize' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 
@@ -678,7 +678,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	public function test_reading_during_init_does_not_fire_the_action() {
 		global $wp_current_filter;
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::initialize' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::initialize' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 

@@ -139,7 +139,7 @@ class Tests_Comment_GetTrackbackUrl extends WP_UnitTestCase {
 	 *
 	 * @covers ::trackback_url
 	 *
-	 * @expectedWPDeprecated trackback_url
+	 * @expectedDeprecated trackback_url
 	 */
 	public function test_trackback_url_returns_url_when_echo_is_false() {
 		$this->set_permalink_structure( '/%postname%/' );

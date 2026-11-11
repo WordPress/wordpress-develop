@@ -196,7 +196,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string   $printed    How `state.html` is expected to print in the client data.
 	 */
 	public function test_token_reaches_the_output_only_as_host_content( callable $make_state, string $printed ) {
-		$this->expectWPIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
 		$this->set_state( $make_state() );
 
 		$output = wp_interactivity_process_directives(
@@ -369,7 +369,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param array  $state      The state of the `test` namespace.
 	 */
 	public function test_value_that_is_not_a_token_empties_the_host_with_one_notice( string $attributes, array $state ) {
-		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 		$this->set_state( $state );
 
 		$output = wp_interactivity_process_directives( $this->page( '<div ' . $attributes . '>' . self::CHILDREN . '</div>' ) );
@@ -598,7 +598,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string $name     The name of the conflicting directive.
 	 */
 	public function test_conflicting_directive_ignores_data_wp_html_with_one_notice( string $host, string $expected, string $name ) {
-		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 		$token = $this->token();
 		$this->set_state(
 			array(
@@ -1146,8 +1146,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers WP_Interactivity_Dangerous_HTML::__wakeup
 	 */
 	public function test_unserialized_token_is_not_a_token() {
-		$this->expectWPIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
-		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 
 		$original = $this->token();
 		$value    = unserialize( serialize( $original ) );
@@ -1195,8 +1195,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_token_in_context_helper_reaches_no_output_or_client_data() {
-		$this->expectWPIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
-		$this->expectWPIncorrectUsage( self::NOTICE_SOURCE );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 
 		$wrapper = '<div data-wp-interactive="test" ' . wp_interactivity_data_wp_context( array( 'h' => $this->token() ) ) . '>';
 		$output  = wp_interactivity_process_directives(

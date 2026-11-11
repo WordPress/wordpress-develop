@@ -97,7 +97,7 @@ class Tests_User_TheAuthorPostsLink extends WP_UnitTestCase {
 	 * Tests that passing a deprecated argument triggers a deprecation notice.
 	 *
 	 * @ticket 65819
-	 * @expectedWPDeprecated the_author_posts_link
+	 * @expectedDeprecated the_author_posts_link
 	 */
 	public function test_deprecated_argument() {
 		get_echo( 'the_author_posts_link', array( 'deprecated' ) );

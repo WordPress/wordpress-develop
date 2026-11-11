@@ -5,7 +5,7 @@
  * tags within `<pre>` elements as part of wpautop().
  *
  * @group formatting
- * @expectedWPDeprecated clean_pre
+ * @expectedDeprecated clean_pre
  *
  * @covers ::clean_pre
  */

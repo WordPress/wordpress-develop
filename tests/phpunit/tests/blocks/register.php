@@ -1383,7 +1383,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_register_block_type_throws_doing_it_wrong
 	 *
-	 * @expectedWPIncorrectUsage WP_Block_Type::__set
+	 * @expectedIncorrectUsage WP_Block_Type::__set
 	 *
 	 * @param array $editor_script The editor script array to register.
 	 * @param array $expected      The expected registered editor script.
@@ -1595,7 +1595,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_block_style
 	 *
-	 * @expectedWPIncorrectUsage WP_Block_Styles_Registry::register
+	 * @expectedIncorrectUsage WP_Block_Styles_Registry::register
 	 * @param array $block_styles Array of block styles to test.
 	 */
 	public function test_register_block_style_name_contains_spaces( array $block_styles ) {
@@ -1647,7 +1647,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_block_type
 	 *
-	 * @expectedWPIncorrectUsage register_block_type_from_metadata
+	 * @expectedIncorrectUsage register_block_type_from_metadata
 	 */
 	public function test_register_block_hooks_targeting_itself() {
 		$block_type = register_block_type(

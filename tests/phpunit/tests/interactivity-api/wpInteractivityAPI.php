@@ -248,7 +248,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @covers ::print_client_interactivity_data
 	 *
-	 * @expectedWPDeprecated WP_Interactivity_API::print_client_interactivity_data
+	 * @expectedDeprecated WP_Interactivity_API::print_client_interactivity_data
 	 */
 	public function test_config_not_printed_when_empty() {
 		$this->interactivity->print_client_interactivity_data();
@@ -260,7 +260,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @ticket 60647
 	 *
-	 * @expectedWPDeprecated WP_Interactivity_API::register_script_modules
+	 * @expectedDeprecated WP_Interactivity_API::register_script_modules
 	 */
 	public function test_register_script_modules_deprecated() {
 		$this->interactivity->register_script_modules();
@@ -557,7 +557,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::state
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
 	public function test_state_with_data_and_invalid_namespace() {
 		$this->set_internal_namespace_stack( 'myPlugin' );
@@ -577,7 +577,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::state
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
 	public function test_state_with_empty_string_as_namespace() {
 		$this->set_internal_namespace_stack( 'myPlugin' );
@@ -598,7 +598,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::state
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::state
+	 * @expectedIncorrectUsage WP_Interactivity_API::state
 	 */
 	public function test_state_without_namespace_outside_directive_processing() {
 		$this->assertSame(
@@ -712,7 +712,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::get_context
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::get_context
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_context
 	 */
 	public function test_get_context_with_empty_namespace() {
 		$this->set_internal_namespace_stack( 'myPlugin' );
@@ -739,7 +739,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::get_context
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::get_context
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_context
 	 */
 	public function test_get_context_outside_of_directive_processing() {
 		$context = $this->interactivity->get_context();
@@ -1463,7 +1463,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedWPIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
+	 * @expectedIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_svgs() {
 		$this->interactivity->state(
@@ -1493,7 +1493,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::_process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state(
@@ -1528,8 +1528,8 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::_process_directives
-	 * @expectedWPIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API_Directives_Processor::skip_to_tag_closer
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_math() {
 		$this->interactivity->state(
@@ -1919,7 +1919,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61044
 	 *
 	 * @covers ::evaluate
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::evaluate
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_evaluate_unvalid_namespaces() {
 		$this->set_internal_context_stack( array() );
@@ -2095,7 +2095,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 61037
 	 *
 	 * @covers ::evaluate
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::evaluate
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_evaluate_derived_state_that_throws() {
 		$this->interactivity->state(
@@ -2297,7 +2297,7 @@ HTML;
 	 * @ticket 62136
 	 *
 	 * @covers wp_interactivity_get_element
-	 * @expectedWPIncorrectUsage WP_Interactivity_API::get_element
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_element
 	 */
 	public function test_get_element_outside_of_directive_processing() {
 		$element = $this->interactivity->get_element();

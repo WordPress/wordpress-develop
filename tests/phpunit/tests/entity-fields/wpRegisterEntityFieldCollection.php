@@ -141,7 +141,7 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	public function test_a_collection_redefining_a_registered_field_is_skipped() {
 		$this->register_post_types( array( 'test_book' => array( 'title' ) ) );
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
 		$directory = DIR_TESTDATA . '/entity-fields/collections/duplicate/book';
 		$result    = null;
 		$this->on_entity_fields_api_init(
@@ -178,7 +178,7 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	public function test_an_invalid_collection_is_skipped() {
 		$this->register_post_types( array( 'test_book' => array( 'title' ) ) );
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
 		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::register_collection' );
 		$results  = $this->register_fixture_collections( 'invalid', array( 'book', 'no_name', 'null_name', 'no_origin', 'missing' ) );
 		$ids      = array_column( wp_get_registered_entity_fields( 'postType', 'test_book' ), 'id' );
@@ -211,7 +211,7 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	 * @ticket 66229
 	 */
 	public function test_invalid_collection_fields_are_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::get_collection_fields' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_collection_fields' );
 		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::get_collection_fields' );
 		$fields   = wp_get_entity_field_collection_fields( DIR_TESTDATA . '/entity-fields/collections/invalid_fields/book' );
 
@@ -231,7 +231,7 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	public function test_a_collection_with_invalid_fields_registers_the_valid_ones() {
 		$this->register_post_types( array( 'test_book' => array( 'title' ) ) );
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
 		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::register_collection' );
 		$results  = $this->register_fixture_collections( 'invalid_fields', array( 'book' ) );
 		$fields   = wp_get_registered_entity_fields( 'postType', 'test_book' );
@@ -249,7 +249,7 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	 * @ticket 66229
 	 */
 	public function test_registering_a_collection_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_fields_api_init' );
 

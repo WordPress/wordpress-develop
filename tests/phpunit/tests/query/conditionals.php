@@ -801,7 +801,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	// '[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}/[^/]+/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]',
 
 	/**
-	 * @expectedWPIncorrectUsage WP_Date_Query
+	 * @expectedIncorrectUsage WP_Date_Query
 	 */
 	public function test_bad_dates() {
 		$this->go_to( '/2013/13/13/' );
@@ -1634,10 +1634,10 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 		if ( 'is_comments_popup' === $function_name ) {
 			// `is_comments_popup()` is deprecated as of WP 4.5.
-			$this->expectWPDeprecated( $function_name );
+			$this->setExpectedDeprecated( $function_name );
 		} else {
 			// All the other functions should throw a `_doing_it_wrong()` notice.
-			$this->expectWPIncorrectUsage( $function_name );
+			$this->setExpectedIncorrectUsage( $function_name );
 		}
 
 		$this->assertFalse( call_user_func( $function_name ) );

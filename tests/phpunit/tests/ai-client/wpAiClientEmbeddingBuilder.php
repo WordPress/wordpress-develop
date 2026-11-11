@@ -323,7 +323,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	 *
 	 * @ticket 65638
 	 *
-	 * @expectedWPIncorrectUsage WP_AI_Client_Embedding_Builder::__construct
+	 * @expectedIncorrectUsage WP_AI_Client_Embedding_Builder::__construct
 	 */
 	public function test_constructor_disallows_overriding_with_invalid_request_timeout() {
 		add_filter( 'wp_ai_client_default_request_timeout', '__return_null' );

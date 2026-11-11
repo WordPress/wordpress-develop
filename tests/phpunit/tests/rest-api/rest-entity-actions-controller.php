@@ -155,7 +155,7 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 */
 	public function test_the_route_of_a_taxonomy_with_the_same_base_is_kept() {
 		global $wp_rest_server;
-		$this->expectWPIncorrectUsage( 'WP_REST_Entity_Actions_Controller::is_route_of_entity_items' );
+		$this->setExpectedIncorrectUsage( 'WP_REST_Entity_Actions_Controller::is_route_of_entity_items' );
 		register_taxonomy( 'entity-actions', 'post', array( 'show_in_rest' => true ) );
 
 		try {

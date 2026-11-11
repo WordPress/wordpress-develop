@@ -239,7 +239,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * Test that we reject routes without namespaces
 	 *
-	 * @expectedWPIncorrectUsage register_rest_route
+	 * @expectedIncorrectUsage register_rest_route
 	 */
 	public function test_route_reject_empty_namespace() {
 		rest_get_server();
@@ -261,7 +261,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * Test that we reject empty routes
 	 *
-	 * @expectedWPIncorrectUsage register_rest_route
+	 * @expectedIncorrectUsage register_rest_route
 	 */
 	public function test_route_reject_empty_route() {
 		rest_get_server();
@@ -1196,7 +1196,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_register_route_with_invalid_namespace() {
 		rest_get_server();
 
-		$this->expectWPIncorrectUsage( 'register_rest_route' );
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		register_rest_route(
 			'/my-namespace/v1/',
@@ -1219,7 +1219,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_register_route_with_missing_permission_callback_top_level_route() {
 		rest_get_server();
 
-		$this->expectWPIncorrectUsage( 'register_rest_route' );
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
 			'my-ns/v1',
@@ -1238,7 +1238,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_register_route_with_missing_permission_callback_single_wrapped_route() {
 		rest_get_server();
 
-		$this->expectWPIncorrectUsage( 'register_rest_route' );
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
 			'my-ns/v1',
@@ -1260,7 +1260,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_register_route_with_missing_permission_callback_multiple_wrapped_route() {
 		rest_get_server();
 
-		$this->expectWPIncorrectUsage( 'register_rest_route' );
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
 			'my-ns/v1',
@@ -2933,7 +2933,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_route_args_is_array_of_arrays() {
 		rest_get_server();
 
-		$this->expectWPIncorrectUsage( 'register_rest_route' );
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
 			'my-ns/v1',

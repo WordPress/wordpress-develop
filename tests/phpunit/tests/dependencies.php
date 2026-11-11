@@ -180,7 +180,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Dependencies::get_etag
 	 *
-	 * @expectedWPDeprecated WP_Dependencies::get_etag
+	 * @expectedDeprecated WP_Dependencies::get_etag
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *
@@ -217,7 +217,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Dependencies::get_etag
 	 *
-	 * @expectedWPDeprecated WP_Dependencies::get_etag
+	 * @expectedDeprecated WP_Dependencies::get_etag
 	 *
 	 * @dataProvider data_provider_get_etag
 	 *

@@ -282,7 +282,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * @ticket 64605
 	 *
-	 * @expectedWPIncorrectUsage WP_Abilities_Settings::get_exposed_settings
+	 * @expectedIncorrectUsage WP_Abilities_Settings::get_exposed_settings
 	 */
 	public function test_core_settings_get_warns_about_a_duplicate_exposed_name(): void {
 		register_setting(

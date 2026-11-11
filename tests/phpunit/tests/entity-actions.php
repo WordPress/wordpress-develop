@@ -571,7 +571,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	public function test_all_registered_action_modules_are_empty_while_init_runs() {
 		global $wp_current_filter;
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_actions_api_init' );
 
@@ -615,7 +615,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_firing_the_action_again_does_not_reopen_the_registry() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$actions = wp_get_registered_entity_actions( 'postType', 'page' );
 		add_action(
 			'wp_entity_actions_api_init',
@@ -708,7 +708,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_a_registered_action_is_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$registered = $this->register_actions(
 			'postType',
@@ -742,7 +742,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_an_action_with_invalid_values_is_reported() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$registered = $this->register_actions(
 			'postType',
@@ -784,7 +784,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_the_same_action_twice_keeps_the_first_definition() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$registered = $this->register_actions(
 			'postType',
@@ -939,7 +939,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_an_invalid_definition_is_skipped() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$registered = $this->register_actions(
 			'postType',
@@ -971,7 +971,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_a_call_with_only_invalid_definitions_registers_nothing() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported   = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$registered = $this->register_actions( 'postType', 'page', array( array( 'label' => 'No id' ) ) );
 
@@ -986,7 +986,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_with_an_invalid_origin_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$registered = null;
 		$this->on_entity_actions_api_init(
 			static function () use ( &$registered ) {
@@ -1005,7 +1005,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_actions_that_are_not_a_list_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		$reported = &$this->record_notices( 'WP_Entity_Actions_Registry::register' );
 		$results  = array();
 		$this->on_entity_actions_api_init(
@@ -1037,7 +1037,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_unregistering_with_an_invalid_entity_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
 		$results = array();
 		$this->on_entity_actions_api_init(
 			static function () use ( &$results ) {
@@ -1063,7 +1063,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_unregistering_with_an_invalid_id_skips_it() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
 		$unregistered = null;
 		$this->on_entity_actions_api_init(
 			static function () use ( &$unregistered ) {
@@ -1084,7 +1084,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_unregistering_only_invalid_ids_unregisters_nothing() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
 		$reported     = &$this->record_notices( 'WP_Entity_Actions_Registry::unregister' );
 		$unregistered = null;
 		$this->on_entity_actions_api_init(
@@ -1106,8 +1106,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_reading_an_invalid_entity_is_reported() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::get_registered' );
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::get_registered_action_modules' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::get_registered' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::get_registered_action_modules' );
 
 		$this->assertSame( array(), wp_get_registered_entity_actions( 'postType', array( 'page' ) ) );
 		$this->assertSame( array(), wp_get_registered_entity_action_modules( '', 'page' ) );
@@ -1134,7 +1134,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_registering_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_actions_api_init' );
 
@@ -1153,7 +1153,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_unregistering_outside_the_action_is_refused() {
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_actions_api_init' );
 
@@ -1173,7 +1173,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	public function test_reading_before_init_does_not_fire_the_action() {
 		global $wp_actions;
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_actions_api_init' );
 
@@ -1204,7 +1204,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	public function test_reading_during_init_does_not_fire_the_action() {
 		global $wp_current_filter;
 
-		$this->expectWPIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
 		self::reset_registry();
 		$fired = did_action( 'wp_entity_actions_api_init' );
 

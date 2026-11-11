@@ -124,7 +124,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @param string $expected_msg  Expected error message substring.
 	 */
 	public function test_unrecognized_keys_in_args( string $function_name, array $args, string $expected_msg ) {
-		$this->expectWPIncorrectUsage( $function_name );
+		$this->setExpectedIncorrectUsage( $function_name );
 
 		call_user_func_array( $function_name, $args );
 
@@ -1315,7 +1315,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_register_script
 	 * @covers WP_Scripts::add_data
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_invalid_fetchpriority_value() {
 		wp_register_script( 'joke', '/joke.js', array(), null, array( 'fetchpriority' => 'silly' ) );
@@ -1332,7 +1332,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_register_script
 	 * @covers WP_Scripts::add_data
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_invalid_fetchpriority_value_type() {
 		wp_register_script( 'bad', '/bad.js' );
@@ -1350,7 +1350,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_register_script
 	 * @covers WP_Scripts::add_data
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_invalid_fetchpriority_on_alias() {
 		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
@@ -1375,7 +1375,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		wp_register_script( 'test-script', '/test.js' );
 
 		$expected_incorrect_usage = 'WP_Scripts::add_data';
-		$this->expectWPIncorrectUsage( $expected_incorrect_usage );
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
 
 		$this->assertSame( $expected, wp_scripts()->add_data( 'test-script', 'module_dependencies', $data ) );
 		$this->assertStringContainsString( $message, $this->caught_doing_it_wrong[ $expected_incorrect_usage ] );
@@ -1429,7 +1429,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 */
 	public function test_module_dependencies_require_footer_or_defer( string $function_name, array $args, bool $should_warn ): void {
 		if ( $should_warn ) {
-			$this->expectWPIncorrectUsage( $function_name );
+			$this->setExpectedIncorrectUsage( $function_name );
 		}
 
 		call_user_func_array( $function_name, $args );
@@ -2072,7 +2072,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_register() {
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
@@ -2096,7 +2096,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_add_data() {
 		wp_register_script( 'invalid-strategy', '/defaults.js', array(), null );
@@ -2119,7 +2119,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers WP_Scripts::add_data
 	 * @covers ::wp_enqueue_script
 	 *
-	 * @expectedWPIncorrectUsage WP_Scripts::add_data
+	 * @expectedIncorrectUsage WP_Scripts::add_data
 	 */
 	public function test_script_strategy_doing_it_wrong_via_enqueue() {
 		wp_enqueue_script( 'invalid-strategy', '/defaults.js', array(), null, array( 'strategy' => 'random-strategy' ) );
@@ -2230,7 +2230,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Scripts::in_default_dir
 	 *
-	 * @expectedWPDeprecated WP_Scripts::in_default_dir
+	 * @expectedDeprecated WP_Scripts::in_default_dir
 	 */
 	public function test_in_default_dir_is_deprecated(): void {
 		$wp_scripts               = wp_scripts();
@@ -2262,8 +2262,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::print_head_scripts
 	 * @covers ::print_footer_scripts
 	 *
-	 * @expectedWPDeprecated print_head_scripts
-	 * @expectedWPDeprecated print_footer_scripts
+	 * @expectedDeprecated print_head_scripts
+	 * @expectedDeprecated print_footer_scripts
 	 */
 	public function test_print_scripts_filters_are_deprecated(): void {
 		add_filter( 'print_head_scripts', '__return_false' );
@@ -2298,7 +2298,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
-	 * @expectedWPDeprecated WP_Dependencies::add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
@@ -2697,7 +2697,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers WP_Scripts::get_inline_script_tag
 	 * @covers WP_Scripts::print_inline_script
 	 *
-	 * @expectedWPDeprecated WP_Scripts::print_inline_script
+	 * @expectedDeprecated WP_Scripts::print_inline_script
 	 *
 	 * @dataProvider data_provider_to_test_get_inline_script
 	 *
@@ -3388,7 +3388,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 */
 	public function test_wp_localize_script_data_formats( $l10n_data, $expected ) {
 		if ( ! is_array( $l10n_data ) ) {
-			$this->expectWPIncorrectUsage( 'WP_Scripts::localize' );
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
 		}
 
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
@@ -3997,7 +3997,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 */
 	public function test_wp_scripts_doing_it_wrong_for_missing_dependencies() {
 		$expected_incorrect_usage = 'WP_Scripts::add';
-		$this->expectWPIncorrectUsage( $expected_incorrect_usage );
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
 
 		wp_register_script( 'registered-dep', '/registered-dep.js' );
 		wp_enqueue_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );

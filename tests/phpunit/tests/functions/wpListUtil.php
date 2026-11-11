@@ -118,7 +118,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @covers WP_List_Util::pluck
 	 * @covers ::wp_list_pluck
 	 *
-	 * @expectedWPIncorrectUsage WP_List_Util::pluck
+	 * @expectedIncorrectUsage WP_List_Util::pluck
 	 *
 	 * @param array $input An invalid input array.
 	 */
@@ -136,7 +136,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @covers WP_List_Util::pluck
 	 * @covers ::wp_list_pluck
 	 *
-	 * @expectedWPIncorrectUsage WP_List_Util::pluck
+	 * @expectedIncorrectUsage WP_List_Util::pluck
 	 *
 	 * @param array $input An invalid input array.
 	 */

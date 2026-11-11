@@ -192,7 +192,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_menu_output
 	 *
-	 * @expectedWPIncorrectUsage _wp_menu_output
+	 * @expectedIncorrectUsage _wp_menu_output
 	 */
 	public function test_unregistered_icon_name_leaves_icon_element_empty(): void {
 		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.

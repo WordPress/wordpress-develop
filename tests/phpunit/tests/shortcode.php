@@ -675,7 +675,7 @@ EOF;
 	 * Make sure invalid shortcode names are not allowed.
 	 *
 	 * @dataProvider data_registration_bad
-	 * @expectedWPIncorrectUsage add_shortcode
+	 * @expectedIncorrectUsage add_shortcode
 	 */
 	public function test_registration_bad( $input, $expected ) {
 		$this->sub_registration( $input, $expected );

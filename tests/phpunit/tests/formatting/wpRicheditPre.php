@@ -2,7 +2,7 @@
 
 /**
  * @group formatting
- * @expectedWPDeprecated wp_richedit_pre
+ * @expectedDeprecated wp_richedit_pre
  *
  * @covers ::wp_richedit_pre
  */

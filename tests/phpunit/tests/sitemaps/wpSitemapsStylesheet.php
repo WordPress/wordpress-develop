@@ -17,7 +17,7 @@ class Tests_Sitemaps_wpSitemapsStylesheet extends WP_UnitTestCase {
 	 * @param string $method Deprecated method name.
 	 */
 	public function test_deprecated_methods( string $method ): void {
-		$this->expectWPDeprecated( "WP_Sitemaps_Stylesheet::$method" );
+		$this->setExpectedDeprecated( "WP_Sitemaps_Stylesheet::$method" );
 
 		$stylesheet = new WP_Sitemaps_Stylesheet();
 

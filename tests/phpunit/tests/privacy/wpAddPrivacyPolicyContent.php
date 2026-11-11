@@ -66,7 +66,7 @@ class Tests_Privacy_wpAddPrivacyPolicyContent extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @expectedWPIncorrectUsage wp_add_privacy_policy_content
+	 * @expectedIncorrectUsage wp_add_privacy_policy_content
 	 */
 	public function test_should_reject_content_outside_admin() {
 		set_current_screen( 'front' );
@@ -82,7 +82,7 @@ class Tests_Privacy_wpAddPrivacyPolicyContent extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @expectedWPIncorrectUsage wp_add_privacy_policy_content
+	 * @expectedIncorrectUsage wp_add_privacy_policy_content
 	 */
 	public function test_should_reject_content_before_admin_init() {
 		wp_add_privacy_policy_content( 'My Plugin', '<p>Policy.</p>' );
