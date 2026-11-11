@@ -72,7 +72,36 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 			'false'   => array( false ),
 			'integer' => array( 123 ),
 			'array'   => array( array( 'content' ) ),
+			'object'  => array( new stdClass() ),
 		);
+	}
+
+	/**
+	 * Ensures that a stringable object is parsed as a string and triggers a notice.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::parse
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 */
+	public function test_parses_stringable_document_as_string() {
+		$markup   = '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->';
+		$document = new class( $markup ) {
+			private $markup;
+
+			public function __construct( $markup ) {
+				$this->markup = $markup;
+			}
+
+			public function __toString() {
+				return $this->markup;
+			}
+		};
+
+		$p = new WP_Block_Parser();
+
+		$this->assertSame( $p->parse( $markup ), $p->parse( $document ) );
 	}
 
 	/**

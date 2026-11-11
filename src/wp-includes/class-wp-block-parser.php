@@ -66,12 +66,22 @@ class WP_Block_Parser {
 	 * return an error on invalid inputs.
 	 *
 	 * @since 5.0.0
-	 * @since 7.2.0 Returns an empty array and triggers a notice when the document is not a string.
+	 * @since 7.2.0 Triggers a notice when the document is not a string, and returns
+	 *              an empty array unless the document is a stringable object.
 	 *
 	 * @param string $document Input document being parsed.
 	 * @return array[]
 	 */
 	public function parse( $document ) {
+		if ( is_object( $document ) && method_exists( $document, '__toString' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Convert the document to a string before calling parse().' ),
+				'7.2.0'
+			);
+			$document = (string) $document;
+		}
+
 		if ( ! is_string( $document ) ) {
 			_doing_it_wrong(
 				__METHOD__,
