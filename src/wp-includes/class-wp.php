@@ -820,14 +820,16 @@ class WP {
 
 			if ( is_singular() ) {
 				$post = $wp_query->post ?? null;
-				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.
 				if ( $post && ! empty( $this->query_vars['page'] ) ) {
+					$postdata = $wp_query->generate_postdata( $post );
+					$numpages = $postdata ? $postdata['numpages'] : 1;
+
 					// Check if content is actually intended to be paged.
-					if ( str_contains( $post->post_content, $next ) ) {
+					if ( $numpages > 1 ) {
 						$page          = trim( $this->query_vars['page'], '/' );
-						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
+						$content_found = (int) $page <= $numpages;
 					} else {
 						$content_found = false;
 					}
