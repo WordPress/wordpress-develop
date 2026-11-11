@@ -335,6 +335,15 @@ function clean_site_details_cache( $site_id = 0 ) {
 
 	wp_cache_delete( $site_id, 'site-details' );
 	wp_cache_delete( $site_id, 'blog-details' );
+
+	/*
+	 * The domain and path lookup cache stores a full copy of the site details,
+	 * including the blogname, siteurl, post_count and home options.
+	 */
+	$site = get_site( $site_id );
+	if ( $site ) {
+		wp_cache_delete( md5( $site->domain . $site->path ), 'blog-lookup' );
+	}
 }
 
 /**
