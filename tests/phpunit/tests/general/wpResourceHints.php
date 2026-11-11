@@ -41,7 +41,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch_domains' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_dns_prefetch_domains( $hints, $method ) {
@@ -72,7 +72,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_preconnect_domains' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_preconnect_domains( $hints, $method ) {
@@ -98,7 +98,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_prerender_urls' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_prerender_urls( $hints, $method ) {
@@ -121,7 +121,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch_long_urls' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_dns_prefetch_long_urls( $hints, $method ) {
@@ -146,7 +146,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_dequeue_style( 'googlefonts' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function test_dns_prefetch_scripts() {
@@ -163,7 +163,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_dequeue_style( 'googlefonts' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -179,7 +179,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		wp_deregister_script( 'jquery-elsewhere' );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 		$this->assertStringNotContainsString( $unexpected, $actual );
 	}
 
@@ -193,7 +193,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		wp_deregister_script( 'test-script' );
 
 		$actual = get_echo( 'wp_resource_hints' );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -206,13 +206,13 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		add_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_errant_colon' ), 10, 2 );
 		$actual = get_echo( 'wp_resource_hints' );
 		remove_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_errant_colon' ) );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 
 		// Unsupported Scheme.
 		add_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_unsupported_scheme' ), 10, 2 );
 		$actual = get_echo( 'wp_resource_hints' );
 		remove_filter( 'wp_resource_hints', array( $this, 'add_malformed_url_unsupported_scheme' ) );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_malformed_url_errant_colon( $hints, $method ) {
@@ -233,10 +233,11 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38121
+	 * @ticket 66435
 	 */
 	public function test_custom_attributes() {
 		$expected = "<link rel='preconnect' href='https://make.wordpress.org' />\n" .
-					"<link crossorigin as='image' pr='0.5' href='https://example.com/foo.jpeg' rel='prefetch' />\n" .
+					"<link crossorigin as='image' href='https://example.com/foo.jpeg' rel='prefetch' />\n" .
 					"<link crossorigin='use-credentials' as='style' href='https://example.com/foo.css' rel='prefetch' />\n" .
 					"<link href='http://wordpress.org' rel='prerender' />\n";
 
@@ -246,7 +247,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 
 		remove_filter( 'wp_resource_hints', array( $this, 'add_url_with_attributes' ) );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	public function add_url_with_attributes( $hints, $method ) {
@@ -265,7 +266,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 			$hints[] = array(
 				'crossorigin',
 				'as'   => 'image',
-				'pr'   => 0.5,
+				'pr'   => 0.5, // Obsolete attribute which should be ignored.
 				'href' => 'https://example.com/foo.jpeg',
 			);
 			$hints[] = array(
@@ -283,5 +284,157 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 		}
 
 		return $hints;
+	}
+
+	/**
+	 * Tests that link attributes allowed on resource hints are printed, and that
+	 * those the HTML spec restricts to other link types are not.
+	 *
+	 * @ticket 66435
+	 */
+	public function test_spec_attributes() {
+		add_filter(
+			'wp_resource_hints',
+			static function ( array $hints, string $relation_type ): array {
+				if ( 'prefetch' === $relation_type ) {
+					$hints[] = array(
+						'href'           => 'https://example.com/foo.html',
+						'as'             => 'document',
+						'fetchpriority'  => 'low',
+						'hreflang'       => 'en',
+						'media'          => '(min-width: 600px)',
+						'referrerpolicy' => 'no-referrer',
+						'title'          => 'Foo',
+						'type'           => 'text/html',
+						'blocking'       => 'render',
+						'color'          => '#000',
+						'imagesizes'     => '100vw',
+						'imagesrcset'    => 'https://example.com/foo.jpeg 1x',
+						'integrity'      => 'sha384-foo',
+						'sizes'          => 'any',
+						'disabled',
+					);
+				}
+				return $hints;
+			},
+			10,
+			2
+		);
+
+		$this->assertEqualHTML(
+			"<link href='https://example.com/foo.html' as='document' fetchpriority='low' hreflang='en' media='(min-width: 600px)' referrerpolicy='no-referrer' title='Foo' type='text/html' rel='prefetch' />\n",
+			get_echo( 'wp_resource_hints' )
+		);
+	}
+
+	/**
+	 * Tests that boolean values only print attributes that may be valueless.
+	 *
+	 * @ticket 66435
+	 *
+	 * @dataProvider data_boolean_attributes
+	 *
+	 * @param array<int|string, mixed> $hint     Resource hint attributes.
+	 * @param string                   $expected Expected markup.
+	 */
+	public function test_boolean_attributes( array $hint, string $expected ) {
+		add_filter(
+			'wp_resource_hints',
+			static function ( array $hints, string $relation_type ) use ( $hint ): array {
+				if ( 'prefetch' === $relation_type ) {
+					$hints[] = $hint;
+				}
+				return $hints;
+			},
+			10,
+			2
+		);
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_resource_hints' ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_boolean_attributes()}.
+	 *
+	 * @return array<non-falsy-string, array{ hint: array<int|string, mixed>, expected: string }>
+	 */
+	public static function data_boolean_attributes(): array {
+		$href = 'https://example.com/foo.css';
+
+		return array(
+			'crossorigin as true'      => array(
+				'hint'     => array(
+					'crossorigin' => true,
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'crossorigin as list item' => array(
+				'hint'     => array(
+					'crossorigin',
+					'href' => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'crossorigin as false'     => array(
+				'hint'     => array(
+					'crossorigin' => false,
+					'href'        => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-boolean as true'      => array(
+				'hint'     => array(
+					'as'   => true,
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-boolean as list item' => array(
+				'hint'     => array(
+					'as',
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'unknown list item'        => array(
+				'hint'     => array(
+					'foo',
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'non-string list item'     => array(
+				'hint'     => array(
+					1.5,
+					'href' => $href,
+				),
+				'expected' => "<link href='$href' rel='prefetch' />\n",
+			),
+			'list item before value'   => array(
+				'hint'     => array(
+					'crossorigin',
+					'crossorigin' => 'use-credentials',
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+			'value before list item'   => array(
+				'hint'     => array(
+					'crossorigin' => 'use-credentials',
+					'crossorigin',
+					'href'        => $href,
+				),
+				'expected' => "<link crossorigin='use-credentials' href='$href' rel='prefetch' />\n",
+			),
+			'repeated list item'       => array(
+				'hint'     => array(
+					'crossorigin',
+					'crossorigin',
+					'href' => $href,
+				),
+				'expected' => "<link crossorigin href='$href' rel='prefetch' />\n",
+			),
+		);
 	}
 }
