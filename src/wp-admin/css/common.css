@@ -4169,8 +4169,16 @@ img {
 		margin-top: -2px;
 	}
 
-	.wp-responsive-open #wpbody {
+	/* Disable horizontal scroll when responsive menu is open
+	   since we push the main content and footer off to the right. */
+	#wpwrap.wp-responsive-open {
+		overflow-x: hidden;
+	}
+
+	.wp-responsive-open #wpcontent,
+	.wp-responsive-open #wpfooter {
 		right: -16em;
+		left: auto;
 	}
 
 	code {
@@ -4399,12 +4407,6 @@ img {
 
 /* Smartphone */
 @media screen and (max-width: 600px) {
-	/* Disable horizontal scroll when responsive menu is open
-	   since we push the main content off to the right. */
-	#wpwrap.wp-responsive-open {
-		overflow-x: hidden;
-	}
-
 	html.wp-toolbar {
 		padding-top: 0;
 	}
