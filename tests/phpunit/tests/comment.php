@@ -982,7 +982,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_new_comment
 	 */
-	public function test_wp_new_comment_should_approve_previously_approved_author_with_apostrophe_in_email() {
+	public function test_wp_new_comment_should_approve_previously_approved_author_with_apostrophe() {
 		update_option( 'comment_moderation', 0 );
 		update_option( 'comment_previously_approved', 1 );
 		add_filter( 'wp_is_comment_flood', '__return_false' );
@@ -990,7 +990,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		self::factory()->comment->create(
 			array(
 				'comment_post_ID'      => self::$post_id,
-				'comment_author'       => 'Comment Author',
+				'comment_author'       => "Pat O'Brien",
 				'comment_author_email' => "o'brien@example.com",
 				'comment_approved'     => 1,
 			)
@@ -998,7 +998,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$data = array(
 			'comment_post_ID'      => self::$post_id,
-			'comment_author'       => 'Comment Author',
+			'comment_author'       => "Pat O'Brien",
 			'comment_author_url'   => '',
 			'comment_author_email' => "o'brien@example.com",
 			'comment_type'         => '',
@@ -1007,6 +1007,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$id = wp_new_comment( wp_slash( $data ) );
 
+		$this->assertSame( "Pat O'Brien", get_comment( $id )->comment_author );
 		$this->assertSame( "o'brien@example.com", get_comment( $id )->comment_author_email );
 		$this->assertSame( '1', get_comment( $id )->comment_approved );
 	}
