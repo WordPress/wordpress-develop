@@ -357,7 +357,7 @@ function get_comment_statuses() {
  * Lowercases the code points, pads each to four digits and drops U+FE0F, so
  * `2764-FE0F`, `2764` and `2764-fe0f` all become `2764`.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @param mixed $hex_key The key to normalize.
  * @return string The normalized key, or an empty string when it is not a
@@ -389,7 +389,7 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
 /**
  * Retrieves the emoji a note can be reacted with.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @return array[] {
  *     The emoji, in display order.
@@ -448,7 +448,7 @@ function wp_get_note_reaction_emojis(): array {
 	 * emoji as text, so pick emoji the fonts on your users' systems can
 	 * display: newer emoji and flags do not render everywhere.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param array[] $emojis {
 	 *     The emoji to offer, in display order.
@@ -493,7 +493,7 @@ function wp_get_note_reaction_emojis(): array {
  * Each key is the emoji's lowercase code points, padded to four digits and
  * joined by `-`. A reaction stores its key in `comment_content`.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @return string[] The keys of the emoji from wp_get_note_reaction_emojis().
  *
