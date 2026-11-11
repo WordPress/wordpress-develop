@@ -1764,4 +1764,28 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			'Unexpected WP_Error code'
 		);
 	}
+
+	/**
+	 * Tests that `WP_Upgrader::maintenance_mode()` does not reuse a filesystem
+	 * object that was left in the global by a failed `WP_Filesystem()` call.
+	 *
+	 * `WP_Filesystem()` assigns the global before it connects, and returns false
+	 * on a constructor error without ever calling connect(), so a failed call
+	 * leaves an unusable object behind for the next caller to find.
+	 *
+	 * @ticket 65942
+	 *
+	 * @covers WP_Upgrader::maintenance_mode
+	 */
+	public function test_maintenance_mode_should_not_reuse_a_filesystem_global_that_reported_errors() {
+		self::$wp_filesystem_mock->errors = new WP_Error( 'empty_password', 'FTP password is required' );
+
+		self::$instance->maintenance_mode( false );
+
+		$this->assertNotSame(
+			self::$wp_filesystem_mock,
+			$GLOBALS['wp_filesystem'],
+			'maintenance_mode() reused the filesystem object that WP_Filesystem() had failed on'
+		);
+	}
 }
