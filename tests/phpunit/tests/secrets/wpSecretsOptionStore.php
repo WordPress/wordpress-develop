@@ -239,82 +239,88 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for tests that run in both scopes.
+	 * Ensure that one failed read of a stored record does not report the secret as absent, or leave it cached as missing.
 	 *
-	 * @return array<string, array{0: bool}>
-	 */
-	public static function data_scopes(): array {
-		return array(
-			'site scope'    => array( false ),
-			'network scope' => array( true ),
-		);
-	}
-
-	/**
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_one_failed_read_does_not_hide_a_stored_secret( bool $network ): void {
-		$this->write_secret( 'test/key', 'one', $network );
+		$this->assertTrue( $this->write_secret( 'test/key', 'one', $network ), 'Storing the secret should succeed.' );
 
 		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
 		$value  = $this->read_secret( 'test/key', $network );
 
 		remove_filter( 'query', $filter );
 
-		$this->assertSame( 'one', $value );
-		$this->assertSame( 'one', $this->read_secret( 'test/key', $network ) );
+		$this->assertSame( 'one', $value, 'A secret should be readable when the Options API read of its record fails once.' );
+		$this->assertSame( 'one', $this->read_secret( 'test/key', $network ), 'The secret should still be readable after the failed read.' );
 
-		// The Options API must not keep the record cached as missing.
 		if ( $network ) {
-			$this->assertIsArray( get_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key' ) );
+			$stored = get_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key' );
 		} else {
-			$this->assertIsArray( get_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key' ) );
+			$stored = get_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key' );
 		}
+
+		$this->assertIsArray( $stored, 'The Options API should not keep the record cached as missing after the failed read.' );
 	}
 
 	/**
-	 * A failed read must not make a rotation discard the value it depends on.
+	 * Ensure that a write after one failed read keeps the previous version, including in the stored row.
 	 *
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_one_failed_read_during_a_write_keeps_the_previous_version( bool $network ): void {
-		$this->write_secret( 'test/key', 'one', $network );
-		$this->write_secret( 'test/key', 'two', $network );
+		$this->assertTrue( $this->write_secret( 'test/key', 'one', $network ), 'Storing the first value should succeed.' );
+		$this->assertTrue( $this->write_secret( 'test/key', 'two', $network ), 'Storing the second value should succeed.' );
 
 		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
 		$result = $this->write_secret( 'test/key', 'three', $network );
 
 		remove_filter( 'query', $filter );
 
-		$this->assertTrue( $result );
-		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ) );
-		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+		$this->assertTrue( $result, 'A write should succeed when the Options API read of the record fails once.' );
+		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ), 'The new value should be the current version.' );
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ), 'The value before the write should be the previous version.' );
 
 		// Later requests read from the database, so the write must have updated the stored row.
 		wp_cache_flush();
 
-		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ) );
-		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+		$this->assertSame( 'three', $this->read_secret( 'test/key', $network ), 'The stored row should hold the new value as the current version.' );
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ), 'The stored row should hold the value before the write as the previous version.' );
 	}
 
 	/**
-	 * A row that exists but holds no value is a malformed record, not an absent one.
+	 * Ensure that a row that exists but holds an empty value is reported as malformed, not absent.
 	 *
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_a_failed_read_of_an_empty_row_reports_a_malformed_record( bool $network ): void {
 		$store = new WP_Secrets_Option_Store();
 
 		if ( $network ) {
-			update_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key', '' );
+			$this->assertTrue( update_site_option( WP_Secrets_Option_Store::NETWORK_PREFIX . 'test/key', '' ), 'Storing the empty network row should succeed.' );
 		} else {
-			update_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key', '', false );
+			$this->assertTrue( update_option( WP_Secrets_Option_Store::SITE_PREFIX . 'test/key', '', false ), 'Storing the empty site row should succeed.' );
 		}
 
 		$filter = $this->fail_record_selects( 'test/key', $network, 1 );
@@ -322,23 +328,29 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		remove_filter( 'query', $filter );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+		$this->assertWPError( $result, 'An empty row should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code(), 'An empty row should produce the malformed record error code.' );
 	}
 
 	/**
+	 * Ensure that a network row with a NULL value is reported as malformed, not absent.
+	 *
 	 * Unlike wp_options.option_value, wp_sitemeta.meta_value is nullable.
 	 *
 	 * @ticket 66424
 	 *
+	 * @group multisite
 	 * @group ms-required
 	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
 	 */
 	public function test_a_network_row_with_a_null_value_reports_a_malformed_record(): void {
 		global $wpdb;
 
-		$wpdb->insert(
+		$this->skipWithoutMultisite();
+
+		$inserted = $wpdb->insert(
 			$wpdb->sitemeta,
 			array(
 				'site_id'    => get_current_network_id(),
@@ -347,21 +359,30 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 1, $inserted, 'Inserting the network row with a NULL value should succeed.' );
+
 		$store  = new WP_Secrets_Option_Store();
 		$result = $store->get( 'test/key', true );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
+		$this->assertWPError( $result, 'A network row with a NULL value should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code(), 'A network row with a NULL value should produce the malformed record error code.' );
 	}
 
 	/**
+	 * Ensure that a secret whose record cannot be read is reported as unavailable, and is not overwritten by a write.
+	 *
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_an_unreadable_secret_is_reported_and_not_overwritten( bool $network ): void {
-		$this->write_secret( 'test/key', 'one', $network );
-		$this->write_secret( 'test/key', 'two', $network );
+		$this->assertTrue( $this->write_secret( 'test/key', 'one', $network ), 'Storing the first value should succeed.' );
+		$this->assertTrue( $this->write_secret( 'test/key', 'two', $network ), 'Storing the second value should succeed.' );
 
 		$filter = $this->fail_record_selects( 'test/key', $network, 10 );
 		$read   = $this->read_secret( 'test/key', $network );
@@ -369,20 +390,27 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		remove_filter( 'query', $filter );
 
-		$this->assertWPError( $read );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code() );
-		$this->assertWPError( $write );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code() );
+		$this->assertWPError( $read, 'A read should return a WP_Error when the record cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code(), 'A read should produce the store unavailable error code when the record cannot be read.' );
+		$this->assertWPError( $write, 'A write should return a WP_Error when the record cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code(), 'A write should produce the store unavailable error code when the record cannot be read.' );
 
 		// Once the database recovers, the failed reads must not leave the secret looking missing.
-		$this->assertSame( 'two', $this->read_secret( 'test/key', $network ) );
-		$this->assertSame( 'one', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ) );
+		$this->assertSame( 'two', $this->read_secret( 'test/key', $network ), 'The current version should be unchanged once the record can be read again.' );
+		$this->assertSame( 'one', $this->read_secret( 'test/key', $network, WP_Secret_Version::PREVIOUS ), 'The previous version should be unchanged once the record can be read again.' );
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::get() returns an error, not null, when the read of an absent record fails.
+	 *
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 * @covers WP_Secrets_Option_Store::read_stored_value
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_get_does_not_report_a_secret_as_absent_when_its_read_fails( bool $network ): void {
 		$store = new WP_Secrets_Option_Store();
@@ -392,30 +420,79 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 		remove_filter( 'query', $filter );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
-		$this->assertNull( $store->get( 'test/absent', $network ) );
+		$this->assertWPError( $result, 'A failed read should be reported as a WP_Error, not as an absent secret.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'A failed read should produce the store unavailable error code.' );
+		$this->assertNull( $store->get( 'test/absent', $network ), 'An absent secret should be returned as null once it can be read.' );
 	}
 
 	/**
+	 * Ensure that WP_Secrets_Option_Store::delete() does not report success when it cannot tell whether the record still exists.
+	 *
 	 * @ticket 66424
 	 *
+	 * @covers WP_Secrets_Option_Store::delete
+	 *
 	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
 	 */
 	public function test_delete_does_not_report_success_when_it_cannot_read_the_record( bool $network ): void {
 		$store  = new WP_Secrets_Option_Store();
 		$record = $this->sample_record();
 
-		$store->set( 'test/key', $record, $network );
+		$this->assertTrue( $store->set( 'test/key', $record, $network ), 'Storing the record should succeed.' );
 
 		$filter = $this->fail_record_selects( 'test/key', $network, 10 );
 		$result = $this->without_db_errors( array( $store, 'delete' ), 'test/key', $network );
 
 		remove_filter( 'query', $filter );
 
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code() );
-		$this->assertSame( $record, $store->get( 'test/key', $network ) );
+		$this->assertWPError( $result, 'A delete should return a WP_Error when the record cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'A delete should produce the store unavailable error code when the record cannot be read.' );
+		$this->assertSame( $record, $store->get( 'test/key', $network ), 'The record should still be stored after the failed delete.' );
+	}
+
+	/**
+	 * Ensure that WP_Secrets_Option_Store::list_names() returns an error, not an empty list, when its query fails.
+	 *
+	 * @ticket 66424
+	 *
+	 * @covers WP_Secrets_Option_Store::list_names
+	 *
+	 * @dataProvider data_scopes
+	 *
+	 * @param bool $network Whether to use network scope.
+	 */
+	public function test_list_names_returns_an_error_when_its_query_fails( bool $network ): void {
+		$store = new WP_Secrets_Option_Store();
+
+		$this->assertTrue( $store->set( 'test/key', $this->sample_record(), $network ), 'Storing the record should succeed.' );
+
+		$filter = static function ( $query ) {
+			if ( str_starts_with( ltrim( $query ), 'SELECT' ) && str_contains( $query, ' LIKE ' ) ) {
+				return 'SELECT * FROM wptests_table_that_does_not_exist';
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+		$result = $this->without_db_errors( array( $store, 'list_names' ), $network );
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $result, 'A failed listing should be reported as a WP_Error, not as an empty list.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'A failed listing should produce the store unavailable error code.' );
+		$this->assertSame( array( 'test/key' ), $store->list_names( $network ), 'The secret should be listed once the query succeeds.' );
+	}
+
+	/**
+	 * @return array<string, array{0: bool}>
+	 */
+	public static function data_scopes(): array {
+		return array(
+			'site scope'    => array( false ),
+			'network scope' => array( true ),
+		);
 	}
 
 	/**
@@ -445,8 +522,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Makes the next database reads of a record fail, as a killed query would, after
-	 * removing the record from the object cache so that it is read again.
+	 * Makes the next database reads of a record fail, as a killed query or a lost
+	 * connection would, after removing it from the object cache so it is read again.
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
@@ -479,6 +556,8 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 
 	/**
 	 * Calls a function with database errors suppressed.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param callable $callback Function to call.
 	 * @param mixed    ...$args  Arguments to pass.
