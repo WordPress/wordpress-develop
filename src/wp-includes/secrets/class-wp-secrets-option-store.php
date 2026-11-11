@@ -190,6 +190,7 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 			);
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
 		$option_names = $wpdb->get_col();
 
 		$names = array();
@@ -258,6 +259,7 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 			return null;
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
 		$stored = $wpdb->get_var();
 
 		// get_var() returns null for a row with no value. That row exists, so it must not read as absent.
