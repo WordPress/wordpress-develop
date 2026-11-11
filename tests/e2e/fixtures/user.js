@@ -44,21 +44,25 @@ async function findUserId( requestUtils, username ) {
 
 async function deleteUser( requestUtils, id ) {
 	// User deletion only trashes posts, so permanently delete them first. `any` skips `trash` and `auto-draft`.
-	const posts = await requestUtils.rest( {
-		path: '/wp/v2/posts',
-		params: {
-			author: id,
-			status: 'any,trash,auto-draft',
-			per_page: 100,
-		},
-	} );
-	for ( const post of posts ) {
-		await requestUtils.rest( {
-			method: 'DELETE',
-			path: `/wp/v2/posts/${ post.id }`,
-			params: { force: true },
+	// Always fetch the first page, because each delete moves later posts onto it.
+	let posts;
+	do {
+		posts = await requestUtils.rest( {
+			path: '/wp/v2/posts',
+			params: {
+				author: id,
+				status: 'any,trash,auto-draft',
+				per_page: 100,
+			},
 		} );
-	}
+		for ( const post of posts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { force: true },
+			} );
+		}
+	} while ( posts.length );
 	try {
 		await requestUtils.rest( {
 			method: 'DELETE',
