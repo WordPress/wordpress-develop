@@ -67,6 +67,14 @@ class WP_Comment_Query {
 	protected $filtered_where_clause;
 
 	/**
+	 * Comment types excluded from the results by default, or null until resolved.
+	 *
+	 * @since 7.3.0
+	 * @var string[]|null
+	 */
+	protected $default_excluded_comment_types = null;
+
+	/**
 	 * Date query container
 	 *
 	 * @since 3.7.0
@@ -460,6 +468,14 @@ class WP_Comment_Query {
 		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
+		/*
+		 * The excluded set changes the results without bumping 'last_changed', so it is
+		 * part of the key. get_comment_ids() reuses it.
+		 */
+		$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+
+		$_args['default_excluded_comment_types'] = $this->default_excluded_comment_types;
+
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
@@ -550,6 +566,7 @@ class WP_Comment_Query {
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
 	 * @since 7.2.0 Excludes the 'reaction' comment type, unless 'all' or the 'reaction' types are requested.
+	 * @since 7.3.0 The default-excluded comment types are filterable via {@see 'default_excluded_comment_types'}.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -781,11 +798,41 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// Exclude the 'note' and 'reaction' comment types, unless 'all' types or that type explicitly are requested.
+		// Resolved in get_comments() when the cache key is built; resolve here for direct calls.
+		if ( null === $this->default_excluded_comment_types ) {
+			$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+		}
+
+		$excluded_types = $this->default_excluded_comment_types;
+
+		/*
+		 * Unless 'all' is requested, exclude each default-excluded type the query does not
+		 * request. Aliases are expanded so a type requested via 'pings' stays included.
+		 */
 		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
-			foreach ( array( 'note', 'reaction' ) as $excluded_type ) {
+			$requested_types = array();
+			foreach ( $raw_types['IN'] as $requested_type ) {
+				switch ( $requested_type ) {
+					case 'comment':
+					case 'comments':
+						$requested_types[] = '';
+						$requested_types[] = 'comment';
+						break;
+
+					case 'pings':
+						$requested_types[] = 'pingback';
+						$requested_types[] = 'trackback';
+						break;
+
+					default:
+						$requested_types[] = $requested_type;
+						break;
+				}
+			}
+
+			foreach ( $excluded_types as $excluded_type ) {
 				if (
-					! in_array( $excluded_type, $raw_types['IN'], true ) &&
+					! in_array( $excluded_type, $requested_types, true ) &&
 					! in_array( $excluded_type, $raw_types['NOT IN'], true )
 				) {
 					$raw_types['NOT IN'][] = $excluded_type;

@@ -402,6 +402,8 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
  * @since 7.2.0 The 'note' and 'reaction' comment types are excluded from the query.
+ * @since 7.3.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -419,19 +421,23 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		return $comment_modified_date;
 	}
 
+	$type_not_in = wp_get_excluded_comment_types_clause();
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $type_not_in is prepared.
 	switch ( $timezone ) {
 		case 'gmt':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1'$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1'$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1'", $add_seconds_server ) . "$type_not_in ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 	}
+	// phpcs:enable
 
 	if ( $comment_modified_date ) {
 		wp_cache_set( $key, $comment_modified_date, 'timeinfo' );
@@ -1102,6 +1108,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  * Calculates what page number a comment will appear on for comment paging.
  *
  * @since 2.7.0
+ * @since 7.3.0 Comment types excluded by default are no longer counted when 'type' is 'all'.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1111,7 +1118,8 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  *
  *     @type string     $type      Limit paginated comments to those matching a given type.
  *                                 Accepts 'comment', 'trackback', 'pingback', 'pings'
- *                                 (trackbacks and pingbacks), or 'all'. Default 'all'.
+ *                                 (trackbacks and pingbacks), or 'all'. 'all' leaves out the
+ *                                 comment types excluded by default. Default 'all'.
  *     @type int        $per_page  Per-page count to use when calculating pagination.
  *                                 Defaults to the value of the 'comments_per_page' option.
  *     @type int|string $max_depth If greater than 1, comment page will be determined
@@ -1189,6 +1197,11 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 			),
 		);
 
+		// 'all' disables the default exclusions, but comments_template() never renders those types.
+		if ( in_array( 'all', (array) $args['type'], true ) ) {
+			$comment_args['type__not_in'] = wp_get_default_excluded_comment_types();
+		}
+
 		if ( is_user_logged_in() ) {
 			$comment_args['include_unapproved'] = array( get_current_user_id() );
 		} else {
@@ -1203,24 +1216,27 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		 * Filters the arguments used to query comments in get_page_of_comment().
 		 *
 		 * @since 5.5.0
+		 * @since 7.3.0 Added the `$type__not_in` argument.
 		 *
 		 * @see WP_Comment_Query::__construct()
 		 *
 		 * @param array $comment_args {
 		 *     Array of WP_Comment_Query arguments.
 		 *
-		 *     @type string $type               Limit paginated comments to those matching a given type.
-		 *                                      Accepts 'comment', 'trackback', 'pingback', 'pings'
-		 *                                      (trackbacks and pingbacks), or 'all'. Default 'all'.
-		 *     @type int    $post_id            ID of the post.
-		 *     @type string $fields             Comment fields to return.
-		 *     @type bool   $count              Whether to return a comment count (true) or array
-		 *                                      of comment objects (false).
-		 *     @type string $status             Comment status.
-		 *     @type int    $parent             Parent ID of comment to retrieve children of.
-		 *     @type array  $date_query         Date query clauses to limit comments by. See WP_Date_Query.
-		 *     @type array  $include_unapproved Array of IDs or email addresses whose unapproved comments
-		 *                                      will be included in paginated comments.
+		 *     @type string   $type               Limit paginated comments to those matching a given type.
+		 *                                        Accepts 'comment', 'trackback', 'pingback', 'pings'
+		 *                                        (trackbacks and pingbacks), or 'all'. Default 'all'.
+		 *     @type string[] $type__not_in       Comment types excluded by default. Only set when
+		 *                                        `$type` is 'all'.
+		 *     @type int      $post_id            ID of the post.
+		 *     @type string   $fields             Comment fields to return.
+		 *     @type bool     $count              Whether to return a comment count (true) or array
+		 *                                        of comment objects (false).
+		 *     @type string   $status             Comment status.
+		 *     @type int      $parent             Parent ID of comment to retrieve children of.
+		 *     @type array    $date_query         Date query clauses to limit comments by. See WP_Date_Query.
+		 *     @type array    $include_unapproved Array of IDs or email addresses whose unapproved comments
+		 *                                        will be included in paginated comments.
 		 * }
 		 */
 		$comment_args = apply_filters( 'get_page_of_comment_query_args', $comment_args );
@@ -3214,9 +3230,112 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 }
 
 /**
+ * Retrieves the comment types that are excluded from queries and counts by default.
+ *
+ * Starts from 'note', 'reaction' and every comment type registered as internal, then
+ * applies the {@see 'default_excluded_comment_types'} filter. The result holds unique,
+ * non-empty strings and never the WP_Comment_Query type aliases ('all', 'comment',
+ * 'comments', 'pings').
+ *
+ * @since 7.3.0
+ *
+ * @param WP_Comment_Query|null $query Optional. The comment query resolving the set, if any.
+ *                                     Default null.
+ * @return string[] Comment types excluded by default.
+ */
+function wp_get_default_excluded_comment_types( $query = null ) {
+	$default_excluded_types = array( 'note', 'reaction' );
+
+	// The comment type registry is optional; 'note' and 'reaction' stay excluded without it.
+	if ( function_exists( 'get_comment_types' ) ) {
+		$internal_types = array_filter( (array) get_comment_types( array( 'internal' => true ), 'names' ), 'is_string' );
+
+		$default_excluded_types = array_values( array_unique( array_merge( $default_excluded_types, $internal_types ) ) );
+	}
+
+	/**
+	 * Filters the comment types that are excluded from query results by default.
+	 *
+	 * Excluded types are left out of WP_Comment_Query results unless the query requests
+	 * 'all' types or names the type in 'type' or 'type__in'. The same set is applied to
+	 * the stored post comment count, the pending comment count, the comment feeds and
+	 * get_lastcommentmodified().
+	 *
+	 * Values are literal `comment_type` values. The WP_Comment_Query type aliases
+	 * ('all', 'comment', 'comments', 'pings') and non-scalar values are ignored.
+	 *
+	 * Stored comment counts are only refreshed when a comment changes, so a plugin that
+	 * changes the set for types that already have comments should call
+	 * wp_update_comment_count_now() for the affected posts on activation and deactivation.
+	 *
+	 * This is a default-visibility setting, not access control: excluded types can still
+	 * be queried explicitly.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string[]              $excluded_types Comment types excluded by default. Defaults to
+	 *                                              'note', 'reaction' and every comment type
+	 *                                              registered as internal.
+	 * @param WP_Comment_Query|null $query          The comment query resolving the set, or null
+	 *                                              outside of a comment query.
+	 */
+	$excluded_types = apply_filters( 'default_excluded_comment_types', $default_excluded_types, $query );
+
+	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );
+
+	// Keeps a type named '0', which array_filter() without a callback would drop.
+	$excluded_types = array_filter(
+		array_map( 'strval', $excluded_types ),
+		static function ( $excluded_type ) {
+			return '' !== $excluded_type;
+		}
+	);
+
+	$excluded_types = array_unique( $excluded_types );
+
+	// An alias in the set would exclude types a query requests explicitly.
+	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
+}
+
+/**
+ * Builds the SQL condition that excludes the default-excluded comment types.
+ *
+ * For comment queries built without WP_Comment_Query.
+ *
+ * @since 7.3.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $column Optional. The `comment_type` column to filter on, qualified with a
+ *                       table name where the query joins other tables, for example
+ *                       'wp_comments.comment_type'. Default 'comment_type'.
+ * @return string Prepared ` AND <column> NOT IN (...)` condition, or an empty string when
+ *                no comment types are excluded.
+ */
+function wp_get_excluded_comment_types_clause( string $column = 'comment_type' ): string {
+	global $wpdb;
+
+	$excluded_types = wp_get_default_excluded_comment_types();
+
+	if ( ! $excluded_types ) {
+		return '';
+	}
+
+	// Quotes each part of a qualified name as its own identifier.
+	$column_parts = explode( '.', $column );
+	$column_sql   = implode( '.', array_fill( 0, count( $column_parts ), '%i' ) );
+	$placeholders = implode( ', ', array_fill( 0, count( $excluded_types ), '%s' ) );
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Both hold placeholders only.
+	return (string) $wpdb->prepare( " AND $column_sql NOT IN ( $placeholders )", array_merge( $column_parts, $excluded_types ) );
+}
+
+/**
  * Updates the comment count for the post.
  *
  * @since 2.5.0
+ * @since 7.3.0 The excluded comment types are derived from the
+ *              {@see 'default_excluded_comment_types'} filter.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -3255,7 +3374,14 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' )", $post_id ) );
+		$type_not_in = wp_get_excluded_comment_types_clause();
+
+		$new = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'",
+				$post_id
+			) . $type_not_in
+		);
 	} else {
 		$new = (int) $new;
 	}

@@ -105,11 +105,32 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$comment_status = 'all';
 		}
 
+		/*
+		 * Notes and reactions cannot be requested as a type here, unlike other
+		 * default-excluded types. A non-string request is ignored.
+		 */
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
+
+		/*
+		 * The default exclusions are passed explicitly so they still apply to an 'all'
+		 * request. The requested type is kept, so a plugin can list its own excluded
+		 * type via the 'admin_comment_types_dropdown' filter.
+		 */
+		switch ( $comment_type ) {
+			case 'pings':
+				$requested_types = array( 'pingback', 'trackback' );
+				break;
+
+			default:
+				$requested_types = array( $comment_type );
+				break;
+		}
+
+		$excluded_types = array_values( array_diff( wp_get_default_excluded_comment_types(), $requested_types ) );
 
 		$search = $_REQUEST['s'] ?? '';
 
@@ -157,7 +178,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'number'                    => $number,
 			'post_id'                   => $post_id,
 			'type'                      => $comment_type,
-			'type__not_in'              => array( 'note', 'reaction' ),
+			'type__not_in'              => $excluded_types,
 			'orderby'                   => $orderby,
 			'order'                     => $order,
 			'post_type'                 => $post_type,

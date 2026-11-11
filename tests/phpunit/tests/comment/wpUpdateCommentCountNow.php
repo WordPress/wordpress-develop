@@ -97,6 +97,96 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		$this->assertSame( '1', get_comments_number( $post_id ) );
 	}
 
+	/**
+	 * A comment type excluded via the shared filter must not inflate the stored count.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_filtered_excluded_type_does_not_inflate_count(): void {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'review',
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The unfiltered count should be updated.' );
+		$this->assertSame( '2', get_comments_number( $post_id ), 'Both approved comments should be counted without the filter.' );
+
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( $types ) {
+				$types[] = 'review';
+				return $types;
+			}
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The filtered count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'The filtered type should drop out of the count.' );
+	}
+
+	/**
+	 * The count is driven by the filtered set, not a hard-coded 'note' literal.
+	 *
+	 * Clearing the excluded set causes 'note' comments to be counted, proving the
+	 * exclusion comes from the filter rather than an in-query literal.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_emptying_filter_counts_otherwise_excluded_types(): void {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The default count should be updated.' );
+		$this->assertSame( '0', get_comments_number( $post_id ), 'A note should not be counted by default.' );
+
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The unfiltered count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
+	}
+
+	/**
+	 * A filter callback returning false degrades gracefully to no exclusions.
+	 *
+	 * Scalar returns are cast to an array and treated as a single excluded type;
+	 * only values that normalize to an empty set disable the exclusions.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_false_filter_return_counts_all_types(): void {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', '__return_false' );
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The count should be updated.' );
+		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
+	}
+
 	public function _return_100() {
 		return 100;
 	}
