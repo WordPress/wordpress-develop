@@ -873,10 +873,6 @@ function wp_revisions_to_keep( $post ) {
  * @return WP_Post
  */
 function _set_preview( $post ) {
-	if ( ! is_object( $post ) ) {
-		return $post;
-	}
-
 	$preview = wp_get_post_autosave( $post->ID );
 
 	if ( is_object( $preview ) ) {
