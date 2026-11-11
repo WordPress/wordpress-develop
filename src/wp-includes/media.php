@@ -422,6 +422,10 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 
 	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
 
+	if ( current_theme_supports( 'html5', 'picture' ) ) {
+		$html = '<picture>' . $html . '</picture>';
+	}
+
 	/**
 	 * Filters the HTML content for the image tag.
 	 *
@@ -1298,6 +1302,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$html .= ' />';
+
+		if ( current_theme_supports( 'html5', 'picture' ) ) {
+			$html = '<picture>' . $html . '</picture>';
+		}
 	}
 
 	/**
