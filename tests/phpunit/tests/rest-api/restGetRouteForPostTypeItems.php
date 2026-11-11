@@ -9,6 +9,13 @@
  */
 class Tests_REST_API_RestGetRouteForPostTypeItems extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_post_type( 'not-in-rest' );
+		unregister_post_type( 'with-rest-base' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 65819
 	 */
