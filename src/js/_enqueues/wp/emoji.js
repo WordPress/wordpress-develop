@@ -139,7 +139,7 @@
 		 * @since 7.2.0
 		 * @private
 		 *
-		 * @param {Node} node The node to check.
+		 * @param {HTMLElement} node The node to check.
 		 *
 		 * @return {boolean} Whether the node or an ancestor has the
 		 *                    wp-exclude-emoji class.
