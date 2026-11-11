@@ -12,6 +12,14 @@ class Tests_Term extends WP_UnitTestCase {
 		self::$post_ids = $factory->post->create_many( 5 );
 	}
 
+	public function tear_down() {
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_hierarchical' );
+		unregister_post_type( 'cpt' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 29911
 	 */
