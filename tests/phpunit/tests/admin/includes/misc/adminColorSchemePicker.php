@@ -217,7 +217,7 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		}
 
 		$expected_order = array( 'modern', 'fresh', 'light', 'coffee', 'ocean' );
-		$this->assertEquals( $expected_order, $found_colors, 'Color schemes should be ordered with modern, fresh, light first, followed by others alphabetically.' );
+		$this->assertSame( $expected_order, $found_colors, 'Color schemes should be ordered with modern, fresh, light first, followed by others alphabetically.' );
 	}
 
 	/**
@@ -250,29 +250,29 @@ class Tests_admin_color_scheme_picker extends WP_UnitTestCase {
 		$xpath = new DOMXPath( $dom );
 
 		// Check fieldset and legend.
-		$this->assertEquals( 1, $xpath->query( '//fieldset[@id="color-picker"]' )->length );
-		$this->assertEquals( 1, $xpath->query( '//legend' )->length );
+		$this->assertSame( 1, $xpath->query( '//fieldset[@id="color-picker"]' )->length );
+		$this->assertSame( 1, $xpath->query( '//legend' )->length );
 
 		// Check radio input.
 		$radio = $xpath->query( '//input[@type="radio"][@value="modern"]' );
-		$this->assertEquals( 1, $radio->length );
-		$this->assertEquals( 'admin_color_modern', $radio->item( 0 )->getAttribute( 'id' ) );
+		$this->assertSame( 1, $radio->length );
+		$this->assertSame( 'admin_color_modern', $radio->item( 0 )->getAttribute( 'id' ) );
 
 		// Check hidden inputs.
-		$this->assertEquals( 1, $xpath->query( '//input[@type="hidden"][@class="css_url"][@value="https://example.com/modern.css"]' )->length );
+		$this->assertSame( 1, $xpath->query( '//input[@type="hidden"][@class="css_url"][@value="https://example.com/modern.css"]' )->length );
 
 		$icon_colors_input = $xpath->query( '//input[@type="hidden"][@class="icon_colors"]' );
-		$this->assertEquals( 1, $icon_colors_input->length );
+		$this->assertSame( 1, $icon_colors_input->length );
 		$json_data = json_decode( $icon_colors_input->item( 0 )->getAttribute( 'value' ), true );
-		$this->assertEquals( array( 'icons' => array( 'icons' => '#333' ) ), $json_data );
+		$this->assertSame( array( 'icons' => array( 'icons' => '#333' ) ), $json_data );
 
 		// Check label.
 		$label = $xpath->query( '//label[@for="admin_color_modern"]' );
-		$this->assertEquals( 1, $label->length );
+		$this->assertSame( 1, $label->length );
 		$this->assertStringContainsString( 'Modern Display Name', $label->item( 0 )->nodeValue );
 
 		// Check color palette.
-		$this->assertEquals( 2, $xpath->query( '//div[@class="color-palette-shade"]' )->length );
+		$this->assertSame( 2, $xpath->query( '//div[@class="color-palette-shade"]' )->length );
 		$this->assertStringContainsString( 'background-color: #111', $output );
 		$this->assertStringContainsString( 'background-color: #222', $output );
 	}
