@@ -24,9 +24,10 @@
 	 * @since 6.5.0
 	 *
 	 * @param {Object} attachment The attachment object representing the image.
+	 * @param {Object} controller The cropper controller.
 	 * @return {Object} The image selection options.
 	 */
-	function calculateImageSelectOptions( attachment ) {
+	function calculateImageSelectOptions( attachment, controller ) {
 		var realWidth = attachment.get( 'width' ),
 			realHeight = attachment.get( 'height' ),
 			xInit = 512,
@@ -37,6 +38,20 @@
 			x1,
 			y1,
 			imgSelectOptions;
+
+		/*
+		 * Square images can skip cropping. "Skip Cropping" still sends the whole
+		 * image through the crop request, so the site icon sizes are created.
+		 */
+		controller.set( 'hasRequiredAspectRatio', realWidth === realHeight );
+		controller.set( 'suggestedCropSize', {
+			width: realWidth,
+			height: realHeight,
+			x1: 0,
+			y1: 0,
+			x2: xInit,
+			y2: yInit,
+		} );
 
 		if ( realWidth / realHeight > ratio ) {
 			yInit = realHeight;
