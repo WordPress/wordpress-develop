@@ -414,6 +414,62 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `Walker_Nav_Menu::start_el()` exposes classes filtered via 'nav_menu_css_class'
+	 * on the menu item passed to 'walker_nav_menu_start_el'.
+	 *
+	 * @ticket 23902
+	 *
+	 * @covers Walker_Nav_Menu::start_el
+	 */
+	public function test_start_el_should_expose_filtered_css_classes_to_walker_nav_menu_start_el() {
+		$output  = '';
+		$post_id = self::factory()->post->create();
+		$item    = (object) array(
+			'ID'        => $post_id,
+			'object_id' => $post_id,
+			'title'     => get_the_title( $post_id ),
+			'target'    => '',
+			'xfn'       => '',
+			'current'   => false,
+			'classes'   => array( 'original-class', 'class-to-remove' ),
+		);
+		$args    = (object) array(
+			'before'      => '',
+			'after'       => '',
+			'link_before' => '',
+			'link_after'  => '',
+		);
+
+		add_filter(
+			'nav_menu_css_class',
+			static function ( $classes ) {
+				$classes   = array_diff( $classes, array( 'class-to-remove' ) );
+				$classes[] = 'added-by-filter';
+				return $classes;
+			}
+		);
+
+		$captured_classes = null;
+		add_filter(
+			'walker_nav_menu_start_el',
+			static function ( $item_output, $menu_item ) use ( &$captured_classes ) {
+				$captured_classes = $menu_item->classes;
+				return $item_output;
+			},
+			10,
+			2
+		);
+
+		$this->walker->start_el( $output, $item, 0, $args );
+
+		$this->assertIsArray( $captured_classes, 'The menu item classes should be an array.' );
+		$this->assertContains( 'added-by-filter', $captured_classes, 'The class added via the filter should be exposed on the menu item.' );
+		$this->assertNotContains( 'class-to-remove', $captured_classes, 'The class removed via the filter should not be exposed on the menu item.' );
+		$this->assertContains( 'original-class', $captured_classes, 'The untouched original class should be exposed on the menu item.' );
+		$this->assertStringContainsString( 'added-by-filter', $output, 'The class added via the filter should be rendered in the output.' );
+	}
+
+	/**
 	 * Tests that `Walker_Nav_Menu::build_atts()` builds attributes correctly.
 	 *
 	 * @ticket 57278
