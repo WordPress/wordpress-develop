@@ -120,7 +120,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_non_plugin_translation_updates() {
+	public static function data_non_plugin_translation_updates() {
 		return array(
 			'no updates' => array( null ),
 			'core only'  => array( 'core' ),
@@ -520,7 +520,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_translation_update_selections() {
+	public static function data_translation_update_selections() {
 		return array(
 			'select all form updates'                    => array(
 				array( 'core', 'plugin', 'theme' ),

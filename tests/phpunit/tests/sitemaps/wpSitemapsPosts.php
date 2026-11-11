@@ -5,12 +5,9 @@
  */
 class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
-	public function tear_down() {
-		unregister_post_type( 'public_cpt' );
-		unregister_post_type( 'private_cpt' );
-		unregister_post_type( 'not_viewable_cpt' );
-
-		parent::tear_down();
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
 	}
 
 	/**
