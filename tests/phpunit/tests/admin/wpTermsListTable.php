@@ -169,10 +169,15 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	public function test_change_default_action_hidden_for_non_category_taxonomy() {
 		wp_set_current_user( self::$admin_id );
 
-		$tag = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_tag' ) );
+		$tag              = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_tag' ) );
+		$previous_default = get_option( 'default_category' );
+		// Match the term ID so only the taxonomy check can suppress the action.
+		update_option( 'default_category', $tag->term_id );
 
 		$list_table = $this->get_terms_list_table_for_taxonomy( 'post_tag' );
 		$actions    = $this->call_inaccessible_method( $list_table, 'handle_row_actions', array( $tag, 'title', 'title' ) );
+
+		update_option( 'default_category', $previous_default );
 
 		$this->assertStringNotContainsString( 'change-default', $actions, 'Change Default action should not appear on non-category taxonomies.' );
 	}
