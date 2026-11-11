@@ -397,6 +397,7 @@ class WP_Block {
 	 * @param array                    $source_args The arguments of the binding.
 	 */
 	private function replace_inner_blocks( WP_Block_Bindings_Source $source, array $source_args ) {
+		self::forget_blocks_that_stopped_rendering();
 		$request = $this->get_inner_blocks_request( $source, $source_args );
 		foreach ( self::$rendering_inner_blocks as $rendering ) {
 			if ( $rendering['request'] === $request ) {
@@ -435,7 +436,7 @@ class WP_Block {
 	 * and the attributes of the block.
 	 *
 	 * Two blocks with the same request get the same inner blocks from the
-	 * source.
+	 * source, whatever the order of its keys.
 	 *
 	 * @since 7.3.0
 	 *
@@ -450,22 +451,53 @@ class WP_Block {
 				$context[ $context_name ] = $this->context[ $context_name ];
 			}
 		}
-		return array( $source->name, $source_args, $context, $this->attributes );
+		$request = array( $source->name, $source_args, $context, $this->attributes );
+		wp_recursive_ksort( $request );
+		return $request;
 	}
 
 	/**
 	 * Stops tracking the block, once it has rendered, if the inner blocks a
 	 * source supplied for it were rendering.
 	 *
-	 * The blocks still rendering inside it, if any, stopped with it: a block
-	 * that doesn't finish rendering, because of an exception, never gets here,
-	 * so they are forgotten along with it.
+	 * The blocks still rendering inside it, if any, stopped with it, so they
+	 * are forgotten along with it.
 	 *
 	 * @since 7.3.0
 	 */
 	private function forget_rendered_inner_blocks() {
 		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
 			if ( $rendering['block'] === $this ) {
+				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Stops tracking the blocks whose supplied inner blocks were rendering when
+	 * the blocks themselves stopped rendering with an exception.
+	 *
+	 * A block that doesn't finish rendering never forgets its supplied inner
+	 * blocks itself. If something catches the exception and goes on rendering,
+	 * the block would otherwise count as rendering for the rest of the request.
+	 * A block is rendering while its `render()` call is on the call stack.
+	 *
+	 * @since 7.3.0
+	 */
+	private static function forget_blocks_that_stopped_rendering() {
+		if ( empty( self::$rendering_inner_blocks ) ) {
+			return;
+		}
+
+		$rendering_blocks = array();
+		foreach ( debug_backtrace( DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS ) as $frame ) {
+			if ( isset( $frame['object'] ) && $frame['object'] instanceof WP_Block && 'render' === $frame['function'] ) {
+				$rendering_blocks[] = $frame['object'];
+			}
+		}
+		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
+			if ( ! in_array( $rendering['block'], $rendering_blocks, true ) ) {
 				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
 				return;
 			}
@@ -620,8 +652,13 @@ class WP_Block {
 	}
 
 	/**
-	 * Splits the HTML of an element that wraps a block's content before the
+	 * Splits the HTML of the element that wraps a block's content before the
 	 * element's closing tag.
+	 *
+	 * The wrapper is the last element of the HTML. When all it holds is the
+	 * inner container of a Group block saved before WordPress 5.8, the split
+	 * happens before the closing tag of the container, where the block's own
+	 * inner blocks would be.
 	 *
 	 * @since 7.3.0
 	 *
@@ -635,28 +672,104 @@ class WP_Block {
 			return null;
 		}
 
-		$before                = '';
-		$after                 = '';
-		$depth_outside_wrapper = null;
-		$is_at_wrapper_closer  = false;
+		$tokens = array();
 		while ( $processor->next_token() ) {
-			if ( null === $depth_outside_wrapper && '#tag' === $processor->get_token_type() && ! $processor->is_tag_closer() ) {
-				$depth_outside_wrapper = $processor->get_current_depth() - 1;
-			} elseif ( $processor->is_tag_closer() && $processor->get_current_depth() === $depth_outside_wrapper ) {
-				$is_at_wrapper_closer = true;
-			}
-
-			if ( $is_at_wrapper_closer ) {
-				$after .= $processor->serialize_token();
-			} else {
-				$before .= $processor->serialize_token();
-			}
+			$is_opener = '#tag' === $processor->get_token_type() && ! $processor->is_tag_closer();
+			$tokens[]  = array(
+				'html'               => $processor->serialize_token(),
+				'depth'              => $processor->get_current_depth(),
+				'is_opener'          => $is_opener,
+				'is_closer'          => '#tag' === $processor->get_token_type() && $processor->is_tag_closer(),
+				'is_inner_container' => $is_opener && $processor->has_class( 'wp-block-group__inner-container' ),
+				'is_whitespace'      => '#text' === $processor->get_token_type() && '' === trim( $processor->get_modifiable_text() ),
+			);
 		}
-
-		if ( ! $is_at_wrapper_closer || null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
+		if ( null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
 			return null;
 		}
+
+		$closer_index = self::find_wrapper_closer( $tokens );
+		if ( null === $closer_index ) {
+			return null;
+		}
+		$before = implode( '', array_column( array_slice( $tokens, 0, $closer_index ), 'html' ) );
+		$after  = implode( '', array_column( array_slice( $tokens, $closer_index ), 'html' ) );
 		return array( $before, $after );
+	}
+
+	/**
+	 * Finds the closing tag of the wrapper element among the tokens of a block's
+	 * content: the last element of the content, or the legacy inner container
+	 * of a Group block when it is all that element holds.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $tokens The tokens, each with its HTML, its depth, and whether it opens an element,
+	 *                        closes one, opens a legacy inner container, or is whitespace.
+	 * @return int|null The index of the closing tag, or null if no element wraps the content.
+	 */
+	private static function find_wrapper_closer( array $tokens ): ?int {
+		$wrapper_depth = null;
+		foreach ( $tokens as $token ) {
+			if ( $token['is_opener'] ) {
+				$wrapper_depth = $token['depth'];
+				break;
+			}
+		}
+		if ( null === $wrapper_depth ) {
+			return null;
+		}
+
+		$closer_index = null;
+		foreach ( $tokens as $index => $token ) {
+			if ( $token['is_closer'] && $token['depth'] === $wrapper_depth - 1 ) {
+				$closer_index = $index;
+			}
+		}
+		if ( null === $closer_index ) {
+			return null;
+		}
+
+		$opener_index = $closer_index;
+		while ( ! $tokens[ $opener_index ]['is_opener'] || $tokens[ $opener_index ]['depth'] !== $wrapper_depth ) {
+			--$opener_index;
+		}
+
+		$inner_container_closer_index = self::find_sole_inner_container_closer( $tokens, $opener_index, $closer_index, $wrapper_depth );
+		return $inner_container_closer_index ?? $closer_index;
+	}
+
+	/**
+	 * Finds the closing tag of the legacy inner container of a Group block, when
+	 * the container is all that the wrapper element holds, whitespace aside.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $tokens        The tokens of the block's content.
+	 * @param int     $opener_index  The index of the wrapper's opening tag.
+	 * @param int     $closer_index  The index of the wrapper's closing tag.
+	 * @param int     $wrapper_depth The depth of the wrapper's opening tag.
+	 * @return int|null The index of the container's closing tag, or null if the wrapper holds anything else.
+	 */
+	private static function find_sole_inner_container_closer( array $tokens, int $opener_index, int $closer_index, int $wrapper_depth ): ?int {
+		$index = $opener_index + 1;
+		while ( $index < $closer_index && $tokens[ $index ]['is_whitespace'] ) {
+			++$index;
+		}
+		if ( $index >= $closer_index || ! $tokens[ $index ]['is_inner_container'] ) {
+			return null;
+		}
+
+		while ( $index < $closer_index && ! ( $tokens[ $index ]['is_closer'] && $tokens[ $index ]['depth'] === $wrapper_depth ) ) {
+			++$index;
+		}
+		$inner_container_closer_index = $index;
+		for ( ++$index; $index < $closer_index; ++$index ) {
+			if ( ! $tokens[ $index ]['is_whitespace'] ) {
+				return null;
+			}
+		}
+		return $inner_container_closer_index < $closer_index ? $inner_container_closer_index : null;
 	}
 
 	/**
