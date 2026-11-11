@@ -953,8 +953,8 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 
 		$this->assertSame( array( $p2 ), wp_list_pluck( $posts, 'ID' ) );
 
-		$this->assertStringContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 43", $this->q->request );
-		$this->assertStringNotContainsString( "WEEK( $wpdb->posts.post_date, 1 ) = 42", $this->q->request );
+		$this->assertStringContainsString( "WEEK( $wpdb->posts.post_date, 3 ) = 43", $this->q->request );
+		$this->assertStringNotContainsString( "WEEK( $wpdb->posts.post_date, 3 ) = 42", $this->q->request );
 	}
 
 	/**
