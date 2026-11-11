@@ -47,7 +47,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		}
 
 		if ( selection ) {
-			selection.on( 'add remove reset', this.refresh, this );
+			selection.on( 'add remove reset change:uploading', this.refresh, this );
 		}
 
 		if ( library ) {
