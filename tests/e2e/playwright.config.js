@@ -27,7 +27,6 @@ const SERIAL_SPECS = [
 	'empty-trash.test.js',
 	'media-library-client-side-upload.test.js',
 	'media-modal-client-side-upload.test.js',
-	'media-new-client-side-upload.test.js',
 ];
 
 const config = defineConfig( {
