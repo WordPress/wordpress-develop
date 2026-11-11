@@ -5904,8 +5904,9 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 
 		$post = get_post( $post_id );
 
-		// Prevent new post slugs that could result in URLs that conflict with date archives.
-		$conflicts_with_date_archive = false;
+		// Prevent new post slugs that could result in URLs that conflict with date archives or category pagination.
+		$conflicts_with_date_archive        = false;
+		$conflicts_with_category_pagination = false;
 		if ( 'post' === $post_type && ( ! $post || $post->post_name !== $slug ) && preg_match( '/^[0-9]+$/', $slug ) ) {
 			$slug_num = (int) $slug;
 
@@ -5926,6 +5927,11 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 				) {
 					$conflicts_with_date_archive = true;
 				}
+
+				// A numeric slug after a hierarchical category is matched as the page number of the category.
+				if ( $postname_index && '%category%' === $permastructs[ $postname_index - 1 ] ) {
+					$conflicts_with_category_pagination = true;
+				}
 			}
 		}
 
@@ -5943,6 +5949,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		if ( $post_name_check
 			|| in_array( $slug, $feeds, true ) || 'embed' === $slug
 			|| $conflicts_with_date_archive
+			|| $conflicts_with_category_pagination
 			|| $is_bad_flat_slug
 		) {
 			$suffix = 2;
