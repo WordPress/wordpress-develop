@@ -66,7 +66,34 @@ class Tests_Filesystem_WpFilesystemDirect_Copy extends WP_Filesystem_Direct_Unit
 	 * @ticket 57774
 	 */
 	public function test_should_not_overwrite_when_overwriting_is_enabled_and_source_and_destination_are_the_same() {
+
 		$source = self::$file_structure['test_dir']['path'] . 'a_file_that_exists.txt';
 		$this->assertFalse( self::$filesystem->copy( $source, $source, true ) );
+	}
+
+	/**
+	 * Tests that `WP_Filesystem_Direct::copy()` replaces a broken symlink when
+	 * overwriting is enabled.
+	 *
+	 * @ticket 46040
+	 */
+	public function test_should_replace_a_broken_symlink_when_overwriting_is_enabled() {
+		$source      = self::$file_structure['visible_file']['path'];
+		$destination = self::$file_structure['test_dir']['path'] . '.broken_symlink';
+
+		if ( ! function_exists( 'symlink' ) ) {
+			$this->markTestSkipped( 'The environment does not support creating symlinks.' );
+		}
+
+		$created = symlink( 'does-not-exist', $destination );
+		if ( ! $created ) {
+			$this->markTestSkipped( 'The environment does not support creating symlinks.' );
+		}
+
+		$this->assertTrue( self::$filesystem->exists( $destination ) );
+		$this->assertTrue( self::$filesystem->copy( $source, $destination, true ) );
+		$this->assertSame( file_get_contents( $source ), file_get_contents( $destination ) );
+
+		unlink( $destination );
 	}
 }
