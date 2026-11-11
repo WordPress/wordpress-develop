@@ -2,16 +2,8 @@
 /**
  * WordPress scripts and styles default loader.
  *
- * Several constants are used to manage the loading, concatenating and compression of scripts and CSS:
- * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables compression and concatenation,
- * define('CONCATENATE_SCRIPTS', false); disables compression and concatenation of scripts and CSS,
- * define('COMPRESS_SCRIPTS', false); disables compression of scripts,
- * define('COMPRESS_CSS', false); disables compression of CSS,
- * define('ENFORCE_GZIP', true); forces gzip for compression (default is deflate).
- *
- * The globals $concatenate_scripts, $compress_scripts and $compress_css can be set by plugins
- * to temporarily override the above settings. Also a compression test is run once and the result is saved
- * as option 'can_compress_scripts' (0/1). The test will run again if that option is deleted.
+ * This constant is used to manage the loading of scripts and CSS:
+ * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS.
  *
  * @package WordPress
  */
@@ -37,35 +29,36 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
 /**
  * Registers TinyMCE scripts.
  *
+ * TinyMCE core and the compat3x plugin are registered as separate files. TinyMCE loads its theme
+ * and any other plugins itself when an editor is initialized. The `wp-tinymce.js` bundle of all of
+ * them is no longer registered, but it can still be registered in their place under the
+ * `wp-tinymce` handle.
+ *
  * @since 5.0.0
+ * @since 7.2.0 The `wp-tinymce.js` bundle is no longer registered, regardless of whether scripts
+ *              are concatenated or compressed.
+ * @since 7.2.0 The `$force_uncompressed` parameter was deprecated and renamed to `$deprecated`.
  *
  * @global string $tinymce_version
- * @global bool   $concatenate_scripts
- * @global bool   $compress_scripts
  *
- * @param WP_Scripts $scripts            WP_Scripts object.
- * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
+ * @param WP_Scripts $scripts    WP_Scripts object.
+ * @param bool       $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
-function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
-	global $tinymce_version, $concatenate_scripts, $compress_scripts;
+function wp_register_tinymce_scripts( $scripts, $deprecated = false ): void {
+	global $tinymce_version;
+
+	if ( false !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '7.2.0' );
+	}
 
 	$suffix     = wp_scripts_get_suffix();
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
 
-	script_concat_settings();
-
-	$compressed = $compress_scripts && $concatenate_scripts && ! $force_uncompressed;
-
-	/*
-	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js (in production)
-	 * or tinymce.min.js (when SCRIPT_DEBUG is true).
-	 */
-	if ( $compressed ) {
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . 'wp-tinymce.js', array(), $tinymce_version );
-	} else {
-		$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
-	}
+	// Load tinymce.js when running from /src, otherwise tinymce.min.js.
+	$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
+	$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
 
 	$scripts->add( 'wp-tinymce-lists', includes_url( "js/tinymce/plugins/lists/plugin$suffix.js" ), array( 'wp-tinymce' ), $tinymce_version );
 }
@@ -110,7 +103,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
-		'moment'                      => '2.30.1',
+		'moment'                      => '2.31.0',
 		'lodash'                      => '4.18.1',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -171,7 +164,7 @@ function wp_default_packages_vendor( $scripts ) {
  * These scripts enable hot module replacement (HMR) for block development
  * when using `wp-scripts start --hot`.
  *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ * @link https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
  *
  * @since 6.0.0
  *
@@ -690,21 +683,7 @@ function wp_scripts_get_suffix( $type = '' ) {
 	static $suffixes;
 
 	if ( null === $suffixes ) {
-		/*
-		 * Include an unmodified $wp_version.
-		 *
-		 * Note: wp_get_wp_version() is not used here, as this file can be included
-		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
-		 * wp-includes/functions.php is not loaded.
-		 */
-		require ABSPATH . WPINC . '/version.php';
-
-		/*
-		 * Note: str_contains() is not used here, as this file can be included
-		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
-		 * the polyfills from wp-includes/compat.php are not loaded.
-		 */
-		$develop_src = false !== strpos( $wp_version, '-src' );
+		$develop_src = str_contains( wp_get_wp_version(), '-src' );
 
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 			define( 'SCRIPT_DEBUG', $develop_src );
@@ -749,7 +728,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->base_url        = $guessurl;
 	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$scripts->default_version = get_bloginfo( 'version' );
-	$scripts->default_dirs    = array( '/wp-admin/js/', '/wp-includes/js/' );
+	$scripts->default_dirs    = array( '/wp-admin/js/', '/wp-includes/js/' ); // Deprecated, but still set for plugins that read it.
 
 	$scripts->add( 'utils', "/wp-includes/js/utils$suffix.js" );
 	did_action( 'init' ) && $scripts->localize(
@@ -1474,6 +1453,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'custom-html-widgets', "/wp-admin/js/widgets/custom-html-widgets$suffix.js", array( 'jquery', 'backbone', 'wp-util', 'jquery-ui-core', 'wp-a11y' ) );
 
 		$scripts->add( 'theme', "/wp-admin/js/theme$suffix.js", array( 'wp-backbone', 'wp-a11y', 'customize-base' ), false, 1 );
+		$scripts->set_translations( 'theme' );
 
 		$scripts->add( 'inline-edit-post', "/wp-admin/js/inline-edit-post$suffix.js", array( 'jquery', 'tags-suggest', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'inline-edit-post' );
@@ -1516,6 +1496,14 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'media', "/wp-admin/js/media$suffix.js", array( 'jquery', 'clipboard', 'wp-i18n', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'media' );
 
+		$scripts->add( 'media-upload-pipeline', "/wp-admin/js/media-upload-pipeline$suffix.js", array( 'plupload', 'wp-upload-media', 'wp-media-utils', 'wp-api-fetch', 'wp-data', 'wp-element', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'media-upload-pipeline' );
+
+		$scripts->add( 'media-frame-upload', "/wp-admin/js/media-frame-upload$suffix.js", array( 'media-views', 'media-upload-pipeline' ), false, 1 );
+
+		$scripts->add( 'media-new-upload', "/wp-admin/js/media-new-upload$suffix.js", array( 'plupload-handlers', 'media-upload-pipeline', 'wp-a11y', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'media-new-upload' );
+
 		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'jquery-ui-core', 'imgareaselect', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'image-edit' );
 
@@ -1557,24 +1545,6 @@ function wp_default_scripts( $scripts ) {
 function wp_default_styles( $styles ) {
 	global $editor_styles;
 
-	/*
-	 * Include an unmodified $wp_version.
-	 *
-	 * Note: wp_get_wp_version() is not used here, as this file can be included
-	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
-	 * wp-includes/functions.php is not loaded.
-	 */
-	require ABSPATH . WPINC . '/version.php';
-
-	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
-		/*
-		 * Note: str_contains() is not used here, as this file can be included
-		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
-		 * the polyfills from wp-includes/compat.php are not loaded.
-		 */
-		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
-	}
-
 	$guessurl = site_url();
 
 	if ( ! $guessurl ) {
@@ -1584,8 +1554,8 @@ function wp_default_styles( $styles ) {
 	$styles->base_url        = $guessurl;
 	$styles->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$styles->default_version = get_bloginfo( 'version' );
-	$styles->text_direction  = function_exists( 'is_rtl' ) && is_rtl() ? 'rtl' : 'ltr';
-	$styles->default_dirs    = array( '/wp-admin/', '/wp-includes/css/' );
+	$styles->text_direction  = is_rtl() ? 'rtl' : 'ltr';
+	$styles->default_dirs    = array( '/wp-admin/', '/wp-includes/css/' ); // Deprecated, but still set for plugins that read it.
 
 	// Open Sans is no longer used by core, but may be relied upon by themes and plugins.
 	$open_sans_font_url = '';
@@ -1618,7 +1588,7 @@ function wp_default_styles( $styles ) {
 	// Register a stylesheet for the selected admin color scheme.
 	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = wp_scripts_get_suffix();
 
 	// Admin CSS.
 	$styles->add( 'wp-tooltip', "/wp-admin/css/wp-tooltip$suffix.css", array( 'dashicons' ) );
@@ -2155,34 +2125,26 @@ function wp_style_loader_src( $src, $handle ) {
  *
  * @see wp_print_scripts()
  *
- * @global bool $concatenate_scripts
- *
  * @return string[] Handles of the scripts that were printed.
  */
 function print_head_scripts() {
-	global $concatenate_scripts;
-
 	if ( ! did_action( 'wp_print_scripts' ) ) {
 		/** This action is documented in wp-includes/functions.wp-scripts.php */
 		do_action( 'wp_print_scripts' );
 	}
 
 	$wp_scripts = wp_scripts();
-
-	script_concat_settings();
-	$wp_scripts->do_concat = $concatenate_scripts;
 	$wp_scripts->do_head_items();
 
 	/**
 	 * Filters whether to print the head scripts.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the head scripts. Default true.
 	 */
-	if ( apply_filters( 'print_head_scripts', true ) ) {
-		_print_scripts();
-	}
+	apply_filters_deprecated( 'print_head_scripts', array( true ), '7.2.0' );
 
 	$wp_scripts->reset();
 	return $wp_scripts->done;
@@ -2194,74 +2156,29 @@ function print_head_scripts() {
  * @since 2.8.0
  *
  * @global WP_Scripts $wp_scripts
- * @global bool       $concatenate_scripts
  *
  * @return string[] Handles of the scripts that were printed.
  */
 function print_footer_scripts() {
-	global $wp_scripts, $concatenate_scripts;
+	global $wp_scripts;
 
 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
 		return array(); // No need to run if not instantiated.
 	}
-	script_concat_settings();
-	$wp_scripts->do_concat = $concatenate_scripts;
 	$wp_scripts->do_footer_items();
 
 	/**
 	 * Filters whether to print the footer scripts.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the footer scripts. Default true.
 	 */
-	if ( apply_filters( 'print_footer_scripts', true ) ) {
-		_print_scripts();
-	}
+	apply_filters_deprecated( 'print_footer_scripts', array( true ), '7.2.0' );
 
 	$wp_scripts->reset();
 	return $wp_scripts->done;
-}
-
-/**
- * Prints scripts (internal use only)
- *
- * @since 2.8.0
- *
- * @ignore
- *
- * @global WP_Scripts $wp_scripts
- * @global bool       $compress_scripts
- */
-function _print_scripts() {
-	global $wp_scripts, $compress_scripts;
-
-	$zip = $compress_scripts ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
-
-	$concat = trim( $wp_scripts->concat, ', ' );
-
-	if ( $concat ) {
-		if ( ! empty( $wp_scripts->print_code ) ) {
-			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
-		}
-
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
-
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
-
-		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		wp_print_script_tag( array( 'src' => $src ) );
-	}
-
-	if ( ! empty( $wp_scripts->print_html ) ) {
-		echo $wp_scripts->print_html;
-	}
 }
 
 /**
@@ -2346,29 +2263,21 @@ function wp_enqueue_scripts() {
  *
  * @since 2.8.0
  *
- * @global bool $concatenate_scripts
- *
  * @return string[] Handles of the styles that were printed.
  */
 function print_admin_styles() {
-	global $concatenate_scripts;
-
 	$wp_styles = wp_styles();
-
-	script_concat_settings();
-	$wp_styles->do_concat = $concatenate_scripts;
 	$wp_styles->do_items( false );
 
 	/**
 	 * Filters whether to print the admin styles.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the admin styles. Default true.
 	 */
-	if ( apply_filters( 'print_admin_styles', true ) ) {
-		_print_styles();
-	}
+	apply_filters_deprecated( 'print_admin_styles', array( true ), '7.2.0' );
 
 	$wp_styles->reset();
 	return $wp_styles->done;
@@ -2380,122 +2289,543 @@ function print_admin_styles() {
  * @since 3.3.0
  *
  * @global WP_Styles $wp_styles
- * @global bool      $concatenate_scripts
  *
  * @return string[]|null
  */
 function print_late_styles() {
-	global $wp_styles, $concatenate_scripts;
+	global $wp_styles;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
 		return null;
 	}
 
-	script_concat_settings();
-	$wp_styles->do_concat = $concatenate_scripts;
 	$wp_styles->do_footer_items();
 
 	/**
 	 * Filters whether to print the styles queued too late for the HTML head.
 	 *
 	 * @since 3.3.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the 'late' styles. Default true.
 	 */
-	if ( apply_filters( 'print_late_styles', true ) ) {
-		_print_styles();
-	}
+	apply_filters_deprecated( 'print_late_styles', array( true ), '7.2.0' );
 
 	$wp_styles->reset();
 	return $wp_styles->done;
 }
 
 /**
- * Prints styles (internal use only).
+ * Prints prefetch links for the assets of the screen the user is most likely to open next.
  *
- * @ignore
- * @since 3.3.0
+ * Runs wherever the next screen can be predicted with confidence, and prefetches only what that
+ * screen is certain to need. Two cases qualify today:
  *
- * @global bool $compress_css
+ * - The login screen, which is followed by an admin screen. That screen downloads each core script
+ *   and stylesheet separately, which is what makes an uncached admin load slow. Requesting the
+ *   ones that block its first paint while the login form is on screen puts them in the HTTP cache
+ *   during the time the user spends typing credentials, so the redirect that follows finds them
+ *   already there.
+ * - The Dashboard and the post list tables, from which the editor is the usual next stop. Only the
+ *   editor's stylesheets are prefetched, not its scripts: the scripts run to well over a megabyte
+ *   compressed, which is far too much to spend on a screen the user may never open, whereas the
+ *   stylesheets are render-blocking and in the same size class as the login screen's own prefetch.
+ *
+ * Handles the current screen has printed or queued are skipped, along with their dependencies, so
+ * each context only fetches what it is actually adding. On the login screen this runs in the
+ * footer, since some of what the login form loads, such as `user-profile` and the `jquery` it
+ * depends on, is only enqueued after its header has printed. On admin screens it runs in the head,
+ * where the screen's assets have been enqueued already.
+ *
+ * These are resources for the *next* navigation rather than for the screen printing them, which is
+ * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
+ * priority, and browsers warn about preloaded resources the document never uses. A prefetch is
+ * already dispatched at the browser's lowest priority, so it stays out of the way of that screen's
+ * own render-blocking assets without needing `fetchpriority`.
+ *
+ * A prefetched response is reused only for as long as the HTTP cache considers it fresh, the same as
+ * any other cached response. Core does not send caching headers for its static files, so how long
+ * that is depends on the server: an explicit `max-age` or `Expires`, or else a heuristic lifetime
+ * derived from `Last-Modified`. Once the response is stale the next screen still revalidates it,
+ * which saves the download but not the round trip.
+ *
+ * The `as` attribute is still worth setting: it gives the request the same destination the admin
+ * screen will later ask for, which is what lets the prefetched response be reused.
+ *
+ * The admin-wide handles cover every admin screen rather than only the Dashboard, so that part of
+ * the list does not vary with where the login lands. They are printed on every screen of the login
+ * page, such as the password reset form, since those mostly lead to the admin as well. Nothing is
+ * printed at all when `redirect_to` points outside this site's admin.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_preload_resources()
+ *
+ * @global WP_Screen|null $current_screen The current admin screen, if any.
  */
-function _print_styles() {
-	global $compress_css;
+function wp_prefetch_admin_assets(): void {
+	global $current_screen;
 
-	$wp_styles = wp_styles();
+	/*
+	 * The context is told apart by the request rather than by the hook this runs on, so it works
+	 * from whichever hook it is added to. The 'login_init' action is fired by wp-login.php however
+	 * it is reached. The is_login() function would not do: it compares the login URL with the
+	 * script handling the request, and a plugin serving the login screen at a URL of its own runs
+	 * wp-login.php from another script, such as index.php.
+	 */
+	$on_login = (bool) did_action( 'login_init' );
 
-	$zip = $compress_css ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
-
-	$concat = trim( $wp_styles->concat, ', ' );
-
-	if ( $concat ) {
-		$dir = $wp_styles->text_direction;
-		$ver = $wp_styles->default_version;
-
-		$concat_source_url = 'css-inline-concat-' . $concat;
-		$concat            = str_split( $concat, 128 );
-		$concatenated      = '';
-
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
-
-		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
-
-		if ( ! empty( $wp_styles->print_code ) ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$style_tag_contents = "\n{$wp_styles->print_code}\n"
-				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
-			$processor->set_modifiable_text( $style_tag_contents );
-			echo "{$processor->get_updated_html()}\n";
+	if ( ! $on_login ) {
+		/*
+		 * From the Dashboard and the post list tables, the editor is the usual next stop. Anywhere
+		 * else in the admin there is no destination worth guessing at.
+		 *
+		 * The global is read rather than calling get_current_screen(), which only exists once the
+		 * admin includes are loaded. On a request with no screen, such as one for the front end,
+		 * this prints nothing.
+		 */
+		if ( ! $current_screen instanceof WP_Screen || ! in_array( $current_screen->base, array( 'dashboard', 'edit' ), true ) ) {
+			return;
 		}
 	}
 
-	if ( ! empty( $wp_styles->print_html ) ) {
-		echo $wp_styles->print_html;
+	$script_roots = array();
+	$style_roots  = array();
+
+	if ( $on_login ) {
+		/*
+		 * Resolve where the login is going to land, the same way wp-login.php will: `redirect_to`
+		 * when one was given, and the admin otherwise. wp_safe_redirect() sends the browser to what
+		 * wp_validate_redirect() returns, so that is used here as it is: it sanitizes the value,
+		 * resolves a relative path against the current request, as the browser would, and falls back
+		 * to the admin for a value pointing off-host. Passing the value through esc_url_raw() first
+		 * would not match it, since that takes a relative path such as `wp-admin/post.php` for a host.
+		 *
+		 * This runs on every screen wp-login.php prints, not only the login form, since the others
+		 * mostly lead to the admin as well, and each one gives the prefetching another chance to
+		 * finish before the user gets there. The password reset and registration flows end at the
+		 * login form, and the admin email confirmation follows a login that has already succeeded.
+		 * On the lost password and registration screens, `redirect_to` is where submitting the
+		 * form goes rather than where the login lands, but it is normally absent, and when it is
+		 * not, it typically points back into wp-login.php, so nothing is prefetched. Nor does an
+		 * interim login need to be excluded: it shows inside a modal on an admin screen that has
+		 * already loaded these assets, so they are served from the HTTP cache.
+		 *
+		 * An empty `redirect_to` counts as none, since wp-login.php falls back to the admin for it
+		 * too. The lost password form submits one, for instance, so it is present when the form is
+		 * shown again with an error.
+		 */
+		$admin_url   = admin_url();
+		$next_screen = $admin_url;
+
+		if ( ! empty( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
+			$next_screen = wp_validate_redirect( wp_unslash( $_REQUEST['redirect_to'] ), $admin_url );
+		}
+
+		/*
+		 * When the login lands somewhere other than the admin, such as the front end or a plugin's
+		 * own screen, none of these assets are wanted. The admin's path ends in a slash, which a
+		 * `redirect_to` of the admin itself may leave off, as in `/wp-admin`.
+		 */
+		$admin_path = (string) wp_parse_url( $admin_url, PHP_URL_PATH );
+
+		if ( '' === $admin_path || ! str_starts_with( trailingslashit( (string) wp_parse_url( $next_screen, PHP_URL_PATH ) ), $admin_path ) ) {
+			return;
+		}
+
+		/*
+		 * Nor are they when it lands in the admin of another host. wp_validate_redirect() accepts any
+		 * host in 'allowed_redirect_hosts', such as another site on a multisite network, and that
+		 * admin would request its assets from its own host rather than from this one. The same goes
+		 * for this host's admin under another scheme, such as an `https` destination from an `http`
+		 * login: the URLs prefetched here take the scheme of the current request, so that admin
+		 * would request different ones. A relative `redirect_to` stays on this host and scheme, while
+		 * wp_validate_redirect() gives a protocol-relative one the `http` scheme, which is where
+		 * wp_safe_redirect() then sends it. A port is compared with the scheme's default filled in
+		 * when none is given, since `https://example.com:443/` is the same admin as
+		 * `https://example.com/`.
+		 */
+		$next_screen_host = wp_parse_url( $next_screen, PHP_URL_HOST );
+
+		if ( is_string( $next_screen_host ) ) {
+			$default_ports = array(
+				'http'  => 80,
+				'https' => 443,
+			);
+
+			$admin_scheme       = strtolower( (string) wp_parse_url( $admin_url, PHP_URL_SCHEME ) );
+			$next_screen_scheme = strtolower( (string) wp_parse_url( $next_screen, PHP_URL_SCHEME ) );
+			$admin_port         = wp_parse_url( $admin_url, PHP_URL_PORT ) ?? $default_ports[ $admin_scheme ] ?? null;
+			$next_screen_port   = wp_parse_url( $next_screen, PHP_URL_PORT ) ?? $default_ports[ $next_screen_scheme ] ?? null;
+
+			if (
+				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( $admin_url, PHP_URL_HOST ) ) ||
+				$next_screen_scheme !== $admin_scheme ||
+				$next_screen_port !== $admin_port
+			) {
+				return;
+			}
+		}
+	} else {
+		$post_type        = ( 'edit' === $current_screen->base && $current_screen->post_type ) ? $current_screen->post_type : 'post';
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( ! $post_type_object instanceof WP_Post_Type ) {
+			return;
+		}
+
+		/*
+		 * A user who cannot edit posts of this type will never reach the editor from here. This is
+		 * `edit_posts` rather than `create_posts`, since the editor is reached by opening an existing
+		 * post as well as by adding a new one, and a user may be able to do the first but not the
+		 * second. Adding a new one requires `edit_posts` too.
+		 */
+		if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
+			return;
+		}
+
+		$next_screen = add_query_arg( 'post_type', $post_type, admin_url( 'post-new.php' ) );
 	}
-}
 
-/**
- * Determines the concatenation and compression settings for scripts and styles.
- *
- * @since 2.8.0
- *
- * @global bool $concatenate_scripts
- * @global bool $compress_scripts
- * @global bool $compress_css
- */
-function script_concat_settings() {
-	global $concatenate_scripts, $compress_scripts, $compress_css;
+	if ( $on_login ) {
+		/*
+		 * The handles that block rendering on every admin screen: the stylesheets, and the scripts
+		 * printed in the head. These are what stand between the redirect and the first paint, so
+		 * they are what is worth having in the cache already. Every handle these expand to loads on
+		 * all admin screens, not just the one the login happens to land on, so the list does not depend
+		 * on the destination. Screen-specific handles are deliberately left out: `site-health`
+		 * blocks rendering on the Dashboard but loads nowhere else.
+		 *
+		 * Scripts printed in the footer are left out even though they block DOMContentLoaded, since
+		 * they do not hold back the first paint. They are also where the bulk of the admin's bytes
+		 * are, largely the command palette's dependencies, and a prefetch of them still in flight
+		 * when the login form is submitted competes with the admin screen's own render-blocking
+		 * stylesheets and delays its first paint on a slow connection.
+		 *
+		 * These are roots rather than the full set: everything they depend on is pulled in with them
+		 * below, so the set follows the dependencies declared in wp_default_scripts() and
+		 * wp_default_styles(). `jquery` stands for `jquery-core` and `jquery-migrate`, and `wp-admin`
+		 * for the admin's own stylesheets, which is what the `colors` handle enqueued on every admin
+		 * screen depends on. Aliases like these have no source of their own, so only what they expand
+		 * to is prefetched. `colors` itself is left out, since the color scheme is a per-user setting
+		 * and the user is not known yet.
+		 *
+		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here: `common`
+		 * (for `jquery`) in wp-admin/admin.php, `colors` (for `wp-admin` and `buttons`) and `utils` in
+		 * wp-admin/admin-header.php, `admin-bar` in WP_Admin_Bar::initialize(), `wp-auth-check` in
+		 * wp_auth_check_load(), and `wp-commands` in wp_enqueue_command_palette_assets().
+		 */
+		$script_roots = array(
+			'jquery',
+			'utils',
+		);
 
-	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
+		$style_roots = array(
+			'wp-admin',
+			'buttons',
+			'admin-bar',
+			'wp-auth-check',
+			'wp-commands',
+		);
+	}
 
-	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
+	/*
+	 * post-new.php always opens the editor, while post.php also handles trashing, restoring and
+	 * bulk edits, so it counts only when it is editing.
+	 */
+	$next_screen_file  = basename( (string) wp_parse_url( $next_screen, PHP_URL_PATH ) );
+	$next_screen_query = array();
+	wp_parse_str( (string) wp_parse_url( $next_screen, PHP_URL_QUERY ), $next_screen_query );
 
-	if ( ! isset( $concatenate_scripts ) ) {
-		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
-		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
-			$concatenate_scripts = false;
+	$next_screen_is_block_editor = 'post-new.php' === $next_screen_file
+		|| ( 'post.php' === $next_screen_file && 'edit' === ( $next_screen_query['action'] ?? '' ) );
+
+	if ( $next_screen_is_block_editor ) {
+		/*
+		 * The editor only loads these stylesheets when the post type uses the block editor, which
+		 * the classic editor, for instance, can turn off. The post type is the one in the query of
+		 * the next screen, as for post-new.php. An edit link to post.php from the login screen does
+		 * not carry one, so it is taken to be a post: looking the post up instead would let anyone
+		 * tell from the login screen whether a post with a given ID exists, drafts and private posts
+		 * included.
+		 */
+		$next_screen_post_type       = $next_screen_query['post_type'] ?? 'post';
+		$next_screen_is_block_editor = is_string( $next_screen_post_type ) && use_block_editor_for_post_type( $next_screen_post_type );
+	}
+
+	if ( $next_screen_is_block_editor ) {
+		/*
+		 * Roots as well, expanded along with any from the login screen. `wp-edit-post` alone accounts
+		 * for most of the editor chrome, including the block editor's content and reset styles by way
+		 * of `wp-edit-blocks`; the rest cover the block directory, the format library, the classic
+		 * editor's buttons and the media modal.
+		 *
+		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here:
+		 * `wp-edit-post` in wp-admin/edit-form-blocks.php, `wp-block-directory` in
+		 * wp_enqueue_editor_block_directory_assets(), `wp-format-library` in
+		 * wp_enqueue_editor_format_library_assets(), `editor-buttons` in
+		 * _WP_Editors::enqueue_default_editor(), and `media-views` and `imgareaselect` in
+		 * wp_enqueue_media().
+		 */
+		$style_roots = array_merge(
+			$style_roots,
+			array(
+				'wp-edit-post',
+				'wp-block-directory',
+				'wp-format-library',
+				'editor-buttons',
+				'media-views',
+				'imgareaselect',
+			)
+		);
+	}
+
+	// From an admin screen, nothing is left to prefetch when the editor turns out not to be the block editor.
+	if ( ! $script_roots && ! $style_roots ) {
+		return;
+	}
+
+	$resources = array();
+
+	foreach (
+		array(
+			'script' => array( wp_scripts(), $script_roots ),
+			'style'  => array( wp_styles(), $style_roots ),
+		)
+		as $as => list( $dependencies, $roots )
+	) {
+		// Skip a type with nothing to prefetch, such as scripts for the editor, rather than expanding the current screen's queue of it.
+		if ( ! $roots ) {
+			continue;
+		}
+
+		/*
+		 * Expand the roots to include everything they depend on, roots first, and likewise what the
+		 * current screen has queued. A handle that is not registered is dropped along with its
+		 * dependencies. Unlike WP_Dependencies::all_deps(), this leaves the dependencies' state
+		 * untouched.
+		 */
+		$expanded = array(
+			'roots' => array(),
+			'queue' => array(),
+		);
+
+		foreach (
+			array(
+				'roots' => $roots,
+				'queue' => $dependencies->queue,
+			)
+			as $list => $handles
+		) {
+			while ( $handles ) {
+				$handle = array_shift( $handles );
+
+				if ( isset( $expanded[ $list ][ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
+					continue;
+				}
+
+				$expanded[ $list ][ $handle ] = true;
+
+				foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
+					if ( is_string( $dependency ) && '' !== $dependency && ! isset( $expanded[ $list ][ $dependency ] ) ) {
+						$handles[] = $dependency;
+					}
+				}
+			}
+		}
+
+		/*
+		 * Whichever screen this is running on shares some of these handles, and the browser fetches
+		 * those for it anyway, so prefetching them as well would only compete with its own requests.
+		 * These are the ones it has printed, and the ones it has queued along with their
+		 * dependencies, which it has yet to print if this runs before its footer scripts. On the
+		 * login screen, for instance, `user-profile` brings in `jquery`.
+		 */
+		$on_current_screen = $expanded['queue'] + array_fill_keys( $dependencies->done, true );
+
+		foreach ( array_keys( $expanded['roots'] ) as $handle ) {
+			if ( isset( $on_current_screen[ $handle ] ) ) {
+				continue;
+			}
+
+			// The next screen prints nothing for a handle with conditional data, as do_item() returns early for it.
+			if ( $dependencies->registered[ $handle ]->extra['conditional'] ?? false ) {
+				continue;
+			}
+
+			/*
+			 * The URLs are built the same way WP_Scripts::do_item() and WP_Styles::do_item() build
+			 * those in the tags they print, so they match what the next screen will request. They are
+			 * not escaped yet, so the filter sees plain URLs; they are escaped when printed.
+			 *
+			 * A handle with no URL of its own, such as an alias or one whose URL was filtered away,
+			 * prints nothing either, and for a style that includes its right-to-left stylesheet,
+			 * since WP_Styles::do_item() returns before getting to it.
+			 */
+			$src = $dependencies->get_src( $handle );
+
+			if ( '' === $src ) {
+				continue;
+			}
+
+			$urls = array( $src );
+
+			if ( $dependencies instanceof WP_Styles ) {
+				$rtl_src = $dependencies->get_rtl_src( $handle );
+
+				if ( null !== $rtl_src ) {
+					if ( 'replace' === $dependencies->get_data( $handle, 'rtl' ) ) {
+						$urls = array( $rtl_src );
+					} else {
+						$urls[] = $rtl_src;
+					}
+				}
+			}
+
+			foreach ( array_filter( $urls ) as $url ) {
+				$resources[] = array(
+					'href' => $url,
+					'as'   => $as,
+				);
+			}
 		}
 	}
 
-	if ( ! isset( $compress_scripts ) ) {
-		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
-		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_scripts = false;
-		}
+	/**
+	 * Filters the assets prefetched for the screen the user is expected to open next.
+	 *
+	 * Fires on any screen from which the next one can be predicted, so `$next_screen` is what
+	 * distinguishes the contexts: the login screen passes the URL it is about to redirect to, and
+	 * the Dashboard and post list tables pass the editor they expect the user to open.
+	 *
+	 * Only the `href` and `as` attributes below are printed; any other key is ignored. Resources
+	 * sharing an `href` are collapsed to the first of them, so a callback may append without
+	 * checking what is already there. Returning an empty array turns the prefetching off.
+	 *
+	 * On the login screen the URLs are built before the user is authenticated and outside the
+	 * admin, so there is no current user and `is_admin()` is false. A {@see 'script_loader_src'}
+	 * or {@see 'style_loader_src'} callback that depends on either can produce a URL the admin
+	 * screen will not request, which wastes the prefetch; a callback on this filter can correct it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array  $resources {
+	 *     Array of resources and their attributes to prefetch.
+	 *
+	 *     @type array ...$0 {
+	 *         Array of resource attributes.
+	 *
+	 *         @type string $href URL to prefetch. Required.
+	 *         @type string $as   How the browser should treat the resource
+	 *                            (`script`, `style`, `image`, `document`, etc). Required.
+	 *     }
+	 * }
+	 * @param string $next_screen URL of the screen the assets are being prefetched for. Always
+	 *                            points into the admin, since nothing is prefetched otherwise.
+	 *                            From the login screen this is the redirect target, already run
+	 *                            through wp_validate_redirect() with the admin as the fallback,
+	 *                            and it may be relative: it is the value as wp_safe_redirect()
+	 *                            will receive it, so a request-supplied path is passed through
+	 *                            unchanged and only the fallback is a full URL.
+	 */
+	$resources = apply_filters( 'wp_prefetch_admin_assets', $resources, $next_screen );
+
+	if ( ! is_array( $resources ) ) {
+		return;
 	}
 
-	if ( ! isset( $compress_css ) ) {
-		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
-		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_css = false;
+	$unique_resources = array();
+
+	// Parse the complete resource list and extract unique resources.
+	foreach ( $resources as $resource ) {
+		if ( ! is_array( $resource ) ) {
+			continue;
 		}
+
+		$href = $resource['href'] ?? '';
+		$as   = $resource['as'] ?? '';
+
+		if ( ! is_string( $href ) || '' === $href || ! is_string( $as ) || '' === $as ) {
+			continue;
+		}
+
+		/*
+		 * Check again once escaped, since esc_url() returns an empty string for a URL it rejects.
+		 * An empty `href` would resolve to the current page, which the script below would then fetch.
+		 * Only `http` and `https` URLs are allowed, as wp_preload_resources() does, since nothing else
+		 * can be prefetched, and the script would pass anything else to fetch().
+		 */
+		$href = esc_url( $href, array( 'http', 'https' ) );
+
+		if ( '' === $href || isset( $unique_resources[ $href ] ) ) {
+			continue;
+		}
+
+		$unique_resources[ $href ] = $as;
 	}
+
+	if ( ! $unique_resources ) {
+		return;
+	}
+
+	// Build and output the HTML for each unique resource. Each URL has already been escaped.
+	foreach ( $unique_resources as $escaped_href => $as ) {
+		printf(
+			"<link rel='prefetch' href='%s' as='%s' />\n",
+			$escaped_href,
+			esc_attr( $as )
+		);
+	}
+
+	/*
+	 * Safari does not support `rel="prefetch"`, so in browsers that lack it, fetch the URLs of the
+	 * page's prefetch links with fetch() instead, to put the responses in the HTTP cache all the
+	 * same. Reading the links from the page, rather than passing their URLs to the script, keeps a
+	 * single list of them, and also covers any prefetch links added by plugins. The fetches wait
+	 * until the current screen has loaded, and ask for low priority, so they stay out of the way
+	 * of its own assets. Unlike a prefetch link, a fetch still in flight is canceled when the user
+	 * navigates away, so it cannot compete with the next screen's render-blocking assets.
+	 *
+	 * The requests use `no-cors` mode and include credentials, as the stylesheet and script
+	 * requests of the next screen do, so the cached responses match what that screen will ask for.
+	 * The body is read to completion so that the full response is cached.
+	 */
+	$js_function = <<<'JS'
+		/**
+		 * Prefetches the page's rel=prefetch links with fetch() in browsers that do not support rel=prefetch.
+		 *
+		 * @link https://caniuse.com/link-rel-prefetch
+		 */
+		() => {
+			if ( document.createElement( 'link' ).relList?.supports?.( 'prefetch' ) ) {
+				return;
+			}
+
+			const prefetch = () => {
+				for ( const link of /** @type {NodeListOf<HTMLLinkElement>} */ ( document.querySelectorAll( 'link[rel~="prefetch"][href]' ) ) ) {
+					fetch( link.href, { mode: 'no-cors', credentials: 'include', priority: 'low' } )
+						.then( ( response ) => response.blob() )
+						.catch( () => {} );
+				}
+			};
+
+			const schedule = () => {
+				if ( 'requestIdleCallback' in window ) {
+					window.requestIdleCallback( prefetch );
+				} else {
+					setTimeout( prefetch, 0 );
+				}
+			};
+
+			if ( 'complete' === document.readyState ) {
+				schedule();
+			} else {
+				window.addEventListener( 'load', schedule, { once: true } );
+			}
+		}
+		JS;
+
+	wp_print_inline_script_tag( "( $js_function )();\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**
@@ -2916,6 +3246,7 @@ function enqueue_editor_block_styles_assets() {
  */
 function wp_enqueue_editor_block_directory_assets() {
 	wp_enqueue_script( 'wp-block-directory' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'wp-block-directory' );
 }
 
@@ -2926,6 +3257,7 @@ function wp_enqueue_editor_block_directory_assets() {
  */
 function wp_enqueue_editor_format_library_assets() {
 	wp_enqueue_script( 'wp-format-library' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'wp-format-library' );
 }
 
@@ -2939,6 +3271,8 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_get_script_tag( $attributes ) {
 	/**
@@ -3024,6 +3358,12 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 
 	/**
 	 * Filters attributes to be added to a script tag.
+	 *
+	 * Escaping and normalization can make the text a browser parses from the printed tag differ
+	 * from `$data`. A callback that needs that text, such as one computing a CSP hash, can set
+	 * `$data` as the modifiable text of a SCRIPT tag in a `WP_HTML_Tag_Processor` with the
+	 * filtered attributes applied and then read {@see WP_HTML_Tag_Processor::get_modifiable_text()},
+	 * at a late priority so that the attributes are final.
 	 *
 	 * @since 5.7.0
 	 *
@@ -3607,6 +3947,7 @@ function wp_enqueue_command_palette_assets() {
 	}
 
 	wp_enqueue_script( 'wp-commands' );
+	// Prefetched from the login screen by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'wp-commands' );
 	wp_enqueue_script( 'wp-core-commands' );
 
@@ -4065,8 +4406,8 @@ function wp_hoist_late_printed_styles(): void {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_html_custom_data_attribute_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $html_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if interpretable as a custom data attribute, else `null`.
@@ -4092,7 +4433,7 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
 	 * > U+002D HYPHEN-MINUS character (-) and replace the character that
 	 * > followed it by the same character converted to ASCII uppercase.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
+	 * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
 	 */
 	$custom_name = '';
 	$at          = 5;
@@ -4143,8 +4484,8 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_js_dataset_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $js_dataset_name Name of JS `dataset` property to transform.
  * @return string|null Corresponding name of an HTML custom data attribute for the given dataset name,

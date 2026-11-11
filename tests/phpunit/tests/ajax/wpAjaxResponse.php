@@ -47,7 +47,7 @@ class Tests_Ajax_wpAjaxResponse extends WP_UnitTestCase {
 	/**
 	 * Return our callback handler
 	 *
-	 * @return callback
+	 * @return callable
 	 */
 	public function getDieHandler() {
 		return array( $this, 'dieHandler' );

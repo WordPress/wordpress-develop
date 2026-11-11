@@ -23,10 +23,20 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	private static $send_plugin_theme_email;
 
 	/**
+	 * The temporary directory created by `::create_vcs_fixture()`, if any.
+	 *
+	 * @var string
+	 */
+	private $vcs_fixture_root = '';
+
+	/**
 	 * Sets up shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 		self::$updater = new WP_Automatic_Updater();
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
@@ -38,6 +48,45 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		add_filter( 'pre_wp_mail', '__return_false' );
+	}
+
+	public function tear_down() {
+		delete_site_option( 'deferred_translation_updates' );
+
+		if ( $this->vcs_fixture_root ) {
+			( new WP_Filesystem_Direct( null ) )->delete( $this->vcs_fixture_root, true );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that deferred translation updates are not automatically updated.
+	 *
+	 * @ticket 42281
+	 *
+	 * @covers WP_Automatic_Updater::should_update
+	 */
+	public function test_should_update_should_skip_deferred_translation_updates() {
+		$deferred_update = (object) array(
+			'type'       => 'plugin',
+			'slug'       => 'deferred-plugin',
+			'language'   => 'de_DE',
+			'version'    => '1.0.0',
+			'autoupdate' => true,
+		);
+
+		$available_update       = clone $deferred_update;
+		$available_update->slug = 'available-plugin';
+
+		wp_set_deferred_translation_updates( array( $deferred_update ) );
+
+		add_filter( 'request_filesystem_credentials', '__return_true' );
+		add_filter( 'automatic_updates_is_vcs_checkout', '__return_false' );
+		add_filter( 'automatic_updater_disabled', '__return_false' );
+
+		$this->assertFalse( self::$updater->should_update( 'translation', $deferred_update, WP_LANG_DIR ) );
+		$this->assertTrue( self::$updater->should_update( 'translation', $available_update, WP_LANG_DIR ) );
 	}
 
 	/**
@@ -112,7 +161,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_append_plugin_urls() {
 		return array(
 			'successful updates, the current version and the plugin url'       => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -380,7 +429,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_not_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_not_append_plugin_urls() {
 		return array(
 			'successful updates, the current version, but no plugin url'    => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -704,7 +753,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
+	public static function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
 		return array(
 			// Type checks and boolean comparisons.
 			'null'                              => array( 'dir' => null ),
@@ -755,5 +804,297 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturn( false );
 
 		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
+	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::is_vcs_checkout()` detects a VCS entry
+	 * in the checked directory or above it.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 *
+	 * @dataProvider data_is_vcs_checkout_should_detect_vcs_entries
+	 *
+	 * @param string $entry The VCS entry to create, relative to the fixture root.
+	 * @param string $type  The type of entry to create. Accepts 'file' or 'dir'.
+	 */
+	public function test_is_vcs_checkout_should_detect_vcs_entries( $entry, $type ) {
+		$root = $this->create_vcs_fixture( $entry, $type );
+
+		$this->assertTrue( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_is_vcs_checkout_should_detect_vcs_entries() {
+		return array(
+			'.git file in the checked directory'         => array(
+				'entry' => 'wordpress/.git',
+				'type'  => 'file',
+			),
+			'.git file above the checked directory'      => array(
+				'entry' => '.git',
+				'type'  => 'file',
+			),
+			'.git directory in the checked directory'    => array(
+				'entry' => 'wordpress/.git',
+				'type'  => 'dir',
+			),
+			'.git directory above the checked directory' => array(
+				'entry' => '.git',
+				'type'  => 'dir',
+			),
+			'.svn directory'                             => array(
+				'entry' => 'wordpress/.svn',
+				'type'  => 'dir',
+			),
+			'.hg directory'                              => array(
+				'entry' => 'wordpress/.hg',
+				'type'  => 'dir',
+			),
+			'.bzr directory'                             => array(
+				'entry' => 'wordpress/.bzr',
+				'type'  => 'dir',
+			),
+		);
+	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::is_vcs_checkout()` returns `false`
+	 * when there is no VCS entry in an allowed directory.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_should_return_false_when_no_vcs_entry_exists() {
+		$root = $this->create_vcs_fixture();
+
+		$this->assertFalse( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+	}
+
+	/**
+	 * Tests that the `automatic_updates_is_vcs_checkout` filter is told about
+	 * a `.git` file, and can still allow updates.
+	 *
+	 * @ticket 66460
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_should_allow_filter_to_override_git_file() {
+		$root = $this->create_vcs_fixture( 'wordpress/.git', 'file' );
+
+		$filter = new MockAction();
+		add_filter( 'automatic_updates_is_vcs_checkout', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'automatic_updates_is_vcs_checkout', '__return_false', 20 );
+
+		$this->assertFalse( $this->get_updater_limited_to( $root )->is_vcs_checkout( "$root/wordpress" ) );
+		$this->assertSame( array( array( true, "$root/wordpress" ) ), $filter->get_args() );
+	}
+
+	/**
+	 * Creates a temporary directory with a `wordpress` directory inside it,
+	 * which is removed after the test.
+	 *
+	 * @param string $entry Optional. A VCS entry to create, relative to the temporary directory.
+	 *                      Default empty.
+	 * @param string $type  Optional. The type of entry to create. Accepts 'file' or 'dir'.
+	 *                      Default 'dir'.
+	 * @return string The path to the temporary directory.
+	 */
+	private function create_vcs_fixture( $entry = '', $type = 'dir' ) {
+		$root                   = get_temp_dir() . uniqid( 'wp-vcs-checkout-' );
+		$this->vcs_fixture_root = $root;
+
+		mkdir( "$root/wordpress", 0777, true );
+
+		if ( 'file' === $type ) {
+			// As in a worktree inside a container, the path in a `.git` file does not have to exist.
+			file_put_contents( "$root/$entry", "gitdir: /nonexistent/.git/worktrees/wordpress\n" );
+		} elseif ( $entry ) {
+			mkdir( "$root/$entry" );
+		}
+
+		return $root;
+	}
+
+	/**
+	 * Gets an updater that only checks directories inside the given directory.
+	 *
+	 * `::is_vcs_checkout()` also walks up from ABSPATH and every directory's parents,
+	 * and the test suite is usually run from a real checkout.
+	 *
+	 * @param string $root The directory to limit the updater to.
+	 * @return WP_Automatic_Updater The updater.
+	 */
+	private function get_updater_limited_to( $root ) {
+		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
+			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+			->setMethods( array( 'is_allowed_dir' ) )
+			->getMock();
+
+		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturnCallback(
+			static function ( $dir ) use ( $root ) {
+				return str_starts_with( $dir, $root );
+			}
+		);
+
+		return $updater_mock;
+	}
+
+	/**
+	 * Tests that {@see WP_Automatic_Updater::send_plugin_theme_email()} lists the details of a
+	 * fatal error under the plugin whose update was rolled back.
+	 *
+	 * @ticket 64155
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 */
+	public function test_send_plugin_theme_email_should_include_fatal_error_details(): void {
+		$filter = new MockAction();
+		add_filter( 'wp_mail', array( $filter, 'filter' ) );
+
+		$fatal_error = 'PHP Fatal error: Uncaught Error: Call to undefined function failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12';
+
+		$result = new WP_Error( 'plugin_update_fatal_error_rollback_successful', "The update for 'failed-plugin' contained a fatal error. The previously installed version has been restored." );
+		$result->add( 'plugin_update_fatal_error', $fatal_error );
+
+		$failed = array(
+			(object) array(
+				'name'   => 'Failed Plugin',
+				'result' => $result,
+				'item'   => (object) array(
+					'current_version' => '1.0.0',
+					'new_version'     => '2.0.0',
+					'plugin'          => 'failed-plugin/failed-plugin.php',
+				),
+			),
+		);
+
+		self::$send_plugin_theme_email->invokeArgs( self::$updater, array( 'fail', array(), array( 'plugin' => $failed ) ) );
+
+		$this->assertSame( 1, $filter->get_call_count(), 'An email should have been sent.' );
+
+		$mail_args = $filter->get_args()[0][0];
+		$this->assertIsArray( $mail_args );
+		$this->assertArrayHasKey( 'message', $mail_args );
+		$this->assertIsString( $mail_args['message'] );
+		$this->assertStringContainsString(
+			"- Failed Plugin (from version 1.0.0 to 2.0.0)\n  {$fatal_error}\n",
+			$mail_args['message'],
+			'The fatal error should be listed under the plugin that failed to update.'
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Automatic_Updater::has_fatal_error()} records the details of the fatal
+	 * error found by the loopback request, without any stack trace.
+	 *
+	 * @ticket 64155
+	 *
+	 * @covers WP_Automatic_Updater::has_fatal_error
+	 *
+	 * @dataProvider data_has_fatal_error_should_record_fatal_error_details
+	 *
+	 * @param array<string, string>|true|WP_Error $scrape_result    The result of the loopback request: the error
+	 *                                                                found by the scrape, `true` for none, or a
+	 *                                                                `WP_Error` for a failed request.
+	 * @param bool                                $expected_return  The expected return value.
+	 * @param string|null                         $expected_message The expected details of the fatal error.
+	 */
+	public function test_has_fatal_error_should_record_fatal_error_details( $scrape_result, bool $expected_return, ?string $expected_message ): void {
+		$upgrading = 1700000000;
+
+		$maintenance_file = ABSPATH . '.maintenance';
+		$this->assertFileDoesNotExist( $maintenance_file, 'The test requires that no maintenance file exists.' );
+		file_put_contents( $maintenance_file, "<?php \$upgrading = {$upgrading};" );
+
+		add_filter(
+			'pre_http_request',
+			static function () use ( $scrape_result, $upgrading ) {
+				if ( $scrape_result instanceof WP_Error ) {
+					return $scrape_result;
+				}
+
+				$scrape_key = md5( (string) $upgrading );
+
+				return array(
+					'headers'  => array(),
+					'body'     => "<html></html>\n###### wp_scraping_result_start:{$scrape_key} ######\n" . wp_json_encode( $scrape_result ) . "\n###### wp_scraping_result_end:{$scrape_key} ######\n",
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
+
+		$has_fatal_error = new ReflectionMethod( self::$updater, 'has_fatal_error' );
+		$message         = new ReflectionProperty( self::$updater, 'fatal_error_message' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$has_fatal_error->setAccessible( true );
+			$message->setAccessible( true );
+		}
+
+		try {
+			$this->assertSame( $expected_return, $has_fatal_error->invoke( self::$updater ), 'The return value should indicate whether a fatal error was detected.' );
+		} finally {
+			unlink( $maintenance_file );
+		}
+
+		$this->assertSame( $expected_message, $message->getValue( self::$updater ), 'The recorded details of the fatal error do not match.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * The scrape results mirror those of {@see wp_finalize_scraping_edited_file_errors()}, which
+	 * passes the error through `str_replace()`, so that every value is a string.
+	 *
+	 * @return array<non-falsy-string, array{
+	 *     scrape_result: array<string, string>|true|WP_Error,
+	 *     expected_return: bool,
+	 *     expected_message: string|null,
+	 * }>
+	 */
+	public static function data_has_fatal_error_should_record_fatal_error_details(): array {
+		return array(
+			'fatal error with a stack trace'    => array(
+				'scrape_result'    => array(
+					'type'    => '1',
+					'message' => "Uncaught Exception: Could not connect to the database in wp-content/plugins/failed-plugin/failed-plugin.php:3\nStack trace:\n#0 wp-content/plugins/failed-plugin/failed-plugin.php(7): failed_plugin_connect('db_user', 'secret_password')\n#1 {main}\n  thrown",
+					'file'    => 'wp-content/plugins/failed-plugin/failed-plugin.php',
+					'line'    => '3',
+				),
+				'expected_return'  => true,
+				'expected_message' => 'PHP Fatal error: Uncaught Exception: Could not connect to the database in wp-content/plugins/failed-plugin/failed-plugin.php:3 in wp-content/plugins/failed-plugin/failed-plugin.php on line 3',
+			),
+			'fatal error without a stack trace' => array(
+				'scrape_result'    => array(
+					'type'    => '64',
+					'message' => 'Cannot redeclare failed_plugin_init()',
+					'file'    => 'wp-content/plugins/failed-plugin/failed-plugin.php',
+					'line'    => '12',
+				),
+				'expected_return'  => true,
+				'expected_message' => 'PHP Fatal error: Cannot redeclare failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12',
+			),
+			'no fatal error'                    => array(
+				'scrape_result'    => true,
+				'expected_return'  => false,
+				'expected_message' => null,
+			),
+			'failed loopback request'           => array(
+				'scrape_result'    => new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ),
+				'expected_return'  => true,
+				'expected_message' => 'The loopback request to check for fatal errors failed: cURL error 28: Operation timed out',
+			),
+		);
 	}
 }

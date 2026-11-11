@@ -53,7 +53,7 @@ class Tests_Filesystem_WpFilesystemDirect_Mkdir extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_create_directory() {
+	public static function data_should_create_directory() {
 		return array(
 			'no trailing slash' => array(
 				'path' => 'TEST_DIR/directory-to-create',
@@ -101,7 +101,7 @@ class Tests_Filesystem_WpFilesystemDirect_Mkdir extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_not_create_directory() {
+	public static function data_should_not_create_directory() {
 		return array(
 			'empty path'         => array(
 				'path' => '',

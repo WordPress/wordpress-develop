@@ -46,7 +46,7 @@ class Tests_Functions_GetFileData extends WP_UnitTestCase {
 	 *     expected: array<string, string>,
 	 * }>
 	 */
-	public function data_test_get_data_file() {
+	public static function data_test_get_data_file() {
 		return array(
 			'theme headers'             => array(
 				'file'     => '/themedir1/default/style.css',

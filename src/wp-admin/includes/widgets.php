@@ -29,9 +29,7 @@ function wp_list_widgets() {
 		$sidebar = is_active_widget( $widget['callback'], $widget['id'], false, false );
 		$done[]  = $widget['callback'];
 
-		if ( ! isset( $widget['params'][0] ) ) {
-			$widget['params'][0] = array();
-		}
+		$widget['params'][0] ??= array();
 
 		$args = array(
 			'widget_id'   => $widget['id'],
@@ -322,6 +320,8 @@ function wp_widget_control( $sidebar_args ) {
 /**
  * @param string $classes
  * @return string Modified body classes.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_widgets_access_body_class( $classes ) {
 	return "$classes widgets_access ";
