@@ -362,6 +362,8 @@ function get_comment_statuses() {
  * @param mixed $hex_key The key to normalize.
  * @return string The normalized key, or an empty string when it is not a
  *                sequence of valid Unicode code points.
+ *
+ * @phpstan-return lowercase-string
  */
 function wp_normalize_note_reaction_key( $hex_key ): string {
 	if ( ! is_string( $hex_key ) || ! preg_match( '/^[0-9a-f]{1,6}(?:-[0-9a-f]{1,6})*$/i', $hex_key ) ) {
@@ -378,7 +380,7 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
 		if ( 0xFE0F === $value ) {
 			continue;
 		}
-		$code_points[] = str_pad( dechex( $value ), 4, '0', STR_PAD_LEFT );
+		$code_points[] = str_pad( ltrim( $code_point, '0' ), 4, '0', STR_PAD_LEFT );
 	}
 
 	return implode( '-', $code_points );
@@ -392,11 +394,13 @@ function wp_normalize_note_reaction_key( $hex_key ): string {
  * @return array[] {
  *     The emoji, in display order.
  *
- *     @type string $hexKey The emoji's hex key, e.g. `2764`.
- *     @type string $label  The emoji's name, lowercase, e.g. `heart`.
+ *     @type array ...$0 {
+ *         @type string $hexKey The emoji's hex key, e.g. `2764`.
+ *         @type string $label  The emoji's name, lowercase, e.g. `heart`.
+ *     }
  * }
  *
- * @phpstan-return list<array{ hexKey: string, label: string }>
+ * @phpstan-return list<array{ hexKey: lowercase-string&non-empty-string, label: string }>
  */
 function wp_get_note_reaction_emojis(): array {
 	// Labels are lowercase since they also appear mid-sentence, e.g. in the reaction pill's tooltip.
@@ -449,8 +453,10 @@ function wp_get_note_reaction_emojis(): array {
 	 * @param array[] $emojis {
 	 *     The emoji to offer, in display order.
 	 *
-	 *     @type string $hexKey The emoji's hex key, e.g. `1f984`.
-	 *     @type string $label  The emoji's name, lowercase, e.g. `unicorn`.
+	 *     @type array ...$0 {
+	 *         @type string $hexKey The emoji's hex key, e.g. `1f984`.
+	 *         @type string $label  The emoji's name, lowercase, e.g. `unicorn`.
+	 *     }
 	 * }
 	 */
 	$emojis = apply_filters( 'wp_note_reaction_emojis', $default_emojis );
@@ -490,6 +496,8 @@ function wp_get_note_reaction_emojis(): array {
  * @since 7.2.0
  *
  * @return string[] The keys of the emoji from wp_get_note_reaction_emojis().
+ *
+ * @phpstan-return list<lowercase-string&non-empty-string>
  */
 function wp_get_note_reaction_keys(): array {
 	return array_column( wp_get_note_reaction_emojis(), 'hexKey' );
