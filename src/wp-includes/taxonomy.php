@@ -1273,8 +1273,10 @@ function get_term_field( $field, $term, $taxonomy = '', $context = 'display' ) {
  *
  * @param int|object $id       Term ID or object.
  * @param string     $taxonomy Taxonomy name.
- * @return WP_Term|string|WP_Error The term sanitized for editing, WP_Error if the taxonomy does not exist,
- *                                 or an empty string if the term does not exist.
+ * @return WP_Term|string|WP_Error The term sanitized for editing, WP_Error if the term ID is empty or the
+ *                                 taxonomy does not exist, or an empty string if the term does not exist.
+ *
+ * @phpstan-return WP_Term|''|WP_Error
  */
 function get_term_to_edit( $id, $taxonomy ) {
 	$term = get_term( $id, $taxonomy );
@@ -1792,7 +1794,13 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  * @param string       $context  Optional. Context in which to sanitize the term.
  *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
  *                               'attribute', or 'js'. Default 'display'.
- * @return array|object Term with all fields sanitized.
+ * @return array|object Term with all fields sanitized (will be the same type as `$term`).
+ *
+ * @phpstan-return (
+ *     $term is WP_Term ? WP_Term : (
+ *         $term is array ? array<mixed> : object
+ *     )
+ * )
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
