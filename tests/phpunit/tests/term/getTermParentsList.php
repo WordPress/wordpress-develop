@@ -30,11 +30,6 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 	}
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-		parent::tear_down();
-	}
-
 	public function test_should_return_wp_error_for_empty_id() {
 		$this->assertWPError( get_term_parents_list( '', 'wptests_tax' ) );
 	}

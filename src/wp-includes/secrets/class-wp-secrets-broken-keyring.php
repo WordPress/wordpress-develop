@@ -20,7 +20,7 @@
  *
  * @since 7.2.0
  */
-final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
+final class WP_Secrets_Broken_Keyring extends WP_Secrets_Keyring {
 
 	/**
 	 * Always fails closed.
@@ -30,7 +30,10 @@ final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
 	 * @param string $key_material Ignored.
 	 * @return WP_Error
 	 */
-	public function wrap( string $key_material ): WP_Error {
+	public function wrap(
+		#[\SensitiveParameter]
+		string $key_material
+	): WP_Error {
 		return $this->error();
 	}
 

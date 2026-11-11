@@ -1282,6 +1282,7 @@ function wp_removable_query_args() {
 		'ids',
 		'locked',
 		'message',
+		'network_admin_email_updated',
 		'same',
 		'saved',
 		'settings-updated',
@@ -2137,7 +2138,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
@@ -2912,6 +2917,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
 
 	// Edge case, file names like `.ext`.
 	if ( empty( $fname ) ) {
+
 		return false;
 	}
 
@@ -3300,8 +3306,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
-				$type = false;
-				$ext  = false;
+				/*
+				 * Audio stored in an MP4/ISO-BMFF container (such as .m4a and .m4b, and
+				 * some .mp3 files produced by mobile recorders) is frequently detected as
+				 * video/mp4. Allow these known audio-in-video-container confusions rather
+				 * than rejecting a legitimate audio file whose major types don't match.
+				 * Also allow `video/3gpp`, as a RFC 3839 specification-compliant container
+				 * for audio-only content.
+				 */
+				$cross_container_types = array(
+					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
+				);
+
+				if ( empty( $cross_container_types[ $type ] )
+					|| ! in_array( $real_mime, $cross_container_types[ $type ], true )
+				) {
+					$type = false;
+					$ext  = false;
+				}
 			}
 		} elseif ( 'text/plain' === $real_mime ) {
 			// A few common file types are occasionally detected as text/plain; allow those.
@@ -3348,6 +3370,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				true
 			)
 			) {
+				$type = false;
+				$ext  = false;
+			}
+		} elseif ( in_array( $real_mime, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			/*
+			 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to the
+			 * canonical font/ttf. PHP 8.6 bundles a libmagic version with this change, but PHP
+			 * builds that use the system libmagic can report either type, so both are accepted
+			 * for TrueType fonts.
+			 *
+			 * @link https://github.com/file/file/commit/6481672a8eb64c2758bf6429d9a76ee5a22174e9
+			 */
+			if ( ! in_array( $type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
 				$type = false;
 				$ext  = false;
 			}
@@ -6880,9 +6915,9 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 		// This determines what gets set and translated - we don't translate Etc/* strings here, they are done later.
 		$exists    = array(
-			0 => ( isset( $zone[0] ) && $zone[0] ),
-			1 => ( isset( $zone[1] ) && $zone[1] ),
-			2 => ( isset( $zone[2] ) && $zone[2] ),
+			0 => ! empty( $zone[0] ),
+			1 => ! empty( $zone[1] ),
+			2 => ! empty( $zone[2] ),
 		);
 		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
 		$exists[4] = ( $exists[1] && $exists[3] );
@@ -6950,7 +6985,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$structure[] = '<option ' . $selected . 'value="' . esc_attr( $value ) . '" dir="auto">' . esc_html( $display ) . '</option>';
 
 		// Close continent optgroup.
-		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || ( isset( $zonen[ $key + 1 ] ) && $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) ) {
+		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) {
 			$structure[] = '</optgroup>';
 		}
 	}
@@ -7625,11 +7660,15 @@ function wp_is_stream( $path ) {
  *
  * @link https://www.php.net/manual/en/function.checkdate.php
  *
- * @param int    $month       Month number.
- * @param int    $day         Day number.
- * @param int    $year        Year number.
- * @param string $source_date The date to filter.
+ * @param int|string $month       Month number.
+ * @param int|string $day         Day number.
+ * @param int|string $year        Year number.
+ * @param string     $source_date The date to filter.
  * @return bool True if valid date, false if not valid date.
+ *
+ * @phpstan-param int|numeric-string $month
+ * @phpstan-param int|numeric-string $day
+ * @phpstan-param int|numeric-string $year
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
 	$checkdate = false;
@@ -9546,6 +9585,8 @@ function wp_verify_fast_hash(
 /**
  * Sends an email to the user when a new application password is created.
  *
+ * Hooked to the {@see 'wp_create_application_password'} action.
+ *
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
@@ -9575,9 +9616,19 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool    $send  Whether to send the email notification.
-	 * @param WP_User $user  The user object.
-	 * @param array   $new_item The application password details.
+	 * @param bool    $send     Whether to send the email notification.
+	 * @param WP_User $user     The user object.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
 
@@ -9638,7 +9689,17 @@ All at ###SITENAME###
 	 *     @type string $headers Headers.
 	 * }
 	 * @param WP_User $user     The user object.
-	 * @param array   $new_item The application password details.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 

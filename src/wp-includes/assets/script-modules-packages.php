@@ -70,7 +70,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '266101a88e5b01402a65'
+		'version' => '8b0f7a343850c82c7285'
 	),
 	'block-library/navigation/view.js' => array(
 		'dependencies' => array(
@@ -186,7 +186,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'd8489a9113a214b5278c'
+		'version' => '66721f834e0354c60439'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -294,7 +294,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '3a28135598a5699ab7f1'
+		'version' => 'a18070ac45d386810812'
 	),
 	'core-fields/page.js' => array(
 		'dependencies' => array(
@@ -318,7 +318,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'cc78f2192db7a69e99c1'
+		'version' => '5934f43d7436e74f3255'
 	),
 	'core-fields/post_type_supports.js' => array(
 		'dependencies' => array(
@@ -348,7 +348,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '4a571c13b124fb334523'
+		'version' => '9a5e94c52cfc7769eb34'
 	),
 	'core-fields/root_site.js' => array(
 		'dependencies' => array(
@@ -378,7 +378,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '98921ca4890d4baead31'
+		'version' => 'c370718a4a4c6a472b00'
 	),
 	'core-fields/wp_template.js' => array(
 		'dependencies' => array(
@@ -402,7 +402,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'd94f646d08e9c4a6ba08'
+		'version' => 'ccae0569036d0091beaf'
 	),
 	'core-fields/wp_template_part.js' => array(
 		'dependencies' => array(
@@ -426,7 +426,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'b528ca2741b1c38e32ff'
+		'version' => '33d6fd6d02d1097c3b37'
 	),
 	'dashboard-init/index.js' => array(
 		'dependencies' => array(
@@ -465,7 +465,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => '6cd6345c25ad7329ab4f'
+		'version' => 'c030c90d503985d55ec2'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
@@ -493,7 +493,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'e9218417e1212e9055c6'
+		'version' => '3e7d4036443ac65e34a4'
 	),
 	'latex-to-mathml/index.js' => array(
 		'dependencies' => array(
@@ -613,6 +613,6 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => 'e351e6a92196af96b818'
+		'version' => '5c1018436ffde73ed4a7'
 	)
 );

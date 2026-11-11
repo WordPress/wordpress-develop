@@ -1006,14 +1006,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$attachment = get_post( $request['id'] );
 
-		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
-			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment->ID );
-
-			if ( is_wp_error( $thumbnail_update ) ) {
-				return $thumbnail_update;
-			}
-		}
-
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
@@ -2261,9 +2253,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( get_allowed_mime_types() as $mime_type ) {
 			$parts = explode( '/', $mime_type );
 
-			if ( ! isset( $media_types[ $parts[0] ] ) ) {
-				$media_types[ $parts[0] ] = array();
-			}
+			$media_types[ $parts[0] ] ??= array();
 
 			$media_types[ $parts[0] ][] = $mime_type;
 		}
