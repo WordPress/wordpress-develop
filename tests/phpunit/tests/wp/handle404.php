@@ -98,4 +98,93 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 		$this->assertTrue( is_sitemap(), 'The request should be recognized as a sitemap request.' );
 		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
 	}
+
+	/**
+	 * A feed for an object that does not exist should 404.
+	 *
+	 * @ticket 56883
+	 *
+	 * @group feed
+	 *
+	 * @dataProvider data_feeds_for_missing_objects
+	 *
+	 * @param non-falsy-string $url       Feed URL to request.
+	 * @param non-falsy-string $query_var Query var the URL should set.
+	 */
+	public function test_feed_for_missing_object_should_404( string $url, string $query_var ) {
+		global $wp;
+
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( $url ) );
+
+		$this->assertArrayHasKey( $query_var, $wp->query_vars, "The request should set the '{$query_var}' query var." );
+		$this->assertTrue( is_feed(), 'The request should still be recognized as a feed.' );
+		$this->assertTrue( is_404(), 'A feed for an object that does not exist should be a 404.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string, non-falsy-string }>
+	 */
+	public static function data_feeds_for_missing_objects(): array {
+		return array(
+			'tag'           => array( '/tag/no-such-tag/feed/', 'tag' ),
+			'category'      => array( '/category/no-such-category/feed/', 'category_name' ),
+			'author'        => array( '/author/no-such-user/feed/', 'author_name' ),
+			'post comments' => array( '/no-such-post/feed/', 'name' ),
+		);
+	}
+
+	/**
+	 * An empty feed for an existing object, or for a query without an object, should not 404.
+	 *
+	 * @ticket 56883
+	 *
+	 * @group feed
+	 *
+	 * @dataProvider data_empty_feeds
+	 *
+	 * @param non-falsy-string $url       Feed URL to request.
+	 * @param non-falsy-string $query_var Query var the URL should set.
+	 */
+	public function test_empty_feed_should_not_404( string $url, string $query_var ) {
+		global $wp;
+
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'slug'     => 'empty-tag',
+			)
+		);
+		self::factory()->post->create( array( 'post_name' => 'post-without-comments' ) );
+		self::factory()->user->create( array( 'user_nicename' => 'author-without-posts' ) );
+
+		$this->go_to( home_url( $url ) );
+
+		$this->assertTrue( is_feed(), 'The request should be recognized as a feed.' );
+		$this->assertArrayHasKey( $query_var, $wp->query_vars, "The request should set the '{$query_var}' query var." );
+		$this->assertFalse( is_404(), 'An empty feed should not be a 404.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string, non-falsy-string }>
+	 */
+	public static function data_empty_feeds(): array {
+		return array(
+			'tag without posts'     => array( '/tag/empty-tag/feed/', 'tag' ),
+			'author without posts'  => array( '/author/author-without-posts/feed/', 'author_name' ),
+			'post without comments' => array( '/post-without-comments/feed/', 'name' ),
+			'date archive'          => array( '/2001/01/feed/', 'monthnum' ),
+			'search'                => array( '/?s=no-matching-posts&feed=rss2', 's' ),
+			'comments'              => array( '/comments/feed/', 'withcomments' ),
+		);
+	}
 }
