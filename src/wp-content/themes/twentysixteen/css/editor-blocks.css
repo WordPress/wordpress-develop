@@ -182,7 +182,7 @@ Description: Used to style blocks in the editor.
 }
 
 .wp-block {
-	max-width: 630px; /* 600px + 30px to account for padding. */
+	max-width: 600px;
 }
 
 /* Link styles */
@@ -347,6 +347,11 @@ figure[class*="wp-block-"] > figcaption {
 .wp-block-quote i,
 .wp-block-quote__citation:before {
 	font-style: normal;
+}
+
+.wp-block-quote__citation em,
+.wp-block-quote__citation i {
+	font-style: italic;
 }
 
 .wp-block-quote strong,

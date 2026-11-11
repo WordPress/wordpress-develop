@@ -1,5 +1,7 @@
 ##
 # A reusable workflow that runs the performance test suite.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Run performance Tests
 
@@ -19,7 +21,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '7.0.0'
+        default: '7.1.0'
       TARGET_SHA:
         description: 'SHA hash of the target commit used for "before" measurements.'
         required: true
@@ -116,7 +118,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
@@ -126,15 +128,24 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: npm
+          package-manager-cache: false
+
+      - name: Set up npm
+        # Release branches run this workflow from trunk, but some older branches may lack the action.
+        if: ${{ hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        uses: ./.github/actions/setup-npm
 
       - name: Set up PHP
         if: ${{ inputs.subject == 'base' }}
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ inputs.php-version }}
-          tools: wp-cli
           coverage: none
+
+      - name: Set up WP-CLI
+        if: ${{ inputs.subject == 'base' }}
+        # Release branches run this workflow from trunk: `$/` resolves to this workflow's commit, not the caller's.
+        uses: $/.github/actions/setup-wp-cli
 
       - name: Log debug information
         run: |
@@ -148,17 +159,21 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # A hung install would otherwise run until the 6 hour job limit. The cap
+        # leaves room for slow downloads.
+        timeout-minutes: 15
+        run: npm exec --no -- playwright install --with-deps chromium
 
       - name: Start Docker environment
         run: npm run env:start
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build
 
       - name: Download previous build artifact (target branch or previous commit)
         if: ${{ inputs.subject == 'before' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         id: get-previous-build
         with:
           script: |
@@ -190,9 +205,11 @@ jobs:
 
       - name: Set the environment to the baseline version
         if: ${{ inputs.subject == 'base' }}
-        run: |
-          VERSION="${BASE_TAG%.0}"
-          wp core download --version="$VERSION" --force --path="${LOCAL_DIR}"
+        # WP-CLI requests the release from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, and `--force` lets a retry overwrite files.
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: wp core download --version="${BASE_TAG%.0}" --force --path="${LOCAL_DIR}"
 
       - name: Install object cache drop-in
         if: ${{ inputs.memcached }}
@@ -224,12 +241,29 @@ jobs:
           npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
           npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
 
+      - name: Download WordPress Importer plugin
+        # Downloaded on the runner so failed downloads are retried: WP-CLI tries once.
+        uses: $/.github/actions/download-with-retry
+        with:
+          url: https://downloads.wordpress.org/plugin/wordpress-importer.latest-stable.zip
+          output: wordpress-importer.zip
+
       - name: Install WordPress Importer plugin
-        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
+        run: |
+          npm run env:cli -- plugin install wordpress-importer.zip --activate --path="/var/www/${LOCAL_DIR}"
+          rm wordpress-importer.zip
+
+      - name: Download mock data
+        uses: $/.github/actions/download-with-retry
+        with:
+          url: https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          output: themeunittestdata.wordpress.xml
 
       - name: Import mock data
+        # The importer waits up to 300 s per attachment download and skips the ones that
+        # fail: the cap leaves room for a stalled attachment, not a hung import.
+        timeout-minutes: 15
         run: |
-          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
           rm themeunittestdata.wordpress.xml
 
@@ -259,18 +293,21 @@ jobs:
           cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
 
       - name: Run performance tests
+        id: performance-tests
         run: npm run test:performance
         env:
           TEST_RESULTS_PREFIX: ${{ inputs.subject != 'current' && inputs.subject || '' }}
 
       - name: Archive artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        # Without test results, a failed setup step would report a second failure here.
+        if: ${{ always() && steps.performance-tests.outcome != 'skipped' }}
         with:
           name: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-${{ inputs.subject }}
           path: artifacts
           if-no-files-found: error
           include-hidden-files: true
+          retention-days: 1
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

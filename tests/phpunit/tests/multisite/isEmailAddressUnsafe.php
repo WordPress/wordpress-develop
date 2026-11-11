@@ -34,7 +34,7 @@ class Tests_Multisite_IsEmailAddressUnsafe extends WP_UnitTestCase {
 		$this->assertFalse( is_email_address_unsafe( $email ) );
 	}
 
-	public function data_unsafe() {
+	public static function data_unsafe() {
 		return array(
 			// 25046
 			'case_insensitive_1' => array(
@@ -78,7 +78,7 @@ class Tests_Multisite_IsEmailAddressUnsafe extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_safe() {
+	public static function data_safe() {
 		return array(
 			// 25046
 			array(

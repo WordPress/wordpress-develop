@@ -169,9 +169,10 @@ HTML;
 	 * Test failure conditions setting inline script tag contents.
 	 *
 	 * @ticket 64500
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 */
 	public function test_script_tag_dangerous_unescapeable_contents() {
-		$this->setExpectedIncorrectUsage( 'wp_get_inline_script_tag' );
 		/*
 		 * </script> cannot be printed inside a script tag
 		 * the `example/example` type is an unknown type with no known escaping rules.
