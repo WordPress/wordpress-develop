@@ -29,8 +29,11 @@ function editLinks( page ) {
 }
 
 /**
- * Tracks each attachment the page creates, through the REST API or through
- * async-upload.php, so that the attachments fixture deletes it.
+ * Tracks each attachment the page creates, so that the attachments fixture
+ * deletes it.
+ *
+ * Core sends the id in a header before it makes the sub-sizes, so an upload
+ * that fails after the attachment is saved is tracked too.
  *
  * @param {import('@playwright/test').Page} page
  * @param {Object}                          attachments The attachments fixture.
@@ -38,24 +41,9 @@ function editLinks( page ) {
  */
 function trackUploads( page, attachments ) {
 	const ids = [];
-	page.on( 'response', async ( response ) => {
-		if ( response.request().method() !== 'POST' || ! response.ok() ) {
-			return;
-		}
-		const url = decodeURIComponent( response.url() );
-		let id;
-		try {
-			if ( /\/wp\/v2\/media(?:[?&]|$)/.test( url ) ) {
-				id = ( await response.json() ).id;
-			} else if ( url.includes( '/async-upload.php' ) ) {
-				// With short=1 the classic upload answers with the bare id.
-				id = Number( await response.text() );
-			}
-		} catch {
-			// The page closed before the body arrived.
-			return;
-		}
-		if ( Number.isInteger( id ) && id > 0 ) {
+	page.on( 'response', ( response ) => {
+		const id = Number( response.headers()[ 'x-wp-upload-attachment-id' ] );
+		if ( id > 0 ) {
 			ids.push( id );
 			attachments.track( id );
 		}
@@ -187,7 +175,6 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// The finalized attachment carries the browser-generated sub-sizes
 		// in its metadata (the 640x480 source is larger than thumbnail and
 		// medium), and the sideloaded thumbnail file really exists.
-		await expect.poll( () => ids.length ).toBeGreaterThan( 0 );
 		const attachment = await requestUtils.rest( {
 			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
@@ -345,7 +332,6 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// The classic flow posts `post_id` to async-upload.php; the pipeline
 		// has to send the REST equivalent or the file lands unattached even
 		// though the screen counts it against the post.
-		await expect.poll( () => ids.length ).toBeGreaterThan( 0 );
 		const attachment = await requestUtils.rest( {
 			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
@@ -557,7 +543,6 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			0
 		);
 
-		await expect.poll( () => ids.length ).toBeGreaterThan( 0 );
 		const attachment = await requestUtils.rest( {
 			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
