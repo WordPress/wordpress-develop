@@ -260,15 +260,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->original_translation_locale = WP_Translation_Controller::get_instance()->get_locale();
 
 		/*
-		 * When running core tests, ensure that post types and taxonomies
-		 * are reset for each test. We skip this step for non-core tests,
-		 * given the large number of plugins that register post types and
-		 * taxonomies at 'init'.
+		 * When running core tests, ensure that post types, taxonomies,
+		 * and comment types are reset for each test. We skip this step
+		 * for non-core tests, given the large number of plugins that
+		 * register post types and taxonomies at 'init'.
 		 */
 		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			$this->reset_post_types();
 			$this->reset_taxonomies();
 			$this->reset_post_statuses();
+			$this->reset_comment_types();
 			$this->reset__SERVER();
 
 			if ( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE !== $wp_rewrite->permalink_structure ) {
@@ -551,6 +552,22 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			_unregister_taxonomy( $tax );
 		}
 		create_initial_taxonomies();
+	}
+
+	/**
+	 * Unregisters existing comment types and registers defaults.
+	 *
+	 * Run before each test in order to clean up the global scope, in case
+	 * a test forgets to unregister a comment type on its own, or fails before
+	 * it has a chance to do so.
+	 *
+	 * Empties the registry outright, since a custom type registered with '_builtin'
+	 * cannot be unregistered.
+	 */
+	protected function reset_comment_types(): void {
+		$GLOBALS['wp_comment_types'] = array();
+
+		create_initial_comment_types();
 	}
 
 	/**
