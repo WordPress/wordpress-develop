@@ -155,6 +155,10 @@ function shortcode_exists( $tag ) {
  * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		return WP_Shortcode_Processor::contains_any_shortcode( $content, $tag );
+	}
+
 	if ( ! str_contains( $content, '[' ) ) {
 		return false;
 	}
@@ -190,6 +194,17 @@ function has_shortcode( $content, $tag ) {
  * @return string[] An array of registered shortcode names found in the content.
  */
 function get_shortcode_tags_in_content( $content ) {
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		$processor = new WP_Shortcode_Processor( $content, null, WP_Shortcode_Processor::MODE_RECURSIVE );
+		$seen      = array();
+
+		while ( $processor->next_shortcode() ) {
+			$seen[ $processor->get_name() ] = true;
+		}
+
+		return array_keys( $seen );
+	}
+
 	if ( ! str_contains( $content, '[' ) ) {
 		return array();
 	}
@@ -726,9 +741,6 @@ function strip_shortcodes( $content ) {
 		return $content;
 	}
 
-	// Find all registered tag names in $content.
-	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
-
 	$tags_to_remove = array_keys( $shortcode_tags );
 
 	/**
@@ -740,6 +752,33 @@ function strip_shortcodes( $content ) {
 	 * @param string $content        Content shortcodes are being removed from.
 	 */
 	$tags_to_remove = apply_filters( 'strip_shortcodes_tagnames', $tags_to_remove, $content );
+
+	if ( true !== apply_filters( 'shortcodes_force_legacy_parser', false ) ) {
+		$unwanted  = array_fill_keys( $tags_to_remove, true );
+		$buffer    = '';
+		$was_at    = 0;
+		$processor = new WP_Shortcode_Processor( $content );
+		while ( $processor->next_shortcode() ) {
+			if ( isset( $unwanted[ $processor->get_name() ] ) ) {
+				$span    = $processor->get_span();
+				$buffer .= substr( $content, $was_at, $span->start - $was_at );
+				$was_at  = $span->start + $span->length;
+			}
+		}
+
+		if ( 0 === $was_at ) {
+			return $content;
+		}
+
+		if ( $was_at < strlen( $content ) ) {
+			$buffer .= substr( $content, $was_at );
+		}
+
+		return $buffer;
+	}
+
+	// Find all registered tag names in $content.
+	preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
 
 	$tagnames = array_intersect( $tags_to_remove, $matches[1] );
 
@@ -773,4 +812,334 @@ function strip_shortcode_tag( $m ) {
 	}
 
 	return $m[1] . $m[6];
+}
+
+class WP_Shortcode_Processor {
+	private $document;
+
+	private $recursion_mode = self::MODE_NON_RECURSIVE;
+
+	private $parsing_spans = array();
+
+	private $paused_parsing_spans = array();
+
+	/**
+	 * @var WP_Token_Map
+	 */
+	private $registered_shortcodes;
+
+	private $bytes_already_parsed = 0;
+
+	private $shortcode_starts_at = -1;
+
+	private $shortcode_length = -1;
+
+	private $shortcode_name = null;
+
+	private $content_start_at = -1;
+
+	private $content_length = -1;
+
+	private $is_self_closing = false;
+
+	private $closing_tags = array();
+
+	private $closing_tags_at = array();
+
+	private $closing_tags_lengths = array();
+
+	public function __construct( string $document, ?array $recognized_tags = null, string $recursion_mode = self::MODE_NON_RECURSIVE ) {
+		global $shortcode_tags;
+
+		$this->document       = $document;
+		$this->recursion_mode = $recursion_mode;
+
+		/**
+		 * @todo Optimize passing in a cached lookup.
+		 */
+		$this->registered_shortcodes = WP_Token_Map::from_array(
+			array_fill_keys( $recognized_tags ?? array_keys( $shortcode_tags ), '' )
+		);
+
+		$this->find_closers();
+
+		$this->parsing_spans[] = new WP_HTML_Span( 0, strlen( $document ) );
+	}
+
+	/**
+	 * @see \has_shortcode()
+	 *
+	 * @param string $document
+	 * @param string[] $shortcode_tag_names
+	 * @return bool
+	 */
+	public static function contains_any_shortcode( string $document, string ...$shortcode_tag_names ): bool {
+		/**
+		 * @todo Fast lookup that starts with linear contiguous scans under a certain count
+		 *       but then switches to a constant-time lookup after a certain size, to prevent
+		 *       N✕M iteration when the sought-after key doesn’t exist. Quick filter?
+		 */
+		$sought_names = array_fill_keys( $shortcode_tag_names, true );
+		$processor    = new self( $document, null, self::MODE_RECURSIVE );
+
+		while ( $processor->next_shortcode() ) {
+			if ( isset( $sought_names[ $processor->get_name() ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static function find_all_shortcode_spans( string $document, ?array $recognized_tags = null ) {
+		$processor = new self( $document, $recognized_tags, self::MODE_RECURSIVE );
+
+		$shortcodes = array();
+		while ( $processor->next_shortcode() ) {
+			$shortcodes[] = array( $processor->shortcode_starts_at, $processor->shortcode_length, $processor->content_start_at, $processor->content_length );
+			$shortcode    = substr( $document, $processor->shortcode_starts_at, $processor->shortcode_length );
+			echo "\e[33m@ {$processor->shortcode_starts_at}\e[90m: \e[34m{$shortcode}\e[m\n";
+		}
+
+		return $shortcodes;
+	}
+
+	public function get_name(): ?string {
+		return $this->shortcode_name;
+	}
+
+	public function get_span(): ?WP_HTML_Span {
+		if ( $this->shortcode_starts_at < 0 ) {
+			return null;
+		}
+
+		return new WP_HTML_Span( $this->shortcode_starts_at, $this->shortcode_length );
+	}
+
+	/**
+	 * Run a single forward pass to detect potential closing shortcode tags.
+	 *
+	 * This pass at the start avoids a potentially quadratic search over the same
+	 * content when finding closings for open tags, because it’s not known in advance
+	 * if a shortcode tag is followed by a closer or not. If no closers exist, then
+	 * for each opening shortcode tag, it would otherwise be necessary to scan the
+	 * full document for each opener. This pre-scan limits the extent of that search.
+	 *
+	 * @since 7.2.0
+	 */
+	private function find_closers() {
+		$document = $this->document;
+		$at       = 0;
+		$end      = strlen( $document );
+
+		while ( $at < $end ) {
+			$next_closer_at = strpos( $document, '[/', $at );
+			if ( false === $next_closer_at ) {
+				return;
+			}
+
+			$name_at = $next_closer_at + 2;
+
+			$name_length = strcspn(
+				$document,
+				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" .
+				"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x20" .
+				'&/<=>[]',
+				$name_at
+			);
+
+			if ( 0 === $name_length ) {
+				$at = $name_at;
+				continue;
+			}
+
+			$after_name_at = $name_at + $name_length;
+
+			if ( ']' !== ( $document[ $after_name_at ] ?? '' ) ) {
+				$at = $after_name_at;
+				continue;
+			}
+
+			$name = substr( $document, $name_at, $name_length );
+
+			// Only shortcodes with registered names are recognized as shortcodes.
+			if ( ! $this->registered_shortcodes->contains( $name ) ) {
+				$at = $after_name_at;
+				continue;
+			}
+
+			$this->closing_tags[ $name ]  = true;
+			$this->closing_tags_at[]      = $next_closer_at;
+			$this->closing_tags_lengths[] = $after_name_at + 1 - $next_closer_at;
+			$at                           = $after_name_at + 1;
+		}
+	}
+
+	private function enter_next_parsing_span(): void {
+		array_shift( $this->parsing_spans );
+
+		$parsing_span = $this->parsing_spans[0] ?? null;
+		if ( null === $parsing_span ) {
+			$this->bytes_already_parsed = strlen( $this->document );
+			return;
+		}
+
+		// Are we re-entering a paused span?
+		$unpaused_at                = array_pop( $this->paused_parsing_spans );
+		$this->bytes_already_parsed = $unpaused_at ?? $parsing_span->start;
+	}
+
+	public function next_shortcode() {
+		$parsing_span = $this->parsing_spans[0] ?? null;
+
+		if ( null === $parsing_span ) {
+			return false;
+		}
+
+		$document = $this->document;
+		$at       = $this->bytes_already_parsed;
+		$end      = $parsing_span->start + $parsing_span->length;
+
+		$this->shortcode_starts_at = -1;
+		$this->shortcode_length    = -1;
+		$this->content_start_at    = -1;
+		$this->content_length      = -1;
+		$this->is_self_closing     = false;
+
+		while ( $at < $end ) {
+			$next_bracket_at = $at + strcspn( $document, '[', $at, $end - $at );
+			if ( $next_bracket_at >= $end ) {
+				$this->enter_next_parsing_span();
+				return $this->next_shortcode();
+			}
+
+			$is_escaped_shortcode = '[' === ( $document[ $next_bracket_at + 1 ] ?? '' );
+			$name_at              = $is_escaped_shortcode ? $next_bracket_at + 2 : $next_bracket_at + 1;
+
+			// This only scans openers, because the closers have already been found.
+			if ( '/' === ( $document[ $name_at ] ?? '' ) ) {
+				$at = $name_at + 1;
+				continue;
+			}
+
+			$name_length = strcspn(
+				$document,
+				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" .
+				"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x20" .
+				'&/<=>[]',
+				$name_at,
+				$end - $name_at
+			);
+
+			if ( 0 === $name_length ) {
+				$at = $name_at;
+				continue;
+			}
+
+			$after_name = $name_at + $name_length;
+
+			// Only shortcodes with registered names are recognized as shortcodes.
+			$matched_length = 0;
+			if (
+				null === $this->registered_shortcodes->read_token( $document, $name_at, $matched_length, 'ascii-case-insensitive' ) ||
+				$matched_length !== $name_length
+			) {
+				$at = $after_name;
+				continue;
+			}
+
+			$end_at = $after_name + strcspn( $document, ']', $after_name, $end - $after_name );
+			if ( $end_at >= $end ) {
+				$this->enter_next_parsing_span();
+				return $this->next_shortcode();
+			}
+
+			// This is a fully-escaped token, ignore.
+			if ( $is_escaped_shortcode && ']' === ( $document[ $end_at + 1 ] ?? '' ) && ( $end_at + 1 ) < $end ) {
+				$at = $end_at + 1;
+				continue;
+			}
+
+			$this->shortcode_starts_at = $name_at - 1;
+			$this->shortcode_length    = $end_at + 1 - $name_at + 1;
+
+			if ( '/' === $document[ $end_at - 1 ] ) {
+				$this->is_self_closing      = true;
+				$this->bytes_already_parsed = $end_at + 1;
+				return true;
+			}
+
+			/*
+			 * Try to find a matching closing tag. If it exists, this has content,
+			 * otherwise it’s just a standalone shortcode without content.
+			 */
+			$name                 = substr( $document, $name_at, $name_length );
+			$this->shortcode_name = $name;
+
+			// If no closer could potentially exist, this is a standalone tag.
+			if ( ! isset( $this->closing_tags[ $name ] ) ) {
+				$this->bytes_already_parsed = $end_at + 1;
+				return true;
+			}
+
+			/*
+			 * @todo Replace with a binary search if that is measured faster.
+			 *       In most cases this list will be short, so it’s probably
+			 *       better with a linear scan.
+			 */
+			foreach ( $this->closing_tags_at as $i => $closer_byte_offset ) {
+				if ( $closer_byte_offset <= $end_at ) {
+					continue;
+				}
+
+				$closer_length      = $this->closing_tags_lengths[ $i ];
+				$closer_name_length = $closer_length - 3;
+
+				// No closer exists within this parsing span.
+				if ( $closer_byte_offset + $closer_length > $end ) {
+					break;
+				}
+
+				// The search for the closing tag is a byte-for-byte match.
+				if (
+					$closer_name_length === $name_length &&
+					0 === substr_compare( $document, $name, $closer_byte_offset + 2, $name_length )
+				) {
+					// Escaped shortcodes can capture content inside them too.
+					if ( $is_escaped_shortcode && ']' === ( $document[ $closer_byte_offset + $closer_length ] ?? '' ) ) {
+						$at = $closer_byte_offset + $closer_length + 1;
+						continue 2;
+					}
+
+					// This has content.
+					$this->bytes_already_parsed = $closer_byte_offset + $closer_length;
+					$this->shortcode_length     = $this->bytes_already_parsed - $this->shortcode_starts_at;
+					$this->content_start_at     = $end_at + 1;
+					$this->content_length       = $closer_byte_offset - $end_at - 1;
+
+					if ( self::MODE_RECURSIVE === $this->recursion_mode ) {
+						$this->paused_parsing_spans[] = $this->bytes_already_parsed;
+						array_unshift(
+							$this->parsing_spans,
+							new WP_HTML_Span( $this->content_start_at, $this->content_length )
+						);
+						$this->bytes_already_parsed = $this->content_start_at;
+					}
+
+					return true;
+				}
+			}
+
+			// This is a standalone tag.
+			$this->bytes_already_parsed = $end_at + 1;
+			return true;
+		}
+
+		$this->enter_next_parsing_span();
+		return $this->next_shortcode();
+	}
+
+	const MODE_RECURSIVE = 'recursive';
+
+	const MODE_NON_RECURSIVE = 'non-recursive';
 }
