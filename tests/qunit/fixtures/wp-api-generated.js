@@ -13189,6 +13189,7 @@ mockedApiResponse.Schema = {
     "image_strip_meta": true,
     "image_max_bit_depth": 16,
     "generate_animated_image_subsizes": true,
+    "video_keep_original": true,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
