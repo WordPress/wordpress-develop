@@ -303,4 +303,141 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 			'removal requests list' => array( 'WP_Privacy_Data_Removal_Requests_List_Table', 'remove_personal_data' ),
 		);
 	}
+
+	/**
+	 * Archived requests get their own view and are not counted in "All".
+	 *
+	 * @ticket 44222
+	 *
+	 * @covers WP_Privacy_Requests_Table::get_views
+	 */
+	public function test_get_views_should_exclude_archived_requests_from_all() {
+		$completed = wp_create_user_request( 'completed@example.com', 'export_personal_data' );
+		$archived  = wp_create_user_request( 'archived@example.com', 'export_personal_data' );
+		wp_create_user_request( 'pending@example.com', 'export_personal_data' );
+
+		_wp_privacy_completed_request( $completed );
+		_wp_privacy_completed_request( $archived );
+		_wp_privacy_archive_request( $archived );
+
+		$views = $this->get_mocked_class_instance()->get_views();
+
+		$this->assertStringContainsString( 'All <span class="count">(2)</span>', $views['all'] );
+		$this->assertArrayHasKey( 'request-archived', $views );
+		$this->assertStringContainsString( 'filter-status=request-archived', $views['request-archived'] );
+		$this->assertStringContainsString( 'Archived <span class="count">(1)</span>', $views['request-archived'] );
+	}
+
+	/**
+	 * @ticket 44222
+	 *
+	 * @covers WP_Privacy_Requests_Table::get_bulk_actions
+	 */
+	public function test_get_bulk_actions_should_depend_on_archived_view() {
+		$method = new ReflectionMethod( 'WP_Privacy_Requests_Table', 'get_bulk_actions' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		$table = $this->get_mocked_class_instance();
+
+		$actions = $method->invoke( $table );
+		$this->assertArrayHasKey( 'archive', $actions );
+		$this->assertArrayNotHasKey( 'unarchive', $actions );
+
+		$_REQUEST['filter-status'] = 'request-archived';
+		$actions                   = $method->invoke( $table );
+		unset( $_REQUEST['filter-status'] );
+
+		$this->assertSame( array( 'unarchive', 'delete' ), array_keys( $actions ) );
+	}
+
+	/**
+	 * @ticket 44222
+	 *
+	 * @covers WP_Privacy_Requests_Table::process_bulk_action
+	 */
+	public function test_process_bulk_action_should_archive_and_restore_requests() {
+		global $wp_settings_errors;
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$completed = wp_create_user_request( 'completed@example.com', 'export_personal_data' );
+		$pending   = wp_create_user_request( 'pending@example.com', 'export_personal_data' );
+		_wp_privacy_completed_request( $completed );
+
+		$table = $this->get_mocked_class_instance();
+
+		$_REQUEST['_wpnonce']   = wp_create_nonce( 'bulk-privacy_requests' );
+		$_REQUEST['request_id'] = array( $completed, $pending );
+		$_REQUEST['action']     = 'archive';
+		$table->process_bulk_action();
+
+		$this->assertSame( 'request-archived', get_post_status( $completed ), 'The completed request should be archived.' );
+		$this->assertSame( 'request-pending', get_post_status( $pending ), 'The pending request should not be archived.' );
+		$this->assertSame( array( 'error', 'success' ), wp_list_pluck( $wp_settings_errors, 'type' ) );
+
+		$wp_settings_errors     = array();
+		$_REQUEST['request_id'] = array( $completed );
+		$_REQUEST['action']     = 'unarchive';
+		$table->process_bulk_action();
+
+		unset( $_REQUEST['_wpnonce'], $_REQUEST['request_id'], $_REQUEST['action'] );
+
+		$this->assertSame( 'request-completed', get_post_status( $completed ) );
+		$this->assertSame( array( 'success' ), wp_list_pluck( $wp_settings_errors, 'type' ) );
+		$wp_settings_errors = array();
+	}
+
+	/**
+	 * Completed requests offer "Archive", archived ones offer "Restore" and "Delete permanently".
+	 *
+	 * @ticket 44222
+	 *
+	 * @dataProvider data_request_list_tables
+	 *
+	 * @param string $table_class  List table class name.
+	 * @param string $request_type Request type.
+	 */
+	public function test_next_steps_should_offer_archive_actions( $table_class, $request_type ) {
+		$request_id = wp_create_user_request( 'requester@example.org', $request_type );
+		_wp_privacy_completed_request( $request_id );
+
+		$table = new $table_class(
+			array(
+				'plural'   => 'privacy_requests',
+				'singular' => 'privacy_request',
+				'screen'   => $request_type,
+			)
+		);
+
+		ob_start();
+		$table->column_next_steps( wp_get_user_request( $request_id ) );
+		$completed_output = ob_get_clean();
+
+		$this->assertStringContainsString( 'action=archive', $completed_output );
+		$this->assertStringNotContainsString( 'action=delete', $completed_output );
+
+		_wp_privacy_archive_request( $request_id );
+		$request = wp_get_user_request( $request_id );
+
+		ob_start();
+		$table->column_next_steps( $request );
+		$archived_output = ob_get_clean();
+
+		$this->assertStringContainsString( 'action=unarchive', $archived_output );
+		$this->assertStringContainsString( 'action=delete', $archived_output );
+		$this->assertStringNotContainsString( 'complete-request', $table->column_email( $request ), 'Archived requests should not offer "Complete request".' );
+	}
+
+	/**
+	 * Data provider for test_next_steps_should_offer_archive_actions().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_request_list_tables() {
+		return array(
+			'export requests list'  => array( 'WP_Privacy_Data_Export_Requests_List_Table', 'export_personal_data' ),
+			'removal requests list' => array( 'WP_Privacy_Data_Removal_Requests_List_Table', 'remove_personal_data' ),
+		);
+	}
 }

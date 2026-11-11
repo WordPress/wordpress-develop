@@ -447,6 +447,7 @@ mockedApiResponse.Schema = {
                                     "request-confirmed",
                                     "request-failed",
                                     "request-completed",
+                                    "request-archived",
                                     "any"
                                 ],
                                 "type": "string"
@@ -1858,6 +1859,7 @@ mockedApiResponse.Schema = {
                                     "request-confirmed",
                                     "request-failed",
                                     "request-completed",
+                                    "request-archived",
                                     "any"
                                 ],
                                 "type": "string"
@@ -3962,6 +3964,7 @@ mockedApiResponse.Schema = {
                                     "request-confirmed",
                                     "request-failed",
                                     "request-completed",
+                                    "request-archived",
                                     "any"
                                 ],
                                 "type": "string"
@@ -4798,6 +4801,7 @@ mockedApiResponse.Schema = {
                                     "request-confirmed",
                                     "request-failed",
                                     "request-completed",
+                                    "request-archived",
                                     "any"
                                 ],
                                 "type": "string"
@@ -7434,6 +7438,7 @@ mockedApiResponse.Schema = {
                                     "request-confirmed",
                                     "request-failed",
                                     "request-completed",
+                                    "request-archived",
                                     "any"
                                 ],
                                 "type": "string"
