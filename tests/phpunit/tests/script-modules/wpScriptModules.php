@@ -3107,6 +3107,39 @@ HTML;
 	}
 
 	/**
+	 * Tests that a missing script module dependency of a script triggers a single _doing_it_wrong() notice, even
+	 * though the import map, the translations and the data all look the script module dependencies up.
+	 *
+	 * @ticket 66591
+	 *
+	 * @covers WP_Script_Modules::get_import_map
+	 * @covers WP_Script_Modules::print_import_map
+	 * @covers WP_Script_Modules::print_script_module_translations
+	 * @covers WP_Script_Modules::print_script_module_data
+	 */
+	public function test_missing_module_dependency_of_script_triggers_doing_it_wrong_once() {
+		$this->setExpectedIncorrectUsage( 'WP_Scripts::add_data' );
+
+		$notices = 0;
+		add_action(
+			'doing_it_wrong_run',
+			static function ( $function_name ) use ( &$notices ) {
+				if ( 'WP_Scripts::add_data' === $function_name ) {
+					++$notices;
+				}
+			}
+		);
+		$this->register_script_with_module_dependencies( array( 'does-not-exist' ) );
+		wp_enqueue_script( 'script' );
+
+		get_echo( array( $this->script_modules, 'print_import_map' ) );
+		get_echo( array( $this->script_modules, 'print_script_module_translations' ) );
+		get_echo( array( $this->script_modules, 'print_script_module_data' ) );
+
+		$this->assertSame( 1, $notices, 'The missing script module dependency should trigger a single notice.' );
+	}
+
+	/**
 	 * Tests that print_script_module_translations() and print_script_module_data() output for the same script
 	 * modules, in the same order: the enqueued ones and the ones in the import map.
 	 *

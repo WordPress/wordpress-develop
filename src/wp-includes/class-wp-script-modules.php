@@ -93,6 +93,18 @@ class WP_Script_Modules {
 	private $modules_with_missing_dependencies = array();
 
 	/**
+	 * List of handles for scripts encountered which have missing script module dependencies.
+	 *
+	 * A handle is added to this list when it is discovered to have script module dependencies that are not
+	 * registered. At this time, a warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this
+	 * list, so that duplicate warnings don't occur.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private $scripts_with_missing_module_dependencies = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -374,6 +386,11 @@ class WP_Script_Modules {
 	 * the translated strings for each script module. This must run before
 	 * the script modules execute.
 	 *
+	 * The translations of the enqueued script modules are printed first,
+	 * followed by the translations of the script modules in the import map.
+	 * When two script modules translate the same string of a text domain
+	 * differently, the translation printed last is the one that is used.
+	 *
 	 * Auto-detects the text domain and translation path for each module from
 	 * its source URL. Modules whose text domain or path differs from the
 	 * defaults can opt into a specific domain/path via
@@ -381,7 +398,8 @@ class WP_Script_Modules {
 	 *
 	 * @since 7.0.0
 	 * @since 7.2.0 Translations of the script module dependencies ('module_dependencies') of scripts, and of their
-	 *              dependencies, are now printed.
+	 *              dependencies, are now printed. The translations of the enqueued script modules are now printed
+	 *              first, instead of after the translations of their dependencies.
 	 */
 	public function print_script_module_translations(): void {
 		$module_ids = $this->get_loadable_script_module_ids();
@@ -686,7 +704,10 @@ class WP_Script_Modules {
 						}
 					}
 
-					if ( count( $missing_module_dependencies ) > 0 ) {
+					if (
+						count( $missing_module_dependencies ) > 0 &&
+						! in_array( $handle, $this->scripts_with_missing_module_dependencies, true )
+					) {
 						_doing_it_wrong(
 							'WP_Scripts::add_data',
 							sprintf(
@@ -698,6 +719,7 @@ class WP_Script_Modules {
 							),
 							'7.0.0'
 						);
+						$this->scripts_with_missing_module_dependencies[] = $handle;
 					}
 				}
 
