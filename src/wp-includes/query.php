@@ -1464,14 +1464,14 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
 /**
  * Redirects random content requests to the randomly selected post.
  *
- * Called by {@see WP::handle_random()} immediately after the main query selects the
- * random post, to avoid unnecessary processing before the redirect. As the redirect
- * is sent before {@see WP::send_headers()}, the headers preventing the redirect being
- * cached or indexed are sent with it.
+ * Added to the {@see 'template_redirect'} action at priority 100 by
+ * {@see WP::handle_random()} once the main query has selected the random post, so the
+ * redirect is sent after the request is set up and the {@see 'wp'} action has fired.
+ * The headers preventing the redirect being cached or indexed are sent with it.
  *
  * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
- * handles the request as a 404. If the post's permalink is on another site, the
- * request is handled as a regular archive request.
+ * handles the request as a 404 and this function is not added. If the post's permalink
+ * is on another site, the request is handled as a regular archive request.
  *
  * @since 7.2.0
  *

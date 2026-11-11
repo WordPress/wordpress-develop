@@ -719,10 +719,12 @@ class WP {
 	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
 	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
 	 *
-	 * If no post is selected, for example on an empty archive, the request is a 404 as
-	 * there is no post to redirect to. If a post is selected but the request is not
-	 * redirected, the request continues with the results of the main query. The main
-	 * query is not run again.
+	 * If a post is selected, the redirect is sent by {@see wp_random_content_redirect()}
+	 * on the {@see 'template_redirect'} action at priority 100, so the request is set up
+	 * and the {@see 'wp'} action has fired before the redirect. If no post is selected,
+	 * for example on an empty archive, the request is a 404 as there is no post to
+	 * redirect to. If a post is selected but the request is not redirected, the request
+	 * continues with the results of the main query. The main query is not run again.
 	 *
 	 * @since 7.2.0
 	 *
@@ -748,9 +750,13 @@ class WP {
 		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
 		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
 
-		wp_random_content_redirect();
+		if ( ! wp_is_random_content_query( $wp_the_query ) ) {
+			return true;
+		}
 
-		if ( wp_is_random_content_query( $wp_the_query ) && ! $wp_the_query->post instanceof WP_Post ) {
+		if ( $wp_the_query->post instanceof WP_Post ) {
+			add_action( 'template_redirect', 'wp_random_content_redirect', 100 );
+		} else {
 			$wp_the_query->set_404();
 			status_header( 404 );
 			nocache_headers();
