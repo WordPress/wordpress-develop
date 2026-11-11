@@ -902,6 +902,24 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-string ability name does not cause a fatal error when the
+	 * Allow header is computed for a request that failed argument validation.
+	 *
+	 * @ticket 66658
+	 */
+	public function test_non_string_ability_name_does_not_cause_fatal_error(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/calculator/run' );
+		$request->set_body_params( array( 'name' => array( '' ) ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_send_allow_header( $response, $this->server, $request );
+
+		$this->assertSame( 400, $response->get_status(), 'The request should fail argument validation.' );
+		$this->assertSame( 'rest_invalid_param', $response->get_data()['code'] );
+		$this->assertArrayNotHasKey( 'Allow', $response->get_headers(), 'No methods should be allowed for an invalid ability name.' );
+	}
+
+	/**
 	 * Test permission check for execution.
 	 *
 	 * @ticket 64098
