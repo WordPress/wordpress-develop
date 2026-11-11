@@ -3,6 +3,8 @@
 /**
  * @group xmlrpc
  * @requires function imagejpeg
+ *
+ * @covers wp_xmlrpc_server::wp_getMediaItem
  */
 class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;

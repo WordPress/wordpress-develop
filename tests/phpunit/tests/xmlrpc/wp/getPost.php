@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getPost
  */
 class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	public $post_data;
