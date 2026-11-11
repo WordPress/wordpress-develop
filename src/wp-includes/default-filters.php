@@ -810,7 +810,7 @@ add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
 add_filter( 'render_block', 'wp_strip_inline_note_markers' );
 
 // Note anchor snapshots.
-add_action( 'wp_after_insert_post', 'wp_delete_persisted_note_anchors', 10, 3 );
+add_action( 'wp_after_insert_post', 'wp_delete_persisted_note_anchors', 10, 2 );
 
 // User preferences.
 add_action( 'init', 'wp_register_persisted_preferences_meta' );

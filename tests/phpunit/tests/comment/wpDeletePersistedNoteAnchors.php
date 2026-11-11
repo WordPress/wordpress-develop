@@ -7,7 +7,6 @@
  * @group notes
  *
  * @covers ::wp_delete_persisted_note_anchors
- * @covers ::_wp_get_note_ids_from_blocks
  * @covers ::_wp_sanitize_note_anchor
  */
 class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
@@ -68,10 +67,9 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 		$value = _wp_sanitize_note_anchor(
 			array(
 				array(
-					'path'    => array( 0, '2' ),
+					'path'    => array( 0, 2 ),
 					'content' => "<!-- wp:paragraph {\"metadata\":{\"noteId\":[3]}} -->\n<p><mark class=\"wp-note\" data-id=\"new\">Hi</mark><script>alert(1)</script></p>\n<!-- /wp:paragraph -->",
 				),
-				'not an anchor',
 			)
 		);
 
@@ -92,18 +90,14 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 			grant_super_admin( $user_id );
 		}
 		wp_set_current_user( $user_id );
-		$content = '<!-- wp:html --><script>alert(1)</script><!-- /wp:html -->';
-
-		$value = _wp_sanitize_note_anchor(
+		$anchor = array(
 			array(
-				array(
-					'path'    => array( 0 ),
-					'content' => $content,
-				),
-			)
+				'path'    => array( 0 ),
+				'content' => '<!-- wp:html --><script>alert(1)</script><!-- /wp:html -->',
+			),
 		);
 
-		$this->assertSame( $content, $value[0]['content'] );
+		$this->assertSame( $anchor, _wp_sanitize_note_anchor( $anchor ) );
 	}
 
 	public function test_deletes_anchor_when_saved_content_links_to_note(): void {
@@ -160,9 +154,28 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 		$this->assertSame( self::ANCHOR, get_comment_meta( $ids['note_id'], '_wp_note_anchor', true ) );
 	}
 
-	public function test_ignores_malformed_note_ids(): void {
+	public function test_deletes_anchor_when_note_id_is_not_in_a_list(): void {
 		$ids     = $this->create_note_with_anchor();
-		$content = '<!-- wp:paragraph {"metadata":{"noteId":"not-a-number"}} -->' . "\n<p>Hello</p>\n<!-- /wp:paragraph -->";
+		$content = '<!-- wp:paragraph {"metadata":{"noteId":' . $ids['note_id'] . '}} -->' . "\n<p>Hello</p>\n<!-- /wp:paragraph -->";
+
+		wp_update_post(
+			array(
+				'ID'           => $ids['post_id'],
+				'post_content' => $content,
+			)
+		);
+
+		$this->assertSame( '', get_comment_meta( $ids['note_id'], '_wp_note_anchor', true ) );
+	}
+
+	/**
+	 * @dataProvider data_malformed_metadata
+	 *
+	 * @param string $attrs Block attributes as JSON.
+	 */
+	public function test_ignores_malformed_metadata( string $attrs ): void {
+		$ids     = $this->create_note_with_anchor();
+		$content = "<!-- wp:paragraph $attrs -->\n<p>Hello</p>\n<!-- /wp:paragraph -->";
 
 		wp_update_post(
 			array(
@@ -175,28 +188,15 @@ class Tests_Comment_WpDeletePersistedNoteAnchors extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_get_note_ids_from_blocks
-	 *
-	 * @param string $content  Block markup.
-	 * @param int[]  $expected Expected note IDs.
-	 */
-	public function test_get_note_ids_from_blocks( string $content, array $expected ): void {
-		$this->assertSame( $expected, _wp_get_note_ids_from_blocks( parse_blocks( $content ) ) );
-	}
-
-	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: int[]}>
+	 * @return array<string, array{0: string}>
 	 */
-	public function data_get_note_ids_from_blocks(): array {
+	public function data_malformed_metadata(): array {
 		return array(
-			'no notes'          => array( "<!-- wp:paragraph -->\n<p>Hi</p>\n<!-- /wp:paragraph -->", array() ),
-			'single id'         => array( '<!-- wp:paragraph {"metadata":{"noteId":5}} --><p>Hi</p><!-- /wp:paragraph -->', array( 5 ) ),
-			'list of ids'       => array( '<!-- wp:paragraph {"metadata":{"noteId":[5,"7"]}} --><p>Hi</p><!-- /wp:paragraph -->', array( 5, 7 ) ),
-			'nested'            => array( '<!-- wp:group {"metadata":{"noteId":[1]}} --><div><!-- wp:paragraph {"metadata":{"noteId":[2]}} --><p>Hi</p><!-- /wp:paragraph --></div><!-- /wp:group -->', array( 1, 2 ) ),
-			'malformed id'      => array( '<!-- wp:paragraph {"metadata":{"noteId":{"a":"x"}}} --><p>Hi</p><!-- /wp:paragraph -->', array() ),
-			'metadata a string' => array( '<!-- wp:paragraph {"metadata":"x"} --><p>Hi</p><!-- /wp:paragraph -->', array() ),
+			'note id not a number' => array( '{"metadata":{"noteId":"not-a-number"}}' ),
+			'note id an object'    => array( '{"metadata":{"noteId":{"a":"x"}}}' ),
+			'metadata a string'    => array( '{"metadata":"x"}' ),
 		);
 	}
 }
