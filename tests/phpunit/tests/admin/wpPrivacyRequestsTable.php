@@ -359,6 +359,9 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	public function test_process_bulk_action_should_archive_and_restore_requests() {
 		global $wp_settings_errors;
 
+		// Other tests may leave settings errors behind; start from a clean slate.
+		$wp_settings_errors = array();
+
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$completed = wp_create_user_request( 'completed@example.com', 'export_personal_data' );
@@ -372,20 +375,25 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$_REQUEST['action']     = 'archive';
 		$table->process_bulk_action();
 
-		$this->assertSame( 'request-archived', get_post_status( $completed ), 'The completed request should be archived.' );
-		$this->assertSame( 'request-pending', get_post_status( $pending ), 'The pending request should not be archived.' );
-		$this->assertSame( array( 'error', 'success' ), wp_list_pluck( $wp_settings_errors, 'type' ) );
+		$archived_status = get_post_status( $completed );
+		$archive_notices = wp_list_pluck( get_settings_errors( 'bulk_action' ), 'type' );
 
 		$wp_settings_errors     = array();
 		$_REQUEST['request_id'] = array( $completed );
 		$_REQUEST['action']     = 'unarchive';
 		$table->process_bulk_action();
 
-		unset( $_REQUEST['_wpnonce'], $_REQUEST['request_id'], $_REQUEST['action'] );
+		$restored_status = get_post_status( $completed );
+		$restore_notices = wp_list_pluck( get_settings_errors( 'bulk_action' ), 'type' );
 
-		$this->assertSame( 'request-completed', get_post_status( $completed ) );
-		$this->assertSame( array( 'success' ), wp_list_pluck( $wp_settings_errors, 'type' ) );
+		unset( $_REQUEST['_wpnonce'], $_REQUEST['request_id'], $_REQUEST['action'] );
 		$wp_settings_errors = array();
+
+		$this->assertSame( 'request-archived', $archived_status, 'The completed request should be archived.' );
+		$this->assertSame( 'request-pending', get_post_status( $pending ), 'The pending request should not be archived.' );
+		$this->assertSame( array( 'error', 'success' ), $archive_notices, 'Archiving should report one failure and one success.' );
+		$this->assertSame( 'request-completed', $restored_status, 'The archived request should be restored as completed.' );
+		$this->assertSame( array( 'success' ), $restore_notices, 'Restoring should report one success.' );
 	}
 
 	/**
