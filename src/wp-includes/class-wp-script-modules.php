@@ -386,6 +386,12 @@ class WP_Script_Modules {
 	 * the translated strings for each script module. This must run before
 	 * the script modules execute.
 	 *
+	 * The translations are printed after the scripts in the footer. A script
+	 * that imports a script module while it executes may evaluate the script
+	 * module before its translations are printed. To avoid that, the script
+	 * can use the 'defer' loading strategy, or import the script module once
+	 * the document has been parsed.
+	 *
 	 * The translations of the enqueued script modules are printed first,
 	 * followed by the translations of the script modules in the import map.
 	 * When two script modules translate the same string of a text domain
@@ -476,6 +482,10 @@ class WP_Script_Modules {
 		 * priority 10 via _wp_footer_scripts), but before the script modules
 		 * execute. Script modules with type="module" are deferred by default,
 		 * so inline translation scripts at priority 11 will execute before them.
+		 *
+		 * A script that is not deferred and imports a script module while it
+		 * executes may evaluate that script module before these translations
+		 * are printed.
 		 */
 		add_action( 'wp_footer', array( $this, 'print_script_module_translations' ), 21 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_translations' ), 11 );
