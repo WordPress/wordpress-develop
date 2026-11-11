@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { createReadStream } from 'node:fs';
+
+/**
  * Uploads attachments, records the ones the browser uploads, then deletes
  * them in teardown.
  *
@@ -12,9 +17,33 @@ export const attachments = async ( { requestUtils }, use ) => {
 
 	await use( {
 		async upload( absolutePath ) {
-			const attachment = await requestUtils.uploadMedia( absolutePath );
-			ids.add( attachment.id );
-			return attachment;
+			// Not requestUtils.uploadMedia(): it throws away the response on an
+			// error, but the server can save the attachment and then fail while
+			// it makes the sub-sizes. Core sends the id in a header before that.
+			if ( ! requestUtils.storageState?.nonce ) {
+				await requestUtils.setupRest();
+			}
+			const { rootURL, nonce } = requestUtils.storageState;
+			const response = await requestUtils.request.post(
+				`${ rootURL }wp/v2/media`,
+				{
+					headers: { 'X-WP-Nonce': nonce },
+					multipart: { file: createReadStream( absolutePath ) },
+					failOnStatusCode: false,
+				}
+			);
+			const id = Number(
+				response.headers()[ 'x-wp-upload-attachment-id' ]
+			);
+			if ( id > 0 ) {
+				ids.add( id );
+			}
+			if ( ! response.ok() ) {
+				throw new Error(
+					`Upload failed with HTTP ${ response.status() }: ${ await response.text() }`
+				);
+			}
+			return response.json();
 		},
 		track( id ) {
 			ids.add( id );
