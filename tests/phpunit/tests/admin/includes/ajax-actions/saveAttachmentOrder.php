@@ -96,9 +96,8 @@ class Tests_wp_ajax_save_attachment_order extends WP_Ajax_UnitTestCase {
 
 		$this->assertTrue( $response['success'], 'AJAX response should be successful' );
 
-		// Keep assertEquals() because WP_Post::$menu_order is a numeric string from the database.
-		$this->assertEquals( 10, get_post( self::$attachment_ids[0] )->menu_order, 'First attachment menu_order should be 10' );
-		$this->assertEquals( 20, get_post( self::$attachment_ids[1] )->menu_order, 'Second attachment menu_order should be 20' );
+		$this->assertSame( 10, get_post( self::$attachment_ids[0] )->menu_order, 'First attachment menu_order should be 10' );
+		$this->assertSame( 20, get_post( self::$attachment_ids[1] )->menu_order, 'Second attachment menu_order should be 20' );
 	}
 
 	/**
