@@ -25,6 +25,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function tear_down() {
 		// Cleanup.
 		$this->remove_added_uploads();
+		remove_image_size( 'test-600w' );
 		parent::tear_down();
 	}
 
@@ -324,6 +325,147 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 			'empty string'  => array( array( 'sizes' => '' ) ),
 			'string sizes'  => array( array( 'sizes' => 'not-an-array' ) ),
 			'boolean sizes' => array( array( 'sizes' => false ) ),
+		);
+	}
+
+	/**
+	 * Uploads canola.jpg (640x480) and returns the attachment ID.
+	 *
+	 * @return int Attachment ID.
+	 */
+	private function make_canola_attachment() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$filename = DIR_TESTDATA . '/images/canola.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+
+		return $this->_make_attachment( $upload );
+	}
+
+	/**
+	 * Sets up the request for saving an image edit.
+	 *
+	 * @param int    $id      Attachment ID.
+	 * @param string $target  Which sizes to apply the edit to.
+	 * @param string $history JSON-encoded edit history.
+	 */
+	private function set_save_request( $id, $target, $history ) {
+		$_REQUEST['action']  = 'image-editor';
+		$_REQUEST['context'] = 'edit-attachment';
+		$_REQUEST['postid']  = $id;
+		$_REQUEST['target']  = $target;
+		$_REQUEST['do']      = 'save';
+		$_REQUEST['history'] = $history;
+	}
+
+	/**
+	 * A size that cannot be created for the edited image must not keep
+	 * pointing at the unedited file.
+	 *
+	 * @ticket 55290
+	 *
+	 * @covers ::wp_save_image
+	 */
+	public function test_size_too_large_for_rotated_image_is_removed_from_metadata() {
+		// Fits the 640px wide original, but not the 480px wide rotated image.
+		add_image_size( 'test-600w', 600, 0 );
+
+		$id            = $this->make_canola_attachment();
+		$original_meta = wp_get_attachment_metadata( $id );
+
+		$this->assertArrayHasKey( 'test-600w', $original_meta['sizes'], 'The custom size should exist before editing.' );
+
+		$this->set_save_request( $id, 'all', '[{"r":-90}]' );
+		$ret = wp_save_image( $id );
+
+		$this->assertObjectNotHasProperty( 'error', $ret, 'Saving the edit should not fail.' );
+
+		$edited_meta = wp_get_attachment_metadata( $id );
+
+		$this->assertSame( 480, $edited_meta['width'], 'The full size image should be rotated.' );
+		$this->assertArrayNotHasKey( 'test-600w', $edited_meta['sizes'], 'The stale, unrotated size should be removed.' );
+
+		$backup_sizes = get_post_meta( $id, '_wp_attachment_backup_sizes', true );
+		$this->assertSame(
+			$original_meta['sizes']['test-600w'],
+			$backup_sizes['test-600w-orig'],
+			'The original size should be kept in the backup sizes so it can be restored.'
+		);
+	}
+
+	/**
+	 * All sizes that can be created for the edited image are regenerated.
+	 *
+	 * @ticket 55290
+	 *
+	 * @covers ::wp_save_image
+	 */
+	public function test_all_possible_sizes_are_regenerated_after_rotation() {
+		$id            = $this->make_canola_attachment();
+		$original_meta = wp_get_attachment_metadata( $id );
+
+		$this->set_save_request( $id, 'all', '[{"r":-90}]' );
+		wp_save_image( $id );
+
+		$edited_meta = wp_get_attachment_metadata( $id );
+
+		$this->assertSameSets(
+			array_keys( $original_meta['sizes'] ),
+			array_keys( $edited_meta['sizes'] ),
+			'The same sizes should exist after rotating the image.'
+		);
+
+		foreach ( $edited_meta['sizes'] as $size => $size_meta ) {
+			$this->assertNotSame( $original_meta['sizes'][ $size ]['file'], $size_meta['file'], "The $size size should be regenerated." );
+			$this->assertGreaterThanOrEqual( $size_meta['width'], $size_meta['height'], "The $size size should be rotated." );
+		}
+	}
+
+	/**
+	 * Sizes that are not part of the edit target are kept in the metadata.
+	 *
+	 * @ticket 55290
+	 *
+	 * @covers ::wp_save_image
+	 *
+	 * @dataProvider data_sizes_outside_the_edit_target_are_kept
+	 *
+	 * @param string   $target         The edit target.
+	 * @param string[] $untouched_sizes Sizes that should be unchanged after the edit.
+	 */
+	public function test_sizes_outside_the_edit_target_are_kept( $target, $untouched_sizes ) {
+		add_filter( 'image_edit_thumbnails_separately', '__return_true' );
+
+		$id            = $this->make_canola_attachment();
+		$original_meta = wp_get_attachment_metadata( $id );
+
+		$this->set_save_request( $id, $target, '[{"r":-90}]' );
+		wp_save_image( $id );
+
+		$edited_meta = wp_get_attachment_metadata( $id );
+
+		foreach ( $untouched_sizes as $size ) {
+			$this->assertArrayHasKey( $size, $edited_meta['sizes'], "The $size size should be kept." );
+			$this->assertSame( $original_meta['sizes'][ $size ], $edited_meta['sizes'][ $size ], "The $size size should be unchanged." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_sizes_outside_the_edit_target_are_kept() {
+		return array(
+			'all sizes except thumbnail' => array(
+				'target'          => 'nothumb',
+				'untouched_sizes' => array( 'thumbnail' ),
+			),
+			'thumbnail only'             => array(
+				'target'          => 'thumbnail',
+				'untouched_sizes' => array( 'medium' ),
+			),
 		);
 	}
 }
