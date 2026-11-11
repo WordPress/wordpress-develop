@@ -105,6 +105,45 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
 	}
 
+	/**
+	 * @ticket 54339
+	 *
+	 * @covers ::meta_form
+	 */
+	public function test_meta_form_shows_each_filtered_key_once() {
+		wp_set_current_user( self::$editor_id );
+		$post = self::factory()->post->create_and_get();
+
+		add_filter(
+			'postmeta_form_keys',
+			static function () {
+				return array( 'item10', 'CaseKey', 'shared', '_protected' );
+			}
+		);
+		add_filter(
+			'postmeta_form_keys',
+			static function ( $keys ) {
+				return array_merge( $keys, array( 'shared', 'item2', 'casekey', 'denied' ) );
+			},
+			20
+		);
+		add_filter( 'auth_post_meta_denied', '__return_false' );
+
+		ob_start();
+		meta_form( $post );
+		$output = ob_get_clean();
+
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$keys      = array();
+		while ( $processor->next_tag( 'OPTION' ) ) {
+			$keys[] = $processor->get_attribute( 'value' );
+		}
+
+		$this->assertContains( 'CaseKey', $keys );
+		$this->assertContains( 'casekey', $keys );
+		$this->assertSame( array( '#none#', 'casekey', 'casekey', 'item2', 'item10', 'shared' ), array_map( 'strtolower', $keys ) );
+	}
+
 	public function test_add_meta_box() {
 		global $wp_meta_boxes;
 
