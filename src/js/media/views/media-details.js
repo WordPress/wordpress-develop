@@ -179,6 +179,18 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	scrollToTop: function() {
 		this.$( '.embed-media-settings' ).scrollTop( 0 );
 	}
+},/** @lends wp.media.view.MediaDetails */{
+	/**
+	 * Formerly appended a cache-busting query arg to each media source.
+	 *
+	 * @deprecated 7.3.0 Returns the element unchanged.
+	 *
+	 * @param {HTMLElement} elem The HTML element containing the media sources.
+	 * @return {HTMLElement} The unchanged element.
+	 */
+	prepareSrc : function( elem ) {
+		return elem;
+	}
 });
 
 module.exports = MediaDetails;
