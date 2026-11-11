@@ -5560,32 +5560,60 @@ function wp_html_excerpt( $str, $count, $more = null ) {
  *
  * @since 2.7.0
  *
- * @global string $_links_add_base
- *
  * @param string   $content String to search for links in.
  * @param string   $base    The base URL to prefix to links.
- * @param string[] $attrs   The attributes which should be processed.
+ * @param string[] $attrs   Optional. The attributes which should be processed.
+ *                          Default array( 'src', 'href' ).
  * @return string The processed content.
  */
 function links_add_base_url( $content, $base, $attrs = array( 'src', 'href' ) ) {
-	global $_links_add_base;
-	$_links_add_base = $base;
-	$attrs           = implode( '|', (array) $attrs );
-	return preg_replace_callback( "!($attrs)=(['\"])(.+?)\\2!i", '_links_add_base', $content );
+	if ( ! is_string( $content ) || '' === $content || ! is_string( $base ) || '' === $base ) {
+		return $content;
+	}
+
+	if ( empty( $attrs ) ) {
+		$attrs = array( 'src', 'href' );
+	} else {
+		$attrs = (array) $attrs;
+	}
+
+	$allowed_protocols = wp_allowed_protocols();
+	$processor         = new WP_HTML_Tag_Processor( $content );
+
+	while ( $processor->next_tag() ) {
+		foreach ( $attrs as $attr ) {
+			$value = $processor->get_attribute( $attr );
+			if ( ! is_string( $value ) || '' === $value ) {
+				continue;
+			}
+
+			// Do not modify URLs that have an allowed protocol.
+			if ( preg_match( '#^(\w{1,20}):#', $value, $protocol ) && in_array( $protocol[1], $allowed_protocols, true ) ) {
+				continue;
+			}
+
+			$processor->set_attribute( $attr, WP_Http::make_absolute_url( $value, $base ) );
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
  * Callback to add a base URL to relative links in passed content.
  *
  * @since 2.7.0
+ * @deprecated 7.2.0
  * @access private
  *
  * @global string $_links_add_base
  *
- * @param string $m The matched link.
+ * @param array $m The matched link.
  * @return string The processed link.
  */
 function _links_add_base( $m ) {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
 	global $_links_add_base;
 	// 1 = attribute name  2 = quotation mark  3 = URL.
 	return $m[1] . '=' . $m[2] .
