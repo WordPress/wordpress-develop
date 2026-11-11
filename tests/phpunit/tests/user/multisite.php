@@ -441,6 +441,8 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should have been deleted.' );
 		$this->assertSame( 'publish', get_post_status( $pattern_id ), 'The pattern should have been kept.' );
+		$this->assertSame( (string) $user_id, get_post( $pattern_id )->post_author, 'The pattern should still list the deleted user as its author.' );
+		$this->assertFalse( get_userdata( $user_id ), 'The user should have been deleted.' );
 	}
 
 	/**
@@ -479,18 +481,56 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 	 *
 	 * @covers ::wpmu_delete_user
 	 *
-	 * @dataProvider data_wpmu_delete_user_respects_delete_with_user
+	 * @dataProvider data_wpmu_delete_user_keeps_core_post_types_that_opt_out
+	 *
+	 * @param string $post_type Core post type registered with `delete_with_user` set to false.
+	 */
+	public function test_wpmu_delete_user_keeps_core_post_types_that_opt_out( $post_type ) {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => $post_type,
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ string }>
+	 */
+	public static function data_wpmu_delete_user_keeps_core_post_types_that_opt_out() {
+		return array(
+			'wp_block'      => array( 'wp_block' ),
+			'nav_menu_item' => array( 'nav_menu_item' ),
+			'custom_css'    => array( 'custom_css' ),
+			'oembed_cache'  => array( 'oembed_cache' ),
+		);
+	}
+
+	/**
+	 * Post types registered by plugins are still deleted, because a plugin active on
+	 * only some sites may not have registered its post types in the current request.
+	 *
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 *
+	 * @dataProvider data_wpmu_delete_user_deletes_plugin_post_types
 	 *
 	 * @param bool|null $delete_with_user Value of the post type's `delete_with_user` argument.
-	 * @param bool      $supports_author  Whether the post type supports authors.
-	 * @param bool      $should_delete    Whether the post should be deleted with its author.
 	 */
-	public function test_wpmu_delete_user_respects_delete_with_user( $delete_with_user, $supports_author, $should_delete ) {
+	public function test_wpmu_delete_user_deletes_plugin_post_types( $delete_with_user ) {
 		register_post_type(
 			'wptests_pt',
 			array(
 				'delete_with_user' => $delete_with_user,
-				'supports'         => $supports_author ? array( 'title', 'author' ) : array( 'title' ),
+				'supports'         => array( 'title', 'author' ),
 			)
 		);
 
@@ -504,24 +544,19 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		wpmu_delete_user( $user_id );
 
-		if ( $should_delete ) {
-			$this->assertNull( get_post( $post_id ) );
-		} else {
-			$this->assertSame( 'publish', get_post_status( $post_id ) );
-		}
+		$this->assertNull( get_post( $post_id ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ bool|null, bool, bool }>
+	 * @return array<string, array{ bool|null }>
 	 */
-	public static function data_wpmu_delete_user_respects_delete_with_user() {
+	public static function data_wpmu_delete_user_deletes_plugin_post_types() {
 		return array(
-			'delete_with_user true'                    => array( true, false, true ),
-			'delete_with_user false'                   => array( false, true, false ),
-			'delete_with_user null, supports author'   => array( null, true, true ),
-			'delete_with_user null, no author support' => array( null, false, true ),
+			'delete_with_user true'  => array( true ),
+			'delete_with_user false' => array( false ),
+			'delete_with_user null'  => array( null ),
 		);
 	}
 
