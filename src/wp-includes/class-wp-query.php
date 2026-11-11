@@ -1962,6 +1962,7 @@ class WP_Query {
 		// First let's clear some variables.
 		$distinct         = '';
 		$whichauthor      = '';
+		$unknown_author   = '';
 		$whichmimetype    = '';
 		$where            = '';
 		$limits           = '';
@@ -2441,6 +2442,8 @@ class WP_Query {
 			$query_vars['author']      = get_user_by( 'slug', $query_vars['author_name'] );
 			if ( $query_vars['author'] ) {
 				$query_vars['author'] = $query_vars['author']->ID;
+			} else {
+				$unknown_author = " AND ({$wpdb->posts}.post_author = 0)";
 			}
 			$whichauthor .= " AND ({$wpdb->posts}.post_author = " . absint( $query_vars['author'] ) . ')';
 		}
@@ -3234,6 +3237,10 @@ class WP_Query {
 		 * @param WP_Query             $query The WP_Query instance (passed by reference).
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
+
+		if ( null === $this->posts && $unknown_author && str_contains( $this->request, $unknown_author ) ) {
+			$this->posts = array();
+		}
 
 		/*
 		 * Ensure the ID database query is able to be cached.
