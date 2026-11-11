@@ -31,7 +31,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 			static function ( array $emojis ): array {
 				$emojis[] = array(
 					'hex_key' => '1f984',
-					'label'  => 'unicorn',
+					'label'   => 'unicorn',
 				);
 				return array_slice( $emojis, 1 );
 			}
@@ -72,32 +72,32 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 					// Normalized: lowercase, padded, U+FE0F dropped.
 					array(
 						'hex_key' => '2764-FE0F',
-						'label'  => 'heart',
+						'label'   => 'heart',
 					),
 					// The same key again.
 					array(
 						'hex_key' => '2764',
-						'label'  => 'red heart',
+						'label'   => 'red heart',
 					),
 					array(
 						'hex_key' => '1F468-200D-1F4BB',
-						'label'  => '<b>technologist</b>',
+						'label'   => '<b>technologist</b>',
 					),
 					array(
 						'hex_key' => 'not-hex',
-						'label'  => 'broken',
+						'label'   => 'broken',
 					),
 					array(
 						'hex_key' => 'd83d',
-						'label'  => 'surrogate',
+						'label'   => 'surrogate',
 					),
 					array(
 						'hex_key' => '110000',
-						'label'  => 'past U+10FFFF',
+						'label'   => 'past U+10FFFF',
 					),
 					array(
 						'hex_key' => '1f984',
-						'label'  => '',
+						'label'   => '',
 					),
 					array( 'hex_key' => '1f680' ),
 					'1f389',
@@ -109,11 +109,11 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 			array(
 				array(
 					'hex_key' => '2764',
-					'label'  => 'heart',
+					'label'   => 'heart',
 				),
 				array(
 					'hex_key' => '1f468-200d-1f4bb',
-					'label'  => 'technologist',
+					'label'   => 'technologist',
 				),
 			),
 			wp_get_note_reaction_emojis()

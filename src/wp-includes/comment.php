@@ -407,31 +407,31 @@ function wp_get_note_reaction_emojis(): array {
 	$default_emojis = array(
 		array(
 			'hex_key' => '1f44d',
-			'label'  => _x( 'thumbs up', 'emoji reaction' ),
+			'label'   => _x( 'thumbs up', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '2795',
-			'label'  => _x( 'plus', 'emoji reaction' ),
+			'label'   => _x( 'plus', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '2764',
-			'label'  => _x( 'heart', 'emoji reaction' ),
+			'label'   => _x( 'heart', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '1f389',
-			'label'  => _x( 'celebration', 'emoji reaction' ),
+			'label'   => _x( 'celebration', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '1f604',
-			'label'  => _x( 'smile', 'emoji reaction' ),
+			'label'   => _x( 'smile', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '1f440',
-			'label'  => _x( 'eyes', 'emoji reaction' ),
+			'label'   => _x( 'eyes', 'emoji reaction' ),
 		),
 		array(
 			'hex_key' => '1f680',
-			'label'  => _x( 'rocket', 'emoji reaction' ),
+			'label'   => _x( 'rocket', 'emoji reaction' ),
 		),
 	);
 
@@ -480,7 +480,7 @@ function wp_get_note_reaction_emojis(): array {
 
 		$sanitized[ $hex_key ] = array(
 			'hex_key' => $hex_key,
-			'label'  => $label,
+			'label'   => $label,
 		);
 	}
 

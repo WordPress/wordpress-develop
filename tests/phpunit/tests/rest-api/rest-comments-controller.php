@@ -5017,7 +5017,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				);
 				$emojis[] = array(
 					'hex_key' => '1F984',
-					'label'  => 'unicorn',
+					'label'   => 'unicorn',
 				);
 				return $emojis;
 			}
