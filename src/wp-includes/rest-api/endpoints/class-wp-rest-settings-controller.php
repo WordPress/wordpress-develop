@@ -138,12 +138,37 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * Updates settings for the settings object.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Returns an error when the request body contains settings that are not registered.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array|WP_Error Array on success, or error object on failure.
 	 */
 	public function update_item( $request ) {
 		$options = $this->get_registered_options();
+
+		/*
+		 * Reject settings that are not registered. Only the request body is checked,
+		 * because the query string also carries global parameters such as `rest_route`
+		 * and `_locale`, and parameters added by other code. Global parameters in the
+		 * body are prefixed with an underscore and are ignored as well.
+		 */
+		$body_params    = array_merge( (array) $request->get_body_params(), (array) $request->get_json_params() );
+		$invalid_params = array();
+
+		foreach ( array_keys( $body_params ) as $param ) {
+			if ( ! isset( $options[ $param ] ) && ! str_starts_with( (string) $param, '_' ) ) {
+				$invalid_params[] = $param;
+			}
+		}
+
+		if ( $invalid_params ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
+				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $invalid_params ) ),
+				array( 'status' => 400 )
+			);
+		}
 
 		$params = $request->get_params();
 
