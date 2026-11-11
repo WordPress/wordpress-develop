@@ -7759,11 +7759,12 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 
 		foreach ( $matches as $match => $wilds ) {
 			foreach ( $wilds as $wild ) {
-				if ( ! isset( $types[ $wild ] ) ) {
+				$type_icon = $types[ $wild ] ?? null;
+				if ( ! is_string( $type_icon ) ) {
 					continue;
 				}
 
-				$icon = $types[ $wild ];
+				$icon = $type_icon;
 				if ( ! is_numeric( $mime ) ) {
 					wp_cache_add( "mime_type_icon_$mime", $icon );
 				}
