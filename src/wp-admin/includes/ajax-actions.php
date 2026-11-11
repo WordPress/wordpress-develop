@@ -5043,7 +5043,23 @@ function wp_ajax_wp_privacy_export_personal_data() {
 		}
 
 		$callback = $exporter['callback'];
+
+		/*
+		 * Run the exporter in the requester's locale, so that the group labels and
+		 * item names it returns match the locale of the generated export file.
+		 * Falls back to the site's default locale for requesters without an account.
+		 */
+		if ( ! empty( $request->user_id ) ) {
+			$switched_locale = switch_to_user_locale( (int) $request->user_id );
+		} else {
+			$switched_locale = switch_to_locale( get_locale() );
+		}
+
 		$response = call_user_func( $callback, $email_address, $page );
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 
 		if ( is_wp_error( $response ) ) {
 			wp_send_json_error( $response );

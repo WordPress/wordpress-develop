@@ -358,6 +358,16 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$json_report_pathname = wp_normalize_path( $exports_dir . $json_report_filename );
 
 	/*
+	 * Generate the report in the requester's locale, falling back to the site's
+	 * default locale for requesters who do not have a user account.
+	 */
+	if ( ! empty( $request->user_id ) ) {
+		$switched_locale = switch_to_user_locale( (int) $request->user_id );
+	} else {
+		$switched_locale = switch_to_locale( get_locale() );
+	}
+
+	/*
 	 * Gather general data needed.
 	 */
 
@@ -420,6 +430,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$groups_json = wp_json_encode( $groups );
 
 	if ( false === $groups_json ) {
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+
 		$error_message = sprintf(
 			/* translators: %s: Error message. */
 			__( 'Unable to encode the personal data for export. Error: %s' ),
@@ -435,6 +449,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$file = fopen( $json_report_pathname, 'w' );
 
 	if ( false === $file ) {
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+
 		wp_send_json_error( __( 'Unable to open personal data export file (JSON report) for writing.' ) );
 	}
 
@@ -450,6 +468,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$file = fopen( $html_report_pathname, 'w' );
 
 	if ( false === $file ) {
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+
 		wp_send_json_error( __( 'Unable to open personal data export (HTML report) for writing.' ) );
 	}
 
@@ -500,6 +522,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, "</body>\n" );
 	fwrite( $file, "</html>\n" );
 	fclose( $file );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
 	/*
 	 * Now, generate the ZIP.
