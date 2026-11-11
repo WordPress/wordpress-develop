@@ -4150,7 +4150,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 */
 	private function create_note_with_anchor_meta( $anchor ): WP_REST_Response {
 		wp_set_current_user( self::$editor_id );
-		$params  = array(
+		$params = array(
 			'post'    => self::factory()->post->create(),
 			'author'  => self::$editor_id,
 			'type'    => 'note',
@@ -4159,7 +4159,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'_wp_note_anchor' => $anchor,
 			),
 		);
-		$body    = wp_json_encode( $params );
+		$body   = wp_json_encode( $params );
 		$this->assertIsString( $body );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'Content-Type', 'application/json' );
