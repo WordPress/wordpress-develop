@@ -185,8 +185,14 @@ final class WP_Term {
 
 			// Don't cache terms that are shared between taxonomies.
 			if ( 1 === count( $terms ) ) {
-				// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
-				wp_cache_set( $term_id, $_term, 'terms' );
+				/*
+				 * Not wp_cache_add(), since an unusable cached value may still be present and must be
+				 * replaced. add() checks wp_suspend_cache_addition() and set() does not, so the check
+				 * moves to the call site.
+				 */
+				if ( ! wp_suspend_cache_addition() ) {
+					wp_cache_set( $term_id, $_term, 'terms' );
+				}
 			}
 		}
 
