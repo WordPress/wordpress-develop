@@ -19,6 +19,11 @@ code="${RUNNER_TEMP}/http-code.txt"
 http_code=''
 
 version="$(wp core version)"
+# Both are translated on a localized site.
+first_post_title="$(wp eval "echo get_the_title( 1 );")"
+no_update_required="$(wp eval "echo __( 'No Update Required' );")"
+# An empty marker would match any page.
+: "${first_post_title:?}" "${no_update_required:?}"
 
 # Nothing undoes these, so the site is only good for this check afterwards.
 wp option update home "${site_url}"
@@ -83,7 +88,7 @@ check() {
 }
 
 # A fatal mid-page still returns 200, so every check also asks for the closing tag.
-check '/' "content=\"WordPress ${version}\"" 'Hello world!' '</html>'
+check '/' "content=\"WordPress ${version}\"" "${first_post_title}" '</html>'
 
 fetch '/?rest_route=/' --fail-with-body || fail "/?rest_route=/ returned HTTP ${http_code}"
 jq -e --arg url "${site_url}" '.url == $url and ( .namespaces | index( "wp/v2" ) )' "${response}" > /dev/null \
@@ -91,7 +96,7 @@ jq -e --arg url "${site_url}" '.url == $url and ( .namespaces | index( "wp/v2" )
 echo 'ok  /?rest_route=/'
 
 # It prints this for an empty database too, which the checks above rule out.
-check '/wp-admin/upgrade.php' 'No Update Required' '</html>'
+check '/wp-admin/upgrade.php' "${no_update_required}" '</html>'
 
 fetch '/?p=99999999' || true
 [ "${http_code}" = '404' ] || fail "a missing post returned ${http_code}, expected 404"
