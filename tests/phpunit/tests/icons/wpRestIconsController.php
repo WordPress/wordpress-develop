@@ -17,6 +17,13 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	protected static $contributor_id;
 	protected static $subscriber_id;
 
+	/**
+	 * Registry instances restored after each test.
+	 *
+	 * @var array
+	 */
+	private $original_registries = array();
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id       = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$editor_id      = $factory->user->create( array( 'role' => 'editor' ) );
@@ -34,17 +41,14 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	public function set_up() {
 		parent::set_up();
 
-		/*
-		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the collections and
-		 * icons that `init` only registers once. Replay the registration so order-dependent
-		 * tests pass. `_wp_register_default_icon_collections()` registers every default
-		 * collection at once, so drop whatever survived rather than topping up.
-		 */
-		$collections_registry = WP_Icon_Collections_Registry::get_instance();
-		foreach ( array( 'core', 'core-admin' ) as $collection_slug ) {
-			if ( $collections_registry->is_registered( $collection_slug ) ) {
-				$collections_registry->unregister( $collection_slug );
+		// Use fresh registries, since the core-admin collection cannot be unregistered.
+		foreach ( array( WP_Icon_Collections_Registry::class, WP_Icons_Registry::class ) as $class ) {
+			$this->original_registries[ $class ] = $class::get_instance();
+			$instance_property                   = new ReflectionProperty( $class, 'instance' );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$instance_property->setAccessible( true );
 			}
+			$instance_property->setValue( null, null );
 		}
 		_wp_register_default_icon_collections();
 		_wp_register_default_icons();
@@ -56,6 +60,14 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 				wp_unregister_icon_collection( $slug );
 			}
 		}
+		foreach ( $this->original_registries as $class => $instance ) {
+			$instance_property = new ReflectionProperty( $class, 'instance' );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$instance_property->setAccessible( true );
+			}
+			$instance_property->setValue( null, $instance );
+		}
+		$this->original_registries = array();
 		parent::tear_down();
 	}
 
