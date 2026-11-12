@@ -207,6 +207,7 @@ function checkAgainstReference( reference, afterStats ) {
 		( regression ) => regression.severity === 'error'
 	);
 	const failed = reference.enforced && hasErrors;
+	const failureAccepted = failed && regressionAccepted;
 	const errorRegressionsFailCheck =
 		reference.enforced && ! regressionAccepted;
 
@@ -234,11 +235,15 @@ function checkAgainstReference( reference, afterStats ) {
 		markdown +=
 			':white_check_mark: No metric got worse by more than its budget allows.\n\n';
 	} else {
-		markdown += `:${ hasErrors ? 'x' : 'warning' }: ${
+		markdown += `:${ hasErrors && ! failureAccepted ? 'x' : 'warning' }: ${
 			regressions.length
 		} ${
 			regressions.length === 1 ? 'metric' : 'metrics'
-		} got worse by more than the budget allows.\n\n`;
+		} got worse by more than the budget allows.${
+			failureAccepted
+				? ' Accepted with the `Accepted Performance Regression` label, so the check does not fail.'
+				: ''
+		}\n\n`;
 		markdown += `${ formatAsMarkdownTable(
 			regressions.map( ( regression ) => ( {
 				Scenario: regression.title,
@@ -246,17 +251,15 @@ function checkAgainstReference( reference, afterStats ) {
 				Before: formatValue( regression.metric, regression.before ),
 				After: formatValue( regression.metric, regression.after ),
 				Change: formatGrowth( regression ),
-				Severity: regression.severity,
+				Severity:
+					failureAccepted && regression.severity === 'error'
+						? 'error (accepted)'
+						: regression.severity,
 			} ) )
 		) }\n`;
 	}
 
-	if ( failed && regressionAccepted ) {
-		markdown +=
-			'This change is marked as an accepted performance regression, so the check does not fail.\n\n';
-	}
-
-	return { markdown, failed: failed && ! regressionAccepted };
+	return { markdown, failed: failed && ! failureAccepted };
 }
 
 const afterStats = parseFile( 'performance-results.json' );
