@@ -1432,10 +1432,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * Rely on trusted inputs for producing the appropriate NOSCRIPT
 				 * content, and prevent untrusted inputs from generating it.
 				 *
-				 * Remove the NOSCRIPT element along with everything inside of it,
-				 * but continue sanitizing the content which follows it. Since none
-				 * of its contents reach the output, it doesn’t matter how a browser
-				 * would have parsed them. Stray NOSCRIPT closers are also removed.
+				 * Remove the element and its contents, but keep what follows it.
 				 */
 				if ( 'NOSCRIPT' === $token_name && 'html' === $namespace ) {
 					if ( ! $is_closer ) {
