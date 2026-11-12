@@ -3010,6 +3010,37 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that a sideloaded sub-size is still held to the network's maximum
+	 * upload file size.
+	 *
+	 * @ticket 66680
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_exceeds_multisite_max_filesize(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->assertIsInt( $attachment_id, 'The original upload should succeed.' );
+
+		update_site_option( 'fileupload_maxk', 1 );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_file_too_big', $response, 400 );
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are created.
 	 *

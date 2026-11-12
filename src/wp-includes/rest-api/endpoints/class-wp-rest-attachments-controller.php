@@ -35,6 +35,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected $allow_batch = false;
 
 	/**
+	 * Whether check_upload_size() skips the multisite upload space checks.
+	 *
+	 * Set while a file is sideloaded for an existing attachment. The maximum
+	 * upload file size still applies.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private bool $skip_upload_space_check = false;
+
+	/**
 	 * Image size token for the source-format original preserved alongside a
 	 * client-generated derivative (e.g. the HEIC file kept next to its JPEG).
 	 *
@@ -2284,7 +2295,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$file_size = filesize( $file['tmp_name'] );
 
-		if ( $space_left < $file_size ) {
+		if ( ! $this->skip_upload_space_check && $space_left < $file_size ) {
 			return new WP_Error(
 				'rest_upload_limited_space',
 				/* translators: %s: Required disk space in kilobytes. */
@@ -2305,7 +2316,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Include multisite admin functions to get access to upload_is_user_over_quota().
 		require_once ABSPATH . 'wp-admin/includes/ms.php';
 
-		if ( upload_is_user_over_quota( false ) ) {
+		if ( ! $this->skip_upload_space_check && upload_is_user_over_quota( false ) ) {
 			return new WP_Error(
 				'rest_upload_user_quota_exceeded',
 				__( 'You have used your space quota. Please delete files before uploading.' ),
@@ -2804,6 +2815,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 7.1.0
 	 * @since 7.2.0 The file is no longer checked against the multisite upload space.
+	 *              The maximum upload file size still applies.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -2895,7 +2907,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * without a check. A sideloaded file is such a sub-size, so skip the
 		 * check rather than leave the attachment with some of its sizes missing.
 		 */
-		add_filter( 'pre_site_option_upload_space_check_disabled', '__return_true', 100 );
+		$this->skip_upload_space_check = true;
 
 		if ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers );
@@ -2903,10 +2915,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$file = $this->upload_from_data( $request->get_body(), $headers );
 		}
 
+		$this->skip_upload_space_check = false;
+
 		remove_filter( 'wp_unique_filename', $filter_filename );
 		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		remove_filter( 'upload_dir', $filter_upload_dir, 100 );
-		remove_filter( 'pre_site_option_upload_space_check_disabled', '__return_true', 100 );
 
 		if ( is_wp_error( $file ) ) {
 			return $file;
