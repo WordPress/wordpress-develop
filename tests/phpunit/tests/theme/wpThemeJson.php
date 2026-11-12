@@ -5478,6 +5478,43 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66469
+	 */
+	public function test_get_templates() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'   => 1,
+				'templates' => array(
+					array(
+						'name'     => '404',
+						'template' => 'layout',
+					),
+					array(
+						'name' => 'search',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'404'    => array( 'template' => 'layout' ),
+				'search' => array( 'template' => '' ),
+			),
+			$theme_json->get_templates()
+		);
+	}
+
+	/**
+	 * @ticket 66469
+	 */
+	public function test_get_templates_without_any() {
+		$theme_json = new WP_Theme_JSON( array( 'version' => 1 ) );
+
+		$this->assertSame( array(), $theme_json->get_templates() );
+	}
+
+	/**
 	 * @ticket 52991
 	 */
 	public function test_get_from_editor_settings() {
