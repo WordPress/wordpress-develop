@@ -53,7 +53,6 @@ includes:
 	- tests/phpstan/baselines/property.notFound.neon
 	- tests/phpstan/baselines/property.private.neon
 	- tests/phpstan/baselines/return.type.neon
-	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
 	# phpstan:baselines end
@@ -130,6 +129,18 @@ parameters:
 		-
 			message: '#^PHPDoc tag @throws with type InvalidArgumentException\|ValueError is not subtype of Throwable$#'
 			path: src/wp-includes/compat.php
+			reportUnmatched: false
+
+		# Level 4:
+		# wp_imagecreatetruecolor() returns whatever imagecreatetruecolor() returns: a resource on PHP 7.4 and a
+		# GdImage instance on PHP 8.0+. Its docblock lists both, which is correct for WP's 7.4+ range. Because
+		# `phpVersion.min` is 70400, PHPStan reads the function from its pre-8.0 map, sees only a resource, and
+		# reports GdImage as unused. Removing GdImage would make the docblock wrong on every PHP 8 install.
+		# `reportUnmatched: false` so this entry lapses quietly if PHPStan stops reporting it.
+		-
+			message: '#^Function wp_imagecreatetruecolor\(\) never returns GdImage so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			path: src/wp-includes/media.php
 			reportUnmatched: false
 
 		# Level 5:
