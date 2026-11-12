@@ -261,6 +261,7 @@ class WP_Theme_JSON {
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @since 7.2.0 Added `background-clip`.
+	 * @since 7.3.0 Added `rotate` and `translate`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -318,6 +319,8 @@ class WP_Theme_JSON {
 		'padding-right'                     => array( 'spacing', 'padding', 'right' ),
 		'padding-bottom'                    => array( 'spacing', 'padding', 'bottom' ),
 		'padding-left'                      => array( 'spacing', 'padding', 'left' ),
+		'rotate'                            => array( 'transform', 'rotate' ),
+		'translate'                         => array( 'transform', 'translate' ),
 		'--wp--style--root--padding'        => array( 'spacing', 'padding' ),
 		'--wp--style--root--padding-top'    => array( 'spacing', 'padding', 'top' ),
 		'--wp--style--root--padding-right'  => array( 'spacing', 'padding', 'right' ),
@@ -435,6 +438,7 @@ class WP_Theme_JSON {
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
 	 *              and `typography.defaultTextShadowPresets`.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -512,6 +516,10 @@ class WP_Theme_JSON {
 			'presets'        => null,
 			'defaultPresets' => null,
 		),
+		'transform'                     => array(
+			'rotate'    => null,
+			'translate' => null,
+		),
 		'typography'                    => array(
 			'fluid'                    => null,
 			'customFontSize'           => null,
@@ -588,6 +596,7 @@ class WP_Theme_JSON {
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
 	 * @since 7.2.0 Added support for `background.backgroundClip`.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`, for blocks and block style variations only.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -636,6 +645,13 @@ class WP_Theme_JSON {
 			'margin'   => null,
 			'padding'  => null,
 			'blockGap' => null,
+		),
+		'transform'  => array(
+			'rotate'    => null,
+			'translate' => array(
+				'x' => null,
+				'y' => null,
+			),
 		),
 		'typography' => array(
 			'fontFamily'     => null,
@@ -1365,18 +1381,22 @@ class WP_Theme_JSON {
 		 * - block level elements: `$schema['styles']['blocks']['core/button']['elements']['link'][':hover']`.
 		 * - block responsive elements: `$schema['styles']['blocks']['core/button']['@tablet']['elements']['link'][':hover']`.
 		 */
+		// Transforms are only for blocks and block style variations, not the root or elements.
+		$element_styles = $styles_non_top_level;
+		unset( $element_styles['transform'] );
+
 		foreach ( $valid_element_names as $element ) {
-			$schema_styles_elements[ $element ] = $styles_non_top_level;
+			$schema_styles_elements[ $element ] = $element_styles;
 
 			if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 				foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
-					$schema_styles_elements[ $element ][ $pseudo_selector ] = $styles_non_top_level;
+					$schema_styles_elements[ $element ][ $pseudo_selector ] = $element_styles;
 				}
 			}
 
 			// Add responsive breakpoint states for elements.
 			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
-				$schema_styles_elements[ $element ][ $breakpoint_state ] = $styles_non_top_level;
+				$schema_styles_elements[ $element ][ $breakpoint_state ] = $element_styles;
 			}
 		}
 
@@ -1507,6 +1527,7 @@ class WP_Theme_JSON {
 		$schema['settings']                               = static::VALID_SETTINGS;
 		$schema['settings']['blocks']                     = $schema_settings_blocks;
 		$schema['settings']['typography']['fontFamilies'] = static::schema_in_root_and_per_origin( static::FONT_FAMILY_SCHEMA );
+		unset( $schema['styles']['transform'] );
 
 		/*
 		 * Add block style variation states to the top-level styles schema.
@@ -1524,7 +1545,8 @@ class WP_Theme_JSON {
 		 * theme.json files are unaffected.
 		 */
 		if ( ! empty( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
-			$variation_pseudo_selectors = array();
+			$schema['styles']['transform'] = static::VALID_STYLES['transform'];
+			$variation_pseudo_selectors    = array();
 			foreach ( $input['blockTypes'] as $variation_block_type ) {
 				if ( is_string( $variation_block_type ) && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
 					$variation_pseudo_selectors = array_merge(
@@ -3258,9 +3280,19 @@ class WP_Theme_JSON {
 				}
 			}
 
+			// The style engine validates the axes and joins them into one value.
+			if ( 'translate' === $css_property ) {
+				$value = wp_style_engine_get_styles( array( 'transform' => array( 'translate' => $value ) ) )['declarations']['translate'] ?? null;
+			}
+
 			// Skip if empty and not "0" or value represents array of longhand values.
 			$has_missing_value = empty( $value ) && ! is_numeric( $value );
 			if ( $has_missing_value || is_array( $value ) ) {
+				continue;
+			}
+
+			// Mirrors the style engine, which outputs a single angle only.
+			if ( 'rotate' === $css_property && ( ! is_string( $value ) || ! preg_match( WP_Style_Engine::VALID_ANGLE_PATTERN, $value ) ) ) {
 				continue;
 			}
 
@@ -5387,6 +5419,7 @@ class WP_Theme_JSON {
 	 * without the insecure styles.
 	 *
 	 * @since 5.9.0
+	 * @since 7.3.0 Keep the `transform.translate` axes when their declaration is safe.
 	 *
 	 * @param array $input Node to process.
 	 * @return array
@@ -5406,6 +5439,19 @@ class WP_Theme_JSON {
 				$value = _wp_array_get( $input, $path, array() );
 				if ( ! is_array( $value ) ) {
 					_wp_array_set( $output, $path, $value );
+				} elseif ( 'translate' === $declaration['name'] ) {
+					// The declaration only exists when every axis is valid.
+					_wp_array_set(
+						$output,
+						$path,
+						array_intersect_key(
+							$value,
+							array(
+								'x' => true,
+								'y' => true,
+							)
+						)
+					);
 				}
 			}
 		}

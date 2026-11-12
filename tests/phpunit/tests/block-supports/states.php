@@ -1681,6 +1681,249 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a rotation in a state outputs the individual `rotate` property
+	 * under the block's transform feature selector, or its root selector.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 66468
+	 *
+	 * @dataProvider data_rotation_state_generates_rotate_css
+	 *
+	 * @param string $block_name    Block name.
+	 * @param string $block_content Rendered block content.
+	 * @param array  $style         Block style attribute.
+	 * @param string $expected_css  Expected CSS, with `%s` for the state class.
+	 */
+	public function test_rotation_state_generates_rotate_css( $block_name, $block_content, $style, $expected_css ) {
+		register_block_type(
+			'test/transform-state',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'transform' => '.wp-block-test-transform-state img',
+				),
+			)
+		);
+
+		$actual = wp_render_block_states_support(
+			$block_content,
+			array(
+				'blockName' => $block_name,
+				'attrs'     => array( 'style' => $style ),
+			)
+		);
+		unregister_block_type( 'test/transform-state' );
+
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertSame( sprintf( $expected_css, $matches[0] ?? '' ), $actual_stylesheet );
+		$this->assertStringNotContainsString( 'transform', $actual_stylesheet );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_rotation_state_generates_rotate_css() {
+		$button = '<div class="wp-block-button"><a class="wp-block-button__link">Click</a></div>';
+
+		return array(
+			'hover'          => array(
+				'core/button',
+				$button,
+				array( ':hover' => array( 'transform' => array( 'rotate' => '10deg' ) ) ),
+				'.%s .wp-block-button__link:hover{rotate:10deg !important;}',
+			),
+			'hover viewport' => array(
+				'core/button',
+				$button,
+				array( '@mobile' => array( ':hover' => array( 'transform' => array( 'rotate' => '-10deg' ) ) ) ),
+				'@media (width <= 480px){.%s .wp-block-button__link:hover{rotate:-10deg !important;}}',
+			),
+			'viewport'       => array(
+				'test/transform-state',
+				'<figure class="wp-block-test-transform-state"><img src="x.png" /><figcaption>Caption</figcaption></figure>',
+				array( '@mobile' => array( 'transform' => array( 'rotate' => '0' ) ) ),
+				'@media (width <= 480px){.%s img{rotate:0 !important;}}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that an offset in a state outputs the individual `translate`
+	 * property, combined with a rotation, under the block's transform feature
+	 * selector or its root selector.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 66467
+	 *
+	 * @dataProvider data_translation_state_generates_translate_css
+	 *
+	 * @param string $block_name    Block name.
+	 * @param string $block_content Rendered block content.
+	 * @param array  $style         Block style attribute.
+	 * @param string $expected_css  Expected CSS, with `%s` for the state class.
+	 */
+	public function test_translation_state_generates_translate_css( $block_name, $block_content, $style, $expected_css ) {
+		register_block_type(
+			'test/transform-state',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'transform' => '.wp-block-test-transform-state img',
+				),
+			)
+		);
+
+		$actual = wp_render_block_states_support(
+			$block_content,
+			array(
+				'blockName' => $block_name,
+				'attrs'     => array( 'style' => $style ),
+			)
+		);
+		unregister_block_type( 'test/transform-state' );
+
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertSame( sprintf( $expected_css, $matches[0] ?? '' ), $actual_stylesheet );
+		$this->assertStringNotContainsString( 'transform', $actual_stylesheet );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_translation_state_generates_translate_css() {
+		$button = '<div class="wp-block-button"><a class="wp-block-button__link">Click</a></div>';
+
+		return array(
+			'hover'          => array(
+				'core/button',
+				$button,
+				array( ':hover' => array( 'transform' => array( 'translate' => array( 'y' => '-4px' ) ) ) ),
+				'.%s .wp-block-button__link:hover{translate:0 -4px !important;}',
+			),
+			'hover viewport' => array(
+				'core/button',
+				$button,
+				array(
+					'@mobile' => array(
+						':hover' => array(
+							'transform' => array(
+								'rotate'    => '2deg',
+								'translate' => array( 'x' => '1rem' ),
+							),
+						),
+					),
+				),
+				'@media (width <= 480px){.%s .wp-block-button__link:hover{rotate:2deg !important;translate:1rem 0 !important;}}',
+			),
+			'viewport'       => array(
+				'test/transform-state',
+				'<figure class="wp-block-test-transform-state"><img src="x.png" /><figcaption>Caption</figcaption></figure>',
+				array(
+					'@mobile' => array(
+						'transform' => array(
+							'translate' => array(
+								'x' => '0',
+								'y' => '10%',
+							),
+						),
+					),
+				),
+				'@media (width <= 480px){.%s img{translate:0 10%% !important;}}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a viewport offset that sets one axis fills the other from the
+	 * block's default offset, then from Global Styles.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 *
+	 * @ticket 66467
+	 *
+	 * @dataProvider data_translation_state_fills_the_missing_axis
+	 *
+	 * @param array  $style        Block style attribute.
+	 * @param string $expected_css Expected CSS, with `%s` for the state class.
+	 */
+	public function test_translation_state_fills_the_missing_axis( $style, $expected_css ) {
+		register_block_type(
+			'test/transform-state',
+			array(
+				'api_version' => 3,
+				'supports'    => array( 'transform' => array( 'translate' => true ) ),
+			)
+		);
+		$filter = static function ( $theme_json ) {
+			return $theme_json->update_with(
+				array(
+					'version' => WP_Theme_JSON::LATEST_SCHEMA,
+					'styles'  => array(
+						'blocks' => array(
+							'test/transform-state' => array(
+								'transform' => array( 'translate' => array( 'x' => '3rem' ) ),
+							),
+						),
+					),
+				)
+			);
+		};
+		add_filter( 'wp_theme_json_data_theme', $filter );
+		WP_Theme_JSON_Resolver::clean_cached_data();
+
+		try {
+			$actual = wp_render_block_states_support(
+				'<div class="wp-block-test-transform-state"></div>',
+				array(
+					'blockName' => 'test/transform-state',
+					'attrs'     => array( 'style' => $style ),
+				)
+			);
+		} finally {
+			remove_filter( 'wp_theme_json_data_theme', $filter );
+			WP_Theme_JSON_Resolver::clean_cached_data();
+			unregister_block_type( 'test/transform-state' );
+		}
+
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$this->assertSame(
+			sprintf( $expected_css, $matches[0] ?? '' ),
+			wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_translation_state_fills_the_missing_axis() {
+		return array(
+			'from the block default' => array(
+				array(
+					'transform' => array( 'translate' => array( 'x' => '1px' ) ),
+					'@mobile'   => array( 'transform' => array( 'translate' => array( 'y' => '1rem' ) ) ),
+				),
+				'@media (width <= 480px){.%s{translate:1px 1rem !important;}}',
+			),
+			'from Global Styles'     => array(
+				array( '@mobile' => array( 'transform' => array( 'translate' => array( 'y' => '1rem' ) ) ) ),
+				'@media (width <= 480px){.%s{translate:3rem 1rem !important;}}',
+			),
+		);
+	}
+
+	/**
 	 * Tests that a responsive block gap state generates layout spacing CSS.
 	 *
 	 * Responsive layout CSS is owned by wp_render_layout_support_flag()
