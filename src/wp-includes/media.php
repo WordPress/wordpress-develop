@@ -1818,7 +1818,7 @@ function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 
 
 	// Is it a full size image?
 	if (
-		isset( $image_meta['file'] ) &&
+		isset( $image_meta['file'], $image_meta['width'], $image_meta['height'] ) &&
 		str_contains( $image_src, wp_basename( $image_meta['file'] ) )
 	) {
 		$dimensions = array(
@@ -1831,7 +1831,7 @@ function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 
 		$src_filename = wp_basename( $image_src );
 
 		foreach ( $image_meta['sizes'] as $image_size_data ) {
-			if ( $src_filename === $image_size_data['file'] ) {
+			if ( $src_filename === $image_size_data['file'] && isset( $image_size_data['width'], $image_size_data['height'] ) ) {
 				$dimensions = array(
 					(int) $image_size_data['width'],
 					(int) $image_size_data['height'],
