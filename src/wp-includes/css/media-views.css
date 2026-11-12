@@ -1136,7 +1136,10 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	right: 0;
 	bottom: 0;
 	overflow: hidden;
+	box-sizing: border-box;
 	max-height: 100%;
+	padding: 5px 10px;
+	line-height: 1.4;
 	word-wrap: break-word;
 	text-align: center;
 	font-weight: 600;
@@ -1145,7 +1148,11 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 }
 
 .wp-core-ui .attachment .filename div {
-	padding: 5px 10px;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	overflow: hidden;
 }
 
 .wp-core-ui .attachment-close {
