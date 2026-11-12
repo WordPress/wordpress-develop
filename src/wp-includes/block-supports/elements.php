@@ -12,12 +12,74 @@
  * @since 6.0.0
  * @access private
  *
+ * @param array $block Parsed block data.
  * @return string The unique class name.
  *
  * @phpstan-return lowercase-string&non-falsy-string
  */
-function wp_get_elements_class_name(): string {
-	return wp_unique_prefixed_id( 'wp-elements-' );
+function wp_get_elements_class_name( $block ): string {
+	$hash  = md5( serialize( $block ) );
+	$scope = wp_elements_class_name_scope();
+
+	return wp_unique_prefixed_id( 'wp-elements-' . $hash . ( '' !== $scope ? '-q' . $scope . '-' : '' ) );
+}
+
+/**
+ * Gets or updates the current Query block scope for elements class names.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $operation Operation to perform: 'get', 'push', or 'pop'.
+ * @param string $id        Query block ID to push onto the scope stack.
+ * @return string The current Query block ID, or an empty string.
+ */
+function wp_elements_class_name_scope( $operation = 'get', $id = '' ) {
+	static $stack = array();
+
+	if ( 'push' === $operation ) {
+		$stack[] = sanitize_html_class( $id );
+	} elseif ( 'pop' === $operation && ! empty( $stack ) ) {
+		array_pop( $stack );
+	}
+
+	return empty( $stack ) ? '' : (string) end( $stack );
+}
+
+/**
+ * Tracks the Query block scope when rendering its inner blocks.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array $parsed_block The block being rendered.
+ * @return array The parsed block, unmodified.
+ */
+function wp_elements_track_query_scope( $parsed_block ) {
+	if ( isset( $parsed_block['blockName'] ) && 'core/query' === $parsed_block['blockName'] ) {
+		$query_id = $parsed_block['attrs']['queryId'] ?? '';
+		wp_elements_class_name_scope( 'push', is_scalar( $query_id ) ? (string) $query_id : '' );
+	}
+
+	return $parsed_block;
+}
+
+/**
+ * Restores the previous Query block scope after rendering a Query block.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $block_content The block content.
+ * @param array  $block         The full block, including name and attributes.
+ * @return string The block content, unmodified.
+ */
+function wp_elements_untrack_query_scope( $block_content, $block ) {
+	if ( isset( $block['blockName'] ) && 'core/query' === $block['blockName'] ) {
+		wp_elements_class_name_scope( 'pop' );
+	}
+
+	return $block_content;
 }
 
 /**
@@ -184,7 +246,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
 		return $parsed_block;
 	}
 
-	$class_name         = wp_get_elements_class_name();
+	$class_name         = wp_get_elements_class_name( $parsed_block );
 	$updated_class_name = isset( $parsed_block['attrs']['className'] ) ? $parsed_block['attrs']['className'] . " $class_name" : $class_name;
 
 	_wp_array_set( $parsed_block, array( 'attrs', 'className' ), $updated_class_name );
@@ -308,3 +370,5 @@ function wp_render_elements_class_name( $block_content, $block ) {
 
 add_filter( 'render_block', 'wp_render_elements_class_name', 10, 2 );
 add_filter( 'render_block_data', 'wp_render_elements_support_styles', 10, 1 );
+add_filter( 'render_block_data', 'wp_elements_track_query_scope', 9, 1 );
+add_filter( 'render_block', 'wp_elements_untrack_query_scope', 1000, 2 );

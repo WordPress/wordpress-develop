@@ -213,7 +213,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 			$elements_class_name = array_first(
 				array_filter(
 					iterator_to_array( $processor->class_list() ),
-					fn( string $class_name ) => (bool) preg_match( '/^wp-elements-\d+$/', $class_name )
+					fn( string $class_name ) => (bool) preg_match( '/^wp-elements-[a-f0-9]{32}\d+$/', $class_name )
 				)
 			);
 			$this->assertIsString( $elements_class_name, "Expected wp-elements class in block #$i." );
@@ -221,6 +221,81 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( $count, count( array_unique( $elements_class_names ) ), 'Expected each rendered block to have a unique wp-elements class name.' );
+	}
+
+	/**
+	 * Tests that elements class name counters are scoped to their Query block.
+	 *
+	 * @ticket 66633
+	 *
+	 * @covers ::wp_get_elements_class_name
+	 * @covers ::wp_elements_class_name_scope
+	 * @covers ::wp_elements_track_query_scope
+	 * @covers ::wp_elements_untrack_query_scope
+	 */
+	public function test_elements_block_support_class_names_are_scoped_to_query_blocks(): void {
+		$this->test_block_name = 'test/element-block-supports';
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'color' => array(
+						'link' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => 'ticket-66633-' . wp_rand(),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$first_query          = array(
+			'blockName' => 'core/query',
+			'attrs'     => array(
+				'queryId' => 6663301,
+			),
+		);
+		$first_query          = apply_filters( 'render_block_data', $first_query, $first_query, null );
+		$first_query_instance = new WP_Block( $first_query );
+		$first_query_child    = apply_filters( 'render_block_data', $block, $block, $first_query_instance );
+		$second_query_child   = apply_filters( 'render_block_data', $block, $block, $first_query_instance );
+
+		$second_query          = array(
+			'blockName' => 'core/query',
+			'attrs'     => array(
+				'queryId' => 6663302,
+			),
+		);
+		$second_query          = apply_filters( 'render_block_data', $second_query, $second_query, $first_query_instance );
+		$second_query_instance = new WP_Block( $second_query, $first_query_instance->context );
+		$nested_query_child    = apply_filters( 'render_block_data', $block, $block, $second_query_instance );
+		apply_filters( 'render_block', '', $second_query, $second_query_instance );
+		$restored_query_child = apply_filters( 'render_block_data', $block, $block, $first_query_instance );
+		apply_filters( 'render_block', '', $first_query, $first_query_instance );
+
+		$this->assertMatchesRegularExpression( '/-q' . $first_query['attrs']['queryId'] . '-1$/', $first_query_child['attrs']['className'] );
+		$this->assertMatchesRegularExpression( '/-q' . $first_query['attrs']['queryId'] . '-2$/', $second_query_child['attrs']['className'] );
+		$this->assertMatchesRegularExpression( '/-q' . $second_query['attrs']['queryId'] . '-1$/', $nested_query_child['attrs']['className'] );
+		$this->assertMatchesRegularExpression( '/-q' . $first_query['attrs']['queryId'] . '-3$/', $restored_query_child['attrs']['className'] );
 	}
 
 	/**
@@ -302,7 +377,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'button' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'link element styles apply class to wrapper'   => array(
 				'color_settings'  => array( 'link' => true ),
@@ -310,7 +385,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'heading element styles apply class to wrapper' => array(
 				'color_settings'  => array( 'heading' => true ),
@@ -318,7 +393,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'heading' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other classes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -326,7 +401,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p class="has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-[a-f0-9]{32}\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other attributes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -334,7 +409,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-\d+" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}\d+" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 		);
 	}
