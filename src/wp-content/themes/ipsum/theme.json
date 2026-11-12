@@ -745,7 +745,7 @@
 						"width": "1px"
 					}
 				},
-				"css": "& summary{font-family:var(--wp--preset--font-family--manrope);font-size:var(--wp--preset--font-size--small);font-style:normal;font-weight:700;list-style:none;display:flex;align-items:baseline;gap:var(--wp--preset--spacing--20);} & summary::-webkit-details-marker{display:none;} & summary::before{content:\"\\25B8\";} &[open] > summary::before{content:\"\\25BE\";}",
+				"css": "& summary{font-family:var(--wp--preset--font-family--manrope);font-size:var(--wp--preset--font-size--small);font-style:normal;font-weight:700;list-style:none;display:flex;align-items:baseline;gap:var(--wp--preset--spacing--20);} & summary::-webkit-details-marker{display:none;} & summary::before{content:\"\\25B8\" / \"\";} &[open] > summary::before{content:\"\\25BE\" / \"\";}",
 				"spacing": {
 					"padding": {
 						"bottom": "var(--wp--preset--spacing--20)",
