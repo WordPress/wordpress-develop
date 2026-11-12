@@ -1028,6 +1028,12 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 */
 	public function test_should_omit_non_string_values_from_declarations() {
 		$block_styles = array(
+			'border'     => array(
+				'top' => array(
+					'width' => 5,
+					'style' => 'solid',
+				),
+			),
 			'typography' => array(
 				'textColumns' => 2,
 				'fontSize'    => '12px',
@@ -1042,10 +1048,11 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'css'          => 'padding-left:1em;font-size:12px;',
+				'css'          => 'border-top-style:solid;padding-left:1em;font-size:12px;',
 				'declarations' => array(
-					'padding-left' => '1em',
-					'font-size'    => '12px',
+					'border-top-style' => 'solid',
+					'padding-left'     => '1em',
+					'font-size'        => '12px',
 				),
 			),
 			wp_style_engine_get_styles( $block_styles )
