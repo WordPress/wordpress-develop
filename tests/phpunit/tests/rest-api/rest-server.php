@@ -2541,6 +2541,73 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 'gutenberg', get_option( 'test_project' ) );
 	}
 
+	/**
+	 * A WP_Error returned by the `rest_pre_dispatch` filter for a batch subrequest
+	 * should be turned into a response before the `rest_post_dispatch` filter runs.
+	 *
+	 * @ticket 66384
+	 *
+	 * @covers WP_REST_Server::serve_batch_request_v1
+	 */
+	public function test_batch_v1_pre_dispatch_wp_error_is_normalized_to_a_response() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		add_filter(
+			'rest_pre_dispatch',
+			static function ( $result, $server, $request ) {
+				if ( '/test-ns/v1/test' === $request->get_route() ) {
+					return new WP_Error( 'test_pre_dispatch_error', 'Short-circuited.', array( 'status' => 403 ) );
+				}
+
+				return $result;
+			},
+			10,
+			3
+		);
+
+		$post_dispatch_types = array();
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response, $server, $request ) use ( &$post_dispatch_types ) {
+				if ( '/test-ns/v1/test' === $request->get_route() ) {
+					$post_dispatch_types[] = is_object( $response ) ? get_class( $response ) : gettype( $response );
+				}
+
+				return $response;
+			},
+			9,
+			3
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array( 'path' => '/test-ns/v1/test' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status(), 'The batch response should have a 207 status.' );
+		$this->assertSame( array( 'WP_REST_Response' ), $post_dispatch_types, 'The rest_post_dispatch filter should receive a response, not a WP_Error.' );
+		$this->assertCount( 1, $data['responses'], 'The batch should contain one response.' );
+		$this->assertSame( 403, $data['responses'][0]['status'], 'The subrequest should have the status of the error.' );
+		$this->assertSame( 'test_pre_dispatch_error', $data['responses'][0]['body']['code'], 'The subrequest should keep the error code.' );
+		$this->assertSame( 'Short-circuited.', $data['responses'][0]['body']['message'], 'The subrequest should keep the error message.' );
+	}
+
 
 	/**
 	 * @ticket 50244
