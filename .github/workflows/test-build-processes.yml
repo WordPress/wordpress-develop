@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'macos-15', 'windows-2025' ]
+        os: [ 'macos-26', 'windows-2025' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
