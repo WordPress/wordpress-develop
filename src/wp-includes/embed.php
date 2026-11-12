@@ -1291,3 +1291,64 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 
 	return $result;
 }
+
+/**
+ * Passes a Vimeo timecode from the video URL to the Vimeo oEmbed endpoint.
+ *
+ * Vimeo links can start playback at a given time by using a URL fragment,
+ * for example `https://vimeo.com/123456#t=1m2s`. The Vimeo oEmbed endpoint
+ * ignores the fragment of the `url` argument and instead expects the start
+ * time, in seconds, in a separate `start_time` argument.
+ *
+ * @since 7.3.0
+ *
+ * @link https://developer.vimeo.com/api/oembed/videos
+ *
+ * @param string $provider URL of the oEmbed provider.
+ * @param string $url      URL of the content to be embedded.
+ * @return string The oEmbed provider URL, with `start_time` added when applicable.
+ */
+function wp_oembed_add_vimeo_start_time( $provider, $url ) {
+	if ( ! str_starts_with( $provider, 'https://vimeo.com/api/oembed.' ) ) {
+		return $provider;
+	}
+
+	$fragment = wp_parse_url( $url, PHP_URL_FRAGMENT );
+	if ( ! is_string( $fragment ) || '' === $fragment ) {
+		return $provider;
+	}
+
+	$provider_args = array();
+	wp_parse_str( (string) wp_parse_url( $provider, PHP_URL_QUERY ), $provider_args );
+	if ( isset( $provider_args['start_time'] ) ) {
+		return $provider;
+	}
+
+	$fragment_args = array();
+	wp_parse_str( $fragment, $fragment_args );
+	if ( ! isset( $fragment_args['t'] ) || ! is_string( $fragment_args['t'] ) ) {
+		return $provider;
+	}
+
+	// Accepts `62`, `62s`, `1m2s`, `1h2m3s` and similar.
+	if ( ! preg_match( '/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/i', trim( $fragment_args['t'] ), $matches ) ) {
+		return $provider;
+	}
+
+	$start_time = 0;
+	if ( ! empty( $matches[1] ) ) {
+		$start_time += (int) $matches[1] * HOUR_IN_SECONDS;
+	}
+	if ( ! empty( $matches[2] ) ) {
+		$start_time += (int) $matches[2] * MINUTE_IN_SECONDS;
+	}
+	if ( ! empty( $matches[3] ) ) {
+		$start_time += (int) $matches[3];
+	}
+
+	if ( $start_time <= 0 ) {
+		return $provider;
+	}
+
+	return add_query_arg( 'start_time', $start_time, $provider );
+}
