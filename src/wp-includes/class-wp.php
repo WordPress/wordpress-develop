@@ -790,9 +790,8 @@ class WP {
 	/**
 	 * Redirects search requests for random content to the search results.
 	 *
-	 * Random content can not be requested from search results, as selecting a random post
-	 * would run an uncacheable search query and reveal whether any post matches the search.
-	 * Instead, a search request that includes the `random` query variable is redirected to
+	 * Random content can not be requested from search results. Instead, a search
+	 * request that includes the `random` query variable is redirected to
 	 * the same request without it.
 	 *
 	 * The location depends on how random content was requested:
