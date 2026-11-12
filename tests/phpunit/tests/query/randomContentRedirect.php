@@ -2734,7 +2734,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure a post type archive at the random base is not redirected to random content.
 	 *
-	 * @dataProvider data_post_type_archive_at_the_random_base_is_not_redirected
+	 * @dataProvider data_post_types_at_the_random_base
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
@@ -2756,44 +2756,12 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{0: string, 1: array<string, mixed>}>
-	 */
-	public static function data_post_type_archive_at_the_random_base_is_not_redirected(): array {
-		return array(
-			'post type named random' => array(
-				'random',
-				array(
-					'public'      => true,
-					'has_archive' => true,
-				),
-			),
-			'archive slug random'    => array(
-				'wptests_random',
-				array(
-					'public'      => true,
-					'has_archive' => 'random',
-				),
-			),
-			'rewrite slug random'    => array(
-				'wptests_random',
-				array(
-					'public'      => true,
-					'has_archive' => true,
-					'rewrite'     => array( 'slug' => 'random' ),
-				),
-			),
-		);
-	}
-
-	/**
 	 * Ensure a single post of a post type at the random base is not redirected to random content.
 	 *
 	 * Registering a post type named `random` also registers `random` as its query variable,
 	 * which is the query variable used by random content requests.
 	 *
-	 * @dataProvider data_single_post_of_a_post_type_at_the_random_base_is_not_redirected
+	 * @dataProvider data_post_types_at_the_random_base
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
@@ -2810,7 +2778,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$permalink = get_permalink( $post_id );
 		$this->assertIsString( $permalink, 'The post permalink could not be retrieved.' );
-		$this->assertStringStartsWith( home_url( '/random/' ), $permalink, 'The post permalink should use the random base.' );
+		$this->assertStringStartsWith( home_url( '/' . ( $args['rewrite']['slug'] ?? $post_type ) . '/' ), $permalink, 'The post permalink should use the post type rewrite slug.' );
 
 		$redirect = new MockAction();
 		add_filter( 'wp_redirect', array( $redirect, 'filter' ), 5 );
@@ -2823,20 +2791,27 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for post types registered with an archive or single posts at the random base.
 	 *
 	 * @return array<string, array{0: string, 1: array<string, mixed>}>
 	 */
-	public static function data_single_post_of_a_post_type_at_the_random_base_is_not_redirected(): array {
+	public static function data_post_types_at_the_random_base(): array {
 		return array(
-			'post type named random' => array(
+			'post type named random'          => array(
 				'random',
 				array(
 					'public'      => true,
 					'has_archive' => true,
 				),
 			),
-			'archive slug random'    => array(
+			'archive slug random'             => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+				),
+			),
+			'archive and rewrite slug random' => array(
 				'wptests_random',
 				array(
 					'public'      => true,
@@ -2844,7 +2819,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 					'rewrite'     => array( 'slug' => 'random' ),
 				),
 			),
-			'rewrite slug random'    => array(
+			'rewrite slug random'             => array(
 				'wptests_random',
 				array(
 					'public'      => true,
