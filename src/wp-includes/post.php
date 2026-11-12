@@ -7779,10 +7779,9 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string|false $icon    URL of the mime type icon, or false if no icon was found.
-	 * @param string|int   $mime    Mime type, or 0 if an attachment ID was passed for a
-	 *                              nonexistent attachment.
+	 * @param string|int   $mime    Mime type, or 0 if no post was found for the passed ID.
 	 * @param int          $post_id Attachment ID. Will equal 0 if the function passed
-	 *                              the mime type or the attachment does not exist.
+	 *                              the mime type or no post was found for the passed ID.
 	 */
 	return apply_filters( 'wp_mime_type_icon', $icon, $mime, $post_id );
 }
