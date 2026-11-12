@@ -531,6 +531,14 @@ html[lang="th"] .edit-post-visual-editor * {
 	margin-top: 0.5em;
 }
 
+:root :where(.wp-block-quote[style*="font-weight"] *[style*="font-weight"]) ~ .wp-block-quote__citation {
+	font-weight: inherit;
+}
+
+:root :where(.wp-block-quote[style*="font-style"] *[style*="font-style"]) ~ .wp-block-quote__citation {
+	font-style: inherit;
+}
+
 .wp-block-quote.alignleft,
 .wp-block-quote.alignright {
 	color: #666;

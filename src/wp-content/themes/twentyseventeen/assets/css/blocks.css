@@ -109,6 +109,14 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-size: inherit;
 }
 
+:root :where(.wp-block-quote[style*="font-weight"] *[style*="font-weight"]) ~ cite {
+	font-weight: inherit;
+}
+
+:root :where(.wp-block-quote[style*="font-style"] *[style*="font-style"]) ~ cite {
+	font-style: inherit;
+}
+
 /* Audio */
 
 .wp-block-audio audio {
