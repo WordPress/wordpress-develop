@@ -271,7 +271,7 @@ if ( $doaction ) {
 		$doaction = 'delete';
 	} elseif ( isset( $_REQUEST['media'] ) ) {
 		$post_ids = $_REQUEST['media'];
-	} elseif ( isset( $_REQUEST['ids'] ) ) {
+	} elseif ( isset( $_REQUEST['ids'] ) && is_string( $_REQUEST['ids'] ) ) {
 		$post_ids = explode( ',', $_REQUEST['ids'] );
 	}
 	$post_ids = array_map( 'intval', (array) $post_ids );

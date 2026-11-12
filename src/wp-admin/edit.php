@@ -104,10 +104,15 @@ if ( $doaction ) {
 		$doaction = 'delete';
 	} elseif ( isset( $_REQUEST['media'] ) ) {
 		$post_ids = $_REQUEST['media'];
-	} elseif ( isset( $_REQUEST['ids'] ) ) {
+	} elseif ( isset( $_REQUEST['ids'] ) && is_string( $_REQUEST['ids'] ) ) {
 		$post_ids = explode( ',', $_REQUEST['ids'] );
 	} elseif ( ! empty( $_REQUEST['post'] ) ) {
-		$post_ids = array_map( 'intval', $_REQUEST['post'] );
+		$post_ids = array_map(
+			static function ( $post_id ): int {
+				return is_numeric( $post_id ) ? (int) $post_id : 0;
+			},
+			(array) $_REQUEST['post']
+		);
 	}
 
 	if ( empty( $post_ids ) ) {
