@@ -1527,6 +1527,71 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( '/test/another/route', $data['routes'] );
 	}
 
+	/**
+	 * Tests that a non-string namespace is treated as an unknown namespace
+	 * instead of triggering a fatal error.
+	 *
+	 * @ticket 66653
+	 *
+	 * @covers WP_REST_Server::get_namespace_index
+	 *
+	 * @dataProvider data_get_namespace_index_with_non_string_namespace
+	 *
+	 * @param mixed $route_namespace The namespace parameter value.
+	 */
+	public function test_get_namespace_index_with_non_string_namespace( $route_namespace ) {
+		$server = new WP_REST_Server();
+		$server->register_route(
+			'test/example',
+			'/test/example/some-route',
+			array(
+				array(
+					'methods'  => WP_REST_Server::READABLE,
+					'callback' => '__return_true',
+				),
+			)
+		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( 'namespace', $route_namespace );
+		$index = $server->get_namespace_index( $request );
+
+		$this->assertWPError( $index );
+		$this->assertSame( 'rest_invalid_namespace', $index->get_error_code() );
+		$this->assertSame( array( 'status' => 404 ), $index->get_error_data() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_namespace_index_with_non_string_namespace() {
+		return array(
+			'an empty array'       => array( array() ),
+			'an array of strings'  => array( array( 'test/example' ) ),
+			'a nested array'       => array( array( array( 'test/example' ) ) ),
+			'an associative array' => array( array( 'test/example' => 'test/example' ) ),
+		);
+	}
+
+	/**
+	 * Tests that requesting a namespace index with an array as the namespace
+	 * query parameter returns a 404 response.
+	 *
+	 * @ticket 66653
+	 *
+	 * @covers WP_REST_Server::get_namespace_index
+	 */
+	public function test_namespace_index_request_with_array_namespace_query_param() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2' );
+		$request->set_query_params( array( 'namespace' => array( 'wp/v2' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_namespace', $response, 404 );
+	}
+
 	public function test_get_namespaces() {
 		$server = new WP_REST_Server();
 		$server->register_route(
