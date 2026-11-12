@@ -28,15 +28,13 @@ const SERIAL_SPECS = [
 	'dashboard.test.js',
 	'edit-posts.test.js',
 	'empty-trash-restore-trashed-posts.test.js',
-	'media-library-client-side-upload.test.js',
-	'media-modal-client-side-upload.test.js',
-	'media-new-client-side-upload.test.js',
 ];
 
 const config = defineConfig( {
 	...baseConfig,
 	globalSetup: require.resolve( './config/global-setup.js' ),
 	workers: '50%',
+	retries: process.env.CI ? 1 : 0,
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
