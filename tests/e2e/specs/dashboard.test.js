@@ -10,6 +10,7 @@ test.describe( 'Quick Draft', () => {
 	let userId;
 
 	test.beforeEach( async ( { page, userFactory } ) => {
+		userId = undefined;
 		const { user, username, password } = await userFactory.create( {
 			roles: [ 'administrator' ],
 		} );
@@ -18,6 +19,25 @@ test.describe( 'Quick Draft', () => {
 		await expect(
 			page.getByRole( 'heading', { name: 'Dashboard', exact: true } )
 		).toBeVisible();
+	} );
+
+	// Deleting the user would move its saved drafts to the trash.
+	test.afterEach( async ( { requestUtils } ) => {
+		// Without an author, the query would match other workers' drafts.
+		if ( ! userId ) {
+			return;
+		}
+		const drafts = await requestUtils.rest( {
+			path: '/wp/v2/posts',
+			params: { author: userId, status: 'draft', per_page: 100 },
+		} );
+		for ( const draft of drafts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ draft.id }`,
+				params: { force: true },
+			} );
+		}
 	} );
 
 	test( 'should allow Quick Draft to be created with Title and Content', async ( {
