@@ -188,6 +188,15 @@ footer.wp-block-template-part {
 }
 
 /*
+ * Long unbroken author names still grow their flex row (avatar + meta).
+ * Comment content inherits body's break-word once the template wrapper is a
+ * plain group; only the author needs anywhere so min-content can shrink.
+ */
+.wp-block-comment-author-name {
+	overflow-wrap: anywhere;
+}
+
+/*
  * Sticky headers: a sticky root block inside a template part has no room to
  * travel — the part's wrapper element is exactly as tall as its content — so
  * the wrapper itself must carry the stickiness. Keyed on the class core emits
