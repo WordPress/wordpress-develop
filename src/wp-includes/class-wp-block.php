@@ -66,6 +66,15 @@ class WP_Block {
 	protected $registry;
 
 	/**
+	 * The blocks whose inner blocks a block bindings source supplied are
+	 * rendering, outermost first, each with the request it made to the source.
+	 *
+	 * @since 7.3.0
+	 * @var array[]
+	 */
+	private static $rendering_inner_blocks = array();
+
+	/**
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
@@ -273,6 +282,8 @@ class WP_Block {
 	 * @since 6.5.0
 	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
 	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
+	 * @since 7.3.0 Replace the inner blocks of the block for an `innerBlocks` binding,
+	 *              which the `__default` binding doesn't add.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -310,6 +321,9 @@ class WP_Block {
 			 * resulting array.
 			 */
 			foreach ( $supported_block_attributes as $attribute_name ) {
+				if ( 'innerBlocks' === $attribute_name && ! isset( $bindings['innerBlocks'] ) ) {
+					continue;
+				}
 				// Retain any non-pattern override bindings that might be present.
 				$updated_bindings[ $attribute_name ] = $bindings[ $attribute_name ] ?? array( 'source' => 'core/pattern-overrides' );
 			}
@@ -348,7 +362,13 @@ class WP_Block {
 				}
 			}
 
-			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_args = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+
+			if ( 'innerBlocks' === $attribute_name ) {
+				$this->replace_inner_blocks( $block_binding_source, $source_args );
+				continue;
+			}
+
 			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
 			// If the value is not null, process the HTML based on the block and the attribute.
@@ -358,6 +378,369 @@ class WP_Block {
 		}
 
 		return $computed_attributes;
+	}
+
+	/**
+	 * Replaces the inner blocks of the block with the ones a block bindings
+	 * source supplies, before they render.
+	 *
+	 * Not while the inner blocks the source supplied for the same request
+	 * render: the block then keeps its own inner blocks, and the source isn't
+	 * asked. This way sources whose values bind each other's, directly or
+	 * through content that loads as it renders, like the menu of a Navigation
+	 * block, can't render forever. Bindings that ask a source something else
+	 * still resolve, inside supplied inner blocks too.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
+	 */
+	private function replace_inner_blocks( WP_Block_Bindings_Source $source, array $source_args ) {
+		$request = $this->get_inner_blocks_request( $source, $source_args );
+		foreach ( self::$rendering_inner_blocks as $rendering ) {
+			if ( $rendering['request'] === $request ) {
+				return;
+			}
+		}
+
+		$value = $source->get_value( $source_args, $this, 'innerBlocks' );
+		if ( ! self::is_inner_blocks_value( $value ) ) {
+			return;
+		}
+
+		$blocks        = $this->parse_bound_inner_blocks( $value, $source, $source_args );
+		$inner_content = self::get_inner_content_with_slots( $this->parsed_block['innerContent'] ?? null, count( $blocks ) );
+		if ( null === $inner_content ) {
+			return;
+		}
+
+		$this->parsed_block['innerBlocks']  = $blocks;
+		$this->parsed_block['innerContent'] = $inner_content;
+		$this->parsed_block['innerHTML']    = implode( '', array_filter( $inner_content, 'is_string' ) );
+		$this->inner_blocks                 = new WP_Block_List( array() );
+		$this->inner_content                = $inner_content;
+		$this->inner_html                   = $this->parsed_block['innerHTML'];
+		$this->refresh_parsed_block_dependents();
+
+		self::$rendering_inner_blocks[] = array(
+			'block'   => $this,
+			'request' => $request,
+		);
+	}
+
+	/**
+	 * Returns what the block asks its block bindings source for `innerBlocks`:
+	 * the source, the arguments of the binding, the context the source uses,
+	 * and the attributes of the block.
+	 *
+	 * Two blocks with the same request get the same inner blocks from the
+	 * source, whatever the order of its keys.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
+	 * @return array The request.
+	 */
+	private function get_inner_blocks_request( WP_Block_Bindings_Source $source, array $source_args ): array {
+		$context = array();
+		foreach ( (array) $source->uses_context as $context_name ) {
+			if ( array_key_exists( $context_name, $this->context ) ) {
+				$context[ $context_name ] = $this->context[ $context_name ];
+			}
+		}
+		$request = array( $source->name, $source_args, $context, $this->attributes );
+		wp_recursive_ksort( $request );
+		return $request;
+	}
+
+	/**
+	 * Stops tracking the block, once it has rendered, if the inner blocks a
+	 * source supplied for it were rendering.
+	 *
+	 * The blocks still rendering inside it, if any, stopped with it, so they
+	 * are forgotten along with it. A block that stops rendering with an
+	 * exception is forgotten too, so that it doesn't count as rendering for
+	 * the rest of the request when something catches the exception.
+	 *
+	 * @since 7.3.0
+	 */
+	private function forget_rendered_inner_blocks() {
+		foreach ( self::$rendering_inner_blocks as $index => $rendering ) {
+			if ( $rendering['block'] === $this ) {
+				self::$rendering_inner_blocks = array_slice( self::$rendering_inner_blocks, 0, $index );
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Determines whether the value of a block bindings source supplies inner
+	 * blocks.
+	 *
+	 * Serialized block markup supplies them, and an empty string supplies none.
+	 * Markup supplies them when the first block delimiter the block parser
+	 * finds, after any whitespace, opens a block. Any other value, like the
+	 * plain text of a field, leaves the block with its own inner blocks.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value The value of the source.
+	 * @return bool Whether the value supplies inner blocks.
+	 */
+	private static function is_inner_blocks_value( $value ): bool {
+		if ( '' === $value ) {
+			return true;
+		}
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$processor = new WP_Block_Processor( $value );
+		while ( $processor->next_token() ) {
+			if ( $processor->is_html() && ! $processor->is_non_whitespace_html() ) {
+				continue;
+			}
+			return ! $processor->is_html() && $processor->opens_block();
+		}
+		return false;
+	}
+
+	/**
+	 * Parses the inner blocks a block bindings source supplies.
+	 *
+	 * The markup never went through the filters that sanitize post content on
+	 * save, and the user who supplied it may not be allowed unfiltered HTML, so
+	 * by default it is sanitized as on save, attributes of its blocks included.
+	 * Its embeds are expanded as the embeds of the content were, before its
+	 * blocks render.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @global WP_Embed $wp_embed WordPress Embed object.
+	 *
+	 * @param string                   $markup      The serialized blocks.
+	 * @param WP_Block_Bindings_Source $source      The source of the binding.
+	 * @param array                    $source_args The arguments of the binding.
+	 * @return array[] The parsed blocks.
+	 */
+	private function parse_bound_inner_blocks( string $markup, WP_Block_Bindings_Source $source, array $source_args ): array {
+		global $wp_embed;
+
+		/**
+		 * Filters whether the inner blocks a block bindings source supplies are
+		 * sanitized before they render.
+		 *
+		 * By default the markup is sanitized as the post content of a user
+		 * without the `unfiltered_html` capability, since the user who supplied
+		 * it is unknown: `wp_kses_post()` removes the HTML that user may not
+		 * publish, in the attributes of the blocks included. A source whose
+		 * markup comes from trusted code, not from users, may keep it as
+		 * supplied. Custom CSS is removed from the blocks either way.
+		 *
+		 * Sanitizing keeps the block delimiters that `serialize_blocks()`
+		 * writes, which escapes the characters `wp_kses_post()` rewrites
+		 * inside comments.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param bool     $sanitize       Whether to sanitize the markup. Default true.
+		 * @param string   $source_name    The name of the source.
+		 * @param array    $source_args    The arguments of the binding.
+		 * @param WP_Block $block_instance The block whose inner blocks the source supplies.
+		 */
+		if ( apply_filters( 'block_bindings_sanitize_inner_blocks', true, $source->name, $source_args, $this ) ) {
+			$markup = wp_kses_post( $markup );
+		}
+		if ( $wp_embed instanceof WP_Embed ) {
+			$markup = $wp_embed->run_shortcode( $markup );
+			$markup = $wp_embed->autoembed( $markup );
+		}
+
+		return self::prepare_bound_inner_blocks( parse_blocks( $markup ) );
+	}
+
+	/**
+	 * Prepares the blocks a block bindings source supplies, and their inner
+	 * blocks, to render.
+	 *
+	 * Removes their custom CSS, which only users who can edit CSS may add:
+	 * whoever supplied the value is unknown.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $blocks The parsed blocks.
+	 * @return array[] The parsed blocks.
+	 */
+	private static function prepare_bound_inner_blocks( array $blocks ): array {
+		foreach ( $blocks as &$block ) {
+			if ( isset( $block['attrs']['style'] ) ) {
+				$block['attrs']['style'] = wp_strip_custom_css_from_style_array( $block['attrs']['style'] );
+				if ( empty( $block['attrs']['style'] ) ) {
+					unset( $block['attrs']['style'] );
+				}
+			}
+
+			$block['innerBlocks'] = self::prepare_bound_inner_blocks( $block['innerBlocks'] );
+		}
+		return $blocks;
+	}
+
+	/**
+	 * Returns the inner content of a block with slots for the given number of
+	 * inner blocks.
+	 *
+	 * The slots replace the block's own inner blocks and the HTML between them.
+	 * A block without inner blocks gets them before the closing tag of the
+	 * element that wraps its content.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array|null $inner_content The inner content of the block.
+	 * @param int        $count         The number of inner blocks.
+	 * @return array|null The inner content, or null if there's no element to put
+	 *                    the inner blocks in.
+	 */
+	private static function get_inner_content_with_slots( $inner_content, int $count ): ?array {
+		if ( ! is_array( $inner_content ) ) {
+			return null;
+		}
+
+		$slots     = array_fill( 0, $count, null );
+		$own_slots = array_keys( $inner_content, null, true );
+		if ( $own_slots ) {
+			$before_first_slot = array_slice( $inner_content, 0, $own_slots[0] );
+			$after_last_slot   = array_slice( $inner_content, end( $own_slots ) + 1 );
+			return array_merge( $before_first_slot, $slots, $after_last_slot );
+		}
+
+		$wrapper_parts = self::split_at_wrapper_closer( implode( '', $inner_content ) );
+		if ( null === $wrapper_parts ) {
+			return null;
+		}
+		return array_merge( array( $wrapper_parts[0] ), $slots, array( $wrapper_parts[1] ) );
+	}
+
+	/**
+	 * Splits the HTML of the element that wraps a block's content before the
+	 * element's closing tag.
+	 *
+	 * The wrapper is the last element of the HTML. When all it holds is the
+	 * inner container of a Group block saved before WordPress 5.8, the split
+	 * happens before the closing tag of the container, where the block's own
+	 * inner blocks would be.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $html The HTML of the wrapper element.
+	 * @return string[]|null The HTML before the closing tag and the HTML from it,
+	 *                       or null if the HTML has no wrapper element to split.
+	 */
+	private static function split_at_wrapper_closer( string $html ): ?array {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+		if ( null === $processor ) {
+			return null;
+		}
+
+		$tokens = array();
+		while ( $processor->next_token() ) {
+			$is_opener = '#tag' === $processor->get_token_type() && ! $processor->is_tag_closer();
+			$tokens[]  = array(
+				'html'               => $processor->serialize_token(),
+				'depth'              => $processor->get_current_depth(),
+				'is_opener'          => $is_opener,
+				'is_closer'          => '#tag' === $processor->get_token_type() && $processor->is_tag_closer(),
+				'is_inner_container' => $is_opener && $processor->has_class( 'wp-block-group__inner-container' ),
+				'is_whitespace'      => '#text' === $processor->get_token_type() && '' === trim( $processor->get_modifiable_text() ),
+			);
+		}
+		if ( null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
+			return null;
+		}
+
+		$closer_index = self::find_wrapper_closer( $tokens );
+		if ( null === $closer_index ) {
+			return null;
+		}
+		$before = implode( '', array_column( array_slice( $tokens, 0, $closer_index ), 'html' ) );
+		$after  = implode( '', array_column( array_slice( $tokens, $closer_index ), 'html' ) );
+		return array( $before, $after );
+	}
+
+	/**
+	 * Finds the closing tag of the wrapper element among the tokens of a block's
+	 * content: the last element of the content, or the legacy inner container
+	 * of a Group block when it is all that element holds.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $tokens The tokens, each with its HTML, its depth, and whether it opens an element,
+	 *                        closes one, opens a legacy inner container, or is whitespace.
+	 * @return int|null The index of the closing tag, or null if no element wraps the content.
+	 */
+	private static function find_wrapper_closer( array $tokens ): ?int {
+		$wrapper_depth = null;
+		foreach ( $tokens as $token ) {
+			if ( $token['is_opener'] ) {
+				$wrapper_depth = $token['depth'];
+				break;
+			}
+		}
+		if ( null === $wrapper_depth ) {
+			return null;
+		}
+
+		$closer_index = null;
+		foreach ( $tokens as $index => $token ) {
+			if ( $token['is_closer'] && $token['depth'] === $wrapper_depth - 1 ) {
+				$closer_index = $index;
+			}
+		}
+		if ( null === $closer_index ) {
+			return null;
+		}
+
+		$opener_index = $closer_index;
+		while ( ! $tokens[ $opener_index ]['is_opener'] || $tokens[ $opener_index ]['depth'] !== $wrapper_depth ) {
+			--$opener_index;
+		}
+
+		$inner_container_closer_index = self::find_sole_inner_container_closer( $tokens, $opener_index, $closer_index, $wrapper_depth );
+		return $inner_container_closer_index ?? $closer_index;
+	}
+
+	/**
+	 * Finds the closing tag of the legacy inner container of a Group block, when
+	 * the container is all that the wrapper element holds, whitespace aside.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $tokens        The tokens of the block's content.
+	 * @param int     $opener_index  The index of the wrapper's opening tag.
+	 * @param int     $closer_index  The index of the wrapper's closing tag.
+	 * @param int     $wrapper_depth The depth of the wrapper's opening tag.
+	 * @return int|null The index of the container's closing tag, or null if the wrapper holds anything else.
+	 */
+	private static function find_sole_inner_container_closer( array $tokens, int $opener_index, int $closer_index, int $wrapper_depth ): ?int {
+		$index = $opener_index + 1;
+		while ( $index < $closer_index && $tokens[ $index ]['is_whitespace'] ) {
+			++$index;
+		}
+		if ( $index >= $closer_index || ! $tokens[ $index ]['is_inner_container'] ) {
+			return null;
+		}
+
+		while ( $index < $closer_index && ! ( $tokens[ $index ]['is_closer'] && $tokens[ $index ]['depth'] === $wrapper_depth ) ) {
+			++$index;
+		}
+		$inner_container_closer_index = $index;
+		for ( ++$index; $index < $closer_index; ++$index ) {
+			if ( ! $tokens[ $index ]['is_whitespace'] ) {
+				return null;
+			}
+		}
+		return $inner_container_closer_index < $closer_index ? $inner_container_closer_index : null;
 	}
 
 	/**
@@ -516,6 +899,8 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @since 6.5.0 Added block bindings processing.
 	 * @since 7.1.0 Preserve inner blocks when binding a rich text attribute.
+	 * @since 7.3.0 Stop tracking the inner blocks a block bindings source supplied once
+	 *              the block has rendered, whether or not it finished.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -565,143 +950,147 @@ class WP_Block {
 			)
 		);
 
-		// Process the block bindings and get attributes updated with the values from the sources.
-		$computed_attributes = $this->process_block_bindings();
-		if ( ! empty( $computed_attributes ) ) {
-			// Merge the computed attributes with the original attributes.
-			$this->attributes = array_merge( $this->attributes, $computed_attributes );
-		}
+		try {
+			// Process the block bindings and get attributes updated with the values from the sources.
+			$computed_attributes = $this->process_block_bindings();
+			if ( ! empty( $computed_attributes ) ) {
+				// Merge the computed attributes with the original attributes.
+				$this->attributes = array_merge( $this->attributes, $computed_attributes );
+			}
 
-		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
-		$block_content = '';
+			$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
+			$block_content = '';
 
-		/*
-		 * Byte offsets in $block_content where each inner block's rendered output
-		 * begins. Block bindings rich-text replacement uses these to stop at the
-		 * first inner block inside a selector, so it replaces only the block's own
-		 * rich text and never the markup produced by nested inner blocks.
-		 *
-		 * They are only collected when the block has bound attributes to resolve;
-		 * otherwise they are never read, so recording them would add work to every
-		 * block render for no benefit.
-		 */
-		$inner_block_offsets = array();
-		$collect_offsets     = ! empty( $computed_attributes );
+			/*
+			 * Byte offsets in $block_content where each inner block's rendered output
+			 * begins. Block bindings rich-text replacement uses these to stop at the
+			 * first inner block inside a selector, so it replaces only the block's own
+			 * rich text and never the markup produced by nested inner blocks.
+			 *
+			 * They are only collected when the block has bound attributes to resolve;
+			 * otherwise they are never read, so recording them would add work to every
+			 * block render for no benefit.
+			 */
+			$inner_block_offsets = array();
+			$collect_offsets     = ! empty( $computed_attributes );
 
-		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
-			$index = 0;
+			if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
+				$index = 0;
 
-			foreach ( $this->inner_content as $chunk ) {
-				if ( is_string( $chunk ) ) {
-					$block_content .= $chunk;
-				} else {
-					if ( $collect_offsets ) {
-						$inner_block_offsets[] = strlen( $block_content );
-					}
-					$inner_block  = $this->inner_blocks[ $index ];
-					$parent_block = $this;
-
-					/** This filter is documented in wp-includes/blocks.php */
-					$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
-
-					if ( ! is_null( $pre_render ) ) {
-						$block_content .= $pre_render;
+				foreach ( $this->inner_content as $chunk ) {
+					if ( is_string( $chunk ) ) {
+						$block_content .= $chunk;
 					} else {
-						$source_block        = $inner_block->parsed_block;
-						$inner_block_context = $inner_block->context;
+						if ( $collect_offsets ) {
+							$inner_block_offsets[] = strlen( $block_content );
+						}
+						$inner_block  = $this->inner_blocks[ $index ];
+						$parent_block = $this;
 
 						/** This filter is documented in wp-includes/blocks.php */
-						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
+						$pre_render = apply_filters( 'pre_render_block', null, $inner_block->parsed_block, $parent_block );
 
-						/** This filter is documented in wp-includes/blocks.php */
-						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+						if ( ! is_null( $pre_render ) ) {
+							$block_content .= $pre_render;
+						} else {
+							$source_block        = $inner_block->parsed_block;
+							$inner_block_context = $inner_block->context;
 
-						/*
-						 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
-						 * Therefore the second condition is irrelevant if the first one is satisfied.
-						 */
-						if ( $inner_block->context !== $inner_block_context ) {
-							$inner_block->refresh_context_dependents();
-						} elseif ( $inner_block->parsed_block !== $source_block ) {
-							$inner_block->refresh_parsed_block_dependents();
+							/** This filter is documented in wp-includes/blocks.php */
+							$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
+
+							/** This filter is documented in wp-includes/blocks.php */
+							$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+							/*
+							 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
+							 * Therefore the second condition is irrelevant if the first one is satisfied.
+							 */
+							if ( $inner_block->context !== $inner_block_context ) {
+								$inner_block->refresh_context_dependents();
+							} elseif ( $inner_block->parsed_block !== $source_block ) {
+								$inner_block->refresh_parsed_block_dependents();
+							}
+
+							$block_content .= $inner_block->render();
 						}
 
-						$block_content .= $inner_block->render();
+						++$index;
+					}
+				}
+			}
+
+			if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
+				foreach ( $computed_attributes as $attribute_name => $source_value ) {
+					$updated_block_content = $this->replace_html( $block_content, $attribute_name, $source_value, $inner_block_offsets );
+
+					/*
+					 * The offsets describe $block_content as it was assembled. A
+					 * replacement that modifies the markup shifts byte positions, so
+					 * once the content changes the remaining attributes fall back to
+					 * offset-free replacement rather than clamp at a stale position.
+					 * Attributes that leave the markup untouched keep the offsets
+					 * valid: the computed `metadata` attribute produced by a pattern
+					 * overrides `__default` binding has no HTML source, so it must
+					 * not invalidate the offsets for the rich text that follows it.
+					 */
+					if ( $updated_block_content !== $block_content ) {
+						$inner_block_offsets = array();
 					}
 
-					++$index;
+					$block_content = $updated_block_content;
 				}
 			}
-		}
 
-		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
-			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$updated_block_content = $this->replace_html( $block_content, $attribute_name, $source_value, $inner_block_offsets );
+			if ( $is_dynamic ) {
+				$global_post = $post;
+				$parent      = WP_Block_Supports::$block_to_render;
 
-				/*
-				 * The offsets describe $block_content as it was assembled. A
-				 * replacement that modifies the markup shifts byte positions, so
-				 * once the content changes the remaining attributes fall back to
-				 * offset-free replacement rather than clamp at a stale position.
-				 * Attributes that leave the markup untouched keep the offsets
-				 * valid: the computed `metadata` attribute produced by a pattern
-				 * overrides `__default` binding has no HTML source, so it must
-				 * not invalidate the offsets for the rich text that follows it.
-				 */
-				if ( $updated_block_content !== $block_content ) {
-					$inner_block_offsets = array();
+				WP_Block_Supports::$block_to_render = $this->parsed_block;
+
+				$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
+
+				WP_Block_Supports::$block_to_render = $parent;
+
+				$post = $global_post;
+			}
+
+			if ( ( ! empty( $this->block_type->script_handles ) ) ) {
+				foreach ( $this->block_type->script_handles as $script_handle ) {
+					wp_enqueue_script( $script_handle );
 				}
-
-				$block_content = $updated_block_content;
 			}
-		}
 
-		if ( $is_dynamic ) {
-			$global_post = $post;
-			$parent      = WP_Block_Supports::$block_to_render;
-
-			WP_Block_Supports::$block_to_render = $this->parsed_block;
-
-			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
-
-			WP_Block_Supports::$block_to_render = $parent;
-
-			$post = $global_post;
-		}
-
-		if ( ( ! empty( $this->block_type->script_handles ) ) ) {
-			foreach ( $this->block_type->script_handles as $script_handle ) {
-				wp_enqueue_script( $script_handle );
+			if ( ! empty( $this->block_type->view_script_handles ) ) {
+				foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
+					wp_enqueue_script( $view_script_handle );
+				}
 			}
-		}
 
-		if ( ! empty( $this->block_type->view_script_handles ) ) {
-			foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
-				wp_enqueue_script( $view_script_handle );
+			if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+				foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
+					wp_enqueue_script_module( $view_script_module_id );
+				}
 			}
-		}
 
-		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
-			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
-				wp_enqueue_script_module( $view_script_module_id );
+			/*
+			 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
+			 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
+			 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+			 */
+			if ( ( ! empty( $this->block_type->style_handles ) ) ) {
+				foreach ( $this->block_type->style_handles as $style_handle ) {
+					wp_enqueue_style( $style_handle );
+				}
 			}
-		}
 
-		/*
-		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
-		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
-		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
-		 */
-		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
-			foreach ( $this->block_type->style_handles as $style_handle ) {
-				wp_enqueue_style( $style_handle );
+			if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
+				foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
+					wp_enqueue_style( $view_style_handle );
+				}
 			}
-		}
-
-		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
-			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
-				wp_enqueue_style( $view_style_handle );
-			}
+		} finally {
+			$this->forget_rendered_inner_blocks();
 		}
 
 		/**
