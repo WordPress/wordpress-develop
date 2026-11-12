@@ -135,4 +135,98 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
 		return $labels;
 	}
+
+	/**
+	 * @ticket 65024
+	 */
+	public function test_item_draft_saved_default_label_for_non_hierarchical_post_type() {
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(),
+				'hierarchical' => false,
+			)
+		);
+
+		$this->assertSame( 'Draft saved.', $labels->item_draft_saved );
+	}
+
+	/**
+	 * @ticket 65024
+	 */
+	public function test_item_draft_saved_default_label_for_hierarchical_post_type() {
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(),
+				'hierarchical' => true,
+			)
+		);
+
+		$this->assertSame( 'Draft saved.', $labels->item_draft_saved );
+	}
+
+	/**
+	 * @ticket 65024
+	 */
+	public function test_item_draft_saved_custom_label_override() {
+		$post_type_object = register_post_type(
+			'foo',
+			array(
+				'labels' => array(
+					'item_draft_saved' => 'Custom draft saved.',
+				),
+			)
+		);
+
+		$this->assertSame( 'Custom draft saved.', $post_type_object->labels->item_draft_saved );
+
+		unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 65024
+	 */
+	public function test_item_draft_saved_filtered_label() {
+		add_filter( 'post_type_labels_foo', array( $this, 'filter_item_draft_saved_label' ) );
+		register_post_type( 'foo' );
+
+		$this->assertSame( 'Filtered draft saved.', get_post_type_object( 'foo' )->labels->item_draft_saved );
+
+		unregister_post_type( 'foo' );
+		remove_filter( 'post_type_labels_foo', array( $this, 'filter_item_draft_saved_label' ) );
+	}
+
+	public function filter_item_draft_saved_label( $labels ) {
+		$labels->item_draft_saved = 'Filtered draft saved.';
+		return $labels;
+	}
+
+	/**
+	 * @ticket 65024
+	 *
+	 * @dataProvider data_built_in_post_types
+	 *
+	 * @param string $post_type Post type name.
+	 */
+	public function test_item_draft_saved_label_for_built_in_post_types( $post_type ) {
+		$post_type_object = get_post_type_object( $post_type );
+
+		$this->assertNotNull( $post_type_object );
+		$this->assertObjectHasProperty( 'item_draft_saved', $post_type_object->labels );
+		$this->assertSame( 'Draft saved.', $post_type_object->labels->item_draft_saved );
+	}
+
+	/**
+	 * Data provider for test_item_draft_saved_label_for_built_in_post_types.
+	 *
+	 * @return array[]
+	 */
+	public function data_built_in_post_types() {
+		return array(
+			'post'     => array( 'post' ),
+			'page'     => array( 'page' ),
+			'wp_block' => array( 'wp_block' ),
+		);
+	}
 }
