@@ -412,4 +412,31 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( 'iVBORw0KGgoAAAAN', 65536 ) . '="></p> :)';
 		$this->assertStringContainsString( "\xf0\x9f\x99\x82", convert_smilies( $text ) );
 	}
+
+	/**
+	 * Tests that a non-string value is returned as is, rather than causing a fatal error.
+	 *
+	 * @ticket 66134
+	 *
+	 * @dataProvider data_non_string_input_is_returned_unchanged
+	 *
+	 * @param mixed $input The non-string value to pass.
+	 */
+	public function test_non_string_input_is_returned_unchanged( $input ) {
+		$this->assertSame( $input, convert_smilies( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_input_is_returned_unchanged() {
+		return array(
+			'null'    => array( null ),
+			'false'   => array( false ),
+			'integer' => array( 123 ),
+			'array'   => array( array( ':)' ) ),
+		);
+	}
 }

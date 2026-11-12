@@ -3612,7 +3612,7 @@ function translate_smiley( $matches ) {
 function convert_smilies( $text ) {
 	global $wp_smiliessearch;
 
-	if ( ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
+	if ( ! is_string( $text ) || ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
 		// Return default text.
 		return $text;
 	}
