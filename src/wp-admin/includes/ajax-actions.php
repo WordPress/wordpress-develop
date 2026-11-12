@@ -1316,7 +1316,7 @@ function wp_ajax_replyto_comment( $action ) {
 	 */
 	if (
 		! preg_match( '/^[a-z0-9_-]+\z/i', $comment_type ) ||
-		in_array( strtolower( $comment_type ), array( 'note', 'reaction' ), true )
+		in_array( $comment_type, array( 'note', 'reaction' ), true )
 	) {
 		wp_die( -1 );
 	}

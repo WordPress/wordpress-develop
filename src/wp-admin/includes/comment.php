@@ -56,7 +56,7 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
-	$comment = get_comment( absint( $_POST['comment_ID'] ) );
+	$comment = get_comment( (int) $_POST['comment_ID'] );
 
 	if ( ! $comment ) {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
@@ -93,7 +93,7 @@ function edit_comment() {
 	 * stays on its post, since its reactions would not follow it.
 	 */
 	if ( isset( $_POST['comment_post_ID'] ) && absint( $_POST['comment_post_ID'] ) !== $post_id ) {
-		$post_id = absint( $_POST['comment_post_ID'] );
+		$post_id = (int) $_POST['comment_post_ID'];
 
 		if ( 'note' === $old_type || ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
@@ -202,7 +202,7 @@ function edit_comment() {
 
 	// The checks above only run when the parent changes. A kept parent must be on the destination post too.
 	if ( $post_id !== (int) $comment->comment_post_ID ) {
-		$kept_parent = isset( $_POST['comment_parent'] ) ? absint( $_POST['comment_parent'] ) : (int) $comment->comment_parent;
+		$kept_parent = (int) ( $_POST['comment_parent'] ?? $comment->comment_parent );
 
 		if ( $kept_parent ) {
 			$parent = get_comment( $kept_parent );

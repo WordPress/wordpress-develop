@@ -733,12 +733,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// A note reply must answer a note on the same post.
 		if ( ! empty( $request['type'] ) && 'note' === $request['type'] && ! empty( $request['parent'] ) ) {
-			$parent_note = get_comment( absint( $request['parent'] ) );
+			$parent_note = get_comment( $request['parent'] );
 
 			if (
 				! $parent_note ||
 				'note' !== $parent_note->comment_type ||
-				( ! empty( $request['post'] ) && absint( $request['post'] ) !== (int) $parent_note->comment_post_ID )
+				( ! empty( $request['post'] ) && $request['post'] !== (int) $parent_note->comment_post_ID )
 			) {
 				return new WP_Error(
 					'rest_comment_invalid_parent',
@@ -2381,7 +2381,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// Only reactions stored on their note's post count, which is what create_item() writes.
 		$from  = "FROM $wpdb->comments AS r INNER JOIN $wpdb->comments AS n";
-		$from .= ' ON n.comment_ID = r.comment_parent AND n.comment_post_ID = r.comment_post_ID AND n.comment_type = \'note\'';
+		$from .= ' ON n.comment_ID = r.comment_parent AND n.comment_post_ID = r.comment_post_ID AND n.comment_type = "note"';
 		$where = "WHERE r.comment_type = 'reaction' AND r.comment_approved = '1' AND $parent_in";
 
 		// Query 1: Get aggregated counts per emoji per note.
