@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-15 ]
+        os: [ macos-26 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -128,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-15 ]
+        os: [ macos-26 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
