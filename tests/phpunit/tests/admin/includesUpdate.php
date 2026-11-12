@@ -144,6 +144,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		$update->package = 'https://example.org/current.zip';
 		set_site_transient( 'update_plugins', (object) array( 'translations' => array( (array) $update ) ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			array( $id => $update ),
 			wp_process_translation_update_selection( array( $id ), array( $id ) )
@@ -496,6 +497,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 		if ( false === $selected ) {
 			$this->assertFalse( $actual );
 		} else {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( wp_get_translation_updates_by_id( $get_updates( $selected ) ), $actual );
 		}
 
