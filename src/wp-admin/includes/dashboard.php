@@ -1417,13 +1417,6 @@ function wp_dashboard_rss_output( $widget_id ) {
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
-	$loading   .= wp_get_admin_notice(
-		__( 'This widget requires JavaScript.' ),
-		array(
-			'type'               => 'error',
-			'additional_classes' => array( 'inline', 'hide-if-js' ),
-		)
-	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
@@ -1509,9 +1502,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options = array();
 	}
 
-	if ( ! isset( $widget_options[ $widget_id ] ) ) {
-		$widget_options[ $widget_id ] = array();
-	}
+	$widget_options[ $widget_id ] ??= array();
 
 	$number = 1; // Hack to use wp_widget_rss_form().
 

@@ -8,7 +8,11 @@ local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
 
-if ( process.argv.includes( '--coverage-html' ) ) {
+// Use Xdebug to generate HTML code coverage reports, unless PCOV is enabled and Xdebug is not.
+if (
+	process.argv.includes( '--coverage-html' ) &&
+	( process.env.LOCAL_PHP_PCOV !== 'true' || process.env.LOCAL_PHP_XDEBUG === 'true' )
+) {
 	process.env.LOCAL_PHP_XDEBUG = 'true';
 	process.env.LOCAL_PHP_XDEBUG_MODE = 'coverage';
 }

@@ -30,17 +30,15 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 
 /*
- * The Secrets API will not derive a key from the placeholder salts that
- * wp-tests-config-sample.php ships with, so give the suite a fixed test key.
+ * The Secrets API needs WP_SECRETS_KEY, which wp-tests-config-sample.php does not
+ * define, so give the suite a fixed test key.
  *
  * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
  * while it loads this file in a child process, and the Secrets API tests that
  * run isolated do so precisely to define WP_SECRETS_KEY themselves, or to
  * leave it undefined.
  */
-if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] )
-	&& defined( 'LOGGED_IN_KEY' ) && 'put your unique phrase here' === LOGGED_IN_KEY
-) {
+if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
 	define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
 }
 require_once __DIR__ . '/functions.php';
@@ -252,10 +250,17 @@ define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
 /*
+ * Isolate uploads in a dedicated directory when running the core test suite only,
+ * so that plugins and themes using the test suite keep the default uploads location.
+ *
  * Tests that cover the upload_path and upload_url_path options run in a separate process
  * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
  */
-if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+if (
+	defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS
+	&& ! defined( 'UPLOADS' )
+	&& '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' )
+) {
 	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
 
 	/*
@@ -580,13 +585,14 @@ trait WP_PHPUnit_Default_Group_Filter_Methods {
 	}
 }
 
+// PHPUnit 10 and later have no TestListener interface, so the filter is not declared there.
 if ( version_compare( tests_get_phpunit_version(), '6.0', '<' ) ) {
 	class WP_PHPUnit_Default_Group_Filter implements PHPUnit_Framework_TestListener {
 		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
 			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
 		}
 	}
-} else {
+} elseif ( interface_exists( 'PHPUnit\Framework\TestListener' ) ) {
 	class WP_PHPUnit_Default_Group_Filter implements PHPUnit\Framework\TestListener {
 		use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation, WP_PHPUnit_Default_Group_Filter_Methods {
 			WP_PHPUnit_Default_Group_Filter_Methods::start_test_suite insteadof Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;

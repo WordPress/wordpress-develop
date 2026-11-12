@@ -1,11 +1,7 @@
 /**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
-
-/**
  * Internal dependencies
  */
+import { test, expect } from '../fixtures';
 import {
 	TEST_IMAGE_PATH,
 	TEST_AUDIO_PATH,
@@ -13,12 +9,25 @@ import {
 	UNDECODABLE_HEIC,
 	failMediaCreate,
 	stubClassicUpload,
+	trackUploads,
 	withoutHeicDecoder,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
 // "Select Files" browse button; setting files on it triggers FilesAdded.
 const FILE_INPUT_SELECTOR = '.moxie-shim-html5 input[type="file"]';
+
+/**
+ * Finds the Edit links that async-upload.php renders for finished uploads.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {import('@playwright/test').Locator} The Edit links.
+ */
+function editLinks( page ) {
+	return page
+		.locator( '#media-items' )
+		.getByRole( 'link', { name: 'Edit', exact: true } );
+}
 
 /**
  * Adjusts the settings plupload-handlers.js builds the uploader from.
@@ -53,11 +62,6 @@ async function overrideUploaderInit( page, adjust ) {
 }
 
 test.describe( 'Add New Media File client-side uploads', () => {
-	test.afterEach( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllMedia();
-		await requestUtils.deleteAllPosts();
-	} );
-
 	test( 'sends the Document-Isolation-Policy header', async ( {
 		page,
 		admin,
@@ -80,6 +84,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
+		attachments,
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
@@ -127,15 +132,14 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		const ids = trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The finished attachment row renders with the Edit link fetched
 		// from the async-upload.php markup endpoint.
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		// The original upload and every sideload go through the REST API,
 		// and the upload is finalized exactly once.
@@ -149,9 +153,8 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// The finalized attachment carries the browser-generated sub-sizes
 		// in its metadata (the 640x480 source is larger than thumbnail and
 		// medium), and the sideloaded thumbnail file really exists.
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
 		const sizes = attachment.media_details.sizes || {};
 		expect( Object.keys( sizes ) ).toEqual(
@@ -167,6 +170,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'warns before leaving while a pipeline upload is in flight', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -198,6 +202,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			{ timeout: 60_000 }
 		);
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
@@ -218,9 +223,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		await expect
 			.poll( () =>
@@ -238,6 +241,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'shows an error for a disallowed file type', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -249,6 +253,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			'The client-side pipeline requires a cross-origin isolated context'
 		);
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( {
@@ -263,7 +268,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// depending on which layer rejects the file first.
 		const errorItem = page
 			.locator( '.media-item .error-div, .media-item.error' )
-			.first();
+			.filter( { hasText: 'disallowed.xyz' } );
 		await expect( errorItem ).toBeVisible( { timeout: 30_000 } );
 
 		// The reason has to be readable: getErrorMessage() returns an object,
@@ -274,11 +279,13 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'attaches the upload to the post named by post_id', async ( {
 		page,
 		admin,
+		attachments,
+		postFactory,
 		requestUtils,
 	} ) => {
 		// Published, so the attachment (post_status 'inherit') stays visible
 		// in the media collection.
-		const post = await requestUtils.createPost( {
+		const post = await postFactory.create( {
 			title: 'Client-side upload parent',
 			status: 'publish',
 		} );
@@ -293,26 +300,25 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			'The client-side pipeline requires a cross-origin isolated context'
 		);
 
+		const ids = trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		// The classic flow posts `post_id` to async-upload.php; the pipeline
 		// has to send the REST equivalent or the file lands unattached even
 		// though the screen counts it against the post.
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
 		expect( attachment.post ).toBe( post.id );
 	} );
 	test( 'falls back to the classic uploader when the page is not isolated', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// Blocking the Document-Isolation-Policy header reproduces every
 		// browser that ignores it: the page is not isolated, the script
@@ -352,13 +358,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
@@ -367,6 +372,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'uploads several files at once, including duplicates', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -390,19 +396,21 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
 
-		// Each finished row carries the Edit link (the markup may repeat
-		// the class inside a row, so count rows rather than links).
-		await expect(
-			page.locator( '#media-items .media-item:has(.edit-attachment)' )
-		).toHaveCount( 2, { timeout: 90_000 } );
+		// Each finished row carries one Edit link.
+		await expect( editLinks( page ) ).toHaveCount( 2, { timeout: 90_000 } );
 		expect( finalizeCount ).toBe( 2 );
 	} );
 
-	test( 'reports pipeline progress on the item', async ( { page, admin } ) => {
+	test( 'reports pipeline progress on the item', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
 		const isolated = await page.evaluate( () =>
@@ -431,6 +439,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			{ timeout: 60_000 }
 		);
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
@@ -438,7 +447,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		// The screen's own progress markup (from fileQueued) reflects the
 		// pipeline: past zero, not yet complete.
-		const item = page.locator( '#media-items .media-item' ).first();
+		const item = page.locator( '#media-items .media-item' );
 		await expect( item.locator( '.percent' ) ).toHaveText( /^[1-9]\d?%$/ );
 		await expect( item.locator( '.bar' ) ).toHaveAttribute(
 			'style',
@@ -449,14 +458,13 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 	} );
 
 	test( 'surfaces a pipeline error with the server message', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -470,26 +478,23 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		await failMediaCreate( page );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// itemAjaxError() renders the message inside the item, alongside
 		// the file name, exactly as a classic upload error would.
-		const item = page.locator( '#media-items .media-item' ).first();
-		await expect( item.locator( '.error-div' ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-		await expect( item.locator( '.error-div' ) ).toContainText(
-			SIMULATED_ERROR.message
-		);
-		await expect( item.locator( '.error-div' ) ).toContainText(
-			'test-image.jpg'
-		);
+		const error = page
+			.locator( '#media-items' )
+			.getByText( SIMULATED_ERROR.message );
+		await expect( error ).toBeVisible( { timeout: 60_000 } );
+		await expect( error ).toContainText( 'test-image.jpg' );
 	} );
 	test( 'uploads unattached when post_id is not a valid post', async ( {
 		page,
 		admin,
+		attachments,
 		requestUtils,
 	} ) => {
 		// media_upload_form() hands plupload the raw post_id, but the screen
@@ -506,20 +511,18 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			'The client-side pipeline requires a cross-origin isolated context'
 		);
 
+		const ids = trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 		await expect( page.locator( '.media-item .error-div' ) ).toHaveCount(
 			0
 		);
 
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids.at( -1 ) }`,
 		} );
 		expect( attachment.post ).toBeNull();
 	} );
@@ -527,6 +530,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'forwards plupload multipart params to the REST upload', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -567,13 +571,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			};
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		const bodies = await page.evaluate( () => window.__e2eCreateBodies );
 		expect( bodies.length ).toBeGreaterThanOrEqual( 1 );
@@ -588,6 +591,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'leaves audio files to the classic uploader', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -616,13 +620,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_AUDIO_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
@@ -631,6 +634,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -658,13 +662,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
-		await expect(
-			page.locator( '#media-items .media-item:has(.edit-attachment)' )
-		).toHaveCount( 2, { timeout: 90_000 } );
+		await expect( editLinks( page ) ).toHaveCount( 2, { timeout: 90_000 } );
 
 		// The image went through the pipeline, the audio file through plupload.
 		expect( restCreateCount ).toBe( 1 );
@@ -674,6 +677,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -705,13 +709,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 
 		expect( asyncFileUploads ).toBe( 1 );
 		expect( restUploadCount ).toBe( 0 );
@@ -720,6 +723,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'renders a failed upload with an accessible Dismiss button', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -733,13 +737,16 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		await failMediaCreate( page );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// Same markup as a server-side failure from async-upload.php: a
 		// real button, described by the notice it dismisses.
-		const notice = page.locator( '.media-item .error-div' ).first();
+		const notice = page
+			.locator( '#media-items .error-div' )
+			.filter( { hasText: 'test-image.jpg' } );
 		await expect( notice ).toBeVisible( { timeout: 60_000 } );
 		const dismiss = notice.getByRole( 'button', { name: 'Dismiss' } );
 		await expect( dismiss ).toBeVisible();
@@ -760,6 +767,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'hands a HEIC the browser cannot decode to the server when it can convert it', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// No heic_upload_error means the server's image editor handles HEIC.
 		await overrideUploaderInit( page, ( settings ) => {
@@ -795,6 +803,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( UNDECODABLE_HEIC );
@@ -824,6 +833,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	test( 'keeps a PostInit handler another script placed in wpUploaderInit', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// A plugin that adds its own handler map before the uploader is
 		// created must still see its PostInit run once the pipeline hooks in.
@@ -846,6 +856,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			'The client-side pipeline requires a cross-origin isolated context'
 		);
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 
@@ -868,14 +879,13 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 
 		// The pipeline's own hook still intercepted the upload.
-		await expect(
-			page.locator( '#media-items .media-item .edit-attachment' ).first()
-		).toBeVisible( { timeout: 60_000 } );
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
 		expect( restUploadCount ).toBe( 1 );
 	} );
 	test( 'fires uploadComplete only once plupload has finished its share of a batch', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
@@ -906,13 +916,12 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			};
 		} );
 
+		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
 		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
 
-		await expect(
-			page.locator( '#media-items .media-item:has(.edit-attachment)' )
-		).toHaveCount( 2, { timeout: 90_000 } );
+		await expect( editLinks( page ) ).toHaveCount( 2, { timeout: 90_000 } );
 
 		const states = await page.evaluate( () => ( {
 			calls: window.__uploadCompleteStates,

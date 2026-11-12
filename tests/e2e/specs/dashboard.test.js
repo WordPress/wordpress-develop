@@ -1,16 +1,43 @@
 /**
- * External dependencies
+ * Internal dependencies
  */
-import { randomUUID } from 'node:crypto';
-
-/**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
+import { signIn } from '../fixtures/user';
 
 test.describe( 'Quick Draft', () => {
-	test.beforeEach( async ({ requestUtils }) => {
-		await requestUtils.deleteAllPosts();
+	// Recent Drafts and the author-filtered post list show only this user's posts.
+	test.use( { storageState: { cookies: [], origins: [] } } );
+	let userId;
+
+	test.beforeEach( async ( { page, userFactory } ) => {
+		userId = undefined;
+		const { user, username, password } = await userFactory.create( {
+			roles: [ 'administrator' ],
+		} );
+		userId = user.id;
+		await signIn( page, username, password );
+		await expect(
+			page.getByRole( 'heading', { name: 'Dashboard', exact: true } )
+		).toBeVisible();
+	} );
+
+	// Deleting the user would move its saved drafts to the trash.
+	test.afterEach( async ( { requestUtils } ) => {
+		// Without an author, the query would match other workers' drafts.
+		if ( ! userId ) {
+			return;
+		}
+		const drafts = await requestUtils.rest( {
+			path: '/wp/v2/posts',
+			params: { author: userId, status: 'draft', per_page: 100 },
+		} );
+		for ( const draft of drafts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ draft.id }`,
+				params: { force: true },
+			} );
+		}
 	} );
 
 	test( 'should allow Quick Draft to be created with Title and Content', async ( {
@@ -49,20 +76,31 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', {
+				name: 'Edit “Quick Draft test title”',
+				exact: true,
+			} )
 		).toHaveText( 'Quick Draft test title' );
 
 		// Check that the new draft content appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-content' ).first()
-		).toHaveText( 'Quick Draft test content' );
+			page.getByText( 'Quick Draft test content', { exact: true } )
+		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( 'Quick Draft test title' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', {
+						name: 'Quick Draft test title',
+						exact: true,
+					} ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 
 	test( 'should prevent Quick Draft from being created without Title and Content', async ( {
@@ -85,11 +123,11 @@ test.describe( 'Quick Draft', () => {
 		).toHaveText( 'Cannot create a draft post with empty title and content.' );
 
 		// Check that no new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
-			page.locator( '#the-list .no-items .colspanchange' )
-		).toContainText( 'No posts found.' );
+			page.getByRole( 'cell', { name: 'No posts found.' } )
+		).toBeVisible();
 	} );
 
 	test( 'should allow Quick Draft to be created with only the Title', async ( {
@@ -118,15 +156,26 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', {
+				name: 'Edit “Quick Draft test title”',
+				exact: true,
+			} )
 		).toHaveText( 'Quick Draft test title' );
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( 'Quick Draft test title' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', {
+						name: 'Quick Draft test title',
+						exact: true,
+					} ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 
 	test( 'should allow Quick Draft to be created with only the Content', async ( {
@@ -155,19 +204,24 @@ test.describe( 'Quick Draft', () => {
 
 		// Check that the new draft title appears in the 'Your Recent Drafts' section.
 		await expect(
-			page.locator( '.drafts .draft-title' ).first().getByRole( 'link' )
+			page.getByRole( 'link', { name: 'Edit “(no title)”', exact: true } )
 		).toHaveText( '(no title)' );
 
 		await expect(
-			page.locator( '.drafts .draft-content' ).first()
-		).toHaveText( 'Quick Draft test content' );
+			page.getByText( 'Quick Draft test content', { exact: true } )
+		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
-			page.locator( '.type-post.status-draft .title' ).first()
-		).toContainText( '(no title)' );
+			page
+				.getByRole( 'row' )
+				.filter( {
+					has: page.getByRole( 'link', { name: '(no title)' } ),
+				} )
+				.getByText( 'Draft', { exact: true } )
+		).toBeVisible();
 	} );
 } );
 
@@ -191,32 +245,13 @@ async function saveDashboardPreference( page, action, change ) {
 test.describe( 'Dashboard preferences', () => {
 	test.use( { storageState: { cookies: [], origins: [] } } );
 	let dashboard;
-	let user;
 
-	test.beforeEach( async ( { page, requestUtils, baseURL } ) => {
-		user = undefined;
-		const username = `e2e-dashboard-${ randomUUID() }`;
-		const password = randomUUID();
-		user = await requestUtils.createUser( {
-			username,
-			password,
-			email: `${ username }@example.org`,
+	test.beforeEach( async ( { page, userFactory, baseURL } ) => {
+		const { username, password } = await userFactory.create( {
 			roles: [ 'administrator' ],
 		} );
 		dashboard = page;
-		await dashboard.goto( new URL( 'wp-login.php', baseURL ).href );
-		const usernameField = dashboard.getByLabel(
-			'Username or Email Address',
-			{ exact: true }
-		);
-		await expect( usernameField ).toBeFocused();
-		await usernameField.fill( username );
-		await dashboard
-			.getByLabel( 'Password', { exact: true } )
-			.fill( password );
-		await dashboard
-			.getByRole( 'button', { name: 'Log In', exact: true } )
-			.click();
+		await signIn( dashboard, username, password );
 		await expect(
 			dashboard.getByRole( 'heading', { name: 'Dashboard', exact: true } )
 		).toBeVisible();
@@ -227,28 +262,6 @@ test.describe( 'Dashboard preferences', () => {
 		expect( response.ok() ).toBe( true );
 		await response.dispose();
 		await dashboard.goto( new URL( 'wp-admin/index.php', baseURL ).href );
-	} );
-
-	test.afterEach( async ( { requestUtils } ) => {
-		if ( user ) {
-			// User deletion only trashes posts; permanently delete this user's Quick Draft auto-drafts first.
-			const drafts = await requestUtils.rest( {
-				path: '/wp/v2/posts',
-				params: { author: user.id, status: 'auto-draft', per_page: 100 },
-			} );
-			for ( const draft of drafts ) {
-				await requestUtils.rest( {
-					method: 'DELETE',
-					path: `/wp/v2/posts/${ draft.id }`,
-					params: { force: true },
-				} );
-			}
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/users/${ user.id }`,
-				params: { force: true, reassign: false },
-			} );
-		}
 	} );
 
 	test( 'keeps the Welcome panel dismissed after reload', async () => {
@@ -328,7 +341,7 @@ test.describe( 'Dashboard preferences', () => {
 
 	test( 'saves a widget collapse and expansion', async () => {
 		const widget = dashboard.locator( '#dashboard_right_now' );
-		const content = widget.locator( '.inside' );
+		const content = widget.locator( '#wp-version-message' );
 		const toggle = widget.getByRole( 'button', {
 			name: 'Show or hide panel',
 			exact: true,

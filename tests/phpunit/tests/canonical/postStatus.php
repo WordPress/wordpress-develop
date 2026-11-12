@@ -185,14 +185,6 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		self::setup_custom_types();
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'a-public-cpt' );
-		unregister_post_type( 'a-private-cpt' );
-		_unregister_post_status( 'a-private-status' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Gives a fake attachment the GUID it would get on a site with plain permalinks.
 	 *
