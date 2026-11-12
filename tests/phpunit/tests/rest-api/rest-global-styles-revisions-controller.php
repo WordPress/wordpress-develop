@@ -211,17 +211,17 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	public function set_up() {
 		parent::set_up();
 		switch_theme( 'tt1-blocks' );
-		$revisions             = wp_get_post_revisions( self::$global_styles_id );
+		$revisions             = array_values( wp_get_post_revisions( self::$global_styles_id ) );
 		$this->total_revisions = count( $revisions );
 
-		$this->revision_1    = array_pop( $revisions );
-		$this->revision_1_id = $this->revision_1->ID;
+		$this->revision_3    = $revisions[0];
+		$this->revision_3_id = $this->revision_3->ID;
 
-		$this->revision_2    = array_pop( $revisions );
+		$this->revision_2    = $revisions[1];
 		$this->revision_2_id = $this->revision_2->ID;
 
-		$this->revision_3    = array_pop( $revisions );
-		$this->revision_3_id = $this->revision_3->ID;
+		$this->revision_1    = $revisions[2];
+		$this->revision_1_id = $this->revision_1->ID;
 	}
 
 	/**
@@ -961,8 +961,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
-		$this->assertSame( 3, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 4, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
@@ -971,8 +971,8 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
+		$this->assertCount( 2, $data );
+		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
 		$this->assertSame( 2, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test out of bounds.
@@ -1347,7 +1347,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
-		$this->assertCount( 2, $data, 'Should have 2 revisions.' );
+		$this->assertCount( 3, $data, 'Should have 3 revisions.' );
 
 		// Verify first revision (most recent - orange).
 		$this->assertArrayHasKey(
