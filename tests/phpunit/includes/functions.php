@@ -360,7 +360,9 @@ function _upload_dir_https( $uploads ) {
  * @return string The upload URL.
  */
 function _upload_get_url( $path = '', $scheme = 'http' ) {
-	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( UPLOADS ) . ltrim( $path, '/' );
+	$uploads = defined( 'UPLOADS' ) ? UPLOADS : 'wp-content/uploads';
+
+	return $scheme . '://' . WP_TESTS_DOMAIN . '/' . trailingslashit( $uploads ) . ltrim( $path, '/' );
 }
 
 /**

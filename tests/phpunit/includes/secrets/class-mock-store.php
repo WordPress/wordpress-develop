@@ -5,7 +5,7 @@
  * Can be told to fail any operation on demand, and records every value it is ever
  * handed so that a test can assert it was never given a plaintext.
  */
-class Mock_Store implements WP_Secrets_Store {
+class Mock_Store extends WP_Secrets_Store {
 
 	/**
 	 * Stored records, keyed by scope and name.
