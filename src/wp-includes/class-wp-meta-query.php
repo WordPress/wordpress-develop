@@ -103,6 +103,7 @@ class WP_Meta_Query {
 	 * @since 5.1.0 Introduced `$compare_key` clause parameter, which enables LIKE key matches.
 	 * @since 5.3.0 Increased the number of operators available to `$compare_key`. Introduced `$type_key`,
 	 *              which enables the `$key` to be cast to a new data type for comparisons.
+	 * @since 7.3.0 Introduced the `$exclude_empty` clause parameter.
 	 *
 	 * @param array $meta_query {
 	 *     Array of meta query clauses. When first-order clauses or sub-clauses use strings as
@@ -162,6 +163,14 @@ class WP_Meta_Query {
 	 *                                            - 'TIME'
 	 *                                            - 'UNSIGNED'
 	 *                                            Default is 'CHAR'.
+	 *         @type bool            $exclude_empty Whether to exclude objects that have no metadata for `$key`.
+	 *                                            When false, the meta table is LEFT JOINed on `$key`, so
+	 *                                            objects without the key are kept in the results (and sort
+	 *                                            as NULL when ordering by this clause). Any `$value`
+	 *                                            condition then only applies to objects that have the key.
+	 *                                            Only honored when `$key` is set and `$compare_key` is '=',
+	 *                                            'EXISTS' or 'IN'; ignored for `$compare` 'NOT EXISTS'.
+	 *                                            Default true.
 	 *     }
 	 * }
 	 */
@@ -265,6 +274,7 @@ class WP_Meta_Query {
 	 * Constructs a meta query based on 'meta_*' query vars
 	 *
 	 * @since 3.2.0
+	 * @since 7.3.0 Added support for the 'meta_exclude_empty' query var.
 	 *
 	 * @param array $qv The query variables.
 	 */
@@ -282,6 +292,11 @@ class WP_Meta_Query {
 			if ( ! empty( $qv[ "meta_$key" ] ) ) {
 				$primary_meta_query[ $key ] = $qv[ "meta_$key" ];
 			}
+		}
+
+		// 'meta_exclude_empty' only makes sense alongside 'meta_key', and false is meaningful.
+		if ( isset( $primary_meta_query['key'] ) && isset( $qv['meta_exclude_empty'] ) ) {
+			$primary_meta_query['exclude_empty'] = wp_validate_boolean( $qv['meta_exclude_empty'] );
 		}
 
 		// WP_Query sets 'meta_value' = '' by default.
@@ -584,17 +599,46 @@ class WP_Meta_Query {
 		$meta_compare     = $clause['compare'];
 		$meta_compare_key = $clause['compare_key'];
 
+		if ( isset( $clause['exclude_empty'] ) ) {
+			$clause['exclude_empty'] = wp_validate_boolean( $clause['exclude_empty'] );
+		}
+
+		/*
+		 * When 'exclude_empty' is false, objects without the meta key are kept by
+		 * LEFT JOINing the meta table with the key condition inside the ON clause.
+		 * This is only possible for positive key comparisons, and is meaningless for NOT EXISTS.
+		 */
+		$include_empty = isset( $clause['key'] )
+			&& isset( $clause['exclude_empty'] )
+			&& false === $clause['exclude_empty']
+			&& 'NOT EXISTS' !== $meta_compare
+			&& in_array( $meta_compare_key, array( '=', 'EXISTS', 'IN' ), true );
+
 		// First build the JOIN clause, if one is required.
 		$join = '';
 
-		// We prefer to avoid joins if possible. Look for an existing join compatible with this clause.
-		$alias = $this->find_compatible_table_alias( $clause, $parent_query );
+		/*
+		 * We prefer to avoid joins if possible. Look for an existing join compatible with this clause.
+		 * A LEFT JOIN restricted to a specific key can't be shared with other clauses.
+		 */
+		$alias = $include_empty ? false : $this->find_compatible_table_alias( $clause, $parent_query );
 		if ( false === $alias ) {
 			$i     = count( $this->table_aliases );
 			$alias = $i ? 'mt' . $i : $this->meta_table;
 
-			// JOIN clauses for NOT EXISTS have their own syntax.
-			if ( 'NOT EXISTS' === $meta_compare ) {
+			if ( $include_empty ) {
+				$join .= " LEFT JOIN $this->meta_table";
+				$join .= $i ? " AS $alias" : '';
+
+				if ( 'IN' === $meta_compare_key ) {
+					$keys  = (array) $clause['key'];
+					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key IN (" . substr( str_repeat( ',%s', count( $keys ) ), 1 ) . ') )', $keys ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				} else {
+					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", trim( $clause['key'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				}
+
+				// JOIN clauses for NOT EXISTS have their own syntax.
+			} elseif ( 'NOT EXISTS' === $meta_compare ) {
 				$join .= " LEFT JOIN $this->meta_table";
 				$join .= $i ? " AS $alias" : '';
 
@@ -641,8 +685,8 @@ class WP_Meta_Query {
 
 		// Next, build the WHERE clause.
 
-		// meta_key.
-		if ( array_key_exists( 'key', $clause ) ) {
+		// meta_key. When including empty values, the key condition already lives in the JOIN.
+		if ( array_key_exists( 'key', $clause ) && ! $include_empty ) {
 			if ( 'NOT EXISTS' === $meta_compare ) {
 				$sql_chunks['where'][] = $alias . '.' . $this->meta_id_column . ' IS NULL';
 			} else {
@@ -775,10 +819,17 @@ class WP_Meta_Query {
 
 			if ( $where ) {
 				if ( 'CHAR' === $meta_type ) {
-					$sql_chunks['where'][] = "$alias.meta_value {$meta_compare} {$where}";
+					$value_where = "$alias.meta_value {$meta_compare} {$where}";
 				} else {
-					$sql_chunks['where'][] = "CAST($alias.meta_value AS {$meta_type}) {$meta_compare} {$where}";
+					$value_where = "CAST($alias.meta_value AS {$meta_type}) {$meta_compare} {$where}";
 				}
+
+				// Objects without the key have no value to compare, but are kept.
+				if ( $include_empty ) {
+					$value_where = "( $alias.$this->meta_id_column IS NULL OR $value_where )";
+				}
+
+				$sql_chunks['where'][] = $value_where;
 			}
 		}
 
@@ -838,6 +889,11 @@ class WP_Meta_Query {
 
 			// We're only interested in siblings that are first-order clauses.
 			if ( ! is_array( $sibling ) || ! $this->is_first_order_clause( $sibling ) ) {
+				continue;
+			}
+
+			// A sibling that keeps empty values may have a key-restricted LEFT JOIN, which can't be shared.
+			if ( isset( $sibling['exclude_empty'] ) && false === $sibling['exclude_empty'] ) {
 				continue;
 			}
 

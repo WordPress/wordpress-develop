@@ -1012,4 +1012,122 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		$this->assertTrue( $q->has_or_relation() );
 	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_exclude_empty_false_uses_left_join_with_key_in_on_clause() {
+		global $wpdb;
+
+		$query = new WP_Meta_Query(
+			array(
+				array(
+					'key'           => 'foo',
+					'value'         => 'bar',
+					'exclude_empty' => false,
+				),
+			)
+		);
+
+		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$this->assertStringContainsString( "LEFT JOIN {$wpdb->postmeta} ON ( {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = 'foo' )", $sql['join'] );
+		$this->assertStringNotContainsString( 'INNER JOIN', $sql['join'] );
+		$this->assertStringNotContainsString( "{$wpdb->postmeta}.meta_key = 'foo'", $sql['where'] );
+		$this->assertStringContainsString( "( {$wpdb->postmeta}.post_id IS NULL OR {$wpdb->postmeta}.meta_value = 'bar' )", $sql['where'] );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_exclude_empty_false_key_only_adds_no_where() {
+		global $wpdb;
+
+		$query = new WP_Meta_Query(
+			array(
+				array(
+					'key'           => 'foo',
+					'exclude_empty' => false,
+				),
+			)
+		);
+
+		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$this->assertStringContainsString( 'LEFT JOIN', $sql['join'] );
+		$this->assertSame( '', $sql['where'] );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_exclude_empty_defaults_to_true() {
+		global $wpdb;
+
+		$query = new WP_Meta_Query(
+			array(
+				array(
+					'key' => 'foo',
+				),
+			)
+		);
+
+		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$this->assertStringContainsString( 'INNER JOIN', $sql['join'] );
+		$this->assertStringNotContainsString( 'LEFT JOIN', $sql['join'] );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_parse_query_vars_meta_exclude_empty() {
+		$query = new WP_Meta_Query();
+		$query->parse_query_vars(
+			array(
+				'meta_key'           => 'foo',
+				'meta_exclude_empty' => '0',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'key'           => 'foo',
+				'exclude_empty' => false,
+			),
+			$query->queries[0]
+		);
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_exclude_empty_false_clauses_do_not_share_alias_under_or() {
+		global $wpdb;
+
+		$query = new WP_Meta_Query(
+			array(
+				'relation' => 'OR',
+				array(
+					'key'   => 'foo',
+					'value' => 'a',
+				),
+				array(
+					'key'           => 'bar',
+					'value'         => 'b',
+					'exclude_empty' => false,
+				),
+				array(
+					'key'   => 'baz',
+					'value' => 'c',
+				),
+			)
+		);
+
+		$sql = $query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		// 'foo' and 'baz' share one join; 'bar' gets its own.
+		$this->assertSame( 2, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertStringContainsString( "mt1.meta_key = 'bar' )", $sql['join'] );
+	}
 }
