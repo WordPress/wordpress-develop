@@ -842,7 +842,7 @@
 				}
 			},
 			"core/post-comments-form": {
-				"css": "& textarea{border-color: var(--wp--preset--color--contrast);} & input:not([type=submit]){border-color: var(--wp--preset--color--contrast);} & textarea:hover{border-color: var(--wp--preset--color--accent-3);} & input:not([type=submit]):hover{border-color: var(--wp--preset--color--accent-3);} & input[type=checkbox]{margin:0 .5rem 0 0 !important;} & .comment-form > * {margin-top: var(--wp--style--block-gap);margin-bottom: 0;}",
+				"css": "& textarea{border-color: var(--wp--preset--color--contrast);} & input:not([type=submit]){border-color: var(--wp--preset--color--contrast);} & textarea:hover{border-color: var(--wp--preset--color--accent-3);} & input:not([type=submit]):hover{border-color: var(--wp--preset--color--accent-3);} & input[type=checkbox]{margin-block:0 !important;margin-inline-start:0;margin-inline-end:.5rem;} & .comment-form > * {margin-top: var(--wp--style--block-gap);margin-bottom: 0;}",
 				"elements": {
 					"label": {
 						"typography": {
