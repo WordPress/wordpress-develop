@@ -33,17 +33,19 @@ Description: Used to style blocks in the editor.
 	color: #444;
 }
 
-.editor-post-title__block .editor-post-title__input {
-	font-family: "Open Sans", Helvetica, Arial, sans-serif;
-	font-size: 20px;
-	font-weight: 400;
+.editor-post-title__block .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title {
+    font-family: "Open Sans", Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 400;
 }
 
 @media screen and (min-width: 600px) {
-	.editor-post-title__block .editor-post-title__input {
-		font-size: 22px;
-	}
-}
+    .editor-post-title__block .editor-post-title__input, 
+    .editor-styles-wrapper .wp-block-post-title{
+        font-size: 22px;
+    }
+ }
 
 .wp-block-freeform.block-library-rich-text__tinymce h1 {
 	font-size: 21px;
