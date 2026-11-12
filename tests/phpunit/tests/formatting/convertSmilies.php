@@ -198,10 +198,11 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> --> :) </pre> :)', 1 ),
 			'nested ignored tags'                          => array( '<pre><code> :) </code> :) </pre> :)', 1 ),
 			'same ignored tag nested'                      => array( '<code><code> :) </code> :) </code> :)', 1 ),
-			'ignored tag still open after its parent'      => array( '<pre><code> :) </pre> :) </code> :)', 1 ),
+			'closing tag of parent before its child'       => array( '<pre><code> :) </pre> :) </code> :)', 0 ),
 			'ignored tag never closed inside its parent'   => array( '<pre><code> :) </pre> :)', 0 ),
-			'parent still open after ignored tag closes'   => array( '<code><pre> :) </code> :) </pre> :)', 1 ),
+			'closing tag of outer tag before inner tag'    => array( '<code><pre> :) </code> :) </pre> :)', 0 ),
 			'unmatched closing tag inside ignored tag'     => array( '<pre> :) </code> :) </pre> :)', 1 ),
+			'closing tag without an open ignored tag'      => array( '</pre> :) <pre> :) </pre> :)', 2 ),
 			'less-than sign in text'                       => array( '1 < 2 :) <p> :) </p>', 2 ),
 		);
 	}

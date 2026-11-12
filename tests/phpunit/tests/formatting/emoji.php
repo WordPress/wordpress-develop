@@ -452,10 +452,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> -->&#x1f642;</pre>&#x1f642;', 1 ),
 			'nested ignored tags'                          => array( '<pre><code>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
 			'same ignored tag nested'                      => array( '<code><code>&#x1f642;</code>&#x1f642;</code>&#x1f642;', 1 ),
-			'ignored tag still open after its parent'      => array( '<pre><code>&#x1f642;</pre>&#x1f642;</code>&#x1f642;', 1 ),
+			'closing tag of parent before its child'       => array( '<pre><code>&#x1f642;</pre>&#x1f642;</code>&#x1f642;', 0 ),
 			'ignored tag never closed inside its parent'   => array( '<pre><code>&#x1f642;</pre>&#x1f642;', 0 ),
-			'parent still open after ignored tag closes'   => array( '<code><pre>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
+			'closing tag of outer tag before inner tag'    => array( '<code><pre>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 0 ),
 			'unmatched closing tag inside ignored tag'     => array( '<pre>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
+			'closing tag without an open ignored tag'      => array( '</pre>&#x1f642;<pre>&#x1f642;</pre>&#x1f642;', 2 ),
 			'less-than sign in text'                       => array( '1 < 2 &#x1f642; <p>&#x1f642;</p>', 2 ),
 		);
 	}

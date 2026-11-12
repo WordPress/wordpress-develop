@@ -3655,27 +3655,24 @@ function convert_smilies( $text ) {
 		$token_type = $processor->get_token_type();
 
 		if ( '#tag' === $token_type ) {
-			$tag_name  = $processor->get_tag();
-			$is_closer = $processor->is_tag_closer();
+			$tag_name = $processor->get_tag();
 
-			// A closing tag is unexpected when no CODE or PRE element is open.
-			if ( ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) || ( $is_closer && 0 === count( $ignored_tags ) ) ) {
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
 				continue;
 			}
 
-			if ( ! $is_closer ) {
+			if ( ! $processor->is_tag_closer() ) {
 				$ignored_tags[] = $tag_name;
 				continue;
 			}
 
 			/*
-			 * A closing tag closes the nearest open element of its own name and
-			 * leaves the others open. A CODE element which is still open when its
-			 * containing PRE closes continues into the text which follows.
+			 * A closing tag is expected to match the most recently opened ignored
+			 * element. Any other closing tag is skipped, which errs on the side of
+			 * leaving text unconverted when the markup is not well nested.
 			 */
-			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
-			if ( false !== $opener_at ) {
-				array_splice( $ignored_tags, $opener_at, 1 );
+			if ( end( $ignored_tags ) === $tag_name ) {
+				array_pop( $ignored_tags );
 			}
 			continue;
 		}
@@ -6303,27 +6300,24 @@ function wp_staticize_emoji( $text ) {
 		$token_type = $processor->get_token_type();
 
 		if ( '#tag' === $token_type ) {
-			$tag_name  = $processor->get_tag();
-			$is_closer = $processor->is_tag_closer();
+			$tag_name = $processor->get_tag();
 
-			// A closing tag is unexpected when no CODE or PRE element is open.
-			if ( ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) || ( $is_closer && 0 === count( $ignored_tags ) ) ) {
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
 				continue;
 			}
 
-			if ( ! $is_closer ) {
+			if ( ! $processor->is_tag_closer() ) {
 				$ignored_tags[] = $tag_name;
 				continue;
 			}
 
 			/*
-			 * A closing tag closes the nearest open element of its own name and
-			 * leaves the others open. A CODE element which is still open when its
-			 * containing PRE closes continues into the text which follows.
+			 * A closing tag is expected to match the most recently opened ignored
+			 * element. Any other closing tag is skipped, which errs on the side of
+			 * leaving text unconverted when the markup is not well nested.
 			 */
-			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
-			if ( false !== $opener_at ) {
-				array_splice( $ignored_tags, $opener_at, 1 );
+			if ( end( $ignored_tags ) === $tag_name ) {
+				array_pop( $ignored_tags );
 			}
 			continue;
 		}
