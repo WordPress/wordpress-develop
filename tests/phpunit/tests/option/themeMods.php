@@ -73,6 +73,18 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_theme_mod( 'test_name', $default_value ) );
 	}
 
+	/**
+	 * @ticket 49421
+	 *
+	 * @covers ::get_theme_mod
+	 */
+	public function test_theme_mod_default_value_with_escaped_format_string() {
+		$default_value = 'Copyright %%1$s; all rights reserved.';
+		$theme_mod     = get_theme_mod( 'site_copyright', $default_value );
+
+		$this->assertSame( 'Copyright WordPress; all rights reserved.', sprintf( $theme_mod, 'WordPress' ) );
+	}
+
 	public static function data_theme_mod_default_value_with_percent_symbols() {
 		return array(
 			array(
@@ -105,7 +117,7 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 			),
 			array(
 				'%%1',
-				'%%1',
+				'%1',
 			),
 			array(
 				'%1%',
@@ -113,11 +125,11 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 			),
 			array(
 				'1%%',
-				'1%%',
+				'1%',
 			),
 			array(
 				'%%s',
-				'%%s',
+				'%s',
 			),
 			array(
 				'%s%',
@@ -125,7 +137,7 @@ class Tests_Option_ThemeMods extends WP_UnitTestCase {
 			),
 			array(
 				's%%',
-				's%%',
+				's%',
 			),
 		);
 	}
