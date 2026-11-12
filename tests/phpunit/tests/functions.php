@@ -1714,6 +1714,16 @@ class Tests_Functions extends WP_UnitTestCase {
 					'proper_filename' => false,
 				),
 			),
+			// HTML content is not allowed when using a non-CSV extension.
+			array(
+				DIR_TESTDATA . '/uploads/test-html-in-csv.csv',
+				'test-html-in-csv.jpg',
+				array(
+					'ext'             => false,
+					'type'            => false,
+					'proper_filename' => false,
+				),
+			),
 		);
 
 		// Test a few additional file types on single sites.
@@ -1802,6 +1812,15 @@ class Tests_Functions extends WP_UnitTestCase {
 					array(
 						DIR_TESTDATA . '/uploads/test.csv',
 						'test.csv',
+						array(
+							'ext'             => 'csv',
+							'type'            => 'text/csv',
+							'proper_filename' => false,
+						),
+					),
+					array(
+						DIR_TESTDATA . '/uploads/test-html-in-csv.csv',
+						'test-html-in-csv.csv',
 						array(
 							'ext'             => 'csv',
 							'type'            => 'text/csv',
