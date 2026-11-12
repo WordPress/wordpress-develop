@@ -816,11 +816,6 @@
 					"fontWeight": "500"
 				}
 			},
-			"core/paragraph": {
-				"typography": {
-					"lineHeight": "1.6"
-				}
-			},
 			"core/post-author": {
 				"css": "& .wp-block-post-author__bio{font-size:inherit;margin:0;} & .wp-block-post-author__byline{font-size:inherit;}"
 			},
@@ -1326,7 +1321,7 @@
 			"fontFamily": "var(--wp--preset--font-family--inter)",
 			"fontSize": "var(--wp--preset--font-size--medium)",
 			"fontWeight": "400",
-			"lineHeight": "1.5"
+			"lineHeight": "1.6"
 		}
 	},
 	"templateParts": [
