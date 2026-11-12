@@ -1336,6 +1336,11 @@ figcaption,
 }
 
 /** === Separator === */
+.wp-block[data-align=center]:has(> .wp-block-separator) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .wp-block-separator:not(.is-style-dots) {
   background-color: #767676;
   height: 2px;
@@ -1343,6 +1348,10 @@ figcaption,
 .wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
   width: 2.25em;
   margin-left: 0;
+}
+.wp-block-separator:not(.is-style-wide):not(.is-style-dots).aligncenter, .wp-block[data-align=center] > .wp-block-separator:not(.is-style-wide):not(.is-style-dots), .wp-block[data-align=wide] > .wp-block-separator:not(.is-style-wide):not(.is-style-dots), .wp-block[data-align=full] > .wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
+  margin-left: auto;
+  margin-right: auto;
 }
 .wp-block-separator.is-style-dots {
   color: #767676;
