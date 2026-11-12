@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-single-sidebar
  * Template Types: single
  * Inserter: no
- * Description: The Single Posts Sidebar template. It has the post with its tags, author card, Comments and Keep Reading sections beside the Sidebar part on the wide width, between the header and the wide footer, with the search bar pinned to the bottom.
+ * Description: The Single Posts Sidebar template. It has the post with its tags, author card, Comments and Keep Reading sections beside the Sidebar part on the wide width, between the theme header and the wide theme footer, with the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0

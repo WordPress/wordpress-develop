@@ -14,6 +14,13 @@ Text Domain: ipsum
 Tags: one-column, featured-images, full-site-editing, block-patterns, rtl-language-support, sticky-post, threaded-comments, translation-ready, wide-blocks, block-styles, style-variations, blog
 */
 
+/*
+ * IMPORTANT: This file is only served on the frontend when `SCRIPT_DEBUG` is enabled;
+ * in most instances, the `style.min.css` file will be served. It is not recommended that you
+ * use the Theme File Editor to modify this stylesheet. Instead, add the necessary style
+ * overrides via "Additional CSS" in the Site Editor.
+ */
+
 /* Crossfade page transition */
 
 @media (prefers-reduced-motion: no-preference) {

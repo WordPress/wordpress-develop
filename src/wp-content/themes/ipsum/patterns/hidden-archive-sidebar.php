@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-archive-sidebar
  * Template Types: archive, category, tag
  * Inserter: no
- * Description: The All Archives Sidebar template. It has the archive title and the Archive Simple listing beside the Sidebar part on the wide width, between the header and the wide footer, with the search bar pinned to the bottom.
+ * Description: The All Archives Sidebar template. It has the archive title and the Archive Simple listing beside the Sidebar part on the wide width, between the theme header and the wide theme footer, with the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0

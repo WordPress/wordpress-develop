@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-search
  * Template Types: search
  * Inserter: no
- * Description: The Search Results template. It has the header, the results title over the search field, the matching posts in the Archive Compact listing with a no-results message and pagination, and the footer.
+ * Description: The Search Results template. It has the theme header, the results title over the search field, the matching posts in the Archive Compact listing with a no-results message and pagination, and the theme footer.
  *
  * @package Ipsum
  * @since Ipsum 1.0

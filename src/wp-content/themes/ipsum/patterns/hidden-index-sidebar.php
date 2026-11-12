@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-index-sidebar
  * Template Types: index, home
  * Inserter: no
- * Description: The Index Sidebar template. It has the latest posts in full, as in Archive Full, beside the Sidebar part on the wide width, between the header and the wide footer, with the search bar pinned to the bottom.
+ * Description: The Index Sidebar template. It has the latest posts in full, as in Archive Full, beside the Sidebar part on the wide width, between the theme header and the wide theme footer, with the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0

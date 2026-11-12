@@ -260,8 +260,10 @@ if ( ! function_exists( 'ipsum_get_design_guide_presets' ) ) :
 	 * @since Ipsum 1.0
 	 *
 	 * @param mixed    $presets The presets from the global settings, keyed by origin.
+	 *                          Anything other than an array gives an empty list.
 	 * @param string[] $keys    The preset properties to keep.
-	 * @return array<int, array<string, mixed>> The presets, with only the given properties.
+	 * @return array<int, array<string, mixed>> The presets, with only the given properties. Empty when
+	 *                                          `$presets` isn't an array.
 	 */
 	function ipsum_get_design_guide_presets( $presets, $keys ) {
 		$items = array();
