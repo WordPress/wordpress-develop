@@ -1116,7 +1116,6 @@ function wp_get_image_alttext( $file ) {
 	// Image metadata is untrusted input, so suppress libxml errors while parsing.
 	$use_internal_errors = libxml_use_internal_errors( true );
 	$loaded              = $doc->loadXML( $xmp_data );
-	libxml_clear_errors();
 	libxml_use_internal_errors( $use_internal_errors );
 
 	if ( false === $loaded ) {
