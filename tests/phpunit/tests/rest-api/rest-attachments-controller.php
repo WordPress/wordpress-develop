@@ -2863,6 +2863,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * `image_editor_output_format` filter asks for them. This is the
 	 * baseline for test_sideload_sub_size_in_output_format_not_allowed_by_network().
 	 *
+	 * @ticket 66681
+	 *
 	 * @group multisite
 	 * @group ms-required
 	 * @covers ::wp_generate_attachment_metadata
@@ -2883,7 +2885,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
 
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
-		$metadata      = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsInt( $attachment_id );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'sizes', $metadata );
 
 		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'The server should generate a thumbnail.' );
 		$this->assertSame( 'image/webp', $metadata['sizes']['thumbnail']['mime-type'], 'The thumbnail should be a WebP.' );
@@ -2898,6 +2904,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * The server generates the same sub-size itself on the classic path (see
 	 * test_server_sub_sizes_in_output_format_not_allowed_by_network()), so the
 	 * sideload should not be rejected for its file type.
+	 *
+	 * @ticket 66681
 	 *
 	 * @group multisite
 	 * @group ms-required
@@ -2918,12 +2926,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_param( 'generate_sub_sizes', false );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status(), 'The original upload should succeed.' );
 
-		$attachment_id = $response->get_data()['id'];
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+
+		$attachment_id = $data['id'];
 
 		// A WebP thumbnail, as the client would sideload it.
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
@@ -2931,7 +2943,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.webp' );
 		$request->set_param( 'image_size', 'thumbnail' );
 		$request->set_param( 'convert_format', false );
-		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.webp' ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.webp' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame(
@@ -2939,6 +2951,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$response->get_status(),
 			'Sideloading a WebP sub-size should succeed. Response: ' . wp_json_encode( $response->get_data() )
 		);
+	}
+
+	/**
+	 * Tests that a sideload is still limited to the network's allowed upload
+	 * file types when it is not in the attachment's output format.
+	 *
+	 * @ticket 66681
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_not_in_output_format_not_allowed_by_network(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		update_site_option( 'upload_filetypes', 'jpg jpeg png gif' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( self::$test_file );
+		$this->assertIsInt( $attachment_id );
+
+		// No output format filter, so the sub-sizes of a JPEG are JPEGs.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/webp' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.webp' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.webp' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_sideload_error', $response, 500 );
+		$this->assertNotContains( 'image/webp', get_allowed_mime_types(), 'The network should still not allow WebP uploads.' );
 	}
 
 	/**
