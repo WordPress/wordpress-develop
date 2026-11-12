@@ -205,13 +205,14 @@ function _wp_personal_data_cleanup_requests() {
 			'date_query'     => array(
 				array(
 					/*
-					 * The local-time column must be used here, not post_modified_gmt:
+					 * An absolute UTC threshold is compared against the GMT column so that
+					 * the expiry window matches wp_validate_user_request_key() and is not
+					 * affected by the site's timezone changing after a request was made.
 					 * WP_Date_Query resolves relative date strings like "N seconds ago"
-					 * in the site's timezone, so comparing against the GMT column would
-					 * shift the expiry window by the site's UTC offset.
+					 * in the site's timezone, so a relative string cannot be used here.
 					 */
-					'column' => 'post_modified',
-					'before' => $expires . ' seconds ago',
+					'column' => 'post_modified_gmt',
+					'before' => gmdate( 'Y-m-d H:i:s', time() - $expires ),
 				),
 			),
 		)
