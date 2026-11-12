@@ -67,7 +67,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'ff058229379c14fcfe35'
+		'version' => 'e21e66333153b642b8d0'
 	),
 	'block-editor.js' => array(
 		'dependencies' => array(
@@ -105,7 +105,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => '71945e6a95795173fb11'
+		'version' => '6ce9138caeea03453057'
 	),
 	'block-library.js' => array(
 		'dependencies' => array(
@@ -151,7 +151,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '057286c39ee6e0af8e71'
+		'version' => '593533eeaede8306410f'
 	),
 	'block-serialization-default-parser.js' => array(
 		'dependencies' => array(
@@ -184,7 +184,7 @@
 			'wp-shortcode',
 			'wp-warning'
 		),
-		'version' => '329805e87105829e0168'
+		'version' => '55dc3c9eb46b7387460a'
 	),
 	'commands.js' => array(
 		'dependencies' => array(
@@ -226,7 +226,7 @@
 			'wp-theme',
 			'wp-warning'
 		),
-		'version' => 'b88b50ca09c829a35544'
+		'version' => '351418b2c952645cfd19'
 	),
 	'compose.js' => array(
 		'dependencies' => array(
@@ -282,7 +282,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'd2b82f6369d5503e99bb'
+		'version' => '089f1cc441f999d491af'
 	),
 	'customize-widgets.js' => array(
 		'dependencies' => array(
@@ -318,7 +318,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '45c7cb0399ef9a52a319'
+		'version' => 'd3494925e0851ad5e180'
 	),
 	'data.js' => array(
 		'dependencies' => array(
@@ -358,7 +358,7 @@
 		'dependencies' => array(
 			'wp-deprecated'
 		),
-		'version' => 'd9b90cd4513d2092fd3c'
+		'version' => '7d3dc66e67257499cfc2'
 	),
 	'dom-ready.js' => array(
 		'dependencies' => array(
@@ -409,7 +409,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'edb28f284cd4d1255e3f'
+		'version' => '245083963525a653bdd2'
 	),
 	'edit-site.js' => array(
 		'dependencies' => array(
@@ -457,7 +457,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '76946a5ace1391fc5389'
+		'version' => 'be48d05b0d107b34fa86'
 	),
 	'edit-widgets.js' => array(
 		'dependencies' => array(
@@ -499,7 +499,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '0cb843c6b94c28678428'
+		'version' => 'f665033a8ea6672cb756'
 	),
 	'editor.js' => array(
 		'dependencies' => array(
@@ -549,7 +549,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'c99b4776edd46da8efa2'
+		'version' => '3427e50f718f7602341b'
 	),
 	'element.js' => array(
 		'dependencies' => array(
@@ -591,7 +591,7 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '117212c0dd3e81ccf282'
+		'version' => 'aa22a72719facd7f11f1'
 	),
 	'hooks.js' => array(
 		'dependencies' => array(
@@ -670,7 +670,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'd57a38b0fcb827106cf7'
+		'version' => '808f767656bfbd5a0781'
 	),
 	'notices.js' => array(
 		'dependencies' => array(
@@ -689,7 +689,7 @@
 			'wp-theme',
 			'wp-warning'
 		),
-		'version' => 'e1ab6c883c6de27e2508'
+		'version' => 'c4f2f330a4bec78fda71'
 	),
 	'nux.js' => array(
 		'dependencies' => array(
@@ -720,7 +720,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'ced901bac0e8160bedae'
+		'version' => '6353149476754aed8148'
 	),
 	'plugins.js' => array(
 		'dependencies' => array(
@@ -809,7 +809,7 @@
 			'wp-keycodes',
 			'wp-private-apis'
 		),
-		'version' => '961958792146058e5f18'
+		'version' => '5510dd3aa4c6acb55215'
 	),
 	'router.js' => array(
 		'dependencies' => array(
@@ -855,7 +855,7 @@
 			'wp-element',
 			'wp-private-apis'
 		),
-		'version' => '21b0c3318f26c7b3d71e'
+		'version' => '6751c71c2384cbf4a16c'
 	),
 	'token-list.js' => array(
 		'dependencies' => array(
@@ -889,13 +889,13 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '53994120d019b479c68f'
+		'version' => 'fb949e5ab5fec61c2f35'
 	),
 	'url.js' => array(
 		'dependencies' => array(
 			
 		),
-		'version' => '3c0d9743cc6cd9591281'
+		'version' => '3533885da07b0c3f7107'
 	),
 	'viewport.js' => array(
 		'dependencies' => array(
@@ -932,7 +932,7 @@
 			'wp-theme',
 			'wp-warning'
 		),
-		'version' => '872a8de282ae621f2a8c'
+		'version' => 'e37bfbc510430cbe6596'
 	),
 	'wordcount.js' => array(
 		'dependencies' => array(

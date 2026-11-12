@@ -906,7 +906,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_url_generation() {
 		// In pretty permalinks case, we expect a path of wp-json/ with no query.
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-json/', get_rest_url() );
 
 		// In index permalinks case, we expect a path of index.php/wp-json/ with no query.
@@ -2087,6 +2086,22 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65819
+	 */
+	public function test_rest_get_route_for_post_filter() {
+		$post = self::factory()->post->create_and_get();
+
+		add_filter(
+			'rest_route_for_post',
+			static function () {
+				return '/custom/route';
+			}
+		);
+
+		$this->assertSame( '/custom/route', rest_get_route_for_post( $post ) );
+	}
+
+	/**
 	 * @ticket 49116
 	 */
 	public function test_rest_get_route_for_term_non_term() {
@@ -2134,6 +2149,23 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_get_route_for_term_id() {
 		$term = self::factory()->term->create_and_get();
 		$this->assertSame( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 * @covers ::rest_get_route_for_term
+	 */
+	public function test_rest_get_route_for_term_filter() {
+		$term = self::factory()->category->create_and_get();
+
+		add_filter(
+			'rest_route_for_term',
+			static function () {
+				return '/custom/term-route';
+			}
+		);
+
+		$this->assertSame( '/custom/term-route', rest_get_route_for_term( $term ) );
 	}
 
 	/**

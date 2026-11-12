@@ -1273,7 +1273,10 @@ function get_term_field( $field, $term, $taxonomy = '', $context = 'display' ) {
  *
  * @param int|object $id       Term ID or object.
  * @param string     $taxonomy Taxonomy name.
- * @return string|int|null|WP_Error Will return empty string if $term is not an object.
+ * @return WP_Term|string|WP_Error The term sanitized for editing, WP_Error if the term ID is empty or the
+ *                                 taxonomy does not exist, or an empty string if the term does not exist.
+ *
+ * @phpstan-return WP_Term|''|WP_Error
  */
 function get_term_to_edit( $id, $taxonomy ) {
 	$term = get_term( $id, $taxonomy );
@@ -1786,12 +1789,18 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  *
  * @since 2.3.0
  *
- * @param array|object $term     The term to check.
- * @param string       $taxonomy The taxonomy name to use.
- * @param string       $context  Optional. Context in which to sanitize the term.
- *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                               'attribute', or 'js'. Default 'display'.
- * @return array|object Term with all fields sanitized.
+ * @param array<string, mixed>|object $term     The term to check.
+ * @param string                      $taxonomy The taxonomy name to use.
+ * @param string                      $context  Optional. Context in which to sanitize the term.
+ *                                              Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                                              'attribute', or 'js'. Default 'display'.
+ * @return array|object Term with all fields sanitized (will be the same type as `$term`).
+ *
+ * @phpstan-return (
+ *     $term is WP_Term ? WP_Term : (
+ *         $term is array ? array<string, mixed> : object
+ *     )
+ * )
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );
@@ -1836,16 +1845,16 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *
  * @since 2.3.0
  *
- * @param string $field    Term field to sanitize.
- * @param string $value    Search for this term value.
- * @param int    $term_id  Term ID.
- * @param string $taxonomy Taxonomy name.
- * @param string $context  Context in which to sanitize the term field.
- *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
- *                         'attribute', or 'js'.
+ * @param string     $field    Term field to sanitize.
+ * @param string|int $value    Search for this term value.
+ * @param int        $term_id  Term ID.
+ * @param string     $taxonomy Taxonomy name.
+ * @param string     $context  Context in which to sanitize the term field.
+ *                             Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                             'attribute', or 'js'.
  * @return mixed Sanitized field.
  *
- * @phpstan-template T of string
+ * @phpstan-template T of string|int
  * @phpstan-param T $value
  * @phpstan-return (
  *     $field is 'parent'|'term_id'|'count'|'term_group'|'term_taxonomy_id'|'object_id'
@@ -3731,10 +3740,7 @@ function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 	}
 
 	if ( wp_defer_term_counting() ) {
-		if ( ! isset( $_deferred[ $taxonomy ] ) ) {
-			$_deferred[ $taxonomy ] = array();
-		}
-		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ], $terms ) );
+		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ] ?? array(), $terms ) );
 		return true;
 	}
 
@@ -3791,9 +3797,9 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
  *
  * @since 2.3.0
  *
- * @global bool $_wp_suspend_cache_invalidation
- *
  * @see get_object_taxonomies() for more on $object_type.
+ *
+ * @global bool $_wp_suspend_cache_invalidation.
  *
  * @param int|array    $object_ids  Single or list of term object ID(s).
  * @param array|string $object_type The taxonomy object type.
@@ -4037,9 +4043,6 @@ function update_object_term_cache( $object_ids, $object_type ) {
 	foreach ( $non_cached_ids as $id ) {
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( ! isset( $object_terms[ $id ][ $taxonomy ] ) ) {
-				if ( ! isset( $object_terms[ $id ] ) ) {
-					$object_terms[ $id ] = array();
-				}
 				$object_terms[ $id ][ $taxonomy ] = array();
 			}
 		}
@@ -4529,10 +4532,8 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 
 	// Keep a record of term_ids that have been split, keyed by old term_id. See wp_get_split_term().
 	if ( $record ) {
-		$split_term_data = get_option( '_split_terms', array() );
-		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
-		}
+		$split_term_data               = get_option( '_split_terms', array() );
+		$split_term_data[ $term_id ] ??= array();
 
 		$split_term_data[ $term_id ][ $term_taxonomy->taxonomy ] = $new_term_id;
 		update_option( '_split_terms', $split_term_data );
@@ -4637,9 +4638,7 @@ function _wp_batch_split_terms() {
 			continue;
 		}
 
-		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
-		}
+		$split_term_data[ $term_id ] ??= array();
 
 		// Keep track of taxonomies whose hierarchies need flushing.
 		if ( ! isset( $taxonomies[ $shared_tt->taxonomy ] ) ) {

@@ -60,18 +60,6 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_role( 'grammarian' );
 	}
 
-	/**
-	 * Tear down after each test.
-	 */
-	public function tear_down() {
-		unregister_post_type( 'restless' );
-		unregister_post_type( 'new_post_type' );
-		unregister_taxonomy( 'new_tag' );
-		_unregister_post_status( 'test' );
-
-		parent::tear_down();
-	}
-
 	public function test_parse_post_content_single_page() {
 		global $multipage, $pages, $numpages;
 
@@ -621,7 +609,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type mixed $stick Value to pass to stick_post().
 	 * }
 	 */
-	public function data_stick_post_does_not_duplicate_post_ids() {
+	public static function data_stick_post_does_not_duplicate_post_ids() {
 		return array(
 			array( 1 ),
 			array( '1' ),
@@ -665,7 +653,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_stick_post_with_unexpected_sticky_posts_option() {
+	public static function data_stick_post_with_unexpected_sticky_posts_option() {
 		return array(
 			'false'     => array( false ),
 			'a string'  => array( 'string' ),
@@ -733,7 +721,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type array $expected
 	 * }
 	 */
-	public function data_unstick_post_removes_duplicate_post_ids() {
+	public static function data_unstick_post_removes_duplicate_post_ids() {
 		return array(
 			array(
 				array( 1, 1 ),
@@ -1059,5 +1047,34 @@ class Tests_Post extends WP_UnitTestCase {
 				'expected' => false,
 			),
 		);
+	}
+
+	/**
+	 * Tests that a post title containing %10 produces a working permalink.
+	 *
+	 * @ticket 3329
+	 *
+	 * @covers ::get_permalink
+	 * @covers WP::parse_request
+	 */
+	public function test_post_title_with_percentage_followed_by_numbers() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Test Title %10',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( 'test-title-%10', get_post( $post_id )->post_name );
+
+		$permalink = get_permalink( $post_id );
+		$this->assertStringContainsString( 'test-title-%10', $permalink );
+
+		$this->go_to( $permalink );
+
+		$this->assertTrue( is_single() );
+		$this->assertSame( $post_id, get_queried_object_id() );
 	}
 }
