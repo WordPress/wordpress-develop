@@ -28,6 +28,7 @@
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
  * @since 7.2.0 Added support for typography.textShadow.
+ * @since 7.3.0 Added support for transform.rotate.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -38,6 +39,14 @@ final class WP_Style_Engine {
 	 * @var string[]
 	 */
 	const VALID_BACKGROUND_CLIP_VALUES = array( 'border-box', 'padding-box', 'content-box', 'text' );
+
+	/**
+	 * Matches a single CSS angle: a number with a `deg`, `grad`, `rad` or `turn` unit, or `0`.
+	 *
+	 * @since 7.3.0
+	 * @var string
+	 */
+	const VALID_ANGLE_PATTERN = '/^(?:[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:deg|grad|rad|turn)|0)$/iD';
 
 	/**
 	 * Style definitions that contain the instructions to parse/output valid Gutenberg styles from a block's attributes.
@@ -59,6 +68,7 @@ final class WP_Style_Engine {
 	 * @since 6.1.0
 	 * @since 7.1.0 Added `background.gradient` property.
 	 * @since 7.2.0 Added `background.backgroundClip` property.
+	 * @since 7.3.0 Added `transform.rotate` property.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
@@ -301,6 +311,15 @@ final class WP_Style_Engine {
 				'css_vars'      => array(
 					'spacing' => '--wp--preset--spacing--$slug',
 				),
+			),
+		),
+		'transform'  => array(
+			'rotate' => array(
+				'property_keys' => array(
+					'default' => 'rotate',
+				),
+				'value_func'    => array( self::class, 'get_angle_css_declarations' ),
+				'path'          => array( 'transform', 'rotate' ),
 			),
 		),
 		'typography' => array(
@@ -819,6 +838,25 @@ final class WP_Style_Engine {
 		}
 
 		return $css_declarations;
+	}
+
+	/**
+	 * Style value parser that returns a CSS definition array for a property that takes a single angle.
+	 *
+	 * Lists, functions such as `calc()` or `var()`, and bare numbers are rejected.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $style_value      A single raw style value from $block_styles array.
+	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return array<string, string> An associative array of CSS definitions, mapping properties to values.
+	 */
+	protected static function get_angle_css_declarations( $style_value, $style_definition ) {
+		if ( ! is_string( $style_value ) || ! preg_match( static::VALID_ANGLE_PATTERN, $style_value ) ) {
+			return array();
+		}
+
+		return array( $style_definition['property_keys']['default'] => $style_value );
 	}
 
 	/**
