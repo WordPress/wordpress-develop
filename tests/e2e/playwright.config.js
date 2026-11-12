@@ -47,7 +47,7 @@ const config = defineConfig( {
 			name: 'parallel',
 			default: false,
 			testIgnore: SERIAL_SPECS,
-			fullyParallel: false,
+			fullyParallel: true,
 			use: { ...devices[ 'Desktop Chrome' ] },
 		},
 		{
