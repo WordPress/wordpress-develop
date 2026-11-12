@@ -115,6 +115,26 @@ class Tests_Image_Alttext extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_get_image_alttext() does not raise warnings when the extracted
+	 * XMP range contains binary bytes, as happens with Extended XMP split across
+	 * APP1 segments.
+	 *
+	 * @ticket 66666
+	 */
+	public function test_wp_get_image_alttext_does_not_raise_warnings_for_malformed_xmp() {
+		$file    = wp_tempnam( 'alttext-malformed-xmp' );
+		$content = '<x:xmpmeta xmlns:x="adobe:ns:meta/">'
+			. "\xFF\xE1\xFF\xC5"
+			. '</x:xmpmeta>';
+		file_put_contents( $file, $content );
+		$this->temp_files[] = $file;
+
+		$alt = wp_get_image_alttext( $file );
+
+		$this->assertSame( '', $alt );
+	}
+
+	/**
 	 * Tests possibility 1: exact match on site locale.
 	 */
 	public function test_wp_get_image_alttext_exact_locale_match() {
