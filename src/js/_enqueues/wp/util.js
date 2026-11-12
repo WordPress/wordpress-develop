@@ -112,7 +112,7 @@ window.wp = window.wp || {};
 				delete options.error;
 
 				// Use with PHP's wp_send_json_success() and wp_send_json_error().
-				deferred.jqXHR = $.ajax( options ).done( function( response ) {
+				deferred.jqXHR = $.ajax( options ).done( function( response, textStatus, jqXHR ) {
 					// Treat a response of 1 as successful for backward compatibility with existing handlers.
 					if ( response === '1' || response === 1 ) {
 						response = { success: true };
@@ -127,10 +127,10 @@ window.wp = window.wp || {};
 								action &&
 								action.data &&
 								'query-attachments' === action.data.action &&
-								deferred.jqXHR.hasOwnProperty( 'getResponseHeader' ) &&
-								deferred.jqXHR.getResponseHeader( 'X-WP-Total' )
+								jqXHR &&
+								jqXHR.getResponseHeader( 'X-WP-Total' )
 							) {
-								context.totalAttachments = parseInt( deferred.jqXHR.getResponseHeader( 'X-WP-Total' ), 10 );
+								context.totalAttachments = parseInt( jqXHR.getResponseHeader( 'X-WP-Total' ), 10 );
 							} else {
 								context.totalAttachments = 0;
 							}
