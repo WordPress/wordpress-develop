@@ -65,6 +65,86 @@ function _wp_privacy_completed_request( $request_id ) {
 }
 
 /**
+ * Archives a completed or failed request and logs the current timestamp.
+ *
+ * Archived requests are hidden from the "All" view of the requests list table,
+ * but are kept in the database so they can be audited, or used to re-apply
+ * erasures after restoring a backup, until they are deleted permanently.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int $request_id Request ID.
+ * @return int|WP_Error Request ID on success, or a WP_Error on failure.
+ */
+function _wp_privacy_archive_request( $request_id ) {
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request( $request_id );
+
+	if ( ! $request ) {
+		return new WP_Error( 'privacy_request_error', __( 'Invalid personal data request.' ) );
+	}
+
+	if ( ! in_array( $request->status, array( 'request-completed', 'request-failed' ), true ) ) {
+		return new WP_Error( 'privacy_request_error', __( 'Only completed or failed personal data requests can be archived.' ) );
+	}
+
+	update_post_meta( $request_id, '_wp_user_request_pre_archive_status', $request->status );
+	update_post_meta( $request_id, '_wp_user_request_archived_timestamp', time() );
+
+	return wp_update_post(
+		array(
+			'ID'          => $request_id,
+			'post_status' => 'request-archived',
+		),
+		true
+	);
+}
+
+/**
+ * Restores an archived request to the status it had before it was archived.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int $request_id Request ID.
+ * @return int|WP_Error Request ID on success, or a WP_Error on failure.
+ */
+function _wp_privacy_unarchive_request( $request_id ) {
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request( $request_id );
+
+	if ( ! $request ) {
+		return new WP_Error( 'privacy_request_error', __( 'Invalid personal data request.' ) );
+	}
+
+	if ( 'request-archived' !== $request->status ) {
+		return new WP_Error( 'privacy_request_error', __( 'This personal data request is not archived.' ) );
+	}
+
+	$status = get_post_meta( $request_id, '_wp_user_request_pre_archive_status', true );
+
+	if ( ! in_array( $status, array( 'request-completed', 'request-failed' ), true ) ) {
+		$status = 'request-completed';
+	}
+
+	$result = wp_update_post(
+		array(
+			'ID'          => $request_id,
+			'post_status' => $status,
+		),
+		true
+	);
+
+	if ( ! is_wp_error( $result ) ) {
+		delete_post_meta( $request_id, '_wp_user_request_pre_archive_status' );
+		delete_post_meta( $request_id, '_wp_user_request_archived_timestamp' );
+	}
+
+	return $result;
+}
+
+/**
  * Handle list table actions.
  *
  * @since 4.9.6
