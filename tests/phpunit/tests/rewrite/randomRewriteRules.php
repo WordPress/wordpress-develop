@@ -11,11 +11,38 @@
  */
 class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 
+	/**
+	 * Message of the exception thrown in place of the `exit` following a redirect.
+	 *
+	 * @var string
+	 */
+	const REDIRECT_EXCEPTION_MESSAGE = 'Random content redirect.';
+
+	/**
+	 * Requests a URL, stopping where a random content redirect ends the request.
+	 *
+	 * @param string $url The URL for the request.
+	 */
+	public function go_to( $url ) {
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
+	}
+
 	public function set_up(): void {
 		parent::set_up();
 
-		// Prevent random content redirects from exiting, only the rewrite rules are under test.
-		add_filter( 'wp_redirect', '__return_false' );
+		// End the request before random content redirects exit, only the rewrite rules are under test.
+		add_filter(
+			'wp_redirect',
+			static function (): void {
+				throw new WP_Tests_Exception( self::REDIRECT_EXCEPTION_MESSAGE );
+			}
+		);
 
 		$this->set_permalink_structure( '/%postname%/' );
 		// Register the taxonomy rewrite rules for the permalink structure.
