@@ -159,7 +159,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		 * The random redirect is sent on `template_redirect`, see go_to(). Canonical
 		 * redirects run on the same action and exit after redirecting even when the
 		 * redirect is suppressed, which would end the test run. Their interplay with
-		 * random content requests is covered by test_redirect_canonical_keeps_random_archives_random().
+		 * random content requests is covered by test_redirect_canonical_skips_random_content_requests_with_a_post().
 		 */
 		remove_action( 'template_redirect', 'redirect_canonical' );
 	}
@@ -1931,39 +1931,97 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure canonical redirects, which run earlier on `template_redirect`, keep random archives random.
+	 * Ensure canonical redirects, which run earlier on `template_redirect`, leave random content requests alone.
 	 *
-	 * A canonical redirect sent before the random redirect must either leave the random
-	 * URL alone or redirect to a URL that is still a random content request.
+	 * A canonical redirect sent before the random redirect would redirect the request
+	 * twice and may drop the `random` query variable, sending the visitor to an archive.
 	 *
-	 * @dataProvider data_redirect_canonical_keeps_random_archives_random
+	 * @ticket 66661
 	 *
-	 * @param string      $path     Path of the random archive.
-	 * @param string|null $expected Expected canonical path, or null when the URL is canonical.
+	 * @covers ::redirect_canonical
+	 *
+	 * @dataProvider data_redirect_canonical_skips_random_content_requests_with_a_post
+	 *
+	 * @param string $path Path of the random content request.
 	 */
-	public function test_redirect_canonical_keeps_random_archives_random( string $path, ?string $expected ): void {
+	public function test_redirect_canonical_skips_random_content_requests_with_a_post( string $path ): void {
 		parent::go_to( home_url( $path ) );
 
-		$this->assertSame(
-			null === $expected ? null : home_url( $expected ),
-			redirect_canonical( home_url( $path ), false ),
-			'Canonical redirects must not redirect random archives away from a random content request.'
-		);
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The request should be a random content request with a post.' );
+		$this->assertNull( redirect_canonical( home_url( $path ), false ), 'Canonical redirects must not redirect random content requests with a post.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{string, string|null}>
+	 * @return array<string, array{string}>
 	 */
-	public static function data_redirect_canonical_keeps_random_archives_random(): array {
+	public static function data_redirect_canonical_skips_random_content_requests_with_a_post(): array {
 		return array(
-			'random base'   => array( '/random/', null ),
-			'category'      => array( '/random/category/arts/', null ),
-			'tag'           => array( '/random/tag/impressionism/', null ),
-			'author'        => array( '/random/author/random-editor/', null ),
-			'query string'  => array( '/?random', null ),
-			'cat query var' => array( '/?random&category_name=sport', '/category/sport/?random' ),
+			'random base'                 => array( '/random/' ),
+			'category'                    => array( '/random/category/arts/' ),
+			'tag'                         => array( '/random/tag/impressionism/' ),
+			'author'                      => array( '/random/author/random-editor/' ),
+			'query string'                => array( '/?random' ),
+			'cat query var'               => array( '/?random&category_name=sport' ),
+			'random base with date query' => array( '/random/?m=1844' ),
+			'random base with cat query'  => array( '/random/?category_name=sport' ),
+		);
+	}
+
+	/**
+	 * Ensure canonical redirects still apply to random content requests without a post to redirect to.
+	 *
+	 * @ticket 66661
+	 *
+	 * @covers ::redirect_canonical
+	 */
+	public function test_redirect_canonical_applies_to_random_requests_that_are_not_redirected(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		parent::go_to( home_url( '/?random&category_name=sport' ) );
+
+		$this->assertSame(
+			home_url( '/category/sport/?random' ),
+			redirect_canonical( home_url( '/?random&category_name=sport' ), false ),
+			'Canonical redirects should apply when random content redirects are disabled.'
+		);
+	}
+
+	/**
+	 * Ensure the redirect is sent when an earlier callback replaces the current query.
+	 *
+	 * The selected post is in the main query, which `query_posts()` does not replace.
+	 *
+	 * @ticket 66661
+	 *
+	 * @dataProvider data_actions_before_the_redirect
+	 *
+	 * @param string $action Action the current query is replaced on.
+	 */
+	public function test_redirect_is_sent_when_the_current_query_is_replaced( string $action ): void {
+		add_action(
+			$action,
+			static function (): void {
+				query_posts( array( 'post_type' => 'page' ) );
+			}
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertNotSame( $GLOBALS['wp_the_query'], $GLOBALS['wp_query'], 'The current query should have been replaced.' );
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The redirect should be to the post selected by the main query.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_actions_before_the_redirect(): array {
+		return array(
+			'wp'                => array( 'wp' ),
+			'template_redirect' => array( 'template_redirect' ),
 		);
 	}
 
