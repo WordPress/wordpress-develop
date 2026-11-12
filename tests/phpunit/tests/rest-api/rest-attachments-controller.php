@@ -2952,6 +2952,64 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that a sub-size sideloaded as a multipart file, the way the browser
+	 * sends it, skips the upload space check without disabling it for the
+	 * uploads that follow.
+	 *
+	 * @ticket 66680
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_file_skips_multisite_upload_space_check_once(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+		update_site_option( 'upload_space_check_disabled', false );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->assertIsInt( $attachment_id, 'The original upload should succeed.' );
+
+		// The original used the last of the space.
+		add_filter( 'get_space_allowed', '__return_zero' );
+
+		// wp_handle_upload() removes the temporary file, so sideload a copy.
+		$sub_size_file = wp_tempnam( 'canola-50x50.jpg' );
+		copy( DIR_TESTDATA . '/images/test-image.jpg', $sub_size_file );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'error'    => UPLOAD_ERR_OK,
+					'name'     => 'canola-50x50.jpg',
+					'type'     => 'image/jpeg',
+					'size'     => (int) filesize( $sub_size_file ),
+					'tmp_name' => $sub_size_file,
+				),
+			)
+		);
+		$request->set_param( 'image_size', 'thumbnail' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'Sideloading a sub-size should succeed. Response: ' . wp_json_encode( $response->get_data() )
+		);
+
+		// A new upload is still checked against the upload space.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_limited_space', $response, 400 );
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are created.
 	 *
