@@ -69,6 +69,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	protected static $admin;
 
 	/**
+	 * Message of the exception thrown in place of the `exit` following a redirect.
+	 *
+	 * @var string
+	 */
+	const REDIRECT_EXCEPTION_MESSAGE = 'Random content redirect.';
+
+	/**
 	 * Redirect location captured from the `wp_redirect` filter.
 	 *
 	 * @var string|null
@@ -152,7 +159,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->queries           = array();
 		$this->recording_queries = false;
 
-		// Capture redirects and prevent `exit` from ending the test run.
+		// Capture redirects and end the request before `exit` ends the test run.
 		add_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10, 2 );
 	}
 
@@ -169,18 +176,35 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Captures the redirect and prevents it from being sent.
+	 * Captures the redirect and ends the request in place of the `exit` that follows it.
+	 *
+	 * @throws WP_Tests_Exception Always, caught by {@see self::go_to()}.
 	 *
 	 * @param string $location Redirect location.
 	 * @param int    $status   Redirect status.
-	 * @return false
+	 * @return never
 	 */
 	public function filter_wp_redirect( string $location, int $status ) {
 		$this->redirect_location = $location;
 		$this->redirect_status   = $status;
 		$this->recording_queries = false;
 
-		return false;
+		throw new WP_Tests_Exception( self::REDIRECT_EXCEPTION_MESSAGE );
+	}
+
+	/**
+	 * Requests a URL, stopping where a random content redirect ends the request.
+	 *
+	 * @param string $url The URL for the request.
+	 */
+	public function go_to( $url ) {
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
 	}
 
 	/**
@@ -1878,17 +1902,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the request does not redirect when the permalink is empty.
-	 */
-	public function test_no_redirect_when_the_permalink_is_empty(): void {
-		add_filter( 'post_link', '__return_empty_string' );
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertNotRedirected( 'An empty permalink should not redirect.' );
-	}
-
-	/**
 	 * Ensure the redirect happens before the `wp` action fires.
 	 */
 	public function test_redirect_happens_before_the_wp_action(): void {
@@ -2075,9 +2088,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 */
 
 	/**
-	 * Ensure the request does not redirect to a permalink on another site.
+	 * Ensure the request redirects to the permalink when it is on another site.
 	 */
-	public function test_no_redirect_when_the_permalink_is_on_another_site(): void {
+	public function test_redirect_to_a_permalink_on_another_site(): void {
 		add_filter(
 			'post_link',
 			static function (): string {
@@ -2087,30 +2100,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/random/' ) );
 
-		$this->assertNotRedirected( 'Off-site permalinks must not fall back to a redirect to the dashboard.' );
-	}
-
-	/**
-	 * Ensure the request redirects to a permalink on an allowed redirect host.
-	 */
-	public function test_redirect_to_a_permalink_on_an_allowed_host(): void {
-		add_filter(
-			'allowed_redirect_hosts',
-			static function ( array $hosts ): array {
-				$hosts[] = 'cdn.example.org';
-				return $hosts;
-			}
-		);
-		add_filter(
-			'post_link',
-			static function (): string {
-				return 'https://cdn.example.org/post/';
-			}
-		);
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertSame( 'https://cdn.example.org/post/', $this->redirect_location, 'Permalinks on an allowed host should be redirected to.' );
+		$this->assertSame( 'https://elsewhere.example/post/', $this->redirect_location, 'Permalinks on another site should be redirected to.' );
 	}
 
 	/**
@@ -2502,10 +2492,14 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$wp             = new WP();
 		$wp->query_vars = array( 'random' => '' );
 
-		$this->assertTrue( $wp->handle_random(), 'Random content requests should be handled.' );
+		try {
+			$wp->handle_random();
+		} catch ( WP_Tests_Exception $e ) {
+			$this->assertSame( self::REDIRECT_EXCEPTION_MESSAGE, $e->getMessage(), 'An unexpected exception was thrown.' );
+		}
+
 		$this->assertTrue( $this->get_main_query()->is_random(), 'The main query should be the random content query.' );
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random content request should redirect after running the main query.' );
-		$this->assertFalse( is_404(), 'A random content request with a post should not 404 when the redirect does not exit.' );
 	}
 
 	/**

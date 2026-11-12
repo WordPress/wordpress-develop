@@ -15,6 +15,13 @@
 class Tests_Query_RandomContentRedirectHeaders extends WP_UnitTestCase {
 
 	/**
+	 * Message of the exception thrown in place of the `exit` following a redirect.
+	 *
+	 * @var string
+	 */
+	const REDIRECT_EXCEPTION_MESSAGE = 'Random content redirect.';
+
+	/**
 	 * Sets up pretty permalinks and stops redirects from ending the test run.
 	 */
 	public function set_up(): void {
@@ -22,11 +29,31 @@ class Tests_Query_RandomContentRedirectHeaders extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '/%postname%/' );
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		add_filter( 'wp_redirect', '__return_false' );
+		add_filter(
+			'wp_redirect',
+			static function (): void {
+				throw new WP_Tests_Exception( self::REDIRECT_EXCEPTION_MESSAGE );
+			}
+		);
 	}
 
 	/**
-	 * Ensure random content responses are neither cached nor indexed, whether or not they redirect.
+	 * Requests a URL, stopping where a random content redirect ends the request.
+	 *
+	 * @param string $url The URL for the request.
+	 */
+	public function go_to( $url ) {
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
+	}
+
+	/**
+	 * Ensure random content redirects are neither cached nor indexed, whatever the permalink.
 	 *
 	 * @ticket 66625
 	 *
@@ -50,7 +77,7 @@ class Tests_Query_RandomContentRedirectHeaders extends WP_UnitTestCase {
 
 		$headers = xdebug_get_headers();
 
-		$this->assertContains( 'Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private', $headers, 'The random content response should not be cached.' );
+		$this->assertContains( 'Cache-Control: ' . wp_get_nocache_headers()['Cache-Control'], $headers, 'The random content response should not be cached.' );
 		$this->assertContains( 'X-Robots-Tag: noindex, follow', $headers, 'The random content response should not be indexed.' );
 	}
 
