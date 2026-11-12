@@ -104,6 +104,25 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	protected $recording_queries = false;
 
 	/**
+	 * Rewrite rules added to the top of the rules before each test.
+	 *
+	 * WP_Rewrite::init() does not reset these, so they are restored after each test.
+	 *
+	 * @var string[]
+	 */
+	protected $original_extra_rules_top = array();
+
+	/**
+	 * Extra permalink structures registered before each test.
+	 *
+	 * Unregistering post types between tests does not remove their permalink structures,
+	 * so they are restored after each test.
+	 *
+	 * @var array<array<mixed>>
+	 */
+	protected $original_extra_permastructs = array();
+
+	/**
 	 * Creates shared user, category and post fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
@@ -145,9 +164,16 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 	/**
 	 * Sets up pretty permalinks and redirect capturing before each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 */
 	public function set_up(): void {
+		global $wp_rewrite;
+
 		parent::set_up();
+
+		$this->original_extra_rules_top    = $wp_rewrite->extra_rules_top;
+		$this->original_extra_permastructs = $wp_rewrite->extra_permastructs;
 
 		$this->set_permalink_structure( '/%postname%/' );
 		// Register the taxonomy rewrite rules for the permalink structure.
@@ -165,8 +191,15 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 	/**
 	 * Unregisters the test post types and taxonomy after each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 */
 	public function tear_down(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->extra_rules_top    = $this->original_extra_rules_top;
+		$wp_rewrite->extra_permastructs = $this->original_extra_permastructs;
+
 		unregister_post_type( 'wptests_book' );
 		unregister_post_type( 'wptests_hidden' );
 		unregister_post_type( 'wptests_unsearchable' );
@@ -2696,5 +2729,259 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->go_to( home_url( '/random/' ) );
 
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Random content redirects should resume when the post named random is unpublished.' );
+	}
+
+	/**
+	 * Ensure a post type archive at the random base is not redirected to random content.
+	 *
+	 * @dataProvider data_post_types_at_the_random_base
+	 *
+	 * @param string               $post_type Post type name.
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
+	 */
+	public function test_post_type_archive_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
+		register_post_type( $post_type, $args );
+		flush_rewrite_rules();
+
+		$this->create_post( array( 'post_type' => $post_type ) );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'The post type archive at the random base should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_archive', 'is_post_type_archive' );
+		$this->assertSame( $post_type, get_query_var( 'post_type' ), 'The post type archive at the random base should be queried.' );
+	}
+
+	/**
+	 * Ensure a single post of a post type at the random base is not redirected to random content.
+	 *
+	 * Registering a post type named `random` also registers `random` as its query variable,
+	 * which is the query variable used by random content requests.
+	 *
+	 * @dataProvider data_post_types_at_the_random_base
+	 *
+	 * @param string               $post_type Post type name.
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
+	 */
+	public function test_single_post_of_a_post_type_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
+		register_post_type( $post_type, $args );
+		flush_rewrite_rules();
+
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
+		self::factory()->post->create();
+
+		$permalink = get_permalink( $post_id );
+		$this->assertIsString( $permalink, 'The post permalink could not be retrieved.' );
+		$this->assertStringStartsWith( home_url( '/' . ( $args['rewrite']['slug'] ?? $post_type ) . '/' ), $permalink, 'The post permalink should use the post type rewrite slug.' );
+
+		$redirect = new MockAction();
+		add_filter( 'wp_redirect', array( $redirect, 'filter' ), 5 );
+
+		$this->go_to( $permalink );
+
+		$this->assertSame( 0, $redirect->get_call_count(), 'The single post should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+		$this->assertSame( $post_id, get_queried_object_id(), 'The single post should be queried.' );
+	}
+
+	/**
+	 * Data provider for post types registered with an archive or single posts at the random base.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>}>
+	 */
+	public static function data_post_types_at_the_random_base(): array {
+		return array(
+			'post type named random'          => array(
+				'random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+				),
+			),
+			'archive slug random'             => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+				),
+			),
+			'archive and rewrite slug random' => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
+			'rewrite slug random'             => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when a post type archive is at the random base.
+	 */
+	public function test_random_archives_redirect_when_a_post_type_archive_is_at_the_random_base(): void {
+		register_post_type(
+			'wptests_random',
+			array(
+				'public'      => true,
+				'has_archive' => 'random',
+			)
+		);
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when a post type archive is at the random base.' );
+	}
+
+	/**
+	 * Ensure the random base is not redirected to random content when an existing rule takes it.
+	 *
+	 * The dataProvider supplies a top-priority rewrite rule, each one a different regex spelling that
+	 * matches the path `/random` and points to a specific `page`. This ensures that rewrite rule
+	 * takes priority over the random ones.
+	 *
+	 * @dataProvider data_random_base_is_not_redirected_when_an_existing_rule_takes_it
+	 *
+	 * @param string $regex Rewrite rule regex.
+	 */
+	public function test_random_base_is_not_redirected_when_an_existing_rule_takes_it( string $regex ): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( $regex, 'index.php?pagename=wptests-taken', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( "The random base should not redirect to random content when the rule {$regex} takes it." );
+		$this->assertSame( $page, get_queried_object_id(), "The page served by the rule {$regex} should be queried." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_base_is_not_redirected_when_an_existing_rule_takes_it(): array {
+		return array(
+			'exact match'          => array( 'random/?$' ),
+			'anchored exact match' => array( '^random/?$' ),
+			'alternation'          => array( '(random|pens|pencils)/?$' ),
+			'partial group'        => array( '(rand)om/?$' ),
+			'character class'      => array( '[r]andom/?$' ),
+			'optional suffix'      => array( 'random(?:-ful)?/?$' ),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when an existing rule takes the random base.
+	 */
+	public function test_random_archives_redirect_when_an_existing_rule_takes_the_random_base(): void {
+		add_rewrite_rule( '^random/?$', 'index.php?pagename=wptests-taken', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when an existing rule takes the random base.' );
+	}
+
+	/**
+	 * Ensure the random base redirects to random content when existing rules do not take it.
+	 *
+	 * @dataProvider data_random_base_redirects_when_existing_rules_do_not_take_it
+	 *
+	 * @param string $regex    Rewrite rule regex.
+	 * @param string $position Position of the rewrite rule, either 'top' or 'bottom'.
+	 */
+	public function test_random_base_redirects_when_existing_rules_do_not_take_it( string $regex, string $position ): void {
+		add_rewrite_rule( $regex, 'index.php?pagename=wptests-not-taken', $position );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), "The random base should redirect to random content when the rule {$regex} does not take it." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_base_redirects_when_existing_rules_do_not_take_it(): array {
+		return array(
+			'suffixed slug'            => array( 'randomful/?$', 'top' ),
+			'hyphenated suffixed slug' => array( '^random-ful/?$', 'top' ),
+			'similar alternation'      => array( '(randomful|random-ful)/?$', 'top' ),
+			'sub path'                 => array( '^random/wptests/?$', 'top' ),
+			'requires a sub path'      => array( '^random/(.*)?', 'top' ),
+			'catch-all'                => array( '(.+?)/?$', 'bottom' ),
+			'single segment catch-all' => array( '([^/]+)/?$', 'bottom' ),
+			'bottom anchored match'    => array( '^random/?$', 'bottom' ),
+			'bottom alternation'       => array( '(random|pens|pencils)/?$', 'bottom' ),
+			'bottom unterminated'      => array( 'random', 'bottom' ),
+		);
+	}
+
+	/**
+	 * Ensure a bottom rule using the random root rule's regex takes the random base.
+	 *
+	 * Rules added to the bottom are preceded by the generic page and post rules, so are
+	 * never matched for the random base. A bottom rule using the same regex as the random
+	 * root rule replaces the root rule's query while keeping its position ahead of the
+	 * page and post rules, so takes the random base.
+	 */
+	public function test_bottom_rule_using_the_random_root_rule_regex_takes_the_random_base(): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( 'random/?$', 'index.php?pagename=wptests-taken', 'bottom' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A bottom rule using the root rule regex should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_page', 'is_singular' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page served by the bottom rule using the root rule regex should be queried.' );
+	}
+
+	/**
+	 * Ensure a category at the random base with the category base removed is not redirected to random content.
+	 *
+	 * This replicates plugins that remove the category base from category archive URLs.
+	 */
+	public function test_category_at_the_random_base_without_a_category_base_is_not_redirected(): void {
+		$category = self::factory()->category->create( array( 'slug' => 'random' ) );
+
+		add_rewrite_rule( '(random)/?$', 'index.php?category_name=$matches[1]', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A category at the random base should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_archive', 'is_category' );
+		$this->assertSame( $category, get_queried_object_id(), 'The category at the random base should be queried.' );
 	}
 }

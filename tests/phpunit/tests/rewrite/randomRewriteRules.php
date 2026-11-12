@@ -19,6 +19,25 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	const REDIRECT_EXCEPTION_MESSAGE = 'Random content redirect.';
 
 	/**
+	 * Rewrite rules added to the top of the rules before each test.
+	 *
+	 * WP_Rewrite::init() does not reset these, so they are restored after each test.
+	 *
+	 * @var string[]
+	 */
+	private $original_extra_rules_top = array();
+
+	/**
+	 * Extra permalink structures registered before each test.
+	 *
+	 * Unregistering post types between tests does not remove their permalink structures,
+	 * so they are restored after each test.
+	 *
+	 * @var array<array<mixed>>
+	 */
+	private $original_extra_permastructs = array();
+
+	/**
 	 * Requests a URL, stopping where a random content redirect ends the request.
 	 *
 	 * @param string $url The URL for the request.
@@ -33,8 +52,18 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Sets up pretty permalinks before each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
 	public function set_up(): void {
+		global $wp_rewrite;
+
 		parent::set_up();
+
+		$this->original_extra_rules_top    = $wp_rewrite->extra_rules_top;
+		$this->original_extra_permastructs = $wp_rewrite->extra_permastructs;
 
 		// End the request before random content redirects exit, only the rewrite rules are under test.
 		add_filter(
@@ -49,7 +78,17 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		create_initial_taxonomies();
 	}
 
+	/**
+	 * Restores the rewrite rules and random base after each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
 	public function tear_down(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->extra_rules_top    = $this->original_extra_rules_top;
+		$wp_rewrite->extra_permastructs = $this->original_extra_permastructs;
+
 		/*
 		 * The parent class re-initializes the rewrite base from this option before the
 		 * database transaction is rolled back, so it needs to be removed first.
@@ -666,7 +705,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 * Random rules must be matched before any other rule matching the same URL,
 	 * such as the greedy page and post rules.
 	 *
-	 * @dataProvider data_permalink_structures
+	 * @dataProvider data_random_rewrite_rules_precede_other_matching_rules
 	 *
 	 * @param string $structure Permalink structure.
 	 */
@@ -704,7 +743,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_permalink_structures(): array {
+	public static function data_random_rewrite_rules_precede_other_matching_rules(): array {
 		return array(
 			'post name'          => array( '/%postname%/' ),
 			'verbose page rules' => array( '/%category%/%postname%/' ),
@@ -719,9 +758,16 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @param string                $path           Request path.
 	 * @param array<string, string> $expected_query Expected query variables.
+	 * @param string                $structure      Optional. Permalink structure. Default empty, the
+	 *                                              structure set up for each test.
 	 */
-	public function test_random_urls_resolve_to_random_query_vars( $path, $expected_query ): void {
+	public function test_random_urls_resolve_to_random_query_vars( $path, $expected_query, string $structure = '' ): void {
 		global $wp;
+
+		if ( '' !== $structure ) {
+			$this->set_permalink_structure( $structure );
+			create_initial_taxonomies();
+		}
 
 		register_taxonomy( 'wptests_genre', 'post', array( 'rewrite' => array( 'slug' => 'genre' ) ) );
 		register_post_type(
@@ -744,56 +790,58 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: array<string, string>}>
+	 * @return array<string, array{0: string, 1: array<string, string>, 2?: string}>
 	 */
 	public static function data_random_urls(): array {
 		return array(
-			'random'                    => array( '/random/', array( 'random' => '1' ) ),
-			'random without slash'      => array( '/random', array( 'random' => '1' ) ),
-			'random category'           => array(
+			'random'                     => array( '/random/', array( 'random' => '1' ) ),
+			'random without slash'       => array( '/random', array( 'random' => '1' ) ),
+			'random, verbose page rules' => array( '/random/', array( 'random' => '1' ), '/%category%/%postname%/' ),
+			'random, date and name'      => array( '/random/', array( 'random' => '1' ), '/%year%/%monthnum%/%postname%/' ),
+			'random category'            => array(
 				'/random/category/news/',
 				array(
 					'random'        => '1',
 					'category_name' => 'news',
 				),
 			),
-			'random child category'     => array(
+			'random child category'      => array(
 				'/random/category/news/local/',
 				array(
 					'random'        => '1',
 					'category_name' => 'news/local',
 				),
 			),
-			'random tag'                => array(
+			'random tag'                 => array(
 				'/random/tag/featured/',
 				array(
 					'random' => '1',
 					'tag'    => 'featured',
 				),
 			),
-			'random author'             => array(
+			'random author'              => array(
 				'/random/author/admin/',
 				array(
 					'random'      => '1',
 					'author_name' => 'admin',
 				),
 			),
-			'random custom taxonomy'    => array(
+			'random custom taxonomy'     => array(
 				'/random/genre/sci-fi/',
 				array(
 					'random'        => '1',
 					'wptests_genre' => 'sci-fi',
 				),
 			),
-			'random post type archive'  => array(
+			'random post type archive'   => array(
 				'/random/books/',
 				array(
 					'random'    => '1',
 					'post_type' => 'wptests_book',
 				),
 			),
-			'query string random'       => array( '/?random', array( 'random' => '' ) ),
-			'query string random value' => array( '/?random=1', array( 'random' => '1' ) ),
+			'query string random'        => array( '/?random', array( 'random' => '' ) ),
+			'query string random value'  => array( '/?random=1', array( 'random' => '1' ) ),
 		);
 	}
 
@@ -1053,5 +1101,200 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Ensure random rules using the same regex as a rule added to the top are omitted.
+	 *
+	 * Rules added to the top are merged ahead of the random rules, so a random rule using
+	 * the same regex would otherwise replace the top rule's query.
+	 *
+	 * @dataProvider data_random_rules_using_the_regex_of_a_top_rule_are_omitted
+	 *
+	 * @param string $regex       Rewrite rule regex.
+	 * @param string $random_rule A random rule using a different regex, expected to be kept.
+	 */
+	public function test_random_rules_using_the_regex_of_a_top_rule_are_omitted( string $regex, string $random_rule ): void {
+		add_rewrite_rule( $regex, 'index.php?pagename=wptests-taken', 'top' );
+
+		$this->get_random_rewrite_rules();
+		$rules = $this->get_stored_rewrite_rules();
+
+		$this->assertSame( 'index.php?pagename=wptests-taken', $rules[ $regex ] ?? null, "The top rule {$regex} should take precedence over the random rule using the same regex." );
+		$random_query = $rules[ $random_rule ] ?? '';
+		$this->assertIsString( $random_query, "The random rule {$random_rule} should be kept when the top rule {$regex} uses a different regex." );
+		$this->assertStringContainsString( 'random=1', $random_query, "The random rule {$random_rule} should be kept when the top rule {$regex} uses a different regex." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_rules_using_the_regex_of_a_top_rule_are_omitted(): array {
+		return array(
+			'root rule'             => array( 'random/?$', 'random/category/(.+?)/?$' ),
+			'category archive rule' => array( 'random/category/(.+?)/?$', 'random/?$' ),
+		);
+	}
+
+	/**
+	 * Ensure random rules are kept when a rule added to the top uses a different regex for the random base.
+	 *
+	 * Such rules are matched before the random rules, so take precedence without the random rules being omitted.
+	 *
+	 * @global WP $wp Current WordPress environment instance.
+	 */
+	public function test_random_root_rule_is_kept_when_a_top_rule_uses_a_different_regex_for_the_random_base(): void {
+		global $wp;
+
+		$page = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( '^random/?$', 'index.php?pagename=wptests-taken', 'top' );
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( 'index.php?random=1', $this->get_stored_rewrite_rules()['random/?$'] ?? null, 'The root rule should be kept when a top rule uses a different regex.' );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertSame( '^random/?$', $wp->matched_rule, 'The top rule should be matched before the root rule.' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page served by the top rule should be queried.' );
+	}
+
+	/**
+	 * Ensure a post type archive at the random base takes precedence over the root rule.
+	 *
+	 * @dataProvider data_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base
+	 *
+	 * @param string               $post_type Post type name.
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
+	 */
+	public function test_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base( string $post_type, array $args ): void {
+		register_post_type( $post_type, $args );
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( "index.php?post_type={$post_type}", $this->get_stored_rewrite_rules()['random/?$'] ?? null, 'The post type archive should be reachable at the random base.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>}>
+	 */
+	public static function data_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base(): array {
+		return array(
+			'post type named random' => array(
+				'random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+				),
+			),
+			'archive slug random'    => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+				),
+			),
+			'rewrite slug random'    => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Ensure a post type archive with a slug similar to the random base does not take it.
+	 *
+	 * @dataProvider data_random_root_rule_is_kept_for_a_post_type_archive_with_a_similar_slug
+	 *
+	 * @param string $slug Post type archive slug.
+	 */
+	public function test_random_root_rule_is_kept_for_a_post_type_archive_with_a_similar_slug( string $slug ): void {
+		register_post_type(
+			'wptests_similar',
+			array(
+				'public'      => true,
+				'has_archive' => $slug,
+			)
+		);
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( 'index.php?random=1', $this->get_stored_rewrite_rules()['random/?$'] ?? null, "The root rule should be kept for a post type archive at {$slug}." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_root_rule_is_kept_for_a_post_type_archive_with_a_similar_slug(): array {
+		return array(
+			'suffixed'   => array( 'randomful' ),
+			'hyphenated' => array( 'random-ful' ),
+			'prefixed'   => array( 'not-random' ),
+		);
+	}
+
+	/**
+	 * Ensure the root rule is omitted when a top rule uses its regex with a custom random base.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function test_random_root_rule_is_omitted_when_a_top_rule_uses_its_regex_with_a_custom_random_base(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->random_base = 'surprise-me';
+		add_rewrite_rule( 'surprise-me/?$', 'index.php?pagename=wptests-taken', 'top' );
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( 'index.php?pagename=wptests-taken', $this->get_stored_rewrite_rules()['surprise-me/?$'] ?? null, 'The top rule should take precedence over the root rule for the custom random base.' );
+	}
+
+	/**
+	 * Ensure a top rule at the default random base does not replace the root rule for a custom random base.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function test_random_root_rule_is_kept_when_a_top_rule_uses_the_default_base_with_a_custom_random_base(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->random_base = 'surprise-me';
+		add_rewrite_rule( 'random/?$', 'index.php?pagename=wptests-taken', 'top' );
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( 'index.php?random=1', $this->get_stored_rewrite_rules()['surprise-me/?$'] ?? null, 'The root rule for the custom random base should be kept when a top rule only uses the default random base.' );
+	}
+
+	/**
+	 * Ensure the root rule is omitted when a top rule uses its regex with PATHINFO permalinks.
+	 */
+	public function test_random_root_rule_is_omitted_when_a_top_rule_uses_its_regex_with_pathinfo_permalinks(): void {
+		$this->set_permalink_structure( '/index.php/%postname%/' );
+		create_initial_taxonomies();
+
+		add_rewrite_rule( 'index.php/random/?$', 'index.php?pagename=wptests-taken', 'top' );
+
+		$this->get_random_rewrite_rules();
+
+		$this->assertSame( 'index.php?pagename=wptests-taken', $this->get_stored_rewrite_rules()['index.php/random/?$'] ?? null, 'The top rule should take precedence over the root rule with PATHINFO permalinks.' );
 	}
 }
