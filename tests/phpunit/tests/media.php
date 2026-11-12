@@ -7898,13 +7898,15 @@ EOF;
 
 	/**
 	 * @ticket 65262
+	 * @ticket 66677
 	 * @covers ::wp_get_image_encode_quality
 	 */
 	public function test_wp_get_image_encode_quality_defaults() {
-		// JPEG (and any non-WebP) defaults to 82, WebP to 86.
+		// JPEG (and any other format) defaults to 82, WebP to 86, AVIF to 74.
 		$this->assertSame( 82, wp_get_image_encode_quality( 'image/jpeg' ) );
 		$this->assertSame( 82, wp_get_image_encode_quality( 'image/png' ) );
 		$this->assertSame( 86, wp_get_image_encode_quality( 'image/webp' ) );
+		$this->assertSame( 74, wp_get_image_encode_quality( 'image/avif' ) );
 	}
 
 	/**
