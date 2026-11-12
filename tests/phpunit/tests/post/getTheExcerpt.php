@@ -33,6 +33,16 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66093
+	 * @requires extension intl
+	 */
+	public function test_should_normalize_the_excerpt_to_unicode_nfc() {
+		$post = self::factory()->post->create_and_get( array( 'post_excerpt' => "a\u{0308}" ) );
+
+		$this->assertSame( 'ä', get_the_excerpt( $post ) );
+	}
+
+	/**
 	 * @ticket 27246
 	 * @ticket 35486
 	 */

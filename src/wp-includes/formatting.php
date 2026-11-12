@@ -2021,6 +2021,35 @@ function remove_accents( $text, $locale = '' ) {
 }
 
 /**
+ * Normalizes a string to Unicode Normalization Form C (NFC).
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $text Text to normalize.
+ * @return string Normalized text, or the original text if normalization is unavailable.
+ */
+function _wp_normalize_unicode( $text ) {
+	if ( ! is_string( $text )
+		|| ! preg_match( '/[\x80-\xff]/', $text )
+		|| ! wp_is_valid_utf8( $text )
+	) {
+		return $text;
+	}
+
+	if ( ! function_exists( 'normalizer_is_normalized' )
+		|| ! function_exists( 'normalizer_normalize' )
+		|| normalizer_is_normalized( $text )
+	) {
+		return $text;
+	}
+
+	$normalized = normalizer_normalize( $text );
+
+	return false === $normalized ? $text : $normalized;
+}
+
+/**
  * Sanitizes a filename, replacing whitespace with dashes.
  *
  * Removes special characters that are illegal in filenames on certain

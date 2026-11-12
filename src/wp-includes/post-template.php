@@ -262,7 +262,7 @@ function the_content( $more_link_text = null, $strip_teaser = false ) {
 	 */
 	$content = apply_filters( 'the_content', $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
-	echo $content;
+	echo _wp_normalize_unicode( $content );
 }
 
 /**
@@ -428,7 +428,7 @@ function get_the_excerpt( $post = null ) {
 	}
 
 	if ( post_password_required( $post ) ) {
-		return __( 'There is no excerpt because this is a protected post.' );
+		return _wp_normalize_unicode( __( 'There is no excerpt because this is a protected post.' ) );
 	}
 
 	/**
@@ -440,7 +440,7 @@ function get_the_excerpt( $post = null ) {
 	 * @param string  $post_excerpt The post excerpt.
 	 * @param WP_Post $post         Post object.
 	 */
-	return apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+	return _wp_normalize_unicode( apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
 }
 
 /**
