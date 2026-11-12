@@ -20,56 +20,46 @@ const screens = [
 ];
 
 /**
- * Returns the number and transfer size of the scripts and stylesheets the page loads from its markup.
+ * Returns the number and size of the scripts and stylesheets in the page markup.
+ *
+ * Sizes are encoded body sizes, which do not depend on whether a response came from the HTTP cache.
  *
  * @param {import('@playwright/test').Page} page
- * @return {Promise<{scriptCount: number, scriptTransferSize: number, stylesheetCount: number, stylesheetTransferSize: number}>} Asset metrics.
+ * @return {Promise<{scriptCount: number, scriptBytes: number, stylesheetCount: number, stylesheetBytes: number}>} Asset metrics.
  */
 async function getPageAssetMetrics( page ) {
 	return await page.evaluate( () => {
 		const resources = performance.getEntriesByType( 'resource' );
-
-		const scriptUrls = new Set(
-			Array.from(
-				document.querySelectorAll( 'script[src]' ),
-				( script ) => script.src
-			)
-		);
-		const stylesheetUrls = new Set(
-			Array.from(
-				document.querySelectorAll( 'link[rel="stylesheet"][href]' ),
-				( link ) => link.href
-			)
-		);
-
-		const sumTransferSize = ( urls ) =>
-			resources
+		const measure = ( selector, attribute ) => {
+			const urls = new Set(
+				Array.from(
+					document.querySelectorAll( selector ),
+					( element ) => element[ attribute ]
+				)
+			);
+			const bytes = resources
 				.filter( ( resource ) => urls.has( resource.name ) )
-				.reduce( ( total, resource ) => total + resource.transferSize, 0 );
-
-		return {
-			scriptCount: scriptUrls.size,
-			scriptTransferSize: sumTransferSize( scriptUrls ),
-			stylesheetCount: stylesheetUrls.size,
-			stylesheetTransferSize: sumTransferSize( stylesheetUrls ),
+				.reduce( ( total, resource ) => total + resource.encodedBodySize, 0 );
+			return [ urls.size, bytes ];
 		};
-	} );
-}
 
-function createEmptyResults() {
-	return {
-		timeToFirstByte: [],
-		domContentLoaded: [],
-		scriptCount: [],
-		scriptTransferSize: [],
-		stylesheetCount: [],
-		stylesheetTransferSize: [],
-	};
+		const [ scriptCount, scriptBytes ] = measure( 'script[src]', 'src' );
+		const [ stylesheetCount, stylesheetBytes ] = measure(
+			'link[rel="stylesheet"][href]',
+			'href'
+		);
+
+		return { scriptCount, scriptBytes, stylesheetCount, stylesheetBytes };
+	} );
 }
 
 for ( const screen of screens ) {
 	test.describe( screen.suiteTitle, () => {
-		let results = createEmptyResults();
+		let results = {};
+		const record = ( key, value ) => {
+			results[ key ] ??= [];
+			results[ key ].push( value );
+		};
 
 		for ( const locale of locales ) {
 			test.describe( `Locale: ${ locale }`, () => {
@@ -90,7 +80,7 @@ for ( const screen of screens ) {
 						language: '',
 					} );
 
-					results = createEmptyResults();
+					results = {};
 				} );
 
 				const iterations = Number( process.env.TEST_RUNS );
@@ -111,22 +101,22 @@ for ( const screen of screens ) {
 						for ( const [ key, value ] of Object.entries(
 							serverTiming
 						) ) {
-							results[ camelCaseDashes( key ) ] ??= [];
-							results[ camelCaseDashes( key ) ].push( value );
+							record( camelCaseDashes( key ), value );
 						}
 
-						results.timeToFirstByte.push(
+						record(
+							'timeToFirstByte',
 							await metrics.getTimeToFirstByte()
 						);
-
-						const { domContentLoaded } =
-							await metrics.getLoadingDurations();
-						results.domContentLoaded.push( domContentLoaded );
+						record(
+							'domContentLoaded',
+							( await metrics.getLoadingDurations() ).domContentLoaded
+						);
 
 						for ( const [ key, value ] of Object.entries(
 							await getPageAssetMetrics( page )
 						) ) {
-							results[ key ].push( value );
+							record( key, value );
 						}
 					} );
 				}

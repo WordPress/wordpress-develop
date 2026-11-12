@@ -124,7 +124,7 @@ function formatValue( metric, value ) {
 		return value;
 	}
 
-	if ( metric.endsWith( 'TransferSize' ) ) {
+	if ( metric.endsWith( 'Bytes' ) ) {
 		return `${ ( value / 1024 ).toFixed( 2 ) } KiB`;
 	}
 
