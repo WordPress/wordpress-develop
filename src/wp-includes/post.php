@@ -4226,6 +4226,14 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 function _reset_front_page_settings_for_post( $post_id ) {
 	$post = get_post( $post_id );
 
+	/*
+	 * The post may already be gone, e.g. when another request deleted it
+	 * while this one was deleting it.
+	 */
+	if ( ! $post ) {
+		return;
+	}
+
 	if ( 'page' === $post->post_type ) {
 		/*
 		 * If the page is defined in option page_on_front or post_for_posts,
