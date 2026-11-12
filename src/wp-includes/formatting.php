@@ -3641,8 +3641,8 @@ function convert_smilies( $text ) {
 	 * escape, so the output is assembled here from the unchanged parts of the
 	 * text and the converted text nodes.
 	 */
-	$output    = '';
-	$copied_to = 0;
+	$output = '';
+	$was_at = 0;
 
 	/*
 	 * Smilies are not converted inside CODE and PRE elements. The Tag Processor
@@ -3655,21 +3655,27 @@ function convert_smilies( $text ) {
 		$token_type = $processor->get_token_type();
 
 		if ( '#tag' === $token_type ) {
-			$tag_name = $processor->get_tag();
+			$tag_name  = $processor->get_tag();
+			$is_closer = $processor->is_tag_closer();
 
-			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+			// A closing tag is unexpected when no CODE or PRE element is open.
+			if ( ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) || ( $is_closer && 0 === count( $ignored_tags ) ) ) {
 				continue;
 			}
 
-			if ( ! $processor->is_tag_closer() ) {
+			if ( ! $is_closer ) {
 				$ignored_tags[] = $tag_name;
 				continue;
 			}
 
-			// A closing tag also closes every element opened inside the one it matches.
+			/*
+			 * A closing tag closes the nearest open element of its own name and
+			 * leaves the others open. A CODE element which is still open when its
+			 * containing PRE closes continues into the text which follows.
+			 */
 			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
 			if ( false !== $opener_at ) {
-				$ignored_tags = array_slice( $ignored_tags, 0, $opener_at );
+				array_splice( $ignored_tags, $opener_at, 1 );
 			}
 			continue;
 		}
@@ -3686,11 +3692,11 @@ function convert_smilies( $text ) {
 			continue;
 		}
 
-		$output   .= substr( $text, $copied_to, $span->start - $copied_to ) . $converted;
-		$copied_to = $span->start + $span->length;
+		$output .= substr( $text, $was_at, $span->start - $was_at ) . $converted;
+		$was_at  = $span->start + $span->length;
 	}
 
-	return $output . substr( $text, $copied_to );
+	return $output . substr( $text, $was_at );
 }
 
 /**
@@ -6283,8 +6289,8 @@ function wp_staticize_emoji( $text ) {
 	 * escape, so the output is assembled here from the unchanged parts of the
 	 * text and the converted text nodes.
 	 */
-	$output    = '';
-	$copied_to = 0;
+	$output = '';
+	$was_at = 0;
 
 	/*
 	 * Emoji are not converted inside CODE and PRE elements. The Tag Processor
@@ -6297,21 +6303,27 @@ function wp_staticize_emoji( $text ) {
 		$token_type = $processor->get_token_type();
 
 		if ( '#tag' === $token_type ) {
-			$tag_name = $processor->get_tag();
+			$tag_name  = $processor->get_tag();
+			$is_closer = $processor->is_tag_closer();
 
-			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+			// A closing tag is unexpected when no CODE or PRE element is open.
+			if ( ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) || ( $is_closer && 0 === count( $ignored_tags ) ) ) {
 				continue;
 			}
 
-			if ( ! $processor->is_tag_closer() ) {
+			if ( ! $is_closer ) {
 				$ignored_tags[] = $tag_name;
 				continue;
 			}
 
-			// A closing tag also closes every element opened inside the one it matches.
+			/*
+			 * A closing tag closes the nearest open element of its own name and
+			 * leaves the others open. A CODE element which is still open when its
+			 * containing PRE closes continues into the text which follows.
+			 */
 			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
 			if ( false !== $opener_at ) {
-				$ignored_tags = array_slice( $ignored_tags, 0, $opener_at );
+				array_splice( $ignored_tags, $opener_at, 1 );
 			}
 			continue;
 		}
@@ -6346,11 +6358,11 @@ function wp_staticize_emoji( $text ) {
 			continue;
 		}
 
-		$output   .= substr( $text, $copied_to, $span->start - $copied_to ) . $converted;
-		$copied_to = $span->start + $span->length;
+		$output .= substr( $text, $was_at, $span->start - $was_at ) . $converted;
+		$was_at  = $span->start + $span->length;
 	}
 
-	$output .= substr( $text, $copied_to );
+	$output .= substr( $text, $was_at );
 
 	// Finally, remove any stray U+FE0F characters.
 	$output = str_replace( '&#xfe0f;', '', $output );
