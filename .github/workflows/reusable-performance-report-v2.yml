@@ -27,6 +27,16 @@ on:
         required: false
         type: boolean
         default: false
+      fail-on-regression:
+        description: 'Whether a metric that exceeds an error budget fails the job.'
+        required: false
+        type: boolean
+        default: false
+      regression-accepted:
+        description: 'Whether the regressions of this change have been reviewed and accepted.'
+        required: false
+        type: boolean
+        default: false
     secrets:
       CODEVITALS_PROJECT_TOKEN:
         description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
@@ -79,11 +89,25 @@ jobs:
       - name: List files
         run: tree artifacts
 
+      - name: Check performance budgets
+        id: check-budgets
+        continue-on-error: true
+        env:
+          PERFORMANCE_REGRESSION_MODE: ${{ inputs.fail-on-regression && 'fail' || 'report' }}
+          PERFORMANCE_REGRESSION_ACCEPTED: ${{ inputs.regression-accepted }}
+        run: node ./tests/performance/check-regressions.js "$GITHUB_STEP_SUMMARY"
+
       - name: Compare results
         run: node ./tests/performance/compare-results.js "${RUNNER_TEMP}/summary.md"
 
       - name: Add workflow summary
         run: cat "${RUNNER_TEMP}/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on performance regressions
+        if: ${{ inputs.fail-on-regression && steps.check-budgets.outcome == 'failure' }}
+        run: |
+          echo "::error::The performance budget check failed. See the job summary and the log of the budget check step. If the cost is accepted, add the 'Accepted Performance Regression' label and push a new commit; re-running this job does not pick up new labels."
+          exit 1
 
       - name: Set the base sha
         # Only needed when publishing results.

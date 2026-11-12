@@ -151,6 +151,8 @@ jobs:
       multisite: ${{ matrix.multisite }}
       BASE_TAG: ${{ needs.performance.outputs.BASE_TAG }}
       publish: ${{ contains( fromJson( needs.determine-matrix.outputs.subjects ), 'base' ) && ! matrix.memcached && ! matrix.multisite }}
+      fail-on-regression: ${{ github.event_name == 'pull_request' }}
+      regression-accepted: ${{ contains( github.event.pull_request.labels.*.name, 'Accepted Performance Regression' ) }}
     secrets:
       CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
 
