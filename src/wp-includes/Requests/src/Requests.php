@@ -27,7 +27,7 @@ use WpOrg\Requests\Utility\InputValidator;
 use WpOrg\Requests\Utility\Trim;
 
 /**
- * Requests for PHP
+ * Responses for PHP
  *
  * Inspired by Requests for Python.
  *
