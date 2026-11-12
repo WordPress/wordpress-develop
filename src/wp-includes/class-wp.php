@@ -721,10 +721,13 @@ class WP {
 	 *
 	 * If a post is selected, the redirect is sent by {@see wp_random_content_redirect()}
 	 * on the {@see 'template_redirect'} action at priority 100, so the request is set up
-	 * and the {@see 'wp'} action has fired before the redirect. If no post is selected,
-	 * for example on an empty archive, the request is a 404 as there is no post to
-	 * redirect to. If a post is selected but the request is not redirected, the request
-	 * continues with the results of the main query. The main query is not run again.
+	 * and the {@see 'wp'} action has fired before the redirect.
+   *
+	 * If no post is selected, for example on an empty archive, the request is a 404 as
+	 * there is no post to redirect to. If a post is selected, the request ends with
+	 * the redirect. Otherwise the request continues with the results of the main
+	 * query, which is not run again.
+
 	 *
 	 * @since 7.2.0
 	 *

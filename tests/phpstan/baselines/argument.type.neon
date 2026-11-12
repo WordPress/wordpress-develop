@@ -664,11 +664,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/capabilities.php
 		-
-			message: '#^Parameter \#1 \$name of class WP_Block_Parser_Block constructor expects string, null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block-parser.php
-		-
 			message: '#^Parameter \#1 \$ajax_message of method WP_Customize_Manager\:\:wp_die\(\) expects string\|WP_Error, int given\.$#'
 			identifier: argument.type
 			count: 6

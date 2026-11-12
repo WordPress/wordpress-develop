@@ -1473,9 +1473,12 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
  * is still sent when an earlier callback replaces the current query, for example by
  * calling {@see query_posts()}.
  *
+ * The request ends once a post is selected. The redirect is to the post's permalink
+ * as returned by {@see get_permalink()}, including a permalink filtered to be on
+ * another site.
+ *
  * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
- * handles the request as a 404 and this function is not added. If the post's permalink
- * is on another site, the request is handled as a regular archive request.
+ * handles the request as a 404.
  *
  * @since 7.2.0
  *
@@ -1492,22 +1495,16 @@ function wp_random_content_redirect(): void {
 		return;
 	}
 
-	$location = get_permalink( $wp_the_query->post );
-
-	// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
-	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
-		return;
-	}
-
 	nocache_headers();
 
 	if ( ! headers_sent() ) {
 		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
-	if ( wp_safe_redirect( $location, 302 ) ) {
-		exit;
-	}
+	$location = get_permalink( $wp_query->post );
+
+	wp_redirect( $location, 302 );
+	exit;
 }
 
 /**
