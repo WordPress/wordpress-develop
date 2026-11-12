@@ -3617,44 +3617,13 @@ function convert_smilies( $text ) {
 		return $text;
 	}
 
-	return _wp_replace_in_html_text_nodes(
-		$text,
-		static function ( $content ) use ( $wp_smiliessearch ) {
-			return preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
-		}
-	);
-}
-
-/**
- * Applies a callback to the text nodes of an HTML string.
- *
- * The callback receives the raw, undecoded source of each text node and returns
- * its replacement, which is placed into the document as HTML without escaping.
- *
- * Only text nodes are passed to the callback. Tags and their attributes,
- * comments, and the contents of elements which are not parsed as HTML, such as
- * SCRIPT, STYLE and TEXTAREA, are left alone, as is any text inside CODE and
- * PRE elements.
- *
- * @since 7.3.0
- * @access private
- *
- * @param string   $html     HTML to process.
- * @param callable $callback Receives the raw source of a text node and returns its
- *                           replacement HTML. If it returns anything other than
- *                           a string, the text node is left unchanged.
- * @return string HTML with the callback applied to its text nodes.
- */
-function _wp_replace_in_html_text_nodes( string $html, callable $callback ): string {
-	// Without any markup the whole string is a single text node.
-	if ( ! str_contains( $html, '<' ) ) {
-		$replacement = $callback( $html );
-
-		return is_string( $replacement ) ? $replacement : $html;
+	// Without any markup the whole text is a single text node.
+	if ( ! str_contains( $text, '<' ) ) {
+		return preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $text ) ?? $text;
 	}
 
 	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
-	$processor = new class( $html ) extends WP_HTML_Tag_Processor {
+	$processor = new class( $text ) extends WP_HTML_Tag_Processor {
 		/**
 		 * Gets the span for the current token.
 		 *
@@ -3668,20 +3637,19 @@ function _wp_replace_in_html_text_nodes( string $html, callable $callback ): str
 	};
 
 	/*
-	 * The replacements are raw HTML, which set_modifiable_text() would escape,
-	 * so the output is assembled here from the unchanged parts of the input
-	 * and the replaced text nodes.
+	 * The smilies are replaced by raw HTML, which set_modifiable_text() would
+	 * escape, so the output is assembled here from the unchanged parts of the
+	 * text and the converted text nodes.
 	 */
 	$output    = '';
 	$copied_to = 0;
 
 	/*
-	 * The Tag Processor does not track document structure, so the CODE or PRE
-	 * element being ignored is tracked here, along with its nesting depth so
-	 * that it only ends at its own closing tag.
+	 * Smilies are not converted inside CODE and PRE elements. The Tag Processor
+	 * does not track document structure, so the open CODE and PRE elements are
+	 * tracked here. Text is ignored for as long as any of them is open.
 	 */
-	$ignored_tag   = null;
-	$ignored_depth = 0;
+	$ignored_tags = array();
 
 	while ( $processor->next_token() ) {
 		$token_type = $processor->get_token_type();
@@ -3689,42 +3657,40 @@ function _wp_replace_in_html_text_nodes( string $html, callable $callback ): str
 		if ( '#tag' === $token_type ) {
 			$tag_name = $processor->get_tag();
 
-			if ( null === $ignored_tag ) {
-				if ( ! $processor->is_tag_closer() && ( 'CODE' === $tag_name || 'PRE' === $tag_name ) ) {
-					$ignored_tag   = $tag_name;
-					$ignored_depth = 1;
-				}
-			} elseif ( $tag_name === $ignored_tag ) {
-				$ignored_depth += $processor->is_tag_closer() ? -1 : 1;
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+				continue;
+			}
 
-				if ( 0 === $ignored_depth ) {
-					$ignored_tag = null;
-				}
+			if ( ! $processor->is_tag_closer() ) {
+				$ignored_tags[] = $tag_name;
+				continue;
+			}
+
+			// A closing tag also closes every element opened inside the one it matches.
+			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
+			if ( false !== $opener_at ) {
+				$ignored_tags = array_slice( $ignored_tags, 0, $opener_at );
 			}
 			continue;
 		}
 
-		if ( '#text' !== $token_type || null !== $ignored_tag ) {
+		if ( '#text' !== $token_type || count( $ignored_tags ) > 0 ) {
 			continue;
 		}
 
-		$span        = $processor->get_span();
-		$text        = substr( $html, $span->start, $span->length );
-		$replacement = $callback( $text );
+		$span      = $processor->get_span();
+		$content   = substr( $text, $span->start, $span->length );
+		$converted = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
 
-		if ( ! is_string( $replacement ) || $replacement === $text ) {
+		if ( null === $converted || $converted === $content ) {
 			continue;
 		}
 
-		$output   .= substr( $html, $copied_to, $span->start - $copied_to ) . $replacement;
+		$output   .= substr( $text, $copied_to, $span->start - $copied_to ) . $converted;
 		$copied_to = $span->start + $span->length;
 	}
 
-	if ( 0 === $copied_to ) {
-		return $html;
-	}
-
-	return $output . substr( $html, $copied_to );
+	return $output . substr( $text, $copied_to );
 }
 
 /**
@@ -6298,29 +6264,93 @@ function wp_staticize_emoji( $text ) {
 	/** This filter is documented in wp-includes/formatting.php */
 	$ext = apply_filters( 'emoji_ext', '.png' );
 
-	$output = _wp_replace_in_html_text_nodes(
-		$text,
-		static function ( $content ) use ( $possible_emoji, $cdn_url, $ext ) {
-			if ( ! str_contains( $content, '&#x' ) ) {
-				return $content;
-			}
-
-			foreach ( $possible_emoji as $emojum => $emoji_char ) {
-				if ( ! str_contains( $content, $emojum ) ) {
-					continue;
-				}
-
-				$file = str_replace( ';&#x', '-', $emojum );
-				$file = str_replace( array( '&#x', ';' ), '', $file );
-
-				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
-
-				$content = str_replace( $emojum, $entity, $content );
-			}
-
-			return $content;
+	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+	$processor = new class( $text ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Gets the span for the current token.
+		 *
+		 * @return WP_HTML_Span Current token span.
+		 */
+		public function get_span(): WP_HTML_Span {
+			// Always called while matched on a token, so setting the bookmark never fails.
+			$this->set_bookmark( 'here' );
+			return $this->bookmarks['here'];
 		}
-	);
+	};
+
+	/*
+	 * The emoji are replaced by raw HTML, which set_modifiable_text() would
+	 * escape, so the output is assembled here from the unchanged parts of the
+	 * text and the converted text nodes.
+	 */
+	$output    = '';
+	$copied_to = 0;
+
+	/*
+	 * Emoji are not converted inside CODE and PRE elements. The Tag Processor
+	 * does not track document structure, so the open CODE and PRE elements are
+	 * tracked here. Text is ignored for as long as any of them is open.
+	 */
+	$ignored_tags = array();
+
+	while ( $processor->next_token() ) {
+		$token_type = $processor->get_token_type();
+
+		if ( '#tag' === $token_type ) {
+			$tag_name = $processor->get_tag();
+
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+				continue;
+			}
+
+			if ( ! $processor->is_tag_closer() ) {
+				$ignored_tags[] = $tag_name;
+				continue;
+			}
+
+			// A closing tag also closes every element opened inside the one it matches.
+			$opener_at = array_search( $tag_name, array_reverse( $ignored_tags, true ), true );
+			if ( false !== $opener_at ) {
+				$ignored_tags = array_slice( $ignored_tags, 0, $opener_at );
+			}
+			continue;
+		}
+
+		if ( '#text' !== $token_type || count( $ignored_tags ) > 0 ) {
+			continue;
+		}
+
+		$span    = $processor->get_span();
+		$content = substr( $text, $span->start, $span->length );
+
+		if ( ! str_contains( $content, '&#x' ) ) {
+			continue;
+		}
+
+		$converted = $content;
+
+		foreach ( $possible_emoji as $emojum => $emoji_char ) {
+			if ( ! str_contains( $converted, $emojum ) ) {
+				continue;
+			}
+
+			$file = str_replace( ';&#x', '-', $emojum );
+			$file = str_replace( array( '&#x', ';' ), '', $file );
+
+			$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
+
+			$converted = str_replace( $emojum, $entity, $converted );
+		}
+
+		if ( $converted === $content ) {
+			continue;
+		}
+
+		$output   .= substr( $text, $copied_to, $span->start - $copied_to ) . $converted;
+		$copied_to = $span->start + $span->length;
+	}
+
+	$output .= substr( $text, $copied_to );
 
 	// Finally, remove any stray U+FE0F characters.
 	$output = str_replace( '&#xfe0f;', '', $output );

@@ -452,6 +452,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> -->&#x1f642;</pre>&#x1f642;', 1 ),
 			'nested ignored tags'                          => array( '<pre><code>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
 			'same ignored tag nested'                      => array( '<code><code>&#x1f642;</code>&#x1f642;</code>&#x1f642;', 1 ),
+			'closing tag closes ignored tags inside it'    => array( '<code><pre><code>&#x1f642;</pre>&#x1f642;</code>&#x1f642;</code>', 1 ),
+			'unclosed ignored tag inside ignored tag'      => array( '<pre><code>&#x1f642;</pre>&#x1f642;', 1 ),
+			'unmatched closing tag inside ignored tag'     => array( '<pre>&#x1f642;</code>&#x1f642;</pre>&#x1f642;', 1 ),
 			'less-than sign in text'                       => array( '1 < 2 &#x1f642; <p>&#x1f642;</p>', 2 ),
 		);
 	}

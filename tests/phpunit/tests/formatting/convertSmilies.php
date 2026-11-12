@@ -198,6 +198,9 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> --> :) </pre> :)', 1 ),
 			'nested ignored tags'                          => array( '<pre><code> :) </code> :) </pre> :)', 1 ),
 			'same ignored tag nested'                      => array( '<code><code> :) </code> :) </code> :)', 1 ),
+			'closing tag closes ignored tags inside it'    => array( '<code><pre><code> :) </pre> :) </code> :) </code>', 1 ),
+			'unclosed ignored tag inside ignored tag'      => array( '<pre><code> :) </pre> :)', 1 ),
+			'unmatched closing tag inside ignored tag'     => array( '<pre> :) </code> :) </pre> :)', 1 ),
 			'less-than sign in text'                       => array( '1 < 2 :) <p> :) </p>', 2 ),
 		);
 	}
