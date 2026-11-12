@@ -6,9 +6,15 @@
  *
  * Usage: node check-regressions.js [summary-file]
  *
+ * A screen that got slower fails the check only when the same screen also
+ * loads more scripts or stylesheets, runs more database queries or uses more
+ * memory, so a slowdown has a cause in the change and is not runner noise.
+ * Growth without a slowdown, and a slowdown without growth, are reported for
+ * reviewers but do not fail.
+ *
  * Environment variables:
- * - PERFORMANCE_REGRESSION_MODE: `fail` exits with code 1 when a metric with the
- *   `error` severity regressed. Any other value only reports. Defaults to `report`.
+ * - PERFORMANCE_REGRESSION_MODE: `fail` exits with code 1 when a regression with
+ *   the `error` severity was found. Any other value only reports. Defaults to `report`.
  * - PERFORMANCE_REGRESSION_ACCEPTED: `true` reports regressions without failing,
  *   for changes whose cost has been reviewed and accepted.
  */
@@ -37,26 +43,26 @@ const regressionAccepted =
 
 /**
  * Asset counts and sizes, database queries and memory are deterministic for a
- * given build, so a regression there is real and fails the check.
+ * given build, so any growth beyond the budget is real.
  */
-const deterministic = { minAbsolute: 2, minRelative: 0.05, severity: 'error' };
+const deterministic = { minAbsolute: 2, minRelative: 0.05, kind: 'cost' };
 
 /**
  * Timings carry CI noise, so they must also grow by more than `noiseFactor`
- * times the combined spread of both samples, and are reported as warnings.
+ * times the combined spread of both samples.
  */
 const timing = {
 	minAbsolute: 10,
 	minRelative: 0.1,
 	noiseFactor: 3,
-	severity: 'warning',
+	kind: 'timing',
 };
 
 /**
  * A metric regresses when its median grows by more than `minAbsolute` and by
  * more than `minRelative` of the target's median.
  *
- * @type {Record<string, {minAbsolute: number, minRelative: number, noiseFactor?: number, severity: 'error'|'warning'}>}
+ * @type {Record<string, {minAbsolute: number, minRelative: number, noiseFactor?: number, kind: 'cost'|'timing'}>}
  */
 const budgets = {
 	scriptCount: deterministic,
@@ -92,7 +98,7 @@ const MAD_TO_STANDARD_DEVIATION = 1.4826;
  * @param {string}   metric Metric name.
  * @param {number[]} before Values of the target.
  * @param {number[]} after  Values of this change.
- * @return {{metric: string, before: number, after: number, delta: number, relative: number, regressed: boolean, severity: string}} Comparison.
+ * @return {{metric: string, before: number, after: number, delta: number, relative: number, regressed: boolean}} Comparison.
  */
 function compareMetricToBudget( metric, before, after ) {
 	const budget = budgets[ metric ];
@@ -121,16 +127,18 @@ function compareMetricToBudget( metric, before, after ) {
 		delta,
 		relative,
 		regressed,
-		severity: budget.severity,
 	};
 }
 
 /**
  * Returns the regressions of every scenario measured on both sides.
  *
+ * A timing regression gets the `error` severity when a cost metric of the same
+ * scenario regressed as well; every other regression is a `warning`.
+ *
  * @param {Array<{title: string, results: Record<string, number[]>[]}>} beforeStats Results of the target.
  * @param {Array<{title: string, results: Record<string, number[]>[]}>} afterStats  Results of this change.
- * @return {Array<{title: string} & ReturnType<typeof compareMetricToBudget>>} Regressions.
+ * @return {Array<{title: string, severity: 'error'|'warning'} & ReturnType<typeof compareMetricToBudget>>} Regressions.
  */
 function findRegressions( beforeStats, afterStats ) {
 	return afterStats.flatMap( ( { title, results } ) => {
@@ -142,7 +150,7 @@ function findRegressions( beforeStats, afterStats ) {
 		const afterValues = accumulateValues( results );
 		const beforeValues = accumulateValues( beforeStat.results );
 
-		return Object.keys( budgets )
+		const regressions = Object.keys( budgets )
 			.filter(
 				( metric ) =>
 					afterValues[ metric ]?.length &&
@@ -155,8 +163,20 @@ function findRegressions( beforeStats, afterStats ) {
 					afterValues[ metric ]
 				)
 			)
-			.filter( ( comparison ) => comparison.regressed )
-			.map( ( comparison ) => ( { title, ...comparison } ) );
+			.filter( ( comparison ) => comparison.regressed );
+
+		const costGrew = regressions.some(
+			( regression ) => budgets[ regression.metric ].kind === 'cost'
+		);
+
+		return regressions.map( ( regression ) => ( {
+			title,
+			...regression,
+			severity:
+				costGrew && budgets[ regression.metric ].kind === 'timing'
+					? 'error'
+					: 'warning',
+		} ) );
 	} );
 }
 
@@ -290,8 +310,8 @@ const summaryMarkdown =
 	'## Performance Budget Check\n\n' +
 	targetReport.markdown +
 	releaseReport.markdown +
-	'Asset counts and sizes, database queries and memory usage are deterministic for a build, so exceeding their budget fails pull requests. ' +
-	'Timings are reported as warnings, because shared CI runners add noise.\n';
+	'A pull request fails when a screen gets slower and the same screen also loads more scripts or stylesheets, runs more database queries or uses more memory. ' +
+	'Growth without a slowdown is reported for review, and a slowdown without growth is reported as a warning, because shared CI runners add noise.\n';
 
 if ( summaryFile ) {
 	writeFileSync( summaryFile, summaryMarkdown );
