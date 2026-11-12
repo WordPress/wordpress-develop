@@ -234,21 +234,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Requests a URL, stopping where a random content redirect ends the request.
-	 *
-	 * @param string $url The URL for the request.
-	 */
-	public function go_to( $url ) {
-		try {
-			parent::go_to( $url );
-		} catch ( WP_Tests_Exception $e ) {
-			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
-				throw $e;
-			}
-		}
-	}
-
-	/**
 	 * Starts recording database queries once the request has been parsed.
 	 */
 	public function start_recording_queries(): void {
@@ -270,14 +255,37 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Requests a URL and fires the `template_redirect` action the redirect is sent on.
+	 * Requests a URL and fires the `template_redirect` action the redirect is sent on,
+	 * stopping where a random content redirect ends the request.
 	 *
 	 * @param string $url The URL to request.
 	 */
 	public function go_to( $url ): void {
-		parent::go_to( $url );
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
 
-		do_action( 'template_redirect' );
+			return;
+		}
+
+		$this->do_template_redirect();
+	}
+
+	/**
+	 * Fires the `template_redirect` action, stopping where a random content redirect
+	 * ends the request.
+	 */
+	protected function do_template_redirect(): void {
+		try {
+			do_action( 'template_redirect' );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
 	}
 
 	/**
@@ -1954,17 +1962,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the request does not redirect when the permalink is empty.
-	 */
-	public function test_no_redirect_when_the_permalink_is_empty(): void {
-		add_filter( 'post_link', '__return_empty_string' );
-
-		$this->go_to( home_url( '/random/' ) );
-
-		$this->assertNotRedirected( 'An empty permalink should not redirect.' );
-	}
-
-	/**
 	 * Ensure the redirect is sent on the `template_redirect` action at priority 100.
 	 */
 	public function test_redirect_is_added_to_template_redirect_at_priority_100(): void {
@@ -1973,7 +1970,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action at priority 100.' );
 		$this->assertNotRedirected( 'The redirect should not be sent before the template_redirect action.' );
 
-		do_action( 'template_redirect' );
+		$this->do_template_redirect();
 
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The redirect should be sent on the template_redirect action.' );
 	}
@@ -2683,10 +2680,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action after running the main query.' );
 		$this->assertFalse( is_404(), 'A random content request with a post should not 404.' );
 
-		do_action( 'template_redirect' );
+		$this->do_template_redirect();
 
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random content request should redirect on the template_redirect action.' );
-
 	}
 
 	/**

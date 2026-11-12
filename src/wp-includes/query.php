@@ -1501,7 +1501,7 @@ function wp_random_content_redirect(): void {
 		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
-	$location = get_permalink( $wp_query->post );
+	$location = get_permalink( $wp_the_query->post );
 
 	wp_redirect( $location, 302 );
 	exit;
