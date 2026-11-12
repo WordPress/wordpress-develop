@@ -444,6 +444,30 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		return $destination;
 	}
 
+	/*
+	 * On a subfolder network a request for a path that does not belong to a site still
+	 * resolves to one, because the lookup falls back to shorter paths. For an admin
+	 * request that loads the wrong site's dashboard while keeping the requested path in
+	 * the URL, which leads to editing the wrong site. Send the request to the resolved
+	 * site's own admin URL instead.
+	 */
+	if ( is_admin() && ! wp_installing() && trailingslashit( $path ) !== $current_blog->path ) {
+		$scheme      = is_ssl() ? 'https' : 'http';
+		$destination = "$scheme://{$current_site->domain}{$current_blog->path}wp-admin/";
+
+		/**
+		 * Filters the destination an admin request is redirected to when its path does
+		 * not match the site that was found.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string  $destination  The redirect destination.
+		 * @param WP_Site $current_blog The site that was found.
+		 * @param string  $path         The requested path.
+		 */
+		return apply_filters( 'ms_site_path_mismatch_redirect', $destination, $current_blog, $path );
+	}
+
 	// Figure out the current network's main site.
 	if ( empty( $current_site->blog_id ) ) {
 		$current_site->blog_id = get_main_site_id( $current_site->id );
