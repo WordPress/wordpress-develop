@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 require ABSPATH . 'wp-admin/includes/theme-install.php';
 
-$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
+$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : ( ! empty( $_REQUEST['browse'] ) ? sanitize_text_field( $_REQUEST['browse'] ) : '' );
 
 if ( ! current_user_can( 'install_themes' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
@@ -42,6 +42,34 @@ foreach ( $installed_themes as $theme_slug => $theme_data ) {
 	}
 }
 
+$tabs = array(
+	'popular'      => _x( 'Popular', 'themes' ),
+	'new'          => _x( 'Latest', 'themes' ),
+	'block-themes' => _x( 'Block Themes', 'themes' ),
+	'favorites'    => _x( 'Favorites', 'themes' ),
+);
+
+if ( current_user_can( 'upload_themes' ) ) {
+	/*
+	 * No longer a real tab. Here for filter compatibility.
+	 * Gets skipped in the filter links below.
+	 */
+	$tabs['upload'] = __( 'Upload Theme' );
+}
+
+/**
+ * Filters the tabs shown on the Add Themes screen.
+ *
+ * @since 2.8.0
+ *
+ * @param string[] $tabs Associative array of the tabs shown on the Add Themes screen. Default keys
+ *                       include 'popular', 'new', 'block-themes', 'favorites', and 'upload'.
+ */
+$tabs = apply_filters( 'install_themes_tabs', $tabs );
+
+$browse_tabs = array_diff_key( $tabs, array( 'upload' => true ) );
+$default_tab = ! empty( $browse_tabs ) ? (string) array_key_first( $browse_tabs ) : 'popular';
+
 wp_localize_script(
 	'theme',
 	'_wpThemeSettings',
@@ -52,6 +80,7 @@ wp_localize_script(
 			'canInstall' => current_user_can( 'install_themes' ),
 			'installURI' => current_user_can( 'install_themes' ) ? self_admin_url( 'theme-install.php' ) : null,
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
+			'defaultTab' => $default_tab,
 		),
 		'l10n'            => array(
 			'addNew'              => __( 'Add Theme' ),
@@ -166,17 +195,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 	<?php
-
-	/**
-	 * Filters the tabs shown on the Add Themes screen.
-	 *
-	 * This filter is for backward compatibility only, for the suppression of the upload tab.
-	 *
-	 * @since 2.8.0
-	 *
-	 * @param string[] $tabs Associative array of the tabs shown on the Add Themes screen. Default is 'upload'.
-	 */
-	$tabs = apply_filters( 'install_themes_tabs', array( 'upload' => __( 'Upload Theme' ) ) );
 	if ( ! empty( $tabs['upload'] ) && current_user_can( 'upload_themes' ) ) {
 		echo ' <button type="button" class="upload-view-toggle page-title-action hide-if-no-js" aria-expanded="false">' . __( 'Upload Theme' ) . '</button>';
 	}
@@ -210,10 +228,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<ul class="filter-links">
-			<li><a href="#" data-sort="popular"><?php _ex( 'Popular', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="new"><?php _ex( 'Latest', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="block-themes"><?php _ex( 'Block Themes', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></a></li>
+			<?php foreach ( (array) $browse_tabs as $action => $text ) : ?>
+				<li><a href="#" data-sort="<?php echo esc_attr( $action ); ?>"><?php echo esc_html( $text ); ?></a></li>
+			<?php endforeach; ?>
 		</ul>
 
 		<button type="button" class="button drawer-toggle" aria-expanded="false"><?php _e( 'Feature Filter' ); ?></button>

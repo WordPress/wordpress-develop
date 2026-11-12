@@ -1802,7 +1802,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 			.removeClass( this.activeClass )
 			.removeAttr( 'aria-current' );
 
-		$( '[data-sort="' + sort + '"]' )
+		$( '[data-sort="' + $.escapeSelector( sort ) + '"]' )
 			.addClass( this.activeClass )
 			.attr( 'aria-current', 'page' );
 
@@ -2013,6 +2013,7 @@ themes.InstallerRouter = Backbone.Router.extend({
 	routes: {
 		'theme-install.php?theme=:slug': 'preview',
 		'theme-install.php?browse=:sort': 'sort',
+		'theme-install.php?tab=:sort': 'sort',
 		'theme-install.php?search=:query': 'search',
 		'theme-install.php': 'sort'
 	},
@@ -2036,10 +2037,12 @@ themes.InstallerRouter = Backbone.Router.extend({
 themes.RunInstaller = {
 
 	init: function() {
+		var defaultTab = ( themes.data.settings && themes.data.settings.defaultTab ) || 'popular';
+
 		// Set up the view.
 		// Passes the default 'section' as an option.
 		this.view = new themes.view.Installer({
-			section: 'popular',
+			section: defaultTab,
 			SearchView: themes.view.InstallerSearch
 		});
 
@@ -2106,12 +2109,12 @@ themes.RunInstaller = {
 		/*
 		 * Handles sorting / browsing routes.
 		 * Also handles the root URL triggering a sort request
-		 * for `popular`, the default view.
+		 * for the default view.
 		 */
 		themes.router.on( 'route:sort', function( sort ) {
 			if ( ! sort ) {
-				sort = 'popular';
-				themes.router.navigate( themes.router.baseUrl( '?browse=popular' ), { replace: true } );
+				sort = ( themes.data.settings && themes.data.settings.defaultTab ) || 'popular';
+				themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + sort ), { replace: true } );
 			}
 			self.view.sort( sort );
 
