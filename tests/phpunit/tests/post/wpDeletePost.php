@@ -214,7 +214,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	 * The concurrent delete is simulated by deleting the post from a `before_delete_post`
 	 * callback that runs before `_reset_front_page_settings_for_post()`.
 	 *
-	 * @ticket NNNNN
+	 * @ticket 66684
 	 *
 	 * @covers ::_reset_front_page_settings_for_post
 	 */
