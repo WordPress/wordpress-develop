@@ -25,6 +25,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 63799
 	 * @ticket 64974
 	 * @ticket 65037
+	 * @ticket 66094
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -53,7 +54,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_style_engine_get_styles() {
+	public static function data_wp_style_engine_get_styles() {
 		return array(
 			'default_return_value'                         => array(
 				'block_styles'    => array(),
@@ -667,6 +668,49 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					),
 				),
 			),
+
+			'inline_background_clip_border_box'            => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'border-box',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:border-box;-webkit-text-fill-color:currentColor;',
+					'declarations' => array(
+						'background-clip'         => 'border-box',
+						'-webkit-text-fill-color' => 'currentColor',
+					),
+				),
+			),
+
+			'inline_background_clip_text_with_vendor_prefixes' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'text',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+					'declarations' => array(
+						'background-clip'         => 'text',
+						'-webkit-background-clip' => 'text',
+						'-webkit-text-fill-color' => 'transparent',
+					),
+				),
+			),
+
+			'inline_background_clip_invalid_value'         => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'invalid-value',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(),
+			),
 		);
 	}
 
@@ -950,5 +994,68 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
 		$this->assertSame( '.foo{@media (orientation: landscape){background-color:blue;}}.foo{@media (min-width > 1024px){background-color:cotton-blue;}}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests that storing a rule whose selector is only whitespace is skipped
+	 * instead of calling {@see WP_Style_Engine_CSS_Rule::add_declarations()} on null.
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 * @covers WP_Style_Engine::store_css_rule
+	 */
+	public function test_should_skip_storing_rule_with_whitespace_selector() {
+		$css_rules = array(
+			array(
+				'selector'     => ' ',
+				'declarations' => array(
+					'color' => 'red',
+				),
+			),
+		);
+
+		wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'context' => 'test-whitespace-selector' ) );
+
+		$store = WP_Style_Engine::get_store( 'test-whitespace-selector' );
+		$this->assertInstanceOf( WP_Style_Engine_CSS_Rules_Store::class, $store );
+		$this->assertSame( array(), $store->get_all_rules(), 'Expected no rule to be stored.' );
+	}
+
+	/**
+	 * Tests that non-string style values are left out of the returned declarations,
+	 * since {@see WP_Style_Engine_CSS_Declarations::add_declaration()} would drop them from the CSS anyway.
+	 *
+	 * @covers ::wp_style_engine_get_styles
+	 */
+	public function test_should_omit_non_string_values_from_declarations() {
+		$block_styles = array(
+			'border'     => array(
+				'top' => array(
+					'width' => 5,
+					'style' => 'solid',
+				),
+			),
+			'typography' => array(
+				'textColumns' => 2,
+				'fontSize'    => '12px',
+			),
+			'spacing'    => array(
+				'padding' => array(
+					'top'  => 5,
+					'left' => '1em',
+				),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'css'          => 'border-top-style:solid;padding-left:1em;font-size:12px;',
+				'declarations' => array(
+					'border-top-style' => 'solid',
+					'padding-left'     => '1em',
+					'font-size'        => '12px',
+				),
+			),
+			wp_style_engine_get_styles( $block_styles )
+		);
 	}
 }

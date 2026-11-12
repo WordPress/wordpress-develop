@@ -51,7 +51,7 @@ class Tests_Filesystem_WpFilesystemDirect_Dirlist extends WP_Filesystem_Direct_U
 	 *
 	 * @return array[]
 	 */
-	public function data_should_get_dirlist() {
+	public static function data_should_get_dirlist() {
 		return array(
 			'a directory that exists excluding hidden files' => array(
 				'path'           => '',

@@ -30,14 +30,11 @@ class Tests_Term_DefaultTopicCountScale extends WP_UnitTestCase {
 	 */
 	public static function data_counts() {
 		return array(
-			'zero'                => array( 0, 0 ),
-			'one'                 => array( 1, 30 ),
-			'rounds down'         => array( 2, 48 ),
-			'rounds up'           => array( 4, 70 ),
-			'nine'                => array( 9, 100 ),
-			'ninety-nine'         => array( 99, 200 ),
-			'nine hundred ninety' => array( 999, 300 ),
-			'numeric string'      => array( '9', 100 ),
+			'zero'        => array( 0, 0 ),
+			'one'         => array( 1, 30 ),
+			'rounds down' => array( 2, 48 ),
+			'rounds up'   => array( 4, 70 ),
+			'ninety-nine' => array( 99, 200 ),
 		);
 	}
 

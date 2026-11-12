@@ -233,7 +233,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_items_fails_for_invalid_url() {
+	public static function data_get_items_fails_for_invalid_url() {
 		return array(
 			'empty string'   => array( '' ),
 			'numeric'        => array( 1234456 ),

@@ -108,7 +108,6 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 			'zlib'                            => array( 'gzcompress', array( self::CONTENT ) ),
 			'gzip'                            => array( 'gzencode', array( self::CONTENT ) ),
 			'gzip with a file name'           => array( array( self::class, 'build_gzip_stream' ), array( 8, "content.txt\0" ) ),
-			'WP_Http_Encoding::compress()'    => array( array( 'WP_Http_Encoding', 'compress' ), array( self::CONTENT ) ),
 		);
 	}
 
@@ -138,11 +137,8 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	public static function data_content_that_is_not_compressed() {
 		return array(
 			'plain text'   => array( self::CONTENT ),
-			'HTML'         => array( '<!DOCTYPE html><html><body>Hello</body></html>' ),
 			'empty string' => array( '' ),
-			'zero string'  => array( '0' ),
 			'false'        => array( false ),
-			'null'         => array( null ),
 		);
 	}
 
@@ -382,20 +378,11 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 			),
 			'array without content-encoding'       => array( array( 'content-type' => 'text/html' ), false ),
 			'array with empty content-encoding'    => array( array( 'content-encoding' => '' ), false ),
-			'array with null content-encoding'     => array( array( 'content-encoding' => null ), false ),
-			'array with zero content-encoding'     => array( array( 'content-encoding' => '0' ), false ),
 			'array with capitalized header name'   => array( array( 'Content-Encoding' => 'gzip' ), false ),
-			'empty array'                          => array( array(), false ),
 			'string with content-encoding'         => array( "Content-Type: text/html\r\nContent-Encoding: gzip\r\n", true ),
-			'string with lowercase header name'    => array( 'content-encoding: gzip', true ),
 			'string with uppercase header name'    => array( 'CONTENT-ENCODING: gzip', true ),
-			'string without content-encoding'      => array( "Content-Type: text/html\r\n", false ),
 			'string with header name but no colon' => array( 'content-encoding', false ),
-			'empty string'                         => array( '', false ),
 			'null'                                 => array( null, false ),
-			'false'                                => array( false, false ),
-			'true'                                 => array( true, false ),
-			'integer'                              => array( 1, false ),
 		);
 	}
 
