@@ -2272,6 +2272,40 @@ function taxonomy_meta_box_sanitize_cb_checkboxes( $taxonomy, $terms ) {
 }
 
 /**
+ * Sanitizes POST values from a single-term taxonomy metabox.
+ *
+ * Accepts the raw array submitted by {@see post_single_term_meta_box()} (radio buttons
+ * or a single-select dropdown), discards the `0` sentinel/"None" value, and returns
+ * at most one term ID.
+ *
+ * @since 7.2.0
+ *
+ * @param string $taxonomy The taxonomy name.
+ * @param mixed  $terms    Raw term data from the 'tax_input' or 'post_category' field.
+ * @return int[] Array containing a single sanitized term ID, or an empty array.
+ */
+function taxonomy_meta_box_sanitize_cb_single_term( $taxonomy, $terms ) {
+	if ( ! is_array( $terms ) ) {
+		$terms = array( $terms );
+	}
+
+	$clean = array();
+	foreach ( $terms as $term ) {
+		$term = (int) $term;
+		if ( $term > 0 ) {
+			$clean[] = $term;
+		}
+	}
+
+	if ( empty( $clean ) ) {
+		return array();
+	}
+
+	// Keep only the last submitted term to honor the single-term constraint.
+	return array( end( $clean ) );
+}
+
+/**
  * Sanitizes POST values from an input taxonomy metabox.
  *
  * @since 5.1.0
