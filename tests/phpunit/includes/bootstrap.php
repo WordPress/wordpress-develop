@@ -250,10 +250,17 @@ define( 'WP_MAX_MEMORY_LIMIT', '-1' );
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
 /*
+ * Isolate uploads in a dedicated directory when running the core test suite only,
+ * so that plugins and themes using the test suite keep the default uploads location.
+ *
  * Tests that cover the upload_path and upload_url_path options run in a separate process
  * with WP_TESTS_SKIP_UPLOADS_CONSTANT set, as UPLOADS overrides those options.
  */
-if ( ! defined( 'UPLOADS' ) && '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' ) ) {
+if (
+	defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS
+	&& ! defined( 'UPLOADS' )
+	&& '1' !== getenv( 'WP_TESTS_SKIP_UPLOADS_CONSTANT' )
+) {
 	define( 'UPLOADS', 'wp-content/test-suite-uploads' );
 
 	/*
