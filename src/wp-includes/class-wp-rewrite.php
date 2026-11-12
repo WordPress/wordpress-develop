@@ -1532,8 +1532,9 @@ class WP_Rewrite {
 	 * the URL, see {@see WP_Rewrite::post_permalinks_share_random_base()}. The rules are flushed
 	 * when such a page or post changes, see {@see wp_random_content_flush_rewrite_rules_for_post()}.
 	 *
-	 * The `random` query variable can be added to any other archive or search URL, for example
-	 * `/2026/?random`, to request a random post from that archive.
+	 * The `random` query variable can be added to any other archive URL, for example
+	 * `/2026/?random`, to request a random post from that archive. Search requests
+	 * including it are redirected to the search results, see {@see WP::handle_random()}.
 	 *
 	 * @since 7.2.0
 	 *
