@@ -2803,6 +2803,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Side-loads a media file without creating a new attachment.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 The file is no longer checked against the multisite upload space.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -2888,6 +2889,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		add_filter( 'upload_dir', $filter_upload_dir, 100 );
 
+		/*
+		 * On multisite, only the original upload counts against the site's
+		 * upload space: the sub-sizes the server generates from it are written
+		 * without a check. A sideloaded file is such a sub-size, so skip the
+		 * check rather than leave the attachment with some of its sizes missing.
+		 */
+		add_filter( 'pre_site_option_upload_space_check_disabled', '__return_true', 100 );
+
 		if ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers );
 		} else {
@@ -2897,6 +2906,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		remove_filter( 'wp_unique_filename', $filter_filename );
 		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		remove_filter( 'upload_dir', $filter_upload_dir, 100 );
+		remove_filter( 'pre_site_option_upload_space_check_disabled', '__return_true', 100 );
 
 		if ( is_wp_error( $file ) ) {
 			return $file;
