@@ -150,15 +150,19 @@ jobs:
                   identifier: message.identifier ?? null,
                   tip: message.tip ?? null,
                   ignorable: message.ignorable,
+                  fixable: message.fixable ?? false,
                 } );
               }
             }
 
-            // Errors that are not specific to a file, such as an `ignoreErrors` entry without a
-            // path that no longer matches. These cannot be ignored either.
+            // Errors that are not specific to a file, such as an `ignoreErrors` entry from a config
+            // file PHPStan cannot locate it in. These cannot be ignored either.
             for ( const message of report.errors ) {
-              errors.push( { file: null, line: null, message, identifier: null, tip: null, ignorable: false } );
+              errors.push( { file: null, line: null, message, identifier: null, tip: null, ignorable: false, fixable: false } );
             }
+
+            // PHPStan marks an error it can fix itself, such as a stale baseline entry, as fixable.
+            const fixHint = 'This can be fixed automatically by running `composer phpstan:fix` (or `npm run typecheck:php:fix`).';
 
             for ( const error of errors ) {
               const properties = { title: error.identifier ? `PHPStan: ${ error.identifier }` : 'PHPStan' };
@@ -168,7 +172,7 @@ jobs:
               if ( error.line ) {
                 properties.startLine = error.line;
               }
-              const message = error.tip ? `${ error.message }\n${ error.tip }` : error.message;
+              const message = [ error.message, error.tip, error.fixable ? fixHint : null ].filter( Boolean ).join( '\n' );
               if ( error.ignorable ) {
                 core.warning( message, properties );
               } else {
@@ -176,7 +180,8 @@ jobs:
               }
             }
 
-            // Tips are left out of the results, since they are only shown in the annotations, next to the code.
+            // Tips and whether an error is fixable are left out of the results, since they are only shown in the
+            // annotations, next to the code.
             //
             // The commit analyzed is the pull request merged into its base branch, whose second parent is the head
             // commit. The files with errors that differ between the two are those the base branch has changed, in
@@ -196,7 +201,7 @@ jobs:
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
                 changed_in_base: changedInBase,
-                errors: errors.map( ( { tip, ...error } ) => error ),
+                errors: errors.map( ( { tip, fixable, ...error } ) => error ),
               } ) );
             }
 
@@ -266,21 +271,21 @@ jobs:
 
           **If you fixed the error, this is expected.** Each baseline entry records an exact count for a specific file, so that a new occurrence of an already baselined error is reported rather than absorbed. That same exactness means fixing one leaves the baseline describing a state that no longer exists. There is nothing to fix in the code; the baselines just need to catch up.
 
-          Regenerate them and commit the result:
+          Remove the stale entries, and commit the result:
 
           ```bash
-          npm run typecheck:php:baselines
+          npm run typecheck:php:fix
           ```
 
           or, outside the Docker environment:
 
           ```bash
-          composer phpstan:baselines
+          composer phpstan:fix
           ```
 
-          That rewrites the files under [`tests/phpstan/baselines`][baselines], deletes any whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`.
+          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries, and updates the list of them in `phpstan.neon.dist`.
 
-          Where the report names an `@phpstan-ignore` annotation in the code rather than a baseline entry, remove that annotation instead; regenerating will not clear it.
+          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`, but it does not clear an `@phpstan-ignore` annotation.
 
           See [`tests/phpstan/README.md`][readme] for details.
 
@@ -294,7 +299,7 @@ jobs:
               echo "[readme]: ${README_URL}"
             } >> "${GITHUB_STEP_SUMMARY}"
 
-            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
+            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:fix\` or \`composer phpstan:fix\` and commit the updated baselines. See ${README_URL}"
           else
             echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
           fi

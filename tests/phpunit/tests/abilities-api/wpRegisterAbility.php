@@ -100,9 +100,6 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
-		if ( wp_has_ability_category( 'uncategorized' ) ) {
-			wp_unregister_ability_category( 'uncategorized' );
-		}
 
 		parent::tear_down();
 	}
@@ -226,39 +223,21 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that registering an ability requires a category.
+	 *
 	 * @ticket 65569
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
-	public function test_register_ability_without_category_uses_uncategorized_category(): void {
-		global $wp_current_filter;
-
+	public function test_register_ability_without_category_fails(): void {
 		$this->simulate_doing_wp_abilities_init_action();
 
-		$wp_current_filter[] = 'wp_abilities_api_categories_init';
-		wp_register_ability_category(
-			'uncategorized',
-			array(
-				'label'       => 'Uncategorized',
-				'description' => 'Abilities that have not been assigned to a specific category.',
-			)
-		);
-		array_pop( $wp_current_filter );
+		$args = self::$test_ability_args;
+		unset( $args['category'] );
 
-		$ability = wp_register_ability(
-			'test/without-category',
-			array(
-				'label'               => 'Test ability without category',
-				'description'         => 'Test ability description.',
-				'input_schema'        => array(),
-				'output_schema'       => array(),
-				'permission_callback' => '__return_true',
-				'execute_callback'    => static function (): array {
-					return array( 'success' => true );
-				},
-			)
-		);
+		$ability = wp_register_ability( self::$test_ability_name, $args );
 
-		$this->assertInstanceOf( WP_Ability::class, $ability );
-		$this->assertSame( 'uncategorized', $ability->get_category() );
+		$this->assertNull( $ability );
+		$this->assertFalse( wp_has_ability( self::$test_ability_name ) );
 	}
 
 	/**
