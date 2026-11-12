@@ -1234,7 +1234,7 @@ button.toggle {
 	background-attachment: fixed;
 }
 
-@supports ( -webkit-overflow-scrolling: touch ) {
+@media ( hover: none ), ( pointer: coarse ) {
 
 	.bg-attachment-fixed {
 		background-attachment: scroll;
