@@ -415,6 +415,9 @@ class WP_List_Table {
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
 			if ( is_array( $_REQUEST['orderby'] ) ) {
 				foreach ( $_REQUEST['orderby'] as $key => $value ) {
+					if ( ! is_string( $value ) ) {
+						continue;
+					}
 					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
 				}
 			} else {
