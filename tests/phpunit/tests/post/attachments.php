@@ -556,6 +556,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	/**
 	 * Tests that false is passed to the filter and returned when no icon matches.
 	 *
+	 * @ticket 65817
+	 *
 	 * @dataProvider data_wp_mime_type_icon_without_matching_icon
 	 *
 	 * @param int|string $mime MIME type or attachment ID.
@@ -586,6 +588,37 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		return array(
 			'nonexistent attachment ID' => array( PHP_INT_MAX ),
 			'unknown MIME type'         => array( 'foo/bar' ),
+		);
+	}
+
+	/**
+	 * Tests that a cached icon that is not a string is ignored and the icon is looked up again.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_wp_mime_type_icon_ignores_non_string_cached_icon
+	 *
+	 * @param mixed $cached_icon Value stored in the icon cache for the MIME type.
+	 */
+	public function test_wp_mime_type_icon_ignores_non_string_cached_icon( $cached_icon ) {
+		wp_cache_set( 'mime_type_icon_video/mp4', $cached_icon );
+
+		$icon = wp_mime_type_icon( 'video/mp4' );
+
+		$this->assertIsString( $icon, 'Expected the icon to be looked up again rather than taken from the cache.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_ignores_non_string_cached_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_wp_mime_type_icon_ignores_non_string_cached_icon(): array {
+		return array(
+			'true'  => array( true ),
+			'array' => array( array( 'http://example.com/icon.png' ) ),
+			'int'   => array( 1 ),
 		);
 	}
 }
