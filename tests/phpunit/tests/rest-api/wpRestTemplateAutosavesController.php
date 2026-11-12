@@ -888,4 +888,37 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
+
+	/**
+	 * Tests that the inherited author parameter scopes template autosaves.
+	 *
+	 * @ticket 62057
+	 *
+	 * @covers WP_REST_Autosaves_Controller::get_items
+	 */
+	public function test_get_items_scoped_to_author(): void {
+		$other_admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$autosave_ids   = array();
+
+		foreach ( array( self::$admin_id, $other_admin_id ) as $user_id ) {
+			wp_set_current_user( $user_id );
+			$autosave_ids[ $user_id ] = wp_create_post_autosave(
+				array(
+					'post_content' => "Autosave content for {$user_id}.",
+					'post_ID'      => self::$template_post->ID,
+					'post_type'    => self::PARENT_POST_TYPE,
+				)
+			);
+		}
+
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves' );
+		$request->set_param( 'author', $other_admin_id );
+		$response  = rest_get_server()->dispatch( $request );
+		$autosaves = $response->get_data();
+
+		$this->assertSame( WP_Http::OK, $response->get_status(), 'Response is expected to have a status code of 200.' );
+		$this->assertIsArray( $autosaves );
+		$this->assertSame( array( $autosave_ids[ $other_admin_id ] ), wp_list_pluck( $autosaves, 'wp_id' ), 'Only the requested author\'s autosave should be returned.' );
+	}
 }
