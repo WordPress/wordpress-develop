@@ -2864,6 +2864,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * of the space. This is the baseline for
 	 * test_sideload_sub_size_after_multisite_upload_space_is_used().
 	 *
+	 * @ticket 66680
 	 * @group multisite
 	 * @group ms-required
 	 * @covers ::wp_update_image_subsizes
@@ -2874,7 +2875,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
 
-		$this->assertEmpty( wp_get_attachment_metadata( $attachment_id )['sizes'], 'The original should have no sub-sizes yet.' );
+		$this->assertIsInt( $attachment_id, 'The original upload should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertIsArray( $metadata, 'The original should have metadata.' );
+		$this->assertEmpty( $metadata['sizes'] ?? array(), 'The original should have no sub-sizes yet.' );
 
 		// The original used the last of the space.
 		add_filter( 'get_space_allowed', '__return_zero' );
@@ -2884,6 +2890,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$metadata = wp_update_image_subsizes( $attachment_id );
 
 		$this->assertIsArray( $metadata, 'Generating sub-sizes should succeed.' );
+		$this->assertIsArray( $metadata['sizes'], 'The metadata should list the sub-sizes.' );
 		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'The server should generate a thumbnail.' );
 	}
 
@@ -2892,12 +2899,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * original upload used the last of the site's upload space.
 	 *
 	 * With client-side media processing, the browser uploads the original,
-	 * then sideloads each sub-size, and every sideload is checked against the
-	 * space quota. The server generates the same sub-sizes regardless of the
-	 * quota on the classic path (see
+	 * then sideloads each sub-size. The server generates the same sub-sizes
+	 * regardless of the quota on the classic path (see
 	 * test_server_sub_sizes_after_multisite_upload_space_is_used()), so the
 	 * sideload should not be rejected for lack of space.
 	 *
+	 * @ticket 66680
 	 * @group multisite
 	 * @group ms-required
 	 * @covers WP_REST_Attachments_Controller::sideload_item
@@ -2913,12 +2920,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_param( 'generate_sub_sizes', false );
-		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status(), 'The original upload should succeed.' );
 
-		$attachment_id = $response->get_data()['id'];
+		$data = $response->get_data();
+
+		$this->assertIsArray( $data, 'The upload response should describe the attachment.' );
+		$this->assertIsInt( $data['id'], 'The upload response should include the attachment ID.' );
+
+		$attachment_id = $data['id'];
 
 		// The original used the last of the space.
 		add_filter( 'get_space_allowed', '__return_zero' );
@@ -2929,7 +2941,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.jpg' );
 		$request->set_param( 'image_size', 'thumbnail' );
-		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame(
