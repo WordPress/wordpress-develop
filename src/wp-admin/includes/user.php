@@ -750,3 +750,67 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 
 	return true;
 }
+
+/**
+ * Finds which of the given users share an email address with another user,
+ * ignoring letter case.
+ *
+ * Many mailbox providers treat `abc@example.com` and `ABc@example.com` as the
+ * same mailbox, so such accounts are likely duplicates. Used by the Users list
+ * tables to flag them.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param WP_User[] $users Users to check.
+ * @return list<int> IDs of the given users whose email address is shared.
+ */
+function _wp_get_duplicate_email_user_ids( array $users ): array {
+	global $wpdb;
+
+	$emails   = array();
+	$user_ids = array();
+	foreach ( $users as $user ) {
+		if ( '' !== $user->user_email ) {
+			$emails[ strtolower( $user->user_email ) ] = true;
+
+			$user_ids[] = (int) $user->ID;
+		}
+	}
+
+	if ( empty( $emails ) ) {
+		return array();
+	}
+
+	$emails       = array_keys( $emails );
+	$placeholders = implode( ',', array_fill( 0, count( $emails ), '%s' ) );
+
+	/*
+	 * All users whose email matches, ignoring case, the email of a user on this page.
+	 * With the default case-insensitive collation a plain comparison already ignores
+	 * letter case and can use the user_email index; LOWER() is only needed otherwise.
+	 */
+	$email_column = _wp_is_user_email_case_sensitive() ? 'LOWER(user_email)' : 'user_email';
+
+	/** @var list<object{ ID: numeric-string, user_email: string }> $matches */
+	$matches = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$wpdb->prepare( "SELECT ID, user_email FROM $wpdb->users WHERE $email_column IN ($placeholders)", $emails )
+	);
+
+	$users_by_email = array();
+	foreach ( $matches as $match ) {
+		$users_by_email[ strtolower( $match->user_email ) ][] = (int) $match->ID;
+	}
+
+	$duplicate_ids = array();
+	foreach ( $users_by_email as $ids ) {
+		if ( count( $ids ) > 1 ) {
+			$duplicate_ids = array_merge( $duplicate_ids, $ids );
+		}
+	}
+
+	return array_values( array_intersect( $user_ids, $duplicate_ids ) );
+}

@@ -51,4 +51,122 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '#<strong>(<a [^>]+>)?&lt;svg onload=alert\(1\)&gt;#', $row, 'The escaped login should be shown in the username column.' );
 		$this->assertStringContainsString( 'Select &lt;svg onload=alert(1)&gt;', $row, 'The escaped login should be in the checkbox label.' );
 	}
+
+	/**
+	 * @ticket 66238
+	 *
+	 * @covers ::_wp_get_duplicate_email_user_ids
+	 *
+	 * @dataProvider data_email_case_sensitivity
+	 *
+	 * @param bool $is_case_sensitive Whether the database compares user emails case-sensitively.
+	 */
+	public function test_get_duplicate_email_user_ids_flags_case_variants( $is_case_sensitive ) {
+		global $wpdb;
+
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
+		$original = self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
+		$variant  = self::factory()->user->create( array( 'user_email' => 'placeholder@example.com' ) );
+		$unique   = self::factory()->user->create( array( 'user_email' => 'unique@example.com' ) );
+
+		// Duplicates can no longer be created through the API, so simulate legacy data.
+		$wpdb->update( $wpdb->users, array( 'user_email' => 'ABc@example.com' ), array( 'ID' => $variant ) );
+		clean_user_cache( $variant );
+
+		add_filter( 'wp_is_user_email_case_sensitive', $is_case_sensitive ? '__return_true' : '__return_false' );
+
+		$queries = array();
+		$collect = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $collect );
+
+		$flagged = _wp_get_duplicate_email_user_ids(
+			array(
+				$original => get_userdata( $original ),
+				$unique   => get_userdata( $unique ),
+			)
+		);
+
+		remove_filter( 'query', $collect );
+
+		$this->assertSame( array( $original ), $flagged, 'Only the user sharing an address should be flagged, even when the other account is not on the page.' );
+
+		$lower_queries = preg_grep( '/LOWER\(user_email\)/', $queries );
+		if ( $is_case_sensitive ) {
+			$this->assertNotEmpty( $lower_queries, 'A case-sensitive collation should use a LOWER() comparison.' );
+		} else {
+			$this->assertEmpty( $lower_queries, 'A case-insensitive collation should not use LOWER(), so that the index can be used.' );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_email_case_sensitivity() {
+		return array(
+			'case-insensitive collation' => array( false ),
+			'case-sensitive collation'   => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 66238
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers WP_Users_List_Table::display_rows
+	 */
+	public function test_display_rows_highlights_duplicate_email() {
+		global $wpdb;
+
+		$original = self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
+		$variant  = self::factory()->user->create( array( 'user_email' => 'placeholder@example.com' ) );
+		$unique   = self::factory()->user->create( array( 'user_email' => 'unique@example.com' ) );
+
+		$wpdb->update( $wpdb->users, array( 'user_email' => 'ABc@example.com' ), array( 'ID' => $variant ) );
+		clean_user_cache( $variant );
+
+		$this->table->items = array(
+			$original => get_userdata( $original ),
+			$unique   => get_userdata( $unique ),
+		);
+
+		ob_start();
+		$this->table->display_rows();
+		$output = ob_get_clean();
+
+		$this->assertSame( 1, substr_count( $output, 'class="duplicate-email"' ), 'Exactly one row should be highlighted.' );
+		$this->assertMatchesRegularExpression( "#<tr id='user-{$original}'.*?class=\"duplicate-email\".*?</tr>#s", $output, 'The duplicate user row should be highlighted.' );
+	}
+
+	/**
+	 * On multisite a site admin may not be able to see or manage the other account,
+	 * so the site Users screen does not warn about it.
+	 *
+	 * @ticket 66238
+	 *
+	 * @group ms-required
+	 *
+	 * @covers WP_Users_List_Table::display_rows
+	 */
+	public function test_display_rows_does_not_highlight_duplicate_email_on_multisite() {
+		global $wpdb;
+
+		$original = self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
+		$variant  = self::factory()->user->create( array( 'user_email' => 'placeholder@example.com' ) );
+
+		$wpdb->update( $wpdb->users, array( 'user_email' => 'ABc@example.com' ), array( 'ID' => $variant ) );
+		clean_user_cache( $variant );
+
+		$this->table->items = array( $original => get_userdata( $original ) );
+
+		$output = get_echo( array( $this->table, 'display_rows' ) );
+
+		$this->assertStringNotContainsString( 'class="duplicate-email"', $output );
+	}
 }
