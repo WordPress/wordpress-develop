@@ -470,6 +470,18 @@ window.wp = window.wp || {};
 				cursorEnd = isCursorEndInTag.gtPos;
 			}
 
+			// Keep bookmarks inside list items. A span between items makes TinyMCE restructure the list.
+			var beforeStart = content.slice( 0, cursorStart ).match( /<\/li\s*>\s*$/i ),
+				beforeEnd = content.slice( 0, cursorEnd ).match( /<\/li\s*>\s*$/i );
+
+			if ( beforeStart ) {
+				cursorStart = beforeStart.index;
+			}
+
+			if ( beforeEnd ) {
+				cursorEnd = beforeEnd.index;
+			}
+
 			var isCursorStartInShortcode = getShortcodeWrapperInfo( content, cursorStart );
 			if ( isCursorStartInShortcode && ! isCursorStartInShortcode.showAsPlainText ) {
 				/**
