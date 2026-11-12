@@ -10235,6 +10235,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * Tests that styles in a custom block state use the state-scoped feature selector.
+	 *
+	 * @ticket 66667
 	 */
 	public function test_block_custom_states_scope_feature_selectors() {
 		register_block_type(
@@ -10267,6 +10269,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * Tests that styles in a custom block state scope each part of a subfeature selector list.
+	 *
+	 * @ticket 66667
 	 */
 	public function test_block_custom_states_scope_subfeature_selectors() {
 		register_block_type(
@@ -10303,6 +10307,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * Tests that pseudo selectors inside a custom block state keep both the state and the pseudo selector on feature selectors.
+	 *
+	 * @ticket 66667
 	 */
 	public function test_block_custom_state_pseudo_selectors_scope_feature_selectors() {
 		register_block_type(
