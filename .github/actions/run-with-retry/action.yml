@@ -1,0 +1,28 @@
+name: 'Run with retry'
+description: 'Runs a Bash command, retrying it when it fails. For downloads curl can retry itself, use download-with-retry.'
+
+inputs:
+  command:
+    description: 'The Bash command to run. It runs as code: read values from the `env` of the calling step, not from expressions.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run the command
+      shell: bash
+      # Waits 10 s, then 20 s, between attempts, like `tools/local-env/scripts/utils.js`.
+      run: |
+        for (( attempt = 1; attempt <= MAX_ATTEMPTS; attempt++ )); do
+          if bash -eo pipefail -c "$COMMAND"; then
+            exit 0
+          fi
+          echo "::warning::Command failed on attempt $attempt of $MAX_ATTEMPTS."
+          if (( attempt < MAX_ATTEMPTS )); then
+            sleep $(( attempt * 10 ))
+          fi
+        done
+        exit 1
+      env:
+        COMMAND: ${{ inputs.command }}
+        MAX_ATTEMPTS: 3

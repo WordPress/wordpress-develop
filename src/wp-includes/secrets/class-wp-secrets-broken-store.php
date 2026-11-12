@@ -21,7 +21,7 @@
  *
  * @since 7.2.0
  */
-final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
+final class WP_Secrets_Broken_Store extends WP_Secrets_Store {
 
 	/**
 	 * Always fails closed.
@@ -74,7 +74,6 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	public function list_names( bool $network = false ): WP_Error {
 		return $this->error();
 	}
-
 
 	/**
 	 * Builds the error every method returns.

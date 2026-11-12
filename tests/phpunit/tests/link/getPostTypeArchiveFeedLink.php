@@ -44,7 +44,6 @@ class Tests_Link_GetPostTypeArchiveFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_false_for_post_type_without_archive() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->register_books_post_type( array( 'has_archive' => false ) );
 
 		$this->assertFalse( get_post_type_archive_feed_link( 'wptests_books' ) );
@@ -173,7 +172,6 @@ class Tests_Link_GetPostTypeArchiveFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_uses_default_feed_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->register_books_post_type();
 
 		add_filter(
@@ -194,7 +192,6 @@ class Tests_Link_GetPostTypeArchiveFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_uses_filtered_archive_link() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->register_books_post_type();
 
 		add_filter(
@@ -213,7 +210,6 @@ class Tests_Link_GetPostTypeArchiveFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_post_type_archive_feed_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->register_books_post_type();
 
 		$filter = new MockAction();

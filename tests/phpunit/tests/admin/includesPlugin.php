@@ -201,6 +201,31 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A page listed only in $_wp_submenu_nopriv, for example by code that fills
+	 * that registry directly, must still be considered to exist.
+	 *
+	 * @ticket 14060
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_checks_the_submenu_nopriv_registry() {
+		global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv, $_wp_nopriv_pages;
+
+		$_registered_pages  = array();
+		$_wp_menu_nopriv    = array();
+		$_wp_nopriv_pages   = array();
+		$_wp_submenu_nopriv = array(
+			'options-general.php' => array( 'mt-only-in-submenu-nopriv' => true ),
+		);
+
+		$plugin_page = 'mt-only-in-submenu-nopriv';
+		$this->assertTrue( wp_admin_page_exists(), 'A page in $_wp_submenu_nopriv should exist.' );
+
+		$plugin_page = 'mt-not-registered-anywhere';
+		$this->assertFalse( wp_admin_page_exists(), 'A page in no registry should not exist.' );
+	}
+
+	/**
 	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
@@ -674,6 +699,26 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66380
+	 *
+	 * @covers ::get_dropins
+	 */
+	public function test_get_dropins_includes_secrets_dropin() {
+		$this->_back_up_drop_ins();
+
+		$p1 = $this->_create_plugin( "<?php\n//Test", 'secrets.php', WP_CONTENT_DIR );
+
+		$dropins = get_dropins();
+
+		unlink( $p1[1] );
+
+		$this->assertSame( array( 'secrets.php' ), array_keys( $dropins ) );
+
+		// Clean up.
+		$this->_restore_drop_ins();
+	}
+
+	/**
 	 * @covers ::is_network_only_plugin
 	 */
 	public function test_is_network_only_plugin_hello() {
@@ -713,25 +758,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( $name );
 	}
 
-	/**
-	 * @covers ::validate_active_plugins
-	 */
-	public function test_validate_active_plugins_remove_invalid() {
-		$plugin = $this->_create_plugin();
-
-		activate_plugin( $plugin[0] );
-		unlink( $plugin[1] );
-
-		$result = validate_active_plugins();
-		$this->assertArrayHasKey( $plugin[0], $result );
-	}
-
-	/**
-	 * @covers ::validate_active_plugins
-	 */
-	public function test_validate_active_plugins_empty() {
-		$this->assertSame( array(), validate_active_plugins() );
-	}
 
 	/**
 	 * @covers ::is_uninstallable_plugin

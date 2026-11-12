@@ -269,7 +269,12 @@ class Tests_Load_WpGetActiveAndValidThemes extends WP_UnitTestCase {
 			)
 		);
 
+		// Begin with themes enabled so disabling them is observable.
+		remove_filter( 'wp_using_themes', '__return_false' );
+		add_filter( 'wp_using_themes', '__return_true', 0 );
+		$this->assertTrue( wp_using_themes() );
+
 		$this->assertSame( array(), wp_get_active_and_valid_themes() );
-		$this->assertNotFalse( has_filter( 'wp_using_themes', '__return_false' ) );
+		$this->assertFalse( wp_using_themes() );
 	}
 }
