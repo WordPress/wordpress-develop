@@ -234,8 +234,8 @@ class Tests_Theme_IpsumGetDesignGuideAbility extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_inputs() {
 		return array(
-			'unknown section'  => array( array( 'fields' => array( 'not-a-section' ) ) ),
-			'unknown property' => array( array( 'sections' => array( 'colors' ) ) ),
+			'unknown section'           => array( array( 'fields' => array( 'not-a-section' ) ) ),
+			'unknown property'          => array( array( 'sections' => array( 'colors' ) ) ),
 			'unknown section in a list' => array( array( 'fields' => 'colors,not-a-section' ) ),
 		);
 	}
