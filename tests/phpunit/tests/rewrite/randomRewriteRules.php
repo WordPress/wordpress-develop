@@ -16,7 +16,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * WP_Rewrite::init() does not reset these, so they are restored after each test.
 	 *
-	 * @var array<string, string>
+	 * @var string[]
 	 */
 	private $original_extra_rules_top = array();
 
@@ -26,10 +26,15 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 * Unregistering post types between tests does not remove their permalink structures,
 	 * so they are restored after each test.
 	 *
-	 * @var array<string, array<string, mixed>>
+	 * @var array<array<mixed>>
 	 */
 	private $original_extra_permastructs = array();
 
+	/**
+	 * Sets up pretty permalinks before each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
 	public function set_up(): void {
 		global $wp_rewrite;
 
@@ -46,6 +51,11 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		create_initial_taxonomies();
 	}
 
+	/**
+	 * Restores the rewrite rules and random base after each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
 	public function tear_down(): void {
 		global $wp_rewrite;
 
@@ -1084,7 +1094,9 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		$rules = $this->get_stored_rewrite_rules();
 
 		$this->assertSame( 'index.php?pagename=wptests-taken', $rules[ $regex ] ?? null, "The top rule {$regex} should take precedence over the random rule using the same regex." );
-		$this->assertStringContainsString( 'random=1', $rules[ $random_rule ] ?? '', "The random rule {$random_rule} should be kept when the top rule {$regex} uses a different regex." );
+		$random_query = $rules[ $random_rule ] ?? '';
+		$this->assertIsString( $random_query, "The random rule {$random_rule} should be kept when the top rule {$regex} uses a different regex." );
+		$this->assertStringContainsString( 'random=1', $random_query, "The random rule {$random_rule} should be kept when the top rule {$regex} uses a different regex." );
 	}
 
 	/**
@@ -1135,6 +1147,9 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
 	 */
 	public function test_random_root_rule_is_omitted_for_a_post_type_archive_at_the_random_base( string $post_type, array $args ): void {
 		register_post_type( $post_type, $args );

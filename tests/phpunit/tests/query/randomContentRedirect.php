@@ -101,7 +101,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * WP_Rewrite::init() does not reset these, so they are restored after each test.
 	 *
-	 * @var array<string, string>
+	 * @var string[]
 	 */
 	protected $original_extra_rules_top = array();
 
@@ -111,7 +111,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * Unregistering post types between tests does not remove their permalink structures,
 	 * so they are restored after each test.
 	 *
-	 * @var array<string, array<string, mixed>>
+	 * @var array<array<mixed>>
 	 */
 	protected $original_extra_permastructs = array();
 
@@ -157,6 +157,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 	/**
 	 * Sets up pretty permalinks and redirect capturing before each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 */
 	public function set_up(): void {
 		global $wp_rewrite;
@@ -182,6 +184,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 	/**
 	 * Unregisters the test post types and taxonomy after each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 */
 	public function tear_down(): void {
 		global $wp_rewrite;
@@ -2740,6 +2744,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
 	 */
 	public function test_post_type_archive_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
 		register_post_type( $post_type, $args );
@@ -2796,6 +2803,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @param string               $post_type Post type name.
 	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
 	 */
 	public function test_single_post_of_a_post_type_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
 		register_post_type( $post_type, $args );
