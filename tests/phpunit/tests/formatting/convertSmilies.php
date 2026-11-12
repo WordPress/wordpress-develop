@@ -190,6 +190,15 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			'custom element starting with ignored name'    => array( '<code-snippet> :) </code-snippet> :)', 2 ),
 			'unknown element starting with ignored name'   => array( '<preview> :) </preview> :)', 2 ),
 			'element name prefixed by ignored script name' => array( '<script-loader> :) </script-loader> :)', 2 ),
+			'greater-than sign in attribute value'         => array( '<img alt="1 > 0 :) " src="a.png"> :)', 1 ),
+			'ignored tag with greater-than in attribute'   => array( '<pre title="a > b"> :) </pre> :)', 1 ),
+			'closing tag lookalike in attribute value'     => array( '<pre><span title="</pre>"> :) </span></pre> :)', 1 ),
+			'smiley inside HTML comment'                   => array( '<!-- 1 > 0 :) --> :)', 1 ),
+			'ignored tag inside HTML comment'              => array( '<!-- > <pre> --> :)', 1 ),
+			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> --> :) </pre> :)', 1 ),
+			'nested ignored tags'                          => array( '<pre><code> :) </code> :) </pre> :)', 1 ),
+			'same ignored tag nested'                      => array( '<code><code> :) </code> :) </code> :)', 1 ),
+			'less-than sign in text'                       => array( '1 < 2 :) <p> :) </p>', 2 ),
 		);
 	}
 
