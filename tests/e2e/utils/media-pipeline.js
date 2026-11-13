@@ -1,8 +1,14 @@
 /**
  * External dependencies
  */
+import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
+
+/**
+ * WordPress dependencies
+ */
+import { expect } from '@wordpress/e2e-test-utils-playwright';
 
 // A 640x480 image: it must be larger than at least one registered sub-size
 // (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
@@ -41,6 +47,68 @@ export const UNDECODABLE_HEIC = {
 		path.join( __dirname, '../../phpunit/data/images/test-image.heic' )
 	),
 };
+
+const MIME_TYPES = {
+	'.jpg': 'image/jpeg',
+	'.svg': 'image/svg+xml',
+	'.wav': 'audio/wav',
+};
+
+/**
+ * Gives a test file a unique name, so the attachment it becomes has a unique
+ * title and other workers' uploads never match its tile.
+ *
+ * @param {string|{ name: string, mimeType: string, buffer: Buffer }} file A path, or a file payload.
+ * @return {{ name: string, mimeType: string, buffer: Buffer }} The payload to pass to setInputFiles().
+ */
+export function uniqueFile( file ) {
+	if ( typeof file === 'string' ) {
+		const mimeType = MIME_TYPES[ path.extname( file ) ];
+		if ( ! mimeType ) {
+			throw new Error( `uniqueFile: no MIME type for ${ file }` );
+		}
+		file = {
+			name: path.basename( file ),
+			mimeType,
+			buffer: fs.readFileSync( file ),
+		};
+	}
+	return { ...file, name: `${ randomUUID() }${ path.extname( file.name ) }` };
+}
+
+/**
+ * The tile name of an uploaded file: the attachment title, which the server
+ * takes from the file name.
+ *
+ * @param {{ name: string }} file
+ * @return {string} The file name without its extension.
+ */
+export function titleOf( file ) {
+	return path.parse( file.name ).name;
+}
+
+/**
+ * Tracks each attachment the page creates, so that the attachments fixture
+ * deletes it.
+ *
+ * Core sends the id in a header before it makes the sub-sizes, so an upload
+ * that fails after the attachment is saved is tracked too.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {Object}                          attachments The attachments fixture.
+ * @return {number[]} The attachment ids, in the order they were created.
+ */
+export function trackUploads( page, attachments ) {
+	const ids = [];
+	page.on( 'response', ( response ) => {
+		const id = Number( response.headers()[ 'x-wp-upload-attachment-id' ] );
+		if ( id > 0 ) {
+			ids.push( id );
+			attachments.track( id );
+		}
+	} );
+	return ids;
+}
 
 /**
  * Fails the request that creates the attachment, leaving sub-size and
@@ -185,4 +253,34 @@ export function countUploadRequests( page ) {
  */
 export function tile( scope, name ) {
 	return scope.getByRole( 'checkbox', { name, exact: true } );
+}
+
+/**
+ * Whether the browser honors Document-Isolation-Policy, by the same rule as
+ * wp_is_document_isolation_policy_supported(): Chromium 137 or newer.
+ *
+ * @param {string}                             browserName
+ * @param {import('@playwright/test').Browser} browser
+ * @return {boolean} True when WordPress isolates pages in this browser.
+ */
+export function supportsDocumentIsolation( browserName, browser ) {
+	return (
+		browserName === 'chromium' && parseInt( browser.version(), 10 ) >= 137
+	);
+}
+
+/**
+ * Fails the test when the page is not cross-origin isolated.
+ *
+ * Call it only in a browser that supportsDocumentIsolation(): there, a page
+ * that is not isolated means WordPress or the browser broke isolation.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function expectCrossOriginIsolated( page ) {
+	const isolated = await page.evaluate( () => window.crossOriginIsolated );
+	expect(
+		isolated,
+		'WordPress did not make the page cross-origin isolated (Document-Isolation-Policy)'
+	).toBe( true );
 }

@@ -1,23 +1,33 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../../fixtures';
+import { signIn } from '../../fixtures/user';
 
 const TEST_APPLICATION_NAME = 'Test Application';
 
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
-		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
-			const applicationPasswords = new ApplicationPasswords( {
-				requestUtils,
-				admin,
-				page,
+		storageState: { cookies: [], origins: [] },
+		// Each test uses its own user, so parallel copies do not see each other's application passwords.
+		applicationPasswords: async (
+			{ requestUtils, admin, page, userFactory },
+			use
+		) => {
+			const { user, username, password } = await userFactory.create( {
+				roles: [ 'subscriber' ],
 			} );
+			await signIn( page, username, password );
+			await expect( page ).toHaveURL( /\/wp-admin\/profile\.php/ );
 
-			// Revoke before the test too: a run that was interrupted leaves passwords behind.
-			await applicationPasswords.delete();
-			await use( applicationPasswords );
-			await applicationPasswords.delete();
+			await use(
+				new ApplicationPasswords( {
+					requestUtils,
+					admin,
+					page,
+					userId: user.id,
+				} )
+			);
 		},
 	} );
 
@@ -93,10 +103,11 @@ test.describe( 'Manage applications passwords', () => {
 } );
 
 class ApplicationPasswords {
-	constructor( { requestUtils, page, admin }) {
+	constructor( { requestUtils, page, admin, userId } ) {
 		this.requestUtils = requestUtils;
 		this.page = page;
 		this.admin = admin;
+		this.userId = userId;
 	}
 
 	async create(applicationName = TEST_APPLICATION_NAME) {
@@ -113,14 +124,7 @@ class ApplicationPasswords {
 	async get() {
 		return this.requestUtils.rest( {
 			method: 'GET',
-			path: '/wp/v2/users/me/application-passwords',
-		} );
-	}
-
-	async delete() {
-		await this.requestUtils.rest( {
-			method: 'DELETE',
-			path: '/wp/v2/users/me/application-passwords',
+			path: `/wp/v2/users/${ this.userId }/application-passwords`,
 		} );
 	}
 }
