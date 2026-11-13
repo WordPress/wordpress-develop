@@ -22,7 +22,7 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_group_argument_syntax
+	 * @dataProvider data_requested_group_is_not_reported_as_default_excluded
 	 *
 	 * @param string[] $arguments Command line arguments.
 	 */
@@ -40,7 +40,7 @@ class Tests_PHPUnit_GroupFilters extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<int, array<int, string>>>
 	 */
-	public static function data_group_argument_syntax() {
+	public static function data_requested_group_is_not_reported_as_default_excluded() {
 		return array(
 			'spaced' => array( array( 'phpunit', '--group', 'ajax' ) ),
 			'equals' => array( array( 'phpunit', '--group=ajax' ) ),
