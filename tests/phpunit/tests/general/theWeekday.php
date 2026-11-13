@@ -91,9 +91,9 @@ class Tests_General_TheWeekday extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'the_weekday', array( $filter, 'filter' ) );
 
-		$this->expectOutputString( '' );
-		the_weekday();
+		$weekday = get_echo( 'the_weekday' );
 
+		$this->assertSame( '', $weekday, 'Nothing should be output for an invalid post date.' );
 		$this->assertSame( 1, $filter->get_call_count(), 'The the_weekday filter should be applied.' );
 		$this->assertSame( array( '' ), $filter->get_args()[0], 'The the_weekday filter should receive an empty string.' );
 	}

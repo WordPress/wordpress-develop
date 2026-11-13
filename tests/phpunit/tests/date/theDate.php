@@ -191,9 +191,8 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'get_post_time', array( $filter, 'filter' ) );
 
-		ob_start();
-		the_weekday_date();
-		$this->assertSame( '', ob_get_clean(), 'No weekday should be output for the same day.' );
+		$weekday_date = get_echo( 'the_weekday_date' );
+		$this->assertSame( '', $weekday_date, 'No weekday should be output for the same day.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The post time should not be retrieved for the same day.' );
 	}
 
@@ -215,9 +214,8 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		$GLOBALS['currentday']      = '18.09.15';
 		$GLOBALS['previousweekday'] = '17.09.15';
 
-		ob_start();
-		the_weekday_date( 'before ', ' after' );
-		$this->assertSame( '', ob_get_clean(), 'Nothing should be output for an invalid post date.' );
+		$weekday_date = get_echo( 'the_weekday_date', array( 'before ', ' after' ) );
+		$this->assertSame( '', $weekday_date, 'Nothing should be output for an invalid post date.' );
 		$this->assertSame( '18.09.15', $GLOBALS['previousweekday'], 'The previous weekday should be updated to the current day.' );
 	}
 }
