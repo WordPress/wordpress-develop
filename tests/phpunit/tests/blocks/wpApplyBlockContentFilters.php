@@ -185,6 +185,46 @@ class Tests_Blocks_WpApplyBlockContentFilters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that autoembed runs before do_blocks() so that URLs which only appear
+	 * in a block's rendered output are not turned into embeds.
+	 *
+	 * @ticket 66077
+	 */
+	public function test_autoembed_runs_before_do_blocks() {
+		wp_embed_register_handler(
+			self::TEST_EMBED_HANDLER,
+			'#https?://example\.com/apply-block-content-filters#i',
+			array( $this, 'render_test_embed' )
+		);
+
+		unregister_block_type( self::TEST_BLOCK_NAME );
+		register_block_type(
+			self::TEST_BLOCK_NAME,
+			array(
+				'render_callback' => static function () {
+					return "\n\nhttps://example.com/apply-block-content-filters\n\n";
+				},
+			)
+		);
+
+		$output = _wp_apply_block_content_filters(
+			'<!-- wp:tests/apply-block-content-filters /-->',
+			'test-context'
+		);
+
+		$this->assertStringNotContainsString(
+			'<div class="apply-block-content-filters-embed">Embedded content</div>',
+			$output,
+			'WP_Embed::autoembed() should not process URLs that only appear in a block\'s rendered output.'
+		);
+		$this->assertStringContainsString(
+			'https://example.com/apply-block-content-filters',
+			$output,
+			'A URL in a block\'s rendered output should be left as-is.'
+		);
+	}
+
+	/**
 	 * Tests that seen IDs are set during block rendering and cleared afterward.
 	 *
 	 * @ticket 65586
