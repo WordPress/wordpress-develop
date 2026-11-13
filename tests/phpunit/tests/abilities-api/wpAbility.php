@@ -2355,22 +2355,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides representative inputs for execution lifecycle integration.
-	 *
-	 * @return array
-	 */
-	public static function data_input_coercion(): array {
-		return array_intersect_key(
-			self::data_input_is_coerced(),
-			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
-		);
-	}
-
-	/**
 	 * Tests coercion after validation and consistent input throughout execution.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_input_coercion
+	 * @dataProvider data_execute_coerces_validated_input
 	 *
 	 * @param array $schema   Input schema.
 	 * @param mixed $input    Original input.
@@ -2424,6 +2412,18 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( $expected, $seen['permission'] );
 		$this->assertSame( $expected, $seen['before'] );
 		$this->assertSame( $expected, $seen['execute'] );
+	}
+
+	/**
+	 * Provides representative inputs for execution lifecycle integration.
+	 *
+	 * @return array
+	 */
+	public static function data_execute_coerces_validated_input(): array {
+		return array_intersect_key(
+			self::data_input_is_coerced(),
+			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
+		);
 	}
 
 	/**
