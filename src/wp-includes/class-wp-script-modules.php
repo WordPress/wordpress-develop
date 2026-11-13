@@ -12,6 +12,16 @@
  * Core class used to register script modules.
  *
  * @since 6.5.0
+ *
+ * @phpstan-type ScriptModule array{
+ *     src: string,
+ *     version: string|false|null,
+ *     dependencies: array<int, array{ id: string, import: 'static'|'dynamic' }>,
+ *     in_footer: bool,
+ *     fetchpriority: 'auto'|'low'|'high',
+ *     textdomain?: string,
+ *     translations_path?: string,
+ * }
  */
 class WP_Script_Modules {
 	/**
@@ -19,6 +29,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 * @var array<string, array<string, mixed>>
+	 * @phpstan-var array<string, ScriptModule>
 	 */
 	private $registered = array();
 
@@ -80,6 +91,18 @@ class WP_Script_Modules {
 	 * @var string[]
 	 */
 	private $modules_with_missing_dependencies = array();
+
+	/**
+	 * List of handles for scripts encountered which have missing script module dependencies.
+	 *
+	 * A handle is added to this list when it is discovered to have script module dependencies that are not
+	 * registered. At this time, a warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this
+	 * list, so that duplicate warnings don't occur.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private $scripts_with_missing_module_dependencies = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
@@ -329,6 +352,101 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Overrides the text domain and path used to load translations for a script module.
+	 *
+	 * This is only needed for modules whose text domain differs from 'default'
+	 * or whose translation files live outside the standard locations, for
+	 * example plugin modules that register their own text domain. Translations
+	 * for modules that use the default domain are loaded automatically by
+	 * {@see WP_Script_Modules::print_script_module_translations()}.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $id     The identifier of the script module.
+	 * @param string $domain Optional. Text domain. Default 'default'.
+	 * @param string $path   Optional. The full file path to the directory containing translation files.
+	 * @return bool True if the text domain was registered, false if the module is not registered.
+	 */
+	public function set_translations( string $id, string $domain = 'default', string $path = '' ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		$this->registered[ $id ]['textdomain']        = $domain;
+		$this->registered[ $id ]['translations_path'] = $path;
+
+		return true;
+	}
+
+	/**
+	 * Prints translations for the enqueued script modules and for the script
+	 * modules in the import map.
+	 *
+	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
+	 * the translated strings for each script module. This must run before
+	 * the script modules execute.
+	 *
+	 * The translations are printed after the scripts in the footer. A script
+	 * that imports a script module while it executes may evaluate the script
+	 * module before its translations are printed. To avoid that, the script
+	 * can use the 'defer' loading strategy, or import the script module once
+	 * the document has been parsed.
+	 *
+	 * The translations of the enqueued script modules are printed first,
+	 * followed by the translations of the script modules in the import map.
+	 * When two script modules translate the same string of a text domain
+	 * differently, the translation printed last is the one that is used.
+	 *
+	 * Auto-detects the text domain and translation path for each module from
+	 * its source URL. Modules whose text domain or path differs from the
+	 * defaults can opt into a specific domain/path via
+	 * {@see WP_Script_Modules::set_translations()}.
+	 *
+	 * @since 7.0.0
+	 * @since 7.2.0 Translations of the script module dependencies ('module_dependencies') of scripts, and of their
+	 *              dependencies, are now printed. The translations of the enqueued script modules are now printed
+	 *              first, instead of after the translations of their dependencies.
+	 */
+	public function print_script_module_translations(): void {
+		$module_ids = $this->get_loadable_script_module_ids();
+
+		$set_locale_data_js_function = <<<'JS'
+		( domain, translations ) => {
+			const localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+			localeData[""].domain = domain;
+			wp.i18n.setLocaleData( localeData, domain );
+		}
+		JS;
+
+		foreach ( $module_ids as $id ) {
+			$domain = $this->registered[ $id ]['textdomain'] ?? 'default';
+			$path   = $this->registered[ $id ]['translations_path'] ?? '';
+
+			$json_translations = load_script_module_textdomain( $id, $domain, $path );
+
+			if ( ! $json_translations ) {
+				continue;
+			}
+
+			$output    = sprintf(
+				'( %s )( %s, %s );',
+				$set_locale_data_js_function,
+				wp_json_encode( $domain, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				$json_translations
+			);
+			$script_id = "wp-script-module-translation-data-{$id}";
+			$output   .= "\n//# sourceURL=" . rawurlencode( $script_id );
+
+			// Ensure wp-i18n is printed; the inline script below relies on wp.i18n.setLocaleData().
+			if ( ! wp_script_is( 'wp-i18n', 'done' ) ) {
+				wp_scripts()->do_items( array( 'wp-i18n' ) );
+			}
+
+			wp_print_inline_script_tag( $output, array( 'id' => $script_id ) );
+		}
+	}
+
+	/**
 	 * Adds the hooks to print the import map, enqueued script modules and script
 	 * module preloads.
 	 *
@@ -358,6 +476,19 @@ class WP_Script_Modules {
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ), 9 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+
+		/*
+		 * Print translations after classic scripts like wp-i18n are loaded (at
+		 * priority 10 via _wp_footer_scripts), but before the script modules
+		 * execute. Script modules with type="module" are deferred by default,
+		 * so inline translation scripts at priority 11 will execute before them.
+		 *
+		 * A script that is not deferred and imports a script module while it
+		 * executes may evaluate that script module before these translations
+		 * are printed.
+		 */
+		add_action( 'wp_footer', array( $this, 'print_script_module_translations' ), 21 );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_translations' ), 11 );
 
 		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
@@ -533,7 +664,7 @@ class WP_Script_Modules {
 	 * Returns the import map array.
 	 *
 	 * @since 6.5.0
-	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
+	 * @since 7.0.0 Script module dependencies ('module_dependencies') of scripts are now included.
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 *
@@ -545,8 +676,8 @@ class WP_Script_Modules {
 
 		$imports = array();
 
-		// Identify script modules that are dependencies of classic scripts.
-		$classic_script_module_dependencies = array();
+		// Identify script modules that are dependencies of scripts.
+		$script_module_dependencies = array();
 		if ( $wp_scripts instanceof WP_Scripts ) {
 			$handles = array_merge(
 				$wp_scripts->queue,
@@ -579,11 +710,14 @@ class WP_Script_Modules {
 						if ( ! isset( $this->registered[ $id ] ) ) {
 							$missing_module_dependencies[] = $id;
 						} else {
-							$classic_script_module_dependencies[] = $id;
+							$script_module_dependencies[] = $id;
 						}
 					}
 
-					if ( count( $missing_module_dependencies ) > 0 ) {
+					if (
+						count( $missing_module_dependencies ) > 0 &&
+						! in_array( $handle, $this->scripts_with_missing_module_dependencies, true )
+					) {
 						_doing_it_wrong(
 							'WP_Scripts::add_data',
 							sprintf(
@@ -595,6 +729,7 @@ class WP_Script_Modules {
 							),
 							'7.0.0'
 						);
+						$this->scripts_with_missing_module_dependencies[] = $handle;
 					}
 				}
 
@@ -609,8 +744,8 @@ class WP_Script_Modules {
 		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
 		$ids = array_unique(
 			array_merge(
-				$classic_script_module_dependencies,
-				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
+				$script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $script_module_dependencies ) ) )
 			)
 		);
 		foreach ( $ids as $id ) {
@@ -623,6 +758,26 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Gets the IDs of the enqueued script modules and of the script modules in the import map.
+	 *
+	 * The script modules in the import map are the dependencies of the enqueued script modules, the script module
+	 * dependencies ('module_dependencies') of scripts, and the dependencies of those. The enqueued script modules
+	 * come first, followed by the script modules in the import map.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] List of script module IDs.
+	 */
+	private function get_loadable_script_module_ids(): array {
+		return array_unique(
+			array_merge(
+				$this->queue,
+				array_keys( $this->get_import_map()['imports'] )
+			)
+		);
+	}
+
+	/**
 	 * Retrieves the list of script modules marked for enqueue.
 	 *
 	 * Even though this is a private method and is unused in core, there are ecosystem plugins accessing it via the
@@ -631,6 +786,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 *
 	 * @return array<string, array<string, mixed>> Script modules marked for enqueue, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
 	private function get_marked_for_enqueue(): array {
 		return wp_array_slice_assoc(
@@ -652,6 +808,7 @@ class WP_Script_Modules {
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                         Default is both.
 	 * @return array<string, array<string, mixed>> List of dependencies, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		$all_dependencies = array();
@@ -841,6 +998,19 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Gets the data for a registered script module.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $id The script module identifier.
+	 * @return array|null The script module data, or null if not registered.
+	 * @phpstan-return ScriptModule|null
+	 */
+	public function get_registered( string $id ): ?array {
+		return $this->registered[ $id ] ?? null;
+	}
+
+	/**
 	 * Gets the versioned URL for a script module src.
 	 *
 	 * If $version is set to false, the version number is the currently installed
@@ -898,21 +1068,13 @@ class WP_Script_Modules {
 	 * form `wp-script-module-data-{$module_id}`.
 	 */
 	public function print_script_module_data(): void {
-		$modules = array();
-		foreach ( array_unique( $this->queue ) as $id ) {
-			if ( '@wordpress/a11y' === $id ) {
-				$this->a11y_available = true;
-			}
-			$modules[ $id ] = true;
-		}
-		foreach ( array_keys( $this->get_import_map()['imports'] ) as $id ) {
-			if ( '@wordpress/a11y' === $id ) {
-				$this->a11y_available = true;
-			}
-			$modules[ $id ] = true;
+		$module_ids = $this->get_loadable_script_module_ids();
+
+		if ( in_array( '@wordpress/a11y', $module_ids, true ) ) {
+			$this->a11y_available = true;
 		}
 
-		foreach ( array_keys( $modules ) as $module_id ) {
+		foreach ( $module_ids as $module_id ) {
 			/**
 			 * Filters data associated with a given Script Module.
 			 *
@@ -942,15 +1104,16 @@ class WP_Script_Modules {
 			 * The data for a given Script Module, if provided, will be JSON serialized in a script
 			 * tag with an ID of the form `wp-script-module-data-{$module_id}`.
 			 *
-			 * The data can be read on the client with a pattern like this:
+			 * The data can be read on the client with a pattern like the following; you are encouraged
+			 * to use this pattern _verbatim_ to avoid common pitfalls or vulnerabilities:
 			 *
 			 * Example:
 			 *
-			 *     const dataContainer = document.getElementById( 'wp-script-module-data-MyScriptModuleID' );
+			 *     const dataContainer = document.querySelector( 'script[id="wp-script-module-data-MyScriptModuleID"]' );
 			 *     let data = {};
-			 *     if ( dataContainer ) {
+			 *     if ( dataContainer instanceof HTMLScriptElement ) {
 			 *         try {
-			 *             data = JSON.parse( dataContainer.textContent );
+			 *             data = JSON.parse( dataContainer.text );
 			 *         } catch {}
 			 *     }
 			 *     // data.dataForClient === 'ok';
@@ -985,9 +1148,9 @@ class WP_Script_Modules {
 				 * is not encoded in UTF-8 then it's not safe to include those literals. They must
 				 * be escaped to avoid encoding issues.
 				 *
-				 * @see https://www.rfc-editor.org/rfc/rfc8259.html for details on encoding requirements.
-				 * @see https://www.php.net/manual/en/json.constants.php for details on these constants.
-				 * @see https://html.spec.whatwg.org/#script-data-state for details on script tag parsing.
+				 * @link https://www.rfc-editor.org/rfc/rfc8259.html for details on encoding requirements.
+				 * @link https://www.php.net/manual/en/json.constants.php for details on these constants.
+				 * @link https://html.spec.whatwg.org/#script-data-state for details on script tag parsing.
 				 */
 				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
 				if ( ! is_utf8_charset() ) {

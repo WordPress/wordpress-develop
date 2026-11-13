@@ -9,6 +9,8 @@
 
 /**
  * Base Global Styles REST API Controller.
+ *
+ * @since 5.9.0
  */
 class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
@@ -357,6 +359,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			// The ID is passed on purpose, since subclasses that override prepare_links() may expect an ID rather than a post object.
 			$links = $this->prepare_links( $post->ID );
 
 			// Only return resolved URIs for get requests to user theme JSON.
@@ -385,11 +388,19 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.3.0 Adds revisions count and rest URL href to version-history.
+	 * @since 7.2.0 Accepts a post object, matching the parent method.
 	 *
-	 * @param integer $id ID.
-	 * @return array Links for the given post.
+	 * @param WP_Post|int $post Post object or ID.
+	 * @return array<string, array<string, string|int>> Links for the given post.
+	 *
+	 * @phpstan-return array{
+	 *     self: array{ href: non-falsy-string },
+	 *     about: array{ href: non-falsy-string },
+	 *     version-history?: array{ href: non-falsy-string, count: int<0, max> },
+	 * }
 	 */
-	protected function prepare_links( $id ) {
+	protected function prepare_links( $post ) {
+		$id   = $post instanceof WP_Post ? $post->ID : $post;
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		$links = array(
@@ -402,7 +413,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		);
 
 		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
-			$revisions                = wp_get_latest_revision_id_and_total_count( $id );
+			$revisions                = wp_get_latest_revision_id_and_total_count( $post );
 			$revisions_count          = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
 			$revisions_base           = sprintf( '/%s/%d/revisions', $base, $id );
 			$links['version-history'] = array(
@@ -626,7 +637,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.6.0 Added custom relative theme file URIs to `_links` for each item.
 	 *
 	 * @param WP_REST_Request $request The request instance.
-	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_theme_items( $request ) {
@@ -673,13 +683,22 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @since 7.0.0 Only restricts contents which risk prematurely closing the STYLE element,
 	 *              either through a STYLE end tag or a prefix of one which might become a
 	 *              full end tag when combined with the contents of other styles.
+	 * @since 7.1.0 Rejects non-string values with a WP_Error instead of a fatal error.
 	 *
 	 * @see WP_Customize_Custom_CSS_Setting::validate()
 	 *
-	 * @param string $css CSS to validate.
+	 * @param mixed $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
+		if ( ! is_string( $css ) ) {
+			return new WP_Error(
+				'rest_custom_css_invalid_type',
+				__( 'CSS must be a string.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$length = strlen( $css );
 		for (
 			$at = strcspn( $css, '<' );
