@@ -23,6 +23,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	 * @ticket 59555
 	 * @ticket 60557
 	 * @ticket 65538
+	 * @ticket 66468
 	 *
 	 * @covers ::wp_render_elements_support_styles
 	 *
@@ -238,6 +239,24 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 					'.wp-elements-\d+ h4' . $color_css_rules .
 					'.wp-elements-\d+ h5' . $color_css_rules .
 					'.wp-elements-\d+ h6' . $color_css_rules . '$/',
+			),
+			'element transform styles are not applied'   => array(
+				'color_settings'  => array(
+					'button'  => true,
+					'link'    => true,
+					'heading' => true,
+				),
+				'elements_styles' => array(
+					'button'  => array( 'transform' => array( 'rotate' => '10deg' ) ),
+					'link'    => array(
+						'color'     => $color_styles,
+						'transform' => array( 'rotate' => '10deg' ),
+						':hover'    => array( 'transform' => array( 'rotate' => '20deg' ) ),
+					),
+					'heading' => array( 'transform' => array( 'rotate' => '10deg' ) ),
+					'h1'      => array( 'transform' => array( 'rotate' => '10deg' ) ),
+				),
+				'expected_styles' => '/^.wp-elements-\d+ a:where\(:not\(.wp-element-button\)\)' . $color_css_rules . '$/',
 			),
 		);
 	}

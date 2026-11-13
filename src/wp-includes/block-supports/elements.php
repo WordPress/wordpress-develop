@@ -21,6 +21,31 @@ function wp_get_elements_class_name(): string {
 }
 
 /**
+ * Removes transform styles from an element style object and its pseudo
+ * selector styles, as transforms are for blocks only.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param mixed $element_style Element style object.
+ * @return mixed Element style object without transform styles.
+ */
+function wp_remove_element_transform_styles( $element_style ) {
+	if ( ! is_array( $element_style ) ) {
+		return $element_style;
+	}
+
+	unset( $element_style['transform'] );
+	foreach ( $element_style as $key => $value ) {
+		if ( is_string( $key ) && str_starts_with( $key, ':' ) && is_array( $value ) ) {
+			unset( $element_style[ $key ]['transform'] );
+		}
+	}
+
+	return $element_style;
+}
+
+/**
  * Determines whether an elements class name should be added to the block.
  *
  * @since 6.6.0
@@ -161,6 +186,10 @@ function wp_render_elements_support_styles( $parsed_block ) {
 	$element_block_styles = $parsed_block['attrs']['style']['elements'] ?? null;
 	if ( ! $element_block_styles ) {
 		return $parsed_block;
+	}
+
+	if ( is_array( $element_block_styles ) ) {
+		$element_block_styles = array_map( 'wp_remove_element_transform_styles', $element_block_styles );
 	}
 
 	$skip_link_color_serialization         = wp_should_skip_block_supports_serialization( $block_type, 'color', 'link' );

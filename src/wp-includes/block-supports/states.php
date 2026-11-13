@@ -810,6 +810,8 @@ function wp_render_block_states_support( $block_content, $block ) {
 					continue;
 				}
 
+				$element_style = wp_remove_element_transform_styles( $element_style );
+
 				$element_pseudo_states = WP_Theme_JSON::VALID_ELEMENT_PSEUDO_SELECTORS[ $element_name ]
 					?? array();
 				$root_element_style    = wp_get_root_state_style(
