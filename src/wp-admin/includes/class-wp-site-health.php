@@ -2890,7 +2890,7 @@ class WP_Site_Health {
 		 * to re-wrap it under another one. Changing the key source then locks every stored
 		 * secret, and blocks saving new ones, until the change is reverted.
 		 */
-		$has_root_key = false !== get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		$has_root_key = false !== get_network_option( get_main_network_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
 
 		if ( $has_root_key ) {
 			$root_key = _wp_secrets_get_key_manager()->get_root_key();
