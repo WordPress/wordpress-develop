@@ -2374,15 +2374,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$current_user_id = get_current_user_id();
 
-		$parent_in = $wpdb->prepare(
+		// Only reactions stored on their note's post count, which is what create_item() writes.
+		$from   = "FROM $wpdb->comments AS r INNER JOIN $wpdb->comments AS n";
+		$from  .= " ON n.comment_ID = r.comment_parent AND n.comment_post_ID = r.comment_post_ID AND n.comment_type = 'note'";
+		$where  = "WHERE r.comment_type = 'reaction' AND r.comment_approved = '1' AND ";
+		$where .= $wpdb->prepare(
 			'r.comment_parent IN (' . implode( ',', array_fill( 0, count( $note_ids ), '%d' ) ) . ')',
 			...$note_ids
 		);
-
-		// Only reactions stored on their note's post count, which is what create_item() writes.
-		$from  = "FROM $wpdb->comments AS r INNER JOIN $wpdb->comments AS n";
-		$from .= ' ON n.comment_ID = r.comment_parent AND n.comment_post_ID = r.comment_post_ID AND n.comment_type = "note"';
-		$where = "WHERE r.comment_type = 'reaction' AND r.comment_approved = '1' AND $parent_in";
 
 		// Query 1: Get aggregated counts per emoji per note.
 		$query = "SELECT r.comment_parent, r.comment_content, COUNT(*) AS reaction_count $from $where GROUP BY r.comment_parent, r.comment_content";
