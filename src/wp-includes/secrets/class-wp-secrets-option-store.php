@@ -19,6 +19,11 @@
  * so on a single site, site- and network-scope secrets differ only by prefix, in the
  * same table; on a real network, network-scope rows live in wp_sitemeta instead.
  *
+ * Converting a single site to multisite does not move its network-scope rows: they
+ * stay in what becomes the main site's options table. They are still read from there
+ * on the main network, and are moved to wp_sitemeta, or removed, only when the secret
+ * is next written or deleted. A read never moves them.
+ *
  * @since 7.2.0
  */
 final class WP_Secrets_Option_Store extends WP_Secrets_Store {
@@ -60,6 +65,10 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 			$value = $this->read_stored_value( $option_name, $network );
 		}
 
+		if ( null === $value && $network ) {
+			$value = $this->read_pre_conversion_value( $option_name );
+		}
+
 		if ( null === $value || is_wp_error( $value ) ) {
 			return $value;
 		}
@@ -93,19 +102,23 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 			$updated = update_option( $option_name, $record, false );
 		}
 
-		if ( $updated ) {
-			return true;
-		}
-
 		/*
 		 * update_option()/update_site_option() return false both on genuine
 		 * failure and when the new value already equals the stored one – a
 		 * documented ambiguity in the Options API. Read back and compare rather
 		 * than treating every false as a failure.
 		 */
-		$current = $network ? get_site_option( $option_name ) : get_option( $option_name );
+		if ( ! $updated ) {
+			$current = $network ? get_site_option( $option_name ) : get_option( $option_name );
+			$updated = $current === $record;
+		}
 
-		if ( $current === $record ) {
+		if ( $updated ) {
+			if ( $network ) {
+				// The record now lives in wp_sitemeta. A copy from before the conversion to multisite is outdated.
+				$this->delete_pre_conversion_value( $option_name );
+			}
+
 			return true;
 		}
 
@@ -128,7 +141,13 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 		$option_name = $this->option_name( $name, $network );
 		$deleted     = $network ? delete_site_option( $option_name ) : delete_option( $option_name );
 
-		if ( $deleted ) {
+		if ( $network && $this->get_pre_conversion_site_id() ) {
+			/*
+			 * A record from before the conversion to multisite would be read again once
+			 * this one is gone, so it is deleted too, and neither may remain.
+			 */
+			$this->delete_pre_conversion_value( $option_name );
+		} elseif ( $deleted ) {
 			return true;
 		}
 
@@ -192,6 +211,16 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
 		$option_names = $wpdb->get_col();
+
+		if ( $network && $this->get_pre_conversion_site_id() ) {
+			$pre_conversion_names = $this->list_pre_conversion_option_names( $pattern );
+
+			if ( is_wp_error( $pre_conversion_names ) ) {
+				return $pre_conversion_names;
+			}
+
+			$option_names = array_unique( array_merge( $option_names, $pre_conversion_names ) );
+		}
 
 		$names = array();
 
@@ -275,6 +304,117 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Returns the ID of the site whose options table holds network-scope records stored
+	 * before the install was converted to multisite.
+	 *
+	 * That is the main network's main site. Other networks were created after the
+	 * conversion, so they have no such records.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return int The site ID, or 0 if no records can be left from before a conversion.
+	 */
+	private function get_pre_conversion_site_id(): int {
+		if ( ! is_multisite() || get_current_network_id() !== get_main_network_id() ) {
+			return 0;
+		}
+
+		return get_main_site_id( get_main_network_id() );
+	}
+
+	/**
+	 * Reads a network-scope record stored before the install was converted to multisite.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $option_name The option name.
+	 * @return mixed The stored value, null if there is none, or WP_Error if the read failed.
+	 */
+	private function read_pre_conversion_value( string $option_name ) {
+		global $wpdb;
+
+		$site_id = $this->get_pre_conversion_site_id();
+
+		if ( ! $site_id ) {
+			return null;
+		}
+
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				'SELECT option_value FROM %i WHERE option_name = %s LIMIT 1',
+				$wpdb->get_blog_prefix( $site_id ) . 'options',
+				$option_name
+			)
+		);
+
+		if ( false === $result ) {
+			return new WP_Error(
+				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
+				__( 'The secret record could not be read.' )
+			);
+		}
+
+		if ( ! $wpdb->num_rows ) {
+			return null;
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
+		$stored = $wpdb->get_var();
+
+		return maybe_unserialize( $stored ?? '' );
+	}
+
+	/**
+	 * Deletes a network-scope record stored before the install was converted to multisite.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $option_name The option name.
+	 */
+	private function delete_pre_conversion_value( string $option_name ): void {
+		$site_id = $this->get_pre_conversion_site_id();
+
+		if ( $site_id ) {
+			delete_blog_option( $site_id, $option_name );
+		}
+	}
+
+	/**
+	 * Lists the option names of network-scope records stored before the install was
+	 * converted to multisite.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $pattern The LIKE pattern for network-scope option names.
+	 * @return string[]|WP_Error
+	 */
+	private function list_pre_conversion_option_names( string $pattern ) {
+		global $wpdb;
+
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				'SELECT option_name FROM %i WHERE option_name LIKE %s',
+				$wpdb->get_blog_prefix( $this->get_pre_conversion_site_id() ) . 'options',
+				$pattern
+			)
+		);
+
+		if ( false === $result ) {
+			return new WP_Error(
+				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
+				__( 'Could not list secrets.' )
+			);
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
+		return $wpdb->get_col();
 	}
 
 	/**
