@@ -826,9 +826,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Returns posts whose permalinks take different forms.
 	 *
-	 * With the pretty permalinks the test suite uses, a draft still links to its plain
-	 * `?p=ID` form, while a published post and a private page the current user can read
-	 * link to their pretty permalinks.
+	 * With pretty permalinks, a draft still links to its plain `?p=ID` form, while a
+	 * published post and a private page the current user can read link to their pretty
+	 * permalinks.
 	 *
 	 * @return array<string, array{post_type: string, post_status: string, plain_permalink: bool}> Post test cases.
 	 */
