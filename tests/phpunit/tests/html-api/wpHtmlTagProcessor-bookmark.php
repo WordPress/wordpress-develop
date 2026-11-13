@@ -411,6 +411,90 @@ HTML;
 	}
 
 	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_bookmark_on_rewritten_br_close_tag_remains_seekable() {
+		$processor = new WP_HTML_Tag_Processor( '</br id="ignored"><span></span>' );
+		$processor->next_tag( 'BR' );
+		$processor->set_bookmark( 'br' );
+		$processor->set_attribute( 'data-a', '1' );
+
+		$this->assertSame(
+			'<br data-a="1"><span></span>',
+			$processor->get_updated_html(),
+			'Failed to rewrite the BR end tag before seeking back to it.'
+		);
+		$this->assertTrue(
+			$processor->seek( 'br' ),
+			'Failed to seek back to the rewritten BR tag.'
+		);
+		$this->assertSame(
+			'BR',
+			$processor->get_tag(),
+			'Seeking to the rewritten BR tag should land on the BR tag.'
+		);
+		$this->assertFalse(
+			$processor->is_tag_closer(),
+			'Seeking to the rewritten BR tag should land on an opener.'
+		);
+		$this->assertTrue(
+			$processor->set_attribute( 'data-b', '2' ),
+			'Should be able to update the rewritten BR tag after seeking back to it.'
+		);
+		$this->assertSame(
+			'<br data-b="2" data-a="1"><span></span>',
+			$processor->get_updated_html(),
+			'The bookmark should remain anchored to the rewritten BR tag.'
+		);
+	}
+
+	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::seek
+	 * @covers WP_HTML_Tag_Processor::set_bookmark
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 */
+	public function test_bookmark_on_br_close_tag_rewritten_after_advancing_remains_seekable() {
+		$processor = new WP_HTML_Tag_Processor( '</br><span></span>' );
+		$processor->next_tag( 'BR' );
+		$processor->set_bookmark( 'br' );
+		$processor->set_attribute( 'data-a', '1' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'SPAN' ),
+			'Failed to advance past the modified BR end tag.'
+		);
+		$this->assertSame(
+			'<br data-a="1"><span></span>',
+			$processor->get_updated_html(),
+			'Failed to rewrite the BR end tag while advancing to the next tag.'
+		);
+		$this->assertTrue(
+			$processor->seek( 'br' ),
+			'Failed to seek back to the rewritten BR tag.'
+		);
+		$this->assertSame(
+			'BR',
+			$processor->get_tag(),
+			'Seeking to the rewritten BR tag should land on the BR tag.'
+		);
+		$this->assertTrue(
+			$processor->set_attribute( 'data-b', '2' ),
+			'Should be able to update the rewritten BR tag after seeking back to it.'
+		);
+		$this->assertSame(
+			'<br data-b="2" data-a="1"><span></span>',
+			$processor->get_updated_html(),
+			'The bookmark should remain anchored to the BR tag rewritten while advancing.'
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_bookmark
