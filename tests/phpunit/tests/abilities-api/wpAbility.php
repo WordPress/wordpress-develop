@@ -2864,4 +2864,49 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertTrue( $ability->check_permissions() );
 	}
+
+	/**
+	 * Tests that input validation reports every invalid field at once.
+	 *
+	 * @ticket 66436
+	 */
+	public function test_validate_input_reports_all_errors() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema' => array(
+					'type'       => 'object',
+					'required'   => array( 'title' ),
+					'properties' => array(
+						'title' => array( 'type' => 'string' ),
+						'count' => array( 'type' => 'integer' ),
+						'flag'  => array( 'type' => 'boolean' ),
+					),
+				),
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->validate_input(
+			array(
+				'count' => 'many',
+				'flag'  => 'maybe',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The primary error code should not change.' );
+
+		$message = $result->get_error_message();
+		$this->assertStringContainsString( 'title is a required property of input.', $message );
+		$this->assertStringContainsString( 'input[count] is not of type integer.', $message );
+		$this->assertStringContainsString( 'input[flag] is not of type boolean.', $message );
+
+		$this->assertSame(
+			array( 'input[count]', 'input[flag]' ),
+			wp_list_pluck( $result->get_all_error_data( 'rest_invalid_type' ), 'param' ),
+			'Each invalid field should be available as its own error.'
+		);
+		$this->assertCount( 1, $result->get_error_messages( 'rest_property_required' ) );
+	}
 }

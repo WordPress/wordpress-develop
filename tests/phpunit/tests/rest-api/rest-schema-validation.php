@@ -2114,4 +2114,134 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that validation stops at the first error by default.
+	 *
+	 * @ticket 66436
+	 *
+	 * @covers ::rest_validate_value_from_schema
+	 */
+	public function test_returns_first_error_only_by_default() {
+		$error = rest_validate_value_from_schema( $this->get_invalid_object_value(), $this->get_object_schema(), 'test' );
+
+		$this->assertWPError( $error );
+		$this->assertCount( 1, $error->get_error_messages(), 'Only the first error should be returned by default.' );
+	}
+
+	/**
+	 * Tests that every object property and array item error is returned when requested.
+	 *
+	 * @ticket 66436
+	 *
+	 * @covers ::rest_validate_value_from_schema
+	 * @covers ::rest_validate_object_value_from_schema
+	 * @covers ::rest_validate_array_value_from_schema
+	 */
+	public function test_returns_all_errors_when_requested() {
+		$error = rest_validate_value_from_schema( $this->get_invalid_object_value(), $this->get_object_schema(), 'test', true );
+
+		$this->assertWPError( $error );
+		$this->assertEqualSets(
+			array(
+				'rest_property_required',
+				'rest_invalid_type',
+				'rest_not_in_enum',
+				'rest_too_long',
+				'rest_too_many_items',
+				'rest_additional_properties_forbidden',
+			),
+			$error->get_error_codes(),
+			'Every failing keyword should be reported.'
+		);
+
+		$this->assertSame(
+			array(
+				'name is a required property of test.',
+				'email is a required property of test.',
+			),
+			$error->get_error_messages( 'rest_property_required' ),
+			'Every missing required property should be reported.'
+		);
+
+		$this->assertCount( 2, $error->get_error_messages( 'rest_invalid_type' ), 'Both properties with the wrong type should be reported.' );
+		$this->assertSame(
+			array( 'test[age]', 'test[tags][1]' ),
+			wp_list_pluck( $error->get_all_error_data( 'rest_invalid_type' ), 'param' ),
+			'Each type error should keep its own param.'
+		);
+		$this->assertSame(
+			array( 'test[size] is not one of small and large.' ),
+			$error->get_error_messages( 'rest_not_in_enum' ),
+			'Errors from scalar keywords should be reported.'
+		);
+		$this->assertSame(
+			array( 'test[tags][2] must be at most 3 characters long.' ),
+			$error->get_error_messages( 'rest_too_long' ),
+			'Errors from nested array items should be reported.'
+		);
+	}
+
+	/**
+	 * Tests that collecting all errors on a valid value still returns true.
+	 *
+	 * @ticket 66436
+	 *
+	 * @covers ::rest_validate_value_from_schema
+	 */
+	public function test_returns_true_for_valid_value_when_all_errors_requested() {
+		$value = array(
+			'name'  => 'Jane',
+			'email' => 'jane@example.org',
+			'age'   => 30,
+			'size'  => 'small',
+			'tags'  => array( 'a', 'b' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( $value, $this->get_object_schema(), 'test', true ) );
+	}
+
+	/**
+	 * Gets an object schema with several constraints, used by the all-errors tests.
+	 *
+	 * @return array Schema.
+	 */
+	private function get_object_schema() {
+		return array(
+			'type'                 => 'object',
+			'required'             => array( 'name', 'email' ),
+			'additionalProperties' => false,
+			'properties'           => array(
+				'name'  => array( 'type' => 'string' ),
+				'email' => array( 'type' => 'string' ),
+				'age'   => array( 'type' => 'integer' ),
+				'size'  => array(
+					'type' => 'string',
+					'enum' => array( 'small', 'large' ),
+				),
+				'tags'  => array(
+					'type'     => 'array',
+					'maxItems' => 2,
+					'items'    => array(
+						'type'      => 'string',
+						'maxLength' => 3,
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Gets a value with several errors for the schema from get_object_schema().
+	 *
+	 * @return array Invalid value.
+	 */
+	private function get_invalid_object_value() {
+		return array(
+			'age'   => 'old',
+			'size'  => 'medium',
+			'tags'  => array( 'ok', array(), 'too long' ),
+			'extra' => true,
+		);
+	}
 }
