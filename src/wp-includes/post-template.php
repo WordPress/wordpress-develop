@@ -1500,12 +1500,8 @@ function wp_page_menu( $args = array() ) {
 		$menu .= '<li ' . $class . '><a href="' . esc_url( home_url( '/' ) ) . '">' . $args['link_before'] . $text . $args['link_after'] . '</a></li>';
 		// If the front page is a page, add it to the exclude list.
 		if ( 'page' === get_option( 'show_on_front' ) ) {
-			if ( ! empty( $list_args['exclude'] ) ) {
-				$list_args['exclude'] .= ',';
-			} else {
-				$list_args['exclude'] = '';
-			}
-			$list_args['exclude'] .= get_option( 'page_on_front' );
+			$list_args['exclude']   = wp_parse_id_list( $list_args['exclude'] ?? array() );
+			$list_args['exclude'][] = (int) get_option( 'page_on_front' );
 		}
 	}
 

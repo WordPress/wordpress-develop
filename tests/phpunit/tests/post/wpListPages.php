@@ -342,6 +342,64 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures wp_page_menu() adds the static front page to an `exclude` given as an array or a string.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 *
+	 * @dataProvider data_wp_page_menu_exclude_formats
+	 *
+	 * @param callable $format Callback to format the array of page IDs to exclude.
+	 */
+	public function test_wp_page_menu_should_exclude_front_page_with_exclude_arg( callable $format ): void {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => true,
+				'depth'     => 1,
+				'exclude'   => $format( array( self::$parent_1 ) ),
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1, (string) self::$parent_2 ) ),
+			$filter->get_args()[0],
+			'Expected the excluded page and the front page to be passed to the filter.'
+		);
+		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected the excluded page to be absent.' );
+		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be absent.' );
+		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected the remaining page to be present.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: callable(int[]): (int[]|string[]|string) }>
+	 */
+	public function data_wp_page_menu_exclude_formats(): array {
+		return array(
+			'array of integers'        => array( 'array_values' ),
+			'array of numeric strings' => array(
+				static function ( array $ids ): array {
+					return array_map( 'strval', $ids );
+				},
+			),
+			'comma-separated string'   => array(
+				static function ( array $ids ): string {
+					return implode( ',', $ids );
+				},
+			),
+		);
+	}
+
 	public function test_wp_list_pages_title_li() {
 		$args = array(
 			'echo'     => false,
