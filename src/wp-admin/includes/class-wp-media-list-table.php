@@ -927,7 +927,13 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		$att_title = _draft_or_post_title();
+		/*
+		 * `_draft_or_post_title()` escapes the title, so entities are decoded first
+		 * to let `wp_strip_all_tags()` detect the HTML. Otherwise it survives the
+		 * `esc_attr()` calls on the `aria-label` values and is announced as literal text.
+		 */
+		$att_title = html_entity_decode( _draft_or_post_title(), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$att_title = wp_strip_all_tags( $att_title );
 		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );
