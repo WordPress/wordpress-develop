@@ -2542,4 +2542,115 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_plain_wpdb_defers_connection_until_first_use() {
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+
+		$this->assertFalse( $db->has_connected );
+		$this->assertFalse( $db->ready );
+
+		$this->assertSame( '1', $db->get_var( 'SELECT 1' ) );
+		$this->assertTrue( $db->has_connected );
+		$this->assertTrue( $db->ready );
+
+		$dbh = $db->dbh;
+		$db->get_var( 'SELECT 1' );
+		$this->assertSame( $dbh, $db->dbh );
+
+		$db->close();
+	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_wpdb_subclass_connects_eagerly() {
+		$db = new class( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST ) extends wpdb {};
+
+		$this->assertTrue( $db->has_connected );
+		$this->assertTrue( $db->ready );
+
+		$db->close();
+	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_wpdb_subclass_db_connect_override_is_called_once_and_not_retried_by_query() {
+		$db = new class( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST ) extends wpdb {
+			public $attempts = 0;
+
+			public function db_connect( $allow_bail = true ) {
+				++$this->attempts;
+				return false;
+			}
+		};
+
+		$this->assertSame( 1, $db->attempts );
+		$this->assertFalse( $db->ready );
+		$this->assertFalse( $db->query( 'SELECT 1' ) );
+		$this->assertSame( 1, $db->attempts );
+	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_plain_wpdb_prepare_and_inspection_use_the_real_connection_before_first_query() {
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+
+		$this->assertSame( "'a\\'b'", $db->prepare( '%s', "a'b" ) );
+		$this->assertTrue( $db->has_connected );
+		$db->close();
+
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+		$this->assertNotEmpty( $db->db_version() );
+		$this->assertTrue( $db->has_cap( 'collation' ) );
+		$db->close();
+
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+		$this->assertNotEmpty( $db->get_charset_collate() );
+		$db->close();
+	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_plain_wpdb_first_insert_rejects_overlength_values() {
+		global $wpdb;
+
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+		$db->suppress_errors( true );
+		$db->set_prefix( $wpdb->base_prefix );
+
+		$result = $db->insert(
+			$db->postmeta,
+			array(
+				'post_id'    => 1,
+				'meta_key'   => str_repeat( 'a', 300 ),
+				'meta_value' => 'x',
+			)
+		);
+
+		$this->assertFalse( $result );
+		$this->assertNotEmpty( $db->last_error );
+
+		$db->close();
+	}
+
+	/**
+	 * @ticket 58344
+	 */
+	public function test_plain_wpdb_does_not_reconnect_after_close() {
+		$db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+
+		$this->assertSame( '1', $db->get_var( 'SELECT 1' ) );
+		$this->assertTrue( $db->close() );
+		$this->assertFalse( $db->query( 'SELECT 1' ) );
+		$this->assertFalse( $db->ready );
+
+		$this->assertTrue( $db->check_connection( false ) );
+		$db->close();
+	}
 }
