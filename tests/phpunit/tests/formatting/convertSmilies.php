@@ -164,6 +164,50 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests where the ignore block starts and ends, by counting converted smilies.
+	 *
+	 * @ticket 66134
+	 *
+	 * @dataProvider data_ignore_smilies_block_boundaries
+	 *
+	 * @param string $input    The content to convert.
+	 * @param int    $expected The expected number of converted smilies.
+	 */
+	public function test_ignore_smilies_block_boundaries( $input, $expected ) {
+		$this->assertSame( $expected, substr_count( convert_smilies( $input ), "\xf0\x9f\x99\x82" ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_ignore_smilies_block_boundaries() {
+		return array(
+			'smiley after closing tag is converted'        => array( '<pre class="foo"> :) </pre> :)', 1 ),
+			'uppercase tags'                               => array( '<PRE class="foo"> :) </PRE> :)', 1 ),
+			'whitespace in closing tag'                    => array( '<pre> :) </pre > :)', 1 ),
+			'custom element starting with ignored name'    => array( '<code-snippet> :) </code-snippet> :)', 2 ),
+			'unknown element starting with ignored name'   => array( '<preview> :) </preview> :)', 2 ),
+			'element name prefixed by ignored script name' => array( '<script-loader> :) </script-loader> :)', 2 ),
+			'greater-than sign in attribute value'         => array( '<img alt="1 > 0 :) " src="a.png"> :)', 1 ),
+			'ignored tag with greater-than in attribute'   => array( '<pre title="a > b"> :) </pre> :)', 1 ),
+			'closing tag lookalike in attribute value'     => array( '<pre><span title="</pre>"> :) </span></pre> :)', 1 ),
+			'smiley inside HTML comment'                   => array( '<!-- 1 > 0 :) --> :)', 1 ),
+			'ignored tag inside HTML comment'              => array( '<!-- > <pre> --> :)', 1 ),
+			'closing tag inside HTML comment'              => array( '<pre><!-- > </pre> --> :) </pre> :)', 1 ),
+			'nested ignored tags'                          => array( '<pre><code> :) </code> :) </pre> :)', 1 ),
+			'same ignored tag nested'                      => array( '<code><code> :) </code> :) </code> :)', 1 ),
+			'closing tag of parent before its child'       => array( '<pre><code> :) </pre> :) </code> :)', 0 ),
+			'ignored tag never closed inside its parent'   => array( '<pre><code> :) </pre> :)', 0 ),
+			'closing tag of outer tag before inner tag'    => array( '<code><pre> :) </code> :) </pre> :)', 0 ),
+			'unmatched closing tag inside ignored tag'     => array( '<pre> :) </code> :) </pre> :)', 1 ),
+			'closing tag without an open ignored tag'      => array( '</pre> :) <pre> :) </pre> :)', 2 ),
+			'less-than sign in text'                       => array( '1 < 2 :) <p> :) </p>', 2 ),
+		);
+	}
+
+	/**
 	 * Tests that combinations of smilies separated by a single space
 	 * are converted correctly.
 	 *
@@ -372,5 +416,32 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	public function test_smilies_with_large_text_input() {
 		$text = '<p><img alt="" src="data:image/png;base64,' . str_repeat( 'iVBORw0KGgoAAAAN', 65536 ) . '="></p> :)';
 		$this->assertStringContainsString( "\xf0\x9f\x99\x82", convert_smilies( $text ) );
+	}
+
+	/**
+	 * Tests that a non-string value is returned as is, rather than causing a fatal error.
+	 *
+	 * @ticket 66134
+	 *
+	 * @dataProvider data_non_string_input_is_returned_unchanged
+	 *
+	 * @param mixed $input The non-string value to pass.
+	 */
+	public function test_non_string_input_is_returned_unchanged( $input ) {
+		$this->assertSame( $input, convert_smilies( $input ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_input_is_returned_unchanged() {
+		return array(
+			'null'    => array( null ),
+			'false'   => array( false ),
+			'integer' => array( 123 ),
+			'array'   => array( array( ':)' ) ),
+		);
 	}
 }

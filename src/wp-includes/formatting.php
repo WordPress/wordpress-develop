@@ -3612,49 +3612,88 @@ function translate_smiley( $matches ) {
 function convert_smilies( $text ) {
 	global $wp_smiliessearch;
 
-	if ( ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
+	if ( ! is_string( $text ) || ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
 		// Return default text.
 		return $text;
 	}
 
-	// HTML loop taken from texturize function, could possible be consolidated.
-	$textarr = preg_split( '/(<[^>]*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
-
-	if ( false === $textarr ) {
-		// Return default text.
-		return $text;
+	// Without any markup the whole text is a single text node.
+	if ( ! str_contains( $text, '<' ) ) {
+		return preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $text ) ?? $text;
 	}
 
-	// Loop stuff.
-	$stop   = count( $textarr );
+	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+	$processor = new class( $text ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Gets the span for the current token.
+		 *
+		 * @return WP_HTML_Span Current token span.
+		 */
+		public function get_span(): WP_HTML_Span {
+			// Always called while matched on a token, so setting the bookmark never fails.
+			$this->set_bookmark( 'here' );
+			return $this->bookmarks['here'];
+		}
+	};
+
+	/*
+	 * The smilies are replaced by raw HTML, which set_modifiable_text() would
+	 * escape, so the output is assembled here from the unchanged parts of the
+	 * text and the converted text nodes.
+	 */
 	$output = '';
+	$was_at = 0;
 
-	// Ignore processing of specific tags.
-	$tags_to_ignore       = 'code|pre|style|script|textarea';
-	$ignore_block_element = '';
+	/*
+	 * Smilies are not converted inside CODE and PRE elements. The Tag Processor
+	 * does not track document structure, so the open CODE and PRE elements are
+	 * tracked here. Text is ignored for as long as any of them is open.
+	 */
+	$ignored_tags = array();
 
-	for ( $i = 0; $i < $stop; $i++ ) {
-		$content = $textarr[ $i ];
+	while ( $processor->next_token() ) {
+		$token_type = $processor->get_token_type();
 
-		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
-			$ignore_block_element = $matches[1];
+		if ( '#tag' === $token_type ) {
+			$tag_name = $processor->get_tag();
+
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+				continue;
+			}
+
+			if ( ! $processor->is_tag_closer() ) {
+				$ignored_tags[] = $tag_name;
+				continue;
+			}
+
+			/*
+			 * A closing tag is expected to match the most recently opened ignored
+			 * element. Any other closing tag is skipped, which errs on the side of
+			 * leaving text unconverted when the markup is not well nested.
+			 */
+			if ( end( $ignored_tags ) === $tag_name ) {
+				array_pop( $ignored_tags );
+			}
+			continue;
 		}
 
-		// If it's not a tag and not in ignore block.
-		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
-			$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
+		if ( '#text' !== $token_type || count( $ignored_tags ) > 0 ) {
+			continue;
 		}
 
-		// Did we exit ignore block?
-		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
-			$ignore_block_element = '';
+		$span      = $processor->get_span();
+		$content   = substr( $text, $span->start, $span->length );
+		$converted = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
+
+		if ( null === $converted || $converted === $content ) {
+			continue;
 		}
 
-		$output .= $content;
+		$output .= substr( $text, $was_at, $span->start - $was_at ) . $converted;
+		$was_at  = $span->start + $span->length;
 	}
 
-	return $output;
+	return $output . substr( $text, $was_at );
 }
 
 /**
@@ -6228,51 +6267,96 @@ function wp_staticize_emoji( $text ) {
 	/** This filter is documented in wp-includes/formatting.php */
 	$ext = apply_filters( 'emoji_ext', '.png' );
 
-	$output = '';
+	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+	$processor = new class( $text ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Gets the span for the current token.
+		 *
+		 * @return WP_HTML_Span Current token span.
+		 */
+		public function get_span(): WP_HTML_Span {
+			// Always called while matched on a token, so setting the bookmark never fails.
+			$this->set_bookmark( 'here' );
+			return $this->bookmarks['here'];
+		}
+	};
+
 	/*
-	 * HTML loop taken from smiley function, which was taken from texturize function.
-	 * It'll never be consolidated.
-	 *
-	 * First, capture the tags as well as in between.
+	 * The emoji are replaced by raw HTML, which set_modifiable_text() would
+	 * escape, so the output is assembled here from the unchanged parts of the
+	 * text and the converted text nodes.
 	 */
-	$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE );
-	$stop    = count( $textarr );
+	$output = '';
+	$was_at = 0;
 
-	// Ignore processing of specific tags.
-	$tags_to_ignore       = 'code|pre|style|script|textarea';
-	$ignore_block_element = '';
+	/*
+	 * Emoji are not converted inside CODE and PRE elements. The Tag Processor
+	 * does not track document structure, so the open CODE and PRE elements are
+	 * tracked here. Text is ignored for as long as any of them is open.
+	 */
+	$ignored_tags = array();
 
-	for ( $i = 0; $i < $stop; $i++ ) {
-		$content = $textarr[ $i ];
+	while ( $processor->next_token() ) {
+		$token_type = $processor->get_token_type();
 
-		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
-			$ignore_block_element = $matches[1];
-		}
+		if ( '#tag' === $token_type ) {
+			$tag_name = $processor->get_tag();
 
-		// If it's not a tag and not in ignore block.
-		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] && str_contains( $content, '&#x' ) ) {
-			foreach ( $possible_emoji as $emojum => $emoji_char ) {
-				if ( ! str_contains( $content, $emojum ) ) {
-					continue;
-				}
-
-				$file = str_replace( ';&#x', '-', $emojum );
-				$file = str_replace( array( '&#x', ';' ), '', $file );
-
-				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
-
-				$content = str_replace( $emojum, $entity, $content );
+			if ( 'CODE' !== $tag_name && 'PRE' !== $tag_name ) {
+				continue;
 			}
+
+			if ( ! $processor->is_tag_closer() ) {
+				$ignored_tags[] = $tag_name;
+				continue;
+			}
+
+			/*
+			 * A closing tag is expected to match the most recently opened ignored
+			 * element. Any other closing tag is skipped, which errs on the side of
+			 * leaving text unconverted when the markup is not well nested.
+			 */
+			if ( end( $ignored_tags ) === $tag_name ) {
+				array_pop( $ignored_tags );
+			}
+			continue;
 		}
 
-		// Did we exit ignore block?
-		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
-			$ignore_block_element = '';
+		if ( '#text' !== $token_type || count( $ignored_tags ) > 0 ) {
+			continue;
 		}
 
-		$output .= $content;
+		$span    = $processor->get_span();
+		$content = substr( $text, $span->start, $span->length );
+
+		if ( ! str_contains( $content, '&#x' ) ) {
+			continue;
+		}
+
+		$converted = $content;
+
+		foreach ( $possible_emoji as $emojum => $emoji_char ) {
+			if ( ! str_contains( $converted, $emojum ) ) {
+				continue;
+			}
+
+			$file = str_replace( ';&#x', '-', $emojum );
+			$file = str_replace( array( '&#x', ';' ), '', $file );
+
+			$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
+
+			$converted = str_replace( $emojum, $entity, $converted );
+		}
+
+		if ( $converted === $content ) {
+			continue;
+		}
+
+		$output .= substr( $text, $was_at, $span->start - $was_at ) . $converted;
+		$was_at  = $span->start + $span->length;
 	}
+
+	$output .= substr( $text, $was_at );
 
 	// Finally, remove any stray U+FE0F characters.
 	$output = str_replace( '&#xfe0f;', '', $output );
