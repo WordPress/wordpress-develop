@@ -73,7 +73,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_do_enclose() {
+	public static function data_do_enclose() {
 		return array(
 			'null'                  => array(
 				'content'  => null,

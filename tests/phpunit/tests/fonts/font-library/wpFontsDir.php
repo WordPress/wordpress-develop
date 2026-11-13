@@ -52,10 +52,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$actual   = wp_get_font_dir();
 		$expected = array(
 			'path'    => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
-			'url'     => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+			'url'     => get_option( 'siteurl' ) . '/' . UPLOADS . "/sites/{$blog_id}/fonts",
 			'subdir'  => '',
 			'basedir' => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
-			'baseurl' => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+			'baseurl' => get_option( 'siteurl' ) . '/' . UPLOADS . "/sites/{$blog_id}/fonts",
 			'error'   => false,
 		);
 
