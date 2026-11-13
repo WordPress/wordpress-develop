@@ -104,7 +104,9 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
 		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/buttons(\.min)?\.css#' );
 		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/admin-bar(\.min)?\.css#' );
-		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/commands/style(\.min)?\.css#' );
+
+		// The command palette is loaded when it is first opened, so its stylesheet is not prefetched.
+		$this->assertNotPrefetched( $links, '#/wp-includes/css/dist/commands/style(\.min)?\.css#' );
 
 		// Footer scripts are not prefetched.
 		$this->assertNotPrefetched( $links, '#/wp-admin/js/common(\.min)?\.js#' );
