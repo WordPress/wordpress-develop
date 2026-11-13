@@ -53,6 +53,20 @@ async function getPageAssetMetrics( page ) {
 	} );
 }
 
+/**
+ * Returns the used JavaScript heap size after a forced garbage collection.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<number>} Used heap size in bytes.
+ */
+async function getJsHeapBytes( page ) {
+	const session = await page.context().newCDPSession( page );
+	await session.send( 'HeapProfiler.collectGarbage' );
+	const { usedSize } = await session.send( 'Runtime.getHeapUsage' );
+	await session.detach();
+	return usedSize;
+}
+
 for ( const screen of screens ) {
 	test.describe( screen.suiteTitle, () => {
 		let results = {};
@@ -118,6 +132,8 @@ for ( const screen of screens ) {
 						) ) {
 							record( key, value );
 						}
+
+						record( 'jsHeapBytes', await getJsHeapBytes( page ) );
 					} );
 				}
 			} );
