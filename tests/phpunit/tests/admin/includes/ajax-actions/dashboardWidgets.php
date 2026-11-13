@@ -124,7 +124,7 @@ class Tests_Admin_Includes_AjaxActions_dashboardWidgets extends WP_Ajax_UnitTest
 	/**
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_dashboard_screens
+	 * @dataProvider data_dashboard_widgets_sets_dashboard_screen
 	 *
 	 * @param string $pagenow Dashboard screen ID.
 	 */
@@ -144,7 +144,7 @@ class Tests_Admin_Includes_AjaxActions_dashboardWidgets extends WP_Ajax_UnitTest
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public static function data_dashboard_screens(): array {
+	public static function data_dashboard_widgets_sets_dashboard_screen(): array {
 		return array(
 			'dashboard'         => array( 'dashboard' ),
 			'dashboard-user'    => array( 'dashboard-user' ),

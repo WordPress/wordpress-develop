@@ -206,7 +206,7 @@ class Tests_Admin_Includes_AjaxActions_getCommunityEvents extends WP_Ajax_UnitTe
 	 *
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_saved_location_without_search
+	 * @dataProvider data_get_community_events_updates_saved_location_when_ip_changes
 	 *
 	 * @param array|null $saved_location Location saved before the request, or null for none.
 	 * @param bool       $response_ip    Whether the API response includes an IP.
@@ -244,7 +244,7 @@ class Tests_Admin_Includes_AjaxActions_getCommunityEvents extends WP_Ajax_UnitTe
 	 *
 	 * @return array<string, array{ 0: array|null, 1: bool, 2: bool }>
 	 */
-	public static function data_saved_location_without_search(): array {
+	public static function data_get_community_events_updates_saved_location_when_ip_changes(): array {
 		$saved_location = array(
 			'description' => 'Lyon',
 			'latitude'    => '45.764',

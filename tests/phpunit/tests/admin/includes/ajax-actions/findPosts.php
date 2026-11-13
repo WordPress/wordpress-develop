@@ -112,7 +112,7 @@ class Tests_Admin_Includes_AjaxActions_findPosts extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_status_labels
+	 * @dataProvider data_find_posts_labels_post_status
 	 *
 	 * @param string $status Post status.
 	 * @param string $label  Expected status label.
@@ -139,7 +139,7 @@ class Tests_Admin_Includes_AjaxActions_findPosts extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string }>
 	 */
-	public static function data_status_labels(): array {
+	public static function data_find_posts_labels_post_status(): array {
 		return array(
 			'publish' => array( 'publish', 'Published' ),
 			'private' => array( 'private', 'Published' ),
