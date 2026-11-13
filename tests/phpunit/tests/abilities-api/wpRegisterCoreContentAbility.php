@@ -780,6 +780,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			}
 			$this->assertStringContainsString( "in ISO 8601 format using the site's timezone.", $post_schema['properties'][ $name ]['properties']['site']['description'], sprintf( 'The %s.site description should say the date uses the site timezone.', $name ) );
 		}
+		$this->assertSame( 'uri', $post_schema['properties']['link']['format'], 'The link should use the uri format.' );
 
 		$this->assertSame( 'object', $pagination['type'], 'The pagination should describe an object.' );
 		$this->assertFalse( $pagination['additionalProperties'], 'The pagination should not allow keys besides the totals.' );
@@ -820,6 +821,83 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		}
 
 		return $found;
+	}
+
+	/**
+	 * Returns posts whose permalinks take different forms.
+	 *
+	 * With the pretty permalinks the test suite uses, a draft still links to its plain
+	 * `?p=ID` form, while a published post and a private page the current user can read
+	 * link to their pretty permalinks.
+	 *
+	 * @return array<string, array{post_type: string, post_status: string, plain_permalink: bool}> Post test cases.
+	 */
+	public static function data_posts_with_different_permalink_forms(): array {
+		return array(
+			'published post' => array(
+				'post_type'       => 'post',
+				'post_status'     => 'publish',
+				'plain_permalink' => false,
+			),
+			'draft post'     => array(
+				'post_type'       => 'post',
+				'post_status'     => 'draft',
+				'plain_permalink' => true,
+			),
+			'private page'   => array(
+				'post_type'       => 'page',
+				'post_status'     => 'private',
+				'plain_permalink' => false,
+			),
+		);
+	}
+
+	/**
+	 * Results validate against the output schema, which declares the `uri` format for the
+	 * link, whatever form the permalink takes.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 *
+	 * @dataProvider data_posts_with_different_permalink_forms
+	 *
+	 * @param string $post_type       The post type to create.
+	 * @param string $post_status     The post status to create.
+	 * @param bool   $plain_permalink Whether the post links to its plain `?p=ID` permalink.
+	 */
+	public function test_results_validate_against_the_output_schema_for_each_permalink_form( string $post_type, string $post_status, bool $plain_permalink ): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$result  = $ability->execute(
+			array(
+				'where'  => array(
+					'type' => $post_type,
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'id', 'type', 'status', 'date', 'modified', 'slug', 'link', 'title', 'excerpt', 'content', 'author', 'parent' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should succeed.' );
+		$this->assertCount( 1, $result['items'], 'The query should return the post.' );
+
+		$link = $result['items'][0]['link'];
+		if ( $plain_permalink ) {
+			$this->assertSame( home_url( '?p=' . $post_id ), $link, 'Precondition: the post should link to its plain permalink.' );
+		} else {
+			$this->assertStringNotContainsString( '?', $link, 'Precondition: the post should link to its pretty permalink.' );
+		}
+		$this->assertSame( get_permalink( $post_id ), $link, 'The link should be the permalink.' );
+		$this->assertTrue( rest_validate_value_from_schema( $result, $ability->get_output_schema(), 'result' ), 'The result should validate against the output schema.' );
 	}
 
 	/**
