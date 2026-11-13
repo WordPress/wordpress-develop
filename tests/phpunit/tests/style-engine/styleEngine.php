@@ -23,6 +23,9 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 61720
 	 * @ticket 62189
 	 * @ticket 63799
+	 * @ticket 64974
+	 * @ticket 65037
+	 * @ticket 66094
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -51,7 +54,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_style_engine_get_styles() {
+	public static function data_wp_style_engine_get_styles() {
 		return array(
 			'default_return_value'                         => array(
 				'block_styles'    => array(),
@@ -122,16 +125,18 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			'inline_valid_dimension_preset_style'          => array(
 				'block_styles'    => array(
 					'dimensions' => array(
-						'width'  => 'var:preset|dimension|large',
-						'height' => 'var:preset|dimension|modestly-small',
+						'width'     => 'var:preset|dimension|large',
+						'height'    => 'var:preset|dimension|modestly-small',
+						'objectFit' => 'cover',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'height:var(--wp--preset--dimension--modestly-small);width:var(--wp--preset--dimension--large);',
+					'css'          => 'height:var(--wp--preset--dimension--modestly-small);object-fit:cover;width:var(--wp--preset--dimension--large);',
 					'declarations' => array(
-						'height' => 'var(--wp--preset--dimension--modestly-small)',
-						'width'  => 'var(--wp--preset--dimension--large)',
+						'height'     => 'var(--wp--preset--dimension--modestly-small)',
+						'object-fit' => 'cover',
+						'width'      => 'var(--wp--preset--dimension--large)',
 					),
 				),
 			),
@@ -204,7 +209,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
-			'inline_valid_dimensions_style'                => array(
+			'inline_valid_dimensions_min_height_style'     => array(
 				'block_styles'    => array(
 					'dimensions' => array(
 						'minHeight' => '50vh',
@@ -215,6 +220,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'css'          => 'min-height:50vh;',
 					'declarations' => array(
 						'min-height' => '50vh',
+					),
+				),
+			),
+
+			'inline_valid_dimensions_min_width_style'      => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'minWidth' => '25vw',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'min-width:25vw;',
+					'declarations' => array(
+						'min-width' => '25vw',
 					),
 				),
 			),
@@ -573,6 +593,57 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_background_gradient_only'              => array(
+				'block_styles'    => array(
+					'background' => array(
+						'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);',
+					'declarations' => array(
+						'background-image' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_gradient_with_preset_slug'  => array(
+				'block_styles'    => array(
+					'background' => array(
+						'gradient' => 'var:preset|gradient|vivid-cyan-blue',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-image:var(--wp--preset--gradient--vivid-cyan-blue);',
+					'declarations' => array(
+						'background-image' => 'var(--wp--preset--gradient--vivid-cyan-blue)',
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
+			'inline_background_gradient_and_image_combined' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => "background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('https://example.com/image.jpg');",
+					'declarations' => array(
+						'background-image' => "linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url('https://example.com/image.jpg')",
+					),
+					'classnames'   => 'has-background',
+				),
+			),
+
 			'inline_background_image_url_with_background_size' => array(
 				'block_styles'    => array(
 					'background' => array(
@@ -596,6 +667,49 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'background-attachment' => 'fixed',
 					),
 				),
+			),
+
+			'inline_background_clip_border_box'            => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'border-box',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:border-box;-webkit-text-fill-color:currentColor;',
+					'declarations' => array(
+						'background-clip'         => 'border-box',
+						'-webkit-text-fill-color' => 'currentColor',
+					),
+				),
+			),
+
+			'inline_background_clip_text_with_vendor_prefixes' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'text',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+					'declarations' => array(
+						'background-clip'         => 'text',
+						'-webkit-background-clip' => 'text',
+						'-webkit-text-fill-color' => 'transparent',
+					),
+				),
+			),
+
+			'inline_background_clip_invalid_value'         => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundClip' => 'invalid-value',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(),
 			),
 		);
 	}
@@ -740,6 +854,35 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests returning a generated stylesheet with important declarations.
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 * @covers WP_Style_Engine::compile_stylesheet_from_css_rules
+	 *
+	 * @ticket 65561
+	 */
+	public function test_should_return_stylesheet_with_important_declarations() {
+		$declarations = new WP_Style_Engine_CSS_Declarations();
+		$declarations->add_declaration(
+			'background-image',
+			'linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%)',
+			array(
+				'important' => true,
+			)
+		);
+		$css_rules = array(
+			array(
+				'selector'     => '.responsive-state',
+				'declarations' => $declarations,
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '.responsive-state{background-image:linear-gradient(135deg,rgb(119,255,112) 0%,rgb(253,254,215) 99%) !important;}', $compiled_stylesheet );
+	}
+
+	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
 	 * @ticket 58811
@@ -851,5 +994,68 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
 		$this->assertSame( '.foo{@media (orientation: landscape){background-color:blue;}}.foo{@media (min-width > 1024px){background-color:cotton-blue;}}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests that storing a rule whose selector is only whitespace is skipped
+	 * instead of calling {@see WP_Style_Engine_CSS_Rule::add_declarations()} on null.
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 * @covers WP_Style_Engine::store_css_rule
+	 */
+	public function test_should_skip_storing_rule_with_whitespace_selector() {
+		$css_rules = array(
+			array(
+				'selector'     => ' ',
+				'declarations' => array(
+					'color' => 'red',
+				),
+			),
+		);
+
+		wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'context' => 'test-whitespace-selector' ) );
+
+		$store = WP_Style_Engine::get_store( 'test-whitespace-selector' );
+		$this->assertInstanceOf( WP_Style_Engine_CSS_Rules_Store::class, $store );
+		$this->assertSame( array(), $store->get_all_rules(), 'Expected no rule to be stored.' );
+	}
+
+	/**
+	 * Tests that non-string style values are left out of the returned declarations,
+	 * since {@see WP_Style_Engine_CSS_Declarations::add_declaration()} would drop them from the CSS anyway.
+	 *
+	 * @covers ::wp_style_engine_get_styles
+	 */
+	public function test_should_omit_non_string_values_from_declarations() {
+		$block_styles = array(
+			'border'     => array(
+				'top' => array(
+					'width' => 5,
+					'style' => 'solid',
+				),
+			),
+			'typography' => array(
+				'textColumns' => 2,
+				'fontSize'    => '12px',
+			),
+			'spacing'    => array(
+				'padding' => array(
+					'top'  => 5,
+					'left' => '1em',
+				),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'css'          => 'border-top-style:solid;padding-left:1em;font-size:12px;',
+				'declarations' => array(
+					'border-top-style' => 'solid',
+					'padding-left'     => '1em',
+					'font-size'        => '12px',
+				),
+			),
+			wp_style_engine_get_styles( $block_styles )
+		);
 	}
 }

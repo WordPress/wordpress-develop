@@ -248,7 +248,7 @@ final class WP_Customize_Manager {
 	 *
 	 *     @type null|string|false $changeset_uuid     Changeset UUID, the `post_name` for the customize_changeset post containing the customized state.
 	 *                                                 Defaults to `null` resulting in a UUID to be immediately generated. If `false` is provided, then
-	 *                                                 then the changeset UUID will be determined during `after_setup_theme`: when the
+	 *                                                 the changeset UUID will be determined during `after_setup_theme`: when the
 	 *                                                 `customize_changeset_branching` filter returns false, then the default UUID will be that
 	 *                                                 of the most recent `customize_changeset` post that has a status other than 'auto-draft',
 	 *                                                 'publish', or 'trash'. Otherwise, if changeset branching is enabled, then a random UUID will be used.
@@ -447,6 +447,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @param string|WP_Error $ajax_message Ajax return.
 	 * @param string          $message      Optional. UI message.
+	 * @return never
 	 */
 	protected function wp_die( $ajax_message, $message = null ) {
 		if ( $this->doing_ajax() ) {
@@ -627,7 +628,13 @@ final class WP_Customize_Manager {
 		if ( empty( $this->_changeset_uuid ) ) {
 			$changeset_uuid = null;
 
-			if ( ! $this->branching() && $this->is_theme_active() ) {
+			/**
+			 * Only users who can customize may have the latest unpublished changeset auto-loaded. Otherwise, an
+			 * unauthenticated preview request lacking a UUID could adopt another user's unpublished changeset and
+			 * disclose its state, since the UUID serves as the secret key for previewing. Unauthorized requests
+			 * get a fresh UUID instead, which matches no changeset and is rejected in {@see self::setup_theme()}.
+			 */
+			if ( ! $this->branching() && $this->is_theme_active() && current_user_can( 'customize' ) ) {
 				$unpublished_changeset_posts = $this->get_changeset_posts(
 					array(
 						'post_status'               => array_diff( get_post_stati(), array( 'auto-draft', 'publish', 'trash', 'inherit', 'private' ) ),
@@ -1932,10 +1939,9 @@ final class WP_Customize_Manager {
 				sprintf(
 					/* translators: %s: customize_messenger_channel */
 					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
-					'<code>customize_messenger_channel<code>'
+					'<code>customize_messenger_channel</code>'
 				)
 			);
-			return;
 		}
 
 		$this->prepare_controls();
@@ -2427,6 +2433,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 * @since 4.7.0 The semantics of this method have changed to update a changeset, optionally to also change the status and other attributes.
+	 *
+	 * @return never
 	 */
 	public function save() {
 		if ( ! is_user_logged_in() ) {
@@ -2685,7 +2693,7 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) ); // Only future dates are allowed.
 			}
 
-			if ( ! $this->is_theme_active() && ( 'future' === $args['status'] || $is_future_dated ) ) {
+			if ( ! $this->is_theme_active() ) {
 				return new WP_Error( 'cannot_schedule_theme_switches' ); // This should be allowed in the future, when theme is a regular setting.
 			}
 			$will_remain_auto_draft = ( ! $args['status'] && ( ! $changeset_post_id || 'auto-draft' === get_post_status( $changeset_post_id ) ) );
@@ -2815,9 +2823,7 @@ final class WP_Customize_Manager {
 
 		// Ensure that all post values are included in the changeset data.
 		foreach ( $post_values as $setting_id => $post_value ) {
-			if ( ! isset( $args['data'][ $setting_id ] ) ) {
-				$args['data'][ $setting_id ] = array();
-			}
+			$args['data'][ $setting_id ] ??= array();
 			if ( ! isset( $args['data'][ $setting_id ]['value'] ) ) {
 				$args['data'][ $setting_id ]['value'] = $post_value;
 			}
@@ -2844,9 +2850,7 @@ final class WP_Customize_Manager {
 				unset( $data[ $changeset_setting_id ] );
 			} else {
 
-				if ( ! isset( $data[ $changeset_setting_id ] ) ) {
-					$data[ $changeset_setting_id ] = array();
-				}
+				$data[ $changeset_setting_id ] ??= array();
 
 				// Merge any additional setting params that have been supplied with the existing params.
 				$merged_setting_params = array_merge( $data[ $changeset_setting_id ], $setting_params );
@@ -3056,7 +3060,7 @@ final class WP_Customize_Manager {
 	 *
 	 * The following re-formulates the logic from `wp_trash_post()` as done in
 	 * `wp_publish_post()`. The reason for bypassing `wp_trash_post()` is that it
-	 * will mutate the the `post_content` and the `post_name` when they should be
+	 * will mutate the `post_content` and the `post_name` when they should be
 	 * untouched.
 	 *
 	 * @since 4.9.0
@@ -3163,7 +3167,6 @@ final class WP_Customize_Manager {
 					'code'    => 'non_existent_changeset',
 				)
 			);
-			return;
 		}
 
 		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
@@ -3194,7 +3197,6 @@ final class WP_Customize_Manager {
 					'code'    => 'changeset_already_trashed',
 				)
 			);
-			return;
 		}
 
 		$r = $this->trash_changeset_post( $changeset_post_id );
@@ -3221,7 +3223,7 @@ final class WP_Customize_Manager {
 	 * the 'customize' meta cap which then maps to 'edit_theme_options'. This is currently
 	 * required in core for `wp_create_post_autosave()` because it will call
 	 * `_wp_translate_postdata()` which in turn will check if a user can 'edit_post', but the
-	 * the caps for the customize_changeset post type are all mapping to the meta capability.
+	 * caps for the customize_changeset post type are all mapping to the meta capability.
 	 * This should be able to be removed once #40922 is addressed in core.
 	 *
 	 * @since 4.9.0
@@ -3250,7 +3252,7 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0
 	 *
 	 * @param int  $changeset_post_id Changeset post ID.
-	 * @param bool $take_over Whether to take over the changeset. Default false.
+	 * @param bool $take_over         Whether to take over the changeset. Default false.
 	 */
 	public function set_changeset_lock( $changeset_post_id, $take_over = false ) {
 		if ( $changeset_post_id ) {
@@ -3386,6 +3388,8 @@ final class WP_Customize_Manager {
 	 * Removes changeset lock when take over request is sent via Ajax.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_override_changeset_lock_request() {
 		if ( ! $this->is_preview() ) {
@@ -3514,9 +3518,6 @@ final class WP_Customize_Manager {
 				preg_match( $namespace_pattern, $raw_setting_id, $matches )
 			);
 			if ( $is_theme_mod_setting ) {
-				if ( ! isset( $theme_mod_settings[ $matches['stylesheet'] ] ) ) {
-					$theme_mod_settings[ $matches['stylesheet'] ] = array();
-				}
 				$theme_mod_settings[ $matches['stylesheet'] ][ $matches['setting_id'] ] = $setting_params;
 
 				if ( $this->get_stylesheet() === $matches['stylesheet'] ) {
@@ -3663,9 +3664,7 @@ final class WP_Customize_Manager {
 
 		// Merge inactive theme mods with the stashed theme mod settings.
 		foreach ( $inactive_theme_mod_settings as $stylesheet => $theme_mod_settings ) {
-			if ( ! isset( $stashed_theme_mod_settings[ $stylesheet ] ) ) {
-				$stashed_theme_mod_settings[ $stylesheet ] = array();
-			}
+			$stashed_theme_mod_settings[ $stylesheet ] ??= array();
 
 			$stashed_theme_mod_settings[ $stylesheet ] = array_merge(
 				$stashed_theme_mod_settings[ $stylesheet ],
@@ -3685,6 +3684,8 @@ final class WP_Customize_Manager {
 	 * Refreshes nonces for the current preview.
 	 *
 	 * @since 4.2.0
+	 *
+	 * @return never
 	 */
 	public function refresh_nonces() {
 		if ( ! $this->is_preview() ) {
@@ -3698,6 +3699,8 @@ final class WP_Customize_Manager {
 	 * Deletes a given auto-draft changeset or the autosave revision for a given changeset or delete changeset lock.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_dismiss_autosave_or_lock_request() {
 		// Calls to dismiss_user_auto_draft_changesets() and wp_get_post_autosave() require non-zero get_current_user_id().
@@ -3866,9 +3869,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Setting|null The setting, if set.
 	 */
 	public function get_setting( $id ) {
-		if ( isset( $this->settings[ $id ] ) ) {
-			return $this->settings[ $id ];
-		}
+		return $this->settings[ $id ] ?? null;
 	}
 
 	/**
@@ -3918,9 +3919,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Panel|null Requested panel instance, if set.
 	 */
 	public function get_panel( $id ) {
-		if ( isset( $this->panels[ $id ] ) ) {
-			return $this->panels[ $id ];
-		}
+		return $this->panels[ $id ] ?? null;
 	}
 
 	/**
@@ -4014,9 +4013,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Section|null The section, if set.
 	 */
 	public function get_section( $id ) {
-		if ( isset( $this->sections[ $id ] ) ) {
-			return $this->sections[ $id ];
-		}
+		return $this->sections[ $id ] ?? null;
 	}
 
 	/**
@@ -4093,9 +4090,7 @@ final class WP_Customize_Manager {
 	 * @return WP_Customize_Control|null The control object, if set.
 	 */
 	public function get_control( $id ) {
-		if ( isset( $this->controls[ $id ] ) ) {
-			return $this->controls[ $id ];
-		}
+		return $this->controls[ $id ] ?? null;
 	}
 
 	/**
@@ -4333,7 +4328,7 @@ final class WP_Customize_Manager {
 						<# if ( data.returnUrl !== data.previewUrl ) { #>
 							<a class="button customize-notice-go-back-button" href="{{ data.returnUrl }}"><?php _e( 'Go back' ); ?></a>
 						<# } #>
-						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}"><?php _e( 'Preview' ); ?></a>
+						<a class="button customize-notice-preview-button" href="{{ data.frontendPreviewUrl }}"><?php echo esc_html_x( 'Preview', 'verb' ); ?></a>
 						<# if ( data.allowOverride ) { #>
 							<button class="button button-primary wp-tab-last customize-notice-take-over-button"><?php _e( 'Take over' ); ?></button>
 						<# } #>
@@ -4953,7 +4948,7 @@ final class WP_Customize_Manager {
 				/* translators: %d: Number of themes being displayed, which cannot currently consider singular vs. plural forms. */
 				'announceThemeCount'   => __( 'Displaying %d themes' ),
 				/* translators: %s: Theme name. */
-				'announceThemeDetails' => __( 'Showing details for theme: %s' ),
+				'announceThemeDetails' => __( 'Theme details: %s' ),
 			),
 		);
 
@@ -5035,14 +5030,14 @@ final class WP_Customize_Manager {
 	public function get_previewable_devices() {
 		$devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -5210,7 +5205,7 @@ final class WP_Customize_Manager {
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
 						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ) . '</p>',
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ) . '</p>',
 						512,
 						512
 					),
@@ -5802,7 +5797,7 @@ final class WP_Customize_Manager {
 			get_pages(
 				array(
 					'number'       => 1,
-					'hierarchical' => 0,
+					'hierarchical' => false,
 				)
 			)
 		);
@@ -5824,6 +5819,8 @@ final class WP_Customize_Manager {
 	 * Loads themes into the theme browsing/installation UI.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @return never
 	 */
 	public function handle_load_themes_request() {
 		check_ajax_referer( 'switch_themes', 'nonce' );

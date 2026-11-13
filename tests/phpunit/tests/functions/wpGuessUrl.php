@@ -27,7 +27,7 @@ class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_guess_url_should_return_site_url() {
+	public static function data_wp_guess_url_should_return_site_url() {
 		return array(
 			'no trailing slash'                            => array( 'url' => 'wp-admin' ),
 			'trailing slash'                               => array( 'url' => 'wp-admin/' ),
