@@ -15,7 +15,7 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	 *
 	 * @covers ::single_month_title
 	 *
-	 * @dataProvider data_month_titles
+	 * @dataProvider data_returns_month_title
 	 *
 	 * @param string $query    Query string of the request.
 	 * @param string $prefix   Prefix passed to the function.
@@ -32,7 +32,7 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_month_titles() {
+	public static function data_returns_month_title() {
 		return array(
 			'year and monthnum, no prefix'          => array( 'year=2024&monthnum=3', '', 'March2024' ),
 			'year and monthnum, custom prefix'      => array( 'year=2024&monthnum=3', ' / ', ' / March / 2024' ),
@@ -49,7 +49,7 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	 *
 	 * @covers ::single_month_title
 	 *
-	 * @dataProvider data_no_month
+	 * @dataProvider data_returns_false_without_month
 	 *
 	 * @param string $query Query string of the request.
 	 */
@@ -64,7 +64,7 @@ class Tests_General_SingleMonthTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_month() {
+	public static function data_returns_false_without_month() {
 		return array(
 			'no date query variables' => array( '' ),
 			'm with year only'        => array( 'm=2024' ),

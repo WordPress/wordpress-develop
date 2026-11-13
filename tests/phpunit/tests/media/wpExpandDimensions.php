@@ -14,7 +14,7 @@ class Tests_Media_WpExpandDimensions extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_expand_dimensions
+	 * @dataProvider data_expands_example_to_max_bounds
 	 *
 	 * @param int|string $example_width  Example width.
 	 * @param int|string $example_height Example height.
@@ -34,7 +34,7 @@ class Tests_Media_WpExpandDimensions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_expand_dimensions() {
+	public static function data_expands_example_to_max_bounds() {
 		return array(
 			'matching 4:3 ratio fills the box'     => array( 4, 3, 1024, 768, array( 1024, 768 ) ),
 			'landscape 16:9 limited by width'      => array( 16, 9, 1024, 768, array( 1024, 576 ) ),

@@ -90,7 +90,7 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_plugins
+	 * @dataProvider data_should_return_false_without_plugins
 	 *
 	 * @param mixed $plugins The plugins to delete.
 	 */
@@ -103,7 +103,7 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_plugins() {
+	public static function data_should_return_false_without_plugins() {
 		return array(
 			'empty array' => array( array() ),
 			'null'        => array( null ),

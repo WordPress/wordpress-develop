@@ -91,7 +91,7 @@ class Tests_HTTP_wpHttpProxy extends WP_UnitTestCase {
 	 * @covers ::is_enabled
 	 * @covers ::use_authentication
 	 *
-	 * @dataProvider data_incomplete_constants
+	 * @dataProvider data_proxy_is_disabled_with_incomplete_constants
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -112,7 +112,7 @@ class Tests_HTTP_wpHttpProxy extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_incomplete_constants() {
+	public static function data_proxy_is_disabled_with_incomplete_constants() {
 		return array(
 			'host only'     => array( 'WP_PROXY_HOST' ),
 			'port only'     => array( 'WP_PROXY_PORT' ),
@@ -164,7 +164,7 @@ class Tests_HTTP_wpHttpProxy extends WP_UnitTestCase {
 	 *
 	 * @covers ::send_through_proxy
 	 *
-	 * @dataProvider data_pre_send_through_proxy
+	 * @dataProvider data_send_through_proxy_can_be_short_circuited
 	 *
 	 * @param string $uri      Request URI.
 	 * @param mixed  $filtered Value returned by the filter.
@@ -188,7 +188,7 @@ class Tests_HTTP_wpHttpProxy extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_pre_send_through_proxy() {
+	public static function data_send_through_proxy_can_be_short_circuited() {
 		return array(
 			'bypass proxy for an external host'           => array( 'https://api.wordpress.org/', false, false ),
 			'use proxy for the site host'                 => array( 'http://example.org/', true, true ),

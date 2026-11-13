@@ -104,7 +104,7 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_failed_core_results
+	 * @dataProvider data_should_report_failed_updates
 	 *
 	 * @param false|WP_Error $core_result The failed core update result.
 	 */
@@ -151,7 +151,7 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_failed_core_results() {
+	public static function data_should_report_failed_updates() {
 		return array(
 			'false result' => array( false ),
 			'error result' => array( new WP_Error( 'core_update_failed', 'Core update failed.' ) ),

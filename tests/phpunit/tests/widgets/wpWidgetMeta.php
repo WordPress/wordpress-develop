@@ -70,7 +70,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @covers ::widget
 	 *
-	 * @dataProvider data_widget_titles
+	 * @dataProvider data_widget_displays_title
 	 *
 	 * @param array  $instance Widget instance settings.
 	 * @param string $expected Expected title.
@@ -93,7 +93,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_titles() {
+	public static function data_widget_displays_title() {
 		return array(
 			'custom title' => array( array( 'title' => 'Site links' ), 'Site links' ),
 			'no title'     => array( array(), 'Meta' ),
@@ -133,7 +133,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @covers ::widget
 	 *
-	 * @dataProvider data_navigation_formats
+	 * @dataProvider data_widget_navigation_wrapper
 	 *
 	 * @param string      $format     Navigation widgets markup format.
 	 * @param array       $instance   Widget instance settings.
@@ -158,7 +158,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_navigation_formats() {
+	public static function data_widget_navigation_wrapper() {
 		return array(
 			'xhtml'                        => array( 'xhtml', array( 'title' => 'Site links' ), null ),
 			'html5 with a custom title'    => array( 'html5', array( 'title' => 'Site links' ), 'Site links' ),
@@ -173,7 +173,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @covers ::widget
 	 *
-	 * @dataProvider data_filtered_titles_with_markup
+	 * @dataProvider data_widget_navigation_label_strips_markup
 	 *
 	 * @param string $filtered_title Title returned by the widget_title filter.
 	 * @param string $aria_label     Expected label of the nav element.
@@ -200,7 +200,7 @@ class Tests_Widgets_wpWidgetMeta extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_filtered_titles_with_markup() {
+	public static function data_widget_navigation_label_strips_markup() {
 		return array(
 			'markup around the text' => array( ' <em>Site</em> <strong>links</strong> ', 'Site links' ),
 			'title with a quote'     => array( 'Site "links"', 'Site "links"' ),

@@ -154,7 +154,7 @@ class Tests_Admin_Includes_Template_GetMediaStates extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_header_video_states
+	 * @dataProvider data_header_video_state
 	 *
 	 * @param bool     $supports_video Whether the custom header supports video.
 	 * @param bool     $is_video       Whether the attachment is the header video.
@@ -176,7 +176,7 @@ class Tests_Admin_Includes_Template_GetMediaStates extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_header_video_states() {
+	public static function data_header_video_state() {
 		return array(
 			'current header video'         => array( true, true, array( 'Current Header Video' ) ),
 			'other video'                  => array( true, false, array() ),

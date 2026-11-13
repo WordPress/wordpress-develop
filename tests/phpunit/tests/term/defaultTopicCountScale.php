@@ -14,7 +14,7 @@ class Tests_Term_DefaultTopicCountScale extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_counts
+	 * @dataProvider data_scales_count_logarithmically
 	 *
 	 * @param int|string $count    Number of posts with the tag.
 	 * @param int        $expected Expected scaled count.
@@ -28,7 +28,7 @@ class Tests_Term_DefaultTopicCountScale extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: int|string, 1: int}>
 	 */
-	public static function data_counts() {
+	public static function data_scales_count_logarithmically() {
 		return array(
 			'zero'        => array( 0, 0 ),
 			'one'         => array( 1, 30 ),

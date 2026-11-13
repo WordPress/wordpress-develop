@@ -26,7 +26,7 @@ class Tests_REST_API_RestCookieCollectStatus extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_auth_cookie_failure_actions
+	 * @dataProvider data_stores_failure_status_from_action
 	 *
 	 * @param string $action   Auth cookie action name.
 	 * @param string $expected Stored failure status.
@@ -42,7 +42,7 @@ class Tests_REST_API_RestCookieCollectStatus extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_auth_cookie_failure_actions() {
+	public static function data_stores_failure_status_from_action() {
 		return array(
 			'malformed'    => array( 'auth_cookie_malformed', 'malformed' ),
 			'expired'      => array( 'auth_cookie_expired', 'expired' ),

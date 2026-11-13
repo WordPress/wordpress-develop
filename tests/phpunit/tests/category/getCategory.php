@@ -139,7 +139,7 @@ class Tests_Category_GetCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_empty_category_values
+	 * @dataProvider data_returns_wp_error_for_empty_category
 	 *
 	 * @param mixed $empty_value Empty category input.
 	 */
@@ -155,7 +155,7 @@ class Tests_Category_GetCategory extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_category_values() {
+	public static function data_returns_wp_error_for_empty_category() {
 		return array(
 			'empty string' => array( '' ),
 			'zero int'     => array( 0 ),

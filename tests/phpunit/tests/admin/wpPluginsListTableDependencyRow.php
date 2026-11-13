@@ -123,7 +123,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unlinked_dependencies
+	 * @dataProvider data_should_not_link_dependency
 	 *
 	 * @param array  $api_data The plugin directory data of the dependency.
 	 * @param string $expected The expected dependency markup.
@@ -140,7 +140,7 @@ class Tests_Admin_wpPluginsListTableDependencyRow extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public static function data_unlinked_dependencies() {
+	public static function data_should_not_link_dependency() {
 		return array(
 			'no version'       => array(
 				array(

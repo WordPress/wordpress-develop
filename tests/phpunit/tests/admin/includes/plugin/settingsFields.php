@@ -19,7 +19,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_option_groups
+	 * @dataProvider data_outputs_option_page_and_action_fields
 	 *
 	 * @param string $option_group Settings group name.
 	 */
@@ -45,7 +45,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_option_groups() {
+	public static function data_outputs_option_page_and_action_fields() {
 		return array(
 			'general'      => array( 'general' ),
 			'custom group' => array( 'my_plugin_settings' ),
@@ -77,7 +77,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_nonce_option_groups
+	 * @dataProvider data_outputs_valid_nonce_for_option_group
 	 *
 	 * @param string $option_group Settings group name.
 	 */
@@ -112,7 +112,7 @@ class Tests_Admin_Includes_Plugin_SettingsFields extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_nonce_option_groups() {
+	public static function data_outputs_valid_nonce_for_option_group() {
 		return array(
 			'general' => array( 'general' ),
 			'reading' => array( 'reading' ),

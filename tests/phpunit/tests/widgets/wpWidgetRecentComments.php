@@ -186,7 +186,7 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Recent_Comments::__construct
 	 *
-	 * @dataProvider data_construct_style_hook
+	 * @dataProvider data_construct_hooks_styles_only_for_active_widget
 	 *
 	 * @param array    $sidebars_widgets The widgets in each sidebar.
 	 * @param int|bool $expected         Expected priority of the style callback, or false if it is not hooked.
@@ -209,7 +209,7 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_construct_style_hook() {
+	public static function data_construct_hooks_styles_only_for_active_widget() {
 		return array(
 			'widget in a sidebar'            => array( array( 'sidebar-1' => array( 'recent-comments-2' ) ), 10 ),
 			'widget in the inactive widgets' => array( array( 'wp_inactive_widgets' => array( 'recent-comments-2' ) ), false ),

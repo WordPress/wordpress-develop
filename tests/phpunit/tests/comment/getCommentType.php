@@ -71,7 +71,7 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 * @covers ::comment_type
 	 * @covers ::get_comment_type
 	 *
-	 * @dataProvider data_default_labels
+	 * @dataProvider data_comment_type_echoes_default_labels
 	 *
 	 * @param string $comment_type Comment type fixture.
 	 * @param string $expected     Expected echoed label.
@@ -95,7 +95,7 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_default_labels() {
+	public static function data_comment_type_echoes_default_labels() {
 		return array(
 			'comment'   => array( 'comment', 'Comment' ),
 			'pingback'  => array( 'pingback', 'Pingback' ),
@@ -109,7 +109,7 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 * @covers ::comment_type
 	 * @covers ::get_comment_type
 	 *
-	 * @dataProvider data_custom_labels
+	 * @dataProvider data_comment_type_echoes_custom_labels
 	 *
 	 * @param string $comment_type Comment type fixture.
 	 * @param string $expected     Expected echoed label.
@@ -133,7 +133,7 @@ class Tests_Comment_GetCommentType extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_custom_labels() {
+	public static function data_comment_type_echoes_custom_labels() {
 		return array(
 			'comment'   => array( 'comment', 'Custom Comment' ),
 			'pingback'  => array( 'pingback', 'Custom Pingback' ),

@@ -15,7 +15,7 @@ class Tests_Post_GetPostFormatString extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_post_format_string
 	 *
-	 * @dataProvider data_post_format_strings
+	 * @dataProvider data_get_post_format_string
 	 *
 	 * @param string $slug     Post format slug.
 	 * @param string $expected Translated format label.
@@ -29,7 +29,7 @@ class Tests_Post_GetPostFormatString extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_post_format_strings() {
+	public static function data_get_post_format_string() {
 		return array(
 			'empty slug is standard' => array( '', 'Standard' ),
 			'known slug'             => array( 'aside', 'Aside' ),

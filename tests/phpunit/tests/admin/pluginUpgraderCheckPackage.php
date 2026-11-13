@@ -111,7 +111,7 @@ class Tests_Admin_PluginUpgraderCheckPackage extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_packages_without_plugin
+	 * @dataProvider data_should_reject_package_without_plugin
 	 *
 	 * @param array $files The package files, keyed by file name.
 	 */
@@ -132,7 +132,7 @@ class Tests_Admin_PluginUpgraderCheckPackage extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_packages_without_plugin() {
+	public static function data_should_reject_package_without_plugin() {
 		return array(
 			'empty package'                => array( array() ),
 			'no PHP files'                 => array( array( 'readme.txt' => "Plugin Name: Not A PHP File\n" ) ),

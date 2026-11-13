@@ -283,7 +283,7 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Pages::widget
 	 *
-	 * @dataProvider data_widget_pages_args
+	 * @dataProvider data_widget_applies_widget_pages_args_filter
 	 *
 	 * @param array  $instance    Widget instance.
 	 * @param string $sort_column Expected sort_column argument.
@@ -318,7 +318,7 @@ class Tests_Widgets_wpWidgetPages extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_pages_args() {
+	public static function data_widget_applies_widget_pages_args_filter() {
 		return array(
 			'defaults'           => array( array(), 'menu_order, post_title', '' ),
 			'ID with exclusions' => array(

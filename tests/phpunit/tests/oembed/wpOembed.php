@@ -322,7 +322,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_provider
 	 *
-	 * @dataProvider data_reverbnation_urls
+	 * @dataProvider data_get_provider_uses_legacy_reverbnation_endpoint
 	 *
 	 * @param string $url ReverbNation URL.
 	 */
@@ -335,7 +335,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_reverbnation_urls() {
+	public static function data_get_provider_uses_legacy_reverbnation_endpoint() {
 		return array(
 			'www subdomain'    => array( 'https://www.reverbnation.com/artist/song/123' ),
 			'legacy subdomain' => array( 'https://legacy.reverbnation.com/artist/song/123' ),
@@ -352,7 +352,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_provider
 	 *
-	 * @dataProvider data_someecards_urls
+	 * @dataProvider data_get_provider_does_not_match_someecards
 	 *
 	 * @param string $url someecards.com URL.
 	 */
@@ -365,7 +365,7 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_someecards_urls() {
+	public static function data_get_provider_does_not_match_someecards() {
 		return array(
 			'card'       => array( 'https://www.someecards.com/birthday-cards/funny-birthday-card/' ),
 			'user card'  => array( 'https://www.someecards.com/usercards/viewcard/MjAxMy0xMjM0NTY3ODk/' ),

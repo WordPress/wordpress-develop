@@ -126,7 +126,7 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 *
 	 * @covers ::remove_menu_page
 	 *
-	 * @dataProvider data_menu_slugs_without_match
+	 * @dataProvider data_remove_menu_page_returns_false_without_match
 	 *
 	 * @param mixed $menu_slug Menu slug.
 	 */
@@ -142,7 +142,7 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_menu_slugs_without_match() {
+	public static function data_remove_menu_page_returns_false_without_match() {
 		return array(
 			'unknown slug'            => array( 'does-not-exist' ),
 			'partial slug'            => array( 'edit' ),
@@ -218,7 +218,7 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 *
 	 * @covers ::remove_submenu_page
 	 *
-	 * @dataProvider data_submenu_slugs_without_match
+	 * @dataProvider data_remove_submenu_page_returns_false_without_match
 	 *
 	 * @param mixed $menu_slug    Parent menu slug.
 	 * @param mixed $submenu_slug Submenu slug.
@@ -235,7 +235,7 @@ class Tests_Admin_Includes_Plugin_RemoveMenuPage extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_submenu_slugs_without_match() {
+	public static function data_remove_submenu_page_returns_false_without_match() {
 		return array(
 			'unknown parent slug'       => array( 'does-not-exist', 'post-new.php' ),
 			'unknown submenu slug'      => array( 'edit.php', 'does-not-exist' ),

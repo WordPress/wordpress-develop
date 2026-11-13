@@ -117,7 +117,7 @@ class Tests_Comment_WpGetUnapprovedCommentAuthorEmail extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_moderation_query_args
+	 * @dataProvider data_falls_back_to_commenter_cookie
 	 *
 	 * @param string $scenario Which part of the query arguments is invalid.
 	 */
@@ -153,7 +153,7 @@ class Tests_Comment_WpGetUnapprovedCommentAuthorEmail extends WP_UnitTestCase {
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_invalid_moderation_query_args() {
+	public static function data_falls_back_to_commenter_cookie() {
 		return array(
 			'wrong hash'                     => array( 'wrong hash' ),
 			'missing hash'                   => array( 'missing hash' ),

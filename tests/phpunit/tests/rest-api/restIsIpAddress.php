@@ -14,7 +14,7 @@ class Tests_REST_API_RestIsIpAddress extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_valid_ip_addresses
+	 * @dataProvider data_returns_valid_ip_address
 	 *
 	 * @param string $ip Valid IP address.
 	 */
@@ -27,7 +27,7 @@ class Tests_REST_API_RestIsIpAddress extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_valid_ip_addresses() {
+	public static function data_returns_valid_ip_address() {
 		return array(
 			'ipv4' => array( '192.0.2.10' ),
 			'ipv6' => array( '2001:db8::1' ),
@@ -39,7 +39,7 @@ class Tests_REST_API_RestIsIpAddress extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_ip_addresses
+	 * @dataProvider data_returns_false_for_invalid_ip_address
 	 *
 	 * @param mixed $ip Invalid IP value.
 	 */
@@ -52,7 +52,7 @@ class Tests_REST_API_RestIsIpAddress extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_ip_addresses() {
+	public static function data_returns_false_for_invalid_ip_address() {
 		return array(
 			'empty string'      => array( '' ),
 			'out of range ipv4' => array( '256.0.0.1' ),

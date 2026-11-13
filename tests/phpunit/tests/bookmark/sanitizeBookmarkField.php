@@ -87,7 +87,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @covers ::sanitize_bookmark_field
 	 *
-	 * @dataProvider data_link_category_values
+	 * @dataProvider data_link_category_is_array_of_integers
 	 *
 	 * @param mixed  $value    Field value.
 	 * @param string $context  Sanitization context.
@@ -105,7 +105,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_link_category_values() {
+	public static function data_link_category_is_array_of_integers() {
 		return array(
 			'array of mixed values, display' => array( array( '1', '-2', 'abc', 3 ), 'display', array( 1, 2, 0, 3 ) ),
 			'single value, edit'             => array( '5', 'edit', array( 5 ) ),
@@ -120,7 +120,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @covers ::sanitize_bookmark_field
 	 *
-	 * @dataProvider data_link_visible_values
+	 * @dataProvider data_link_visible_keeps_only_y_and_n
 	 *
 	 * @param string $value    Field value.
 	 * @param string $expected Expected value.
@@ -134,7 +134,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_link_visible_values() {
+	public static function data_link_visible_keeps_only_y_and_n() {
 		return array(
 			'uppercase Y'     => array( 'Y', 'Y' ),
 			'lowercase n'     => array( 'n', 'n' ),
@@ -151,7 +151,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @covers ::sanitize_bookmark_field
 	 *
-	 * @dataProvider data_link_target_values
+	 * @dataProvider data_link_target_only_accepts_known_targets
 	 *
 	 * @param string $value    Field value.
 	 * @param string $expected Expected value.
@@ -165,7 +165,7 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_link_target_values() {
+	public static function data_link_target_only_accepts_known_targets() {
 		return array(
 			'_blank'    => array( '_blank', '_blank' ),
 			'_top'      => array( '_top', '_top' ),

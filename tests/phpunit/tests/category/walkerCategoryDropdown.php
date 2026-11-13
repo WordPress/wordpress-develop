@@ -151,7 +151,7 @@ class Tests_Category_Walker_CategoryDropdown extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_start_el_with_zero_slug
+	 * @dataProvider data_start_el_compares_zero_slug_as_string
 	 *
 	 * @param mixed  $selected Selected value.
 	 * @param string $expected Expected option element, without the leading tab and trailing newline.
@@ -184,7 +184,7 @@ class Tests_Category_Walker_CategoryDropdown extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_start_el_with_zero_slug() {
+	public static function data_start_el_compares_zero_slug_as_string() {
 		return array(
 			'selected value is false' => array( false, '<option class="level-0" value="0">Zero</option>' ),
 			'selected value is \'0\'' => array( '0', '<option class="level-0" value="0" selected="selected">Zero</option>' ),

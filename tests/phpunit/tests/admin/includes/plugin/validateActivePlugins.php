@@ -76,7 +76,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_options
+	 * @dataProvider data_should_reset_option_that_is_not_an_array
 	 *
 	 * @param mixed $value The option value.
 	 */
@@ -92,7 +92,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_options() {
+	public static function data_should_reset_option_that_is_not_an_array() {
 		return array(
 			'string'  => array( 'hello.php' ),
 			'integer' => array( 1 ),

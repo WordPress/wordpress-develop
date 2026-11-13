@@ -152,7 +152,7 @@ class Tests_Link_GetEditUserLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_non_existent_user_ids
+	 * @dataProvider data_get_edit_user_link_non_existent_user
 	 *
 	 * @param int $user_id Non-existent user ID.
 	 */
@@ -165,7 +165,7 @@ class Tests_Link_GetEditUserLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_existent_user_ids() {
+	public static function data_get_edit_user_link_non_existent_user() {
 		return array(
 			'negative ID'           => array( -1 ),
 			'large non-existent ID' => array( 9999999 ),
@@ -177,7 +177,7 @@ class Tests_Link_GetEditUserLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_falsy_user_ids
+	 * @dataProvider data_get_edit_user_link_falsy_id_falls_back_to_current_user
 	 *
 	 * @param mixed $falsy_id Falsy user ID.
 	 */
@@ -192,7 +192,7 @@ class Tests_Link_GetEditUserLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_falsy_user_ids() {
+	public static function data_get_edit_user_link_falsy_id_falls_back_to_current_user() {
 		return array(
 			'zero int'     => array( 0 ),
 			'zero string'  => array( '0' ),

@@ -53,7 +53,7 @@ class Tests_Menu_IsNavMenuItem extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_other_post_types
+	 * @dataProvider data_should_return_false_for_another_post_type
 	 *
 	 * @param string $post_type Post type.
 	 */
@@ -68,7 +68,7 @@ class Tests_Menu_IsNavMenuItem extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_other_post_types() {
+	public static function data_should_return_false_for_another_post_type() {
 		return array(
 			'post' => array( 'post' ),
 			'page' => array( 'page' ),

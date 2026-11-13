@@ -254,7 +254,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_request_tables
+	 * @dataProvider data_request_email_is_escaped_in_columns
 	 *
 	 * @covers WP_Privacy_Requests_Table::column_email
 	 * @covers WP_Privacy_Requests_Table::column_cb
@@ -296,7 +296,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_request_tables() {
+	public static function data_request_email_is_escaped_in_columns() {
 		return array(
 			'base requests table'   => array( '', 'export_personal_data' ),
 			'export requests list'  => array( 'WP_Privacy_Data_Export_Requests_List_Table', 'export_personal_data' ),

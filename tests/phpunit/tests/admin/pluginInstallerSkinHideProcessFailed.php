@@ -25,7 +25,7 @@ class Tests_Admin_PluginInstallerSkinHideProcessFailed extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_errors
+	 * @dataProvider data_should_hide_folder_exists_error_for_first_upload
 	 *
 	 * @param string $type       The skin type.
 	 * @param string $overwrite  The overwrite argument.
@@ -48,7 +48,7 @@ class Tests_Admin_PluginInstallerSkinHideProcessFailed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_errors() {
+	public static function data_should_hide_folder_exists_error_for_first_upload() {
 		return array(
 			'upload, existing folder'       => array( 'upload', '', 'folder_exists', true ),
 			'upload, other error'           => array( 'upload', '', 'incompatible_archive', false ),

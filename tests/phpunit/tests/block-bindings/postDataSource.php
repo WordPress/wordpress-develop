@@ -195,7 +195,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 *
-	 * @dataProvider data_missing_or_empty_post_id
+	 * @dataProvider data_get_value_returns_null_when_post_id_missing
 	 *
 	 * @param array $context Block context.
 	 */
@@ -210,7 +210,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_missing_or_empty_post_id() {
+	public static function data_get_value_returns_null_when_post_id_missing() {
 		return array(
 			'missing postId context' => array( array() ),
 			'zero postId'            => array( array( 'postId' => 0 ) ),

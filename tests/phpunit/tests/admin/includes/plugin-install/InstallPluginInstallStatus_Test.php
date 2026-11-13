@@ -232,7 +232,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_users_and_install_urls
+	 * @dataProvider data_should_return_install_when_plugin_directory_has_no_plugin
 	 *
 	 * @param string $user        The user to test with, 'admin' or 'subscriber'.
 	 * @param bool   $expects_url Whether an install URL is expected.
@@ -258,7 +258,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @return array[]
 	 */
-	public static function data_users_and_install_urls() {
+	public static function data_should_return_install_when_plugin_directory_has_no_plugin() {
 		return array(
 			'user who can install plugins'    => array( 'admin', true ),
 			'user who cannot install plugins' => array( 'subscriber', false ),
@@ -270,7 +270,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_installed_versions
+	 * @dataProvider data_should_compare_installed_version_with_api_version
 	 *
 	 * @param string $api_version      The version reported by the API.
 	 * @param string $expected_status  The expected status.
@@ -297,7 +297,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @return array[]
 	 */
-	public static function data_installed_versions() {
+	public static function data_should_compare_installed_version_with_api_version() {
 		return array(
 			'same version'               => array( '2.0.0', 'latest_installed', '' ),
 			'installed version is newer' => array( '1.5.0', 'newer_installed', '2.0.0' ),
@@ -372,7 +372,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_from_query_arg
+	 * @dataProvider data_should_append_from_query_arg_to_url
 	 *
 	 * @param string $from     The "from" query argument, slashed as in a request.
 	 * @param string $expected The expected suffix of the URL.
@@ -392,7 +392,7 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	 *
 	 * @return array[]
 	 */
-	public static function data_from_query_arg() {
+	public static function data_should_append_from_query_arg_to_url() {
 		return array(
 			'value to encode' => array( 'a b&c=d', '&amp;from=a+b%26c%3Dd' ),
 			'slashed value'   => array( "it\\'s", '&amp;from=it%27s' ),

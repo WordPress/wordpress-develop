@@ -137,7 +137,7 @@ class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_category_parameter_types
+	 * @dataProvider data_accepts_category_objects_and_ids
 	 *
 	 * @param string $parent_type Parameter type for parent category.
 	 * @param string $child_type  Parameter type for child category.
@@ -154,7 +154,7 @@ class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_category_parameter_types() {
+	public static function data_accepts_category_objects_and_ids() {
 		return array(
 			'both WP_Term objects'               => array( 'object', 'object' ),
 			'parent ID and child WP_Term object' => array( 'id', 'object' ),

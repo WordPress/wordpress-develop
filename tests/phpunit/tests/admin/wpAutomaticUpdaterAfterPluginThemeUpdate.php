@@ -25,7 +25,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_plugin_or_theme_results
+	 * @dataProvider data_should_not_send_email_without_plugin_or_theme_results
 	 *
 	 * @param array $update_results The update results.
 	 */
@@ -47,7 +47,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_plugin_or_theme_results() {
+	public static function data_should_not_send_email_without_plugin_or_theme_results() {
 		return array(
 			'no results'                     => array( array() ),
 			'empty plugin and theme results' => array(
@@ -70,7 +70,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_email_types
+	 * @dataProvider data_should_send_email_for_results
 	 *
 	 * @param array  $results    The plugin and theme results, as result values keyed by type.
 	 * @param string $type       The expected email type.
@@ -101,7 +101,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @return array[]
 	 */
-	public static function data_email_types() {
+	public static function data_should_send_email_for_results() {
 		return array(
 			'plugin succeeded'               => array(
 				array( 'plugin' => array( true ) ),
@@ -186,7 +186,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_disabled_notifications
+	 * @dataProvider data_should_leave_out_results_when_email_is_disabled_for_type
 	 *
 	 * @param string $disabled The type whose email filter returns false.
 	 * @param string $kept     The type that is still emailed.
@@ -222,7 +222,7 @@ class Tests_Admin_WpAutomaticUpdaterAfterPluginThemeUpdate extends WP_UnitTestCa
 	 *
 	 * @return array[]
 	 */
-	public static function data_disabled_notifications() {
+	public static function data_should_leave_out_results_when_email_is_disabled_for_type() {
 		return array(
 			'plugin emails disabled' => array( 'plugin', 'theme' ),
 			'theme emails disabled'  => array( 'theme', 'plugin' ),

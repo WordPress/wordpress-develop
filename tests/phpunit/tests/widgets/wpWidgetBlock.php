@@ -164,7 +164,7 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	 * @covers WP_Widget_Block::widget
 	 * @covers WP_Widget_Block::get_dynamic_classname
 	 *
-	 * @dataProvider data_dynamic_classname
+	 * @dataProvider data_widget_dynamic_classname
 	 *
 	 * @param string      $content            Block content.
 	 * @param string      $expected_classname Expected class attribute value on the wrapper.
@@ -191,7 +191,7 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_dynamic_classname() {
+	public static function data_widget_dynamic_classname() {
 		return array(
 			'core/paragraph'       => array(
 				'<!-- wp:paragraph --><p>Text</p><!-- /wp:paragraph -->',

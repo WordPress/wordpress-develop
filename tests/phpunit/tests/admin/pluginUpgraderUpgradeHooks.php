@@ -214,7 +214,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_missing_plugins
+	 * @dataProvider data_should_return_bad_request_without_plugin
 	 *
 	 * @param string $callback The callback name.
 	 * @param array  $args     The hook extra arguments.
@@ -236,7 +236,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_missing_plugins() {
+	public static function data_should_return_bad_request_without_plugin() {
 		return array(
 			'deactivate, no plugin key' => array( 'deactivate_plugin_before_upgrade', array() ),
 			'deactivate, empty plugin'  => array( 'deactivate_plugin_before_upgrade', array( 'plugin' => '' ) ),
@@ -250,7 +250,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_empty_plugin_args
+	 * @dataProvider data_active_before_and_after_should_not_toggle_maintenance_mode_without_plugin
 	 *
 	 * @param array $args The hook arguments.
 	 */
@@ -269,7 +269,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_plugin_args() {
+	public static function data_active_before_and_after_should_not_toggle_maintenance_mode_without_plugin() {
 		return array(
 			'no plugin key' => array( array() ),
 			'empty plugin'  => array( array( 'plugin' => '' ) ),
@@ -396,7 +396,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_maintenance_mode
+	 * @dataProvider data_active_before_and_after_should_not_toggle_maintenance_mode
 	 *
 	 * @param bool $cron   Whether the upgrade runs in cron.
 	 * @param bool $active Whether the plugin is active.
@@ -420,7 +420,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_maintenance_mode() {
+	public static function data_active_before_and_after_should_not_toggle_maintenance_mode() {
 		return array(
 			'manual upgrade'  => array( false, true, false ),
 			'inactive plugin' => array( true, false, false ),
@@ -433,7 +433,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_old_plugin_files
+	 * @dataProvider data_delete_old_plugin_should_delete_plugin_files
 	 *
 	 * @param string $plugin    The plugin file.
 	 * @param string $path      The expected deleted path.
@@ -454,7 +454,7 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_old_plugin_files() {
+	public static function data_delete_old_plugin_should_delete_plugin_files() {
 		return array(
 			'plugin in a directory'               => array( self::FILE, self::PLUGINS_DIR . 'my-plugin/', true ),
 			'single-file plugin'                  => array( 'my-plugin.php', self::PLUGINS_DIR . 'my-plugin.php', false ),

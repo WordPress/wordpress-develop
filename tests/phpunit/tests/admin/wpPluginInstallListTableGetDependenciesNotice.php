@@ -92,7 +92,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_dependencies
+	 * @dataProvider data_should_return_empty_string_without_dependencies
 	 *
 	 * @param array $plugin_data The plugin data.
 	 */
@@ -105,7 +105,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_dependencies() {
+	public static function data_should_return_empty_string_without_dependencies() {
 		return array(
 			'no requires_plugins key' => array( array( 'slug' => 'my-plugin' ) ),
 			'empty array'             => array( array( 'requires_plugins' => array() ) ),
@@ -163,7 +163,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_incomplete_dependency_data
+	 * @dataProvider data_should_fall_back_to_plugins_api_for_incomplete_dependency_data
 	 *
 	 * @param array|false $dependency_data The stored dependency data, or false for none.
 	 */
@@ -190,7 +190,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @return array[]
 	 */
-	public static function data_incomplete_dependency_data() {
+	public static function data_should_fall_back_to_plugins_api_for_incomplete_dependency_data() {
 		$complete = array(
 			'name'    => 'Dep One',
 			'slug'    => 'dep-one',
@@ -228,7 +228,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unnamed_api_responses
+	 * @dataProvider data_should_list_dependency_by_slug_without_name
 	 *
 	 * @param string $response The plugins API response type.
 	 */
@@ -251,7 +251,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	 *
 	 * @return array[]
 	 */
-	public static function data_unnamed_api_responses() {
+	public static function data_should_list_dependency_by_slug_without_name() {
 		return array(
 			'API error'         => array( 'error' ),
 			'API data, no name' => array( 'no name' ),

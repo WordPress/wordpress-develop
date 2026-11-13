@@ -79,7 +79,7 @@ class Tests_Functions_WpScheduleUpdateChecks extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_hooks
+	 * @dataProvider data_should_not_reschedule_scheduled_update_check
 	 *
 	 * @param string $scheduled The update check that is already scheduled.
 	 */
@@ -100,7 +100,7 @@ class Tests_Functions_WpScheduleUpdateChecks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_hooks() {
+	public static function data_should_not_reschedule_scheduled_update_check() {
 		return self::text_array_to_dataprovider( self::$hooks );
 	}
 
