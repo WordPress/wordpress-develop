@@ -1304,4 +1304,50 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
 	}
+
+	/**
+	 * Tests that the command palette shortcut is forced left-to-right so it does not reverse on RTL sites.
+	 *
+	 * @ticket 66645
+	 *
+	 * @covers ::wp_admin_bar_command_palette_menu
+	 *
+	 * @dataProvider data_command_palette_shortcut_is_ltr
+	 *
+	 * @param string $user_agent     User agent string.
+	 * @param string $expected_label Expected shortcut label.
+	 */
+	public function test_command_palette_shortcut_is_ltr( string $user_agent, string $expected_label ): void {
+		set_current_screen( 'dashboard' );
+		wp_enqueue_script( 'wp-core-commands' );
+		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_command_palette_menu( $admin_bar );
+		$node = $admin_bar->get_node( 'command-palette' );
+
+		unset( $_SERVER['HTTP_USER_AGENT'] );
+		wp_dequeue_script( 'wp-core-commands' );
+		set_current_screen( 'front' );
+
+		$this->assertNotNull( $node, 'The command palette node should be added.' );
+
+		$processor = new WP_HTML_Tag_Processor( $node->title );
+		$this->assertTrue( $processor->next_tag( 'KBD' ), 'The title should contain a kbd element.' );
+		$this->assertSame( 'ltr', $processor->get_attribute( 'dir' ), 'The kbd element should have dir="ltr".' );
+		$this->assertStringContainsString( '<kbd dir="ltr">' . $expected_label . '</kbd>', $node->title );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string }>
+	 */
+	public static function data_command_palette_shortcut_is_ltr(): array {
+		return array(
+			'macOS'   => array( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', '⌘K' ),
+			'Windows' => array( 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Ctrl+K' ),
+			'none'    => array( '', 'Ctrl+K' ),
+		);
+	}
 }
