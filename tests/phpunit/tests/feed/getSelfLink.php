@@ -9,19 +9,16 @@
 class Tests_Feed_GetSelfLink extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 65819
+	 * @ticket 66480
 	 */
 	public function test_builds_scheme_aware_url_from_request_uri() {
+		update_option( 'home', 'http://example.org' );
+
+		$_SERVER['HTTPS']       = 'on';
 		$_SERVER['REQUEST_URI'] = '/feed/rss2/?foo=bar';
 
-		$parsed = parse_url( home_url() );
-		$domain = $parsed['host'];
-		if ( isset( $parsed['port'] ) ) {
-			$domain .= ':' . $parsed['port'];
-		}
-
 		$this->assertSame(
-			set_url_scheme( 'http://' . $domain . '/feed/rss2/?foo=bar' ),
+			'https://example.org/feed/rss2/?foo=bar',
 			get_self_link()
 		);
 	}
