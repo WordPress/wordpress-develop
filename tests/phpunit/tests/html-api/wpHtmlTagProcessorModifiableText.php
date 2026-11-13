@@ -727,7 +727,7 @@ HTML
 	 *
 	 * @ticket 65824
 	 *
-	 * @dataProvider data_raw_text_resembling_a_closing_tag
+	 * @dataProvider data_allows_raw_text_which_cannot_close_its_element
 	 *
 	 * @param string $html     HTML whose first tag holds the raw text to replace.
 	 * @param string $update   Text resembling, but not forming, that element's closing tag.
@@ -763,7 +763,7 @@ HTML
 	 *
 	 * @return array[]
 	 */
-	public static function data_raw_text_resembling_a_closing_tag(): array {
+	public static function data_allows_raw_text_which_cannot_close_its_element(): array {
 		return array(
 			'IFRAME with </iframely>'          => array( '<iframe>Replace me</iframe>', 'Just a </iframely>', '<iframe>Just a </iframely></iframe>' ),
 			'NOEMBED with </NOEMBEDDED>'       => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBEDDED>', '<noembed>Just a </NOEMBEDDED></noembed>' ),
