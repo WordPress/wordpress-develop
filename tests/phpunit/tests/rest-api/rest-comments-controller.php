@@ -4997,13 +4997,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The stored reaction content is the validated, canonical key - markup
-	 * around the key must not reach the database, or `reaction_summary`
-	 * grouping would split visually identical reactions.
+	 * Markup around a key is not a key, so it is rejected and never reaches
+	 * the database.
 	 *
 	 * @ticket 64638
+	 * @ticket 66695
 	 */
-	public function test_create_reaction_stores_canonical_key() {
+	public function test_create_reaction_rejects_markup_around_key(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -5032,10 +5032,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
-
-		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( '2764', $new_comment->comment_content );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
 	}
 
 	/**
@@ -6634,5 +6631,64 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
 
 		$this->assertSame( array(), $response->get_data()['reaction_summary'] );
+	}
+
+	/**
+	 * A row whose content is not a reaction key, written by something other
+	 * than this controller, is left out and not counted as another emoji.
+	 *
+	 * @ticket 66695
+	 *
+	 * @dataProvider data_malformed_reaction_content
+	 *
+	 * @param string $content The stored reaction content.
+	 */
+	public function test_reaction_summary_omits_malformed_reaction_content( string $content ): void {
+		wp_set_current_user( self::$editor_id );
+
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = $this->create_reaction_for_update_tests( self::$post_id, $note_id, self::$editor_id );
+		$this->create_reaction_for_update_tests( self::$post_id, $note_id, self::$admin_id, $content );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+
+		$summary = $data['reaction_summary'];
+		$this->assertIsArray( $summary );
+
+		// PHP casts the numeric string key to an integer.
+		$this->assertSame( array( 2764 ), array_keys( $summary ) );
+		$this->assertSame(
+			array(
+				'count'                 => 1,
+				'current_user_reaction' => $reaction_id,
+			),
+			$summary['2764']
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_malformed_reaction_content(): array {
+		return array(
+			'markup around a key'        => array( '<b>2764</b>' ),
+			'not hex'                    => array( 'heart' ),
+			'uppercase hex'              => array( '1F680' ),
+			'beyond the last code point' => array( '110000' ),
+			'surrogate'                  => array( 'd83d' ),
+			'trailing separator'         => array( '1f44d-' ),
+		);
 	}
 }
