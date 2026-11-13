@@ -374,10 +374,10 @@ function _wp_utf8_codepoint_count( string $text, ?int $byte_offset = 0, ?int $ma
  * @param int    $byte_offset       Start counting at this byte offset.
  * @param int    $max_code_points   Stop counting after this many code points have been seen,
  *                                  or at the end of the string.
- * @param int|null $found_code_points Optional. Will be set to number of found code points in
- *                                    span, as this might be smaller than the maximum count if
- *                                    the string is not long enough. Default 0.
- * @param-out int  $found_code_points
+ * @param ?int   $found_code_points Optional. Will be set to number of found code points in
+ *                                  span, as this might be smaller than the maximum count if
+ *                                  the string is not long enough.
+ * @param-out int $found_code_points
  * @return int Number of bytes spanned by the code points.
  */
 function _wp_utf8_codepoint_span( string $text, int $byte_offset, int $max_code_points, ?int &$found_code_points = 0 ): int {
