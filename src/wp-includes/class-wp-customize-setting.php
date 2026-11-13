@@ -89,7 +89,7 @@ class WP_Customize_Setting {
 	 * @since 4.6.0
 	 * @var callable
 	 */
-	public $validate_callback = '';
+	public $validate_callback;
 
 	/**
 	 * Callback to filter a Customize setting value in un-slashed form.
@@ -97,7 +97,7 @@ class WP_Customize_Setting {
 	 * @since 3.4.0
 	 * @var callable
 	 */
-	public $sanitize_callback = '';
+	public $sanitize_callback;
 
 	/**
 	 * Callback to convert a Customize PHP setting value to a value that is JSON serializable.
@@ -105,7 +105,7 @@ class WP_Customize_Setting {
 	 * @since 3.4.0
 	 * @var callable
 	 */
-	public $sanitize_js_callback = '';
+	public $sanitize_js_callback;
 
 	/**
 	 * Whether or not the setting is initially dirty when created.
