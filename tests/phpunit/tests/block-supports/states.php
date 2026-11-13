@@ -625,7 +625,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_non_array_values() {
+	public static function data_non_array_values() {
 		return array(
 			'null'                  => array( null ),
 			'false'                 => array( false ),
