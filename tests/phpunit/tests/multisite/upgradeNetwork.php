@@ -21,7 +21,7 @@ class Tests_Multisite_UpgradeNetwork extends WP_UnitTestCase {
 	 *
 	 * @ticket 65980
 	 *
-	 * @dataProvider data_can_compress_scripts_deletion
+	 * @dataProvider data_can_compress_scripts_is_deleted_below_its_db_version
 	 *
 	 * @param int  $db_version     Database version being upgraded from.
 	 * @param bool $expect_deleted Whether the option should be deleted.
@@ -46,7 +46,7 @@ class Tests_Multisite_UpgradeNetwork extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ db_version: int, expect_deleted: bool }>
 	 */
-	public static function data_can_compress_scripts_deletion(): array {
+	public static function data_can_compress_scripts_is_deleted_below_its_db_version(): array {
 		return array(
 			'upgrading from just below the 7.2 db version' => array(
 				'db_version'     => 64485,
