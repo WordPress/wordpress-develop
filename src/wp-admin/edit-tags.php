@@ -241,6 +241,14 @@ if ( $pagenum > $total_pages && $total_pages > 0 ) {
 }
 
 wp_enqueue_script( 'admin-tags' );
+wp_localize_script(
+	'admin-tags',
+	'tagsL10n',
+	array(
+		// The taxonomy's "not found" label, used when the last term is removed via AJAX.
+		'notFound' => $tax->labels->not_found,
+	)
+);
 if ( current_user_can( $tax->cap->edit_terms ) ) {
 	wp_enqueue_script( 'inline-edit-tax' );
 }
