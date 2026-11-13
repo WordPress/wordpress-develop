@@ -838,15 +838,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.7.0
 	 */
 	public function expectDeprecated() {
-		if ( method_exists( $this, 'getAnnotations' ) ) {
-			// PHPUnit < 9.5.0.
-			$annotations = $this->getAnnotations();
-		} else {
-			// PHPUnit >= 9.5.0.
-			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
-				static::class,
-				$this->getName( false )
-			);
+		$method_name = method_exists( $this, 'name' ) ? $this->name() : $this->getName( false );
+		$class       = new ReflectionClass( $this );
+		$reflectors  = array(
+			'class'  => array_merge( array_values( $class->getTraits() ), array( $class ) ),
+			'method' => array( $class->getMethod( $method_name ) ),
+		);
+		$annotations = array(
+			'class'  => array(),
+			'method' => array(),
+		);
+
+		foreach ( $reflectors as $depth => $depth_reflectors ) {
+			foreach ( $depth_reflectors as $reflector ) {
+				$docblock        = substr( (string) $reflector->getDocComment(), 3, -2 );
+				$doc_annotations = array();
+
+				// Parse all tags before filtering so annotation values remain intact.
+				if ( preg_match_all( '/@([A-Za-z_-]+)(?:[ \t]+(.*?))?[ \t]*\r?$/m', $docblock, $matches, PREG_SET_ORDER ) ) {
+					foreach ( $matches as $match ) {
+						if ( in_array( $match[1], array( 'expectedDeprecated', 'expectedIncorrectUsage' ), true ) ) {
+							$doc_annotations[ $match[1] ][] = $match[2] ?? '';
+						}
+					}
+				}
+
+				// Later traits and the class replace earlier values for the same annotation.
+				$annotations[ $depth ] = array_merge( $annotations[ $depth ], $doc_annotations );
+			}
 		}
 
 		foreach ( array( 'class', 'method' ) as $depth ) {

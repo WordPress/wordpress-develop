@@ -1,21 +1,23 @@
 /**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
-
-/**
  * Internal dependencies
  */
+import { test, expect } from '../fixtures';
 import {
 	TEST_IMAGE_PATH,
 	TEST_AUDIO_PATH,
+	TEST_SVG_PATH,
 	SIMULATED_ERROR,
 	UNDECODABLE_HEIC,
+	countUploadRequests,
+	expectCrossOriginIsolated,
 	failMediaCreate,
 	stubClassicUpload,
-	withoutHeicDecoder,
-	countUploadRequests,
+	supportsDocumentIsolation,
 	tile,
+	titleOf,
+	trackUploads,
+	uniqueFile,
+	withoutHeicDecoder,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
@@ -88,9 +90,11 @@ async function suppressProviderRender( page ) {
 }
 
 test.describe( 'Media Library grid client-side uploads', () => {
-	test.afterEach( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllMedia();
-	} );
+	test.skip(
+		( { browserName, browser } ) =>
+			! supportsDocumentIsolation( browserName, browser ),
+		'This browser does not support Document-Isolation-Policy'
+	);
 
 	test( 'sends the Document-Isolation-Policy header on the grid', async ( {
 		page,
@@ -111,49 +115,15 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		);
 	} );
 
-	test( 'does not send the Document-Isolation-Policy header in list mode', async ( {
-		page,
-		admin,
-	} ) => {
-		const responsePromise = page.waitForResponse(
-			( resp ) =>
-				resp.url().includes( '/wp-admin/upload.php' ) &&
-				resp.request().resourceType() === 'document' &&
-				resp.status() === 200
-		);
-
-		await admin.visitAdminPage( 'upload.php', 'mode=list' );
-
-		const headers = ( await responsePromise ).headers();
-		expect( headers[ 'document-isolation-policy' ] ).toBeUndefined();
-
-		// List mode uploads via media-new.php, so the grid integration
-		// script has no business on this screen either.
-		await expect(
-			page.locator( 'script[src*="media-frame-upload"]' )
-		).toHaveCount( 0 );
-
-		// Visiting with ?mode= persists the user's preference; restore it.
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-	} );
-
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
+		attachments,
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		// In Chromium builds without Document-Isolation-Policy support,
-		// isolation is legitimately unavailable and the pipeline falls back
-		// to classic uploads. Only assert where isolation is real.
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The REST route may be a pretty permalink (/wp/v2/media) or the
 		// plain form (index.php?rest_route=%2Fwp%2Fv2%2Fmedia), so match on
@@ -181,12 +151,14 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		const ids = trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The finalized attachment resolves to a normal (non-uploading) tile.
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -202,9 +174,8 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		// The finalized attachment carries the browser-generated sub-sizes
 		// in its metadata (the 640x480 source is larger than thumbnail and
 		// medium), and the sideloaded thumbnail file really exists.
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids[ 0 ] }`,
 		} );
 		const sizes = attachment.media_details.sizes || {};
 		expect( Object.keys( sizes ) ).toEqual(
@@ -220,16 +191,11 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	test( 'warns before leaving while a pipeline upload is in flight', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// Hold sideload requests so the upload stays in flight at a
 		// deterministic point.
@@ -251,9 +217,11 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			{ timeout: 60_000 }
 		);
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 		await sideloadRequested;
 
 		// A synthetic cancelable event exercises the guard's listener
@@ -271,7 +239,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		for ( const route of heldRoutes ) {
 			await route.continue();
 		}
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
@@ -294,13 +262,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
@@ -326,9 +288,537 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( message ).toHaveText( /\S/ );
 		await expect( message ).not.toContainText( '[object Object]' );
 	} );
+	test( 'uploads several files at once, including duplicates', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		let finalizeCount = 0;
+		page.on( 'request', ( request ) => {
+			if (
+				request.method() === 'POST' &&
+				/\/wp\/v2\/media\/\d+\/finalize/.test(
+					decodeURIComponent( request.url() )
+				)
+			) {
+				finalizeCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		// The same file twice exercises the shared-identity path: both
+		// tiles must track progress and resolve independently.
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( [ file, file ] );
+
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 90_000,
+		} );
+		await expect( tile( page, titleOf( file ) ) ).toHaveCount( 2 );
+		expect( finalizeCount ).toBe( 2 );
+	} );
+
+	test( 'reports pipeline progress on the tile', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		// Hold sideloads so the tile is observed mid-pipeline, after the
+		// original has been uploaded but before thumbnails have landed.
+		const heldRoutes = [];
+		let holding = true;
+		await page.route(
+			( url ) => decodeURIComponent( url.href ).includes( '/sideload' ),
+			async ( route ) => {
+				if ( holding ) {
+					heldRoutes.push( route );
+					return;
+				}
+				await route.continue();
+			}
+		);
+		const sideloadRequested = page.waitForRequest(
+			( request ) =>
+				decodeURIComponent( request.url() ).includes( '/sideload' ),
+			{ timeout: 60_000 }
+		);
+
+		// Record the grid uploader's progress callback, which wp-plupload.js
+		// calls on every UploadProgress.
+		await page.evaluate( () => {
+			window.__uploaderProgress = [];
+			const uploader = window.wp.media.frame.uploader.uploader;
+			const original = uploader.progress;
+			uploader.progress = function ( model ) {
+				window.__uploaderProgress.push( model.get( 'percent' ) );
+				return original.apply( this, arguments );
+			};
+		} );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+		await sideloadRequested;
+
+		await expect
+			.poll( () =>
+				page.evaluate( () => Math.max( 0, ...window.__uploaderProgress ) )
+			)
+			.toBeGreaterThan( 0 );
+
+		// The placeholder tile's progress bar has advanced past zero but
+		// is not reported complete while work remains.
+		const bar = tile( page, 'uploading…' ).locator(
+			'.media-progress-bar div'
+		);
+		await expect( bar ).toHaveAttribute( 'style', /width:\s*[1-9]/ );
+		await expect( bar ).not.toHaveAttribute( 'style', /width:\s*100%/ );
+
+		holding = false;
+		for ( const route of heldRoutes ) {
+			await route.continue();
+		}
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+	} );
+
+	test( 'surfaces a pipeline error with its message and file name', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		await failMediaCreate( page );
+
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		// The error lands in the grid's error sidebar exactly like a classic
+		// upload error: the file name and the server's message.
+		const error = page
+			.locator( '.upload-error' )
+			.filter( { hasText: file.name } );
+		await expect( error ).toBeVisible( { timeout: 60_000 } );
+		await expect(
+			error.getByText( file.name, { exact: true } )
+		).toBeVisible();
+		await expect(
+			error.getByText( SIMULATED_ERROR.message, { exact: true } )
+		).toBeVisible();
+
+		// The placeholder tile is removed rather than left spinning.
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
+	} );
+	test( 'leaves audio files to the classic uploader', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		let asyncUploadCount = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_AUDIO_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+
+		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'leaves files that are not processable images to the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		// A plugin can allow an extra type on its own uploader, as page
+		// builders do for SVG, without adding it to the allowed mime types
+		// the page was rendered with.
+		await overridePluploadDefaults( page, {
+			filters: { mime_types: [ { extensions: 'svg' } ] },
+		} );
+		await stubClassicUpload( page );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		const counts = countUploadRequests( page );
+
+		const file = uniqueFile( TEST_SVG_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		// The uploader's own filter decides, so the file reaches the server
+		// instead of being rejected in the browser.
+		await expect
+			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect(
+			page.locator( '.upload-error-message', {
+				hasText: 'not allowed to upload this file type',
+			} )
+		).toHaveCount( 0 );
+	} );
+
+	test( 'leaves images of a type the page was not rendered with to the classic uploader', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		// A plugin can allow an image type only for its own requests, so
+		// the allowed mime types the page was rendered with leave it out
+		// while the uploader's own filter lets it through.
+		await page.addInitScript( () => {
+			let settings;
+			Object.defineProperty( window, '_wpMediaUploadPipelineSettings', {
+				configurable: true,
+				get() {
+					return settings;
+				},
+				set( value ) {
+					settings = value;
+					const allowed = value && value.allowedMimeTypes;
+					for ( const extension in allowed || {} ) {
+						if ( 'image/jpeg' === allowed[ extension ] ) {
+							delete allowed[ extension ];
+						}
+					}
+				},
+			} );
+		} );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		const counts = countUploadRequests( page );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		// The server decides, as it would without the pipeline.
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( page.locator( '.upload-error' ) ).toHaveCount( 0 );
+	} );
+
+	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		let asyncUploadCount = 0;
+		let restCreateCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			const decoded = decodeURIComponent( request.url() );
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if ( /\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) ) {
+				restCreateCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		const image = uniqueFile( TEST_IMAGE_PATH );
+		const audio = uniqueFile( TEST_AUDIO_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( [ image, audio ] );
+
+		await expect( tile( page, titleOf( image ) ) ).toBeVisible( {
+			timeout: 90_000,
+		} );
+		await expect( tile( page, titleOf( audio ) ) ).toBeVisible();
+
+		// The image went through the pipeline, the audio file through plupload.
+		expect( restCreateCount ).toBe( 1 );
+		expect( asyncUploadCount ).toBe( 1 );
+	} );
+
+	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		// What the "Scale images" setting or a `resize` passed through
+		// plupload_init turns on.
+		await page.evaluate( () => {
+			window.wp.media.frame.uploader.uploader.uploader.setOption(
+				'resize',
+				{ enabled: true, width: 1024, height: 1024, quality: 100 }
+			);
+		} );
+
+		let asyncUploadCount = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+
+		expect( asyncUploadCount ).toBe( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
+	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		// The store is configured by rendering a provider, which delivers
+		// its settings asynchronously. Never rendering it reproduces a file
+		// added inside that window: the pipeline must not claim the file,
+		// because the store would hand it to a no-op uploader.
+		await suppressProviderRender( page );
+
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		const ready = await page.evaluate( () =>
+			window.wp.mediaUploadPipeline.isReady()
+		);
+		expect( ready ).toBe( false );
+
+		const counts = countUploadRequests( page );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+
+		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+	} );
+
+	test( 'hands a HEIC the browser cannot decode to the server when it can convert it', async ( {
+		page,
+		admin,
+	} ) => {
+		// No heic_upload_error means the server's image editor handles HEIC.
+		await overridePluploadDefaults( page, { heic_upload_error: false } );
+
+		await withoutHeicDecoder( page );
+		await stubClassicUpload( page );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		const counts = countUploadRequests( page );
+
+		const file = uniqueFile( UNDECODABLE_HEIC );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		// The pipeline's decode failure is not shown; the file is re-queued
+		// on the classic uploader, which posts it to async-upload.php.
+		await expect
+			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
+			.toBeGreaterThanOrEqual( 1 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
+			timeout: 60_000,
+		} );
+		await expect(
+			page.locator( '.upload-error-message', { hasText: 'HEIC' } )
+		).toHaveCount( 0 );
+	} );
+
+	test( 'reports the HEIC error when neither the browser nor the server can convert it', async ( {
+		page,
+		admin,
+	} ) => {
+		await overridePluploadDefaults( page, { heic_upload_error: true } );
+
+		await withoutHeicDecoder( page );
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		const counts = countUploadRequests( page );
+
+		const file = uniqueFile( UNDECODABLE_HEIC );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		// Nothing can convert the file, so the pipeline's message (which
+		// explains the platform limitation) is what the user sees.
+		const error = page
+			.locator( '.upload-error' )
+			.filter( { hasText: file.name } );
+		await expect( error ).toBeVisible( { timeout: 60_000 } );
+		await expect(
+			error.getByText( file.name, { exact: true } )
+		).toBeVisible();
+		await expect(
+			error.locator( '.upload-error-message' )
+		).toContainText( 'HEIC' );
+		expect( counts.asyncUpload ).toBe( 0 );
+		expect( counts.rest ).toBe( 0 );
+		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
+	} );
+	test( 'deletes the attachment when finalizing the upload fails', async ( {
+		page,
+		admin,
+		attachments,
+		requestUtils,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		await expectCrossOriginIsolated( page );
+
+		// The original and its sub-sizes reach the server; only finalize fails.
+		await page.route(
+			( url ) =>
+				/\/wp\/v2\/media\/\d+\/finalize/.test(
+					decodeURIComponent( url.href )
+				),
+			( route ) =>
+				route.fulfill( {
+					status: 500,
+					contentType: 'application/json',
+					body: JSON.stringify( SIMULATED_ERROR ),
+				} )
+		);
+
+		const ids = trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		await expect(
+			page.locator( '.upload-error' ).filter( { hasText: file.name } )
+		).toBeVisible( { timeout: 60_000 } );
+
+		// Nothing is left behind for a retry to duplicate.
+		expect( ids ).toHaveLength( 1 );
+		await expect
+			.poll(
+				async () =>
+					(
+						await requestUtils.rest( {
+							path: '/wp/v2/media',
+							params: { include: ids.join( ',' ) },
+						} )
+					).length,
+				{ timeout: 30_000 }
+			)
+			.toBe( 0 );
+	} );
+} );
+
+test.describe( 'Media Library without cross-origin isolation', () => {
+	test( 'does not send the Document-Isolation-Policy header in list mode', async ( {
+		page,
+		admin,
+	} ) => {
+		const responsePromise = page.waitForResponse(
+			( resp ) =>
+				resp.url().includes( '/wp-admin/upload.php' ) &&
+				resp.request().resourceType() === 'document' &&
+				resp.status() === 200
+		);
+
+		await admin.visitAdminPage( 'upload.php', 'mode=list' );
+
+		const headers = ( await responsePromise ).headers();
+		expect( headers[ 'document-isolation-policy' ] ).toBeUndefined();
+
+		// List mode uploads via media-new.php, so the grid integration
+		// script has no business on this screen either.
+		await expect(
+			page.locator( 'script[src*="media-frame-upload"]' )
+		).toHaveCount( 0 );
+
+		// Visiting with ?mode= persists the user's preference; restore it.
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+	} );
+
 	test( 'falls back to the classic uploader when the page is not isolated', async ( {
 		page,
 		admin,
+		attachments,
 	} ) => {
 		// Blocking the Document-Isolation-Policy header reproduces every
 		// browser that ignores it: the page is not isolated, the script
@@ -365,466 +855,18 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			}
 		} );
 
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
 			timeout: 60_000,
 		} );
 
 		// Classic plupload handled the upload end to end.
 		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
 		expect( restUploadCount ).toBe( 0 );
-	} );
-
-	test( 'uploads several files at once, including duplicates', async ( {
-		page,
-		admin,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		let finalizeCount = 0;
-		page.on( 'request', ( request ) => {
-			if (
-				request.method() === 'POST' &&
-				/\/wp\/v2\/media\/\d+\/finalize/.test(
-					decodeURIComponent( request.url() )
-				)
-			) {
-				finalizeCount++;
-			}
-		} );
-
-		// The same file twice exercises the shared-identity path: both
-		// tiles must track progress and resolve independently.
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_IMAGE_PATH ] );
-
-		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
-			timeout: 90_000,
-		} );
-		await expect( tile( page, 'test-image' ) ).toHaveCount( 2 );
-		expect( finalizeCount ).toBe( 2 );
-	} );
-
-	test( 'reports pipeline progress on the tile', async ( { page, admin } ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		// Hold sideloads so the tile is observed mid-pipeline, after the
-		// original has been uploaded but before thumbnails have landed.
-		const heldRoutes = [];
-		let holding = true;
-		await page.route(
-			( url ) => decodeURIComponent( url.href ).includes( '/sideload' ),
-			async ( route ) => {
-				if ( holding ) {
-					heldRoutes.push( route );
-					return;
-				}
-				await route.continue();
-			}
-		);
-		const sideloadRequested = page.waitForRequest(
-			( request ) =>
-				decodeURIComponent( request.url() ).includes( '/sideload' ),
-			{ timeout: 60_000 }
-		);
-
-		// Record the grid uploader's progress callback, which wp-plupload.js
-		// calls on every UploadProgress.
-		await page.evaluate( () => {
-			window.__uploaderProgress = [];
-			const uploader = window.wp.media.frame.uploader.uploader;
-			const original = uploader.progress;
-			uploader.progress = function ( model ) {
-				window.__uploaderProgress.push( model.get( 'percent' ) );
-				return original.apply( this, arguments );
-			};
-		} );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-		await sideloadRequested;
-
-		await expect
-			.poll( () =>
-				page.evaluate( () => Math.max( 0, ...window.__uploaderProgress ) )
-			)
-			.toBeGreaterThan( 0 );
-
-		// The placeholder tile's progress bar has advanced past zero but
-		// is not reported complete while work remains.
-		const bar = tile( page, 'uploading…' ).locator(
-			'.media-progress-bar div'
-		);
-		await expect( bar ).toHaveAttribute( 'style', /width:\s*[1-9]/ );
-		await expect( bar ).not.toHaveAttribute( 'style', /width:\s*100%/ );
-
-		holding = false;
-		for ( const route of heldRoutes ) {
-			await route.continue();
-		}
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-	} );
-
-	test( 'surfaces a pipeline error with its message and file name', async ( {
-		page,
-		admin,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		await failMediaCreate( page );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-
-		// The error lands in the grid's error sidebar exactly like a classic
-		// upload error: the file name and the server's message.
-		const error = page
-			.locator( '.upload-error' )
-			.filter( { hasText: 'test-image.jpg' } );
-		await expect( error ).toBeVisible( { timeout: 60_000 } );
-		await expect(
-			error.getByText( 'test-image.jpg', { exact: true } )
-		).toBeVisible();
-		await expect(
-			error.getByText( SIMULATED_ERROR.message, { exact: true } )
-		).toBeVisible();
-
-		// The placeholder tile is removed rather than left spinning.
-		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
-	} );
-	test( 'leaves audio files to the classic uploader', async ( {
-		page,
-		admin,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		let asyncUploadCount = 0;
-		let restUploadCount = 0;
-		page.on( 'request', ( request ) => {
-			if ( request.method() !== 'POST' ) {
-				return;
-			}
-			if ( request.url().includes( '/async-upload.php' ) ) {
-				asyncUploadCount++;
-			} else if (
-				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
-			) {
-				restUploadCount++;
-			}
-		} );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_AUDIO_PATH );
-
-		await expect( tile( page, 'test-audio' ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-
-		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
-		expect( restUploadCount ).toBe( 0 );
-	} );
-
-	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
-		page,
-		admin,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		let asyncUploadCount = 0;
-		let restCreateCount = 0;
-		page.on( 'request', ( request ) => {
-			if ( request.method() !== 'POST' ) {
-				return;
-			}
-			const decoded = decodeURIComponent( request.url() );
-			if ( request.url().includes( '/async-upload.php' ) ) {
-				asyncUploadCount++;
-			} else if ( /\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) ) {
-				restCreateCount++;
-			}
-		} );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
-
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
-			timeout: 90_000,
-		} );
-		await expect( tile( page, 'test-audio' ) ).toBeVisible();
-
-		// The image went through the pipeline, the audio file through plupload.
-		expect( restCreateCount ).toBe( 1 );
-		expect( asyncUploadCount ).toBe( 1 );
-	} );
-
-	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
-		page,
-		admin,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		// What the "Scale images" setting or a `resize` passed through
-		// plupload_init turns on.
-		await page.evaluate( () => {
-			window.wp.media.frame.uploader.uploader.uploader.setOption(
-				'resize',
-				{ enabled: true, width: 1024, height: 1024, quality: 100 }
-			);
-		} );
-
-		let asyncUploadCount = 0;
-		let restUploadCount = 0;
-		page.on( 'request', ( request ) => {
-			if ( request.method() !== 'POST' ) {
-				return;
-			}
-			if ( request.url().includes( '/async-upload.php' ) ) {
-				asyncUploadCount++;
-			} else if (
-				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
-			) {
-				restUploadCount++;
-			}
-		} );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-
-		expect( asyncUploadCount ).toBe( 1 );
-		expect( restUploadCount ).toBe( 0 );
-	} );
-
-	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
-		page,
-		admin,
-	} ) => {
-		// The store is configured by rendering a provider, which delivers
-		// its settings asynchronously. Never rendering it reproduces a file
-		// added inside that window: the pipeline must not claim the file,
-		// because the store would hand it to a no-op uploader.
-		await suppressProviderRender( page );
-
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		const ready = await page.evaluate( () =>
-			window.wp.mediaUploadPipeline.isReady()
-		);
-		expect( ready ).toBe( false );
-
-		const counts = countUploadRequests( page );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-
-		await expect( tile( page, 'test-image' ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-
-		expect( counts.asyncUpload ).toBeGreaterThanOrEqual( 1 );
-		expect( counts.rest ).toBe( 0 );
-	} );
-
-	test( 'hands a HEIC the browser cannot decode to the server when it can convert it', async ( {
-		page,
-		admin,
-	} ) => {
-		// No heic_upload_error means the server's image editor handles HEIC.
-		await overridePluploadDefaults( page, { heic_upload_error: false } );
-
-		await withoutHeicDecoder( page );
-		await stubClassicUpload( page );
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		const counts = countUploadRequests( page );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( UNDECODABLE_HEIC );
-
-		// The pipeline's decode failure is not shown; the file is re-queued
-		// on the classic uploader, which posts it to async-upload.php.
-		await expect
-			.poll( () => counts.asyncUpload, { timeout: 60_000 } )
-			.toBeGreaterThanOrEqual( 1 );
-		expect( counts.rest ).toBe( 0 );
-		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0, {
-			timeout: 60_000,
-		} );
-		await expect(
-			page.locator( '.upload-error-message', { hasText: 'HEIC' } )
-		).toHaveCount( 0 );
-	} );
-
-	test( 'reports the HEIC error when neither the browser nor the server can convert it', async ( {
-		page,
-		admin,
-	} ) => {
-		await overridePluploadDefaults( page, { heic_upload_error: true } );
-
-		await withoutHeicDecoder( page );
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		const counts = countUploadRequests( page );
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( UNDECODABLE_HEIC );
-
-		// Nothing can convert the file, so the pipeline's message (which
-		// explains the platform limitation) is what the user sees.
-		const error = page
-			.locator( '.upload-error' )
-			.filter( { hasText: UNDECODABLE_HEIC.name } );
-		await expect( error ).toBeVisible( { timeout: 60_000 } );
-		await expect(
-			error.getByText( UNDECODABLE_HEIC.name, { exact: true } )
-		).toBeVisible();
-		await expect(
-			error.locator( '.upload-error-message' )
-		).toContainText( 'HEIC' );
-		expect( counts.asyncUpload ).toBe( 0 );
-		expect( counts.rest ).toBe( 0 );
-		await expect( tile( page, 'uploading…' ) ).toHaveCount( 0 );
-	} );
-	test( 'deletes the attachment when finalizing the upload fails', async ( {
-		page,
-		admin,
-		requestUtils,
-	} ) => {
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
-
-		// The original and its sub-sizes reach the server; only finalize fails.
-		await page.route(
-			( url ) =>
-				/\/wp\/v2\/media\/\d+\/finalize/.test(
-					decodeURIComponent( url.href )
-				),
-			( route ) =>
-				route.fulfill( {
-					status: 500,
-					contentType: 'application/json',
-					body: JSON.stringify( SIMULATED_ERROR ),
-				} )
-		);
-
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-
-		await expect(
-			page
-				.locator( '.upload-error' )
-				.filter( { hasText: 'test-image.jpg' } )
-		).toBeVisible( { timeout: 60_000 } );
-
-		// Nothing is left behind for a retry to duplicate.
-		await expect
-			.poll(
-				async () =>
-					(
-						await requestUtils.rest( {
-							path: '/wp/v2/media',
-							params: { per_page: 100 },
-						} )
-					).length,
-				{ timeout: 30_000 }
-			)
-			.toBe( 0 );
 	} );
 } );
