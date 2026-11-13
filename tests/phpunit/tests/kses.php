@@ -150,6 +150,9 @@ class Tests_Kses extends WP_UnitTestCase {
 					),
 				),
 			),
+			array(
+				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+			),
 		);
 	}
 
@@ -3021,5 +3024,114 @@ HTML;
 			array( 'content', 'data', array( 'http', 'https' ) ),
 			$received
 		);
+	}
+
+	/**
+	 * Tests that opening square brackets inside allowed `<code>` elements remain encoded.
+	 *
+	 * @ticket 66673
+	 *
+	 * @dataProvider data_wp_kses_escapes_opening_brackets_in_code_elements
+	 *
+	 * @param string     $input        HTML to sanitize.
+	 * @param string     $expected     Expected sanitized HTML.
+	 * @param array|null $allowed_html Optional. Allowed HTML configuration. Default `wp_kses_post()`.
+	 */
+	public function test_wp_kses_escapes_opening_brackets_in_code_elements( string $input, string $expected, ?array $allowed_html = null ): void {
+		$actual = null === $allowed_html
+			? wp_kses_post( $input )
+			: wp_kses( $input, $allowed_html );
+
+		$this->assertSame(
+			$expected,
+			$actual,
+			'Opening square brackets inside allowed <code> elements should remain encoded as &#91;.'
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_kses_escapes_opening_brackets_in_code_elements().
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_kses_escapes_opening_brackets_in_code_elements(): array {
+		return array(
+			'code block with decimal entity'     => array(
+				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+			),
+			'code block with hexadecimal entity' => array(
+				'<pre class="wp-block-code"><code>&#x5B;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+			),
+			'code block with named entity'       => array(
+				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+			),
+			'code block with nested formatting'  => array(
+				'<pre class="wp-block-code"><code><strong>&#91;audio]</strong> &#91;video]</code></pre>',
+				'<pre class="wp-block-code"><code><strong>&#91;audio]</strong> &#91;video]</code></pre>',
+			),
+			'inline code and shortcode outside'  => array(
+				'<code>&#91;gallery]</code> and <p>[gallery]</p>',
+				'<code>&#91;gallery]</code> and <p>[gallery]</p>',
+			),
+			'nested code elements'               => array(
+				'<code>outer <code>inner &#91;a]</code> still code &#91;b]</code> outside [c]',
+				'<code>outer <code>inner &#91;a]</code> still code &#91;b]</code> outside [c]',
+			),
+			'unmatched closing code tag'         => array(
+				'</code>[gallery] <code>&#91;gallery]</code> [gallery]',
+				'</code>[gallery] <code>&#91;gallery]</code> [gallery]',
+			),
+			'disallowed code element'            => array(
+				'<code>&#91;gallery]</code>',
+				'[gallery]',
+				array( 'p' => array() ),
+			),
+		);
+	}
+
+	/**
+	 * Tests that shortcodes inside Code blocks do not execute after wp_kses_post().
+	 *
+	 * @ticket 66673
+	 */
+	public function test_shortcode_in_code_block_does_not_run_after_wp_kses_post(): void {
+		$callback_calls = 0;
+
+		add_shortcode(
+			'kses_code_test',
+			static function () use ( &$callback_calls ) {
+				++$callback_calls;
+				return 'rendered-shortcode';
+			}
+		);
+
+		try {
+			$input     = '<pre class="wp-block-code"><code>&#91;kses_code_test]</code></pre><p>[kses_code_test]</p>';
+			$sanitized = wp_kses_post( $input );
+
+			$this->assertSame(
+				'<pre class="wp-block-code"><code>&#91;kses_code_test]</code></pre><p>[kses_code_test]</p>',
+				$sanitized,
+				'wp_kses_post() should keep &#91; encoded inside the Code block while preserving [ outside it.'
+			);
+
+			$rendered = do_shortcode( $sanitized );
+
+			$this->assertSame(
+				1,
+				$callback_calls,
+				'do_shortcode() should only execute the shortcode outside the Code block.'
+			);
+			$this->assertSame(
+				'<pre class="wp-block-code"><code>&#091;kses_code_test]</code></pre><p>rendered-shortcode</p>',
+				$rendered,
+				'Rendered output should leave the Code block shortcode example unexecuted.'
+			);
+		} finally {
+			remove_shortcode( 'kses_code_test' );
+		}
 	}
 }
