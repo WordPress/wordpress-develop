@@ -30,7 +30,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
     name: Run QUnit tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 20
@@ -62,7 +62,7 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
-      # Branches prior to 6.1 using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
+      # Branches prior to 6.1 using outdated versions of Puppeteer fail on the `ubuntu-24.04` image and newer.
       # This disables AppArmor in order to work around those failures.
       #
       # See https://issues.chromium.org/issues/373753919

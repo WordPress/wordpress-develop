@@ -4094,7 +4094,8 @@ function wp_preload_resources() {
 	 *     @type array ...$0 {
 	 *         Array of resource attributes.
 	 *
-	 *         @type string $href          URL to include in resource preloads. Required.
+	 *         @type string $href          URL to include in resource preloads. May be omitted
+	 *                                     for an image preloaded by its `$imagesrcset`.
 	 *         @type string $as            How the browser should treat the resource
 	 *                                     (`script`, `style`, `image`, `document`, etc).
 	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
@@ -4128,9 +4129,7 @@ function wp_preload_resources() {
 			}
 			$unique_resources[ $href ] = $attributes;
 			// Media can use imagesrcset and not href.
-		} elseif ( ( 'image' === $resource['as'] ) &&
-			( isset( $resource['imagesrcset'] ) || isset( $resource['imagesizes'] ) )
-		) {
+		} elseif ( isset( $resource['as'], $resource['imagesrcset'] ) && 'image' === $resource['as'] ) {
 			if ( isset( $unique_resources[ $resource['imagesrcset'] ] ) ) {
 				continue;
 			}
@@ -4782,9 +4781,9 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $settings The array of settings passed to the code editor.
-	 *                        A falsey value disables the editor.
-	 * @param array $args {
+	 * @param array|false $settings The array of settings passed to the code editor.
+	 *                              A falsey value disables the editor.
+	 * @param array       $args {
 	 *     Args passed when calling `get_code_editor_settings()`.
 	 *
 	 *     @type string   $type       The MIME type of the file to be edited.
@@ -5005,7 +5004,7 @@ function paginate_links( $args = '' ) {
 	$url_parts    = explode( '?', $pagenum_link );
 
 	// Get max pages and current page out of the current query, if available.
-	$total   = $wp_query->max_num_pages ?? 1;
+	$total   = $wp_query->max_num_pages;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
 	/*
@@ -5222,9 +5221,7 @@ function paginate_links( $args = '' ) {
 function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
 	global $_wp_admin_css_colors;
 
-	if ( ! isset( $_wp_admin_css_colors ) ) {
-		$_wp_admin_css_colors = array();
-	}
+	$_wp_admin_css_colors ??= array();
 
 	$_wp_admin_css_colors[ $key ] = (object) array(
 		'name'        => $name,
@@ -5266,7 +5263,7 @@ function register_admin_color_schemes() {
 		false,
 		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
-			'base'    => '#a7aaad',
+			'base'    => '#c3c4c7',
 			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)

@@ -65,9 +65,14 @@ class Tests_Category_TheCategory extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_outputs_default_unordered_list_for_global_post() {
+		$this->set_permalink_structure( '' );
 		$GLOBALS['post'] = get_post( self::$post_id );
 
-		$this->expectOutputString( get_the_category_list() );
+		$this->expectOutputString(
+			'<ul class="post-categories">' .
+			"\n\t" . '<li><a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$child_id . '" rel="category">Child Category</a></li>' .
+			'</ul>'
+		);
 
 		the_category();
 	}
@@ -79,9 +84,12 @@ class Tests_Category_TheCategory extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_outputs_category_list_with_separator_parents_and_post_id() {
-		$expected = get_the_category_list( ' / ', 'multiple', self::$post_id );
+		$this->set_permalink_structure( '' );
 
-		$this->expectOutputString( $expected );
+		$this->expectOutputString(
+			'<a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$parent_id . '">Parent Category</a> / ' .
+			'<a href="http://' . WP_TESTS_DOMAIN . '/?cat=' . self::$child_id . '" rel="category">Child Category</a>'
+		);
 
 		the_category( ' / ', 'multiple', self::$post_id );
 	}

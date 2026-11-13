@@ -1556,9 +1556,12 @@ function get_post_status_object( $post_status ) {
  *                               properties of the global `$wp_post_statuses objects`. Default empty array.
  * @param string       $output   Optional. The type of output to return, either 'names' or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one element
- *                               from the array needs to match; 'and' means all elements must match.
+ *                               from the array needs to match; 'and' means all elements must match;
+ *                               'not' means no elements may match. The value is case-insensitive.
  *                               Default 'and'.
  * @return string[]|stdClass[] A list of post status names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, stdClass> )
  */
 function get_post_stati( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -1663,8 +1666,11 @@ function get_post_type_object( $post_type ) {
  *                               or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
- *                               must match; 'not' means no elements may match. Default 'and'.
+ *                               must match; 'not' means no elements may match. The value is
+ *                               case-insensitive. Default 'and'.
  * @return string[]|WP_Post_Type[] An array of post type names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? string[] : WP_Post_Type[] )
  */
 function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -2435,8 +2441,10 @@ function post_type_supports( $post_type, $feature ) {
  * @param string       $operator Optional. The logical operation to perform. 'or' means
  *                               only one element from the array needs to match; 'and'
  *                               means all elements must match; 'not' means no elements may
- *                               match. Default 'and'.
+ *                               match. The value is case-insensitive. Default 'and'.
  * @return string[] A list of post type names.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function get_post_types_by_support( $feature, $operator = 'and' ) {
 	global $_wp_post_type_features;
@@ -3887,7 +3895,7 @@ function get_post_mime_types() {
  * @param string|string[] $wildcard_mime_types Mime types, e.g. `audio/mpeg`, `image` (same as `image/*`),
  *                                             or `flash` (same as `*flash*`).
  * @param string|string[] $real_mime_types     Real post mime type values.
- * @return array array(wildcard=>array(real types)).
+ * @return array<string[]> array(wildcard=>array(real types)).
  */
 function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 	$matches = array();
@@ -3947,6 +3955,8 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 	$wildcards = array( '', '%', '%/%' );
 	if ( is_string( $post_mime_types ) ) {
 		$post_mime_types = array_map( 'trim', explode( ',', $post_mime_types ) );
+		// Skip empty items left by extra commas, so they do not match the '' wildcard.
+		$post_mime_types = array_diff( $post_mime_types, array( '' ) );
 	}
 
 	$where_clauses = array();
@@ -4002,9 +4012,10 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  *
  * @since 1.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
  * @see wp_delete_attachment()
  * @see wp_trash_post()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $post_id      Post ID. (The default of 0 is for historical reasons; providing it is incorrect.)
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
@@ -7626,11 +7637,15 @@ function wp_attachment_is_image( $post = null ) {
  *
  * @param string|int $mime          MIME type or attachment ID.
  * @param string     $preferred_ext File format to prefer in return. Default '.png'.
- * @return string|false Icon, false otherwise.
+ * @return string|false Icon URL, or false if no icon was found.
  */
 function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
+	$icon = false;
 	if ( ! is_numeric( $mime ) ) {
-		$icon = wp_cache_get( "mime_type_icon_$mime" );
+		$cached_icon = wp_cache_get( "mime_type_icon_$mime" );
+		if ( is_string( $cached_icon ) ) {
+			$icon = $cached_icon;
+		}
 	}
 
 	// Check if preferred file format variable is present and is a validly formatted file extension.
@@ -7745,11 +7760,12 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 
 		foreach ( $matches as $match => $wilds ) {
 			foreach ( $wilds as $wild ) {
-				if ( ! isset( $types[ $wild ] ) ) {
+				$type_icon = $types[ $wild ] ?? null;
+				if ( ! is_string( $type_icon ) ) {
 					continue;
 				}
 
-				$icon = $types[ $wild ];
+				$icon = $type_icon;
 				if ( ! is_numeric( $mime ) ) {
 					wp_cache_add( "mime_type_icon_$mime", $icon );
 				}
@@ -7763,10 +7779,10 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $icon    Path to the mime type icon.
-	 * @param string $mime    Mime type.
-	 * @param int    $post_id Attachment ID. Will equal 0 if the function passed
-	 *                        the mime type.
+	 * @param string|false $icon    URL of the mime type icon, or false if no icon was found.
+	 * @param string|int   $mime    Mime type, or 0 if no post was found for the passed ID.
+	 * @param int          $post_id Attachment ID. Will equal 0 if the function passed
+	 *                              the mime type or no post was found for the passed ID.
 	 */
 	return apply_filters( 'wp_mime_type_icon', $icon, $mime, $post_id );
 }

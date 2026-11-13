@@ -24,11 +24,21 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->test_block_name = null;
-		$this->theme_root      = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir  = $GLOBALS['wp_theme_directories'];
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -52,6 +62,11 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();

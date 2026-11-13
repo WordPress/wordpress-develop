@@ -154,7 +154,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
 		-
-			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string\>\) in isset\(\) is not nullable\.$#'
+			message: '#^Property WP_Object_Cache\:\:\$global_groups \(array\<string, true\>\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/ms-blogs.php
@@ -178,11 +178,6 @@ parameters:
 			identifier: isset.property
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-font-families-controller.php
-		-
-			message: '#^Property WP_Query\:\:\$max_num_pages \(int\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/sitemaps/providers/class-wp-sitemaps-posts.php
 		-
 			message: '#^Property WP_Site\:\:\$domain \(string\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
