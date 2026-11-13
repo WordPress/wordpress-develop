@@ -4763,7 +4763,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_curated_reaction_keys
+	 * @dataProvider data_create_reaction_accepts_curated_key
 	 *
 	 * @param string $key The reaction hex key to submit.
 	 */
@@ -4802,7 +4802,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( $key, $new_comment->comment_content );
 	}
 
-	public static function data_curated_reaction_keys() {
+	public static function data_create_reaction_accepts_curated_key() {
 		return array(
 			'thumbs up'   => array( '1f44d' ),
 			'plus'        => array( '2795' ),
@@ -4949,7 +4949,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_uncurated_reaction_keys
+	 * @dataProvider data_create_reaction_rejects_uncurated_key
 	 *
 	 * @param string $key The reaction content to submit.
 	 */
@@ -4985,7 +4985,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
 	}
 
-	public static function data_uncurated_reaction_keys() {
+	public static function data_create_reaction_rejects_uncurated_key() {
 		return array(
 			'uncurated emoji'         => array( '1f525' ),
 			'ZWJ sequence'            => array( '1f468-200d-1f4bb' ),
@@ -5121,7 +5121,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_invalid_reaction_content_objects
+	 * @dataProvider data_create_reaction_rejects_invalid_content_object
 	 *
 	 * @param array $content The reaction content to submit.
 	 */
@@ -5156,7 +5156,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
 	}
 
-	public static function data_invalid_reaction_content_objects() {
+	public static function data_create_reaction_rejects_invalid_content_object() {
 		return array(
 			'raw content not a key' => array( array( 'raw' => 'invalid_emoji' ) ),
 			'content without raw'   => array( array( 'rendered' => '2764' ) ),
@@ -5171,7 +5171,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_create_reaction_status
+	 * @dataProvider data_create_reaction_only_allows_approved_status
 	 *
 	 * @param string $status          Requested status.
 	 * @param int    $expected_status Expected HTTP status.
@@ -5231,7 +5231,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array<string, array{0: string, 1: int}>
 	 */
-	public static function data_create_reaction_status() {
+	public static function data_create_reaction_only_allows_approved_status() {
 		return array(
 			'approve' => array( 'approve', 201 ),
 			'hold'    => array( 'hold', 400 ),
@@ -6112,7 +6112,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_hidden_note_statuses
+	 * @dataProvider data_create_reaction_on_hidden_note
 	 *
 	 * @param string $status Status to move the parent note to.
 	 */
@@ -6153,7 +6153,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public static function data_hidden_note_statuses() {
+	public static function data_create_reaction_on_hidden_note() {
 		return array(
 			'trash' => array( 'trash' ),
 			'spam'  => array( 'spam' ),
@@ -6237,7 +6237,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_other_post_note_states
+	 * @dataProvider data_create_reaction_on_note_from_uneditable_post_does_not_reveal_its_status
 	 *
 	 * @param string $state The state to put the other post's note in.
 	 */
@@ -6283,7 +6283,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public static function data_other_post_note_states() {
+	public static function data_create_reaction_on_note_from_uneditable_post_does_not_reveal_its_status() {
 		return array(
 			'open'     => array( 'open' ),
 			'trash'    => array( 'trash' ),
