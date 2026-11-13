@@ -777,7 +777,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_roles_for_username_filter_permissions
+	 * @dataProvider data_roles_have_expected_username_filter_permissions
 	 *
 	 * @param string $role           Current user's role.
 	 * @param bool   $can_list_users Whether the role can list users, and so filter by username.
@@ -808,7 +808,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: bool}>
 	 */
-	public static function data_roles_for_username_filter_permissions(): array {
+	public static function data_roles_have_expected_username_filter_permissions(): array {
 		return array(
 			'administrator' => array( 'administrator', true ),
 			'editor'        => array( 'editor', false ),
@@ -823,7 +823,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_roles_without_list_users
+	 * @dataProvider data_empty_collection_mode_restricts_users_without_list_users_to_public_authors
 	 *
 	 * @param string $role Current user's role.
 	 */
@@ -850,7 +850,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_roles_without_list_users(): array {
+	public static function data_empty_collection_mode_restricts_users_without_list_users_to_public_authors(): array {
 		return array(
 			'editor'      => array( 'editor' ),
 			'author'      => array( 'author' ),
@@ -1576,7 +1576,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_unsupported_where_keys
+	 * @dataProvider data_unsupported_where_key_fails_schema_validation
 	 *
 	 * @param string $key   The `where` key.
 	 * @param mixed  $value The value given for the key.
@@ -1596,7 +1596,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: mixed}>
 	 */
-	public static function data_unsupported_where_keys(): array {
+	public static function data_unsupported_where_key_fails_schema_validation(): array {
 		return array(
 			'id'       => array( 'id', 1 ),
 			'email'    => array( 'email', 'core-users-ability-admin@example.com' ),
@@ -1767,7 +1767,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_roles_for_another_public_author_field_visibility
+	 * @dataProvider data_roles_have_expected_field_visibility_for_another_public_author
 	 *
 	 * @param string $role               Current user's role.
 	 * @param bool   $can_view_sensitive Whether the role can view another user's sensitive fields.
@@ -1805,7 +1805,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: bool, 2: bool}>
 	 */
-	public static function data_roles_for_another_public_author_field_visibility(): array {
+	public static function data_roles_have_expected_field_visibility_for_another_public_author(): array {
 		return array(
 			'administrator' => array( 'administrator', true, true ),
 			'editor'        => array( 'editor', false, false ),
@@ -2188,7 +2188,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_unknown_requested_fields
+	 * @dataProvider data_unknown_requested_field_fails_schema_validation
 	 *
 	 * @param string $field The unknown field name or path to request.
 	 */
@@ -2212,7 +2212,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_unknown_requested_fields(): array {
+	public static function data_unknown_requested_field_fails_schema_validation(): array {
 		return array(
 			'unknown field'                => array( 'bogus_field' ),
 			'unknown registered sub-field' => array( 'registered.local' ),
@@ -2439,7 +2439,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_registered_sub_field_paths
+	 * @dataProvider data_zero_registered_date_sub_field_is_reported_as_null
 	 *
 	 * @param string $field The sub-field path to request.
 	 * @param string $key   The key the path selects inside `registered`.
@@ -2471,7 +2471,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public static function data_registered_sub_field_paths(): array {
+	public static function data_zero_registered_date_sub_field_is_reported_as_null(): array {
 		return array(
 			'registered.site' => array( 'registered.site', 'site' ),
 			'registered.gmt'  => array( 'registered.gmt', 'gmt' ),
@@ -2486,7 +2486,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_registered_field_selections
+	 * @dataProvider data_registered_field_selection_returns_the_selected_dates
 	 *
 	 * @param string[]              $fields   The fields to request.
 	 * @param array<string, string> $expected The expected registered object.
@@ -2514,7 +2514,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string[], 1: array<string, string>}>
 	 */
-	public static function data_registered_field_selections(): array {
+	public static function data_registered_field_selection_returns_the_selected_dates(): array {
 		return array(
 			'whole registered field' => array(
 				array( 'registered' ),
@@ -2550,7 +2550,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_registered_dates_in_site_timezones
+	 * @dataProvider data_registered_dates_use_the_site_timezone_and_gmt
 	 *
 	 * @param string      $timezone_string The timezone_string option.
 	 * @param float       $gmt_offset      The gmt_offset option.
@@ -2597,7 +2597,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: float, 2: string, 3: string|null, 4: string|null}>
 	 */
-	public static function data_registered_dates_in_site_timezones(): array {
+	public static function data_registered_dates_use_the_site_timezone_and_gmt(): array {
 		return array(
 			'timezone string, standard time, previous day' => array(
 				'America/New_York',
@@ -2664,7 +2664,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64657
 	 *
-	 * @dataProvider data_registered_visibility
+	 * @dataProvider data_registered_is_only_returned_to_self_and_editors
 	 *
 	 * @param string $role    The fixture whose user runs the query.
 	 * @param string $field   The registered field or sub-field path to request.
@@ -2694,7 +2694,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: bool}>
 	 */
-	public static function data_registered_visibility(): array {
+	public static function data_registered_is_only_returned_to_self_and_editors(): array {
 		return array(
 			'self, registered.site'          => array( 'public_author', 'registered.site', true ),
 			'self, registered.gmt'           => array( 'public_author', 'registered.gmt', true ),
