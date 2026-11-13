@@ -533,7 +533,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 *
 	 * @ticket 66493
 	 *
-	 * @dataProvider data_users_who_cannot_manage_options
+	 * @dataProvider data_core_get_site_info_denies_users_who_cannot_manage_options
 	 *
 	 * @param string $role Role of the current user, or an empty string for a logged-out visitor.
 	 */
@@ -555,7 +555,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_users_who_cannot_manage_options(): array {
+	public static function data_core_get_site_info_denies_users_who_cannot_manage_options(): array {
 		return array(
 			'subscriber'      => array( 'subscriber' ),
 			'logged-out user' => array( '' ),
