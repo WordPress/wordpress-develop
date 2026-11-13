@@ -61,6 +61,10 @@ function wp_normalize_state_preset_vars( $value ) {
  * @return array Normalized state style object.
  */
 function wp_normalize_state_style_for_css_output( $style ) {
+	if ( ! is_array( $style ) ) {
+		return array();
+	}
+
 	// Layout is processed separately by wp_render_layout_support_flag(), so we remove it before declaration generation.
 	unset( $style['layout'] );
 	$style = wp_normalize_state_preset_vars( $style );

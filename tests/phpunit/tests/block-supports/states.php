@@ -586,6 +586,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	/**
 	 * Tests that the state style helpers return an empty array when given a non-array value.
 	 *
+	 * @covers ::wp_normalize_state_style_for_css_output
 	 * @covers ::wp_get_state_declarations_with_fallback_border_styles
 	 * @covers ::wp_get_state_declarations_with_background_resets
 	 * @covers ::wp_get_state_style_with_fallback_dimension_styles
@@ -598,6 +599,11 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * @param mixed $value Non-array value.
 	 */
 	public function test_state_style_helpers_return_empty_array_for_non_array_value( $value ) {
+		$this->assertSame(
+			array(),
+			wp_normalize_state_style_for_css_output( $value ),
+			'The normalize helper should return an empty array.'
+		);
 		$this->assertSame(
 			array(),
 			wp_get_state_declarations_with_fallback_border_styles( $value ),
