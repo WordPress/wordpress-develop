@@ -286,4 +286,63 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 		preg_match_all( '|id="comment\-([0-9]+)"|', $found, $matches );
 		$this->assertSame( array( $comments[4] ), array_map( 'intval', $matches[1] ) );
 	}
+
+	/**
+	 * Tests that pagination params matching the current comment page fall back to `$wp_query->comments`.
+	 *
+	 * @ticket 51305
+	 *
+	 * @dataProvider data_pagination_params_matching_current_page
+	 *
+	 * @param string $default_comments_page Value for the 'default_comments_page' option.
+	 */
+	public function test_pagination_params_matching_current_page_should_list_query_comments( $default_comments_page ) {
+		$p = self::factory()->post->create();
+
+		$now = time();
+		for ( $i = 0; $i <= 5; $i++ ) {
+			self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $p,
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
+				)
+			);
+		}
+
+		update_option( 'page_comments', true );
+		update_option( 'comments_per_page', 2 );
+		update_option( 'default_comments_page', $default_comments_page );
+
+		$this->go_to( get_permalink( $p ) );
+
+		// comments_template() populates $wp_query->comments.
+		get_echo( 'comments_template' );
+
+		$expected = wp_list_comments( array( 'echo' => false ) );
+		$found    = wp_list_comments(
+			array(
+				'page'     => (int) get_query_var( 'cpage' ),
+				'per_page' => (int) get_query_var( 'comments_per_page' ),
+				'echo'     => false,
+			)
+		);
+
+		preg_match_all( '|id="comment\-([0-9]+)"|', $expected, $expected_matches );
+		preg_match_all( '|id="comment\-([0-9]+)"|', (string) $found, $found_matches );
+
+		$this->assertCount( 2, $expected_matches[1], 'The current comment page should list two comments.' );
+		$this->assertSame( $expected_matches[1], $found_matches[1] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public function data_pagination_params_matching_current_page() {
+		return array(
+			'newest comments first' => array( 'newest' ),
+			'oldest comments first' => array( 'oldest' ),
+		);
+	}
 }

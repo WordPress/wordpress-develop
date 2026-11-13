@@ -649,11 +649,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp.php
 		-
-			message: '#^Variable \$_comments might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/comment-template.php
-		-
 			message: '#^Variable \$post_author might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
