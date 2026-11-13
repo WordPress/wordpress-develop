@@ -2541,6 +2541,78 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 'gutenberg', get_option( 'test_project' ) );
 	}
 
+	/**
+	 * @ticket 66384
+	 *
+	 * @dataProvider data_batch_v1_pre_dispatch_wp_error
+	 *
+	 * @param string $path Path of the request inside the batch.
+	 */
+	public function test_batch_v1_pre_dispatch_wp_error_is_converted_to_response( $path ) {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		add_filter(
+			'rest_pre_dispatch',
+			static function ( $result, $server, $request ) {
+				if ( '/batch/v1' === $request->get_route() ) {
+					return $result;
+				}
+
+				return new WP_Error( 'test_pre_dispatch', 'Blocked.', array( 'status' => 403 ) );
+			},
+			10,
+			3
+		);
+
+		$post_dispatch_types = array();
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $result ) use ( &$post_dispatch_types ) {
+				$post_dispatch_types[] = get_class( $result );
+				return $result;
+			}
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'validation' => 'normal',
+				'requests'   => array( array( 'path' => $path ) ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( array( 'WP_REST_Response' ), $post_dispatch_types, 'rest_post_dispatch should receive a WP_REST_Response, not a WP_Error.' );
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertSame( 403, $data['responses'][0]['status'] );
+		$this->assertSame( 'test_pre_dispatch', $data['responses'][0]['body']['code'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_batch_v1_pre_dispatch_wp_error() {
+		return array(
+			'matched route'   => array( '/test-ns/v1/test' ),
+			'unmatched route' => array( '/test-ns/v1/does-not-exist' ),
+		);
+	}
+
 
 	/**
 	 * @ticket 50244
