@@ -673,6 +673,112 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that get_attribute_names_with_prefix() reflects class name updates
+	 * which follow an enqueued update to the `class` attribute.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 *
+	 * @dataProvider data_class_name_updates_after_class_attribute_updates
+	 *
+	 * @param string   $html           HTML containing a DIV tag.
+	 * @param Closure  $update         Enqueues updates to the DIV tag.
+	 * @param string[] $expected_names Attribute names on the DIV tag after the updates.
+	 * @param string   $expected_html  HTML after the updates.
+	 */
+	public function test_get_attribute_names_with_prefix_reflects_class_name_updates_after_class_attribute_updates( string $html, Closure $update, array $expected_names, string $expected_html ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+		$update( $processor );
+
+		$this->assertSame(
+			$expected_names,
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Failed to report the attribute names resulting from the enqueued updates.'
+		);
+
+		$this->assertSame(
+			$expected_html,
+			$processor->get_updated_html(),
+			'Failed to apply the enqueued updates.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: Closure(WP_HTML_Tag_Processor): void, 2: list<string>, 3: string}>
+	 */
+	public static function data_class_name_updates_after_class_attribute_updates(): array {
+		return array(
+			'Class added after removing class attribute' => array(
+				'<div class="a">',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->remove_attribute( 'class' );
+					$processor->add_class( 'b' );
+				},
+				array( 'class' ),
+				'<div class="b">',
+			),
+			'Class added after setting class attribute false' => array(
+				'<div class="a">',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->set_attribute( 'class', false );
+					$processor->add_class( 'b' );
+				},
+				array( 'class' ),
+				'<div class="b">',
+			),
+			'Class added after removing empty class attribute' => array(
+				'<div class="">',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->remove_attribute( 'class' );
+					$processor->add_class( 'b' );
+				},
+				array( 'class' ),
+				'<div class="b">',
+			),
+			'Class added after removing boolean class attribute' => array(
+				'<div class>',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->remove_attribute( 'class' );
+					$processor->add_class( 'b' );
+				},
+				array( 'class' ),
+				'<div class="b">',
+			),
+			'Class added after removing duplicated class attribute' => array(
+				'<div class="a" class="b">',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->remove_attribute( 'class' );
+					$processor->add_class( 'c' );
+				},
+				array( 'class' ),
+				'<div class="c" >',
+			),
+			'Class added after removing class attribute, with other attributes' => array(
+				'<div id="x" class="a" title="y">',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->remove_attribute( 'class' );
+					$processor->add_class( 'b' );
+				},
+				array( 'id', 'class', 'title' ),
+				'<div id="x" class="b" title="y">',
+			),
+			'Only class removed after adding class attribute' => array(
+				'<div>',
+				static function ( WP_HTML_Tag_Processor $processor ): void {
+					$processor->set_attribute( 'class', 'a' );
+					$processor->remove_class( 'a' );
+				},
+				array(),
+				'<div>',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString
