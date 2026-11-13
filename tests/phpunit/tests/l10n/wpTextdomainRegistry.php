@@ -332,7 +332,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::get
 	 * @covers ::has
-	 * @dataProvider data_text_domains_sharing_a_prefix
+	 * @dataProvider data_translations_are_not_shared_between_text_domains_with_a_common_prefix
 	 *
 	 * @param string $domain Text domain that has no translations of its own.
 	 * @param string $locale Locale to look up.
@@ -349,7 +349,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_text_domains_sharing_a_prefix() {
+	public static function data_translations_are_not_shared_between_text_domains_with_a_common_prefix() {
 		return array(
 			// "internationalized-plugin-{de_DE,es_ES}.mo" exist, "internationalized-*" do not.
 			'prefix of a domain with .mo files'     => array( 'internationalized', 'de_DE' ),
