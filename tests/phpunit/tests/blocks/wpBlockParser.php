@@ -49,7 +49,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 *
 	 * @covers ::parse
 	 *
-	 * @dataProvider data_non_string_documents
+	 * @dataProvider data_returns_empty_array_for_non_string_document
 	 *
 	 * @expectedIncorrectUsage WP_Block_Parser::parse
 	 *
@@ -66,7 +66,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_string_documents() {
+	public static function data_returns_empty_array_for_non_string_document() {
 		return array(
 			'null'    => array( null ),
 			'false'   => array( false ),
@@ -109,7 +109,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_documents_with_implicit_closings
+	 * @dataProvider data_implicitly_closed_blocks_is_equivalent_to_explicitly_closed
 	 *
 	 * @param string[] $tokens List of block and HTML tokens comprising a document, where the first
 	 *                         is a partial document ending in open blocks, while the rest are the
@@ -136,7 +136,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 *
 	 * @return array<string, list<non-empty-string>>
 	 */
-	public static function data_documents_with_implicit_closings() {
+	public static function data_implicitly_closed_blocks_is_equivalent_to_explicitly_closed() {
 		return array(
 			'After a closed block'                  => array(
 				array(
