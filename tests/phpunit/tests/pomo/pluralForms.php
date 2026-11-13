@@ -221,7 +221,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 */
 	public function test_cache() {
 		$mock = $this->getMockBuilder( 'Plural_Forms' )
-			->setMethods( array( 'execute' ) )
+			->onlyMethods( array( 'execute' ) )
 			->setConstructorArgs( array( 'n != 1' ) )
 			->getMock();
 

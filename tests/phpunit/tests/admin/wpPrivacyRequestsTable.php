@@ -46,7 +46,8 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$instance = $this
 			->getMockBuilder( 'WP_Privacy_Requests_Table' )
 			->setConstructorArgs( array( $args ) )
-			->getMockForAbstractClass();
+			->onlyMethods( array() )
+			->getMock();
 
 		$reflection = new ReflectionClass( $instance );
 
