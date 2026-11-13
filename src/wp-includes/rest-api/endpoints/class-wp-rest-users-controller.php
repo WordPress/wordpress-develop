@@ -380,12 +380,61 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
-		$query = new WP_User_Query( $prepared_args );
+		$query   = new WP_User_Query( $prepared_args );
+		$results = $query->get_results();
+
+		// Store pagination values for headers then unset for count query.
+		$per_page = (int) $prepared_args['number'];
+		$offset   = (int) $prepared_args['offset'];
+		$page     = (int) ceil( ( $offset / $per_page ) + 1 );
+
+		$count_args           = $prepared_args;
+		$count_args['fields'] = 'ID';
+
+		$total_users = $query->get_total();
+
+		if ( $total_users < 1 ) {
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
+			unset( $count_args['number'], $count_args['offset'] );
+
+			$count_args['number'] = 1;
+			$count_query          = new WP_User_Query( $count_args );
+			$total_users          = $count_query->get_total();
+		}
+
+		/*
+		 * WP_User_Query only finds members of the current site. Users requested by ID
+		 * who are not members but can be read here are listed after the members.
+		 */
+		$non_members = $this->get_included_non_members( $prepared_args );
+		if ( $non_members ) {
+			$page_non_members = array_slice(
+				$non_members,
+				max( 0, $offset - $total_users ),
+				max( 0, $per_page - count( $results ) )
+			);
+
+			$total_users += count( $non_members );
+		}
 
 		if ( ! $is_head_request ) {
 			$users = array();
 
-			foreach ( $query->get_results() as $user ) {
+			if ( ! empty( $page_non_members ) ) {
+				$results = array_merge( $results, $page_non_members );
+
+				if ( isset( $prepared_args['orderby'] ) && 'include' === $prepared_args['orderby'] ) {
+					$positions = array_flip( wp_parse_id_list( $prepared_args['include'] ) );
+					usort(
+						$results,
+						static function ( $a, $b ) use ( $positions ) {
+							return ( $positions[ $a->ID ] ?? PHP_INT_MAX ) <=> ( $positions[ $b->ID ] ?? PHP_INT_MAX );
+						}
+					);
+				}
+			}
+
+			foreach ( $results as $user ) {
 				if ( 'edit' === $request['context'] && ! current_user_can( 'edit_user', $user->ID ) ) {
 					continue;
 				}
@@ -396,24 +445,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $users );
-
-		// Store pagination values for headers then unset for count query.
-		$per_page = (int) $prepared_args['number'];
-		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
-
-		$prepared_args['fields'] = 'ID';
-
-		$total_users = $query->get_total();
-
-		if ( $total_users < 1 ) {
-			// Out-of-bounds, run the query without pagination/offset to get the total count.
-			unset( $prepared_args['number'], $prepared_args['offset'] );
-
-			$prepared_args['number'] = 1;
-			$prepared_args['fields'] = 'ID';
-			$count_query             = new WP_User_Query( $prepared_args );
-			$total_users             = $count_query->get_total();
-		}
 
 		$response->header( 'X-WP-Total', (int) $total_users );
 
@@ -474,6 +505,136 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Gets the user to read, if the ID is valid.
+	 *
+	 * Unlike get_user(), this also returns users who are not members of the current
+	 * site but can still be read on it. See is_readable_non_member().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int $id Supplied ID.
+	 * @return WP_User|WP_Error WP_User object if ID is valid, WP_Error otherwise.
+	 */
+	protected function get_readable_user( $id ) {
+		$user = $this->get_user( $id );
+
+		if ( ! is_wp_error( $user ) || ! is_multisite() || (int) $id <= 0 ) {
+			return $user;
+		}
+
+		$non_member = get_userdata( (int) $id );
+		if ( $non_member && $non_member->exists() && $this->is_readable_non_member( $non_member ) ) {
+			return $non_member;
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Checks whether a user who is not a member of the current site can be read on it.
+	 *
+	 * Super admins can create and edit content on every site of the network without
+	 * being members of it. To be able to show who authored that content, a super admin
+	 * can be read on a site where they have authored a post or a revision, as well as
+	 * by themselves.
+	 *
+	 * The permission checks of the request still apply on top of this.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_User $user The user to check. Must not be a member of the current site.
+	 * @return bool Whether the user can be read on the current site.
+	 */
+	protected function is_readable_non_member( $user ) {
+		if ( ! is_super_admin( $user->ID ) ) {
+			return false;
+		}
+
+		if ( get_current_user_id() === $user->ID ) {
+			return true;
+		}
+
+		$post_types   = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
+		$post_types[] = 'revision';
+
+		// The 'any' status leaves out auto-drafts and trashed posts.
+		$post_ids = get_posts(
+			array(
+				'author'                 => $user->ID,
+				'post_type'              => $post_types,
+				'post_status'            => 'any',
+				'fields'                 => 'ids',
+				'posts_per_page'         => 1,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		return ! empty( $post_ids );
+	}
+
+	/**
+	 * Gets the users requested by ID who are not members of the current site
+	 * but can be read on it.
+	 *
+	 * Only lookups by ID are supported: filters such as a search or a role are
+	 * matched against the users of the current site, so a request using one of
+	 * them gets no additional users.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $prepared_args Arguments passed to WP_User_Query.
+	 * @return WP_User[] Users to add to the results.
+	 */
+	protected function get_included_non_members( $prepared_args ) {
+		if ( ! is_multisite() || empty( $prepared_args['include'] ) ) {
+			return array();
+		}
+
+		// The query was filtered to look beyond the current site, so it already found them.
+		if ( isset( $prepared_args['blog_id'] ) && get_current_blog_id() !== (int) $prepared_args['blog_id'] ) {
+			return array();
+		}
+
+		$filters = array( 'search', 'role', 'role__in', 'role__not_in', 'capability', 'capability__in', 'capability__not_in', 'nicename__in', 'login__in' );
+		foreach ( $filters as $filter ) {
+			if ( ! empty( $prepared_args[ $filter ] ) ) {
+				return array();
+			}
+		}
+
+		$post_types = array();
+		if ( ! empty( $prepared_args['has_published_posts'] ) ) {
+			$post_types = true === $prepared_args['has_published_posts']
+				? get_post_types( array( 'show_in_rest' => true ), 'names' )
+				: (array) $prepared_args['has_published_posts'];
+		}
+
+		$user_ids = array_diff(
+			wp_parse_id_list( $prepared_args['include'] ),
+			wp_parse_id_list( $prepared_args['exclude'] ?? array() )
+		);
+
+		$users = array();
+		foreach ( $user_ids as $user_id ) {
+			$user = get_userdata( $user_id );
+
+			if ( ! $user || is_user_member_of_blog( $user->ID ) || ! $this->is_readable_non_member( $user ) ) {
+				continue;
+			}
+
+			if ( $post_types && ! count_user_posts( $user->ID, $post_types, true ) ) {
+				continue;
+			}
+
+			$users[] = $user;
+		}
+
+		return $users;
+	}
+
+	/**
 	 * Checks if a given request has access to read a user.
 	 *
 	 * @since 4.7.0
@@ -482,7 +643,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
-		$user = $this->get_user( $request['id'] );
+		$user = $this->get_readable_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
 			return $user;
 		}
@@ -521,7 +682,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$user = $this->get_user( $request['id'] );
+		$user = $this->get_readable_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
 			return $user;
 		}
