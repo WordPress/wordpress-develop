@@ -376,4 +376,46 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function test_wp_staticize_emoji( $emoji, $expected ) {
 		$this->assertSame( $expected, wp_staticize_emoji( $emoji ) );
 	}
+
+	/**
+	 * Emoji inside ignored tags (code, pre, style, script, textarea) should not be
+	 * staticized, even when the tag has attributes.
+	 *
+	 * This mirrors the fix made to convert_smilies() in #47489, which was never
+	 * applied to the parallel logic in wp_staticize_emoji().
+	 *
+	 * @ticket 66134
+	 * @dataProvider data_wp_staticize_emoji_ignored_tags
+	 *
+	 * @covers ::wp_staticize_emoji
+	 *
+	 * @param string $element The ignored element name.
+	 */
+	public function test_wp_staticize_emoji_ignores_tags_with_attributes( $element ) {
+		// Emoji U+1F642 as the HTML entity produced by _wp_emoji_list( 'entities' ).
+		$emoji = '&#x1f642;';
+
+		// Without attributes (already worked before the fix).
+		$no_attr = "<$element>$emoji</$element>";
+		$this->assertSame( $no_attr, wp_staticize_emoji( $no_attr ), "Emoji inside <$element> should not be staticized." );
+
+		// With attributes (regressed: the Preformatted/Code block adds a class).
+		$with_attr = "<$element class=\"wp-block-code\">$emoji</$element>";
+		$this->assertSame( $with_attr, wp_staticize_emoji( $with_attr ), "Emoji inside <$element class=\"...\"> should not be staticized." );
+	}
+
+	/**
+	 * Data provider for test_wp_staticize_emoji_ignores_tags_with_attributes().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_staticize_emoji_ignored_tags() {
+		return array(
+			'code'     => array( 'code' ),
+			'pre'      => array( 'pre' ),
+			'style'    => array( 'style' ),
+			'script'   => array( 'script' ),
+			'textarea' => array( 'textarea' ),
+		);
+	}
 }
