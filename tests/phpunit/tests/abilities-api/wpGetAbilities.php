@@ -833,6 +833,27 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the has_required_capabilities filter leaves out abilities whose declared
+	 * capabilities the current user lacks. Abilities without required capabilities stay.
+	 *
+	 * @ticket 66325
+	 *
+	 * @dataProvider data_filter_by_has_required_capabilities
+	 *
+	 * @param string               $role     The role of the current user. Empty for a logged-out user.
+	 * @param array<string, mixed> $args     The arguments passed to wp_get_abilities().
+	 * @param string[]             $expected The expected ability names.
+	 */
+	public function test_filter_by_has_required_capabilities( string $role, array $args, array $expected ): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( '' === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) ) );
+
+		$result = wp_get_abilities( array_merge( array( 'namespace' => 'test' ), $args ) );
+
+		$this->assertSameSets( $expected, array_keys( $result ) );
+	}
+
+	/**
 	 * Data provider for filtering by the current user's required capabilities.
 	 *
 	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string[]}>
@@ -855,27 +876,6 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 				array( 'test/admin-only', 'test/editor-and-up', 'test/input-dependent' ),
 			),
 		);
-	}
-
-	/**
-	 * Tests that the has_required_capabilities filter leaves out abilities whose declared
-	 * capabilities the current user lacks. Abilities without required capabilities stay.
-	 *
-	 * @ticket 66325
-	 *
-	 * @dataProvider data_filter_by_has_required_capabilities
-	 *
-	 * @param string               $role     The role of the current user. Empty for a logged-out user.
-	 * @param array<string, mixed> $args     The arguments passed to wp_get_abilities().
-	 * @param string[]             $expected The expected ability names.
-	 */
-	public function test_filter_by_has_required_capabilities( string $role, array $args, array $expected ): void {
-		$this->register_abilities_with_required_capabilities();
-		wp_set_current_user( '' === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) ) );
-
-		$result = wp_get_abilities( array_merge( array( 'namespace' => 'test' ), $args ) );
-
-		$this->assertSameSets( $expected, array_keys( $result ) );
 	}
 
 	/**
