@@ -580,4 +580,218 @@ HTML
 			'Implied A tag closer on A tag descendent'    => array( '<a><span><a>', 4, 'A', 'close', array( 'HTML', 'BODY' ) ),
 		);
 	}
+
+	/**
+	 * Ensures that nodes after the BODY and HTML end tags report their place in the document tree.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_content_after_body_and_html
+	 *
+	 * @covers WP_HTML_Processor::get_breadcrumbs
+	 *
+	 * @param string     $html                 Full HTML document.
+	 * @param string[][] $expected_breadcrumbs Breadcrumbs of each node, in document order.
+	 */
+	public function test_breadcrumbs_of_content_after_body_and_html( string $html, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$breadcrumbs = array();
+		while ( $processor->next_token() ) {
+			if ( ! $processor->is_tag_closer() ) {
+				$breadcrumbs[] = $processor->get_breadcrumbs();
+			}
+		}
+
+		$this->assertNull( $processor->get_last_error(), 'Failed to parse the document.' );
+		$this->assertSame( $expected_breadcrumbs, $breadcrumbs, 'Found the wrong breadcrumbs.' );
+	}
+
+	/**
+	 * Ensures that nodes after the BODY and HTML end tags report their depth in the document tree.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_content_after_body_and_html
+	 *
+	 * @covers WP_HTML_Processor::get_current_depth
+	 *
+	 * @param string     $html                 Full HTML document.
+	 * @param string[][] $expected_breadcrumbs Breadcrumbs of each node, in document order.
+	 */
+	public function test_depth_of_content_after_body_and_html( string $html, array $expected_breadcrumbs ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$depths = array();
+		while ( $processor->next_token() ) {
+			if ( ! $processor->is_tag_closer() ) {
+				$depths[] = $processor->get_current_depth();
+			}
+		}
+
+		$this->assertNull( $processor->get_last_error(), 'Failed to parse the document.' );
+		$this->assertSame( array_map( 'count', $expected_breadcrumbs ), $depths, 'Found the wrong depths.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_content_after_body_and_html(): array {
+		return array(
+			'Comment after BODY'                       => array(
+				'<html><body></body><!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Processing instruction after BODY'        => array(
+				'<html><body></body><?pi data?>',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#processing-instruction' ),
+				),
+			),
+			'Funky comment after BODY'                 => array(
+				'<html><body></body></%x>',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#funky-comment' ),
+				),
+			),
+			'Whitespace after BODY'                    => array(
+				'<html><body></body> ',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', '#text' ),
+				),
+			),
+			'Whitespace and comment after BODY'        => array(
+				'<html><body></body> <!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', '#text' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Comments after BODY'                      => array(
+				'<html><body></body><!--a--><!--b-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#comment' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Ignored DOCTYPE after comment after BODY' => array(
+				'<html><body></body><!--c--><!DOCTYPE html>',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Comment after closed P and BODY'          => array(
+				'<p>x</p></body><!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', 'P' ),
+					array( 'HTML', 'BODY', 'P', '#text' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Comment after unclosed P and BODY'        => array(
+				'<p>x</body><!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', 'P' ),
+					array( 'HTML', 'BODY', 'P', '#text' ),
+					array( 'HTML', '#comment' ),
+				),
+			),
+			'Comment after HTML'                       => array(
+				'<html><body></body></html><!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( '#comment' ),
+				),
+			),
+			'Processing instruction after HTML'        => array(
+				'<html><body></body></html><?pi data?>',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( '#processing-instruction' ),
+				),
+			),
+			'Whitespace after HTML'                    => array(
+				'<html><body></body></html> ',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', '#text' ),
+				),
+			),
+			'Whitespace and comment after HTML'        => array(
+				'<html><body></body></html> <!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', 'BODY', '#text' ),
+					array( '#comment' ),
+				),
+			),
+			'Ignored DOCTYPE after comment after HTML' => array(
+				'<html><body></body></html><!--c--><!DOCTYPE html>',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( '#comment' ),
+				),
+			),
+			'Comments after BODY and after HTML'       => array(
+				'<html><body></body><!--a--></html><!--b-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'BODY' ),
+					array( 'HTML', '#comment' ),
+					array( '#comment' ),
+				),
+			),
+			'Comment after FRAMESET and HTML'          => array(
+				'<frameset></frameset></html><!--c-->',
+				array(
+					array( 'HTML' ),
+					array( 'HTML', 'HEAD' ),
+					array( 'HTML', 'FRAMESET' ),
+					array( '#comment' ),
+				),
+			),
+		);
+	}
 }
