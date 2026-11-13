@@ -2427,6 +2427,39 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that sanitization errors stop permission checks, execution, and execution hooks.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_input_sanitization_errors
+	 *
+	 * @param array  $schema Input schema.
+	 * @param mixed  $input  Input accepted by validation but rejected by sanitization.
+	 * @param string $path   Path of the duplicate items in the error message.
+	 */
+	public function test_input_sanitization_errors( array $schema, $input, string $path ): void {
+		$args                 = self::$test_ability_properties;
+		$args['input_schema'] = $schema;
+		$unexpected_callback  = function () {
+			$this->fail( 'Sanitization errors must stop permission checks and execution.' );
+		};
+
+		$args['permission_callback'] = $unexpected_callback;
+		$args['execute_callback']    = $unexpected_callback;
+		$ability                     = new WP_Ability( self::$test_ability_name, $args );
+
+		add_action( 'wp_before_execute_ability', $unexpected_callback );
+		add_action( 'wp_after_execute_ability', $unexpected_callback );
+
+		$this->assertTrue( $ability->validate_input( $input ), 'The error should arise during sanitization.' );
+		$error = $ability->prepare_input( $input );
+		$this->assertWPError( $error );
+		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
+		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
+		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
+	}
+
+	/**
 	 * Provides top-level and nested collisions introduced by sanitization.
 	 *
 	 * @return array
@@ -2461,39 +2494,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'input[0][ids]',
 			),
 		);
-	}
-
-	/**
-	 * Tests that sanitization errors stop permission checks, execution, and execution hooks.
-	 *
-	 * @ticket 66383
-	 * @dataProvider data_input_sanitization_errors
-	 *
-	 * @param array  $schema Input schema.
-	 * @param mixed  $input  Input accepted by validation but rejected by sanitization.
-	 * @param string $path   Path of the duplicate items in the error message.
-	 */
-	public function test_input_sanitization_errors( array $schema, $input, string $path ): void {
-		$args                 = self::$test_ability_properties;
-		$args['input_schema'] = $schema;
-		$unexpected_callback  = function () {
-			$this->fail( 'Sanitization errors must stop permission checks and execution.' );
-		};
-
-		$args['permission_callback'] = $unexpected_callback;
-		$args['execute_callback']    = $unexpected_callback;
-		$ability                     = new WP_Ability( self::$test_ability_name, $args );
-
-		add_action( 'wp_before_execute_ability', $unexpected_callback );
-		add_action( 'wp_after_execute_ability', $unexpected_callback );
-
-		$this->assertTrue( $ability->validate_input( $input ), 'The error should arise during sanitization.' );
-		$error = $ability->prepare_input( $input );
-		$this->assertWPError( $error );
-		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
-		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
-		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
 	}
 
 	/**

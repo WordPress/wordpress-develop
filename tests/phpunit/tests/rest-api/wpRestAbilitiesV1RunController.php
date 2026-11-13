@@ -1874,24 +1874,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides transports and input sources for input that fails sanitization.
-	 *
-	 * @return array
-	 */
-	public static function data_sanitization_error_inputs(): array {
-		return array(
-			'query input'      => array( 'GET', 'request' ),
-			'JSON input'       => array( 'POST', 'request' ),
-			'schema default'   => array( 'POST', 'default' ),
-			'normalizer input' => array( 'POST', 'filter' ),
-		);
-	}
-
-	/**
 	 * Tests that sanitization failures use existing REST error handling before permission checks.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_sanitization_error_inputs
+	 * @dataProvider data_sanitization_error_returns_400
 	 *
 	 * @param string $method HTTP method.
 	 * @param string $source Source of the input that fails sanitization.
@@ -1938,6 +1924,20 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 400, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_input', $data['code'] );
+	}
+
+	/**
+	 * Provides transports and input sources for input that fails sanitization.
+	 *
+	 * @return array
+	 */
+	public static function data_sanitization_error_returns_400(): array {
+		return array(
+			'query input'      => array( 'GET', 'request' ),
+			'JSON input'       => array( 'POST', 'request' ),
+			'schema default'   => array( 'POST', 'default' ),
+			'normalizer input' => array( 'POST', 'filter' ),
+		);
 	}
 
 	/**
