@@ -3444,6 +3444,7 @@ function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $tra
  * Displays the localized weekday for the post.
  *
  * @since 0.71
+ * @since 7.2.0 Passes an empty string to the filter instead of 'Sunday' if the post date is invalid.
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
@@ -3480,6 +3481,7 @@ function the_weekday() {
  * the previous one output.
  *
  * @since 0.71
+ * @since 7.2.0 Outputs nothing instead of 'Sunday' if the post date is invalid.
  *
  * @global WP_Locale $wp_locale       WordPress date and time locale object.
  * @global string    $currentday      The day of the current post in the loop.
