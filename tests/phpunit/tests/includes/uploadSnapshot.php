@@ -10,7 +10,7 @@
  */
 class Tests_Includes_UploadSnapshot extends PHPUnit_Adapter_TestCase {
 	/**
-	 * @dataProvider data_initial_uploads
+	 * @dataProvider data_scan_user_uploads_preserves_initial_snapshot
 	 *
 	 * @param string[] $initial_files Files present when uploads are first scanned.
 	 */
@@ -29,7 +29,7 @@ class Tests_Includes_UploadSnapshot extends PHPUnit_Adapter_TestCase {
 	/**
 	 * @return array[]
 	 */
-	public static function data_initial_uploads() {
+	public static function data_scan_user_uploads_preserves_initial_snapshot() {
 		return array(
 			'empty uploads'   => array( array() ),
 			'existing upload' => array( array( 'existing.jpg' ) ),
