@@ -472,7 +472,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" aria-describedby="user-login-description" value="<?php echo esc_attr( $profile_user->user_login ); ?>" readonly="readonly" class="regular-text ltr" /> <span class="description" id="user-login-description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" aria-describedby="user-login-description" value="<?php echo esc_attr( $profile_user->user_login ); ?>"<?php echo is_email( $profile_user->user_login ) ? ' data-is-email="true"' : ''; ?> readonly="readonly" class="regular-text ltr" /> <span class="description" id="user-login-description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -549,32 +549,9 @@ switch ( $action ) {
 						<td>
 							<select name="display_name" id="display_name">
 								<?php
-									$public_display                     = array();
-									$public_display['display_nickname'] = $profile_user->nickname;
-									$public_display['display_username'] = $profile_user->user_login;
-
-								if ( ! empty( $profile_user->first_name ) ) {
-									$public_display['display_firstname'] = $profile_user->first_name;
-								}
-
-								if ( ! empty( $profile_user->last_name ) ) {
-									$public_display['display_lastname'] = $profile_user->last_name;
-								}
-
-								if ( ! empty( $profile_user->first_name ) && ! empty( $profile_user->last_name ) ) {
-									$public_display['display_firstlast'] = $profile_user->first_name . ' ' . $profile_user->last_name;
-									$public_display['display_lastfirst'] = $profile_user->last_name . ' ' . $profile_user->first_name;
-								}
-
-								if ( ! in_array( $profile_user->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.
-									$public_display = array( 'display_displayname' => $profile_user->display_name ) + $public_display;
-								}
-
-								$public_display = array_map( 'trim', $public_display );
-								$public_display = array_unique( $public_display );
-
-								?>
-								<?php foreach ( $public_display as $id => $item ) : ?>
+								$public_display = _wp_get_user_profile_display_name_options( $profile_user );
+								foreach ( $public_display as $item ) :
+									?>
 									<option <?php selected( $profile_user->display_name, $item ); ?>><?php echo esc_html( $item ); ?></option>
 								<?php endforeach; ?>
 							</select>
