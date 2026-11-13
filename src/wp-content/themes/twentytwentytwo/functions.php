@@ -42,7 +42,7 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 	 */
 	function twentytwentytwo_styles() {
 		// Register theme stylesheet.
-		$theme_version = wp_get_theme()->get( 'Version' );
+		$theme_version = wp_get_theme( get_template() )->get( 'Version' );
 
 		$version_string = is_string( $theme_version ) ? $theme_version : false;
 
