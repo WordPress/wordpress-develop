@@ -24,7 +24,7 @@ class Tests_Admin_wpSiteHealthGetTestInsecureRegistration extends WP_UnitTestCas
 	 *
 	 * @ticket 66359
 	 *
-	 * @dataProvider data_registration_settings
+	 * @dataProvider data_status_depends_on_registration_and_default_role
 	 *
 	 * @param int    $users_can_register Whether anyone can register.
 	 * @param string $default_role       The default role for new users.
@@ -45,7 +45,7 @@ class Tests_Admin_wpSiteHealthGetTestInsecureRegistration extends WP_UnitTestCas
 	 *
 	 * @return array<string, array{0: int, 1: string, 2: string}>
 	 */
-	public static function data_registration_settings() {
+	public static function data_status_depends_on_registration_and_default_role() {
 		return array(
 			'registration closed, administrator' => array( 0, 'administrator', 'good' ),
 			'registration closed, editor'        => array( 0, 'editor', 'good' ),
