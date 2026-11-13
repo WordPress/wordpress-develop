@@ -2666,7 +2666,7 @@ function get_calendar( $args = array() ) {
 	}
 
 	// week_begins = 0 stands for Sunday.
-	$week_begins = ( ( (int) get_option( 'start_of_week' ) % 7 ) + 7 ) % 7;
+	$week_begins = absint( get_option( 'start_of_week' ) ) % 7;
 
 	// Read the current date.
 	list( $current_year, $current_month, $current_day ) = array_map( 'intval', explode( '-', current_time( 'Y-m-j' ) ) );
