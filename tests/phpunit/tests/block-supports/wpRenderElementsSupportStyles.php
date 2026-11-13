@@ -255,6 +255,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 					),
 					'heading' => array( 'transform' => array( 'rotate' => '10deg' ) ),
 					'h1'      => array( 'transform' => array( 'rotate' => '10deg' ) ),
+					'h2'      => array( 'transform' => array( 'translate' => array( 'x' => '10px' ) ) ),
 				),
 				'expected_styles' => '/^.wp-elements-\d+ a:where\(:not\(.wp-element-button\)\)' . $color_css_rules . '$/',
 			),

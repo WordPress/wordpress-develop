@@ -1663,7 +1663,8 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 								),
 								':hover'    => array(
 									'transform' => array(
-										'rotate' => '20deg',
+										'rotate'    => '20deg',
+										'translate' => array( 'x' => '10px' ),
 									),
 								),
 							),
@@ -1678,6 +1679,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'color:#00ff00 !important;', $actual_stylesheet );
 		$this->assertStringNotContainsString( 'rotate', $actual_stylesheet );
+		$this->assertStringNotContainsString( 'translate', $actual_stylesheet );
 	}
 
 	/**
