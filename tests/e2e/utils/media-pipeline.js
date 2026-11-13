@@ -5,6 +5,11 @@ import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
 
+/**
+ * WordPress dependencies
+ */
+import { expect } from '@wordpress/e2e-test-utils-playwright';
+
 // A 640x480 image: it must be larger than at least one registered sub-size
 // (thumbnail, medium) so the pipeline generates and sideloads thumbnails.
 export const TEST_IMAGE_PATH = path.join(
@@ -248,4 +253,34 @@ export function countUploadRequests( page ) {
  */
 export function tile( scope, name ) {
 	return scope.getByRole( 'checkbox', { name, exact: true } );
+}
+
+/**
+ * Whether the browser honors Document-Isolation-Policy, by the same rule as
+ * wp_is_document_isolation_policy_supported(): Chromium 137 or newer.
+ *
+ * @param {string}                             browserName
+ * @param {import('@playwright/test').Browser} browser
+ * @return {boolean} True when WordPress isolates pages in this browser.
+ */
+export function supportsDocumentIsolation( browserName, browser ) {
+	return (
+		browserName === 'chromium' && parseInt( browser.version(), 10 ) >= 137
+	);
+}
+
+/**
+ * Fails the test when the page is not cross-origin isolated.
+ *
+ * Call it only in a browser that supportsDocumentIsolation(): there, a page
+ * that is not isolated means WordPress or the browser broke isolation.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function expectCrossOriginIsolated( page ) {
+	const isolated = await page.evaluate( () => window.crossOriginIsolated );
+	expect(
+		isolated,
+		'WordPress did not make the page cross-origin isolated (Document-Isolation-Policy)'
+	).toBe( true );
 }
