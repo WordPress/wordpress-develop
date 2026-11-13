@@ -164,6 +164,49 @@ for ( const { taxonomy, endpoint, label } of [
 			expect( terms ).toEqual( [] );
 		} );
 
+		test( 'shows the taxonomy label when the last matching term is deleted', async ( {
+			admin,
+			page,
+			requestUtils,
+		} ) => {
+			const term = await createTerm( requestUtils, 'delete-last' );
+			await admin.visitAdminPage(
+				'/edit-tags.php',
+				`taxonomy=${ taxonomy }&s=${ prefix }`
+			);
+			const row = page.locator( `#tag-${ term.id }` );
+			await expect( row ).toBeVisible();
+			await row.hover();
+			await Promise.all( [
+				page
+					.waitForEvent( 'dialog' )
+					.then( ( dialog ) => dialog.accept() ),
+				row
+					.getByRole( 'button', {
+						name: `Delete “${ term.name }”`,
+						exact: true,
+					} )
+					.click(),
+			] );
+
+			// The row inserted by JavaScript must match the server-rendered message.
+			await expect(
+				page.getByRole( 'cell', {
+					name:
+						taxonomy === 'category'
+							? 'No categories found.'
+							: 'No tags found.',
+					exact: true,
+				} )
+			).toBeVisible();
+			await expect(
+				page.getByRole( 'cell', {
+					name: 'No tags found.',
+					exact: true,
+				} )
+			).toHaveCount( taxonomy === 'category' ? 0 : 1 );
+		} );
+
 		test( 'shows an empty result when searching for a missing term', async ( {
 			admin,
 			page,
