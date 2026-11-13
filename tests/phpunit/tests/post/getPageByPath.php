@@ -63,7 +63,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 * @ticket 61996
 	 * @covers ::get_page_by_path
 	 *
-	 * @dataProvider data_page_post_types
+	 * @dataProvider data_should_prefer_published_page_then_lowest_id
 	 *
 	 * @param string|string[] $post_type Post type argument.
 	 */
@@ -117,7 +117,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string|string[]>> {
 	 */
-	public static function data_page_post_types(): array {
+	public static function data_should_prefer_published_page_then_lowest_id(): array {
 		return array(
 			'string'             => array( 'page' ),
 			'array of one type'  => array( array( 'page' ) ),
