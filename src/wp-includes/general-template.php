@@ -3450,13 +3450,12 @@ function the_weekday() {
 		return;
 	}
 
+	$the_weekday    = '';
 	$weekday_number = get_post_time( 'w', false, $post );
 
-	if ( false === $weekday_number ) {
-		return;
+	if ( false !== $weekday_number ) {
+		$the_weekday = $wp_locale->get_weekday( (int) $weekday_number );
 	}
-
-	$the_weekday = $wp_locale->get_weekday( (int) $weekday_number );
 
 	/**
 	 * Filters the localized weekday of the post, for display.
