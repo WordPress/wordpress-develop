@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /**
  * Core controller used to access sites via the REST API.
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @see WP_REST_Controller
  */
