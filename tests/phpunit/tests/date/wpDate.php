@@ -37,6 +37,8 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	/**
 	 * Tests that a numeric timestamp which {@see date_create()} cannot parse returns false.
 	 *
+	 * @ticket 64522
+	 *
 	 * @dataProvider data_should_return_false_on_unparsable_numeric_timestamp
 	 *
 	 * @param int|float|string $timestamp Numeric timestamp.
