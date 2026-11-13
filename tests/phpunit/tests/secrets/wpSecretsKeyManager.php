@@ -818,6 +818,14 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$this->assertSame( $root_1, $fresh->get_root_key( false, $network_1 ), 'Cached network 1 root key should be reused without unwrapping again.' );
 		$this->assertSame( $root_2, $fresh->get_root_key( false, $network_2 ), 'Cached network 2 root key should be reused without unwrapping again.' );
 		$this->assertSame( 2, $mock->unwrap_call_count(), 'Unwrap should be called once per network on the fresh manager.' );
+
+		$replacement_root_2 = str_repeat( 'R', 32 );
+		update_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $mock->wrap( $replacement_root_2 ) );
+
+		$this->assertSame( $root_1, $fresh->get_root_key( false, $network_1 ), 'Network 1 should still reuse its cached root key when network 2 changes.' );
+		$this->assertSame( 2, $mock->unwrap_call_count(), 'Reusing network 1 cached root key should not unwrap again.' );
+		$this->assertSame( $replacement_root_2, $fresh->get_root_key( false, $network_2 ), 'Network 2 should unwrap and return its replacement root key.' );
+		$this->assertSame( 3, $mock->unwrap_call_count(), 'Unwrap count should increment only for the network whose stored wrapped root key changed.' );
 	}
 
 	/**
