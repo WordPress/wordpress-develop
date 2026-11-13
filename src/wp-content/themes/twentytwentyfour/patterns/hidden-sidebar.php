@@ -3,8 +3,14 @@
  * Title: Sidebar
  * Slug: twentytwentyfour/hidden-sidebar
  * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
+
 <!-- wp:group {"style":{"spacing":{"blockGap":"36px","padding":{"right":"0","left":"0"}}},"layout":{"type":"default"}} -->
 <div class="wp-block-group" style="padding-right:0;padding-left:0">
 	<!-- wp:group {"style":{"spacing":{"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
@@ -55,7 +61,7 @@
 		</div>
 		<!-- /wp:group -->
 
-		<!-- wp:navigation {"overlayMenu":"never","layout":{"type":"flex","orientation":"vertical"},"style":{"typography":{"fontStyle":"normal","fontWeight":"400"},"spacing":{"blockGap":"var:preset|spacing|10"}},"fontSize":"small"} -->
+		<!-- wp:navigation {"ariaLabel":"<?php esc_attr_e( 'Sidebar', 'twentytwentyfour' ); ?>","overlayMenu":"never","layout":{"type":"flex","orientation":"vertical"},"style":{"typography":{"fontStyle":"normal","fontWeight":"400"},"spacing":{"blockGap":"var:preset|spacing|10"}},"fontSize":"small"} -->
 		<!-- wp:navigation-link {"label":"<?php esc_html_e( 'Latest inflation report', 'twentytwentyfour' ); ?>","url":"#","className":"is-style-arrow-link","style":{"typography":{"textDecoration":"underline"}}} /-->
 		<!-- wp:navigation-link {"label":"<?php esc_html_e( 'Financial apps for families', 'twentytwentyfour' ); ?>","url":"#","className":"is-style-arrow-link","style":{"typography":{"textDecoration":"underline"}}} /-->
 		<!-- /wp:navigation -->
