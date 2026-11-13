@@ -3492,13 +3492,17 @@ function the_weekday_date( $before = '', $after = '' ) {
 	}
 
 	$the_weekday_date = '';
-	$weekday_number   = get_post_time( 'w', false, $post );
 
-	if ( false !== $weekday_number && $currentday !== $previousweekday ) {
-		$the_weekday_date .= $before;
-		$the_weekday_date .= $wp_locale->get_weekday( (int) $weekday_number );
-		$the_weekday_date .= $after;
-		$previousweekday   = $currentday;
+	if ( $currentday !== $previousweekday ) {
+		$weekday_number = get_post_time( 'w', false, $post );
+
+		if ( false !== $weekday_number ) {
+			$the_weekday_date .= $before;
+			$the_weekday_date .= $wp_locale->get_weekday( (int) $weekday_number );
+			$the_weekday_date .= $after;
+		}
+
+		$previousweekday = $currentday;
 	}
 
 	/**
