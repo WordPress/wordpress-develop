@@ -6002,7 +6002,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 66447
 	 *
-	 * @dataProvider data_users_who_cannot_delete_another_users_reaction
+	 * @dataProvider data_cannot_delete_another_users_reaction
 	 *
 	 * @param string $user Name of the static property holding the user ID.
 	 */
@@ -6043,7 +6043,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array<string, array{string}>
 	 */
-	public static function data_users_who_cannot_delete_another_users_reaction(): array {
+	public static function data_cannot_delete_another_users_reaction(): array {
 		return array(
 			'post author'   => array( 'author_id' ),
 			'administrator' => array( 'admin_id' ),
