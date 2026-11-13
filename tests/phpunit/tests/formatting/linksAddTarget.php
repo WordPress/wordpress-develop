@@ -15,11 +15,11 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 	 */
 	public function test_links_add_target( $content, $target, $tags, $expected ) {
 		if ( is_null( $target ) ) {
-			$this->assertSame( $expected, links_add_target( $content ) );
+			$this->assertEqualHTML( $expected, links_add_target( $content ) );
 		} elseif ( is_null( $tags ) ) {
-			$this->assertSame( $expected, links_add_target( $content, $target ) );
+			$this->assertEqualHTML( $expected, links_add_target( $content, $target ) );
 		} else {
-			$this->assertSame( $expected, links_add_target( $content, $target, $tags ) );
+			$this->assertEqualHTML( $expected, links_add_target( $content, $target, $tags ) );
 		}
 	}
 
