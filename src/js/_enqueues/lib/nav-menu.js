@@ -1839,7 +1839,14 @@
 			});
 
 			$('.categorychecklist', panel).html( $items );
-			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( '%d Search Results Found' ), $items.length ), 'assertive' );
+			wp.a11y.speak(
+				wp.i18n.sprintf(
+					/* translators: %d: Number of search results found. */
+					wp.i18n._n( '%d result found.', '%d results found.', $items.length ),
+					$items.length
+				),
+				'assertive'
+			);
 			$( '.spinner', panel ).removeClass( 'is-active' );
 			wrapper.removeClass( 'has-no-menu-item' );
 
