@@ -90,7 +90,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @ticket 64498
 	 *
-	 * @dataProvider data_requests_without_the_random_query_var
+	 * @dataProvider data_requests_without_the_random_query_var_are_not_handled
 	 *
 	 * @param array<string, string> $query_vars Query variables for the request.
 	 */
@@ -107,7 +107,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, non-falsy-string> }>
 	 */
-	public static function data_requests_without_the_random_query_var(): array {
+	public static function data_requests_without_the_random_query_var_are_not_handled(): array {
 		return array(
 			'no query vars'    => array( array() ),
 			'other query vars' => array( array( 'post_type' => 'post' ) ),
@@ -158,7 +158,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @ticket 64498
 	 *
-	 * @dataProvider data_requests_that_are_not_random_content_requests
+	 * @dataProvider data_main_query_runs_unchanged_for_requests_that_are_not_random_content_requests
 	 *
 	 * @param array<string, string> $query_vars     Query variables for the request.
 	 * @param string                $request_method HTTP request method.
@@ -182,7 +182,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, string>, 1: non-falsy-string }>
 	 */
-	public static function data_requests_that_are_not_random_content_requests(): array {
+	public static function data_main_query_runs_unchanged_for_requests_that_are_not_random_content_requests(): array {
 		return array(
 			'post request'                 => array( array( 'random' => '' ), 'POST' ),
 			'non-randomable without posts' => array(
