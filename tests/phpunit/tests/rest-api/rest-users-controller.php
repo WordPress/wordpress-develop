@@ -1013,12 +1013,62 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 16841
+	 * @ticket 56429
 	 */
 	public function test_get_items_capabilities_no_permission_editor() {
 		wp_set_current_user( self::$editor );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', array( 'edit_posts', 'manage_options' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_get_items_author_capabilities_includes_users_without_published_posts() {
+		wp_set_current_user( self::$editor );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'capabilities', 'edit_posts' );
+		$request->set_param( 'per_page', 100 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$user_ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertContains( self::$draft_editor, $user_ids );
+		$this->assertNotContains( self::$subscriber, $user_ids );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_get_items_author_capabilities_forbidden_without_edit_others_posts() {
+		wp_set_current_user( self::$author );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'edit_posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_get_items_author_capabilities_forbidden_when_edit_posts_mapped_to_read() {
+		register_post_type(
+			'read_mapped',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'title', 'author' ),
+				'capabilities' => array( 'edit_posts' => 'read' ),
+			)
+		);
+		wp_set_current_user( self::$subscriber );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'capabilities', 'read' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
@@ -1181,10 +1231,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
+	/**
+	 * @ticket 56429
+	 */
 	public function test_cannot_get_item_without_permission() {
 		wp_set_current_user( self::$editor );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$user ) );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$subscriber ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
@@ -1216,7 +1269,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_cannot_get_item_author_of_rest_false_public_true_without_permission() {
-		wp_set_current_user( self::$editor );
+		wp_set_current_user( self::$author );
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$authors['r_false_p_true'] ) );
 		$response = rest_get_server()->dispatch( $request );
@@ -1239,6 +1292,51 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$draft_editor ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_get_item_author_of_draft_as_editor() {
+		wp_set_current_user( self::$editor );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$draft_editor ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( self::$draft_editor, $data['id'] );
+		$this->assertArrayNotHasKey( 'email', $data );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_cannot_get_item_author_of_draft_without_edit_others_posts() {
+		wp_set_current_user( self::$author );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$draft_editor ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * @ticket 56429
+	 */
+	public function test_cannot_get_item_author_of_draft_when_edit_posts_mapped_to_read() {
+		register_post_type(
+			'read_mapped',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'title', 'author' ),
+				'capabilities' => array( 'edit_posts' => 'read' ),
+			)
+		);
+		wp_set_current_user( self::$subscriber );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$draft_editor ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
 
 	public function test_get_item_published_author_post() {
