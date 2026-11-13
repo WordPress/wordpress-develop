@@ -411,7 +411,7 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 	 * @ticket 66087
 	 * @ticket 66287
 	 *
-	 * @dataProvider data_non_public_collections
+	 * @dataProvider data_get_item_returns_404_for_non_public_collection
 	 *
 	 * @covers ::get_item
 	 * @covers ::get_icon_collection
@@ -434,7 +434,7 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_public_collections() {
+	public static function data_get_item_returns_404_for_non_public_collection() {
 		return array(
 			'custom non-public collection' => array( 'rest-visibility-private' ),
 			'built-in core-admin'          => array( 'core-admin' ),
