@@ -7,9 +7,29 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
+	/**
+	 * Original HTTPS value.
+	 *
+	 * @var string|null
+	 */
+	private $original_https;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_https = $_SERVER['HTTPS'] ?? null;
+	}
+
 	public function tear_down() {
 		// Remove all uploads.
 		$this->remove_added_uploads();
+
+		if ( null === $this->original_https ) {
+			unset( $_SERVER['HTTPS'] );
+		} else {
+			$_SERVER['HTTPS'] = $this->original_https;
+		}
+
 		parent::tear_down();
 	}
 
@@ -121,20 +141,21 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertEmpty( $upload['error'] );
 
-		$id      = $this->_make_attachment( $upload );
-		$uploads = wp_upload_dir();
+		$id            = $this->_make_attachment( $upload );
+		$uploads       = wp_upload_dir();
+		$filename_base = wp_basename( $upload['file'], '.jpg' );
 
 		// Intermediate copies should exist: thumbnail and medium.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
+		$this->assertSame( $filename_base . '-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
 
 		$medium = image_get_intermediate_size( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', $medium['file'] );
+		$this->assertSame( $filename_base . '-400x602.jpg', $medium['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium['path'] ) );
 
 		$medium_large = image_get_intermediate_size( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', $medium_large['file'] );
+		$this->assertSame( $filename_base . '-600x904.jpg', $medium_large['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium_large['path'] ) );
 
 		// The thumb url should point to the thumbnail intermediate.
@@ -142,22 +163,22 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		// image_downsize() should return the correct images and sizes.
 		$downsize = image_downsize( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-150x150.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 150, $downsize[1] );
 		$this->assertSame( 150, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-400x602.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 400, $downsize[1] );
 		$this->assertSame( 602, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '-600x904.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 600, $downsize[1] );
 		$this->assertSame( 904, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'full' );
-		$this->assertSame( '2007-06-17DSC_4173.jpg', wp_basename( $downsize[0] ) );
+		$this->assertSame( $filename_base . '.jpg', wp_basename( $downsize[0] ) );
 		$this->assertSame( 680, $downsize[1] );
 		$this->assertSame( 1024, $downsize[2] );
 	}
@@ -178,20 +199,21 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertEmpty( $upload['error'] );
 
-		$id      = $this->_make_attachment( $upload );
-		$uploads = wp_upload_dir();
+		$id            = $this->_make_attachment( $upload );
+		$uploads       = wp_upload_dir();
+		$filename_base = wp_basename( $upload['file'], '.jpg' );
 
 		// Check that the file and intermediates exist.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
-		$this->assertSame( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
+		$this->assertSame( $filename_base . '-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
 
 		$medium = image_get_intermediate_size( $id, 'medium' );
-		$this->assertSame( '2007-06-17DSC_4173-400x602.jpg', $medium['file'] );
+		$this->assertSame( $filename_base . '-400x602.jpg', $medium['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium['path'] ) );
 
 		$medium_large = image_get_intermediate_size( $id, 'medium_large' );
-		$this->assertSame( '2007-06-17DSC_4173-600x904.jpg', $medium_large['file'] );
+		$this->assertSame( $filename_base . '-600x904.jpg', $medium_large['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium_large['path'] ) );
 
 		$meta     = wp_get_attachment_metadata( $id );
@@ -471,7 +493,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( wp_attachment_is( 'video', $attachment_id ) );
 
 		if ( is_multisite() ) {
-			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ), 10, 2 );
+			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ) );
 		}
 	}
 
@@ -529,5 +551,74 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
 		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
+	}
+
+	/**
+	 * Tests that false is passed to the filter and returned when no icon matches.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_wp_mime_type_icon_without_matching_icon
+	 *
+	 * @param int|string $mime MIME type or attachment ID.
+	 */
+	public function test_wp_mime_type_icon_without_matching_icon( $mime ) {
+		// With no icon files available, not even the default icon can match.
+		wp_cache_set( 'icon_files', array() );
+
+		$filtered_icons = array();
+		add_filter(
+			'wp_mime_type_icon',
+			static function ( $icon ) use ( &$filtered_icons ) {
+				$filtered_icons[] = $icon;
+				return $icon;
+			}
+		);
+
+		$this->assertFalse( wp_mime_type_icon( $mime ), 'Expected false to be returned.' );
+		$this->assertSame( array( false ), $filtered_icons, 'Expected false to be passed to the filter.' );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_without_matching_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|string }>
+	 */
+	public static function data_wp_mime_type_icon_without_matching_icon(): array {
+		return array(
+			'nonexistent attachment ID' => array( PHP_INT_MAX ),
+			'unknown MIME type'         => array( 'foo/bar' ),
+		);
+	}
+
+	/**
+	 * Tests that a cached icon that is not a string is ignored and the icon is looked up again.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_wp_mime_type_icon_ignores_non_string_cached_icon
+	 *
+	 * @param mixed $cached_icon Value stored in the icon cache for the MIME type.
+	 */
+	public function test_wp_mime_type_icon_ignores_non_string_cached_icon( $cached_icon ) {
+		wp_cache_set( 'mime_type_icon_video/mp4', $cached_icon );
+
+		$icon = wp_mime_type_icon( 'video/mp4' );
+
+		$this->assertIsString( $icon, 'Expected the icon to be looked up again rather than taken from the cache.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_ignores_non_string_cached_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_wp_mime_type_icon_ignores_non_string_cached_icon(): array {
+		return array(
+			'true'  => array( true ),
+			'array' => array( array( 'http://example.com/icon.png' ) ),
+			'int'   => array( 1 ),
+		);
 	}
 }

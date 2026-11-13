@@ -26,7 +26,7 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_status_header_desc() {
+	public static function data_get_status_header_desc() {
 		return array(
 			array( 200, 'OK' ),
 			array( 301, 'Moved Permanently' ),

@@ -58,7 +58,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
@@ -71,7 +71,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( true, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
@@ -253,7 +253,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		// Check that the first post's values don't stomp the second post.
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertEquals( self::$author_ids[1], $post->post_author );
+		$this->assertSame( (string) self::$author_ids[1], $post->post_author );
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
 	}
@@ -641,6 +641,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_default_permalink_for_view_post_link_when_pretty_permalinks_are_disabled() {
+		$this->set_permalink_structure( '' );
+
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -769,8 +771,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 18306
 	 */
 	public function test_get_sample_permalink_html_should_use_preview_links_for_draft_and_pending_posts_with_no_post_name() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		wp_set_current_user( self::$admin_id );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -909,8 +909,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_get_sample_permalink_should_allow_daylike_slugs_if_permastruct_does_not_cause_an_archive_conflict() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_name' => '30',
@@ -925,8 +923,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 35368
 	 */
 	public function test_get_sample_permalink_should_respect_hierarchy_of_draft_pages() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$parent = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -967,6 +963,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -975,6 +972,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 

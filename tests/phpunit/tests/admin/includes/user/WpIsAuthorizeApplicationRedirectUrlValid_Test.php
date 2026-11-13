@@ -39,7 +39,7 @@ class Admin_Includes_User_WpIsAuthorizeApplicationRedirectUrlValid_Test extends 
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_is_authorize_application_redirect_url_valid() {
+	public static function data_wp_is_authorize_application_redirect_url_valid() {
 		$environment_types = array( 'local', 'development', 'staging', 'production' );
 
 		$datasets = array();

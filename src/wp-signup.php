@@ -46,6 +46,11 @@ if ( ! is_main_site() ) {
 	die();
 }
 
+/**
+ * @global WP_Query $wp_query WordPress Query object.
+ */
+global $wp_query;
+
 // Fix for page title.
 $wp_query->is_404 = false;
 
@@ -438,8 +443,8 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
  * @global string   $domain     The new site's domain.
  * @global string   $path       The new site's path.
  *
- * @return null|bool True if site signup was validated, false on error.
- *                   The function halts all execution if the user is not logged in.
+ * @return bool True if site signup was validated, false on error.
+ *              The function halts all execution if the user is not logged in.
  */
 function validate_another_blog_signup() {
 	global $blogname, $blog_title, $errors, $domain, $path;
@@ -569,7 +574,7 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
 				untrailingslashit( $domain . $path )
 			),
 			esc_url( $login_url ),
-			$user_name
+			esc_html( $user_name )
 		);
 		?>
 	</p>
@@ -1002,7 +1007,11 @@ if ( 'none' === $active_signup ) {
 			}
 			break;
 		case 'gimmeanotherblog':
-			validate_another_blog_signup();
+			if ( 'all' === $active_signup || 'blog' === $active_signup ) {
+				validate_another_blog_signup();
+			} else {
+				_e( 'Site registration has been disabled.' );
+			}
 			break;
 		case 'default':
 		default:

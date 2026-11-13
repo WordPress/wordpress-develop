@@ -17,7 +17,7 @@ class WP_Site_Health {
 	public $is_mariadb                   = false;
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
-	private $mysql_recommended_version   = '8.0';
+	private $mysql_recommended_version   = '8.4';
 	private $mariadb_recommended_version = '10.11';
 
 	public $php_memory_limit;
@@ -77,9 +77,7 @@ class WP_Site_Health {
 	 * @return WP_Site_Health|null
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new WP_Site_Health();
-		}
+		self::$instance ??= new WP_Site_Health();
 
 		return self::$instance;
 	}
@@ -527,7 +525,6 @@ class WP_Site_Health {
 
 		$has_default_theme   = false;
 		$has_unused_themes   = false;
-		$show_unused_themes  = true;
 		$using_default_theme = false;
 
 		// Populate a list of all themes available in the install.
@@ -621,7 +618,7 @@ class WP_Site_Health {
 			}
 		}
 
-		if ( $has_unused_themes && $show_unused_themes && ! is_multisite() ) {
+		if ( $has_unused_themes && ! is_multisite() ) {
 
 			// This is a child theme, so we want to be a bit more explicit in our messages.
 			if ( $active_theme->parent() ) {
@@ -1904,7 +1901,7 @@ class WP_Site_Health {
 		$default_role       = get_option( 'default_role' );
 
 		$result = array(
-			'label'       => __( 'Open Registration with privileged default role' ),
+			'label'       => __( 'New users are not given a privileged role' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1916,7 +1913,8 @@ class WP_Site_Health {
 		);
 
 		if ( $users_can_register && in_array( $default_role, array( 'editor', 'administrator' ), true ) ) {
-			$result['description'] = __( 'Registration is open to anyone, and the default role is set to a privileged role.' );
+			$result['label']       = __( 'Open registration with a privileged default role' );
+			$result['description'] = '<p>' . __( 'Registration is open to anyone, and the default role is set to a privileged role.' ) . '</p>';
 			$result['status']      = 'critical';
 			$result['actions']     = sprintf(
 				'<p><a href="%s">%s</a></p>',
@@ -2212,9 +2210,6 @@ class WP_Site_Health {
 			'Cache-Control' => 'no-cache',
 			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -2229,6 +2224,9 @@ class WP_Site_Health {
 			),
 			$url
 		);
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
@@ -2759,20 +2757,20 @@ class WP_Site_Health {
 	 */
 	public function get_test_search_engine_visibility() {
 		$result = array(
-			'label'       => __( 'Search engine indexing is enabled.', 'default' ),
+			'label'       => __( 'Search engine indexing is enabled.' ),
 			'status'      => 'good',
 			'badge'       => array(
-				'label' => __( 'Privacy', 'default' ),
+				'label' => __( 'Privacy' ),
 				'color' => 'blue',
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'Search engines can crawl and index your site. No action needed.', 'default' )
+				__( 'Search engines can crawl and index your site. No action needed.' )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%1$s">%2$s</a></p>',
 				esc_url( admin_url( 'options-reading.php#blog_public' ) ),
-				__( 'Review your visibility settings', 'default' )
+				__( 'Review your visibility settings' )
 			),
 			'test'        => 'search_engine_visibility',
 		);
@@ -2780,11 +2778,11 @@ class WP_Site_Health {
 		// If indexing is discouraged, flip to “recommended”:
 		if ( ! get_option( 'blog_public' ) ) {
 			$result['status']         = 'recommended';
-			$result['label']          = __( 'Search engines are discouraged from indexing this site.', 'default' );
+			$result['label']          = __( 'Search engines are discouraged from indexing this site.' );
 			$result['badge']['color'] = 'blue';
 			$result['description']    = sprintf(
 				'<p>%s</p>',
-				__( 'Your site is hidden from search engines. Consider enabling indexing if this is a public site.', 'default' )
+				__( 'Your site is hidden from search engines. Consider enabling indexing if this is a public site.' )
 			);
 		}
 
@@ -2835,6 +2833,408 @@ class WP_Site_Health {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Tests whether the Secrets API has a usable key.
+	 *
+	 * There is no settings screen for secrets, so this is how an administrator notices
+	 * a missing or broken key, or a key that no longer unlocks the stored secrets.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test result.
+	 *
+	 * @phpstan-return array{label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string, actions: string, test: string}
+	 */
+	public function get_test_secrets_api_key_source(): array {
+		$provider = _wp_secrets_get_provider();
+
+		if ( ! $this->secrets_api_uses_keyring( $provider ) ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_key_source',
+				__( 'Secrets API keys are managed by the provider' ),
+				'good',
+				sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: 1: secrets.php, 2: Name of the active secrets provider, 3: WP_SECRETS_KEY */
+						__( 'Secrets are protected by the provider of the %1$s drop-in: %2$s. %3$s is not used.' ),
+						'<code>secrets.php</code>',
+						esc_html( $provider->get_label() ),
+						'<code>WP_SECRETS_KEY</code>'
+					)
+				)
+			);
+		}
+
+		$keyring    = _wp_secrets_get_key_manager()->get_keyring();
+		$key_source = $keyring->get_key_source();
+		$key_status = $keyring instanceof WP_Secrets_Config_Key_Provider ? $keyring->get_key_status() : null;
+
+		// The broken keyring's description is translated, so check its class rather than its text.
+		if ( $keyring instanceof WP_Secrets_Broken_Keyring ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_key_source',
+				__( 'Secrets API key source is broken' ),
+				'critical',
+				sprintf(
+					'<p>%s</p>',
+					esc_html__( 'The active keyring did not load correctly. No secret can be encrypted or decrypted until this is fixed.' )
+				)
+			);
+		}
+
+		/*
+		 * Once a root key exists, it is wrapped with the current site key, and core has no way
+		 * to re-wrap it under another one. Changing the key source then locks every stored
+		 * secret, and blocks saving new ones, until the change is reverted.
+		 */
+		$has_root_key = false !== get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+
+		if ( $has_root_key ) {
+			$root_key = _wp_secrets_get_key_manager()->get_root_key();
+
+			if ( is_wp_error( $root_key ) ) {
+				/*
+				 * Only the default keyring reads wp-config.php. A keyring from a secrets.php
+				 * drop-in fails for its own reasons, such as an unreachable key service, and
+				 * its error is the useful part.
+				 */
+				$cause = $keyring instanceof WP_Secrets_Config_Key_Provider
+					? sprintf(
+						/* translators: %s: WP_SECRETS_KEY */
+						__( 'This happens when %s was changed or removed after secrets were stored. Restoring the previous value fixes it.' ),
+						'<code>WP_SECRETS_KEY</code>'
+					)
+					: sprintf(
+						/* translators: 1: secrets.php, 2: Error message from the keyring. */
+						__( 'The keyring of the %1$s drop-in reported: %2$s' ),
+						'<code>secrets.php</code>',
+						esc_html( $root_key->get_error_message() )
+					);
+
+				return $this->get_secrets_api_test_result(
+					'secrets_api_key_source',
+					__( 'Secrets API cannot unlock the stored secrets' ),
+					'critical',
+					sprintf(
+						'<p>%s</p><p>%s</p>',
+						esc_html__( 'The configured key cannot decrypt the root key that protects the stored secrets, so no secret can be read or saved.' ),
+						$cause
+					)
+				);
+			}
+
+			wp_secrets_memzero( $root_key );
+		}
+
+		if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY === $key_status ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_key_source',
+				__( 'Secrets API key is not in the recommended form' ),
+				'recommended',
+				sprintf(
+					'<p>%s</p>',
+					$has_root_key
+						? sprintf(
+							/* translators: %s: WP_SECRETS_KEY */
+							__( '%s is defined, but not as a base64-encoded random 32-byte value. Keep its current value: secrets are already encrypted with it, and changing it makes them unreadable.' ),
+							'<code>WP_SECRETS_KEY</code>'
+						)
+						: sprintf(
+							/* translators: %s: WP_SECRETS_KEY */
+							__( '%s is defined, but not as a base64-encoded random 32-byte value. No secrets are stored yet, so it can still be replaced with such a value.' ),
+							'<code>WP_SECRETS_KEY</code>'
+						)
+				)
+			);
+		}
+
+		if ( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNDEFINED === $key_status || WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status ) {
+			$is_defined = WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE === $key_status;
+			$example    = sprintf( "define( 'WP_SECRETS_KEY', '%s' );", base64_encode( random_bytes( 32 ) ) );
+
+			return $this->get_secrets_api_test_result(
+				'secrets_api_key_source',
+				__( 'Secrets API has no encryption key' ),
+				'recommended',
+				sprintf(
+					'<p>%s</p><p>%s</p><p><code>%s</code></p><p>%s</p>',
+					$is_defined
+						? sprintf(
+							/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php, 3: wp-config-sample.php */
+							__( '%1$s is defined in %2$s, but its value cannot be used: it is empty, still the placeholder from %3$s, or the same as one of the authentication keys and salts. Plugins cannot store API keys and other credentials with the Secrets API until it is fixed.' ),
+							'<code>WP_SECRETS_KEY</code>',
+							'<code>wp-config.php</code>',
+							'<code>wp-config-sample.php</code>'
+						)
+						: sprintf(
+							/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php */
+							__( '%1$s is not defined in %2$s. Plugins cannot store API keys and other credentials with the Secrets API until it is.' ),
+							'<code>WP_SECRETS_KEY</code>',
+							'<code>wp-config.php</code>'
+						),
+					$is_defined
+						? sprintf(
+							/* translators: 1: WP_SECRETS_KEY, 2: wp-config.php */
+							__( 'Replace the %1$s line in %2$s with this one:' ),
+							'<code>WP_SECRETS_KEY</code>',
+							'<code>wp-config.php</code>'
+						)
+						: sprintf(
+							/* translators: 1: wp-config.php, 2: Translated version of "That's all, stop editing! Happy publishing." */
+							__( 'Add this line to %1$s, above the line reading %2$s:' ),
+							'<code>wp-config.php</code>',
+							'<code>/* ' . __( 'That&#8217;s all, stop editing! Happy publishing.' ) . ' */</code>'
+						),
+					esc_html( $example ),
+					esc_html__( 'A new value is generated each time this page loads. Keep a copy of the one you use with your backups: secrets stored with it cannot be read without it.' )
+				)
+			);
+		}
+
+		return $this->get_secrets_api_test_result(
+			'secrets_api_key_source',
+			__( 'Secrets API is using a dedicated key' ),
+			'good',
+			sprintf( '<p>%s</p>', esc_html( $key_source ) )
+		);
+	}
+
+	/**
+	 * Tests whether every stored secret still decrypts.
+	 *
+	 * Network secrets are included only for a super admin on a multisite install –
+	 * never shown to a site administrator who is not one.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test result.
+	 *
+	 * @phpstan-return array{label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string, actions: string, test: string}
+	 */
+	public function get_test_secrets_api_undecryptable(): array {
+		$broken = $this->get_undecryptable_secrets( false );
+
+		if ( ! is_wp_error( $broken ) && is_multisite() && is_super_admin() ) {
+			$network_broken = $this->get_undecryptable_secrets( true );
+			$broken         = is_wp_error( $network_broken ) ? $network_broken : array_merge( $broken, $network_broken );
+		}
+
+		// Secrets that cannot be listed cannot be checked, which must not read as all of them decrypting.
+		if ( is_wp_error( $broken ) ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_undecryptable',
+				__( 'Secrets could not be checked' ),
+				'critical',
+				sprintf(
+					'<p>%s</p><p>%s</p>',
+					esc_html__( 'The stored secrets could not be listed, so none of them could be checked. Secrets probably cannot be read or written either until this is fixed.' ),
+					esc_html( $broken->get_error_message() )
+				)
+			);
+		}
+
+		if ( empty( $broken ) ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_undecryptable',
+				__( 'All secrets can be decrypted' ),
+				'good',
+				sprintf( '<p>%s</p>', esc_html__( 'Every stored secret decrypted successfully.' ) )
+			);
+		}
+
+		$items = '';
+
+		foreach ( $broken as $entry ) {
+			$items .= sprintf(
+				'<li>%s (%s)</li>',
+				esc_html( $entry['name'] ),
+				sprintf(
+					/* translators: %s: A secret's last known fingerprint. */
+					esc_html__( 'fingerprint: %s' ),
+					esc_html( $entry['fingerprint'] )
+				)
+			);
+		}
+
+		return $this->get_secrets_api_test_result(
+			'secrets_api_undecryptable',
+			__( 'Some secrets cannot be decrypted' ),
+			'critical',
+			sprintf(
+				'<p>%s</p><ul>%s</ul><p>%s</p>',
+				esc_html__( 'The following secrets exist but could not be decrypted with the current key.' ),
+				$items,
+				sprintf(
+					/* translators: %s: WP_SECRETS_KEY */
+					__( 'This can happen after %s was changed or removed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' ),
+					'<code>WP_SECRETS_KEY</code>'
+				)
+			)
+		);
+	}
+
+	/**
+	 * Tests whether any secrets are flagged as needing rotation.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test result.
+	 *
+	 * @phpstan-return array{label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string, actions: string, test: string}
+	 */
+	public function get_test_secrets_api_needs_rotation(): array {
+		$count = $this->count_secrets_needing_rotation( false );
+
+		if ( ! is_wp_error( $count ) && is_multisite() && is_super_admin() ) {
+			$network_count = $this->count_secrets_needing_rotation( true );
+			$count         = is_wp_error( $network_count ) ? $network_count : $count + $network_count;
+		}
+
+		if ( is_wp_error( $count ) ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_needs_rotation',
+				__( 'Secrets could not be checked for pending rotation' ),
+				'recommended',
+				sprintf( '<p>%s</p>', esc_html( $count->get_error_message() ) )
+			);
+		}
+
+		if ( 0 === $count ) {
+			return $this->get_secrets_api_test_result(
+				'secrets_api_needs_rotation',
+				__( 'No secrets are pending rotation' ),
+				'good',
+				sprintf( '<p>%s</p>', esc_html__( 'No secret is flagged as needing rotation.' ) )
+			);
+		}
+
+		return $this->get_secrets_api_test_result(
+			'secrets_api_needs_rotation',
+			__( 'Some secrets are pending rotation' ),
+			'recommended',
+			sprintf(
+				'<p>%s</p>',
+				esc_html(
+					sprintf(
+						/* translators: %d: Number of secrets flagged for rotation. */
+						_n(
+							'%d secret was imported from an existing option and is flagged for rotation. A credential that sat in a plain option has already been through whatever backups and replication paths that option went through; re-entering it with a new value is recommended.',
+							'%d secrets were imported from existing options and are flagged for rotation. A credential that sat in a plain option has already been through whatever backups and replication paths that option went through; re-entering each with a new value is recommended.',
+							$count
+						),
+						$count
+					)
+				)
+			)
+		);
+	}
+
+	/**
+	 * Builds the result of a Secrets API test.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $test        The test's identifier, as registered in get_tests().
+	 * @param string $label       Short label for the test result.
+	 * @param string $status      One of 'good', 'recommended', 'critical'.
+	 * @param string $description HTML description, normally one or more <p> elements.
+	 * @return array The test result.
+	 *
+	 * @phpstan-param 'good'|'recommended'|'critical' $status
+	 * @phpstan-return array{label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string, actions: string, test: string}
+	 */
+	private function get_secrets_api_test_result( string $test, string $label, string $status, string $description ): array {
+		return array(
+			'label'       => $label,
+			'status'      => $status,
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => $description,
+			'actions'     => '',
+			'test'        => $test,
+		);
+	}
+
+	/**
+	 * Determines whether the active secrets provider protects secrets with the keyring.
+	 *
+	 * A secrets.php drop-in can replace the whole provider, which then protects secrets
+	 * with its own keys. The default keyring, and WP_SECRETS_KEY, are not used at all.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Secrets_Provider $provider The active provider.
+	 * @return bool
+	 */
+	private function secrets_api_uses_keyring( WP_Secrets_Provider $provider ): bool {
+		return $provider instanceof WP_Secrets_Libsodium_Provider || $provider instanceof WP_Secrets_Broken_Provider;
+	}
+
+	/**
+	 * Finds the stored secrets that fail to decrypt, for one scope.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $network Whether to check network-scope secrets.
+	 * @return array|WP_Error List of array( 'name' => ..., 'fingerprint' => ... ),
+	 *                        or WP_Error when the secrets cannot be listed.
+	 *
+	 * @phpstan-return list<array{name: string, fingerprint: string}>|WP_Error
+	 */
+	private function get_undecryptable_secrets( bool $network ) {
+		$entries = $network ? wp_list_network_secrets() : wp_list_secrets();
+
+		if ( is_wp_error( $entries ) ) {
+			return $entries;
+		}
+
+		$broken = array();
+
+		foreach ( $entries as $entry ) {
+			$secret = $network ? wp_get_network_secret( $entry['name'] ) : wp_get_secret( $entry['name'] );
+
+			if ( is_wp_error( $secret ) ) {
+				$broken[] = array(
+					'name'        => $entry['name'],
+					'fingerprint' => $entry['fingerprint'],
+				);
+			}
+		}
+
+		return $broken;
+	}
+
+	/**
+	 * Counts the stored secrets flagged as needing rotation, for one scope.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $network Whether to check network-scope secrets.
+	 * @return int|WP_Error The number of secrets, or WP_Error when the secrets cannot be listed.
+	 *
+	 * @phpstan-return int<0, max>|WP_Error
+	 */
+	private function count_secrets_needing_rotation( bool $network ) {
+		$entries = $network ? wp_list_network_secrets() : wp_list_secrets();
+
+		if ( is_wp_error( $entries ) ) {
+			return $entries;
+		}
+
+		$count = 0;
+
+		foreach ( $entries as $entry ) {
+			if ( ! empty( $entry['needs_rotation'] ) ) {
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
@@ -2936,6 +3336,18 @@ class WP_Site_Health {
 				'opcode_cache'                 => array(
 					'label' => __( 'Opcode cache' ),
 					'test'  => 'opcode_cache',
+				),
+				'secrets_api_key_source'       => array(
+					'label' => __( 'Secrets API key source' ),
+					'test'  => 'secrets_api_key_source',
+				),
+				'secrets_api_undecryptable'    => array(
+					'label' => __( 'Secrets API: undecryptable secrets' ),
+					'test'  => 'secrets_api_undecryptable',
+				),
+				'secrets_api_needs_rotation'   => array(
+					'label' => __( 'Secrets API: credentials pending rotation' ),
+					'test'  => 'secrets_api_needs_rotation',
 				),
 			),
 			'async'  => array(
@@ -3279,8 +3691,6 @@ class WP_Site_Health {
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
@@ -3288,6 +3698,9 @@ class WP_Site_Health {
 		}
 
 		$url = site_url( 'wp-cron.php' );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		/*
 		 * A post request is used for the wp-cron.php loopback test to cause the file
@@ -3611,7 +4024,7 @@ class WP_Site_Health {
 	private function check_for_page_caching() {
 
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, home_url( '/' ) );
 
 		$headers = array();
 

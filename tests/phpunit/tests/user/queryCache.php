@@ -181,7 +181,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_query_cache() {
+	public static function data_query_cache() {
 		$data = array(
 			'id'                    => array(
 				'args' => array( 'fields' => array( 'id' ) ),
