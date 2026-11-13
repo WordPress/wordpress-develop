@@ -3231,7 +3231,13 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	/**
 	 * Filters the localized time of the post.
 	 *
+	 * The filtered value should match the type and values that `$format` produces,
+	 * for example, an integer for 'U' or 'G', or a numeric string from '0' to '6' for 'w'.
+	 *
 	 * @since 2.6.0
+	 *
+	 * @see get_post_time()
+	 * @link https://www.php.net/manual/en/datetime.format.php
 	 *
 	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string     $format Format to use for retrieving the date of the post.
