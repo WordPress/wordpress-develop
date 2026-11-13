@@ -104,7 +104,10 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		var region = this.region,
 			view = this.controller[ region ].get(),
 			views = this.views.get(),
-			hide = ! views || views.length < 2;
+			visibleMenuItems = views ? _.filter( views, function( item ) {
+				return ! item.$el.hasClass( 'separator' ) && ! item.$el.hasClass( 'hidden' );
+			}) : [],
+			hide = visibleMenuItems.length < 2;
 
 		if ( this === view ) {
 			// Flag this menu as hidden or visible.
@@ -152,6 +155,7 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		}
 
 		view.$el.addClass('hidden');
+		this.visibility();
 	},
 
 	/**
@@ -167,6 +171,7 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		}
 
 		view.$el.removeClass('hidden');
+		this.visibility();
 	}
 });
 
