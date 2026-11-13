@@ -59,7 +59,7 @@ function edit_comment() {
 	$comment = get_comment( (int) $_POST['comment_ID'] );
 
 	if ( ! $comment ) {
-		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
+		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ), 403 );
 	}
 
 	$post_id  = (int) $comment->comment_post_ID;
@@ -67,7 +67,7 @@ function edit_comment() {
 
 	// Reactions are only validated on creation. Removing one is a delete.
 	if ( 'reaction' === $old_type ) {
-		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ) );
+		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ), 403 );
 	}
 
 	/*
@@ -83,7 +83,7 @@ function edit_comment() {
 			'note' === $old_type ||
 			in_array( strtolower( $new_type ), array( 'note', 'reaction' ), true )
 		) {
-			wp_die( __( 'Sorry, you are not allowed to change the comment type.' ) );
+			wp_die( __( 'Sorry, you are not allowed to change the comment type.' ), 403 );
 		}
 	}
 
@@ -92,11 +92,11 @@ function edit_comment() {
 	 * 'edit_comment' no longer maps to any post's capabilities. A note
 	 * stays on its post, since its reactions would not follow it.
 	 */
-	if ( isset( $_POST['comment_post_ID'] ) && absint( $_POST['comment_post_ID'] ) !== $post_id ) {
+	if ( isset( $_POST['comment_post_ID'] ) && (int) $_POST['comment_post_ID'] !== $post_id ) {
 		$post_id = (int) $_POST['comment_post_ID'];
 
 		if ( 'note' === $old_type || ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
-			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ), 403 );
 		}
 	}
 
