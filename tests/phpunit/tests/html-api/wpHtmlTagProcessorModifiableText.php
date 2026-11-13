@@ -584,7 +584,7 @@ HTML
 	 *
 	 * @ticket 65984
 	 *
-	 * @dataProvider data_rcdata_element_names
+	 * @dataProvider data_escapes_rcdata_content
 	 *
 	 * @param 'TITLE'|'TEXTAREA' $element_name Which RCDATA element to verify.
 	 */
@@ -644,7 +644,7 @@ HTML
 	 *
 	 * @return array[]
 	 */
-	public static function data_rcdata_element_names(): array {
+	public static function data_escapes_rcdata_content(): array {
 		return array(
 			array( 'TEXTAREA' ),
 			array( 'TITLE' ),
