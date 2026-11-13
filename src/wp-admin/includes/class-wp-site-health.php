@@ -3005,8 +3005,8 @@ class WP_Site_Health {
 	/**
 	 * Tests whether every stored secret still decrypts.
 	 *
-	 * Network secrets are included only for a super admin on a multisite install –
-	 * never shown to a site administrator who is not one.
+	 * Network secrets are included on a single site install, where they are stored
+	 * alongside site secrets, and on a multisite install only for a super admin.
 	 *
 	 * @since 7.2.0
 	 *
@@ -3017,7 +3017,7 @@ class WP_Site_Health {
 	public function get_test_secrets_api_undecryptable(): array {
 		$broken = $this->get_undecryptable_secrets( false );
 
-		if ( ! is_wp_error( $broken ) && is_multisite() && is_super_admin() ) {
+		if ( ! is_wp_error( $broken ) && ( ! is_multisite() || is_super_admin() ) ) {
 			$network_broken = $this->get_undecryptable_secrets( true );
 			$broken         = is_wp_error( $network_broken ) ? $network_broken : array_merge( $broken, $network_broken );
 		}
@@ -3079,6 +3079,9 @@ class WP_Site_Health {
 	/**
 	 * Tests whether any secrets are flagged as needing rotation.
 	 *
+	 * Network secrets are included on a single site install, where they are stored
+	 * alongside site secrets, and on a multisite install only for a super admin.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @return array The test result.
@@ -3088,7 +3091,7 @@ class WP_Site_Health {
 	public function get_test_secrets_api_needs_rotation(): array {
 		$count = $this->count_secrets_needing_rotation( false );
 
-		if ( ! is_wp_error( $count ) && is_multisite() && is_super_admin() ) {
+		if ( ! is_wp_error( $count ) && ( ! is_multisite() || is_super_admin() ) ) {
 			$network_count = $this->count_secrets_needing_rotation( true );
 			$count         = is_wp_error( $network_count ) ? $network_count : $count + $network_count;
 		}
