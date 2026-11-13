@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @ticket 65600
 	 *
-	 * @dataProvider data_non_scalar_credentials
+	 * @dataProvider data_non_scalar_credentials_should_return_error
 	 *
 	 * @param mixed $username Username argument.
 	 * @param mixed $password Password argument.
@@ -35,7 +35,7 @@ class Tests_XMLRPC_wp_getUsersBlogs extends WP_XMLRPC_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed, 1: mixed }>
 	 */
-	public static function data_non_scalar_credentials(): array {
+	public static function data_non_scalar_credentials_should_return_error(): array {
 		return array(
 			'an array as password'  => array( 'subscriber', array() ),
 			'an array as username'  => array( array(), 'subscriber' ),
