@@ -20,6 +20,14 @@
  * the write succeeded. Providers declare writability up front through
  * WP_Secrets_Provider::is_writable().
  *
+ * Records must be kept apart by site and by network. A site-scope record belongs to
+ * the current site, get_current_blog_id(), and a network-scope record to the current
+ * network, get_current_network_id(). Neither is passed to these methods, and
+ * switch_to_blog() changes the current site within a request, so an implementation
+ * reads them on every call. The default WP_Secrets_Option_Store gets this from the
+ * options tables, which follow the current site and network. A store backed by a
+ * service outside the database has to include them in every key it uses.
+ *
  * Implementations extend this class. It is abstract rather than an interface so
  * that a later release can add a method with a default implementation, and every
  * existing subclass keeps working.
