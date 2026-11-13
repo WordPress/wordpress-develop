@@ -1592,6 +1592,51 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( 'rest_invalid_namespace', $response, 404 );
 	}
 
+	/**
+	 * Tests that an array query parameter overriding a string route parameter is rejected as invalid.
+	 *
+	 * The route args below have a custom sanitize callback which expects a string, so without a
+	 * validate callback the array reached the sanitize callback and caused a fatal error.
+	 *
+	 * @ticket 66653
+	 *
+	 * @dataProvider data_array_query_param_overriding_string_route_param
+	 *
+	 * @param string $route Route to request.
+	 * @param string $param Name of the route parameter to override.
+	 */
+	public function test_array_query_param_overriding_string_route_param_is_invalid( string $route, string $param ) {
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( array( $param => array( 'x' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['data'] );
+		$this->assertIsArray( $data['data']['params'] );
+		$this->assertArrayHasKey( $param, $data['data']['params'], 'The overridden route parameter should be the invalid one.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ string, string }>
+	 */
+	public static function data_array_query_param_overriding_string_route_param(): array {
+		return array(
+			'theme'                  => array( '/wp/v2/themes/default', 'stylesheet' ),
+			'template'               => array( '/wp/v2/templates/default//index', 'id' ),
+			'template part'          => array( '/wp/v2/template-parts/default//header', 'id' ),
+			'template revisions'     => array( '/wp/v2/templates/default//index/revisions', 'parent' ),
+			'template revision'      => array( '/wp/v2/templates/default//index/revisions/1', 'parent' ),
+			'template autosaves'     => array( '/wp/v2/templates/default//index/autosaves', 'id' ),
+			'template autosave'      => array( '/wp/v2/templates/default//index/autosaves/1', 'parent' ),
+			'global styles of theme' => array( '/wp/v2/global-styles/themes/default', 'stylesheet' ),
+		);
+	}
+
 	public function test_get_namespaces() {
 		$server = new WP_REST_Server();
 		$server->register_route(
