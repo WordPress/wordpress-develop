@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-26.04 ]
         php: [ '5.3' ]
         split_slow: [ false, true ]
         multisite: [ false, true ]
@@ -51,63 +51,63 @@ jobs:
           # Include jobs for PHP 7.3 with memcached.
           - php: '7.3'
             phpunit: '6-php-7.3'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: true
             split_slow: false
             multisite: false
           - php: '7.3'
             phpunit: '6-php-7.3'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: true
             split_slow: false
             multisite: true
           # Include jobs that require specific versions of PHPUnit.
           - php: '7.3'
             phpunit: '6-php-7.3'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: false
           - php: '7.3'
             phpunit: '6-php-7.3'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: true
           - php: '7.0'
             phpunit: '6-php-7.0'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: false
           - php: '7.0'
             phpunit: '6-php-7.0'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: true
           - php: '5.6'
             phpunit: '4-php-5.6'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: false
           - php: '5.6'
             phpunit: '4-php-5.6'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: false
             multisite: true
           # Additional "slow" jobs for PHP 5.6.
           - php: '5.6'
             phpunit: '4-php-5.6'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: true
             multisite: false
           - php: '5.6'
             phpunit: '4-php-5.6'
-            os: ubuntu-latest
+            os: ubuntu-26.04
             memcached: false
             split_slow: true
             multisite: true
@@ -139,7 +139,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ test-php, slack-notifications ]
