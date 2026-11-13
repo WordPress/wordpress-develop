@@ -489,7 +489,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65772
-	 * @dataProvider data_scheduled_post_date_column_status
+	 * @dataProvider data_column_date_should_show_scheduled_post_status
 	 * @covers WP_Posts_List_Table::column_date
 	 *
 	 * @param int    $offset   Seconds from now to the scheduled date.
@@ -524,7 +524,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public static function data_scheduled_post_date_column_status() {
+	public static function data_column_date_should_show_scheduled_post_status() {
 		return array(
 			'future date'   => array( DAY_IN_SECONDS, 'Scheduled' ),
 			'past due date' => array( -DAY_IN_SECONDS, '<strong class="error-message">Missed schedule</strong>' ),
