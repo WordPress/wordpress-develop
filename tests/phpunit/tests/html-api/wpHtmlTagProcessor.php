@@ -2374,7 +2374,7 @@ HTML;
 	 *
 	 * @ticket 65372
 	 *
-	 * @dataProvider data_rcdata_and_rawtext_tag_name_terminators
+	 * @dataProvider data_rcdata_and_rawtext_end_tags_accept_tag_name_terminators
 	 *
 	 * @param non-falsy-string $tag_name            The RCDATA or RAWTEXT tag name.
 	 * @param non-falsy-string $tag_name_terminator The tag-name-terminating character.
@@ -2394,7 +2394,7 @@ HTML;
 	 *
 	 * @return Generator<non-falsy-string, array{non-falsy-string, non-falsy-string}> Test cases.
 	 */
-	public static function data_rcdata_and_rawtext_tag_name_terminators(): Generator {
+	public static function data_rcdata_and_rawtext_end_tags_accept_tag_name_terminators(): Generator {
 		foreach ( array( 'IFRAME', 'NOEMBED', 'NOFRAMES', 'STYLE', 'XMP', 'TEXTAREA', 'TITLE' ) as $tag_name ) {
 			foreach ( self::data_tag_name_terminators() as $terminator_name => $terminator_data ) {
 				yield "{$tag_name} + {$terminator_name}" => array( strtolower( $tag_name ), $terminator_data[0] );
