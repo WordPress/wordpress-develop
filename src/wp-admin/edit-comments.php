@@ -328,6 +328,8 @@ if ( isset( $_REQUEST['approved'] )
 	$same      = (int) ( $_REQUEST['same'] ?? 0 );
 
 	if ( $approved > 0 || $deleted > 0 || $trashed > 0 || $untrashed > 0 || $spammed > 0 || $unspammed > 0 || $same > 0 ) {
+		$messages = array();
+
 		if ( $approved > 0 ) {
 			$messages[] = sprintf(
 				/* translators: %s: Number of comments. */
@@ -417,14 +419,16 @@ if ( isset( $_REQUEST['approved'] )
 			}
 		}
 
-		wp_admin_notice(
-			implode( "<br />\n", $messages ),
-			array(
-				'id'                 => 'moderated',
-				'additional_classes' => array( 'updated' ),
-				'dismissible'        => true,
-			)
-		);
+		if ( $messages ) {
+			wp_admin_notice(
+				implode( "<br />\n", $messages ),
+				array(
+					'id'                 => 'moderated',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
+			);
+		}
 	}
 }
 ?>
