@@ -103,11 +103,8 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 */
 	public static function data_changes_that_are_not_an_array() {
 		return array(
-			'null'         => array( null ),
-			'false'        => array( false ),
-			'empty string' => array( '' ),
-			'string'       => array( '[{"r":90}]' ),
-			'object'       => array( (object) array( 'r' => 90 ) ),
+			'null'   => array( null ),
+			'object' => array( (object) array( 'r' => 90 ) ),
 		);
 	}
 

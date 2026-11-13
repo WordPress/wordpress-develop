@@ -248,7 +248,7 @@ final class WP_Customize_Manager {
 	 *
 	 *     @type null|string|false $changeset_uuid     Changeset UUID, the `post_name` for the customize_changeset post containing the customized state.
 	 *                                                 Defaults to `null` resulting in a UUID to be immediately generated. If `false` is provided, then
-	 *                                                 then the changeset UUID will be determined during `after_setup_theme`: when the
+	 *                                                 the changeset UUID will be determined during `after_setup_theme`: when the
 	 *                                                 `customize_changeset_branching` filter returns false, then the default UUID will be that
 	 *                                                 of the most recent `customize_changeset` post that has a status other than 'auto-draft',
 	 *                                                 'publish', or 'trash'. Otherwise, if changeset branching is enabled, then a random UUID will be used.
@@ -628,7 +628,13 @@ final class WP_Customize_Manager {
 		if ( empty( $this->_changeset_uuid ) ) {
 			$changeset_uuid = null;
 
-			if ( ! $this->branching() && $this->is_theme_active() ) {
+			/**
+			 * Only users who can customize may have the latest unpublished changeset auto-loaded. Otherwise, an
+			 * unauthenticated preview request lacking a UUID could adopt another user's unpublished changeset and
+			 * disclose its state, since the UUID serves as the secret key for previewing. Unauthorized requests
+			 * get a fresh UUID instead, which matches no changeset and is rejected in {@see self::setup_theme()}.
+			 */
+			if ( ! $this->branching() && $this->is_theme_active() && current_user_can( 'customize' ) ) {
 				$unpublished_changeset_posts = $this->get_changeset_posts(
 					array(
 						'post_status'               => array_diff( get_post_stati(), array( 'auto-draft', 'publish', 'trash', 'inherit', 'private' ) ),
@@ -2817,9 +2823,7 @@ final class WP_Customize_Manager {
 
 		// Ensure that all post values are included in the changeset data.
 		foreach ( $post_values as $setting_id => $post_value ) {
-			if ( ! isset( $args['data'][ $setting_id ] ) ) {
-				$args['data'][ $setting_id ] = array();
-			}
+			$args['data'][ $setting_id ] ??= array();
 			if ( ! isset( $args['data'][ $setting_id ]['value'] ) ) {
 				$args['data'][ $setting_id ]['value'] = $post_value;
 			}
@@ -2846,9 +2850,7 @@ final class WP_Customize_Manager {
 				unset( $data[ $changeset_setting_id ] );
 			} else {
 
-				if ( ! isset( $data[ $changeset_setting_id ] ) ) {
-					$data[ $changeset_setting_id ] = array();
-				}
+				$data[ $changeset_setting_id ] ??= array();
 
 				// Merge any additional setting params that have been supplied with the existing params.
 				$merged_setting_params = array_merge( $data[ $changeset_setting_id ], $setting_params );
@@ -3221,7 +3223,7 @@ final class WP_Customize_Manager {
 	 * the 'customize' meta cap which then maps to 'edit_theme_options'. This is currently
 	 * required in core for `wp_create_post_autosave()` because it will call
 	 * `_wp_translate_postdata()` which in turn will check if a user can 'edit_post', but the
-	 * the caps for the customize_changeset post type are all mapping to the meta capability.
+	 * caps for the customize_changeset post type are all mapping to the meta capability.
 	 * This should be able to be removed once #40922 is addressed in core.
 	 *
 	 * @since 4.9.0
@@ -3516,9 +3518,6 @@ final class WP_Customize_Manager {
 				preg_match( $namespace_pattern, $raw_setting_id, $matches )
 			);
 			if ( $is_theme_mod_setting ) {
-				if ( ! isset( $theme_mod_settings[ $matches['stylesheet'] ] ) ) {
-					$theme_mod_settings[ $matches['stylesheet'] ] = array();
-				}
 				$theme_mod_settings[ $matches['stylesheet'] ][ $matches['setting_id'] ] = $setting_params;
 
 				if ( $this->get_stylesheet() === $matches['stylesheet'] ) {
@@ -3665,9 +3664,7 @@ final class WP_Customize_Manager {
 
 		// Merge inactive theme mods with the stashed theme mod settings.
 		foreach ( $inactive_theme_mod_settings as $stylesheet => $theme_mod_settings ) {
-			if ( ! isset( $stashed_theme_mod_settings[ $stylesheet ] ) ) {
-				$stashed_theme_mod_settings[ $stylesheet ] = array();
-			}
+			$stashed_theme_mod_settings[ $stylesheet ] ??= array();
 
 			$stashed_theme_mod_settings[ $stylesheet ] = array_merge(
 				$stashed_theme_mod_settings[ $stylesheet ],

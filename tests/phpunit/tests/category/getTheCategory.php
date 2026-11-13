@@ -120,10 +120,23 @@ class Tests_Category_GetTheCategory extends WP_UnitTestCase {
 	public function test_applies_get_the_categories_filter() {
 		$filter = new MockAction();
 		add_filter( 'get_the_categories', array( $filter, 'filter' ), 10, 2 );
+		add_filter(
+			'get_the_categories',
+			static function () {
+				return array();
+			},
+			20
+		);
 
 		$categories = get_the_category( self::$post_id );
 
 		$this->assertSame( 1, $filter->get_call_count() );
-		$this->assertSame( array( $categories, self::$post_id ), $filter->get_args()[0] );
+		$args = $filter->get_args()[0];
+		$this->assertCount( 2, $args );
+		$this->assertCount( 1, $args[0] );
+		$this->assertSame( self::$category->term_id, $args[0][0]->term_id );
+		$this->assertSame( self::$category->term_id, $args[0][0]->cat_ID );
+		$this->assertSame( self::$post_id, $args[1] );
+		$this->assertSame( array(), $categories );
 	}
 }

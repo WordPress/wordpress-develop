@@ -1453,6 +1453,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'custom-html-widgets', "/wp-admin/js/widgets/custom-html-widgets$suffix.js", array( 'jquery', 'backbone', 'wp-util', 'jquery-ui-core', 'wp-a11y' ) );
 
 		$scripts->add( 'theme', "/wp-admin/js/theme$suffix.js", array( 'wp-backbone', 'wp-a11y', 'customize-base' ), false, 1 );
+		$scripts->set_translations( 'theme' );
 
 		$scripts->add( 'inline-edit-post', "/wp-admin/js/inline-edit-post$suffix.js", array( 'jquery', 'tags-suggest', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'inline-edit-post' );
@@ -1494,6 +1495,14 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'media-grid', "/wp-includes/js/media-grid$suffix.js", array( 'media-editor' ), false, 1 );
 		$scripts->add( 'media', "/wp-admin/js/media$suffix.js", array( 'jquery', 'clipboard', 'wp-i18n', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'media' );
+
+		$scripts->add( 'media-upload-pipeline', "/wp-admin/js/media-upload-pipeline$suffix.js", array( 'plupload', 'wp-upload-media', 'wp-media-utils', 'wp-api-fetch', 'wp-data', 'wp-element', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'media-upload-pipeline' );
+
+		$scripts->add( 'media-frame-upload', "/wp-admin/js/media-frame-upload$suffix.js", array( 'media-views', 'media-upload-pipeline' ), false, 1 );
+
+		$scripts->add( 'media-new-upload', "/wp-admin/js/media-new-upload$suffix.js", array( 'plupload-handlers', 'media-upload-pipeline', 'wp-a11y', 'wp-i18n' ), false, 1 );
+		$scripts->set_translations( 'media-new-upload' );
 
 		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'jquery-ui-core', 'imgareaselect', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'image-edit' );

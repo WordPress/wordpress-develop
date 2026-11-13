@@ -107,10 +107,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	 */
 	public function test_additional_sizes_generate_square_subsizes() {
 		// A non-square source, large enough for every site icon size.
-		$filename = DIR_TESTDATA . '/images/waffles.jpg';
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, file_get_contents( $filename ) );
-
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/waffles.jpg' );
 		$file          = get_attached_file( $attachment_id );
 
 		$editor = wp_get_image_editor( $file );
@@ -183,12 +180,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 			return $this->attachment_id;
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$this->attachment_id = $this->_make_attachment( $upload );
+		$this->attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 		return $this->attachment_id;
 	}
 }

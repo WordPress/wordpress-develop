@@ -9,6 +9,8 @@ on:
       - trunk
     # Always test the workflow after it's updated.
     paths:
+      - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
@@ -18,6 +20,8 @@ on:
       - trunk
     # Always test the workflow when changes are suggested.
     paths:
+      - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
   workflow_dispatch:
@@ -29,9 +33,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ inputs.new-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ inputs.new-version || github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -71,7 +75,7 @@ jobs:
   # "latest" and "nightly" drop nothing. Any other unrecognized target is treated the same way, with a warning.
   build-test-matrix:
     name: Build Test Matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions: {}
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 5
@@ -159,10 +163,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.7', '26.10' ]
         wp: ${{ fromJSON( needs.build-test-matrix.outputs.recent-releases ) }}
         multisite: [ false, true ]
     with:
@@ -185,7 +189,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
@@ -211,7 +215,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
@@ -241,7 +245,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
@@ -272,10 +276,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         php: [ '7.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.7', '26.10' ]
         wp: ${{ fromJSON( needs.build-test-matrix.outputs.oldest-wp ) }}
         multisite: [ false, true ]
     with:
@@ -297,6 +301,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -305,7 +310,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

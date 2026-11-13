@@ -664,7 +664,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_front_page() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_front_page() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
@@ -688,9 +688,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
 
-		// Set up pretty permalinks.
-		$this->set_permalink_structure( '/%postname%/' );
-
 		// Set the custom logo.
 		$this->set_custom_logo();
 		$this->go_to( $url );
@@ -709,7 +706,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog index'  => array( home_url( '/blog/' ), false ),
@@ -736,9 +733,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		update_option( 'page_for_posts', self::$blog_page_id );
 		update_option( 'page_on_front', self::$home_page_id );
 
-		// Set up pretty permalinks.
-		$this->set_permalink_structure( '/%postname%/' );
-
 		// Set the custom logo.
 		$this->set_custom_logo();
 		$this->go_to( $url );
@@ -757,7 +751,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
+	public static function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
 			'Blog index'  => array( home_url( '/blog/' ), false ),

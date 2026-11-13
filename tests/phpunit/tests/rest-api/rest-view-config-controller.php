@@ -467,4 +467,25 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 			$this->assertArrayNotHasKey( 'page', $properties, "$label should not declare a `page` property." );
 		}
 	}
+
+	/**
+	 * The table layout schema describes the column styles.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::get_item_schema
+	 * @covers ::get_table_layout_schema
+	 * @covers ::get_column_style_schema
+	 */
+	public function test_get_item_schema_describes_table_column_styles() {
+		$controller = new WP_REST_View_Config_Controller();
+		$schema     = $controller->get_item_schema();
+
+		$styles = $schema['properties']['default_layouts']['properties']['table']['properties']['layout']['properties']['styles'];
+
+		$this->assertArrayHasKey( 'description', $styles, 'The column styles should be described.' );
+		foreach ( array( 'width', 'maxWidth', 'minWidth', 'align' ) as $property ) {
+			$this->assertArrayHasKey( 'description', $styles['additionalProperties']['properties'][ $property ], "The `$property` column style should be described." );
+		}
+	}
 }
