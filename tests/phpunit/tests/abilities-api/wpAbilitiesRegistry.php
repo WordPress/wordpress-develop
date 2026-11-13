@@ -229,7 +229,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 65569
 	 *
-	 * @dataProvider data_invalid_category_types
+	 * @dataProvider data_register_ability_rejects_invalid_category_type
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
@@ -255,7 +255,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<mixed>> Test cases.
 	 */
-	public static function data_invalid_category_types(): array {
+	public static function data_register_ability_rejects_invalid_category_type(): array {
 		return array(
 			'null'    => array( null ),
 			'boolean' => array( false ),
