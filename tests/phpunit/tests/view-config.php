@@ -231,7 +231,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 * @covers ::_wp_get_default_posttype_form
 	 * @covers ::_wp_get_entity_view_config_posttype_wp_block
 	 *
-	 * @dataProvider data_post_types_with_excerpt_in_form
+	 * @dataProvider data_excerpt_layout_shows_placeholder_if_empty
 	 *
 	 * @param string $post_type The post type.
 	 */
@@ -257,7 +257,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_post_types_with_excerpt_in_form() {
+	public static function data_excerpt_layout_shows_placeholder_if_empty() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
@@ -296,7 +296,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 * @covers ::_wp_get_default_posttype_form
 	 * @covers ::_wp_get_entity_view_config_posttype_attachment
 	 *
-	 * @dataProvider data_post_types_with_author_in_form
+	 * @dataProvider data_author_layout_shows_placeholder_if_empty
 	 *
 	 * @param string $post_type The post type.
 	 */
@@ -321,7 +321,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_post_types_with_author_in_form() {
+	public static function data_author_layout_shows_placeholder_if_empty() {
 		return array(
 			'page'             => array( 'page' ),
 			'post'             => array( 'post' ),
