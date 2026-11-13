@@ -1530,4 +1530,59 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * Counts writes to the `posts` `last_changed` cache key while running a callback.
+	 *
+	 * @ticket 65485
+	 *
+	 * @param callable $callback Callback to run.
+	 * @return int Number of `last_changed` writes.
+	 */
+	private function count_posts_last_changed_writes( $callback ) {
+		$count   = 0;
+		$counter = static function ( $changed_group ) use ( &$count ) {
+			if ( 'posts' === $changed_group ) {
+				++$count;
+			}
+		};
+		add_action( 'wp_cache_set_last_changed', $counter );
+		$callback();
+		remove_action( 'wp_cache_set_last_changed', $counter );
+
+		return $count;
+	}
+
+	/**
+	 * Bulk `meta_input` should not invalidate the posts `last_changed` cache once per meta key.
+	 *
+	 * @ticket 65485
+	 */
+	public function test_wp_insert_post_meta_input_avoids_redundant_cache_invalidation() {
+		wp_cache_get_last_changed( 'posts' );
+
+		$baseline = $this->count_posts_last_changed_writes(
+			static function () {
+				wp_insert_post(
+					array(
+						'post_title'  => 'Baseline',
+						'post_status' => 'publish',
+					)
+				);
+			}
+		);
+		$writes   = $this->count_posts_last_changed_writes(
+			static function () {
+				wp_insert_post(
+					array(
+						'post_title'  => 'With meta',
+						'post_status' => 'publish',
+						'meta_input'  => array_fill_keys( array_map( 'strval', range( 1, 5 ) ), 'value' ),
+					)
+				);
+			}
+		);
+
+		$this->assertLessThanOrEqual( $baseline + 1, $writes );
+	}
 }

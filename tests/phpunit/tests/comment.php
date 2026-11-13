@@ -1912,4 +1912,93 @@ class Tests_Comment extends WP_UnitTestCase {
 		add_filter( 'get_comment', '__return_null' );
 		$this->assertNull( get_comment( $comment_id ), 'Expected get_comment() to return null when get_comment filter returns null.' );
 	}
+
+	/**
+	 * Counts writes to the `comment` `last_changed` cache key while running a callback.
+	 *
+	 * @ticket 65485
+	 *
+	 * @param callable $callback Callback to run.
+	 * @return int Number of `last_changed` writes.
+	 */
+	private function count_comment_last_changed_writes( $callback ) {
+		$count   = 0;
+		$counter = static function ( $changed_group ) use ( &$count ) {
+			if ( 'comment' === $changed_group ) {
+				++$count;
+			}
+		};
+		add_action( 'wp_cache_set_last_changed', $counter );
+		$callback();
+		remove_action( 'wp_cache_set_last_changed', $counter );
+
+		return $count;
+	}
+
+	/**
+	 * Bulk `comment_meta` should not invalidate the comments `last_changed` cache once per meta key.
+	 *
+	 * @ticket 65485
+	 */
+	public function test_wp_insert_comment_meta_avoids_redundant_cache_invalidation() {
+		$post_id = self::factory()->post->create();
+		wp_cache_get_last_changed( 'comment' );
+
+		$baseline = $this->count_comment_last_changed_writes(
+			static function () use ( $post_id ) {
+				wp_insert_comment(
+					array(
+						'comment_post_ID' => $post_id,
+						'comment_content' => 'Baseline',
+					)
+				);
+			}
+		);
+		$writes   = $this->count_comment_last_changed_writes(
+			static function () use ( $post_id ) {
+				wp_insert_comment(
+					array(
+						'comment_post_ID' => $post_id,
+						'comment_content' => 'With meta',
+						'comment_meta'    => array_fill_keys( array_map( 'strval', range( 1, 5 ) ), 'value' ),
+					)
+				);
+			}
+		);
+
+		$this->assertLessThanOrEqual( $baseline + 1, $writes );
+	}
+
+	/**
+	 * Bulk `comment_meta` on update should not invalidate the comments `last_changed` cache once per meta key.
+	 *
+	 * @ticket 65485
+	 */
+	public function test_wp_update_comment_meta_avoids_redundant_cache_invalidation() {
+		$comment_id = self::factory()->comment->create();
+		wp_cache_get_last_changed( 'comment' );
+
+		$baseline = $this->count_comment_last_changed_writes(
+			static function () use ( $comment_id ) {
+				wp_update_comment(
+					array(
+						'comment_ID'      => $comment_id,
+						'comment_content' => 'Baseline',
+					)
+				);
+			}
+		);
+		$writes   = $this->count_comment_last_changed_writes(
+			static function () use ( $comment_id ) {
+				wp_update_comment(
+					array(
+						'comment_ID'   => $comment_id,
+						'comment_meta' => array_fill_keys( array_map( 'strval', range( 1, 5 ) ), 'value' ),
+					)
+				);
+			}
+		);
+
+		$this->assertLessThanOrEqual( $baseline + 1, $writes );
+	}
 }

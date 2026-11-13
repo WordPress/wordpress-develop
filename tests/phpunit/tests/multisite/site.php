@@ -2305,4 +2305,63 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Counts writes to the `sites` `last_changed` cache key while running a callback.
+	 *
+	 * @ticket 65485
+	 *
+	 * @param callable $callback Callback to run.
+	 * @return int Number of `last_changed` writes.
+	 */
+	private function count_sites_last_changed_writes( $callback ) {
+		$count   = 0;
+		$counter = static function ( $changed_group ) use ( &$count ) {
+			if ( 'sites' === $changed_group ) {
+				++$count;
+			}
+		};
+		add_action( 'wp_cache_set_last_changed', $counter );
+		$callback();
+		remove_action( 'wp_cache_set_last_changed', $counter );
+
+		return $count;
+	}
+
+	/**
+	 * Bulk site `meta` should not invalidate the sites `last_changed` cache once per meta key.
+	 *
+	 * @ticket 65485
+	 */
+	public function test_wp_insert_site_meta_avoids_redundant_cache_invalidation() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Site meta is not supported.' );
+		}
+
+		wp_cache_get_last_changed( 'sites' );
+
+		$baseline = $this->count_sites_last_changed_writes(
+			static function () {
+				wp_insert_site(
+					array(
+						'domain' => 'baseline65485.example.org',
+						'path'   => '/',
+					)
+				);
+			}
+		);
+		$writes   = $this->count_sites_last_changed_writes(
+			static function () {
+				wp_insert_site(
+					array(
+						'domain' => 'withmeta65485.example.org',
+						'path'   => '/',
+						'meta'   => array_fill_keys( array_map( 'strval', range( 1, 5 ) ), 'value' ),
+					)
+				);
+			}
+		);
+
+		$this->assertLessThanOrEqual( $baseline + 1, $writes );
+	}
 }

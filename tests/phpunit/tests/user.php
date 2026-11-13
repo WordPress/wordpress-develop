@@ -2874,4 +2874,61 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $updated_password, $args[0][0], 'Invalid password in wp_set_password action.' );
 		$this->assertSame( $user_id, $args[0][1], 'Invalid user ID in wp_set_password action.' );
 	}
+
+	/**
+	 * Counts writes to the `users` `last_changed` cache key while running a callback.
+	 *
+	 * @ticket 65485
+	 *
+	 * @param callable $callback Callback to run.
+	 * @return int Number of `last_changed` writes.
+	 */
+	private function count_users_last_changed_writes( $callback ) {
+		$count   = 0;
+		$counter = static function ( $changed_group ) use ( &$count ) {
+			if ( 'users' === $changed_group ) {
+				++$count;
+			}
+		};
+		add_action( 'wp_cache_set_last_changed', $counter );
+		$callback();
+		remove_action( 'wp_cache_set_last_changed', $counter );
+
+		return $count;
+	}
+
+	/**
+	 * Bulk `meta_input` should not invalidate the users `last_changed` cache once per meta key.
+	 *
+	 * @ticket 65485
+	 */
+	public function test_wp_insert_user_meta_input_avoids_redundant_cache_invalidation() {
+		wp_cache_get_last_changed( 'users' );
+
+		$baseline = $this->count_users_last_changed_writes(
+			static function () {
+				wp_insert_user(
+					array(
+						'user_login' => 'baseline65485',
+						'user_email' => 'baseline65485@example.org',
+						'user_pass'  => 'password',
+					)
+				);
+			}
+		);
+		$writes   = $this->count_users_last_changed_writes(
+			static function () {
+				wp_insert_user(
+					array(
+						'user_login' => 'withmeta65485',
+						'user_email' => 'withmeta65485@example.org',
+						'user_pass'  => 'password',
+						'meta_input' => array_fill_keys( array_map( 'strval', range( 1, 5 ) ), 'value' ),
+					)
+				);
+			}
+		);
+
+		$this->assertLessThanOrEqual( $baseline + 1, $writes );
+	}
 }
