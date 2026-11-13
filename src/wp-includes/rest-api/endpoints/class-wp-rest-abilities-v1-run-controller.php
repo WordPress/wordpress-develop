@@ -65,6 +65,13 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'execute_ability' ),
 					'permission_callback' => array( $this, 'check_ability_permissions' ),
 					'args'                => $this->get_run_args(),
+
+					/*
+					 * Serve the ability result as returned, so it follows the ability's output
+					 * schema whether it is an object, an array, or a scalar value: `_fields`,
+					 * `_embed` and response links leave it unchanged.
+					 */
+					'data_processing'     => false,
 				),
 				'schema' => array( $this, 'get_run_schema' ),
 			)
@@ -80,7 +87,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function execute_ability( $request ) {
-		$ability = wp_get_ability( $request['name'] );
+		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
 		if ( ! $ability ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -94,6 +101,12 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
+
+		/*
+		 * Preserve empty objects when encoding the result as JSON. Preparation can
+		 * convert empty PHP arrays to stdClass, also within object results.
+		 */
+		$result = wp_prepare_json_value_for_client( $result, $ability->get_output_schema() );
 
 		return rest_ensure_response( $result );
 	}
@@ -136,12 +149,13 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * Checks if a given request has permission to execute a specific ability.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 Prepares the input read from the raw request.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
 	 */
 	public function check_ability_permissions( $request ) {
-		$ability = wp_get_ability( $request['name'] );
+		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -158,12 +172,9 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $is_valid;
 		}
 
-		$input    = $this->get_input_from_request( $request );
-		$input    = $ability->normalize_input( $input );
-		$is_valid = $ability->validate_input( $input );
-		if ( is_wp_error( $is_valid ) ) {
-			$is_valid->add_data( array( 'status' => 400 ) );
-			return $is_valid;
+		$input = $ability->prepare_input( $this->get_input_from_request( $request ) );
+		if ( is_wp_error( $input ) ) {
+			return $this->ensure_error_status( $input, 400 );
 		}
 
 		$result = $ability->check_permissions( $input );
@@ -180,6 +191,24 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Ensures a WP_Error object carries an HTTP status, adding a default when none is set.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Error $error  Error object to update.
+	 * @param int      $status HTTP status code to add if not already present.
+	 * @return WP_Error The error object, with a default status when needed.
+	 */
+	private function ensure_error_status( WP_Error $error, int $status ): WP_Error {
+		$error_data = $error->get_error_data();
+		if ( ! is_array( $error_data ) || ! isset( $error_data['status'] ) ) {
+			$error->add_data( array( 'status' => $status ) );
+		}
+
+		return $error;
 	}
 
 	/**
@@ -203,6 +232,24 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Returns run input unchanged for backward compatibility.
+	 *
+	 * This method is no longer registered as the input argument sanitizer.
+	 *
+	 * @since 7.1.0
+	 * @deprecated 7.2.0 Input is prepared by `check_ability_permissions()` and `WP_Ability::execute()`.
+	 *
+	 * @param mixed           $input   Raw input extracted from the request.
+	 * @param WP_REST_Request $request Unused. The request object.
+	 * @return mixed The unchanged input.
+	 */
+	public function sanitize_input_for_ability( $input, $request ) {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
+		return $input;
+	}
+
+	/**
 	 * Retrieves the arguments for ability execution endpoint.
 	 *
 	 * @since 6.9.0
@@ -212,9 +259,11 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	public function get_run_args(): array {
 		return array(
 			'input' => array(
-				'description' => __( 'Input parameters for the ability execution.' ),
-				'type'        => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
-				'default'     => null,
+				'description'       => __( 'Input parameters for the ability execution.' ),
+				'type'              => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
+				'default'           => null,
+				// Keep the raw input for the permission check and execution. This disables default REST coercion.
+				'sanitize_callback' => null,
 			),
 		);
 	}

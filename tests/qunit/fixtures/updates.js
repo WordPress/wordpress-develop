@@ -59,5 +59,15 @@ window._wpUpdatesSettings = {
 };
 window._wpUpdatesItemCounts = {
 	plugins: {},
-	totals: {}
+	// Matches the update counts in the fixture markup in index.html.
+	totals: {
+		counts: {
+			plugins: 2,
+			themes: 0,
+			wordpress: 0,
+			translations: 0,
+			total: 2
+		},
+		title: '2 Plugin Updates'
+	}
 };

@@ -27,8 +27,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 * @depends test_allowed_protocol_has_an_example
 	 * @dataProvider data_example_urls
 	 *
-	 * @param string The scheme.
-	 * @param string Example URL.
+	 * @param string $protocol The scheme.
+	 * @param string $url      Example URL.
 	 */
 	public function test_allowed_protocols( $protocol, $url ) {
 		$this->assertSame( $url, esc_url( $url, $protocol ) );
@@ -42,7 +42,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_example_urls() {
+	public static function data_example_urls() {
 		return array(
 			array( 'http', 'http://example.com' ),                                 // RFC7230
 			array( 'https', 'https://example.com' ),                               // RFC7230
