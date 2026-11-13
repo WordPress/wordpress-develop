@@ -440,14 +440,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$feed  = get_query_var( 'feed' );
 			$cpage = get_query_var( 'cpage' );
 
+			// Only a comments feed has a "comments" segment to strip; otherwise it is part of the path.
+			$feed_endings = get_query_var( 'withcomments' ) ? '(comments/?)?(feed|rss2?|rdf|atom)' : '(feed|rss2?|rdf|atom)';
+
 			while ( preg_match( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", $redirect['path'] )
-				|| preg_match( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+)?$#', $redirect['path'] )
+				|| preg_match( "#/{$feed_endings}(/+)?$#", $redirect['path'] )
 				|| preg_match( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+(/+)?$#", $redirect['path'] )
 			) {
 				// Strip off any existing paging.
 				$redirect['path'] = preg_replace( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", '/', $redirect['path'] );
 				// Strip off feed endings.
-				$redirect['path'] = preg_replace( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+|$)#', '/', $redirect['path'] );
+				$redirect['path'] = preg_replace( "#/{$feed_endings}(/+|$)#", '/', $redirect['path'] );
 				// Strip off any existing comment paging.
 				$redirect['path'] = preg_replace( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+?(/+)?$#", '/', $redirect['path'] );
 			}
