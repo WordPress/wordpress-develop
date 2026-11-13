@@ -1245,7 +1245,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
 
-	$scripts->add( 'wp-command-palette-loader', "/wp-includes/js/wp-command-palette-loader$suffix.js", array(), false, 1 );
+	$scripts->add( 'wp-command-palette-loader', "/wp-includes/js/wp-command-palette-loader$suffix.js", array( 'wp-a11y', 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'wp-command-palette-loader' );
 
 	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'common', 'jquery', 'wp-a11y', 'wp-i18n' ), false, 1 );
 	$scripts->set_translations( 'wplink' );

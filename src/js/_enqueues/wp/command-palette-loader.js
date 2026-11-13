@@ -7,15 +7,17 @@
  *
  * On screens that do not load the Command Palette up front, its scripts and
  * styles are printed into an inert template by
- * wp_print_command_palette_assets_template(). They are only added to the page
- * when the palette is first requested, with the keyboard shortcut or the
- * toolbar button, so that they do not delay every admin page load.
+ * wp_print_command_palette_assets_template(). They are downloaded once the page
+ * is idle, but only added to the page when the palette is first requested, with
+ * the keyboard shortcut or the toolbar button, so that they do not delay every
+ * admin page load.
  *
  * @since 7.3.0
  */
 ( function ( window, document ) {
 	const TEMPLATE_ID = 'wp-command-palette-assets';
-	const TOOLBAR_LINK_SELECTOR = '#wp-admin-bar-command-palette > .ab-item';
+	const TOOLBAR_ITEM_ID = 'wp-admin-bar-command-palette';
+	const TOOLBAR_LINK_SELECTOR = '#' + TOOLBAR_ITEM_ID + ' > .ab-item';
 	const IS_APPLE_OS = /Mac|iPod|iPhone|iPad/.test( window.navigator.platform );
 
 	let isLoading = false;
@@ -107,6 +109,80 @@
 	}
 
 	/**
+	 * Asks the browser to download a file into its cache without running it.
+	 *
+	 * @param {string} url The file URL.
+	 */
+	function prefetchFile( url ) {
+		const link = document.createElement( 'link' );
+
+		link.rel = 'prefetch';
+		link.href = url;
+		document.head.appendChild( link );
+	}
+
+	/**
+	 * Downloads the Command Palette's scripts and styles once the page is idle, without running them.
+	 *
+	 * This takes the download off the first time the palette is opened, while the page itself
+	 * still does not parse or run the palette's scripts until then.
+	 */
+	function prefetchPaletteAssets() {
+		const template = /** @type {HTMLTemplateElement|null} */ ( document.getElementById( TEMPLATE_ID ) );
+
+		if ( ! template ) {
+			return;
+		}
+
+		for ( const asset of template.content.querySelectorAll( 'script[src], link[rel="stylesheet"][href]' ) ) {
+			const url = asset.getAttribute( 'src' ) || asset.getAttribute( 'href' );
+
+			if ( url ) {
+				prefetchFile( url );
+			}
+		}
+	}
+
+	/**
+	 * Runs a callback once the page has loaded and the browser is idle.
+	 *
+	 * @param {Function} callback The callback.
+	 */
+	function whenPageIsIdle( callback ) {
+		const scheduleWhenIdle = () => {
+			if ( 'requestIdleCallback' in window ) {
+				window.requestIdleCallback( () => callback() );
+			} else {
+				setTimeout( callback, 1 );
+			}
+		};
+
+		if ( 'complete' === document.readyState ) {
+			scheduleWhenIdle();
+		} else {
+			window.addEventListener( 'load', scheduleWhenIdle, { once: true } );
+		}
+	}
+
+	/**
+	 * Shows that the Command Palette is loading, or that it has finished loading.
+	 *
+	 * @param {boolean} isPaletteLoading Whether the palette is loading.
+	 */
+	function showPaletteLoading( isPaletteLoading ) {
+		const toolbarItem = document.getElementById( TOOLBAR_ITEM_ID );
+
+		if ( toolbarItem ) {
+			toolbarItem.classList.toggle( 'is-loading', isPaletteLoading );
+			toolbarItem.querySelector( '.ab-item' )?.setAttribute( 'aria-busy', isPaletteLoading ? 'true' : 'false' );
+		}
+
+		if ( isPaletteLoading ) {
+			window.wp.a11y.speak( window.wp.i18n.__( 'Loading the command palette.' ) );
+		}
+	}
+
+	/**
 	 * Adds the Command Palette's scripts and styles from the template to the page.
 	 *
 	 * All scripts are preloaded at once and then run one after the other.
@@ -150,8 +226,10 @@
 
 		if ( template ) {
 			isLoading = true;
+			showPaletteLoading( true );
 			template.remove();
 			await insertPaletteAssets( template.content );
+			showPaletteLoading( false );
 			isLoading = false;
 		}
 
@@ -175,4 +253,6 @@
 		event.preventDefault();
 		openPalette();
 	} );
+
+	whenPageIsIdle( prefetchPaletteAssets );
 }( window, document ) );
