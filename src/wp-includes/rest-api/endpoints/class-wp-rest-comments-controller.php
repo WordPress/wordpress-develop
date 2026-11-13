@@ -53,6 +53,34 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Determines whether a stored value has the shape of a reaction key.
+	 *
+	 * A key is one or more Unicode scalar values in lowercase hex, joined
+	 * by `-`. The shape is checked, not the curated set, so a reaction
+	 * stays readable if the set changes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $value Stored reaction content.
+	 * @return bool True for a well-formed key.
+	 */
+	private static function is_reaction_key( string $value ): bool {
+		if ( 1 !== preg_match( '/^[0-9a-f]{4,6}(?:-[0-9a-f]{4,6})*$/D', $value ) ) {
+			return false;
+		}
+
+		foreach ( explode( '-', $value ) as $hex ) {
+			$code_point = hexdec( $hex );
+			// Beyond the last code point, or a surrogate.
+			if ( $code_point > 0x10FFFF || ( $code_point >= 0xD800 && $code_point <= 0xDFFF ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -812,7 +840,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$raw_content = $request['content']['raw'];
 			}
 
-			$emoji_key = trim( wp_strip_all_tags( $raw_content ) );
+			$emoji_key = trim( $raw_content );
 
 			if ( ! in_array( $emoji_key, self::get_note_reaction_keys(), true ) ) {
 				return new WP_Error(
@@ -853,7 +881,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 
 			foreach ( $existing as $existing_reaction ) {
-				if ( wp_strip_all_tags( $existing_reaction->comment_content ) === $emoji_key ) {
+				if ( $existing_reaction->comment_content === $emoji_key ) {
 					return new WP_Error(
 						'rest_comment_duplicate_reaction',
 						__( 'You have already reacted with this emoji.' ),
@@ -875,7 +903,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/*
 		 * Persist the validated, canonical reaction key rather than the raw
 		 * request content, so stored values stay consistent for grouping and
-		 * counting (e.g. "<b>2764</b>" is stored as "2764").
+		 * counting (e.g. " 2764" is stored as "2764").
 		 */
 		if ( null !== $reaction_key ) {
 			$prepared_comment['comment_content'] = $reaction_key;
@@ -1045,7 +1073,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 			$duplicates = array();
 			foreach ( $matching as $candidate ) {
-				if ( wp_strip_all_tags( $candidate->comment_content ) === $reaction_key ) {
+				if ( $candidate->comment_content === $reaction_key ) {
 					$duplicates[] = (int) $candidate->comment_ID;
 				}
 			}
@@ -2370,7 +2398,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			if ( $user_rows ) {
 				foreach ( $user_rows as $row ) {
-					$key                  = (int) $row->comment_parent . ':' . wp_strip_all_tags( $row->comment_content );
+					$key                  = (int) $row->comment_parent . ':' . $row->comment_content;
 					$my_reactions[ $key ] = (int) $row->comment_ID;
 				}
 			}
@@ -2386,9 +2414,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		foreach ( $counts as $row ) {
-			$note_id   = (int) $row->comment_parent;
-			$emoji_key = wp_strip_all_tags( $row->comment_content );
-			$key       = $note_id . ':' . $emoji_key;
+			$emoji_key = $row->comment_content;
+			// Rows written outside this controller may hold anything.
+			if ( ! is_string( $emoji_key ) || ! self::is_reaction_key( $emoji_key ) ) {
+				continue;
+			}
+
+			$note_id = (int) $row->comment_parent;
+			$key     = $note_id . ':' . $emoji_key;
 
 			$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
 				'count'                 => (int) $row->reaction_count,
