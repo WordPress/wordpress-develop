@@ -3022,4 +3022,42 @@ HTML;
 			$received
 		);
 	}
+
+	/**
+	 * Ensures that NOSCRIPT elements are removed without losing the content after them.
+	 *
+	 * @ticket 66674
+	 *
+	 * @covers ::wp_kses
+	 *
+	 * @dataProvider data_noscript_elements
+	 *
+	 * @param string $html     Input HTML.
+	 * @param string $expected Expected sanitized HTML.
+	 */
+	public function test_wp_kses_removes_noscript_and_keeps_following_content( $html, $expected ) {
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_noscript_elements() {
+		return array(
+			'Paragraphs around NOSCRIPT'     => array( '<p>Before</p><noscript><img src="a.jpg"></noscript><p>After</p>', '<p>Before</p><p>After</p>' ),
+			'Text around NOSCRIPT'           => array( 'Hello <noscript>Enable JS</noscript> world.', 'Hello  world.' ),
+			'Multiple NOSCRIPT elements'     => array( '<noscript>a</noscript>b<noscript>c</noscript>d', 'bd' ),
+			'Nested NOSCRIPT'                => array( '<noscript><noscript>a</noscript>b</noscript>c', 'c' ),
+			'Uppercase NOSCRIPT'             => array( '<NOSCRIPT>x</NOSCRIPT>y', 'y' ),
+			'Stray NOSCRIPT closer'          => array( 'a</noscript>b', 'ab' ),
+			'Closer inside an attribute'     => array( '<noscript><p title="</noscript><img src=x onerror=alert(1)>"></p></noscript><p>After</p>', '<p>After</p>' ),
+			'Closer inside a comment'        => array( '<noscript><!-- </noscript> --><img src=x onerror=alert(1)></noscript><p>After</p>', '<p>After</p>' ),
+			'Unclosed NOSCRIPT truncates'    => array( '<p>Before</p><noscript><b>x</b>', '<p>Before</p>' ),
+			'Block comments inside NOSCRIPT' => array( '<!-- wp:paragraph --><p>a</p><!-- /wp:paragraph --><noscript><!-- wp:paragraph --></noscript><p>b</p>', '<!-- wp:paragraph --><p>a</p><!-- /wp:paragraph --><p>b</p>' ),
+			'Newline after NOSCRIPT in PRE'  => array( "<pre><noscript>x</noscript>\nline</pre>", "<pre>\n\nline</pre>" ),
+			'NOSCRIPT in MathML'             => array( '<math><noscript>x</noscript></math><p>After</p>', '<math>x</math><p>After</p>' ),
+		);
+	}
 }
