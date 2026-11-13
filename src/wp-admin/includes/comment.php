@@ -56,6 +56,50 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
+	$comment = get_comment( (int) $_POST['comment_ID'] );
+
+	if ( ! $comment ) {
+		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ), 403 );
+	}
+
+	$post_id  = (int) $comment->comment_post_ID;
+	$old_type = strtolower( $comment->comment_type );
+
+	// Reactions are only validated on creation. Removing one is a delete.
+	if ( 'reaction' === $old_type ) {
+		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ), 403 );
+	}
+
+	/*
+	 * A comment cannot become a note or reaction, or stop being one. The new
+	 * type is limited to ASCII because the collation is case- and
+	 * accent-insensitive while core compares types strictly.
+	 */
+	if ( isset( $_POST['comment_type'] ) && $_POST['comment_type'] !== $comment->comment_type ) {
+		$new_type = is_string( $_POST['comment_type'] ) ? $_POST['comment_type'] : '';
+
+		if (
+			! preg_match( '/^[a-z0-9_-]*\z/i', $new_type ) ||
+			'note' === $old_type ||
+			in_array( strtolower( $new_type ), array( 'note', 'reaction' ), true )
+		) {
+			wp_die( __( 'Sorry, you are not allowed to change the comment type.' ), 403 );
+		}
+	}
+
+	/*
+	 * Moving to another post needs edit access there. Without a post,
+	 * 'edit_comment' no longer maps to any post's capabilities. A note
+	 * stays on its post, since its reactions would not follow it.
+	 */
+	if ( isset( $_POST['comment_post_ID'] ) && (int) $_POST['comment_post_ID'] !== $post_id ) {
+		$post_id = (int) $_POST['comment_post_ID'];
+
+		if ( 'note' === $old_type || ! $post_id || ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ), 403 );
+		}
+	}
+
 	if ( isset( $_POST['newcomment_author'] ) ) {
 		$_POST['comment_author'] = $_POST['newcomment_author'];
 	}
@@ -81,9 +125,7 @@ function edit_comment() {
 
 		$_POST['comment_parent'] = $comment_parent;
 
-		$comment = get_comment( $comment_id );
-
-		if ( $comment && $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
+		if ( $comment_parent && $comment_parent !== (int) $comment->comment_parent ) {
 			if ( ! get_option( 'thread_comments' ) ) {
 				return new WP_Error( 'comment_parent_invalid', __( 'The comment parent cannot be changed because threaded comments are disabled.' ) );
 			}
@@ -97,10 +139,10 @@ function edit_comment() {
 			$comment_status      = $_POST['comment_approved'] ?? $comment->comment_approved;
 			$comment_is_approved = in_array( $comment_status, array( 1, '1', 'approve' ), true );
 
-			// The parent must be a comment of the same type, on the same post, and publicly visible if the comment is approved.
+			// The parent must be a comment of the same type, on the post the comment will be on, and publicly visible if the comment is approved.
 			if (
 				! $parent
-				|| (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID
+				|| (int) $parent->comment_post_ID !== $post_id
 				|| $parent->comment_type !== $comment->comment_type
 				|| in_array( $parent_status, array( 'spam', 'trash' ), true )
 				|| ( $comment_is_approved && 'approved' !== $parent_status )
@@ -154,6 +196,19 @@ function edit_comment() {
 				if ( $parent_depth + $subtree_height > $max_thread_depth ) {
 					return new WP_Error( 'comment_parent_invalid', __( 'The comment cannot be moved there because it or its replies would exceed the maximum threading depth.' ) );
 				}
+			}
+		}
+	}
+
+	// The checks above only run when the parent changes. A kept parent must be on the destination post too.
+	if ( $post_id !== (int) $comment->comment_post_ID ) {
+		$kept_parent = (int) ( $_POST['comment_parent'] ?? $comment->comment_parent );
+
+		if ( $kept_parent ) {
+			$parent = get_comment( $kept_parent );
+
+			if ( ! $parent || (int) $parent->comment_post_ID !== $post_id ) {
+				return new WP_Error( 'comment_parent_invalid', __( 'Invalid parent comment.' ) );
 			}
 		}
 	}

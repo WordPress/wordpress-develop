@@ -2654,4 +2654,44 @@ class Tests_Comment extends WP_UnitTestCase {
 			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
 		}
 	}
+
+	/**
+	 * The rules for notes and reactions belong to the request handlers.
+	 * wp_update_comment() stays unrestricted, like other low-level writers.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_wp_update_comment_does_not_restrict_reactions(): void {
+		$post_id     = self::factory()->post->create();
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'      => $reaction_id,
+				'comment_content' => '1f680',
+			),
+			true
+		);
+
+		$this->assertSame( 1, $result );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '1f680', $reaction->comment_content );
+	}
 }
