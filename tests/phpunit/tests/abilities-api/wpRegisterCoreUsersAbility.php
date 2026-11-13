@@ -292,6 +292,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 1, $where['properties']['ids']['items']['minimum'], 'The ids option should contain positive user IDs.' );
+		$this->assertSame( 1, $where['properties']['slugs']['items']['minLength'], 'The slugs option should not contain an empty slug.' );
+		$this->assertSame( 1, $where['properties']['usernames']['items']['minLength'], 'The usernames option should not contain an empty username.' );
 
 		$roles = $where['properties']['roles'];
 
@@ -1603,6 +1605,41 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			'username' => array( 'username', 'core_users_ability_admin' ),
 			'slug'     => array( 'slug', 'core-users-ability-admin' ),
 			'include'  => array( 'include', array( 1 ) ),
+		);
+	}
+
+	/**
+	 * A slug or username list that holds an empty string fails schema validation, even next
+	 * to a value that names a user.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_identifier_lists_with_an_empty_string
+	 *
+	 * @param string   $filter The `where` filter.
+	 * @param string[] $values The values given for the filter.
+	 */
+	public function test_identifier_list_with_an_empty_string_fails_schema_validation( string $filter, array $values ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute( array( 'where' => array( $filter => $values ) ) );
+
+		$this->assertWPError( $result, sprintf( 'An empty string in the %s filter should fail the request.', $filter ) );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), sprintf( 'An empty string in the %s filter should fail schema validation.', $filter ) );
+	}
+
+	/**
+	 * Data provider for slug and username lists that hold an empty string.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_identifier_lists_with_an_empty_string(): array {
+		return array(
+			'empty slug'               => array( 'slugs', array( '' ) ),
+			'empty and valid slug'     => array( 'slugs', array( '', 'core-users-ability-admin' ) ),
+			'empty username'           => array( 'usernames', array( '' ) ),
+			'empty and valid username' => array( 'usernames', array( '', 'core_users_ability_admin' ) ),
 		);
 	}
 

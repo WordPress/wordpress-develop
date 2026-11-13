@@ -703,7 +703,8 @@ final class WP_Abilities_Users {
 							'minItems'    => 1,
 							'maxItems'    => self::MAX_PER_PAGE,
 							'items'       => array(
-								'type' => 'string',
+								'type'      => 'string',
+								'minLength' => 1,
 							),
 							'description' => __( 'Limit results to users with these slugs. If `pagination.per_page` is omitted, every matching user is returned on the first page.' ),
 						),
@@ -713,7 +714,8 @@ final class WP_Abilities_Users {
 							'minItems'    => 1,
 							'maxItems'    => self::MAX_PER_PAGE,
 							'items'       => array(
-								'type' => 'string',
+								'type'      => 'string',
+								'minLength' => 1,
 							),
 							'description' => __( 'Limit results to users with these usernames. Requires permission to list users. If `pagination.per_page` is omitted, every matching user is returned on the first page.' ),
 						),
