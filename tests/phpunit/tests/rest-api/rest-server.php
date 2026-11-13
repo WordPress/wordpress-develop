@@ -2951,6 +2951,18 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 66372
+	 * @dataProvider data_resolve_data_processing
+	 *
+	 * @param array<string, mixed>      $handler       The route handler.
+	 * @param array<string, mixed>|null $route_options The route options.
+	 * @param array<string, bool>       $expected      The expected settings.
+	 */
+	public function test_resolve_data_processing( array $handler, ?array $route_options, array $expected ): void {
+		$this->assertSame( $expected, WP_REST_Server::resolve_data_processing( $handler, $route_options ), 'The settings should be resolved feature by feature.' );
+	}
+
+	/**
 	 * Data provider for test_resolve_data_processing().
 	 *
 	 * @return array<string, array{0: array<string, mixed>, 1: array<string, mixed>|null, 2: array<string, bool>}>
@@ -3021,14 +3033,19 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 66372
-	 * @dataProvider data_resolve_data_processing
+	 * @dataProvider data_data_processing_false_serves_the_data_as_returned
 	 *
-	 * @param array<string, mixed>      $handler       The route handler.
-	 * @param array<string, mixed>|null $route_options The route options.
-	 * @param array<string, bool>       $expected      The expected settings.
+	 * @param mixed  $data     The response data.
+	 * @param string $expected The expected response body.
 	 */
-	public function test_resolve_data_processing( array $handler, ?array $route_options, array $expected ): void {
-		$this->assertSame( $expected, WP_REST_Server::resolve_data_processing( $handler, $route_options ), 'The settings should be resolved feature by feature.' );
+	public function test_data_processing_false_serves_the_data_as_returned( $data, string $expected ): void {
+		$this->register_data_processing_route( $data, true, array( 'data_processing' => false ) );
+
+		$_GET['_fields'] = 'a';
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/data-processing' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The data should be served as returned, without links or filtering.' );
 	}
 
 	/**
@@ -3052,23 +3069,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'string'            => array( 'value', '"value"' ),
 			'integer'           => array( 5, '5' ),
 		);
-	}
-
-	/**
-	 * @ticket 66372
-	 * @dataProvider data_data_processing_false_serves_the_data_as_returned
-	 *
-	 * @param mixed  $data     The response data.
-	 * @param string $expected The expected response body.
-	 */
-	public function test_data_processing_false_serves_the_data_as_returned( $data, string $expected ): void {
-		$this->register_data_processing_route( $data, true, array( 'data_processing' => false ) );
-
-		$_GET['_fields'] = 'a';
-		$_GET['_embed']  = '1';
-		rest_get_server()->serve_request( '/test-ns/data-processing' );
-
-		$this->assertSame( $expected, rest_get_server()->sent_body, 'The data should be served as returned, without links or filtering.' );
 	}
 
 	/**
@@ -3114,20 +3114,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_data_processing_links_false_leaves_out_the_links().
-	 *
-	 * @return array<string, array{0: mixed, 1: string}>
-	 */
-	public static function data_data_processing_links_false_leaves_out_the_links(): array {
-		return array(
-			'associative array' => array( array( 'a' => 1 ), '{"a":1}' ),
-			'list'              => array( array( 'a', 'b' ), '["a","b"]' ),
-			'empty object'      => array( new stdClass(), '{}' ),
-			'string'            => array( 'value', '"value"' ),
-		);
-	}
-
-	/**
 	 * @ticket 66372
 	 * @dataProvider data_data_processing_links_false_leaves_out_the_links
 	 *
@@ -3141,6 +3127,20 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		rest_get_server()->serve_request( '/test-ns/data-processing' );
 
 		$this->assertSame( $expected, rest_get_server()->sent_body, 'The response links should not be added or embedded.' );
+	}
+
+	/**
+	 * Data provider for test_data_processing_links_false_leaves_out_the_links().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_data_processing_links_false_leaves_out_the_links(): array {
+		return array(
+			'associative array' => array( array( 'a' => 1 ), '{"a":1}' ),
+			'list'              => array( array( 'a', 'b' ), '["a","b"]' ),
+			'empty object'      => array( new stdClass(), '{}' ),
+			'string'            => array( 'value', '"value"' ),
+		);
 	}
 
 	/**
@@ -3210,21 +3210,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_handler_setting_takes_precedence_over_route_setting().
-	 *
-	 * @return array<string, array{0: array<string, mixed>, 1: array<string, mixed>, 2: string[]}>
-	 */
-	public static function data_handler_setting_takes_precedence_over_route_setting(): array {
-		return array(
-			'route false'                              => array( array(), array( 'data_processing' => false ), array( 'a', 'b' ) ),
-			'route false and handler true'             => array( array( 'data_processing' => true ), array( 'data_processing' => false ), array( 'a', '_links' ) ),
-			'route false and handler fields'           => array( array( 'data_processing' => array( 'fields' => true ) ), array( 'data_processing' => false ), array( 'a' ) ),
-			'route fields false and handler links off' => array( array( 'data_processing' => array( 'links' => false ) ), array( 'data_processing' => array( 'fields' => false ) ), array( 'a', 'b' ) ),
-			'route links false and handler fields off' => array( array( 'data_processing' => array( 'fields' => false ) ), array( 'data_processing' => array( 'links' => false ) ), array( 'a', 'b' ) ),
-		);
-	}
-
-	/**
 	 * @ticket 66372
 	 * @dataProvider data_handler_setting_takes_precedence_over_route_setting
 	 *
@@ -3248,6 +3233,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data = json_decode( rest_get_server()->sent_body, true );
 
 		$this->assertSame( $expected_keys, array_keys( $data ), 'The handler setting should take precedence over the route setting, feature by feature.' );
+	}
+
+	/**
+	 * Data provider for test_handler_setting_takes_precedence_over_route_setting().
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: array<string, mixed>, 2: string[]}>
+	 */
+	public static function data_handler_setting_takes_precedence_over_route_setting(): array {
+		return array(
+			'route false'                              => array( array(), array( 'data_processing' => false ), array( 'a', 'b' ) ),
+			'route false and handler true'             => array( array( 'data_processing' => true ), array( 'data_processing' => false ), array( 'a', '_links' ) ),
+			'route false and handler fields'           => array( array( 'data_processing' => array( 'fields' => true ) ), array( 'data_processing' => false ), array( 'a' ) ),
+			'route fields false and handler links off' => array( array( 'data_processing' => array( 'links' => false ) ), array( 'data_processing' => array( 'fields' => false ) ), array( 'a', 'b' ) ),
+			'route links false and handler fields off' => array( array( 'data_processing' => array( 'fields' => false ) ), array( 'data_processing' => array( 'links' => false ) ), array( 'a', 'b' ) ),
+		);
 	}
 
 	/**
@@ -3289,24 +3289,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_data_processing_applies_to_hijacked_responses().
-	 *
-	 * @return array<string, array{0: mixed, 1: string}>
-	 */
-	public static function data_data_processing_applies_to_hijacked_responses(): array {
-		return array(
-			'associative array' => array(
-				array(
-					'a' => 1,
-					'b' => 2,
-				),
-				'{"a":1,"b":2}',
-			),
-			'string'            => array( 'value', '"value"' ),
-		);
-	}
-
-	/**
 	 * @ticket 66372
 	 * @dataProvider data_data_processing_applies_to_hijacked_responses
 	 *
@@ -3328,6 +3310,24 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		rest_get_server()->serve_request( '/test-ns/data-processing' );
 
 		$this->assertSame( $expected, rest_get_server()->sent_body, 'A response returned by rest_pre_dispatch should follow the settings of the route it was returned for.' );
+	}
+
+	/**
+	 * Data provider for test_data_processing_applies_to_hijacked_responses().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_data_processing_applies_to_hijacked_responses(): array {
+		return array(
+			'associative array' => array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				'{"a":1,"b":2}',
+			),
+			'string'            => array( 'value', '"value"' ),
+		);
 	}
 
 	/**
@@ -3434,6 +3434,31 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 66372
+	 * @dataProvider data_response_set_data_processing
+	 *
+	 * @param mixed               $processing The setting, in the form of the `data_processing` option.
+	 * @param array<string, bool> $expected   The expected settings of the response.
+	 */
+	public function test_response_set_data_processing( $processing, array $expected ): void {
+		$response = new WP_REST_Response();
+
+		$this->assertSame(
+			array(
+				'fields' => true,
+				'embed'  => true,
+				'links'  => true,
+			),
+			$response->get_data_processing(),
+			'A new response should have every feature on.'
+		);
+
+		$response->set_data_processing( $processing );
+
+		$this->assertSame( $expected, $response->get_data_processing(), 'The setting should be resolved like the route option.' );
+	}
+
+	/**
 	 * Data provider for test_response_set_data_processing().
 	 *
 	 * @return array<string, array{0: mixed, 1: array<string, bool>}>
@@ -3477,27 +3502,17 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 66372
-	 * @dataProvider data_response_set_data_processing
+	 * @dataProvider data_data_processing_applies_to_preloaded_requests
 	 *
-	 * @param mixed               $processing The setting, in the form of the `data_processing` option.
-	 * @param array<string, bool> $expected   The expected settings of the response.
+	 * @param mixed  $data     The response data.
+	 * @param string $expected The expected JSON encoding of the preloaded body.
 	 */
-	public function test_response_set_data_processing( $processing, array $expected ): void {
-		$response = new WP_REST_Response();
+	public function test_data_processing_applies_to_preloaded_requests( $data, string $expected ): void {
+		$this->register_data_processing_route( $data, true, array( 'data_processing' => false ) );
 
-		$this->assertSame(
-			array(
-				'fields' => true,
-				'embed'  => true,
-				'links'  => true,
-			),
-			$response->get_data_processing(),
-			'A new response should have every feature on.'
-		);
+		$preload = rest_preload_api_request( array(), '/test-ns/data-processing?_fields=a&_embed=1' );
 
-		$response->set_data_processing( $processing );
-
-		$this->assertSame( $expected, $response->get_data_processing(), 'The setting should be resolved like the route option.' );
+		$this->assertSame( $expected, wp_json_encode( $preload['/test-ns/data-processing?_fields=a&_embed=1']['body'] ), 'The preloaded body should be the data as returned.' );
 	}
 
 	/**
@@ -3517,21 +3532,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'empty object'      => array( new stdClass(), '{}' ),
 			'string'            => array( 'value', '"value"' ),
 		);
-	}
-
-	/**
-	 * @ticket 66372
-	 * @dataProvider data_data_processing_applies_to_preloaded_requests
-	 *
-	 * @param mixed  $data     The response data.
-	 * @param string $expected The expected JSON encoding of the preloaded body.
-	 */
-	public function test_data_processing_applies_to_preloaded_requests( $data, string $expected ): void {
-		$this->register_data_processing_route( $data, true, array( 'data_processing' => false ) );
-
-		$preload = rest_preload_api_request( array(), '/test-ns/data-processing?_fields=a&_embed=1' );
-
-		$this->assertSame( $expected, wp_json_encode( $preload['/test-ns/data-processing?_fields=a&_embed=1']['body'] ), 'The preloaded body should be the data as returned.' );
 	}
 
 	/**
@@ -3633,23 +3633,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_non_array_data_is_served_as_returned_by_default().
-	 *
-	 * @return array<string, array{0: mixed, 1: bool, 2: string}>
-	 */
-	public static function data_non_array_data_is_served_as_returned_by_default(): array {
-		return array(
-			'string'          => array( 'value', true, '"value"' ),
-			'integer'         => array( 5, true, '5' ),
-			'object'          => array( (object) array( 'b' => 2 ), true, '{"b":2}' ),
-			'empty object'    => array( new stdClass(), true, '{}' ),
-			'list of scalars' => array( array( 'a', 'b' ), false, '["a","b"]' ),
-			'mixed list'      => array( array( array( 'b' => 2 ), 'c' ), false, '[[],"c"]' ),
-			'list of objects' => array( array( (object) array( 'b' => 2 ) ), false, '[{"b":2}]' ),
-		);
-	}
-
-	/**
 	 * @ticket 66372
 	 * @dataProvider data_non_array_data_is_served_as_returned_by_default
 	 *
@@ -3665,5 +3648,22 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		rest_get_server()->serve_request( '/test-ns/data-processing' );
 
 		$this->assertSame( $expected, rest_get_server()->sent_body, 'Data without fields, or items without fields, should be served as returned.' );
+	}
+
+	/**
+	 * Data provider for test_non_array_data_is_served_as_returned_by_default().
+	 *
+	 * @return array<string, array{0: mixed, 1: bool, 2: string}>
+	 */
+	public static function data_non_array_data_is_served_as_returned_by_default(): array {
+		return array(
+			'string'          => array( 'value', true, '"value"' ),
+			'integer'         => array( 5, true, '5' ),
+			'object'          => array( (object) array( 'b' => 2 ), true, '{"b":2}' ),
+			'empty object'    => array( new stdClass(), true, '{}' ),
+			'list of scalars' => array( array( 'a', 'b' ), false, '["a","b"]' ),
+			'mixed list'      => array( array( array( 'b' => 2 ), 'c' ), false, '[[],"c"]' ),
+			'list of objects' => array( array( (object) array( 'b' => 2 ) ), false, '[{"b":2}]' ),
+		);
 	}
 }
