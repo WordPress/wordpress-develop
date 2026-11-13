@@ -1412,6 +1412,7 @@ function wp_list_pages( $args = '' ) {
  * @since 2.7.0
  * @since 4.4.0 Added `menu_id`, `container`, `before`, `after`, and `walker` arguments.
  * @since 4.7.0 Added the `item_spacing` argument.
+ * @since 7.2.0 The `exclude` argument now accepts an array of page IDs.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a page menu. See wp_list_pages() for additional arguments.
