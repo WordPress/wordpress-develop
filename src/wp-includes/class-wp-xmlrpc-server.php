@@ -6176,6 +6176,10 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 500, __( 'Sorry, the post could not be updated.' ) );
 		}
 
+		if ( isset( $content_struct['categories'] ) && is_array( $content_struct['categories'] ) && empty( $content_struct['categories'] ) ) {
+			wp_set_post_categories( $post_id, array() );
+		}
+
 		// Only posts can be sticky.
 		if ( 'post' === $post_type && isset( $content_struct['sticky'] ) ) {
 			$data              = $newpost;
