@@ -743,6 +743,23 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that ability results are prepared for JSON clients.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_output_is_prepared_for_json_clients
+	 *
+	 * @param string $ability_name The ability name.
+	 * @param string $expected     The expected encoded result.
+	 */
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
+		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
+	}
+
+	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
 	 * @return array<string, array{0: string, 1: string}>
@@ -758,23 +775,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
 			'string'                  => array( 'test/string-output', '"value"' ),
 		);
-	}
-
-	/**
-	 * Tests that ability results are prepared for JSON clients.
-	 *
-	 * @ticket 66267
-	 * @dataProvider data_output_is_prepared_for_json_clients
-	 *
-	 * @param string $ability_name The ability name.
-	 * @param string $expected     The expected encoded result.
-	 */
-	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
-		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
-		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
 	}
 
 	/**

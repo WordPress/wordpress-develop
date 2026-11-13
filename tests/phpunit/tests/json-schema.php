@@ -139,6 +139,25 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty default on an object schema is sent to clients as a JSON object.
+	 *
+	 * An empty PHP array is encoded as `[]`, which does not match an object schema.
+	 * Defaults that allow arrays stay unchanged.
+	 *
+	 * @ticket 66267
+	 *
+	 * @dataProvider data_wp_prepare_json_schema_for_client_encodes_default
+	 *
+	 * @param array<string, mixed> $schema   The schema to prepare.
+	 * @param string               $expected The expected JSON for the default.
+	 */
+	public function test_wp_prepare_json_schema_for_client_encodes_default( $schema, $expected ) {
+		$prepared = wp_prepare_json_schema_for_client( $schema );
+
+		$this->assertSame( $expected, wp_json_encode( $prepared['default'] ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{0: array<string, mixed>, 1: string}> Schemas, and the JSON their default is encoded as.
@@ -195,25 +214,6 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				'[]',
 			),
 		);
-	}
-
-	/**
-	 * Tests that an empty default on an object schema is sent to clients as a JSON object.
-	 *
-	 * An empty PHP array is encoded as `[]`, which does not match an object schema.
-	 * Defaults that allow arrays stay unchanged.
-	 *
-	 * @ticket 66267
-	 *
-	 * @dataProvider data_wp_prepare_json_schema_for_client_encodes_default
-	 *
-	 * @param array<string, mixed> $schema   The schema to prepare.
-	 * @param string               $expected The expected JSON for the default.
-	 */
-	public function test_wp_prepare_json_schema_for_client_encodes_default( $schema, $expected ) {
-		$prepared = wp_prepare_json_schema_for_client( $schema );
-
-		$this->assertSame( $expected, wp_json_encode( $prepared['default'] ) );
 	}
 
 	/**
@@ -873,20 +873,6 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_nested_array_branch_preference().
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: array}>
-	 */
-	public static function data_nested_array_branch_preference() {
-		return array(
-			'anyOf within anyOf, empty' => array( 'anyOf', 'anyOf', array() ),
-			'oneOf within oneOf, empty' => array( 'oneOf', 'oneOf', array() ),
-			'oneOf within anyOf, list'  => array( 'anyOf', 'oneOf', array( array() ) ),
-			'anyOf within oneOf, list'  => array( 'oneOf', 'anyOf', array( array() ) ),
-		);
-	}
-
-	/**
 	 * Tests that array preference requires a matching nested array branch.
 	 *
 	 * @ticket 66267
@@ -927,6 +913,20 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$this->assertSame(
 			empty( $value ) ? '{}' : '[{}]',
 			wp_json_encode( wp_prepare_json_value_for_client( $value, $schema ) )
+		);
+	}
+
+	/**
+	 * Data provider for test_nested_array_branch_preference().
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: array}>
+	 */
+	public static function data_nested_array_branch_preference() {
+		return array(
+			'anyOf within anyOf, empty' => array( 'anyOf', 'anyOf', array() ),
+			'oneOf within oneOf, empty' => array( 'oneOf', 'oneOf', array() ),
+			'oneOf within anyOf, list'  => array( 'anyOf', 'oneOf', array( array() ) ),
+			'anyOf within oneOf, list'  => array( 'oneOf', 'anyOf', array( array() ) ),
 		);
 	}
 
@@ -1022,6 +1022,21 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests whether a value matches a schema through a given type.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_wp_json_schema_matches_type
+	 *
+	 * @param mixed                $value    The value to validate.
+	 * @param array<string, mixed> $schema   The schema to inspect.
+	 * @param string               $type     The type to match.
+	 * @param bool                 $expected Whether the value is expected to match.
+	 */
+	public function test_wp_json_schema_matches_type( $value, $schema, $type, $expected ) {
+		$this->assertSame( $expected, _wp_json_schema_matches_type( $value, $schema, $type ) );
+	}
+
+	/**
 	 * Data provider for test_wp_json_schema_matches_type().
 	 *
 	 * @return array<string, array{0: mixed, 1: array<string, mixed>, 2: string, 3: bool}>
@@ -1050,20 +1065,5 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				false,
 			),
 		);
-	}
-
-	/**
-	 * Tests whether a value matches a schema through a given type.
-	 *
-	 * @ticket 66267
-	 * @dataProvider data_wp_json_schema_matches_type
-	 *
-	 * @param mixed                $value    The value to validate.
-	 * @param array<string, mixed> $schema   The schema to inspect.
-	 * @param string               $type     The type to match.
-	 * @param bool                 $expected Whether the value is expected to match.
-	 */
-	public function test_wp_json_schema_matches_type( $value, $schema, $type, $expected ) {
-		$this->assertSame( $expected, _wp_json_schema_matches_type( $value, $schema, $type ) );
 	}
 }
