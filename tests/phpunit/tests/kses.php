@@ -747,9 +747,10 @@ EOF;
 		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
 		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
 			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
 			'The class allowance is scoped to spans; links keep the default sanitization.'
 		);
 	}
