@@ -1343,7 +1343,7 @@ function wp_list_pages( $args = '' ) {
 	$output       = '';
 	$current_page = 0;
 
-	$exclude_array = array_map( 'strval', wp_parse_id_list( $parsed_args['exclude'] ) );
+	$exclude_array = array_map( 'strval', array_values( wp_parse_id_list( $parsed_args['exclude'] ) ) );
 
 	/**
 	 * Filters the array of pages to exclude from the pages list.
@@ -1351,7 +1351,7 @@ function wp_list_pages( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string[] $exclude_array An array of page IDs to exclude.
-	 * @phpstan-param numeric-string[] $exclude_array
+	 * @phpstan-param list<numeric-string> $exclude_array
 	 */
 	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
 
