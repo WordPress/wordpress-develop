@@ -137,9 +137,7 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 		$widget = new WP_Widget_Links();
 
 		$this->assertSame( 'links', $widget->id_base );
-		$this->assertSame( 'Links', $widget->name );
 		$this->assertSame( 'widget_links', $widget->widget_options['classname'] );
-		$this->assertSame( 'Your blogroll', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 	}
 

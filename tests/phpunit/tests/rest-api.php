@@ -906,7 +906,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_url_generation() {
 		// In pretty permalinks case, we expect a path of wp-json/ with no query.
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-json/', get_rest_url() );
 
 		// In index permalinks case, we expect a path of index.php/wp-json/ with no query.
@@ -991,7 +990,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_check_jsonp_callback( $callback ) );
 	}
 
-	public function data_jsonp_callback_check() {
+	public static function data_jsonp_callback_check() {
 		return array(
 			// Standard names.
 			array( 'Springfield', true ),
@@ -1016,7 +1015,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_parse_date( $date ) );
 	}
 
-	public function data_rest_parse_date() {
+	public static function data_rest_parse_date() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
@@ -1048,7 +1047,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_parse_date( $date, true ) );
 	}
 
-	public function data_rest_parse_date_force_utc() {
+	public static function data_rest_parse_date_force_utc() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
@@ -1162,7 +1161,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_parse_embed_param( $embed ) );
 	}
 
-	public function data_rest_parse_embed_param() {
+	public static function data_rest_parse_embed_param() {
 		return array(
 			array( true, '' ),
 			array( true, null ),
@@ -1280,7 +1279,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertTrue( $registered );
 	}
 
-	public function data_rest_filter_response_by_context() {
+	public static function data_rest_filter_response_by_context() {
 		return array(
 			'default'                                      => array(
 				array(
@@ -1953,7 +1952,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
 		$response = rest_ensure_response( new WP_Error() );
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 	}
 
 	/**
@@ -1973,7 +1972,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_rest_ensure_response_returns_instance_of_wp_rest_response() {
+	public static function data_rest_ensure_response_returns_instance_of_wp_rest_response() {
 		return array(
 			array( null, null ),
 			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
@@ -2087,6 +2086,22 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65819
+	 */
+	public function test_rest_get_route_for_post_filter() {
+		$post = self::factory()->post->create_and_get();
+
+		add_filter(
+			'rest_route_for_post',
+			static function () {
+				return '/custom/route';
+			}
+		);
+
+		$this->assertSame( '/custom/route', rest_get_route_for_post( $post ) );
+	}
+
+	/**
 	 * @ticket 49116
 	 */
 	public function test_rest_get_route_for_term_non_term() {
@@ -2134,6 +2149,23 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_get_route_for_term_id() {
 		$term = self::factory()->term->create_and_get();
 		$this->assertSame( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
+
+	/**
+	 * @ticket 65819
+	 * @covers ::rest_get_route_for_term
+	 */
+	public function test_rest_get_route_for_term_filter() {
+		$term = self::factory()->category->create_and_get();
+
+		add_filter(
+			'rest_route_for_term',
+			static function () {
+				return '/custom/term-route';
+			}
+		);
+
+		$this->assertSame( '/custom/term-route', rest_get_route_for_term( $term ) );
 	}
 
 	/**
@@ -2198,7 +2230,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_rest_is_object() {
+	public static function data_rest_is_object() {
 		return array(
 			array(
 				true,
@@ -2256,7 +2288,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function data_rest_sanitize_object() {
+	public static function data_rest_sanitize_object() {
 		return array(
 			array(
 				array(),
@@ -2319,7 +2351,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_rest_is_array() {
+	public static function data_rest_is_array() {
 		return array(
 			array(
 				true,
@@ -2385,7 +2417,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, $sanitized );
 	}
 
-	public function data_rest_sanitize_array() {
+	public static function data_rest_sanitize_array() {
 		return array(
 			array(
 				array(),
@@ -2502,7 +2534,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *     2?: int,  // $expected_sanitized
 	 * }>
 	 */
-	public function data_rest_is_integer(): array {
+	public static function data_rest_is_integer(): array {
 		return array(
 			array(
 				true,
@@ -2720,7 +2752,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertSame( $expected, rest_get_best_type_for_value( $value, $types ) );
 	}
 
-	public function data_get_best_type_for_value() {
+	public static function data_get_best_type_for_value() {
 		return array(
 			array(
 				'array',
@@ -2856,7 +2888,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_rest_preload_api_request_embeds_links() {
+	public static function data_rest_preload_api_request_embeds_links() {
 		return array(
 			array( '_embed=wp:term,author', array( 'wp:term', 'author' ), array( 'replies' ) ),
 			array( '_embed[]=wp:term&_embed[]=author', array( 'wp:term', 'author' ), array( 'replies' ) ),

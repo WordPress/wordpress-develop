@@ -48,7 +48,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	public function test_login_rejects_non_scalar_credentials( $username, $password ): void {
 		$this->make_user_by_role( 'subscriber' );
 
-		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) ); // @phpstan-ignore argument.type, argument.type (Non-string arguments passed intentionally to test error scenario.)
+		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 400, $this->myxmlrpcserver->error->code );
 
@@ -66,6 +66,8 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 			'array username'      => array( array( 'subscriber' ), 'subscriber' ),
 			'array password'      => array( 'subscriber', array( 'subscriber' ) ),
 			'IXR_Base64 password' => array( 'subscriber', new IXR_Base64( 'subscriber' ) ),
+			'null username'       => array( null, 'subscriber' ),
+			'null password'       => array( 'subscriber', null ),
 		);
 	}
 
@@ -80,6 +82,28 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertFalse( $this->myxmlrpcserver->login( 12345, 67890 ) );
 		$this->assertIXRError( $this->myxmlrpcserver->error );
 		$this->assertSame( 403, $this->myxmlrpcserver->error->code );
+	}
+
+	/**
+	 * Tests that numeric credentials, which XML-RPC sends as `<int>` values,
+	 * continue to authenticate.
+	 *
+	 * @ticket 65600
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 */
+	public function test_login_with_integer_credentials_succeeds(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_login' => '12345',
+				'user_pass'  => '67890',
+				'role'       => 'subscriber',
+			)
+		);
+
+		$user = $this->myxmlrpcserver->login( 12345, 67890 );
+		$this->assertInstanceOf( WP_User::class, $user, 'The login should succeed.' );
+		$this->assertSame( $user_id, $user->ID, 'The login should authenticate the user with the matching credentials.' );
 	}
 
 	/**
@@ -297,6 +321,113 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertArrayHasKey( 'faultCode', $result[0] );
 		$this->assertSame( -32600, $result[0]['faultCode'] );
 		$this->assertSame( array( 'Hello!' ), $result[1] );
+	}
+
+	/**
+	 * Tests that a multicall entry returning a non-object result is not treated as an error.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_Server::multiCall
+	 *
+	 * @dataProvider data_multicall_with_non_object_result
+	 *
+	 * @param mixed $value The value the method returns.
+	 */
+	public function test_multicall_with_non_object_result( $value ): void {
+		$this->myxmlrpcserver->callbacks = array(
+			'test.echo' => array( $this, 'echo_args' ),
+		);
+
+		$result = $this->myxmlrpcserver->multiCall(
+			array(
+				array(
+					'methodName' => 'test.echo',
+					'params'     => array( $value ),
+				),
+			)
+		);
+
+		$this->assertSame( array( array( $value ) ), $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_multicall_with_non_object_result(): array {
+		return array(
+			'string'           => array( 'IXR_Error' ),
+			'integer'          => array( 42 ),
+			'boolean'          => array( true ),
+			'non-struct array' => array( array( 'IXR_Error' ) ),
+		);
+	}
+
+	/**
+	 * Tests that the introspection server rejects a non-object argument for a date parameter.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_IntrospectionServer::call
+	 *
+	 * @dataProvider data_introspection_server_rejects_non_date_argument
+	 *
+	 * @param mixed $arg The argument passed for the date parameter.
+	 */
+	public function test_introspection_server_rejects_non_date_argument( $arg ): void {
+		$server = new IXR_IntrospectionServer();
+		$server->addCallback( 'test.echo', array( $this, 'echo_args' ), array( 'string', 'dateTime.iso8601' ), 'Echoes a date.' );
+
+		$result = $server->call( 'test.echo', array( $arg ) );
+
+		$this->assertIXRError( $result, 'A non-date argument should return an IXR_Error.' );
+		$this->assertSame( -32602, $result->code, 'The error code should indicate invalid method parameters.' );
+		$this->assertSame( 'server error. invalid method parameters', $result->message, 'The error message should indicate an invalid parameter type rather than a wrong parameter count.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_introspection_server_rejects_non_date_argument(): array {
+		return array(
+			'date string' => array( '20261030T12:00:00' ),
+			'class name'  => array( 'IXR_Date' ),
+			'integer'     => array( 1793361600 ),
+		);
+	}
+
+	/**
+	 * Tests that the introspection server accepts an IXR_Date argument for a date parameter.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_IntrospectionServer::call
+	 */
+	public function test_introspection_server_accepts_date_argument(): void {
+		$server = new IXR_IntrospectionServer();
+		$server->addCallback( 'test.echo', array( $this, 'echo_args' ), array( 'string', 'dateTime.iso8601' ), 'Echoes a date.' );
+
+		$date   = new IXR_Date( '20261030T12:00:00' );
+		$result = $server->call( 'test.echo', array( $date ) );
+
+		$this->assertSame( $date, $result );
+	}
+
+	/**
+	 * Tests that IXR_Value encodes IXR_Date and IXR_Base64 objects as their XML-RPC types, and strings as strings.
+	 *
+	 * @ticket 66418
+	 *
+	 * @covers IXR_Value::calculateType
+	 */
+	public function test_ixr_value_calculate_type(): void {
+		$this->assertSame( 'date', ( new IXR_Value( new IXR_Date( '20261030T12:00:00' ) ) )->calculateType(), 'An IXR_Date object should be typed as a date.' );
+		$this->assertSame( 'base64', ( new IXR_Value( new IXR_Base64( 'data' ) ) )->calculateType(), 'An IXR_Base64 object should be typed as base64.' );
+		$this->assertSame( 'string', ( new IXR_Value( 'IXR_Date' ) )->calculateType(), 'A string matching a class name should be typed as a string.' );
 	}
 
 	/**

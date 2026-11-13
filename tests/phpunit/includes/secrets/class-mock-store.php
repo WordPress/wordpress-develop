@@ -5,7 +5,7 @@
  * Can be told to fail any operation on demand, and records every value it is ever
  * handed so that a test can assert it was never given a plaintext.
  */
-class Mock_Store implements WP_Secrets_Store {
+class Mock_Store extends WP_Secrets_Store {
 
 	/**
 	 * Stored records, keyed by scope and name.
@@ -40,7 +40,7 @@ class Mock_Store implements WP_Secrets_Store {
 
 		$key = $this->key( $name, $network );
 
-		return array_key_exists( $key, $this->records ) ? $this->records[ $key ] : null;
+		return $this->records[ $key ] ?? null;
 	}
 
 	public function set( string $name, array $record, bool $network = false ) {

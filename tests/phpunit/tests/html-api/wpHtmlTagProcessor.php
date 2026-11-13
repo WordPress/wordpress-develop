@@ -2690,6 +2690,7 @@ HTML;
 
 	/**
 	 * @ticket 59209
+	 * @ticket 65846
 	 *
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 *

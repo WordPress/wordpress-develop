@@ -197,7 +197,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_classic_theme_site_editor_home_routes() {
+	public static function data_classic_theme_site_editor_home_routes() {
 		return array(
 			'no p query var'   => array( array() ),
 			'p query var is /' => array( array( 'p' => '/' ) ),
@@ -367,7 +367,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_cross_origin_elements(): array {
+	public static function data_cross_origin_elements(): array {
 		return array(
 			'cross-origin script'              => array(
 				'<script src="https://external.example.com/script.js"></script>',
