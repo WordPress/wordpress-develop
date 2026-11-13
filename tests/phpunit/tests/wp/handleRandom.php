@@ -201,7 +201,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 * @ticket 64498
 	 * @ticket 66625
 	 *
-	 * @dataProvider data_permalinks
+	 * @dataProvider data_request_is_redirected_to_the_permalink_of_the_selected_post
 	 *
 	 * @param string $permalink Permalink of the selected post.
 	 */
@@ -224,7 +224,7 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_permalinks(): array {
+	public static function data_request_is_redirected_to_the_permalink_of_the_selected_post(): array {
 		return array(
 			'permalink on this site'    => array( 'http://' . WP_TESTS_DOMAIN . '/post/' ),
 			'permalink on another site' => array( 'https://elsewhere.example/post/' ),
