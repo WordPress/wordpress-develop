@@ -56,6 +56,26 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Stores a network secret, then edits its stored record directly to override
+	 * fields of its current slot.
+	 *
+	 * @param string               $name    The secret's namespaced name.
+	 * @param array<string, mixed> $current Fields to override in the record's current slot.
+	 */
+	private function store_network_secret_with( string $name, array $current ): void {
+		$this->assertTrue( wp_set_network_secret( $name, 'value' ), "Setting the network secret {$name} to value should succeed." );
+
+		$record = get_site_option( "_wp_network_secret_{$name}" );
+
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertArrayHasKey( 'current', $record, 'The stored record should have a current slot.' );
+		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
+
+		$record['current'] = array_merge( $record['current'], $current );
+		update_site_option( "_wp_network_secret_{$name}", $record );
+	}
+
+	/**
 	 * Ensure that the three Secrets API checks are registered as direct tests with existing methods.
 	 *
 	 * @covers WP_Site_Health::get_tests
@@ -454,6 +474,29 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the undecryptable check reports a network secret that does not decrypt on a single site install.
+	 *
+	 * Network-scope secrets work on a single site, stored alongside site secrets.
+	 *
+	 * @ticket 66692
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers WP_Site_Health::get_test_secrets_api_undecryptable
+	 */
+	public function test_undecryptable_test_includes_network_secrets_on_single_site(): void {
+		$this->skipWithMultisite();
+
+		$this->store_network_secret_with( 'myplugin/api-key', array( 'ct' => base64_encode( 'not decryptable' ) ) );
+		$this->assertWPError( wp_get_network_secret( 'myplugin/api-key' ), 'The network secret myplugin/api-key should no longer decrypt.' );
+
+		$result = ( new WP_Site_Health() )->get_test_secrets_api_undecryptable();
+
+		$this->assertSame( 'critical', $result['status'], 'An undecryptable network secret should produce a critical status.' );
+		$this->assertStringContainsString( 'myplugin/api-key', $result['description'], 'The description should name the undecryptable network secret.' );
+	}
+
+	/**
 	 * Ensure that the rotation check passes for a secret stored directly with wp_set_secret().
 	 *
 	 * @covers WP_Site_Health::get_test_secrets_api_needs_rotation
@@ -479,6 +522,27 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( 'recommended', $result['status'], 'An imported secret should produce a recommended status.' );
 		$this->assertStringContainsString( '1 secret was imported', $result['description'], 'The description should report the number of secrets flagged for rotation.' );
+	}
+
+	/**
+	 * Ensure that the rotation check reports a network secret flagged for rotation on a single site install.
+	 *
+	 * @ticket 66692
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers WP_Site_Health::get_test_secrets_api_needs_rotation
+	 */
+	public function test_needs_rotation_test_includes_network_secrets_on_single_site(): void {
+		$this->skipWithMultisite();
+
+		// Core has no public way to flag a network secret for rotation, so set the flag on the stored record.
+		$this->store_network_secret_with( 'myplugin/api-key', array( 'needs_rotation' => true ) );
+
+		$result = ( new WP_Site_Health() )->get_test_secrets_api_needs_rotation();
+
+		$this->assertSame( 'recommended', $result['status'], 'A network secret flagged for rotation should produce a recommended status.' );
+		$this->assertStringContainsString( '1 secret was imported', $result['description'], 'The description should count the network secret flagged for rotation.' );
 	}
 
 	/**
@@ -563,14 +627,25 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the debug information omits network secret counts on a single site install.
+	 * Ensure that the debug information includes the network secret count on a single site install.
+	 *
+	 * Network-scope secrets work on a single site, stored alongside site secrets.
+	 *
+	 * @ticket 66692
+	 *
+	 * @group ms-excluded
 	 *
 	 * @covers WP_Debug_Data::get_wp_secrets_api
 	 */
-	public function test_debug_info_omits_network_fields_on_single_site(): void {
-		$info = $this->debug_section();
+	public function test_debug_info_includes_network_fields_on_single_site(): void {
+		$this->skipWithMultisite();
 
-		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ), 'Network secret counts should be omitted on a single site install.' );
+		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'value' ), 'Setting the network secret myplugin/api-key to value should succeed.' );
+
+		$fields = $this->debug_fields( $this->debug_section() );
+
+		$this->assertArrayHasKey( 'network_secret_count', $fields, 'Network secret counts should be included on a single site install.' );
+		$this->assertSame( '1', $fields['network_secret_count']['value'], 'The network secret count should be 1.' );
 	}
 
 	/**
