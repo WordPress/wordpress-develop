@@ -107,6 +107,7 @@ class Tests_Admin_Includes_Plugin_UserCanAccessAdminPage extends WP_UnitTestCase
 	 * Tests whether the current user can access the current admin page.
 	 *
 	 * @ticket 65819
+	 * @ticket 50284
 	 *
 	 * @dataProvider data_user_can_access_admin_page
 	 *
@@ -305,6 +306,35 @@ class Tests_Admin_Includes_Plugin_UserCanAccessAdminPage extends WP_UnitTestCase
 					'plugin_page'        => 'orphan',
 					'_registered_pages'  => array( 'admin_page_orphan' => true ),
 					'_wp_submenu_nopriv' => array( 'users.php' => array( 'orphan' => true ) ),
+				),
+				'subscriber',
+				false,
+			),
+
+			// A post type in another menu has no 'post-new.php' item, so it must not inherit the restrictions of the Posts menu.
+			'new post type screen is not blocked by the Posts "Add New" item' => array(
+				array(
+					'pagenow'            => 'post-new.php',
+					'typenow'            => 'book',
+					'_wp_submenu_nopriv' => array( 'edit.php' => array( 'post-new.php' => true ) ),
+				),
+				'subscriber',
+				true,
+			),
+			'edit screen of a post type is not blocked by the Posts "All Posts" item' => array(
+				array(
+					'pagenow'            => 'edit.php',
+					'typenow'            => 'book',
+					'_wp_submenu_nopriv' => array( 'edit.php' => array( 'edit.php' => true ) ),
+				),
+				'subscriber',
+				true,
+			),
+			'new post screen is blocked by the Posts "Add New" item' => array(
+				array(
+					'pagenow'            => 'post-new.php',
+					'typenow'            => 'post',
+					'_wp_submenu_nopriv' => array( 'edit.php' => array( 'post-new.php' => true ) ),
 				),
 				'subscriber',
 				false,
