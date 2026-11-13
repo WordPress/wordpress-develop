@@ -15,7 +15,9 @@ on:
       - '.nvmrc'
       - 'docker-compose.yml'
       - 'phpunit.xml.dist'
+      - 'phpunit10.xml.dist'
       - 'tests/phpunit/multisite.xml'
+      - 'tests/phpunit/multisite10.xml'
   pull_request:
     branches:
       - trunk
@@ -29,7 +31,9 @@ on:
       - '.nvmrc'
       - 'docker-compose.yml'
       - 'phpunit.xml.dist'
+      - 'phpunit10.xml.dist'
       - 'tests/phpunit/multisite.xml'
+      - 'tests/phpunit/multisite10.xml'
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
