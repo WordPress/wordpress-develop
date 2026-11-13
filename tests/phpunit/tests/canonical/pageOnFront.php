@@ -97,13 +97,11 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 	/**
 	 * @ticket 55993
 	 */
-	public function test_paged_posts_page_pretty_permalink_does_not_redirect() {
-		$url = home_url( '/blog-page/page/2/' );
-		$this->go_to( $url );
+	public function test_paged_posts_page_pretty_permalink_keeps_canonical_path() {
+		$this->assertCanonical( '/blog-page/page/2/', '/blog-page/page/2/', 55993 );
 
 		$this->assertTrue( is_home() );
 		$this->assertTrue( is_paged() );
 		$this->assertFalse( is_404() );
-		$this->assertNull( redirect_canonical( $url, false ) );
 	}
 }
