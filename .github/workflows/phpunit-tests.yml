@@ -87,7 +87,7 @@ jobs:
   # Reduce PR testing only for audited Core assets and unrelated companion files.
   select-test-coverage:
     name: Select PHPUnit coverage
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -212,7 +212,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04 ]
+        os: [ ubuntu-26.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4', '9.7' ]
@@ -242,14 +242,14 @@ jobs:
 
         include:
           # Include jobs that test with memcached.
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             php: '8.3'
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: true
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             php: '8.3'
             db-type: 'mysql'
             db-version: '8.4'
@@ -257,14 +257,14 @@ jobs:
             multisite: true
             memcached: true
           # Include jobs with a port on the test domain for both single and multisite.
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             php: '8.4'
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org:8889'
             multisite: false
             memcached: false
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             php: '8.4'
             db-type: 'mysql'
             db-version: '8.4'
@@ -272,7 +272,7 @@ jobs:
             multisite: true
             memcached: false
           # Report test results to the Host Test Results.
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             db-type: 'mysql'
             db-version: '8.4'
             tests-domain: 'example.org'
@@ -324,7 +324,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04 ]
+        os: [ ubuntu-26.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8', '12.3' ]
@@ -355,13 +355,13 @@ jobs:
 
         include:
         # Include jobs that test with memcached.
-        - os: ubuntu-24.04
+        - os: ubuntu-26.04
           php: '8.3'
           db-type: 'mariadb'
           db-version: '12.3'
           multisite: false
           memcached: true
-        - os: ubuntu-24.04
+        - os: ubuntu-26.04
           php: '8.3'
           db-type: 'mariadb'
           db-version: '12.3'
@@ -411,7 +411,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04 ]
+        os: [ ubuntu-26.04 ]
         php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '26.10', '13.0' ]
@@ -588,7 +588,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
