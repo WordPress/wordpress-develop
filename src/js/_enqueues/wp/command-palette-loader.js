@@ -65,8 +65,8 @@
 		}
 
 		return new Promise( ( resolve ) => {
-			script.onload = resolve;
-			script.onerror = resolve;
+			script.onload = () => resolve();
+			script.onerror = () => resolve();
 			document.body.appendChild( script );
 		} );
 	}
@@ -86,8 +86,8 @@
 		}
 
 		return new Promise( ( resolve ) => {
-			style.onload = resolve;
-			style.onerror = resolve;
+			style.onload = () => resolve();
+			style.onerror = () => resolve();
 			document.head.appendChild( style );
 		} );
 	}
@@ -116,11 +116,18 @@
 	 */
 	async function insertPaletteAssets( assets ) {
 		const scripts = Array.from( assets.querySelectorAll( 'script' ) );
-		const styles = Array.from( assets.querySelectorAll( 'link[rel="stylesheet"], style' ) );
+		const styles = Array.from(
+			assets.querySelectorAll( 'link[rel="stylesheet"], style' ),
+			( style ) => /** @type {HTMLLinkElement|HTMLStyleElement} */ ( style )
+		);
 
-		scripts
-			.filter( ( script ) => script.hasAttribute( 'src' ) )
-			.forEach( ( script ) => preloadScript( script.getAttribute( 'src' ) ) );
+		for ( const script of scripts ) {
+			const url = script.getAttribute( 'src' );
+
+			if ( url ) {
+				preloadScript( url );
+			}
+		}
 
 		const stylesLoaded = Promise.all( styles.map( insertStyle ) );
 
@@ -139,7 +146,7 @@
 			return;
 		}
 
-		const template = document.getElementById( TEMPLATE_ID );
+		const template = /** @type {HTMLTemplateElement|null} */ ( document.getElementById( TEMPLATE_ID ) );
 
 		if ( template ) {
 			isLoading = true;
@@ -161,7 +168,7 @@
 	} );
 
 	document.addEventListener( 'click', ( event ) => {
-		if ( ! event.target.closest( TOOLBAR_LINK_SELECTOR ) ) {
+		if ( ! ( event.target instanceof Element ) || ! event.target.closest( TOOLBAR_LINK_SELECTOR ) ) {
 			return;
 		}
 
