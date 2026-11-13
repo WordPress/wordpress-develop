@@ -68,7 +68,7 @@ class WP_Site_Query {
 	 * Taxonomy query container.
 	 *
 	 * @since x.x.x
-	 * @var WP_Tax_Query A taxonomy query instance.
+	 * @var WP_Tax_Query|false A taxonomy query instance, or false when unset.
 	 */
 	public $tax_query = false;
 
