@@ -1504,7 +1504,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						continue;
 					}
 
-					$size_data['source_url'] = $image_src[0];
+					$size_data['source_url'] = str_replace( ' ', '%20', $image_src[0] );
 				}
 				unset( $size_data );
 
@@ -1516,7 +1516,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'width'      => $full_src[1],
 						'height'     => $full_src[2],
 						'mime_type'  => $post->post_mime_type,
-						'source_url' => $full_src[0],
+						'source_url' => str_replace( ' ', '%20', $full_src[0] ),
 					);
 				}
 			} else {
@@ -1539,6 +1539,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( in_array( 'source_url', $fields, true ) ) {
 			$data['source_url'] = wp_get_attachment_url( $post->ID );
+
+			// Encode spaces to match the URLs wp_prepare_attachment_for_js() returns.
+			if ( $data['source_url'] ) {
+				$data['source_url'] = str_replace( ' ', '%20', $data['source_url'] );
+			}
 		}
 
 		if ( in_array( 'missing_image_sizes', $fields, true ) ) {
