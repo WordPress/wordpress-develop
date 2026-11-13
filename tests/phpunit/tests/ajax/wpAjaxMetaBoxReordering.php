@@ -15,7 +15,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_wpAjaxMetaBoxReordering extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * @dataProvider data_meta_box_reordering_states
+	 * @dataProvider data_wp_ajax_meta_box_reordering_saves_user_option
 	 *
 	 * @param int|string $enabled  Whether meta box reordering is enabled.
 	 * @param string     $expected The expected stored user option.
@@ -43,7 +43,7 @@ class Tests_Ajax_wpAjaxMetaBoxReordering extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_meta_box_reordering_states() {
+	public static function data_wp_ajax_meta_box_reordering_saves_user_option() {
 		return array(
 			'enabled'             => array( 1, 'enabled' ),
 			'enabled as string'   => array( '1', 'enabled' ),
