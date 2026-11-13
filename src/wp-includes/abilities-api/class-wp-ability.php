@@ -573,7 +573,8 @@ class WP_Ability {
 	 * unknown properties or cast invalid values, hiding validation errors.
 	 *
 	 * If sanitization produces an error, including in a nested value, an invalid
-	 * input error is returned to prevent execution with unsanitized values.
+	 * input error is returned to prevent execution with unsanitized values. The same
+	 * error is returned when valid input no longer matches the schema once sanitized.
 	 *
 	 * @since 7.2.0
 	 *
@@ -600,6 +601,25 @@ class WP_Ability {
 					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
 					$this->name,
 					$error->get_error_message()
+				)
+			);
+		}
+
+		/*
+		 * Sanitizing can also make valid input invalid, for example by trimming a string
+		 * below its `minLength` or casting an out of range number to an integer. Callbacks
+		 * must not receive input their schema rejects. Input that only passed validation
+		 * through the `wp_ability_validate_input` filter is left as sanitized.
+		 */
+		$sanitized_validity = rest_validate_value_from_schema( $sanitized, $schema, 'input' );
+		if ( is_wp_error( $sanitized_validity ) && true === rest_validate_value_from_schema( $input, $schema, 'input' ) ) {
+			return new WP_Error(
+				'ability_invalid_input',
+				sprintf(
+					/* translators: %1$s ability name, %2$s error message. */
+					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					$this->name,
+					$sanitized_validity->get_error_message()
 				)
 			);
 		}
@@ -704,7 +724,7 @@ class WP_Ability {
 	 * Normalizes the input, validates it against the input schema, and then sanitizes
 	 * it. `execute()` passes the result to the permission and execute callbacks.
 	 * Validation runs before sanitization, so sanitization cannot make invalid input
-	 * valid.
+	 * valid, and input that sanitization makes invalid is rejected.
 	 *
 	 * @since 7.2.0
 	 *
