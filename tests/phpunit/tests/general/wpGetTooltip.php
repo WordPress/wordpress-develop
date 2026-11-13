@@ -295,7 +295,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @ticket 65914
 	 *
-	 * @dataProvider data_button_markup_containing_percent_signs
+	 * @dataProvider data_wp_get_tooltip_preserves_percent_signs_in_button_markup
 	 *
 	 * @param string $button   Button markup containing a percent sign.
 	 * @param string $expected Substring that must be preserved in the output.
@@ -314,41 +314,11 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a percent-encoded URL in anchor markup is not rewritten.
-	 *
-	 * @ticket 65914
-	 *
-	 * @dataProvider data_percent_encoded_hrefs
-	 *
-	 * @param string $href A percent-encoded URL.
-	 */
-	public function test_wp_get_tooltip_preserves_percent_encoding_in_anchor_href( $href ) {
-		$html = wp_get_tooltip(
-			'Helpful text.',
-			array( 'button' => '<a href="' . $href . '">Search</a>' )
-		);
-
-		$this->assertStringContainsString( 'href="' . $href . '"', $html );
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array[]
 	 */
-	public static function data_percent_encoded_hrefs() {
-		return array(
-			'an encoded space' => array( '/wp-admin/edit.php?s=hello%20world' ),
-			'an encoded slash' => array( '/x?p=a%2Fb' ),
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_button_markup_containing_percent_signs() {
+	public static function data_wp_get_tooltip_preserves_percent_signs_in_button_markup() {
 		return array(
 			'a literal percent sign'      => array(
 				'<button type="button">100% done</button>',
@@ -374,6 +344,36 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 				'<button type="button">Use %2$s in your code</button>',
 				'Use %2$s in your code',
 			),
+		);
+	}
+
+	/**
+	 * Tests that a percent-encoded URL in anchor markup is not rewritten.
+	 *
+	 * @ticket 65914
+	 *
+	 * @dataProvider data_wp_get_tooltip_preserves_percent_encoding_in_anchor_href
+	 *
+	 * @param string $href A percent-encoded URL.
+	 */
+	public function test_wp_get_tooltip_preserves_percent_encoding_in_anchor_href( $href ) {
+		$html = wp_get_tooltip(
+			'Helpful text.',
+			array( 'button' => '<a href="' . $href . '">Search</a>' )
+		);
+
+		$this->assertStringContainsString( 'href="' . $href . '"', $html );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_get_tooltip_preserves_percent_encoding_in_anchor_href() {
+		return array(
+			'an encoded space' => array( '/wp-admin/edit.php?s=hello%20world' ),
+			'an encoded slash' => array( '/x?p=a%2Fb' ),
 		);
 	}
 
