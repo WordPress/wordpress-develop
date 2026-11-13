@@ -18,6 +18,8 @@
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
  * @return string[] Array of fields that can be versioned.
+ *
+ * @phpstan-param false $deprecated
  */
 function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	static $fields = null;
@@ -307,6 +309,8 @@ function wp_get_post_autosave( $post_id, $user_id = 0 ) {
  *
  * @param int|WP_Post $post Post ID or post object.
  * @return int|false ID of revision's parent on success, false if not a revision.
+ *
+ * @phpstan-return ( $post is int<min, -1> ? false : false|int<0, max> )
  */
 function wp_is_post_revision( $post ) {
 	$post = wp_get_post_revision( $post );
@@ -712,6 +716,8 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
  *     @type int $latest_id The latest revision post ID or 0 if no revisions exist.
  *     @type int $count     The total count of revisions for the given post.
  * }
+ *
+ * @phpstan-return array{ latest_id: int, count: int<0, max> }|WP_Error
  */
 function wp_get_latest_revision_id_and_total_count( $post = 0 ) {
 	$post = get_post( $post );
@@ -864,13 +870,9 @@ function wp_revisions_to_keep( $post ) {
  * @access private
  *
  * @param WP_Post $post
- * @return WP_Post|false
+ * @return WP_Post
  */
 function _set_preview( $post ) {
-	if ( ! is_object( $post ) ) {
-		return $post;
-	}
-
 	$preview = wp_get_post_autosave( $post->ID );
 
 	if ( is_object( $preview ) ) {

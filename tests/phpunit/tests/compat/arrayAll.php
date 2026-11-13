@@ -5,7 +5,7 @@
  *
  * @covers ::array_all
  */
-class Test_Compat_arrayAll extends WP_UnitTestCase {
+class Tests_Compat_arrayAll extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_all() is always available (either from PHP or WP).
@@ -34,7 +34,7 @@ class Test_Compat_arrayAll extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_all(): array {
+	public static function data_array_all(): array {
 		return array(
 			'empty array'   => array(
 				'expected' => true,

@@ -60,11 +60,13 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 		return data;
 	},
 	/**
+	 * Disposes of the inline uploader and its associated views.
+	 *
 	 * @return {wp.media.view.UploaderInline} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		if ( this.disposing ) {
-			/**
+			/*
 			 * call 'dispose' directly on the parent class
 			 */
 			return View.prototype.dispose.apply( this, arguments );
@@ -79,10 +81,12 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 		return this.remove();
 	},
 	/**
+	 * Disposes of the inline uploader and its associated views.
+	 *
 	 * @return {wp.media.view.UploaderInline} Returns itself to allow chaining.
 	 */
 	remove: function() {
-		/**
+		/*
 		 * call 'remove' directly on the parent class
 		 */
 		var result = View.prototype.remove.apply( this, arguments );
@@ -99,7 +103,9 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 		}
 	},
 	/**
-	 * @return {wp.media.view.UploaderInline}
+	 * Replaces the placeholder with the uploader browser and refreshes the uploader.
+	 *
+	 * @return {void|wp.media.view.UploaderInline} Returns itself to allow chaining.
 	 */
 	ready: function() {
 		var $browser = this.options.$browser,

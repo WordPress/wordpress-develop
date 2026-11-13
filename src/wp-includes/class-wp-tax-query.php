@@ -156,14 +156,13 @@ class WP_Tax_Query {
 				$cleaned_query[]         = $cleaned_clause;
 
 				/*
-				 * Keep a copy of the clause in the flate
+				 * Keep a copy of the clause in the flat
 				 * $queried_terms array, for use in WP_Query.
 				 */
 				if ( ! empty( $cleaned_clause['taxonomy'] ) && 'NOT IN' !== $cleaned_clause['operator'] ) {
 					$taxonomy = $cleaned_clause['taxonomy'];
-					if ( ! isset( $this->queried_terms[ $taxonomy ] ) ) {
-						$this->queried_terms[ $taxonomy ] = array();
-					}
+
+					$this->queried_terms[ $taxonomy ] ??= array();
 
 					/*
 					 * Backward compatibility: Only store the first
@@ -184,9 +183,7 @@ class WP_Tax_Query {
 
 				if ( ! empty( $cleaned_subquery ) ) {
 					// All queries with children must have a relation.
-					if ( ! isset( $cleaned_subquery['relation'] ) ) {
-						$cleaned_subquery['relation'] = 'AND';
-					}
+					$cleaned_subquery['relation'] ??= 'AND';
 
 					$cleaned_query[] = $cleaned_subquery;
 				}
