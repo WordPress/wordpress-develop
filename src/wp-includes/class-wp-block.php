@@ -99,22 +99,6 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
-	 * List of supported block attributes for block bindings.
-	 *
-	 * @since 6.9.0
-	 * @var array
-	 *
-	 * @see WP_Block::process_block_bindings()
-	 */
-	private const BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES = array(
-		'core/paragraph' => array( 'content' ),
-		'core/heading'   => array( 'content' ),
-		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
-		'core/post-date' => array( 'datetime' ),
-	);
-
-	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -238,8 +222,7 @@ class WP_Block {
 	 */
 	public function __get( $name ) {
 		if ( 'attributes' === $name ) {
-			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-				$this->parsed_block['attrs'] :
+			$this->attributes = $this->parsed_block['attrs'] ??
 				array();
 
 			if ( ! is_null( $this->block_type ) ) {
@@ -297,24 +280,7 @@ class WP_Block {
 		$block_type                 = $this->name;
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
-		$supported_block_attributes =
-			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
-			array();
-
-		/**
-		 * Filters the supported block attributes for block bindings.
-		 *
-		 * The dynamic portion of the hook name, `$block_type`, refers to the block type
-		 * whose attributes are being filtered.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
-		 */
-		$supported_block_attributes = apply_filters(
-			"block_bindings_supported_attributes_{$block_type}",
-			$supported_block_attributes
-		);
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
 
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
@@ -345,9 +311,7 @@ class WP_Block {
 			 */
 			foreach ( $supported_block_attributes as $attribute_name ) {
 				// Retain any non-pattern override bindings that might be present.
-				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
-					? $bindings[ $attribute_name ]
-					: array( 'source' => 'core/pattern-overrides' );
+				$updated_bindings[ $attribute_name ] = $bindings[ $attribute_name ] ?? array( 'source' => 'core/pattern-overrides' );
 			}
 			$bindings = $updated_bindings;
 			/*
@@ -400,13 +364,16 @@ class WP_Block {
 	 * Depending on the block attribute name, replace its value in the HTML based on the value provided.
 	 *
 	 * @since 6.5.0
+	 * @since 7.1.0 Added the optional `$inner_block_offsets` parameter.
 	 *
-	 * @param string $block_content  Block content.
-	 * @param string $attribute_name The attribute name to replace.
-	 * @param mixed  $source_value   The value used to replace in the HTML.
+	 * @param string $block_content       Block content.
+	 * @param string $attribute_name      The attribute name to replace.
+	 * @param mixed  $source_value        The value used to replace in the HTML.
+	 * @param int[]  $inner_block_offsets Optional. Byte offsets where each inner block's
+	 *                                    rendered output begins. Default empty array.
 	 * @return string The modified block content.
 	 */
-	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
+	private function replace_html( string $block_content, string $attribute_name, $source_value, array $inner_block_offsets = array() ) {
 		$block_type = $this->block_type;
 		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
 			return $block_content;
@@ -432,9 +399,16 @@ class WP_Block {
 							'tag_name' => $selector,
 						)
 					) ) {
-						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
+						/*
+						 * TODO: Use `WP_HTML_Processor::set_inner_html()` once it's available.
+						 * Any replacement must preserve already-rendered inner block
+						 * markup verbatim (it may come from dynamic blocks), so it
+						 * cannot re-serialize the element's contents. Until an API with
+						 * that guarantee exists, the replacement is spliced by byte
+						 * offset, leaving inner block output untouched.
+						 */
 						$block_reader->release_bookmark( 'iterate-selectors' );
-						$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
+						$block_reader->replace_rich_text( wp_kses_post( $source_value ), $inner_block_offsets );
 						return $block_reader->get_updated_html();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );
@@ -469,30 +443,59 @@ class WP_Block {
 			 * When stopped on a tag opener, replace the content enclosed by it and its
 			 * matching closer with the provided rich text.
 			 *
-			 * @param string $rich_text The rich text to replace the original content with.
+			 * If byte offsets of inner blocks' rendered output are provided, the
+			 * replacement stops at the first inner block found inside the element,
+			 * preserving any markup produced by nested inner blocks (e.g. a List
+			 * block nested inside a List Item).
+			 *
+			 * @param string $rich_text           The rich text to replace the original content with.
+			 * @param int[]  $inner_block_offsets Optional. Byte offsets in the source HTML where
+			 *                                    inner blocks' rendered output begins. Default empty array.
 			 * @return bool True on success.
 			 */
-			public function replace_rich_text( $rich_text ) {
+			public function replace_rich_text( $rich_text, $inner_block_offsets = array() ) {
 				if ( $this->is_tag_closer() || ! $this->expects_closer() ) {
 					return false;
 				}
 
-				$depth = $this->get_current_depth();
+				$depth    = $this->get_current_depth();
+				$tag_name = $this->get_tag();
 
-				$this->set_bookmark( '_wp_block_bindings_tag_opener' );
+				$this->set_bookmark( '_wp_block_bindings' );
 				// The bookmark names are prefixed with `_` so the key below has an extra `_`.
-				$tag_opener = $this->bookmarks['__wp_block_bindings_tag_opener'];
+				$tag_opener = $this->bookmarks['__wp_block_bindings'];
 				$start      = $tag_opener->start + $tag_opener->length;
-				$this->release_bookmark( '_wp_block_bindings_tag_opener' );
 
 				// Find matching tag closer.
 				while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
 				}
 
-				$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-				$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
-				$end         = $tag_closer->start;
-				$this->release_bookmark( '_wp_block_bindings_tag_closer' );
+				if ( ! $this->is_tag_closer() || $tag_name !== $this->get_tag() ) {
+					return false;
+				}
+
+				$this->set_bookmark( '_wp_block_bindings' );
+				$tag_closer = $this->bookmarks['__wp_block_bindings'];
+				$end        = $tag_closer->start;
+
+				/*
+				 * Stop at the first inner block that renders inside this element so
+				 * its markup is preserved. The block's own rich text always precedes
+				 * its inner blocks, so replacing up to the first inner block offset
+				 * replaces only that rich text. Offsets are recorded during render in
+				 * the same byte coordinates as this fragment, and are in ascending
+				 * order, so the first match is the earliest inner block.
+				 *
+				 * The lower bound is inclusive of `$start`: when an inner block
+				 * begins immediately, with no leading rich text, the (empty) rich
+				 * text is still replaced instead of the inner block markup.
+				 */
+				foreach ( $inner_block_offsets as $inner_block_offset ) {
+					if ( $inner_block_offset >= $start && $inner_block_offset < $end ) {
+						$end = $inner_block_offset;
+						break;
+					}
+				}
 
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
 					$start,
@@ -512,6 +515,7 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 * @since 6.5.0 Added block bindings processing.
+	 * @since 7.1.0 Preserve inner blocks when binding a rich text attribute.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -524,6 +528,13 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		$before_wp_enqueue_scripts_count = did_action( 'wp_enqueue_scripts' );
+
+		// Capture the current assets queues.
+		$before_styles_queue         = wp_styles()->queue;
+		$before_scripts_queue        = wp_scripts()->queue;
+		$before_script_modules_queue = wp_script_modules()->get_queue();
 
 		/*
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
@@ -564,6 +575,19 @@ class WP_Block {
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
 		$block_content = '';
 
+		/*
+		 * Byte offsets in $block_content where each inner block's rendered output
+		 * begins. Block bindings rich-text replacement uses these to stop at the
+		 * first inner block inside a selector, so it replaces only the block's own
+		 * rich text and never the markup produced by nested inner blocks.
+		 *
+		 * They are only collected when the block has bound attributes to resolve;
+		 * otherwise they are never read, so recording them would add work to every
+		 * block render for no benefit.
+		 */
+		$inner_block_offsets = array();
+		$collect_offsets     = ! empty( $computed_attributes );
+
 		if ( ! $options['dynamic'] || empty( $this->block_type->skip_inner_blocks ) ) {
 			$index = 0;
 
@@ -571,6 +595,9 @@ class WP_Block {
 				if ( is_string( $chunk ) ) {
 					$block_content .= $chunk;
 				} else {
+					if ( $collect_offsets ) {
+						$inner_block_offsets[] = strlen( $block_content );
+					}
 					$inner_block  = $this->inner_blocks[ $index ];
 					$parent_block = $this;
 
@@ -609,7 +636,23 @@ class WP_Block {
 
 		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
 			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
+				$updated_block_content = $this->replace_html( $block_content, $attribute_name, $source_value, $inner_block_offsets );
+
+				/*
+				 * The offsets describe $block_content as it was assembled. A
+				 * replacement that modifies the markup shifts byte positions, so
+				 * once the content changes the remaining attributes fall back to
+				 * offset-free replacement rather than clamp at a stale position.
+				 * Attributes that leave the markup untouched keep the offsets
+				 * valid: the computed `metadata` attribute produced by a pattern
+				 * overrides `__default` binding has no HTML source, so it must
+				 * not invalidate the offsets for the rich text that follows it.
+				 */
+				if ( $updated_block_content !== $block_content ) {
+					$inner_block_offsets = array();
+				}
+
+				$block_content = $updated_block_content;
 			}
 		}
 
@@ -692,6 +735,50 @@ class WP_Block {
 			// The root interactive block has finished rendering. Time to process directives.
 			$block_content          = wp_interactivity_process_directives( $block_content );
 			$root_interactive_block = null;
+		}
+
+		// Capture the new assets enqueued during rendering, and restore the queues the state prior to rendering.
+		$after_styles_queue         = wp_styles()->queue;
+		$after_scripts_queue        = wp_scripts()->queue;
+		$after_script_modules_queue = wp_script_modules()->get_queue();
+
+		/*
+		 * As a very special case, a dynamic block may in fact include a call to wp_head() (and thus wp_enqueue_scripts()),
+		 * in which all of its enqueued assets are targeting wp_footer. In this case, nothing would be printed, but this
+		 * shouldn't indicate that the just-enqueued assets should be dequeued due to it being an empty block.
+		 */
+		$just_did_wp_enqueue_scripts = ( did_action( 'wp_enqueue_scripts' ) !== $before_wp_enqueue_scripts_count );
+
+		$has_new_styles         = ( $before_styles_queue !== $after_styles_queue );
+		$has_new_scripts        = ( $before_scripts_queue !== $after_scripts_queue );
+		$has_new_script_modules = ( $before_script_modules_queue !== $after_script_modules_queue );
+
+		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty & wp_enqueue_scripts did not fire.
+		if (
+			! $just_did_wp_enqueue_scripts &&
+			( $has_new_styles || $has_new_scripts || $has_new_script_modules ) &&
+			(
+				trim( $block_content ) === '' &&
+				/**
+				 * Filters whether to enqueue assets for a block which has no rendered content.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param bool   $enqueue    Whether to enqueue assets.
+				 * @param string $block_name Block name.
+				 */
+				! (bool) apply_filters( 'enqueue_empty_block_content_assets', false, $this->name )
+			)
+		) {
+			foreach ( array_diff( $after_styles_queue, $before_styles_queue ) as $handle ) {
+				wp_dequeue_style( $handle );
+			}
+			foreach ( array_diff( $after_scripts_queue, $before_scripts_queue ) as $handle ) {
+				wp_dequeue_script( $handle );
+			}
+			foreach ( array_diff( $after_script_modules_queue, $before_script_modules_queue ) as $handle ) {
+				wp_dequeue_script_module( $handle );
+			}
 		}
 
 		return $block_content;

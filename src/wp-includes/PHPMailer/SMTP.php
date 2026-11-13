@@ -34,8 +34,9 @@ class SMTP
      * The PHPMailer SMTP version number.
      *
      * @var string
+     * @deprecated This constant will be removed in PHPMailer 8.0. Use `PHPMailer::VERSION` instead.
      */
-    const VERSION = '6.10.0';
+    const VERSION = '7.2.0';
 
     /**
      * SMTP line break constant.
@@ -205,11 +206,13 @@ class SMTP
         'Haraka' => '/[\d]{3} Message Queued \((.*)\)/',
         'ZoneMTA' => '/[\d]{3} Message queued as (.*)/',
         'Mailjet' => '/[\d]{3} OK queued as (.*)/',
+        'Gsmtp' => '/[\d]{3} 2\.0\.0 OK (.*) - gsmtp/',
     ];
 
     /**
      * Allowed SMTP XCLIENT attributes.
      * Must be allowed by the SMTP server. EHLO response is not checked.
+     * This is a static rather than a constant because PHP 5.5 doesn't allow constant arrays.
      *
      * @see https://www.postfix.org/XCLIENT_README.html
      *
@@ -272,6 +275,14 @@ class SMTP
      * @var string
      */
     protected $last_reply = '';
+
+    /**
+     * The last command sent to the server.
+     * Used to avoid sending QUIT while a DATA command is still in progress.
+     *
+     * @var string
+     */
+    protected $state = '';
 
     /**
      * Output debugging info via a user-selected method.
@@ -493,7 +504,9 @@ class SMTP
         //PHP 5.6.7 dropped inclusion of TLS 1.1 and 1.2 in STREAM_CRYPTO_METHOD_TLS_CLIENT
         //so add them back in manually if we can
         if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
+            // phpcs:ignore PHPCompatibility.Constants.NewConstants.stream_crypto_method_tlsv1_2_clientFound
             $crypto_method |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+            // phpcs:ignore PHPCompatibility.Constants.NewConstants.stream_crypto_method_tlsv1_1_clientFound
             $crypto_method |= STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
         }
 
@@ -632,11 +645,49 @@ class SMTP
                 if (null === $OAuth) {
                     return false;
                 }
-                $oauth = $OAuth->getOauth64();
-
-                //Start authentication
-                if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 ' . $oauth, 235)) {
-                    return false;
+                try {
+                    $oauth = $OAuth->getOauth64();
+                } catch (\Exception $e) {
+                    // We catch all exceptions and convert them to PHPMailer exceptions to be able to
+                    // handle them correctly later
+                    throw new Exception("SMTP authentication error", 0, $e);
+                }
+                /*
+                 * An SMTP command line can have a maximum length of 512 bytes, including the command name,
+                 * so the base64-encoded OAUTH token has a maximum length of:
+                 * 512 - 13 (AUTH XOAUTH2) - 2 (CRLF) = 497 bytes
+                 * If the token is longer than that, the command and the token must be sent separately as described in
+                 * https://www.rfc-editor.org/rfc/rfc4954#section-4
+                 */
+                if ($oauth === '') {
+                    //Sending an empty auth token is legitimate, but it must be encoded as '='
+                    //to indicate it's not a 2-part command
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 =', 235)) {
+                        return false;
+                    }
+                } elseif (strlen($oauth) <= 497) {
+                    //Authenticate using a token in the initial-response part
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2 ' . $oauth, 235)) {
+                        return false;
+                    }
+                } else {
+                    //The token is too long, so we need to send it in two parts.
+                    //Send the auth command without a token and expect a 334
+                    if (!$this->sendCommand('AUTH', 'AUTH XOAUTH2', 334)) {
+                        return false;
+                    }
+                    //Send the token
+                    if (!$this->sendCommand('OAuth TOKEN', $oauth, [235, 334])) {
+                        return false;
+                    }
+                    //If the server answers with 334, send an empty line
+                    //a reply other than a 235 means the authentication failed, so we don't need to send anything else
+                    if (
+                        strpos($this->last_reply, '334') === 0
+                        && !$this->sendCommand('AUTH End', '', 235)
+                    ) {
+                        return false;
+                    }
                 }
                 break;
             default:
@@ -721,12 +772,32 @@ class SMTP
     {
         $this->server_caps = null;
         $this->helo_rply = null;
+        $this->state = '';
         if (is_resource($this->smtp_conn)) {
             //Close the connection and cleanup
             fclose($this->smtp_conn);
             $this->smtp_conn = null; //Makes for cleaner serialization
             $this->edebug('Connection: closed', self::DEBUG_CONNECTION);
         }
+    }
+
+    private function iterateLines($s)
+    {
+        $start = 0;
+        $length = strlen($s);
+
+        for ($i = 0; $i < $length; $i++) {
+            $c = $s[$i];
+            if ($c === "\n" || $c === "\r") {
+                yield substr($s, $start, $i - $start);
+                if ($c === "\r" && $i + 1 < $length && $s[$i + 1] === "\n") {
+                    $i++;
+                }
+                $start = $i + 1;
+            }
+        }
+
+        yield substr($s, $start);
     }
 
     /**
@@ -757,15 +828,16 @@ class SMTP
          * NOTE: this does not count towards line-length limit.
          */
 
-        //Normalize line breaks before exploding
-        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $msg_data));
+        //Iterate over lines with normalized line breaks
+        $lines = $this->iterateLines($msg_data);
 
         /* To distinguish between a complete RFC822 message and a plain message body, we check if the first field
          * of the first line (':' separated) does not contain a space then it _should_ be a header, and we will
          * process all lines before a blank line as headers.
          */
 
-        $field = substr($lines[0], 0, strpos($lines[0], ':'));
+        $first_line = $lines->current();
+        $field = substr($first_line, 0, strpos($first_line, ':'));
         $in_headers = false;
         if (!empty($field) && strpos($field, ' ') === false) {
             $in_headers = true;
@@ -959,7 +1031,12 @@ class SMTP
      */
     public function quit($close_on_error = true)
     {
-        $noerror = $this->sendCommand('QUIT', 'QUIT', 221);
+        if ($this->state === 'DATA') {
+            //The server would take QUIT as part of an unfinished message, so just close the connection
+            $noerror = true;
+        } else {
+            $noerror = $this->sendCommand('QUIT', 'QUIT', 221);
+        }
         $err = $this->error; //Save any error
         if ($noerror || $close_on_error) {
             $this->close();
@@ -1010,7 +1087,38 @@ class SMTP
     }
 
     /**
+     * Encode a string using xtext encoding as defined in RFC 1891 & 3461,
+     * as required for XCLIENT attribute values: any octet outside
+     * printable US-ASCII (33-126), including '+', whitespace, and control
+     * characters, is encoded as '+' followed by two uppercase hexadecimal
+     * digits. Values encoded this way cannot inject additional attributes.
+     *
+     * @param string $value The string to encode
+     *
+     * @return string The xtext-encoded string
+     */
+    public static function xtext($value)
+    {
+        return preg_replace_callback(
+            '/[^\x21-\x7E]|\+/',
+            static function ($matches) {
+                return sprintf('+%02X', ord($matches[0]));
+            },
+            $value
+        );
+    }
+
+    /**
      * Send SMTP XCLIENT command to server and check its return code.
+     * On success the server resets the session to the initial greeting
+     * protocol stage and responds with 220, so a new EHLO is required
+     * before any MAIL command.
+     *
+     * Attribute values are xtext-encoded (RFC 1891 & 3461) before being
+     * sent.
+     *
+     * @see https://www.postfix.org/XCLIENT_README.html
+     * @see https://www.rfc-editor.org/info/rfc3461/#section-4
      *
      * @return bool True on success
      */
@@ -1018,14 +1126,20 @@ class SMTP
     {
         $xclient_options = "";
         foreach ($vars as $key => $value) {
-            if (in_array($key, SMTP::$xclient_allowed_attributes)) {
-                $xclient_options .= " {$key}={$value}";
+            if (!in_array($key, SMTP::$xclient_allowed_attributes)) {
+                $this->setError("Invalid XCLIENT attribute name: $key");
+                return false;
             }
+            if (!is_string($value)) {
+                $this->setError("XCLIENT attribute value for $key must be a string");
+                return false;
+            }
+            $xclient_options .= " {$key}=" . static::xtext($value);
         }
         if (!$xclient_options) {
             return true;
         }
-        return $this->sendCommand('XCLIENT', 'XCLIENT' . $xclient_options, 250);
+        return $this->sendCommand('XCLIENT', 'XCLIENT' . $xclient_options, 220);
     }
 
     /**
@@ -1062,6 +1176,7 @@ class SMTP
 
             return false;
         }
+        $this->state = $command;
         $this->client_send($commandstring . static::LE, $command);
 
         $this->last_reply = $this->get_lines();
@@ -1228,7 +1343,7 @@ class SMTP
      *   3. EHLO has been sent -
      *     $name == 'HELO'|'EHLO': returns the server name
      *     $name == any other string: if extension $name exists, returns True
-     *       or its options (e.g. AUTH mechanisms supported). Otherwise returns False.
+     *       or its options (e.g. AUTH mechanisms supported). Otherwise, returns False.
      *
      * @param string $name Name of SMTP extension or 'HELO'|'EHLO'
      *
@@ -1309,7 +1424,16 @@ class SMTP
 
                 //stream_select returns false when the `select` system call is interrupted
                 //by an incoming signal, try the select again
-                if (stripos($message, 'interrupted system call') !== false) {
+                if (
+                    stripos($message, 'interrupted system call') !== false ||
+                    (
+                        // on applications with a different locale than english, the message above is not found because
+                        // it's translated. So we also check for the SOCKET_EINTR constant which is defined under
+                        // Windows and UNIX-like platforms (if available on the platform).
+                        defined('SOCKET_EINTR') &&
+                        stripos($message, 'stream_select(): Unable to select [' . SOCKET_EINTR . ']') !== false
+                    )
+                ) {
                     $this->edebug(
                         'SMTP -> get_lines(): retrying stream_select',
                         self::DEBUG_LOWLEVEL

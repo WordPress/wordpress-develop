@@ -160,10 +160,28 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Global styles endpoints do not register a context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/global-styles/themes/tt1-blocks' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
@@ -375,7 +393,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item_invalid_theme_dirname() {
+	public static function data_get_theme_item_invalid_theme_dirname() {
 		return array(
 			'+'                      => array(
 				'theme_dirname' => 'my+theme+',
@@ -439,7 +457,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 *
 	 * @return array
 	 */
-	public function data_get_theme_item() {
+	public static function data_get_theme_item() {
 		return array(
 			'alphabetic'                     => array( 'mytheme' ),
 			'alphanumeric'                   => array( 'mythemev1' ),
@@ -571,10 +589,71 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Ensures the version-history link points to the revisions and counts them.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_links
+	 */
+	public function test_get_item_version_history_link(): void {
+		wp_update_post(
+			array(
+				'ID'           => self::$global_styles_id,
+				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true, "styles": { "color": { "text": "red" } } }',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => self::$global_styles_id,
+				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true, "styles": { "color": { "text": "blue" } } }',
+			)
+		);
+		$revisions_count = count( wp_get_post_revisions( self::$global_styles_id ) );
+		$this->assertGreaterThan( 0, $revisions_count, 'Expected the updates to create revisions.' );
+
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'version-history', $links );
+		$this->assertSame( rest_url( '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' ), $links['version-history'][0]['href'] );
+		$this->assertArrayHasKey( 'count', $links['version-history'][0]['attributes'] );
+		$this->assertSame( $revisions_count, $links['version-history'][0]['attributes']['count'] );
+	}
+
+	/**
+	 * Ensures that links are prepared the same from a post ID as from a post object.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_links
+	 */
+	public function test_prepare_links_accepts_post_id_or_object(): void {
+		$controller = new WP_REST_Global_Styles_Controller( 'wp_global_styles' );
+		$post_id    = self::$global_styles_id;
+		$post       = get_post( $post_id );
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		$links_from_id   = Closure::bind( fn () => $this->prepare_links( $post_id ), $controller, $controller )();
+		$links_from_post = Closure::bind( fn () => $this->prepare_links( $post ), $controller, $controller )();
+
+		$this->assertSame( rest_url( '/wp/v2/global-styles/' . $post_id ), $links_from_id['self']['href'] );
+		$this->assertSame( $links_from_id, $links_from_post );
+	}
+
+	/**
+	 * Global styles has no collection create route; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/global-styles' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -650,6 +729,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
 	 * @ticket 57536
+	 * @ticket 64418
 	 */
 	public function test_update_item_invalid_styles_css() {
 		wp_set_current_user( self::$admin_id );
@@ -659,11 +739,30 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$request->set_body_params(
 			array(
-				'styles' => array( 'css' => '<p>test</p> body { color: red; }' ),
+				'styles' => array( 'css' => '</style>' ),
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 65640
+	 */
+	public function test_update_item_non_string_styles_css() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => array( 'body { color: red; }' ) ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_custom_css_invalid_type', $response, 400 );
 	}
 
 	/**
@@ -729,17 +828,76 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Global styles item route is not deletable; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = '/wp/v2/global-styles/' . self::$global_styles_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'id'       => self::$global_styles_id,
+				'title'    => array(
+					'raw'      => 'Custom Styles',
+					'rendered' => 'Custom Styles',
+				),
+				'settings' => new stdClass(),
+				'styles'   => new stdClass(),
+			),
+			$response->get_data()
+		);
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_global_styles' ), $links['about'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$admin_id );
+
+		$post       = get_post( self::$global_styles_id );
+		$controller = new WP_REST_Global_Styles_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertSame( array( 'id' => self::$global_styles_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	/**
@@ -787,7 +945,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsInt( $data['id'] );
@@ -825,5 +983,39 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'id', $route_data[0]['args'] );
 		$this->assertArrayHasKey( 'type', $route_data[0]['args']['id'] );
 		$this->assertSame( 'integer', $route_data[0]['args']['id']['type'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 64418
+	 */
+	public function test_update_allows_valid_css_with_more_syntax() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$css     = <<<'CSS'
+@property --animate {
+	syntax: "<custom-ident>";
+	inherits: true;
+	initial-value: false;
+}
+h1::before { content: "fun & games"; }
+CSS;
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => $css ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $css, $data['styles']['css'] );
+
+		// Compare expected API output to WP internal values.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( $css, $response->get_data()['styles']['css'] );
 	}
 }

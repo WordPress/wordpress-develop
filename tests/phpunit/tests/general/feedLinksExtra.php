@@ -2,8 +2,6 @@
 /**
  * Test feed_links_extra().
  *
- * @ticket 54713
- *
  * @group general
  * @group template
  *
@@ -138,8 +136,15 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 		wp_set_object_terms( self::$post_with_cpt_id, 'tax_term', self::$tax_id );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( self::$tax_id );
+		unregister_post_type( self::$post_type );
+	}
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->set_permalink_structure( '' );
 
 		register_taxonomy(
 			self::$tax_id,
@@ -164,12 +169,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra
 	 * @ticket 54713
 	 *
-	 * @param string $title     The expected title.
-	 * @param string $type      The name of the test class property containing the object ID.
-	 * @param array  $args {
+	 * @dataProvider data_feed_links_extra
+	 *
+	 * @param string $title The expected title.
+	 * @param string $type  The name of the test class property containing the object ID.
+	 * @param array  $args  {
 	 *        Optional arguments. Default empty.
 	 *
 	 *        @type string $separator     The separator between site name and feed type.
@@ -210,7 +216,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra() {
+	public static function data_feed_links_extra() {
 		return array(
 			'a post with a comment'                        => array(
 				'title' => 'Test Blog &raquo; Post with a comment Comments Feed',
@@ -400,8 +406,6 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * Helper function to get the permalink based on type.
 	 *
-	 * @ticket 54713
-	 *
 	 * @param string $type The name of the test class property containing the object ID.
 	 * @return string The permalink.
 	 */
@@ -522,9 +526,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
-	 *
 	 * @ticket 54703
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy
 	 *
 	 * @param string $callback The callback to use for the 'post_comments_feed_link' filter.
 	 */
@@ -540,13 +544,13 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
+	public static function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
 		return array(
 			'empty string' => array( 'callback' => '__return_empty_string' ),
 			'empty array'  => array( 'callback' => '__return_empty_array' ),
 			'zero int'     => array( 'callback' => '__return_zero' ),
-			'zero float'   => array( 'callback' => array( $this, 'cb_return_zero_float' ) ),
-			'zero string'  => array( 'callback' => array( $this, 'cb_return_zero_string' ) ),
+			'zero float'   => array( 'callback' => array( __CLASS__, 'cb_return_zero_float' ) ),
+			'zero string'  => array( 'callback' => array( __CLASS__, 'cb_return_zero_string' ) ),
 			'null'         => array( 'callback' => '__return_null' ),
 			'false'        => array( 'callback' => '__return_false' ),
 		);
@@ -557,7 +561,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return float 0.0.
 	 */
-	public function cb_return_zero_float() {
+	public static function cb_return_zero_float() {
 		return 0.0;
 	}
 
@@ -566,7 +570,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return string '0'.
 	 */
-	public function cb_return_zero_string() {
+	public static function cb_return_zero_string() {
 		return '0';
 	}
 
@@ -581,9 +585,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
-	 *
 	 * @ticket 55904
+	 *
+	 * @dataProvider data_feed_links_extra_should_output_nothing_when_filters_return_false
 	 *
 	 * @param string $type   The name of the test class property containing the object ID.
 	 * @param string $filter The name of the filter to set to false.
@@ -602,7 +606,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
+	public static function data_feed_links_extra_should_output_nothing_when_filters_return_false() {
 		return array(
 			'a post with a comment' => array(
 				'type'   => 'post_with_comment',
@@ -633,5 +637,16 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'filter' => 'feed_links_extra_show_search_feed',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 63263
+	 */
+	public function test_feed_links_extra_should_work_fail_if_global_post_empty() {
+		$post_id = self::factory()->post->create();
+		$this->go_to( get_permalink( $post_id ) );
+		$GLOBALS['post'] = null;
+
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
 }

@@ -375,6 +375,31 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that dangerous STYLE tag contents do not break HTML output.
+	 *
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_wp_custom_css_cb_escapes_dangerous_html() {
+		wp_update_custom_css_post(
+			'*::before { content: "</style><script>alert(1)</script>"; }',
+			array(
+				'stylesheet' => $this->setting->stylesheet,
+			)
+		);
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected =
+			<<<'HTML'
+			<style id="wp-custom-css">
+			*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
+			</style>
+
+			HTML;
+		$this->assertEqualHTML( $expected, $output );
+	}
+
+	/**
 	 * Tests that validation errors are caught appropriately.
 	 *
 	 * Note that the $validity \WP_Error object must be reset each time
@@ -382,8 +407,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Custom_CSS_Setting::validate
 	 */
-	public function test_validate() {
-
+	public function test_validate_basic_css() {
 		// Empty CSS throws no errors.
 		$result = $this->setting->validate( '' );
 		$this->assertTrue( $result );
@@ -393,9 +417,84 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$result    = $this->setting->validate( $basic_css );
 		$this->assertTrue( $result );
 
-		// Check for markup.
+		// Check for illegal closing STYLE tag.
 		$unclosed_comment = $basic_css . '</style>';
 		$result           = $this->setting->validate( $unclosed_comment );
 		$this->assertArrayHasKey( 'illegal_markup', $result->errors );
+	}
+
+	/**
+	 * @ticket 64418
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_accepts_css_property_at_rule() {
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
+		$this->assertTrue( $this->setting->validate( $css ) );
+	}
+
+	/**
+	 * @ticket 64418
+	 * @covers ::wp_update_custom_css_post
+	 * @covers ::wp_custom_css_cb
+	 */
+	public function test_save_and_print_property_at_rule() {
+		$css =
+			<<<'CSS'
+			@property --animate {
+				syntax: "<custom-ident>";
+				inherits: true;
+				initial-value: false;
+			}
+			CSS;
+		wp_update_custom_css_post( $css, array( 'stylesheet' => $this->setting->stylesheet ) );
+		$output   = get_echo( 'wp_custom_css_cb' );
+		$expected = "<style id='wp-custom-css'>\n{$css}\n</style>\n";
+		$this->assertEqualHTML( $expected, $output );
+	}
+
+	/**
+	 * @dataProvider data_custom_css_disallowed
+	 *
+	 * @ticket 64418
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
+	 */
+	public function test_validate_prevents( $css, $expected_error_message ) {
+		$result = $this->setting->validate( $css );
+		$this->assertWPError( $result );
+		$this->assertSame( $expected_error_message, $result->get_error_message() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_custom_css_disallowed(): array {
+		return array(
+			'style close tag'            => array( 'css…</style>…css', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag upper case' => array( '</STYLE>', 'The CSS must not contain "&lt;/STYLE&gt;".' ),
+			'style close tag mixed case' => array( '</sTyLe>', 'The CSS must not contain "&lt;/sTyLe&gt;".' ),
+			'style close tag in comment' => array( '/*</style>*/', 'The CSS must not contain "&lt;/style&gt;".' ),
+			'style close tag (/)'        => array( '</style/', 'The CSS must not contain "&lt;/style/".' ),
+			'style close tag (\t)'       => array( "</style\t", "The CSS must not contain \"&lt;/style\t\"." ),
+			'style close tag (\f)'       => array( "</style\f", "The CSS must not contain \"&lt;/style\f\"." ),
+			'style close tag (\r)'       => array( "</style\r", "The CSS must not contain \"&lt;/style\r\"." ),
+			'style close tag (\n)'       => array( "</style\n", "The CSS must not contain \"&lt;/style\n\"." ),
+			'style close tag (" ")'      => array( '</style ', 'The CSS must not contain "&lt;/style ".' ),
+			'truncated "<"'              => array( '<', 'The CSS must not end in "&lt;".' ),
+			'truncated "</"'             => array( '</', 'The CSS must not end in "&lt;/".' ),
+			'truncated "</s"'            => array( '</s', 'The CSS must not end in "&lt;/s".' ),
+			'truncated "</ST"'           => array( '</ST', 'The CSS must not end in "&lt;/ST".' ),
+			'truncated "</sty"'          => array( '</sty', 'The CSS must not end in "&lt;/sty".' ),
+			'truncated "</STYL"'         => array( '</STYL', 'The CSS must not end in "&lt;/STYL".' ),
+			'truncated "</stYle"'        => array( '</stYle', 'The CSS must not end in "&lt;/stYle".' ),
+		);
 	}
 }

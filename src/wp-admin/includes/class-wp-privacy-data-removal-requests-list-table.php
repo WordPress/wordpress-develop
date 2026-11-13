@@ -104,7 +104,7 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 			$row_actions['complete-request'] = $complete_request_markup;
 		}
 
-		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), $item->email, $this->row_actions( $row_actions ) );
+		return sprintf( '<a href="%1$s">%2$s</a> %3$s', esc_url( 'mailto:' . $item->email ), esc_html( $item->email ), $this->row_actions( $row_actions ) );
 	}
 
 	/**
@@ -163,5 +163,20 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 				) . '">' . esc_html__( 'Remove request' ) . '</a>';
 				break;
 		}
+	}
+
+	/**
+	 * Returns a clean label for the primary (Requester) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the item email as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_User_Request $item Item being shown.
+	 * @return string The user request item email.
+	 */
+	protected function get_primary_column_aria_label( $item ) {
+		return $item->email;
 	}
 }
