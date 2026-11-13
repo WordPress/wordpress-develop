@@ -3112,6 +3112,68 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The execute callback rejects a slug or username list that holds only an empty string,
+	 * instead of querying it, and drops an empty string next to a value that names a user.
+	 *
+	 * Schema validation rejects empty strings, so this only matters for callers that skip it.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_slug_and_username_filters
+	 *
+	 * @param string $filter The `where` filter.
+	 * @param string $value  A value of the filter that names the administrator.
+	 */
+	public function test_execute_callback_drops_empty_strings_from_slug_and_username_lists( string $filter, string $value ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute( array( 'where' => array( $filter => array( '' ) ) ) );
+
+		$this->assertWPError( $result, sprintf( 'A list of %s holding only an empty string should fail the request.', $filter ) );
+		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), sprintf( 'A list of %s holding only an empty string should fail closed as an invalid filter.', $filter ) );
+		$this->assertSame(
+			array( 'where[' . $filter . ']' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			sprintf( 'The error data should map the list of %s holding only an empty string to the error message.', $filter )
+		);
+
+		$result = $execute(
+			array(
+				'where'  => array( $filter => array( '', $value ) ),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => self::$fixture_ids['administrator'] ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			sprintf( 'An empty string next to a value in the list of %s should be dropped, leaving the named user.', $filter )
+		);
+	}
+
+	/**
+	 * Data provider for the slug and username filters, each with a value that names the administrator.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_slug_and_username_filters(): array {
+		return array(
+			'slugs'     => array( 'slugs', 'core-users-ability-admin' ),
+			'usernames' => array( 'usernames', 'core_users_ability_admin' ),
+		);
+	}
+
+	/**
 	 * Pagination values that are not whole numbers fall back to the defaults, instead of
 	 * being coerced to a page or page size the caller did not ask for.
 	 *
