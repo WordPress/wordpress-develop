@@ -619,28 +619,11 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides values that are not an array of strings.
-	 *
-	 * @return array<string, array{0: mixed}>
-	 */
-	public static function data_invalid_keywords() {
-		return array(
-			'null'                 => array( null ),
-			'a string'             => array( 'alpha' ),
-			'an integer'           => array( 5 ),
-			'an array of integers' => array( array( 1, 2 ) ),
-			'a mixed array'        => array( array( 'alpha', 5 ) ),
-			'a nested array'       => array( array( array( 'alpha' ) ) ),
-			'an array of null'     => array( array( null ) ),
-		);
-	}
-
-	/**
 	 * Should fail to register an icon whose `keywords` is not an array of strings.
 	 *
 	 * @ticket 66158
 	 *
-	 * @dataProvider data_invalid_keywords
+	 * @dataProvider data_register_icon_with_invalid_keywords
 	 * @expectedIncorrectUsage WP_Icons_Registry::register
 	 *
 	 * @param mixed $keywords Invalid keywords candidate.
@@ -659,6 +642,23 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 
 		$this->assertFalse( $result );
 		$this->assertFalse( $this->registry->is_registered( $name ) );
+	}
+
+	/**
+	 * Provides values that are not an array of strings.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public static function data_register_icon_with_invalid_keywords() {
+		return array(
+			'null'                 => array( null ),
+			'a string'             => array( 'alpha' ),
+			'an integer'           => array( 5 ),
+			'an array of integers' => array( array( 1, 2 ) ),
+			'a mixed array'        => array( array( 'alpha', 5 ) ),
+			'a nested array'       => array( array( array( 'alpha' ) ) ),
+			'an array of null'     => array( array( null ) ),
+		);
 	}
 
 	/**
