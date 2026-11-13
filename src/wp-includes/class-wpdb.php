@@ -51,14 +51,32 @@ define( 'ARRAY_N', 'ARRAY_N' );
  *
  * @since 0.71
  *
- * @property      mysqli_result|bool|null         $result              Result of the last query.
- * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
- * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
- * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
- * @property      string                          $dbuser              Database username.
- * @property      string                          $dbname              Database name.
- * @property      string                          $dbhost              Database host.
- * @property      mysqli|false|null               $dbh                 Database handle.
+ * @property      mysqli_result|bool|null $result              Result of the last query.
+ * @property-read bool                    $check_current_query Whether the current query needs to be confidence checked.
+ * @property      list<stdClass>|null     $col_info            Saved info on the table column.
+ * @property      int                     $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                  $dbuser              Database username.
+ * @property      string                  $dbname              Database name.
+ * @property      string                  $dbhost              Database host.
+ * @property      mysqli|false|null       $dbh                 Database handle.
+ *
+ * @phpstan-type Column_Info stdClass&object{
+ *     name: string,
+ *     orgname: string,
+ *     table: string,
+ *     orgtable: string,
+ *     def: string,
+ *     db: string,
+ *     catalog: string,
+ *     max_length: int,
+ *     length: int,
+ *     // An int at runtime, but PHPStan types it as a string for mysqli_fetch_fields().
+ *     charsetnr: int|string,
+ *     flags: int,
+ *     type: int,
+ *     decimals: int,
+ * }
+ * @phpstan-property list<Column_Info>|null $col_info
  */
 #[AllowDynamicProperties]
 class wpdb {
@@ -202,15 +220,10 @@ class wpdb {
 	/**
 	 * Saved info on the table column.
 	 *
-	 * Each value is populated by mysqli_fetch_field() in {@see wpdb::load_col_info()}, which is
-	 * typed as returning false when there are no more fields. A false value cannot actually occur,
-	 * however, since the loop only runs for the number of fields returned by mysqli_num_fields().
-	 * Populating the array with mysqli_fetch_fields() instead would allow this type to be narrowed
-	 * to a list of stdClass objects.
-	 *
 	 * @since 0.71
 	 *
-	 * @var array<int, stdClass|false>|null
+	 * @var list<stdClass>|null
+	 * @phpstan-var list<Column_Info>|null
 	 */
 	protected $col_info;
 
@@ -3970,38 +3983,47 @@ class wpdb {
 			return;
 		}
 
-		$num_fields = mysqli_num_fields( $this->result );
-
-		for ( $i = 0; $i < $num_fields; $i++ ) {
-			$this->col_info[ $i ] = mysqli_fetch_field( $this->result );
-		}
+		$this->col_info = mysqli_fetch_fields( $this->result );
 	}
 
 	/**
 	 * Retrieves column metadata from the last query.
 	 *
 	 * @since 0.71
+	 * @since 6.4.0 The 'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric', 'blob',
+	 *              'unsigned', and 'zerofill' values for `$info_type` no longer apply, and 'type'
+	 *              returns a `MYSQLI_TYPE_*` integer rather than a type name like 'int', since
+	 *              support for the `mysql` extension was removed.
 	 *
-	 * @param string $info_type  Optional. Possible values include 'name', 'table', 'def', 'max_length',
-	 *                           'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric',
-	 *                           'blob', 'type', 'unsigned', 'zerofill'. Default 'name'.
-	 * @param int    $col_offset Optional. 0: col name. 1: which table the col's in. 2: col's max length.
-	 *                           3: if the col is numeric. 4: col's type. Default -1.
-	 * @return mixed Column results.
+	 * @param string $info_type  Optional. The column metadata property to retrieve. Possible values are
+	 *                           'name', 'orgname', 'table', 'orgtable', 'def', 'db', 'catalog',
+	 *                           'max_length', 'length', 'charsetnr', 'flags', 'type', and 'decimals'.
+	 *                           Default 'name'.
+	 * @param int    $col_offset Optional. Zero-based offset of the column to retrieve, or -1 for all
+	 *                           columns. Default -1.
+	 * @return list<string|int>|string|int|null The property value of each column if `$col_offset` is -1,
+	 *                                          otherwise the property value of the column at `$col_offset`.
+	 *                                          Null if there is no such column.
+	 *
+	 * @phpstan-param 'name'|'orgname'|'table'|'orgtable'|'def'|'db'|'catalog'|'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' $info_type
+	 * @phpstan-param -1|int<0, max> $col_offset
+	 * @phpstan-return (
+	 *     $col_offset is -1
+	 *     ? ( $info_type is 'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' ? list<int>|null : list<string>|null )
+	 *     : ( $info_type is 'max_length'|'length'|'charsetnr'|'flags'|'type'|'decimals' ? int|null : string|null )
+	 * )
 	 */
 	public function get_col_info( $info_type = 'name', $col_offset = -1 ) {
 		$this->load_col_info();
 
 		if ( $this->col_info ) {
 			if ( -1 === $col_offset ) {
-				$i         = 0;
 				$new_array = array();
-				foreach ( (array) $this->col_info as $col ) {
-					$new_array[ $i ] = $col->{$info_type};
-					++$i;
+				foreach ( $this->col_info as $col ) {
+					$new_array[] = $col->{$info_type};
 				}
 				return $new_array;
-			} else {
+			} elseif ( isset( $this->col_info[ $col_offset ] ) ) {
 				return $this->col_info[ $col_offset ]->{$info_type};
 			}
 		}
