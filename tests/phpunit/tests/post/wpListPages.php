@@ -543,7 +543,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28801
-	 * @dataProvider data_wp_list_pages_omitted_ancestor
+	 * @dataProvider data_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first
 	 *
 	 * @param int $depth Maximum depth to display.
 	 */
@@ -592,7 +592,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_wp_list_pages_omitted_ancestor() {
+	public static function data_wp_list_pages_preserves_hierarchy_when_menu_order_places_child_first() {
 		return array(
 			'unlimited depth' => array( 0 ),
 			'depth one'       => array( 1 ),
