@@ -977,6 +977,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
  * Sends the "Allow" header to state all methods that can be sent to the current route.
  *
  * @since 4.4.0
+ * @since 7.2.0 The header is no longer sent when the request parameters are invalid.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -987,6 +988,16 @@ function rest_send_allow_header( $response, $server, $request ) {
 	$matched_route = $response->get_matched_route();
 
 	if ( ! $matched_route ) {
+		return $response;
+	}
+
+	/*
+	 * Permission callbacks expect request parameters that passed validation, so they must not be
+	 * called for a request that failed it. For example, a query parameter which overrides a route
+	 * parameter can be an array where the permission callback expects a string.
+	 */
+	$error = $response->as_error();
+	if ( $error && in_array( $error->get_error_code(), array( 'rest_invalid_param', 'rest_missing_callback_param' ), true ) ) {
 		return $response;
 	}
 

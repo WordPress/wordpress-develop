@@ -1596,7 +1596,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * Tests that an array query parameter overriding a string route parameter is rejected as invalid.
 	 *
 	 * The route args below have a custom sanitize callback which expects a string, so without a
-	 * validate callback the array reached the sanitize callback and caused a fatal error.
+	 * validate callback the array reached the sanitize callback and caused a fatal error. Some of
+	 * the routes' permission callbacks also expect a string, so they must not be called by
+	 * {@see rest_send_allow_header()} once validation has failed.
 	 *
 	 * @ticket 66653
 	 *
@@ -1617,6 +1619,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertIsArray( $data['data'] );
 		$this->assertIsArray( $data['data']['params'] );
 		$this->assertArrayHasKey( $param, $data['data']['params'], 'The overridden route parameter should be the invalid one.' );
+
+		// The permission callbacks must not be called with the invalid request when computing the Allow header.
+		$response = rest_send_allow_header( $response, rest_get_server(), $request );
+		$this->assertArrayNotHasKey( 'Allow', $response->get_headers() );
 	}
 
 	/**
