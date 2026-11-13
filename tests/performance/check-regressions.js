@@ -77,6 +77,11 @@ const budgets = {
 		minAbsolute: 10 * 1024,
 		minRelative: 0.02,
 	},
+	jsHeapBytes: {
+		...deterministic,
+		minAbsolute: 64 * 1024,
+		minRelative: 0.02,
+	},
 	wpDbQueries: deterministic,
 	wpMemoryUsage: { ...deterministic, minAbsolute: 1024 * 1024 },
 	domContentLoaded: timing,
