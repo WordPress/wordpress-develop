@@ -354,7 +354,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @expectedDeprecated wp_add_crossorigin_attributes
 	 *
-	 * @dataProvider data_cross_origin_elements
+	 * @dataProvider data_deprecated_attribute_injector_returns_html_unchanged
 	 *
 	 * @param string $html HTML input to process.
 	 */
@@ -367,7 +367,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public static function data_cross_origin_elements(): array {
+	public static function data_deprecated_attribute_injector_returns_html_unchanged(): array {
 		return array(
 			'cross-origin script'              => array(
 				'<script src="https://external.example.com/script.js"></script>',
