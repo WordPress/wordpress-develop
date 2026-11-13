@@ -544,6 +544,11 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
  * capabilities and separate storage prefixes, with no implicit fallback from one
  * scope to the other.
  *
+ * On multisite, network-scope secrets belong to the current network
+ * (`get_current_network_id()`). Switching sites with `switch_to_blog()` does not
+ * change the current network or which network's secrets are written, matching
+ * `update_site_option()`.
+ *
  * @since 7.2.0
  *
  * @param string $name  The secret's namespaced name.
@@ -561,6 +566,10 @@ function wp_set_network_secret(
 /**
  * Retrieves a network-scope secret.
  *
+ * On multisite, network-scope secrets belong to the current network
+ * (`get_current_network_id()`). Switching sites with `switch_to_blog()` does not
+ * change which network's secrets are read, matching `get_site_option()`.
+ *
  * @since 7.2.0
  *
  * @param string $name    The secret's namespaced name.
@@ -576,6 +585,10 @@ function wp_get_network_secret( string $name, string $version = WP_Secret_Versio
 /**
  * Deletes a network-scope secret.
  *
+ * On multisite, network-scope secrets belong to the current network
+ * (`get_current_network_id()`). Switching sites with `switch_to_blog()` does not
+ * change which network's secrets are deleted, matching `delete_site_option()`.
+ *
  * @since 7.2.0
  *
  * @param string $name The secret's namespaced name.
@@ -588,6 +601,10 @@ function wp_delete_network_secret( string $name ) {
 /**
  * Clears a network-scope secret's previous version.
  *
+ * On multisite, network-scope secrets belong to the current network
+ * (`get_current_network_id()`). Switching sites with `switch_to_blog()` does not
+ * change which network's secrets are modified.
+ *
  * @since 7.2.0
  *
  * @param string $name The secret's namespaced name.
@@ -599,6 +616,10 @@ function wp_retire_network_secret_version( string $name ) {
 
 /**
  * Lists network-scope secrets by name and metadata. Never a value.
+ *
+ * On multisite, network-scope secrets belong to the current network
+ * (`get_current_network_id()`). Switching sites with `switch_to_blog()` does not
+ * change which network's secrets are listed.
  *
  * @since 7.2.0
  *

@@ -743,6 +743,205 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a network ID below 1 triggers _doing_it_wrong() and returns an invalid argument error.
+	 *
+	 * @ticket 66688
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 *
+	 * @dataProvider data_get_root_key_reports_an_invalid_network_id_as_a_wp_error
+	 *
+	 * @param int $network_id A value that is not a valid network ID.
+	 */
+	public function test_get_root_key_reports_an_invalid_network_id_as_a_wp_error( int $network_id ): void {
+		$manager = new WP_Secrets_Key_Manager();
+
+		$this->setExpectedIncorrectUsage( 'WP_Secrets_Key_Manager::get_root_key' );
+
+		$result = $manager->get_root_key( true, $network_id );
+
+		$this->assertWPError( $result, 'An invalid network ID should be reported as a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code(), 'An invalid network ID should return the invalid argument error code.' );
+	}
+
+	/**
+	 * Data provider for test_get_root_key_reports_an_invalid_network_id_as_a_wp_error().
+	 *
+	 * @return array<string, array{0: int}>
+	 */
+	public static function data_get_root_key_reports_an_invalid_network_id_as_a_wp_error(): array {
+		return array(
+			'zero'     => array( 0 ),
+			'negative' => array( -1 ),
+		);
+	}
+
+	/**
+	 * Ensure that root keys are stored and cached per network on multisite.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
+	public function test_get_root_key_is_isolated_per_network(): void {
+		$this->skipWithoutMultisite();
+
+		$network_1 = get_current_network_id();
+		$network_2 = self::factory()->network->create();
+
+		$mock    = new Mock_Keyring();
+		$manager = new WP_Secrets_Key_Manager( $mock );
+
+		$root_1 = $manager->get_root_key( true, $network_1 );
+		$root_2 = $manager->get_root_key( true, $network_2 );
+
+		$this->assertIsString( $root_1, 'Network 1 root key should be a string.' );
+		$this->assertSame( 32, strlen( $root_1 ), 'Network 1 root key should be 32 bytes long.' );
+		$this->assertIsString( $root_2, 'Network 2 root key should be a string.' );
+		$this->assertSame( 32, strlen( $root_2 ), 'Network 2 root key should be 32 bytes long.' );
+		$this->assertNotSame( $root_1, $root_2, 'Each network should generate its own distinct root key.' );
+
+		$wrapped_1 = get_network_option( $network_1, WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		$wrapped_2 = get_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+
+		$this->assertIsString( $wrapped_1, 'Network 1 should have a wrapped root key stored in sitemeta.' );
+		$this->assertIsString( $wrapped_2, 'Network 2 should have a wrapped root key stored in sitemeta.' );
+		$this->assertNotSame( $wrapped_1, $wrapped_2, 'The stored wrapped root keys should differ between networks.' );
+
+		$fresh = new WP_Secrets_Key_Manager( $mock );
+
+		$this->assertSame( $root_1, $fresh->get_root_key( false, $network_1 ), 'Fresh manager should unwrap network 1 root key.' );
+		$this->assertSame( $root_2, $fresh->get_root_key( false, $network_2 ), 'Fresh manager should unwrap network 2 root key.' );
+		$this->assertSame( $root_1, $fresh->get_root_key( false, $network_1 ), 'Cached network 1 root key should be reused without unwrapping again.' );
+		$this->assertSame( $root_2, $fresh->get_root_key( false, $network_2 ), 'Cached network 2 root key should be reused without unwrapping again.' );
+		$this->assertSame( 2, $mock->unwrap_call_count(), 'Unwrap should be called once per network on the fresh manager.' );
+	}
+
+	/**
+	 * Ensure that site-scope master key derivation uses the site's own network root key
+	 * even after switching from another network, while network scope stays on the current network.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 */
+	public function test_get_master_key_site_scope_uses_the_sites_own_network_root_key(): void {
+		$this->skipWithoutMultisite();
+
+		$network_1         = get_current_network_id();
+		$network_2         = self::factory()->network->create();
+		$site_on_network_2 = self::factory()->blog->create(
+			array(
+				'network_id' => $network_2,
+			)
+		);
+
+		$keyring = new WP_Secrets_Config_Key_Provider();
+		$root_1  = str_repeat( '1', 32 );
+		$root_2  = str_repeat( '2', 32 );
+
+		update_network_option( $network_1, WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $keyring->wrap( $root_1 ) );
+		update_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $keyring->wrap( $root_2 ) );
+
+		$expected_site_key_for_site_2 = sodium_crypto_kdf_derive_from_key(
+			32,
+			$site_on_network_2,
+			WP_Secrets_Key_Manager::SITE_KDF_CONTEXT,
+			$root_2
+		);
+		$expected_network_1_key       = sodium_crypto_kdf_derive_from_key(
+			32,
+			WP_Secrets_Key_Manager::NETWORK_SUBKEY_ID,
+			WP_Secrets_Key_Manager::NETWORK_KDF_CONTEXT,
+			$root_1
+		);
+
+		$manager = new WP_Secrets_Key_Manager( $keyring );
+
+		$this->assertSame(
+			$expected_site_key_for_site_2,
+			$manager->get_master_key( 'site', $site_on_network_2 ),
+			'Passing a site ID from another network should derive its master key from that site network root key.'
+		);
+
+		switch_to_blog( $site_on_network_2 );
+		$switched_site_key    = $manager->get_master_key( 'site' );
+		$switched_network_key = $manager->get_master_key( 'network' );
+		restore_current_blog();
+
+		$this->assertSame(
+			$expected_site_key_for_site_2,
+			$switched_site_key,
+			'After switch_to_blog(), site scope should use the target site network root key.'
+		);
+		$this->assertSame(
+			$expected_network_1_key,
+			$switched_network_key,
+			'After switch_to_blog(), network scope should remain on the current network root key.'
+		);
+	}
+
+	/**
+	 * Ensure that a root key stored on another network recovers cleanly when that
+	 * network's notoptions cache marks the root key as missing.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::read_stored_root_key
+	 * @covers WP_Secrets_Key_Manager::forget_missing_root_key
+	 */
+	public function test_get_root_key_recovers_on_another_network_when_notoptions_is_stale(): void {
+		$this->skipWithoutMultisite();
+
+		$network_2 = self::factory()->network->create();
+
+		$keyring = new WP_Secrets_Config_Key_Provider();
+		$known   = str_repeat( 'N', 32 );
+		$wrapped = $keyring->wrap( $known );
+
+		$this->assertFalse(
+			get_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION ),
+			'Network 2 should have no root key initially so notoptions caches it as missing.'
+		);
+
+		global $wpdb;
+
+		$inserted = $wpdb->insert(
+			$wpdb->sitemeta,
+			array(
+				'site_id'    => $network_2,
+				'meta_key'   => WP_Secrets_Key_Manager::ROOT_KEY_OPTION,
+				'meta_value' => $wrapped,
+			)
+		);
+
+		$this->assertSame( 1, $inserted, 'Inserting the root key for network 2 should insert one row.' );
+
+		$manager = new WP_Secrets_Key_Manager( $keyring );
+
+		$this->assertSame(
+			$known,
+			$manager->get_root_key( true, $network_2 ),
+			'get_root_key() should bypass stale notoptions for network 2 and return the stored key.'
+		);
+		$this->assertSame(
+			$wrapped,
+			get_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION ),
+			'Network 2 site-options cache should be cleared and return the stored wrapped key.'
+		);
+	}
+
+	/**
 	 * Returns the stored wrapped root key, read straight from the database.
 	 *
 	 * @return string|null
