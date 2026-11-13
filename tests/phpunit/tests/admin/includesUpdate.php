@@ -76,7 +76,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42281
-	 * @dataProvider data_non_plugin_translation_updates
+	 * @dataProvider data_wp_get_translation_update_data_does_not_load_plugin_names_without_plugin_translations
 	 *
 	 * @param string|null $type Translation type, or null for no updates.
 	 */
@@ -120,7 +120,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public static function data_non_plugin_translation_updates() {
+	public static function data_wp_get_translation_update_data_does_not_load_plugin_names_without_plugin_translations() {
 		return array(
 			'no updates' => array( null ),
 			'core only'  => array( 'core' ),
@@ -449,7 +449,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42281
-	 * @dataProvider data_translation_update_selections
+	 * @dataProvider data_wp_process_translation_update_selection
 	 *
 	 * @param string[]       $form     Updates included in the form.
 	 * @param string[]       $checked  Selected updates.
@@ -520,7 +520,7 @@ class Tests_Admin_IncludesUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_translation_update_selections() {
+	public static function data_wp_process_translation_update_selection() {
 		return array(
 			'select all form updates'                    => array(
 				array( 'core', 'plugin', 'theme' ),
