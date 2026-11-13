@@ -1311,11 +1311,12 @@ function wp_ajax_replyto_comment( $action ) {
 	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
 	/*
-	 * Notes and reactions are only created through the REST API. The ASCII
-	 * limit also catches spellings the accent-insensitive collation would match.
+	 * Notes and reactions are only created through the REST API. The lowercase
+	 * ASCII limit also catches spellings the case- and accent-insensitive
+	 * collation would match.
 	 */
 	if (
-		! preg_match( '/^[a-z0-9_-]+\z/i', $comment_type ) ||
+		! preg_match( '/^[a-z0-9_-]+\z/', $comment_type ) ||
 		in_array( $comment_type, array( 'note', 'reaction' ), true )
 	) {
 		wp_die( -1 );
