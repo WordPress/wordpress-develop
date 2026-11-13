@@ -313,7 +313,7 @@
 			 * Make sure focus is set inside of modal so that hitting Esc will close
 			 * the modal and not inadvertently cause the widget to collapse in the customizer.
 			 */
-			mediaFrame.$el.find( ':focusable:first' ).focus();
+			mediaFrame.$el.find( ':focusable:not(.media-modal-close):first' ).focus();
 		},
 
 		/**
