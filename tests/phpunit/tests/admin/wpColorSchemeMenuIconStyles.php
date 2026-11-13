@@ -79,7 +79,7 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 	/**
 	 * @ticket 65089
 	 *
-	 * @dataProvider data_schemes_without_icon_styles
+	 * @dataProvider data_adds_nothing_for_other_schemes
 	 *
 	 * @param string $url   URL of the stylesheet of the scheme.
 	 * @param array  $icons Icon colors of the scheme.
@@ -97,7 +97,7 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: array<string, string> }>
 	 */
-	public static function data_schemes_without_icon_styles(): array {
+	public static function data_adds_nothing_for_other_schemes(): array {
 		$icons = array(
 			'base'    => '#aaaaaa',
 			'focus'   => '#bbbbbb',

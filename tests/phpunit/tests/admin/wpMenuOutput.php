@@ -55,7 +55,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_menu_output
 	 *
-	 * @dataProvider data_replaced_dashicons
+	 * @dataProvider data_core_dashicon_is_rendered_as_svg_icon
 	 *
 	 * @param string $dashicon Dashicon class name.
 	 */
@@ -74,7 +74,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_replaced_dashicons(): array {
+	public static function data_core_dashicon_is_rendered_as_svg_icon(): array {
 		return array(
 			'dashboard'  => array( 'dashicons-dashboard' ),
 			'posts'      => array( 'dashicons-admin-post' ),
@@ -127,7 +127,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_menu_output
 	 *
-	 * @dataProvider data_unchanged_icons
+	 * @dataProvider data_other_icon_is_rendered_as_before
 	 *
 	 * @param string $icon     The icon of the menu item.
 	 * @param string $expected The expected HTML of the icon element.
@@ -147,7 +147,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
 	 */
-	public static function data_unchanged_icons(): array {
+	public static function data_other_icon_is_rendered_as_before(): array {
 		return array(
 			'other Dashicon' => array(
 				'dashicons-heart',

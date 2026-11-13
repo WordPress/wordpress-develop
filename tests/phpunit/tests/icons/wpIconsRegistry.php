@@ -773,7 +773,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_admin_icon_name_for_dashicon
 	 *
-	 * @dataProvider data_get_admin_icon_name_for_dashicon_without_replacement
+	 * @dataProvider data_get_admin_icon_name_for_dashicon_returns_null_without_replacement
 	 *
 	 * @param mixed $value The value to look up.
 	 */
@@ -794,7 +794,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
-	public static function data_get_admin_icon_name_for_dashicon_without_replacement() {
+	public static function data_get_admin_icon_name_for_dashicon_returns_null_without_replacement() {
 		return array(
 			'Dashicon without replacement' => array( 'dashicons-heart' ),
 			'Dashicon name without prefix' => array( 'admin-post' ),
