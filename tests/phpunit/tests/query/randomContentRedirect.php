@@ -1107,6 +1107,10 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'parameter name, random base'        => array( '/random/?s=Baseball&foo%26random%3D1=1', '/?s=Baseball&foo%26random%3D1=1' ),
 			'parameter name, pretty search'      => array( '/search/Baseball/?random&foo%23bar=1', '/search/Baseball/?foo%23bar=1' ),
 
+			// Parameter names are not slashed, so a backslash in a name is retained.
+			'parameter name with a backslash'    => array( '/?s=Baseball&random&%5Cs=Other', '/?s=Baseball&%5Cs=Other' ),
+			'array key with a backslash'         => array( '/?s=Baseball&random&filter[a%5Cb]=1', '/?s=Baseball&filter%5Ba%5Cb%5D=1' ),
+
 			// The requested path is retained when it does not include the random base.
 			'pretty search'                      => array( '/search/Baseball/?random', '/search/Baseball/' ),
 			'pretty search with a random value'  => array( '/search/Baseball/?random=1', '/search/Baseball/' ),
@@ -1119,6 +1123,56 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'pretty search with UTF-8'           => array( '/search/caf%C3%A9/?random', '/search/caf%C3%A9/' ),
 			'category archive search'            => array( '/category/sport/?s=Baseball&random', '/category/sport/?s=Baseball' ),
 			'unmatched path search'              => array( '/does/not/exist/?s=Baseball&random', '/does/not/exist/?s=Baseball' ),
+		);
+	}
+
+	/**
+	 * Ensure the random search redirect does not include the slashes added to the superglobals.
+	 *
+	 * WordPress adds slashes to the values of `$_GET` and `$_SERVER`, but not to the
+	 * parameter names. The slashes are not part of the request, so must not be in the redirect.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_urls_with_slashed_superglobals
+	 *
+	 * @param string $path     Search path.
+	 * @param string $expected Expected redirect path.
+	 */
+	public function test_random_search_redirect_with_slashed_superglobals( string $path, string $expected ): void {
+		// go_to() sets the superglobals without slashes, add them as wp_magic_quotes() does.
+		add_filter(
+			'do_parse_request',
+			static function ( bool $parse ): bool {
+				$_GET                   = add_magic_quotes( $_GET );
+				$_SERVER['REQUEST_URI'] = addslashes( $_SERVER['REQUEST_URI'] );
+
+				return $parse;
+			}
+		);
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( home_url( $expected ), $this->redirect_location, 'The redirect should not include the slashes added to the superglobals.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_redirect_with_slashed_superglobals()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_search_urls_with_slashed_superglobals(): array {
+		return array(
+			'pretty search with a quote'        => array( "/search/o'neil/?random", '/search/o%27neil/' ),
+			'pretty search with a double quote' => array( '/search/base"ball/?random', '/search/base%22ball/' ),
+			'pretty search with a backslash'    => array( '/search/base\\ball/?random', '/search/base%5Cball/' ),
+			'pretty search, encoded quote'      => array( '/search/o%27neil/?random', '/search/o%27neil/' ),
+			'pretty search, encoded backslash'  => array( '/search/base%5Cball/?random', '/search/base%5Cball/' ),
+			'search with a quote'               => array( '/?s=o%27neil&random', '/?s=o%27neil' ),
+			'search with a backslash'           => array( '/?s=base%5Cball&random', '/?s=base%5Cball' ),
+			'parameter name with a backslash'   => array( '/?s=Baseball&random&%5Cs=Other', '/?s=Baseball&%5Cs=Other' ),
+			'array key with a backslash'        => array( '/?s=Baseball&random&filter[a%5Cb]=1', '/?s=Baseball&filter%5Ba%5Cb%5D=1' ),
+			'array key with a quote'            => array( '/?s=Baseball&random&filter[a%27b]=1', '/?s=Baseball&filter%5Ba%27b%5D=1' ),
 		);
 	}
 

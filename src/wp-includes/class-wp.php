@@ -845,11 +845,14 @@ class WP {
 			 * characters that are not safe in a redirect without decoding the path, as
 			 * doing so would change its meaning. For example, a plus is a space in the
 			 * path of a search.
+			 *
+			 * The path is from $_SERVER, so is unslashed first. The slashes are not part
+			 * of the request.
 			 */
 			$requested_path = (string) preg_replace_callback(
 				'|[^a-z0-9\-._~+%/]|i',
 				static fn ( array $matches ): string => rawurlencode( $matches[0] ),
-				$this->request
+				wp_unslash( $this->request )
 			);
 			$requested_path = user_trailingslashit( $requested_path );
 
@@ -903,9 +906,13 @@ class WP {
 	 * Unlike urlencode_deep(), the parameter names are encoded as well as the values. A
 	 * name is from the request, so may include characters that separate parameters.
 	 *
+	 * The values are unslashed before they are encoded. The names are not, as slashes
+	 * are only added to the values of the superglobals.
+	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $query_args Query string parameters, expected to be slashed.
+	 * @param array<mixed> $query_args Query string parameters. The values are expected to
+	 *                                 be slashed, the names are not.
 	 * @return array<string, mixed> URL-encoded query string parameters. Values that are
 	 *                              neither scalar nor an array are removed.
 	 */
@@ -913,7 +920,7 @@ class WP {
 		$encoded = array();
 
 		foreach ( $query_args as $name => $value ) {
-			$name = urlencode( wp_unslash( (string) $name ) );
+			$name = urlencode( (string) $name );
 
 			if ( is_array( $value ) ) {
 				$encoded[ $name ] = $this->urlencode_query_args( $value );
