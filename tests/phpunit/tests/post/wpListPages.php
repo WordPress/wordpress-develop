@@ -463,7 +463,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 * Gets the IDs of the pages listed in the given markup, from the `page-item-{ID}` class of each `LI` tag.
 	 *
 	 * @param string $html Markup of a list of pages.
-	 * @return int[] Page IDs.
+	 * @return list<int> Page IDs.
 	 */
 	private function get_listed_page_ids( string $html ): array {
 		$page_ids  = array();
