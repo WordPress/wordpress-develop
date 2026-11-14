@@ -235,4 +235,192 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 
 		$this->assertNull( $result, 'A site secret should not be readable from a different blog.' );
 	}
+
+	/**
+	 * Ensure that a network secret stored before a conversion to multisite can still be read.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_get_network_secret
+	 * @covers WP_Secrets_Option_Store::get
+	 */
+	public function test_network_secret_stored_before_conversion_reads_after_conversion(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+
+		$this->assertIsSecret( wp_get_network_secret( 'myplugin/api-key' ), 'pre-conversion-value', 'A network secret stored before the conversion should still be readable.' );
+	}
+
+	/**
+	 * Ensure that reading a network secret stored before a conversion to multisite does not move it.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 */
+	public function test_reading_a_network_secret_stored_before_conversion_does_not_move_it(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+
+		$this->assertInstanceOf( WP_Secret::class, wp_get_network_secret( 'myplugin/api-key' ), 'The network secret should be readable.' );
+		$this->assertIsArray( get_blog_option( get_main_site_id(), '_wp_network_secret_myplugin/api-key' ), 'Reading the network secret should leave its record in the main site\'s options.' );
+		$this->assertFalse( get_site_option( '_wp_network_secret_myplugin/api-key' ), 'Reading the network secret should not copy its record to sitemeta.' );
+	}
+
+	/**
+	 * Ensure that a network secret stored before a conversion to multisite is listed once.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_list_network_secrets
+	 * @covers WP_Secrets_Option_Store::list_names
+	 */
+	public function test_network_secret_stored_before_conversion_is_listed(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+		$this->assertTrue( wp_set_network_secret( 'myplugin/other-key', 'post-conversion-value' ), 'Setting network secret myplugin/other-key after the conversion should succeed.' );
+
+		$names = wp_list_pluck( wp_list_network_secrets(), 'name' );
+
+		sort( $names );
+
+		$this->assertSame( array( 'myplugin/api-key', 'myplugin/other-key' ), $names, 'Network secrets from before and after the conversion should each be listed once.' );
+	}
+
+	/**
+	 * Ensure that writing a network secret stored before a conversion to multisite moves it to sitemeta and keeps its old value.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_network_secret
+	 * @covers WP_Secrets_Option_Store::set
+	 */
+	public function test_writing_a_network_secret_stored_before_conversion_moves_it(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+
+		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'post-conversion-value' ), 'Overwriting the network secret after the conversion should succeed.' );
+
+		$this->assertIsSecret( wp_get_network_secret( 'myplugin/api-key' ), 'post-conversion-value', 'The network secret should read its new value.' );
+		$this->assertIsSecret( wp_get_network_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ), 'pre-conversion-value', 'The value stored before the conversion should be kept as the previous version.' );
+		$this->assertIsArray( get_site_option( '_wp_network_secret_myplugin/api-key' ), 'The record should now be stored in sitemeta.' );
+		$this->assertFalse( get_blog_option( get_main_site_id(), '_wp_network_secret_myplugin/api-key' ), 'The record should be removed from the main site\'s options.' );
+	}
+
+	/**
+	 * Ensure that deleting a network secret stored before a conversion to multisite removes it.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_delete_network_secret
+	 * @covers WP_Secrets_Option_Store::delete
+	 */
+	public function test_deleting_a_network_secret_stored_before_conversion_removes_it(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+
+		$this->assertTrue( wp_delete_network_secret( 'myplugin/api-key' ), 'Deleting the network secret should succeed.' );
+
+		$this->assertNull( wp_get_network_secret( 'myplugin/api-key' ), 'The deleted network secret should no longer exist.' );
+		$this->assertFalse( get_blog_option( get_main_site_id(), '_wp_network_secret_myplugin/api-key' ), 'The record should be removed from the main site\'s options.' );
+	}
+
+	/**
+	 * Ensure that deleting a network secret also removes a copy left from before a conversion to multisite.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_delete_network_secret
+	 * @covers WP_Secrets_Option_Store::delete
+	 */
+	public function test_deleting_a_network_secret_does_not_bring_back_its_pre_conversion_copy(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+		$stale = get_blog_option( get_main_site_id(), '_wp_network_secret_myplugin/api-key' );
+
+		$this->assertTrue( wp_set_network_secret( 'myplugin/api-key', 'post-conversion-value' ), 'Overwriting the network secret after the conversion should succeed.' );
+
+		// A copy that was not removed when the record moved, for example because that delete failed.
+		$this->assertTrue( update_blog_option( get_main_site_id(), '_wp_network_secret_myplugin/api-key', $stale ), 'Restoring the pre-conversion copy should succeed.' );
+
+		$this->assertTrue( wp_delete_network_secret( 'myplugin/api-key' ), 'Deleting the network secret should succeed.' );
+		$this->assertNull( wp_get_network_secret( 'myplugin/api-key' ), 'The pre-conversion copy should not be read once the network secret is deleted.' );
+	}
+
+	/**
+	 * Ensure that a network secret stored before a conversion to multisite is not read on another network.
+	 *
+	 * @ticket 66686
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Option_Store::get
+	 */
+	public function test_network_secret_stored_before_conversion_is_not_read_on_another_network(): void {
+		$this->skipWithoutMultisite();
+
+		$this->store_network_secret_before_conversion( 'myplugin/api-key', 'pre-conversion-value' );
+
+		$network_id = self::factory()->network->create(
+			array(
+				'domain' => 'example.net',
+				'path'   => '/',
+			)
+		);
+
+		$current_site            = $GLOBALS['current_site'];
+		$GLOBALS['current_site'] = get_network( $network_id );
+
+		try {
+			$secret = wp_get_network_secret( 'myplugin/api-key' );
+		} finally {
+			$GLOBALS['current_site'] = $current_site;
+		}
+
+		$this->assertNull( $secret, 'Another network should not read the main network\'s pre-conversion network secrets.' );
+	}
+
+	/**
+	 * Stores a network secret where a single site keeps it, in its options table, as
+	 * if the install was converted to multisite afterwards.
+	 *
+	 * @param string $name  The secret's namespaced name.
+	 * @param string $value The secret's value.
+	 */
+	private function store_network_secret_before_conversion( string $name, string $value ): void {
+		$option_name = "_wp_network_secret_{$name}";
+
+		$this->assertTrue( wp_set_network_secret( $name, $value ), "Setting network secret {$name} should succeed." );
+
+		$record = get_site_option( $option_name );
+
+		$this->assertIsArray( $record, 'The stored record should be an array.' );
+		$this->assertTrue( delete_site_option( $option_name ), 'Removing the record from sitemeta should succeed.' );
+		$this->assertTrue( update_blog_option( get_main_site_id(), $option_name, $record ), 'Storing the record in the main site\'s options should succeed.' );
+	}
 }
