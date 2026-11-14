@@ -375,7 +375,10 @@ final class WP_Secrets_Cipher {
 	 * @param string $master_key Candidate master key.
 	 * @return bool
 	 */
-	private function is_valid_master_key( string $master_key ): bool {
+	private function is_valid_master_key(
+		#[\SensitiveParameter]
+		string $master_key
+	): bool {
 		return SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES === strlen( $master_key );
 	}
 

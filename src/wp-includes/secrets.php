@@ -165,7 +165,10 @@ define( 'WP_SECRETS_CAP_MANAGE_NETWORK', 'manage_network_secrets' );
  *
  * @param string $value The value to clear, by reference.
  */
-function wp_secrets_memzero( &$value ): void {
+function wp_secrets_memzero(
+	#[\SensitiveParameter]
+	&$value
+): void {
 	if ( ! is_string( $value ) ) {
 		return;
 	}
