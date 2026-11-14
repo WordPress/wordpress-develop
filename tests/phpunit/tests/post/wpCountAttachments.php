@@ -25,8 +25,10 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 				'post_mime_type' => $mime_type,
 			)
 		);
-		$expected = wp_count_attachments( $mime_type );
-		$actual   = wp_cache_get( $cache_key, 'counts' );
+		$expected     = wp_count_attachments( $mime_type );
+		$last_changed = wp_cache_get_last_changed( 'attachment_count' );
+
+		$actual = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $actual );
@@ -76,7 +78,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		);
 
 		wp_count_attachments();
-		$this->assertNotFalse( wp_cache_get( 'attachments', 'counts' ), 'Expected the counts to be cached before the filter is added.' );
+		$this->assertNotFalse( wp_cache_get_salted( 'attachments', 'post-queries', wp_cache_get_last_changed( 'attachment_count' ) ), 'Expected the counts to be cached before the filter is added.' );
 
 		$mime_type  = 'image/jpeg';
 		$mock_count = 42;
@@ -246,7 +248,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		add_filter( 'pre_wp_count_attachments', $filter );
 
 		$this->assertSame( 99, wp_count_attachments( 'image/jpeg' )->{'image/jpeg'}, 'Expected the filtered count.' );
-		$this->assertFalse( wp_cache_get( 'attachments:image_jpeg', 'counts' ), 'Expected the filtered counts not to be cached.' );
+		$this->assertFalse( wp_cache_get_salted( 'attachments:image_jpeg', 'post-queries', wp_cache_get_last_changed( 'attachment_count' ) ), 'Expected the filtered counts not to be cached.' );
 
 		remove_filter( 'pre_wp_count_attachments', $filter );
 		$start_num_queries = get_num_queries();
