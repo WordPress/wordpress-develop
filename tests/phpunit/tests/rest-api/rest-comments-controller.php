@@ -2961,7 +2961,59 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 404 );
+	}
+
+	/**
+	 * A note cannot be moved onto a post that does not exist, because the post cannot be edited.
+	 *
+	 * @ticket 65050
+	 */
+	public function test_update_note_invalid_post_id() {
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $note_id ) );
+		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_create_note', $response, 403 );
+		$this->assertSame( (string) $post_id, get_comment( $note_id )->comment_post_ID );
+	}
+
+	/**
+	 * A user who cannot moderate comments gets a permission error, not a missing-post error,
+	 * when moving their comment onto a post that does not exist.
+	 *
+	 * @ticket 65050
+	 */
+	public function test_update_comment_invalid_post_id_without_moderate_comments() {
+		$post_id    = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'user_id'         => self::$author_id,
+			)
+		);
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		$this->assertSame( (string) $post_id, get_comment( $comment_id )->comment_post_ID );
 	}
 
 	public function test_update_comment_invalid_permission() {
