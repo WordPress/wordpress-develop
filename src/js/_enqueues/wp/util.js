@@ -131,6 +131,17 @@ window.wp = window.wp || {};
 								deferred.jqXHR.getResponseHeader( 'X-WP-Total' )
 							) {
 								context.totalAttachments = parseInt( deferred.jqXHR.getResponseHeader( 'X-WP-Total' ), 10 );
+
+								/*
+								 * Attachments that are still uploading can already be in the collection,
+								 * but the server does not count them yet. Add them to the total, as they
+								 * are not added to the collection again when their upload finishes.
+								 */
+								if ( _.isFunction( context.filter ) ) {
+									context.totalAttachments += context.filter( function( attachment ) {
+										return attachment.get( 'uploading' );
+									} ).length;
+								}
 							} else {
 								context.totalAttachments = 0;
 							}
