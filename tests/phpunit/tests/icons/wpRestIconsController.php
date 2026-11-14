@@ -224,24 +224,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * @ticket 64651
 	 *
-	 * @covers ::get_item
-	 *
-	 * @doesNotPerformAssertions
-	 */
-	public function test_get_item() {
-		// see methods test_get_item_*
-	}
-
-	/**
-	 * @doesNotPerformAssertions
-	 */
-	public function test_get_items() {
-		// see methods test_get_items_*
-	}
-
-	/**
-	 * @ticket 64651
-	 *
 	 * @covers WP_REST_Icons_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
@@ -283,11 +265,12 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test that GET /wp/v2/icons returns a list of icons for users with edit_posts capability.
 	 *
+	 * @ticket 40538
 	 * @ticket 64651
 	 *
 	 * @covers ::get_items
 	 */
-	public function test_get_items_returns_icons_list() {
+	public function test_get_items() {
 		wp_set_current_user( self::$editor_id );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/icons' );
@@ -350,11 +333,12 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Test that GET /wp/v2/icons/core/arrow-left returns specific icon data.
 	 *
+	 * @ticket 40538
 	 * @ticket 64651
 	 *
 	 * @covers ::get_item
 	 */
-	public function test_get_item_returns_specific_icon() {
+	public function test_get_item() {
 		wp_set_current_user( self::$editor_id );
 
 		/*
