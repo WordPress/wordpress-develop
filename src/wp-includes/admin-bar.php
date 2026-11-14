@@ -472,15 +472,47 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 			)
 		);
 
-		if ( is_blog_admin() && is_multisite() && current_user_can( 'manage_sites' ) ) {
-			$wp_admin_bar->add_node(
-				array(
-					'parent' => 'site-name',
-					'id'     => 'edit-site',
-					'title'  => __( 'Manage Site' ),
-					'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
-				)
-			);
+		if ( is_blog_admin() ) {
+			$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+			if ( $current_screen instanceof WP_Screen && $current_screen->is_block_editor() && current_user_can( 'read' ) ) {
+				$wp_admin_bar->add_node(
+					array(
+						'parent' => 'site-name',
+						'id'     => 'dashboard',
+						'title'  => __( 'Dashboard' ),
+						'href'   => admin_url(),
+					)
+				);
+			}
+
+			if ( is_multisite() && current_user_can( 'manage_sites' ) ) {
+				$wp_admin_bar->add_node(
+					array(
+						'parent' => 'site-name',
+						'id'     => 'edit-site',
+						'title'  => __( 'Manage Site' ),
+						'href'   => network_admin_url( 'site-info.php?id=' . get_current_blog_id() ),
+					)
+				);
+			}
+
+			if ( current_user_can( 'read' ) ) {
+				// Add a Plugins link.
+				if ( current_user_can( 'activate_plugins' ) ) {
+					$wp_admin_bar->add_node(
+						array(
+							'parent' => 'site-name',
+							'id'     => 'plugins',
+							'title'  => __( 'Plugins' ),
+							'href'   => admin_url( 'plugins.php' ),
+						)
+					);
+				}
+
+				// Add the appearance submenu items.
+				wp_admin_bar_appearance_menu( $wp_admin_bar );
+			}
 		}
 	} elseif ( current_user_can( 'read' ) ) {
 		// We're on the front end, link to the Dashboard.
