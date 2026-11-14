@@ -292,6 +292,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	margin-top: 0;
 }
 
+.wp-block-quote.has-text-color .wp-block-quote__citation {
+	color: inherit;
+}
+
 .wp-block-quote.alignleft .wp-block-quote__citation,
 .wp-block-quote.alignright .wp-block-quote__citation {
 	display: inline-block;

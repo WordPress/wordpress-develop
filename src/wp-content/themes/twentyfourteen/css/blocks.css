@@ -105,6 +105,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-weight: 400;
 }
 
+.wp-block-quote.has-text-color cite {
+	color: inherit;
+}
+
 .wp-block-quote.alignleft cite,
 .wp-block-quote.alignright cite {
 	display: inline-block;
