@@ -424,7 +424,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures wp_page_menu() excludes the static front page when no `exclude` argument is given.
+	 * Ensures wp_page_menu() omits the static front page, which the Home link already represents, when no `exclude` argument is given.
 	 *
 	 * @ticket 66052
 	 *
@@ -448,11 +448,11 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSame(
 			array( array( (string) self::$parent_2 ) ),
 			$filter->get_args()[0],
-			'Expected only the front page to be passed to the filter.'
+			'Expected the front page ID to be the only page excluded, since no exclude argument was given.'
 		);
-		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be absent.' );
-		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected the first remaining page to be present.' );
-		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected the second remaining page to be present.' );
+		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be omitted from the list, since the Home link represents it.' );
+		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected a page that is not the front page to be listed.' );
+		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected another page that is not the front page to be listed.' );
 	}
 
 	/**
