@@ -368,6 +368,15 @@ class WP_Http_Streams {
 
 		fclose( $handle );
 
+		if ( ! isset( $processed_response ) ) {
+			/*
+			 * The message is intentionally untranslated: it mirrors the exception message that the Requests library
+			 * throws for the same condition, which WP_Http passes through untranslated, and this deprecated transport
+			 * does not warrant a new string for translators.
+			 */
+			return new WP_Error( 'http_request_failed', 'Missing header/body separator' );
+		}
+
 		$processed_headers = WP_Http::processHeaders( $processed_response['headers'], $url );
 
 		$response = array(
