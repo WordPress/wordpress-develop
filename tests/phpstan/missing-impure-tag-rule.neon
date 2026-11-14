@@ -1,0 +1,20 @@
+# Opt-in audit for methods that write object, class, or global state without being marked
+# `@phpstan-impure`. It is not part of the default configuration, because most of the
+# methods it finds never mislead a caller. Run it with a local config that includes both
+# this file and `phpstan.neon.dist`.
+#
+# Set `missingImpureTagRuleTransitive: true` to also report methods that change state
+# only by calling another method of the class that PHPStan already treats as impure.
+services:
+	-
+		class: WordPress\PHPStan\MissingImpureTagRule
+		arguments:
+			report_transitive: %missingImpureTagRuleTransitive%
+		tags:
+			- phpstan.rules.rule
+
+parametersSchema:
+	missingImpureTagRuleTransitive: bool()
+
+parameters:
+	missingImpureTagRuleTransitive: false
