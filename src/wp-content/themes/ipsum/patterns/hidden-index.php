@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-index
  * Template Types: index, home
  * Inserter: no
- * Description: The Index template, also the blog home. It has the header, the latest posts in the Archive Full listing with pagination, the footer, and the search bar pinned to the bottom.
+ * Description: The Index template, also the blog home. It has the theme header, the latest posts in the Archive Full listing with pagination, the theme footer, and the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0

@@ -4,7 +4,7 @@
  * Slug: ipsum/hidden-single
  * Template Types: single
  * Inserter: no
- * Description: The Single Posts template. It has the header, the featured image, title, date and categories, content, tags and author card, then the Comments and Keep Reading sections, the footer, and the search bar pinned to the bottom.
+ * Description: The Single Posts template. It has the theme header, the featured image, title, date and categories, content, tags and author card, then the Comments and Keep Reading sections, the theme footer, and the search bar pinned to the bottom.
  *
  * @package Ipsum
  * @since Ipsum 1.0
