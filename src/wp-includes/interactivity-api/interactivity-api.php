@@ -161,3 +161,56 @@ function wp_interactivity_get_element(): ?array {
 function wp_interactivity_as_dangerous_html( string $html ): WP_Interactivity_Dangerous_HTML {
 	return new WP_Interactivity_Dangerous_HTML( $html );
 }
+
+/**
+ * Filters the data for the `@wordpress/interactivity` script module.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Interactivity_API::filter_script_module_interactivity_data()
+ *
+ * @param array $data Data to filter.
+ * @return array Data for the Interactivity API script module.
+ */
+function wp_interactivity_script_module_data( array $data ): array {
+	return wp_interactivity()->filter_script_module_interactivity_data( $data );
+}
+
+/**
+ * Filters the data for the `@wordpress/interactivity-router` script module.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Interactivity_API::filter_script_module_interactivity_router_data()
+ *
+ * @param array $data Data to filter.
+ * @return array Data for the Interactivity Router script module.
+ */
+function wp_interactivity_router_script_module_data( array $data ): array {
+	return wp_interactivity()->filter_script_module_interactivity_router_data( $data );
+}
+
+/**
+ * Adds the `data-wp-router-options` attribute to script modules that support client-side navigation.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Interactivity_API::add_load_on_client_navigation_attribute_to_script_modules()
+ *
+ * @param array<string, string|true>|mixed $attributes The script tag attributes.
+ * @return array The modified script tag attributes.
+ */
+function wp_interactivity_script_module_attributes( $attributes ) {
+	return wp_interactivity()->add_load_on_client_navigation_attribute_to_script_modules( $attributes );
+}
+
+/**
+ * Outputs markup for the `@wordpress/interactivity-router` script module.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Interactivity_API::print_router_markup()
+ */
+function wp_interactivity_print_router_markup(): void {
+	wp_interactivity()->print_router_markup();
+}
