@@ -4012,4 +4012,155 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			'string default'  => array( 'string', 'string', 'string2' ),
 		);
 	}
+
+	/**
+	 * @ticket 48478
+	 *
+	 * @dataProvider data_get_value_omits_meta_key_that_is_not_stored
+	 *
+	 * @param array $args Arguments to change for `register_post_meta()`.
+	 */
+	public function test_get_value_omits_meta_key_that_is_not_stored( $args ) {
+		$this->register_omitted_post_meta( $args );
+
+		$meta = $this->get_post_meta_response();
+
+		$this->assertArrayNotHasKey( 'omitted_meta', $meta );
+		$this->assertSame( '', $meta['test_single'], 'A key without omit_if_not_exists should still be included.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_value_omits_meta_key_that_is_not_stored() {
+		return array(
+			'single key'                => array( array() ),
+			'single key with a default' => array( array( 'default' => 'registered default' ) ),
+			'multi key'                 => array( array( 'single' => false ) ),
+		);
+	}
+
+	/**
+	 * @ticket 48478
+	 *
+	 * @dataProvider data_get_value_includes_omitted_meta_key_that_is_stored
+	 *
+	 * @param array $args     Arguments to change for `register_post_meta()`.
+	 * @param array $values   Values to store.
+	 * @param mixed $expected Expected value in the response.
+	 */
+	public function test_get_value_includes_omitted_meta_key_that_is_stored( $args, $values, $expected ) {
+		$this->register_omitted_post_meta( $args );
+		foreach ( $values as $value ) {
+			add_post_meta( self::$post_id, 'omitted_meta', $value );
+		}
+
+		$this->assertSame( $expected, $this->get_post_meta_response()['omitted_meta'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_value_includes_omitted_meta_key_that_is_stored() {
+		return array(
+			'single key'                     => array( array(), array( 'stored value' ), 'stored value' ),
+			// An empty string is still a stored value.
+			'single key with an empty value' => array( array(), array( '' ), '' ),
+			'multi key'                      => array( array( 'single' => false ), array( 'first', 'second' ), array( 'first', 'second' ) ),
+		);
+	}
+
+	/**
+	 * Omitted keys can still be written, so the schema keeps describing them.
+	 *
+	 * @ticket 48478
+	 */
+	public function test_schema_includes_omitted_meta_key() {
+		$this->register_omitted_post_meta();
+
+		$controller = new WP_REST_Posts_Controller( 'post' );
+		$properties = $controller->get_item_schema()['properties']['meta']['properties'];
+
+		$this->assertArrayHasKey( 'omitted_meta', $properties );
+	}
+
+	/**
+	 * Saving a post with the meta from its own response, the way the block editor does,
+	 * stores the default for a regular key but nothing for an omitted key.
+	 *
+	 * @ticket 48478
+	 */
+	public function test_saving_meta_from_response_does_not_store_omitted_meta_key() {
+		$this->register_omitted_post_meta();
+		$this->grant_write_permission();
+
+		// Other keys registered for this test class can't be edited, so only send back these two.
+		$meta = array_intersect_key( $this->get_post_meta_response(), array_flip( array( 'omitted_meta', 'test_single' ) ) );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( array( 'meta' => $meta ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( metadata_exists( 'post', self::$post_id, 'test_single' ), 'A regular key is stored with its default.' );
+		$this->assertFalse( metadata_exists( 'post', self::$post_id, 'omitted_meta' ), 'An omitted key should not be stored.' );
+	}
+
+	/**
+	 * @ticket 48478
+	 */
+	public function test_get_value_omits_user_meta_key_that_is_not_stored() {
+		register_meta(
+			'user',
+			'omitted_user_meta',
+			array(
+				'show_in_rest' => array( 'omit_if_not_exists' => true ),
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/users/me' ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'omitted_user_meta', (array) $response->get_data()['meta'] );
+	}
+
+	/**
+	 * Registers the `omitted_meta` post meta key, which is left out of REST API responses when it isn't stored.
+	 *
+	 * @param array $args Optional. Arguments to change for `register_post_meta()`.
+	 */
+	private function register_omitted_post_meta( $args = array() ) {
+		register_post_meta(
+			'post',
+			'omitted_meta',
+			array_merge(
+				array(
+					'show_in_rest' => array( 'omit_if_not_exists' => true ),
+					'single'       => true,
+					'type'         => 'string',
+				),
+				$args
+			)
+		);
+	}
+
+	/**
+	 * Gets the meta of the test post from its REST API response.
+	 *
+	 * @return array Meta values keyed by name.
+	 */
+	private function get_post_meta_response() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) ) );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		return (array) $response->get_data()['meta'];
+	}
 }
