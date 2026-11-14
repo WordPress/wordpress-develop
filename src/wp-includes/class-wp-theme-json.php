@@ -559,6 +559,7 @@ class WP_Theme_JSON {
 					'fontFeatureSettings'   => null,
 					'fontStyle'             => null,
 					'fontStretch'           => null,
+					'fontVariant'           => null,
 					'fontVariationSettings' => null,
 					'fontWeight'            => null,
 					'lineGapOverride'       => null,
