@@ -9,6 +9,14 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * @global string $status   Current plugin status view, set by WP_Plugins_List_Table.
+ * @global int    $page     Current page number, set by WP_Plugins_List_Table.
+ * @global array  $plugins  Set by WP_Plugins_List_Table::prepare_items().
+ * @global int    $user_ID  ID of the current user, set during authentication.
+ */
+global $status, $page, $plugins, $user_ID;
+
 if ( ! current_user_can( 'activate_plugins' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ) );
 }
@@ -193,7 +201,7 @@ if ( $action ) {
 			// Go back to "sandbox" scope so we get the same errors as before.
 			plugin_sandbox_scrape( $plugin );
 			/** This action is documented in wp-admin/includes/plugin.php */
-			do_action( "activate_{$plugin}" );
+			do_action( "activate_{$plugin}", is_network_admin() );
 			exit;
 
 		case 'deactivate':
@@ -740,8 +748,6 @@ if ( isset( $_GET['error'] ) ) {
 	wp_admin_notice( __( 'Plugin deactivated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['deactivate-multi'] ) ) {
 	wp_admin_notice( __( 'Selected plugins deactivated.' ), $updated_notice_args );
-} elseif ( 'update-selected' === $action ) {
-	wp_admin_notice( __( 'All selected plugins are up to date.' ), $updated_notice_args );
 } elseif ( isset( $_GET['resume'] ) ) {
 	wp_admin_notice( __( 'Plugin resumed.' ), $updated_notice_args );
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
