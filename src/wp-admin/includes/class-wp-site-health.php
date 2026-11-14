@@ -2790,6 +2790,118 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests whether the network allows uploading every file type a new network would.
+	 *
+	 * The list of file types a network allows uploading (the `upload_filetypes`
+	 * network option) is populated when the network is created, and is not updated
+	 * when WordPress adds support for new file types, such as WebP or AVIF. This
+	 * recommends adding the types a network created today would allow. Types the
+	 * network allows beyond those are not reported.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, string|array<string, string>> The test result.
+	 */
+	public function get_test_network_upload_filetypes(): array {
+		$result = array(
+			'label'       => __( 'Your network allows uploading all default file types' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The file types your network allows uploading include every type a new network allows by default.' )
+			),
+			'actions'     => '',
+			'test'        => 'network_upload_filetypes',
+		);
+
+		$missing = $this->get_missing_network_upload_filetypes();
+
+		if ( empty( $missing ) ) {
+			return $result;
+		}
+
+		$result['status']      = 'recommended';
+		$result['label']       = __( 'Your network does not allow uploading some default file types' );
+		$result['description'] = sprintf(
+			'<p>%s</p><p>%s</p><p>%s</p>',
+			__( 'The file types your network allows uploading are set when the network is created, and do not change when WordPress adds support for new file types, such as the WebP and AVIF image formats.' ),
+			sprintf(
+				/* translators: %s: List of file extensions. */
+				__( 'A network created today would allow these file types, but yours does not: %s' ),
+				wp_sprintf(
+					'%l',
+					array_map(
+						static function ( $extension ) {
+							return '<code>' . esc_html( $extension ) . '</code>';
+						},
+						$missing
+					)
+				)
+			),
+			__( 'Adding them is optional. Leave out any your network should not accept.' )
+		);
+
+		if ( current_user_can( 'manage_network_options' ) ) {
+			$result['actions'] = sprintf(
+				'<p><a href="%1$s">%2$s</a></p>',
+				esc_url( network_admin_url( 'settings.php#upload_filetypes' ) ),
+				__( 'Update the allowed upload file types' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Gets the file types a new network would allow uploading, but this network does not.
+	 *
+	 * populate_network_meta() fills the `upload_filetypes` network option with the
+	 * extensions from get_allowed_mime_types(). This compares those against what the
+	 * network's list lets through, the same way check_upload_mimes() does, so an
+	 * extension is not reported when another extension of the same file type, such
+	 * as `jpe` next to `jpg`, already allows it.
+	 *
+	 * The defaults are built as get_allowed_mime_types() builds them for a user
+	 * without the `unfiltered_html` capability, so that HTML and JavaScript files
+	 * are never recommended, and so that the result does not depend on who is
+	 * viewing it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] The missing file extensions.
+	 */
+	private function get_missing_network_upload_filetypes(): array {
+		$default_types = wp_get_mime_types();
+		unset( $default_types['swf'], $default_types['exe'], $default_types['htm|html'], $default_types['js'] );
+
+		// check_upload_mimes() narrows the list to the network's own on multisite.
+		$priority = has_filter( 'upload_mimes', 'check_upload_mimes' );
+		if ( false !== $priority ) {
+			remove_filter( 'upload_mimes', 'check_upload_mimes', $priority );
+		}
+
+		/** This filter is documented in wp-includes/functions.php */
+		$default_types = apply_filters( 'upload_mimes', $default_types, null );
+
+		if ( false !== $priority ) {
+			add_filter( 'upload_mimes', 'check_upload_mimes', $priority );
+		}
+
+		$missing_types = array_diff_key( $default_types, check_upload_mimes( $default_types ) );
+
+		$missing = array();
+		foreach ( array_keys( $missing_types ) as $extensions ) {
+			array_push( $missing, ...explode( '|', $extensions ) );
+		}
+
+		return array_values( array_unique( $missing ) );
+	}
+
+	/**
 	 * Tests if opcode cache is enabled and available.
 	 *
 	 * @since 7.0.0
@@ -3401,6 +3513,14 @@ class WP_Site_Health {
 			$tests['direct']['persistent_object_cache'] = array(
 				'label' => __( 'Persistent object cache' ),
 				'test'  => 'persistent_object_cache',
+			);
+		}
+
+		// The file types that can be uploaded are a network setting on multisite.
+		if ( is_multisite() ) {
+			$tests['direct']['network_upload_filetypes'] = array(
+				'label' => __( 'Network upload file types' ),
+				'test'  => 'network_upload_filetypes',
 			);
 		}
 
