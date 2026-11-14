@@ -2696,6 +2696,20 @@ function is_upload_space_available() {
 }
 
 /**
+ * Displays the out of storage quota message in Multisite.
+ *
+ * @since 3.5.0
+ * @since 7.2.0 Moved from `wp-admin/includes/media.php` so it is available on the front end.
+ */
+function multisite_over_quota_message() {
+	echo '<p>' . sprintf(
+		/* translators: %s: Allowed space allocation. */
+		__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
+		size_format( get_space_allowed() * MB_IN_BYTES )
+	) . '</p>';
+}
+
+/**
  * Filters the maximum upload file size allowed, in bytes.
  *
  * @since 3.0.0
