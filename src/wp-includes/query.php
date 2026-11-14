@@ -1469,30 +1469,34 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
 /**
  * Redirects random content requests to the randomly selected post.
  *
- * Called by {@see WP::handle_random()} immediately after the main query selects the
- * random post, to avoid unnecessary processing before the redirect. As the redirect
- * is sent before {@see WP::send_headers()}, the headers preventing the redirect being
- * cached or indexed are sent with it.
+ * Added to the {@see 'template_redirect'} action at priority 100 by
+ * {@see WP::handle_random()} once the main query has selected the random post, so the
+ * redirect is sent after the request is set up and the {@see 'wp'} action has fired.
+ * The headers preventing the redirect being cached or indexed are sent with it.
+ *
+ * The post is read from the main query rather than the current query, so the redirect
+ * is still sent when an earlier callback replaces the current query, for example by
+ * calling {@see query_posts()}.
+ *
+ * The request ends once a post is selected. The redirect is to the post's permalink
+ * as returned by {@see get_permalink()}, including a permalink filtered to be on
+ * another site.
  *
  * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
- * handles the request as a 404. If the post's permalink is on another site, the
- * request is handled as a regular archive request.
+ * handles the request as a 404.
  *
  * @since 7.2.0
  *
- * @global WP_Query $wp_query WordPress Query object.
+ * @global WP_Query $wp_the_query WordPress main Query object.
  */
 function wp_random_content_redirect(): void {
-	global $wp_query;
+	global $wp_the_query;
 
-	if ( ! wp_is_random_content_query( $wp_query ) || ! $wp_query->post instanceof WP_Post ) {
-		return;
-	}
-
-	$location = get_permalink( $wp_query->post );
-
-	// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
-	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
+	if (
+		! $wp_the_query instanceof WP_Query
+		|| ! wp_is_random_content_query( $wp_the_query )
+		|| ! $wp_the_query->post instanceof WP_Post
+	) {
 		return;
 	}
 
@@ -1502,9 +1506,10 @@ function wp_random_content_redirect(): void {
 		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
-	if ( wp_safe_redirect( $location, 302 ) ) {
-		exit;
-	}
+	$location = get_permalink( $wp_the_query->post );
+
+	wp_redirect( $location, 302 );
+	exit;
 }
 
 /**

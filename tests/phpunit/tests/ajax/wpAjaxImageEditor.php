@@ -37,11 +37,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function test_crop_image_into_larger_one() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['postid']  = $id;
@@ -67,11 +63,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$_REQUEST['action']  = 'image-editor';
 		$_REQUEST['context'] = 'edit-attachment';
@@ -126,11 +118,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function test_filesize_updated_after_editing_an_image() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id                  = $this->_make_attachment( $upload );
+		$id                  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$original_image_meta = wp_get_attachment_metadata( $id );
 
 		$_REQUEST['action']  = 'image-editor';
@@ -167,11 +155,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function test_filesize_restored_after_restoring_original_image() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id                  = $this->_make_attachment( $upload );
+		$id                  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$original_image_meta = wp_get_attachment_metadata( $id );
 
 		$_REQUEST['action']  = 'image-editor';
@@ -215,12 +199,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function test_save_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$this->assertIsString( $contents );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$this->assertIsInt( $id );
 
 		$original_meta = wp_get_attachment_metadata( $id );
@@ -272,12 +251,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 	public function test_restore_image_with_unusable_sizes_metadata( array $meta ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$this->assertIsString( $contents );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id     = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$this->assertIsInt( $id );
 
 		$_REQUEST['action']  = 'image-editor';

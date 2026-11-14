@@ -172,4 +172,50 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		the_weekday_date();
 		$this->assertSame( 'Filtered Wednesday', ob_get_clean() );
 	}
+
+	/**
+	 * Tests that the_weekday_date() does not retrieve the post time when the day has not changed.
+	 *
+	 * @ticket 64522
+	 */
+	public function test_the_weekday_date_should_not_get_post_time_for_same_day() {
+		$GLOBALS['post'] = self::factory()->post->create_and_get(
+			array(
+				'post_date' => '2015-09-16 08:00:00',
+			)
+		);
+
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '18.09.15';
+
+		$filter = new MockAction();
+		add_filter( 'get_post_time', array( $filter, 'filter' ) );
+
+		$weekday_date = get_echo( 'the_weekday_date' );
+		$this->assertSame( '', $weekday_date, 'No weekday should be output for the same day.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The post time should not be retrieved for the same day.' );
+	}
+
+	/**
+	 * Tests that the_weekday_date() tracks the day change even when the post date is invalid.
+	 *
+	 * @ticket 64522
+	 */
+	public function test_the_weekday_date_should_track_day_change_for_invalid_post_date() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_date' => '2015-09-16 08:00:00',
+			)
+		);
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$post->post_date = '';
+
+		$GLOBALS['post']            = $post;
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '17.09.15';
+
+		$weekday_date = get_echo( 'the_weekday_date', array( 'before ', ' after' ) );
+		$this->assertSame( '', $weekday_date, 'Nothing should be output for an invalid post date.' );
+		$this->assertSame( '18.09.15', $GLOBALS['previousweekday'], 'The previous weekday should be updated to the current day.' );
+	}
 }
