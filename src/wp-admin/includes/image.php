@@ -1112,7 +1112,13 @@ function wp_get_image_alttext( $file ) {
 
 	// Parse the XMP metadata using DOMDocument.
 	$doc = new DOMDocument();
-	if ( false === $doc->loadXML( $xmp_data ) ) {
+
+	// Image metadata is untrusted input, so suppress libxml errors while parsing.
+	$use_internal_errors = libxml_use_internal_errors( true );
+	$loaded              = $doc->loadXML( $xmp_data );
+	libxml_use_internal_errors( $use_internal_errors );
+
+	if ( false === $loaded ) {
 		// Invalid XML in metadata.
 		return $alt_text;
 	}
