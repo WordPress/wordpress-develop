@@ -976,6 +976,124 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for invalid schedule intervals.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_schedule_intervals() {
+		return array(
+			'negative interval'           => array( -3600 ),
+			'zero interval'               => array( 0 ),
+			'fractional interval'         => array( 0.5 ),
+			'boolean false interval'      => array( false ),
+			'non-numeric string interval' => array( 'invalid' ),
+			'null interval'               => array( null ),
+		);
+	}
+
+	/**
+	 * Tests that an invalid schedule interval returns a WP_Error for wp_schedule_event()
+	 * and wp_reschedule_event().
+	 *
+	 * @ticket 64404
+	 *
+	 * @dataProvider data_invalid_schedule_intervals
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 *
+	 * @param mixed $interval Invalid schedule interval.
+	 */
+	public function test_invalid_schedule_interval_returns_error( $interval ) {
+		$recurrence = 'test_invalid_interval';
+
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) use ( $recurrence, $interval ) {
+				$schedules[ $recurrence ] = array(
+					'interval' => $interval,
+					'display'  => 'Test Invalid Interval',
+				);
+				return $schedules;
+			}
+		);
+
+		// Test wp_schedule_event with $wp_error = true.
+		$event = wp_schedule_event( time(), $recurrence, 'hook', array(), true );
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_interval', $event->get_error_code() );
+
+		// Test wp_reschedule_event with future timestamp.
+		$rescheduled_future = wp_reschedule_event( time() + HOUR_IN_SECONDS, $recurrence, 'hook', array(), true );
+		$this->assertWPError( $rescheduled_future );
+		$this->assertSame( 'invalid_interval', $rescheduled_future->get_error_code() );
+
+		// Test wp_reschedule_event with past timestamp (which hits modulo calculation branch).
+		$rescheduled_past = wp_reschedule_event( time() - HOUR_IN_SECONDS, $recurrence, 'hook', array(), true );
+		$this->assertWPError( $rescheduled_past );
+		$this->assertSame( 'invalid_interval', $rescheduled_past->get_error_code() );
+	}
+
+	/**
+	 * Tests that an invalid schedule interval returns false when $wp_error is false.
+	 *
+	 * @ticket 64404
+	 *
+	 * @dataProvider data_invalid_schedule_intervals
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 *
+	 * @param mixed $interval Invalid schedule interval.
+	 */
+	public function test_invalid_schedule_interval_returns_false_when_wp_error_is_false( $interval ) {
+		$recurrence = 'test_invalid_interval_bool';
+
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) use ( $recurrence, $interval ) {
+				$schedules[ $recurrence ] = array(
+					'interval' => $interval,
+					'display'  => 'Test Invalid Interval',
+				);
+				return $schedules;
+			}
+		);
+
+		// Test wp_schedule_event with default $wp_error (false).
+		$this->assertFalse( wp_schedule_event( time(), $recurrence, 'hook' ) );
+
+		// Test wp_reschedule_event with future timestamp.
+		$this->assertFalse( wp_reschedule_event( time() + HOUR_IN_SECONDS, $recurrence, 'hook' ) );
+
+		// Test wp_reschedule_event with past timestamp.
+		$this->assertFalse( wp_reschedule_event( time() - HOUR_IN_SECONDS, $recurrence, 'hook' ) );
+	}
+
+	/**
+	 * Tests that an invalid interval introduced via schedule_event filter is caught.
+	 *
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_schedule_event
+	 */
+	public function test_invalid_interval_via_schedule_event_filter_returns_error() {
+		add_filter(
+			'schedule_event',
+			static function ( $event ) {
+				$event->interval = 0;
+				return $event;
+			}
+		);
+
+		$event = wp_schedule_event( time(), 'hourly', 'hook', array(), true );
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_interval', $event->get_error_code() );
+
+		$this->assertFalse( wp_schedule_event( time(), 'hourly', 'hook' ) );
+	}
+
+	/**
 	 * @ticket 49961
 	 *
 	 * @covers ::wp_schedule_single_event
