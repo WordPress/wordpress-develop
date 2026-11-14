@@ -67,9 +67,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 	$output = ''; // Blank string to start with.
 
 	foreach ( (array) $bookmarks as $bookmark ) {
-		if ( ! isset( $bookmark->recently_updated ) ) {
-			$bookmark->recently_updated = false;
-		}
+		$bookmark->recently_updated ??= false;
 		$output .= $parsed_args['before'];
 		if ( $parsed_args['show_updated'] && $bookmark->recently_updated ) {
 			$output .= '<em>';

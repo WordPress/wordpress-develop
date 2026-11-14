@@ -3327,9 +3327,7 @@ function rest_default_additional_properties_to_false( $schema ) {
 			}
 		}
 
-		if ( ! isset( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = false;
-		}
+		$schema['additionalProperties'] ??= false;
 	}
 
 	if ( in_array( 'array', $type, true ) ) {

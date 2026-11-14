@@ -256,13 +256,9 @@ function core_update_footer( $msg = '' ) {
 		$cur = new stdClass();
 	}
 
-	if ( ! isset( $cur->current ) ) {
-		$cur->current = '';
-	}
+	$cur->current ??= '';
 
-	if ( ! isset( $cur->response ) ) {
-		$cur->response = '';
-	}
+	$cur->response ??= '';
 
 	$is_development_version = preg_match( '/alpha|beta|RC/', wp_get_wp_version() );
 

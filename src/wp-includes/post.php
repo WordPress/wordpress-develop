@@ -3055,9 +3055,7 @@ function sanitize_post( $post, $context = 'display' ) {
 		if ( isset( $post->filter ) && $context === $post->filter ) {
 			return $post;
 		}
-		if ( ! isset( $post->ID ) ) {
-			$post->ID = 0;
-		}
+		$post->ID ??= 0;
 		foreach ( array_keys( get_object_vars( $post ) ) as $field ) {
 			$post->$field = sanitize_post_field( $field, $post->$field, (int) $post->ID, $context );
 		}
@@ -3067,9 +3065,7 @@ function sanitize_post( $post, $context = 'display' ) {
 		if ( isset( $post['filter'] ) && $context === $post['filter'] ) {
 			return $post;
 		}
-		if ( ! isset( $post['ID'] ) ) {
-			$post['ID'] = 0;
-		}
+		$post['ID'] ??= 0;
 		foreach ( array_keys( $post ) as $field ) {
 			$post[ $field ] = sanitize_post_field( $field, $post[ $field ], (int) $post['ID'], $context );
 		}
@@ -3577,9 +3573,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		$counts = clone $counts;
 
 		foreach ( get_post_stati() as $status ) {
-			if ( ! isset( $counts->{$status} ) ) {
-				$counts->{$status} = 0;
-			}
+			$counts->{$status} ??= 0;
 		}
 
 		/** This filter is documented in wp-includes/post.php */
@@ -3592,9 +3586,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	if ( false !== $counts ) {
 		// We may have cached this before every status was registered.
 		foreach ( get_post_stati() as $status ) {
-			if ( ! isset( $counts->{$status} ) ) {
-				$counts->{$status} = 0;
-			}
+			$counts->{$status} ??= 0;
 		}
 
 		/** This filter is documented in wp-includes/post.php */
@@ -3710,9 +3702,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	if ( $counts instanceof stdClass ) {
 		$counts = clone $counts;
 
-		if ( ! isset( $counts->trash ) ) {
-			$counts->trash = 0;
-		}
+		$counts->trash ??= 0;
 
 		/** This filter is documented in wp-includes/post.php */
 		return apply_filters( 'wp_count_attachments', $counts, $mime_type );
