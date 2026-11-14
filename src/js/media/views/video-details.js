@@ -27,7 +27,7 @@ VideoDetails = MediaDetails.extend(/** @lends wp.media.view.VideoDetails.prototy
 			}
 
 			if ( ! video.hasClass( 'youtube-video' ) && ! video.hasClass( 'vimeo-video' ) ) {
-				this.media = MediaDetails.prepareSrc( video.get(0) );
+				this.media = video.get(0);
 			} else {
 				this.media = video.get(0);
 			}
