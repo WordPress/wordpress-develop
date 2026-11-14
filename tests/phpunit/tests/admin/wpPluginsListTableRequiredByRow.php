@@ -12,6 +12,12 @@ require_once __DIR__ . '/plugin-dependencies/base.php';
  */
 class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_UnitTestCase {
 
+	protected static $admin_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	/**
 	 * Tests that nothing is output for a plugin that no plugin requires.
 	 *
@@ -24,7 +30,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	}
 
 	/**
-	 * Tests the row for one plugin that requires the dependency.
+	 * Tests the row for one deactivated plugin that requires the dependency.
 	 *
 	 * @ticket 65819
 	 */
@@ -36,11 +42,61 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 				'unrelated/unrelated.php' => array( 'other' ),
 			)
 		);
+		wp_set_current_user( self::$admin_id );
+
+		$notice = '';
+		if ( ! is_multisite() ) {
+			$notice = '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>';
+		}
 
 		$this->assertSame(
 			'<div class="required-by"><p><strong>Required by:</strong> Alpha Plugin, Zeta Plugin</p>'
-			. '<p>Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.</p></div>',
+			. $notice . '</div>',
 			$this->get_row( 'dependency/dependency.php' )
+		);
+	}
+
+	/**
+	 * Tests the deletion notice on the network Plugins screen.
+	 *
+	 * @ticket 65819
+	 * @group ms-required
+	 *
+	 * @dataProvider data_network_admin_permissions
+	 *
+	 * @param bool $is_super_admin Whether the current user is a super admin.
+	 */
+	public function test_should_show_network_deletion_notice_only_to_super_admins( $is_super_admin ) {
+		$this->set_dependencies( array( 'dependent/dependent.php' => array( 'dependency' ) ) );
+		wp_set_current_user( self::$admin_id );
+
+		if ( $is_super_admin ) {
+			$this->assertTrue( grant_super_admin( self::$admin_id ) );
+		}
+
+		$this->assertSame( $is_super_admin, current_user_can( 'delete_plugins' ) );
+
+		$notice = '';
+		if ( $is_super_admin ) {
+			$notice = '<div class="notice notice-warning inline"><p>Note: This plugin cannot be deleted until the plugins that require it are deleted.</p></div>';
+		}
+
+		$this->assertSame(
+			'<div class="required-by"><p><strong>Required by:</strong> Dependent Plugin</p>'
+			. $notice . '</div>',
+			$this->get_row( 'dependency/dependency.php', 'plugins-network' )
+		);
+	}
+
+	/**
+	 * Provides users with and without network plugin deletion permissions.
+	 *
+	 * @return array[]
+	 */
+	public static function data_network_admin_permissions() {
+		return array(
+			'site administrator' => array( false ),
+			'super admin'        => array( true ),
 		);
 	}
 
@@ -78,23 +134,27 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 * @param array $dependencies The dependency slugs of each plugin, keyed by plugin file.
 	 */
 	private function set_dependencies( $dependencies ) {
-		$plugins = array();
+		$plugins         = array();
+		$dependent_slugs = array();
 		foreach ( array_keys( $dependencies ) as $file ) {
-			$plugins[ $file ] = array( 'Name' => ucfirst( dirname( $file ) ) . ' Plugin' );
+			$plugins[ $file ]         = array( 'Name' => ucfirst( dirname( $file ) ) . ' Plugin' );
+			$dependent_slugs[ $file ] = dirname( $file );
 		}
 
 		$this->set_property_value( 'plugins', $plugins );
 		$this->set_property_value( 'dependencies', $dependencies );
+		$this->set_property_value( 'dependent_slugs', $dependent_slugs );
 	}
 
 	/**
 	 * Returns the "Required by" row of a plugin.
 	 *
 	 * @param string $plugin_file The plugin file.
+	 * @param string $screen      The Plugins screen.
 	 * @return string The output.
 	 */
-	private function get_row( $plugin_file ) {
-		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => 'plugins' ) );
+	private function get_row( $plugin_file, $screen = 'plugins' ) {
+		$table = _get_list_table( 'WP_Plugins_List_Table', array( 'screen' => $screen ) );
 
 		$method = new ReflectionMethod( $table, 'add_dependents_to_dependency_plugin_row' );
 		if ( PHP_VERSION_ID < 80100 ) {
