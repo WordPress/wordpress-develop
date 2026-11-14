@@ -659,8 +659,7 @@
 		&.alignfull {
 
 			.wp-block-cover-image-text,
-			.wp-block-cover-text,
-			h2 {
+			.wp-block-cover-text {
 				@include postContentMaxWidth();
 			}
 
