@@ -2855,6 +2855,149 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that sub-sizes generated on the server are not limited to the
+	 * network's allowed upload file types.
+	 *
+	 * The image editor writes sub-sizes straight to disk, so a network that
+	 * does not allow WebP uploads still gets WebP sub-sizes when an
+	 * `image_editor_output_format` filter asks for them. This is the
+	 * baseline for test_sideload_sub_size_in_output_format_not_allowed_by_network().
+	 *
+	 * @ticket 66681
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers ::wp_generate_attachment_metadata
+	 */
+	public function test_server_sub_sizes_in_output_format_not_allowed_by_network(): void {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor that can save WebP.' );
+		}
+
+		/*
+		 * Networks created before WordPress 5.8 have no `webp` in this list,
+		 * and upgrades never add it. This is also the list
+		 * check_upload_mimes() falls back to.
+		 */
+		update_site_option( 'upload_filetypes', 'jpg jpeg png gif' );
+		$this->assertNotContains( 'image/webp', get_allowed_mime_types(), 'The network should not allow WebP uploads.' );
+
+		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$this->assertIsInt( $attachment_id );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$this->assertIsArray( $metadata );
+		$this->assertArrayHasKey( 'sizes', $metadata );
+
+		$this->assertArrayHasKey( 'thumbnail', $metadata['sizes'], 'The server should generate a thumbnail.' );
+		$this->assertSame( 'image/webp', $metadata['sizes']['thumbnail']['mime-type'], 'The thumbnail should be a WebP.' );
+	}
+
+	/**
+	 * Tests that a client-generated sub-size can be sideloaded in an output
+	 * format the network does not allow for upload.
+	 *
+	 * With client-side media processing, the browser transcodes each sub-size
+	 * to the `image_output_format` returned by the upload, then sideloads it.
+	 * The server generates the same sub-size itself on the classic path (see
+	 * test_server_sub_sizes_in_output_format_not_allowed_by_network()), so the
+	 * sideload should not be rejected for its file type.
+	 *
+	 * @ticket 66681
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_in_output_format_not_allowed_by_network(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		// See test_server_sub_sizes_in_output_format_not_allowed_by_network().
+		update_site_option( 'upload_filetypes', 'jpg jpeg png gif' );
+		$this->assertNotContains( 'image/webp', get_allowed_mime_types(), 'The network should not allow WebP uploads.' );
+
+		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'The original upload should succeed.' );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsInt( $data['id'] );
+
+		$attachment_id = $data['id'];
+
+		// A WebP thumbnail, as the client would sideload it.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/webp' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.webp' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.webp' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			200,
+			$response->get_status(),
+			'Sideloading a WebP sub-size should succeed. Response: ' . wp_json_encode( $response->get_data() )
+		);
+	}
+
+	/**
+	 * Tests that a sideload is still limited to the network's allowed upload
+	 * file types when it is not in the attachment's output format.
+	 *
+	 * @ticket 66681
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 */
+	public function test_sideload_sub_size_not_in_output_format_not_allowed_by_network(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		update_site_option( 'upload_filetypes', 'jpg jpeg png gif' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( self::$test_file );
+		$this->assertIsInt( $attachment_id );
+
+		// No output format filter, so the sub-sizes of a JPEG are JPEGs.
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/webp' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola-50x50.webp' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.webp' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_sideload_error', $response, 500 );
+		$this->assertNotContains( 'image/webp', get_allowed_mime_types(), 'The network should still not allow WebP uploads.' );
+	}
+
+	/**
+	 * Maps JPEG output to WebP, as image format plugins do.
+	 *
+	 * @param array<string, string> $formats Output formats keyed by source mime type.
+	 * @return array<string, string> The filtered output formats.
+	 */
+	public function filter_output_format_jpeg_to_webp( $formats ) {
+		$formats['image/jpeg'] = 'image/webp';
+		return $formats;
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are created.
 	 *
