@@ -130,6 +130,48 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code() {
+		// A UserComment holding only a character code is not a comment.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment.jpg' );
+
+		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code_with_short_description() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment-short-description.jpg' );
+
+		$this->assertSame( 'My description', $out['title'], 'Title value not the same' );
+		$this->assertSame( 'My description', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code_with_long_description() {
+		$description = 'This description is deliberately longer than eighty characters so that it cannot be used as the image title by wp_read_image_metadata().';
+		$out         = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment-long-description.jpg' );
+
+		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( $description, $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_valid() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/valid-usercomment.jpg' );
+
+		$this->assertSame( 'My comment', $out['title'], 'Title value not the same' );
+		$this->assertSame( 'My comment', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
 	 * @ticket 63895
 	 */
 	public function test_iptc_alt() {
