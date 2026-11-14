@@ -139,6 +139,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'broken'   => $this->is_site_themes ? array() : wp_get_themes( array( 'errors' => true ) ),
 		);
 
+		$auto_updates = array();
 		if ( $this->show_autoupdates ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
