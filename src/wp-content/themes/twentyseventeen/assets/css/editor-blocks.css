@@ -777,9 +777,17 @@ table.wp-block-table td:last-child {
 /* Archives, Categories & Latest Posts */
 
 [data-align="center"] .wp-block-archives ul,
+[data-align="center"] ul.wp-block-categories,
 [data-align="center"] .wp-block-categories ul,
+[data-align="center"] ul.wp-block-latest-posts,
 [data-align="center"] .wp-block-latest-posts ul {
 	list-style-position: inside;
+	text-align: center;
+}
+
+[data-align="center"] ul.wp-block-archives,
+[data-align="center"] ul.wp-block-latest-posts {
+	padding: 0;
 }
 
 /* Latest Comments */
