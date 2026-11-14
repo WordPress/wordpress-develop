@@ -734,6 +734,7 @@ function meta_form( $post = null ) {
 	}
 
 	if ( $keys ) {
+		$keys = array_unique( $keys );
 		natcasesort( $keys );
 	}
 	?>
