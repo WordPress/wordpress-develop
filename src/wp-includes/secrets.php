@@ -134,6 +134,9 @@ define( 'WP_SECRETS_MAX_NAME_LENGTH', 172 );
  * Checked by WP-CLI and by a future admin screen, never by the function-level API
  * itself. See wp_set_secret() for why.
  *
+ * This is a meta capability. It is not stored on any role: map_meta_cap() maps it
+ * to `manage_options`.
+ *
  * @since 7.2.0
  */
 define( 'WP_SECRETS_CAP_MANAGE', 'manage_secrets' );
