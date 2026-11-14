@@ -1274,7 +1274,7 @@ function wp_dropdown_pages( $args = '' ) {
  *
  * @since 1.5.0
  * @since 4.7.0 Added the `item_spacing` argument.
- * @since 7.2.0 The `exclude` argument now accepts an array of page IDs.
+ * @since 7.2.0 The `exclude` argument now accepts an array of page IDs (a comma-separated list string of IDs remains supported).
  *
  * @see get_pages()
  *
