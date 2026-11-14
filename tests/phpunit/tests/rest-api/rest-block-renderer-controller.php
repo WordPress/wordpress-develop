@@ -313,6 +313,28 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * Tests that a non-string block name does not cause a fatal error.
+	 *
+	 * @ticket 66659
+	 *
+	 * @covers WP_REST_Block_Renderer_Controller::register_routes
+	 */
+	public function test_get_item_non_string_block_name() {
+		wp_set_current_user( self::$user_id );
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'name'    => array( 'a' ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertArrayHasKey( 'name', $response->get_data()['data']['params'] );
+	}
+
+	/**
 	 * Check getting item with an invalid param provided.
 	 *
 	 * @ticket 45098

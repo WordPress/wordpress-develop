@@ -1527,6 +1527,122 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( '/test/another/route', $data['routes'] );
 	}
 
+	/**
+	 * Tests that a non-string namespace is treated as an unknown namespace
+	 * instead of triggering a fatal error.
+	 *
+	 * @ticket 66653
+	 *
+	 * @covers WP_REST_Server::get_namespace_index
+	 *
+	 * @dataProvider data_get_namespace_index_with_non_string_namespace
+	 *
+	 * @param mixed $route_namespace The namespace parameter value.
+	 */
+	public function test_get_namespace_index_with_non_string_namespace( $route_namespace ) {
+		$server = new WP_REST_Server();
+		$server->register_route(
+			'test/example',
+			'/test/example/some-route',
+			array(
+				array(
+					'methods'  => WP_REST_Server::READABLE,
+					'callback' => '__return_true',
+				),
+			)
+		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( 'namespace', $route_namespace );
+		$index = $server->get_namespace_index( $request );
+
+		$this->assertWPError( $index );
+		$this->assertSame( 'rest_invalid_namespace', $index->get_error_code() );
+		$this->assertSame( array( 'status' => 404 ), $index->get_error_data() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_namespace_index_with_non_string_namespace() {
+		return array(
+			'an empty array'       => array( array() ),
+			'an array of strings'  => array( array( 'test/example' ) ),
+			'a nested array'       => array( array( array( 'test/example' ) ) ),
+			'an associative array' => array( array( 'test/example' => 'test/example' ) ),
+		);
+	}
+
+	/**
+	 * Tests that requesting a namespace index with an array as the namespace
+	 * query parameter returns a 404 response.
+	 *
+	 * @ticket 66653
+	 *
+	 * @covers WP_REST_Server::get_namespace_index
+	 */
+	public function test_namespace_index_request_with_array_namespace_query_param() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2' );
+		$request->set_query_params( array( 'namespace' => array( 'wp/v2' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_namespace', $response, 404 );
+	}
+
+	/**
+	 * Tests that an array query parameter overriding a string route parameter is rejected as invalid.
+	 *
+	 * The route args below have a custom sanitize callback which expects a string, so without a
+	 * validate callback the array reached the sanitize callback and caused a fatal error. Some of
+	 * the routes' permission callbacks also expect a string, so they must not be called by
+	 * {@see rest_send_allow_header()} once validation has failed.
+	 *
+	 * @ticket 66653
+	 *
+	 * @dataProvider data_array_query_param_overriding_string_route_param
+	 *
+	 * @param string $route Route to request.
+	 * @param string $param Name of the route parameter to override.
+	 */
+	public function test_array_query_param_overriding_string_route_param_is_invalid( string $route, string $param ) {
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( array( $param => array( 'x' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['data'] );
+		$this->assertIsArray( $data['data']['params'] );
+		$this->assertArrayHasKey( $param, $data['data']['params'], 'The overridden route parameter should be the invalid one.' );
+
+		// The permission callbacks must not be called with the invalid request when computing the Allow header.
+		$response = rest_send_allow_header( $response, rest_get_server(), $request );
+		$this->assertArrayNotHasKey( 'Allow', $response->get_headers() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ string, string }>
+	 */
+	public static function data_array_query_param_overriding_string_route_param(): array {
+		return array(
+			'theme'                  => array( '/wp/v2/themes/default', 'stylesheet' ),
+			'template'               => array( '/wp/v2/templates/default//index', 'id' ),
+			'template part'          => array( '/wp/v2/template-parts/default//header', 'id' ),
+			'template revisions'     => array( '/wp/v2/templates/default//index/revisions', 'parent' ),
+			'template revision'      => array( '/wp/v2/templates/default//index/revisions/1', 'parent' ),
+			'template autosaves'     => array( '/wp/v2/templates/default//index/autosaves', 'id' ),
+			'template autosave'      => array( '/wp/v2/templates/default//index/autosaves/1', 'parent' ),
+			'global styles of theme' => array( '/wp/v2/global-styles/themes/default', 'stylesheet' ),
+		);
+	}
+
 	public function test_get_namespaces() {
 		$server = new WP_REST_Server();
 		$server->register_route(
