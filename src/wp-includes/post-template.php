@@ -1531,16 +1531,19 @@ function wp_page_menu( $args = array() ) {
 		$menu = $args['before'] . $menu . $args['after'];
 	}
 
-	$attrs = '';
-	if ( ! empty( $args['menu_id'] ) ) {
-		$attrs .= ' id="' . esc_attr( $args['menu_id'] ) . '"';
-	}
+	// When wp_nav_menu() requests no container and there are no pages, leave the fallback empty.
+	if ( '' !== $menu || false !== $args['container'] || 'wp_page_menu' !== ( $args['fallback_cb'] ?? '' ) ) {
+		$attrs = '';
+		if ( ! empty( $args['menu_id'] ) ) {
+			$attrs .= ' id="' . esc_attr( $args['menu_id'] ) . '"';
+		}
 
-	if ( ! empty( $args['menu_class'] ) ) {
-		$attrs .= ' class="' . esc_attr( $args['menu_class'] ) . '"';
-	}
+		if ( ! empty( $args['menu_class'] ) ) {
+			$attrs .= ' class="' . esc_attr( $args['menu_class'] ) . '"';
+		}
 
-	$menu = "<{$container}{$attrs}>" . $menu . "</{$container}>{$n}";
+		$menu = "<{$container}{$attrs}>" . $menu . "</{$container}>{$n}";
+	}
 
 	/**
 	 * Filters the HTML output of a page-based menu.
