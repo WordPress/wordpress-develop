@@ -2178,6 +2178,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$response = insert_hooked_blocks_into_rest_response( $response, $post );
 		}
 
+		$data = $response->get_data();
+		if ( is_array( $data ) && isset( $data['content'] ) && is_array( $data['content'] ) && rest_is_content_blocks_requested( $request, $fields ) ) {
+			$content = $post->post_content;
+
+			// Apply the same Block Hooks as `content.raw`, so both describe the same tree.
+			if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+				$content = apply_block_hooks_to_content_from_post_object( $content, $post, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
+			}
+
+			$data['content']['blocks'] = rest_prepare_blocks_for_response( parse_blocks( $content ) );
+			$response->set_data( $data );
+		}
+
 		/**
 		 * Filters the post data for a REST API response.
 		 *
@@ -2667,6 +2680,39 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'type'        => 'integer',
 								'context'     => array( 'edit' ),
 								'readonly'    => true,
+							),
+							'blocks'        => array(
+								'description' => __( 'Blocks parsed from the content. Only returned when requested with _fields.' ),
+								'type'        => 'array',
+								'context'     => array( 'edit' ),
+								'readonly'    => true,
+								'items'       => array(
+									'type'       => 'object',
+									'properties' => array(
+										'name'          => array(
+											'description' => __( 'Block name, or null for freeform content.' ),
+											'type'        => array( 'string', 'null' ),
+										),
+										'attributes'    => array(
+											'description' => __( 'Attributes stored in the block delimiter.' ),
+											'type'        => 'object',
+										),
+										'inner_blocks'  => array(
+											'description' => __( 'Nested blocks, in the same shape.' ),
+											'type'        => 'array',
+											'items'       => array( 'type' => 'object' ),
+										),
+										'inner_html'    => array(
+											'description' => __( 'Block HTML without its inner blocks.' ),
+											'type'        => 'string',
+										),
+										'inner_content' => array(
+											'description' => __( 'HTML chunks, with null where each inner block goes.' ),
+											'type'        => 'array',
+											'items'       => array( 'type' => array( 'string', 'null' ) ),
+										),
+									),
+								),
 							),
 							'protected'     => array(
 								'description' => __( 'Whether the content is protected with a password.' ),

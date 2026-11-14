@@ -3684,3 +3684,65 @@ function wp_is_rest_endpoint() {
 	 */
 	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }
+
+/**
+ * Determines whether a request asks for `content.blocks`.
+ *
+ * Blocks hold the raw stored markup, so like `content.raw` they are only
+ * returned in the `edit` context. Parsing adds to every response, so they
+ * are also opt-in: the request has to name `content.blocks` in `_fields`.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param WP_REST_Request $request Request object.
+ * @param string[]        $fields  Fields to include in the response.
+ * @return bool Whether to return `content.blocks`.
+ */
+function rest_is_content_blocks_requested( WP_REST_Request $request, array $fields ): bool {
+	$requested = $request['_fields'];
+
+	return 'edit' === $request['context'] &&
+		rest_is_field_included( 'content.blocks', $fields ) &&
+		( is_string( $requested ) || is_array( $requested ) ) &&
+		in_array( 'content.blocks', wp_parse_list( $requested ), true );
+}
+
+/**
+ * Converts parsed blocks to the shape returned in `content.blocks`.
+ *
+ * Keys match the public properties of `WP_Block`. Whitespace-only freeform
+ * blocks between top-level blocks are dropped.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<mixed> $parsed_blocks Blocks as returned by `parse_blocks()`.
+ * @return list<array<string, mixed>> Block data.
+ */
+function rest_prepare_blocks_for_response( array $parsed_blocks ): array {
+	$blocks = array();
+
+	foreach ( $parsed_blocks as $parsed_block ) {
+		if ( ! is_array( $parsed_block ) ) {
+			continue;
+		}
+
+		$name       = isset( $parsed_block['blockName'] ) && is_string( $parsed_block['blockName'] ) ? $parsed_block['blockName'] : null;
+		$inner_html = isset( $parsed_block['innerHTML'] ) && is_string( $parsed_block['innerHTML'] ) ? $parsed_block['innerHTML'] : '';
+
+		if ( null === $name && '' === trim( $inner_html ) ) {
+			continue;
+		}
+
+		$blocks[] = array(
+			'name'          => $name,
+			'attributes'    => (object) ( isset( $parsed_block['attrs'] ) && is_array( $parsed_block['attrs'] ) ? $parsed_block['attrs'] : array() ),
+			'inner_blocks'  => rest_prepare_blocks_for_response( isset( $parsed_block['innerBlocks'] ) && is_array( $parsed_block['innerBlocks'] ) ? $parsed_block['innerBlocks'] : array() ),
+			'inner_html'    => $inner_html,
+			'inner_content' => isset( $parsed_block['innerContent'] ) && is_array( $parsed_block['innerContent'] ) ? $parsed_block['innerContent'] : array(),
+		);
+	}
+
+	return $blocks;
+}

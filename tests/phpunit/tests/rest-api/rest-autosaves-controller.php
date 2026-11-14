@@ -1074,4 +1074,38 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
 	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_returns_blocks_when_requested_in_edit_context(): void {
+		wp_set_current_user( self::$editor_id );
+		$autosave_id = wp_create_post_autosave(
+			array(
+				'post_ID'      => self::$post_id,
+				'post_type'    => 'post',
+				'post_title'   => 'Autosave',
+				'post_excerpt' => '',
+				'post_content' => '<!-- wp:paragraph --><p>Autosaved</p><!-- /wp:paragraph -->',
+			)
+		);
+		$this->assertIsInt( $autosave_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . $autosave_id );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content.blocks',
+			)
+		);
+		$data = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['content'] );
+		$blocks = $data['content']['blocks'];
+
+		$this->assertIsArray( $blocks );
+		$this->assertCount( 1, $blocks );
+		$this->assertIsArray( $blocks[0] );
+		$this->assertSame( '<p>Autosaved</p>', $blocks[0]['inner_html'] );
+	}
 }
