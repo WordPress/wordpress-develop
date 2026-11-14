@@ -293,9 +293,9 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_pages_id_list_callbacks
 	 *
-	 * @param callable $callback Callback to cast each page ID with.
+	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
 	 */
-	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( $callback ) {
+	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( callable $callback ) {
 		$args = array(
 			'echo'    => false,
 			'depth'   => 1,
@@ -305,7 +305,10 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
 </ul></li>';
 
-		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+		);
 	}
 
 	/**
@@ -336,7 +339,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: string }>
+	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
 	public function data_wp_list_pages_exclude_separators(): array {
 		return array(
@@ -348,12 +351,16 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: callable }>
+	 * @return array<non-falsy-string, array{ 0: callable(int): (int|numeric-string) }>
 	 */
-	public function data_wp_list_pages_id_list_callbacks() {
+	public function data_wp_list_pages_id_list_callbacks(): array {
 		return array(
 			'integers'        => array( 'intval' ),
-			'numeric strings' => array( 'strval' ),
+			'numeric strings' => array(
+				static function ( int $id ): string {
+					return (string) $id;
+				},
+			),
 		);
 	}
 
@@ -388,7 +395,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_page_menu_exclude_formats
 	 *
-	 * @param callable $format Callback to format the array of page IDs to exclude.
+	 * @param callable(int[]): (int[]|numeric-string[]|string) $format Callback to format the array of page IDs to exclude.
 	 */
 	public function test_wp_page_menu_should_exclude_front_page_with_exclude_arg( callable $format ): void {
 		update_option( 'show_on_front', 'page' );
@@ -419,7 +426,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{ 0: callable(int[]): (int[]|string[]|string) }>
+	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|numeric-string[]|string) }>
 	 */
 	public function data_wp_page_menu_exclude_formats(): array {
 		return array(
@@ -591,9 +598,9 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_pages_id_list_callbacks
 	 *
-	 * @param callable $callback Callback to cast each page ID with.
+	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
 	 */
-	public function test_wp_list_pages_include_should_accept_an_array_of_ids( $callback ) {
+	public function test_wp_list_pages_include_should_accept_an_array_of_ids( callable $callback ) {
 		$args = array(
 			'echo'    => false,
 			'include' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
@@ -603,7 +610,10 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
 
-		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+		);
 	}
 
 	public function test_wp_list_pages_exclude_tree() {
