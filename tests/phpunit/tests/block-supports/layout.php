@@ -689,7 +689,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Check that wp_get_child_layout_style_rules() renders flex child sizing styles.
+	 * Check that wp_get_child_layout_style_rules() renders child layout styles.
 	 *
 	 * @dataProvider data_wp_get_child_layout_style_rules
 	 *
@@ -717,6 +717,45 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	public static function data_wp_get_child_layout_style_rules() {
 		return array(
+			'viewport can unpin grid placement while retaining span' => array(
+				'child_layout'       => array(
+					'columnStart' => 2,
+					'columnSpan'  => 2,
+					'rowStart'    => 3,
+				),
+				'viewport_overrides' => array(
+					'columnStart' => null,
+					'rowStart'    => null,
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'grid-column' => 'span 2',
+							'grid-row'    => 'auto',
+						),
+					),
+				),
+			),
+			'viewport can unpin both grid axes without spans' => array(
+				'child_layout'       => array(
+					'columnStart' => 2,
+					'rowStart'    => 3,
+				),
+				'viewport_overrides' => array(
+					'columnStart' => null,
+					'rowStart'    => null,
+				),
+				'expected_output'    => array(
+					array(
+						'selector'     => '.wp-container-content-test',
+						'declarations' => array(
+							'grid-column' => 'auto',
+							'grid-row'    => 'auto',
+						),
+					),
+				),
+			),
 			'legacy fixed sizing remains shrinkable'      => array(
 				'child_layout'       => array(
 					'selfStretch' => 'fixed',
