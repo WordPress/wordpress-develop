@@ -505,6 +505,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 				if ( ! is_feed() ) {
 					if ( ! is_single() ) {
+						if ( $wp_query->is_posts_page && $redirect_url ) {
+							// Use the posts page permalink as the base for pagination.
+							$posts_page_path  = wp_parse_url( $redirect_url, PHP_URL_PATH );
+							$redirect['path'] = is_string( $posts_page_path ) ? $posts_page_path : $redirect['path'];
+						}
+
 						$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
 
 						if ( $paged > 1 ) {
