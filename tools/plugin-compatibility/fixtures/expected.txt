@@ -1,0 +1,31 @@
+# The result each fixture plugin is expected to get from test-plugins.sh, in the order they are tested.
+#
+#     test-plugins.sh --fixtures=tools/plugin-compatibility/fixtures --expect=tools/plugin-compatibility/fixtures/expected.txt
+#
+# Each fixture is a plugin built to break in one specific way, so that a change to the checks which stops a
+# broken plugin from being caught fails a run instead of quietly passing everything.
+#
+# Format: <slug> <PASS|FAIL|SKIPPED> [text the "Also active" or "Details" column must contain]
+
+fixture-healthy                    PASS
+fixture-fatal-on-load              FAIL     The plugin could not be activated
+fixture-fatal-on-activation        FAIL     The plugin could not be activated
+fixture-exit-on-activation         SKIPPED  the plugin was not active afterwards
+fixture-breaks-site-on-activation  FAIL     The request to / returned HTTP 500
+fixture-requires-newer-php         SKIPPED  declared requirements are not met
+fixture-requires-newer-wordpress   SKIPPED  declared requirements are not met
+fixture-requires-newer-both        SKIPPED  declared requirements are not met
+fixture-fatal-on-front-end         FAIL     The request to / returned HTTP 500
+fixture-fatal-on-login             FAIL     The request to /wp-login.php returned HTTP 500
+fixture-fatal-after-output         FAIL     PHP Fatal error
+fixture-parse-error-after-output   FAIL     PHP Parse error
+fixture-fatal-in-background-request FAIL    PHP Fatal error
+fixture-wp-cli-only-fatal          PASS     WP-CLI fatals when it loads WordPress
+fixture-requires-akismet           PASS     akismet
+fixture-requires-broken-dependency SKIPPED  The required plugins are not healthy on their own
+fixture-requires-wp-cli-only-fatal SKIPPED  WP-CLI cannot load WordPress with the required plugins active
+
+# These two must stay together and in this order: the second fatals if anything the first wrote survived the
+# reset between plugins.
+fixture-leaves-files-behind        PASS
+fixture-checks-for-leftovers       PASS

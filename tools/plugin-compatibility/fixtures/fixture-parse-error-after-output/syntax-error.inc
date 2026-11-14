@@ -1,0 +1,3 @@
+<?php
+// Deliberately invalid.
+function ( {
