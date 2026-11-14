@@ -112,20 +112,16 @@ function get_block_asset_url( $path ) {
 	/** @var array<string, string> $template_paths_norm */
 	static $template_paths_norm = array();
 
-	$template = get_template();
-	if ( ! isset( $template_paths_norm[ $template ] ) ) {
-		$template_paths_norm[ $template ] = wp_normalize_path( realpath( get_template_directory() ) );
-	}
+	$template                           = get_template();
+	$template_paths_norm[ $template ] ??= wp_normalize_path( realpath( get_template_directory() ) );
 
 	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
 		return get_theme_file_uri( str_replace( $template_paths_norm[ $template ], '', $path ) );
 	}
 
 	if ( is_child_theme() ) {
-		$stylesheet = get_stylesheet();
-		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
-			$template_paths_norm[ $stylesheet ] = wp_normalize_path( realpath( get_stylesheet_directory() ) );
-		}
+		$stylesheet                           = get_stylesheet();
+		$template_paths_norm[ $stylesheet ] ??= wp_normalize_path( realpath( get_stylesheet_directory() ) );
 
 		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
 			return get_theme_file_uri( str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
@@ -448,9 +444,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 function get_block_metadata_i18n_schema() {
 	static $i18n_block_schema;
 
-	if ( ! isset( $i18n_block_schema ) ) {
-		$i18n_block_schema = wp_json_file_decode( __DIR__ . '/block-i18n.json' );
-	}
+	$i18n_block_schema ??= wp_json_file_decode( __DIR__ . '/block-i18n.json' );
 
 	return $i18n_block_schema;
 }
@@ -562,16 +556,12 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	if ( ! empty( $metadata['name'] ) && str_starts_with( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
-		if ( ! isset( $metadata['style'] ) ) {
-			$metadata['style'] = "wp-block-$block_name";
-		}
+		$metadata['style'] ??= "wp-block-$block_name";
 		if ( current_theme_supports( 'wp-block-styles' ) && wp_should_load_separate_core_block_assets() ) {
 			$metadata['style']   = (array) $metadata['style'];
 			$metadata['style'][] = "wp-block-{$block_name}-theme";
 		}
-		if ( ! isset( $metadata['editorStyle'] ) ) {
-			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
-		}
+		$metadata['editorStyle'] ??= "wp-block-{$block_name}-editor";
 	}
 
 	$settings          = array();
