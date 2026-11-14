@@ -1,32 +1,15 @@
 <?php
 /**
- * Tests for the Secrets API's two capabilities: manage_secrets, granted to
- * administrators by populate_roles() and upgrade_720(), and manage_network_secrets,
- * held only by super admins.
+ * Tests for the Secrets API's two capabilities: manage_secrets, a meta capability
+ * that maps to manage_options, and manage_network_secrets, held only by super admins.
  *
  * @ticket 66187
+ * @ticket 66696
  *
  * @group secrets
  * @group capabilities
  */
 class Tests_Secrets_Capabilities extends WP_UnitTestCase {
-
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		require_once ABSPATH . 'wp-admin/includes/schema.php';
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	}
-
-	public function tear_down() {
-		$administrator = get_role( 'administrator' );
-
-		if ( $administrator ) {
-			$administrator->add_cap( WP_SECRETS_CAP_MANAGE );
-		}
-
-		parent::tear_down();
-	}
 
 	/**
 	 * Returns a role that must exist, failing the test if it does not.
@@ -56,28 +39,33 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the administrator role has manage_secrets on a fresh install.
+	 * Ensure that manage_secrets maps to manage_options.
 	 *
-	 * The test suite's install runs populate_roles(), so no setup is needed to observe
-	 * the state a new site starts in.
+	 * @ticket 66696
 	 *
-	 * @covers ::populate_roles_720
+	 * @covers ::map_meta_cap
 	 */
-	public function test_a_fresh_install_grants_manage_secrets_to_administrator(): void {
-		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'The administrator role should have manage_secrets on a fresh install.' );
+	public function test_manage_secrets_maps_to_manage_options(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+
+		$this->assertSame( array( 'manage_options' ), map_meta_cap( WP_SECRETS_CAP_MANAGE, $user_id ), 'manage_secrets should map to manage_options.' );
 	}
 
 	/**
-	 * Ensure that no default role other than administrator is granted manage_secrets.
+	 * Ensure that manage_secrets is not stored on any default role.
 	 *
-	 * @covers ::populate_roles_720
+	 * It is a meta capability, so no role should carry it in the database.
 	 *
-	 * @dataProvider data_no_other_role_is_granted_manage_secrets
+	 * @ticket 66696
 	 *
-	 * @param string $role A default role other than administrator.
+	 * @covers ::populate_roles
+	 *
+	 * @dataProvider data_default_roles
+	 *
+	 * @param string $role A default role.
 	 */
-	public function test_no_other_role_is_granted_manage_secrets( $role ): void {
-		$this->assertFalse( $this->role( $role )->has_cap( WP_SECRETS_CAP_MANAGE ), 'Role should not be granted capability' );
+	public function test_manage_secrets_is_not_stored_on_a_role( $role ): void {
+		$this->assertArrayNotHasKey( WP_SECRETS_CAP_MANAGE, $this->role( $role )->capabilities, 'manage_secrets should not be stored on a role.' );
 	}
 
 	/**
@@ -85,91 +73,65 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_no_other_role_is_granted_manage_secrets() {
+	public static function data_default_roles() {
 		return array(
-			'editor'      => array( 'editor' ),
-			'author'      => array( 'author' ),
-			'contributor' => array( 'contributor' ),
-			'subscriber'  => array( 'subscriber' ),
+			'administrator' => array( 'administrator' ),
+			'editor'        => array( 'editor' ),
+			'author'        => array( 'author' ),
+			'contributor'   => array( 'contributor' ),
+			'subscriber'    => array( 'subscriber' ),
 		);
 	}
 
 	/**
-	 * Ensure that populate_roles_720() grants manage_secrets to the administrator role.
+	 * Ensure that only users of a role with manage_options can manage secrets.
 	 *
-	 * @covers ::populate_roles_720
+	 * @ticket 66696
+	 *
+	 * @covers ::map_meta_cap
+	 *
+	 * @dataProvider data_roles_and_manage_secrets
+	 *
+	 * @param string $role     A default role.
+	 * @param bool   $expected Whether a user with the role should have manage_secrets.
 	 */
-	public function test_populate_roles_720_grants_manage_secrets_to_administrator(): void {
-		$this->role( 'administrator' )->remove_cap( WP_SECRETS_CAP_MANAGE );
+	public function test_only_roles_with_manage_options_have_manage_secrets( $role, $expected ): void {
+		$user_id = self::factory()->user->create( array( 'role' => $role ) );
 
-		populate_roles_720();
-
-		$this->assertTrue( $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'populate_roles_720() should grant manage_secrets to the administrator role.' );
-	}
-
-	/**
-	 * Ensure that upgrade_720() grants manage_secrets only to sites below database version 64337.
-	 *
-	 * Simulates upgrades from several database versions by overriding $wp_current_db_version.
-	 * Sites already at or past the gate must not have the capability re-added, so an
-	 * administrator's deliberate removal of it survives later upgrades.
-	 *
-	 * @covers ::upgrade_720
-	 *
-	 * @dataProvider data_upgrade_720_grants_manage_secrets_below_its_db_version
-	 *
-	 * @param int  $db_version     The database version being upgraded from.
-	 * @param bool $expect_granted Whether the upgrade should grant the capability.
-	 */
-	public function test_upgrade_720_grants_manage_secrets_below_its_db_version( $db_version, $expect_granted ): void {
-		global $wp_current_db_version;
-
-		$saved                 = $wp_current_db_version;
-		$wp_current_db_version = $db_version;
-
-		$this->role( 'administrator' )->remove_cap( WP_SECRETS_CAP_MANAGE );
-
-		upgrade_720();
-
-		$wp_current_db_version = $saved;
-
-		$this->assertSame( $expect_granted, $this->role( 'administrator' )->has_cap( WP_SECRETS_CAP_MANAGE ), 'The administrator role should have manage_secrets only when upgrading from below 64337.' );
+		$this->assertSame( $expected, user_can( $user_id, WP_SECRETS_CAP_MANAGE ), "Unexpected manage_secrets result for the \"{$role}\" role." );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: int, 1: bool}>
+	 * @return array<string, array{0: string, 1: bool}>
 	 */
-	public static function data_upgrade_720_grants_manage_secrets_below_its_db_version() {
+	public static function data_roles_and_manage_secrets() {
 		return array(
-			'upgrading from 7.0'              => array( 61644, true ),
-			'upgrading from just below 7.2'   => array( 64336, true ),
-			'already at the 7.2 db version'   => array( 64337, false ),
-			'already past the 7.2 db version' => array( 64400, false ),
+			'administrator' => array( 'administrator', true ),
+			'editor'        => array( 'editor', false ),
+			'author'        => array( 'author', false ),
+			'contributor'   => array( 'contributor', false ),
+			'subscriber'    => array( 'subscriber', false ),
 		);
 	}
 
 	/**
-	 * Ensure that a user with the administrator role can manage secrets.
+	 * Ensure that manage_secrets follows manage_options when that capability is granted to another role.
 	 *
-	 * @covers ::populate_roles_720
-	 */
-	public function test_administrator_user_has_manage_secrets(): void {
-		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-
-		$this->assertTrue( user_can( $user_id, WP_SECRETS_CAP_MANAGE ), 'An administrator user should have manage_secrets.' );
-	}
-
-	/**
-	 * Ensure that a user with the subscriber role cannot manage secrets.
+	 * @ticket 66696
 	 *
-	 * @covers ::populate_roles_720
+	 * @covers ::map_meta_cap
 	 */
-	public function test_subscriber_does_not_have_manage_secrets(): void {
-		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+	public function test_manage_secrets_follows_manage_options(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$user    = get_userdata( $user_id );
 
-		$this->assertFalse( user_can( $user_id, WP_SECRETS_CAP_MANAGE ), 'A subscriber user should not have manage_secrets.' );
+		$this->assertInstanceOf( WP_User::class, $user );
+
+		$user->add_cap( 'manage_options' );
+
+		$this->assertTrue( user_can( $user_id, WP_SECRETS_CAP_MANAGE ), 'A user granted manage_options should have manage_secrets.' );
 	}
 
 	/**
