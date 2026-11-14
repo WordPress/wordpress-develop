@@ -418,9 +418,11 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			$filter->get_args()[0],
 			'Expected the excluded page and the front page to be passed to the filter.'
 		);
-		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected the excluded page to be absent.' );
-		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be absent.' );
-		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected the remaining page to be present.' );
+		$this->assertSameSets(
+			array( self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected only the page that is neither excluded nor the front page to be listed.'
+		);
 	}
 
 	/**
@@ -450,9 +452,30 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			$filter->get_args()[0],
 			'Expected the front page ID to be the only page excluded, since no exclude argument was given.'
 		);
-		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be omitted from the list, since the Home link represents it.' );
-		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected a page that is not the front page to be listed.' );
-		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected another page that is not the front page to be listed.' );
+		$this->assertSameSets(
+			array( self::$parent_1, self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected every page except the front page to be listed, since the Home link represents it.'
+		);
+	}
+
+	/**
+	 * Gets the IDs of the pages listed in the given markup, from the `page-item-{ID}` class of each `LI` tag.
+	 *
+	 * @param string $html Markup of a list of pages.
+	 * @return int[] Page IDs.
+	 */
+	private function get_listed_page_ids( string $html ): array {
+		$page_ids  = array();
+		$processor = new WP_HTML_Tag_Processor( $html );
+		while ( $processor->next_tag( array( 'tag_name' => 'LI' ) ) ) {
+			foreach ( $processor->class_list() as $class_name ) {
+				if ( str_starts_with( $class_name, 'page-item-' ) ) {
+					$page_ids[] = (int) substr( $class_name, strlen( 'page-item-' ) );
+				}
+			}
+		}
+		return $page_ids;
 	}
 
 	/**
