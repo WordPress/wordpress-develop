@@ -1393,6 +1393,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 */
 		public function sanitize() {
 			$template_depth            = 0;
+			$code_depth                = 0;
 			$output                    = '';
 			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
@@ -1583,12 +1584,20 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 						$text = strtr(
 							$text,
-							array(
-								"\r" => '&#xD;',
-								'<'  => '&lt;',
-								'&'  => '&amp;',
-								'>'  => '&gt;',
-							)
+							$code_depth > 0
+								? array(
+									"\r" => '&#xD;',
+									'<'  => '&lt;',
+									'&'  => '&amp;',
+									'>'  => '&gt;',
+									'['  => '&#91;',
+								)
+								: array(
+									"\r" => '&#xD;',
+									'<'  => '&lt;',
+									'&'  => '&amp;',
+									'>'  => '&gt;',
+								)
 						);
 
 						if ( $needs_special_newline ) {
@@ -1783,8 +1792,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						if ( $is_closer ) {
+							if ( 'code' === $tag_name && 'html' === $namespace && $code_depth > 0 ) {
+								--$code_depth;
+							}
 							$output .= "</{$tag_name}>";
 							break;
+						}
+
+						if ( 'code' === $tag_name && 'html' === $namespace ) {
+							++$code_depth;
 						}
 
 						$is_special_atomic_element = (
