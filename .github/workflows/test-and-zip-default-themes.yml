@@ -85,7 +85,7 @@ jobs:
   # Selects the themes to check, build, and package.
   determine-themes:
     name: Determine Themes
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions: {}
     timeout-minutes: 5
     if: |
@@ -156,7 +156,7 @@ jobs:
   # - Checks for zero-byte (empty) files.
   check-for-empty-files:
     name: ${{ matrix.theme }} empty file check
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     needs: [ determine-themes ]
@@ -204,7 +204,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     needs: [ determine-themes ]
@@ -300,7 +300,7 @@ jobs:
   # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     needs: [ determine-themes, check-for-empty-files, test-build-scripts ]
@@ -393,7 +393,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

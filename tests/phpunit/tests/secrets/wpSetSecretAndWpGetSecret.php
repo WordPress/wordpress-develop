@@ -416,6 +416,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 			'WP_Secrets_Cipher::encrypt_value() key'       => array( array( WP_Secrets_Cipher::class, 'encrypt_value' ), 'master_key' ),
 			'WP_Secrets_Cipher::decrypt_value() key'       => array( array( WP_Secrets_Cipher::class, 'decrypt_value' ), 'master_key' ),
 			'WP_Secrets_Cipher::fingerprint() key'         => array( array( WP_Secrets_Cipher::class, 'fingerprint' ), 'master_key' ),
+			'WP_Secrets_Cipher::validate_common() key'     => array( array( WP_Secrets_Cipher::class, 'validate_common' ), 'master_key' ),
+			'WP_Secret::__construct()'                     => array( array( WP_Secret::class, '__construct' ), 'value' ),
 			'WP_Secrets_Keyring::wrap()'                   => array( array( WP_Secrets_Keyring::class, 'wrap' ), 'key_material' ),
 			'WP_Secrets_Config_Key_Provider::wrap()'       => array( array( WP_Secrets_Config_Key_Provider::class, 'wrap' ), 'key_material' ),
 			'WP_Secrets_Broken_Keyring::wrap()'            => array( array( WP_Secrets_Broken_Keyring::class, 'wrap' ), 'key_material' ),

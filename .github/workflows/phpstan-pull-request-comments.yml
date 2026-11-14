@@ -32,7 +32,7 @@ jobs:
   # - Creates or updates the comment while there are errors, and marks it as resolved once there are none.
   phpstan-results:
     name: Comment on a pull request with PHPStan results
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: read
       issues: write

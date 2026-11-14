@@ -7,8 +7,10 @@ import {
 	TEST_AUDIO_PATH,
 	SIMULATED_ERROR,
 	UNDECODABLE_HEIC,
+	expectCrossOriginIsolated,
 	failMediaCreate,
 	stubClassicUpload,
+	supportsDocumentIsolation,
 	trackUploads,
 	withoutHeicDecoder,
 } from '../utils/media-pipeline';
@@ -62,6 +64,12 @@ async function overrideUploaderInit( page, adjust ) {
 }
 
 test.describe( 'Add New Media File client-side uploads', () => {
+	test.skip(
+		( { browserName, browser } ) =>
+			! supportsDocumentIsolation( browserName, browser ),
+		'This browser does not support Document-Isolation-Policy'
+	);
+
 	test( 'sends the Document-Isolation-Policy header', async ( {
 		page,
 		admin,
@@ -89,16 +97,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		// In Chromium builds without Document-Isolation-Policy support,
-		// isolation is legitimately unavailable and the pipeline falls back
-		// to classic uploads. Only assert where isolation is real.
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The REST route may be a pretty permalink (/wp/v2/media) or the
 		// plain form (index.php?rest_route=%2Fwp%2Fv2%2Fmedia), so match on
@@ -174,13 +173,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// Hold sideload requests so the upload stays in flight at a
 		// deterministic point.
@@ -245,13 +238,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
@@ -292,13 +279,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		await admin.visitAdminPage( 'media-new.php', `post_id=${ post.id }` );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const ids = trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
@@ -315,60 +296,6 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} );
 		expect( attachment.post ).toBe( post.id );
 	} );
-	test( 'falls back to the classic uploader when the page is not isolated', async ( {
-		page,
-		admin,
-		attachments,
-	} ) => {
-		// Blocking the Document-Isolation-Policy header reproduces every
-		// browser that ignores it: the page is not isolated, the script
-		// must no-op, and classic plupload must still upload the file.
-		await page.route(
-			( url ) => url.pathname.endsWith( '/wp-admin/media-new.php' ),
-			async ( route ) => {
-				const response = await route.fetch();
-				const headers = { ...response.headers() };
-				delete headers[ 'document-isolation-policy' ];
-				await route.fulfill( { response, headers } );
-			}
-		);
-
-		await admin.visitAdminPage( 'media-new.php' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		expect( isolated ).toBe( false );
-
-		let asyncFileUploads = 0;
-		let restUploadCount = 0;
-		page.on( 'request', ( request ) => {
-			if ( request.method() !== 'POST' ) {
-				return;
-			}
-			if ( request.url().includes( '/async-upload.php' ) ) {
-				// Ignore the markup fetch (fetch=3); count file uploads.
-				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
-					asyncFileUploads++;
-				}
-			} else if (
-				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
-			) {
-				restUploadCount++;
-			}
-		} );
-
-		trackUploads( page, attachments );
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
-
-		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
-
-		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
-		expect( restUploadCount ).toBe( 0 );
-	} );
-
 	test( 'uploads several files at once, including duplicates', async ( {
 		page,
 		admin,
@@ -376,13 +303,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let finalizeCount = 0;
 		page.on( 'request', ( request ) => {
@@ -413,13 +334,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const heldRoutes = [];
 		let holding = true;
@@ -468,13 +383,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await failMediaCreate( page );
 
@@ -503,13 +412,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		// instead of sending the REST API a parent it will reject.
 		await admin.visitAdminPage( 'media-new.php', 'post_id=999999999' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const ids = trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
@@ -534,13 +437,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// A plugin adding a field through plupload_default_params or
 		// uploader.settings.multipart_params reads it back from $_POST on
@@ -595,13 +492,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let asyncFileUploads = 0;
 		let restUploadCount = 0;
@@ -638,13 +529,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let asyncFileUploads = 0;
 		let restCreateCount = 0;
@@ -681,13 +566,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// What checking the "Scale images" setting does.
 		await page.evaluate( () => window.setResize( true ) );
@@ -727,13 +606,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await failMediaCreate( page );
 
@@ -778,13 +651,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		await stubClassicUpload( page );
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let asyncFileUploads = 0;
 		let restUploadCount = 0;
@@ -848,13 +715,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		trackUploads( page, attachments );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
@@ -889,13 +750,7 @@ test.describe( 'Add New Media File client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'media-new.php' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// Hold the audio file's classic upload so the image's pipeline
 		// upload finishes first.
@@ -929,5 +784,61 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		} ) );
 		expect( states.calls.length ).toBeGreaterThan( 0 );
 		expect( states.calls ).not.toContain( states.started );
+	} );
+} );
+
+test.describe( 'Add New Media File uploads without cross-origin isolation', () => {
+	test( 'falls back to the classic uploader when the page is not isolated', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		// Blocking the Document-Isolation-Policy header reproduces every
+		// browser that ignores it: the page is not isolated, the script
+		// must no-op, and classic plupload must still upload the file.
+		await page.route(
+			( url ) => url.pathname.endsWith( '/wp-admin/media-new.php' ),
+			async ( route ) => {
+				const response = await route.fetch();
+				const headers = { ...response.headers() };
+				delete headers[ 'document-isolation-policy' ];
+				await route.fulfill( { response, headers } );
+			}
+		);
+
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		expect( isolated ).toBe( false );
+
+		let asyncFileUploads = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				// Ignore the markup fetch (fetch=3); count file uploads.
+				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
+					asyncFileUploads++;
+				}
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncFileUploads ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
 	} );
 } );
