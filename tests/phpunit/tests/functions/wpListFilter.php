@@ -25,32 +25,6 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'AND' operator is used when no operator is passed.
-	 *
-	 * @ticket 53987
-	 */
-	public function test_wp_list_filter_should_default_to_and_operator() {
-		$input_list = array(
-			(object) array(
-				'foo' => 'bar',
-				'bar' => 'baz',
-			),
-			(object) array( 'foo' => 'bar' ),
-		);
-
-		$this->assertEqualSetsWithIndex(
-			array( 0 => $input_list[0] ),
-			wp_list_filter(
-				$input_list,
-				array(
-					'foo' => 'bar',
-					'bar' => 'baz',
-				)
-			)
-		);
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array[]
@@ -500,6 +474,32 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 				'NOT',
 				array(),
 			),
+		);
+	}
+
+	/**
+	 * Tests that the 'AND' operator is used when no operator is passed.
+	 *
+	 * @ticket 53987
+	 */
+	public function test_wp_list_filter_should_default_to_and_operator() {
+		$input_list = array(
+			(object) array(
+				'foo' => 'bar',
+				'bar' => 'baz',
+			),
+			(object) array( 'foo' => 'bar' ),
+		);
+
+		$this->assertEqualSetsWithIndex(
+			array( 0 => $input_list[0] ),
+			wp_list_filter(
+				$input_list,
+				array(
+					'foo' => 'bar',
+					'bar' => 'baz',
+				)
+			)
 		);
 	}
 }

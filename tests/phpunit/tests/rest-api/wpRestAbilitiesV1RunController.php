@@ -743,6 +743,23 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that ability results are prepared for JSON clients.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_output_is_prepared_for_json_clients
+	 *
+	 * @param string $ability_name The ability name.
+	 * @param string $expected     The expected encoded result.
+	 */
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
+		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
+	}
+
+	/**
 	 * Data provider for test_output_is_prepared_for_json_clients().
 	 *
 	 * @return array<string, array{0: string, 1: string}>
@@ -758,23 +775,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'list of strings'         => array( 'test/string-list-output', '["a","b"]' ),
 			'string'                  => array( 'test/string-output', '"value"' ),
 		);
-	}
-
-	/**
-	 * Tests that ability results are prepared for JSON clients.
-	 *
-	 * @ticket 66267
-	 * @dataProvider data_output_is_prepared_for_json_clients
-	 *
-	 * @param string $ability_name The ability name.
-	 * @param string $expected     The expected encoded result.
-	 */
-	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
-		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 200, $response->get_status(), 'The ability should run successfully.' );
-		$this->assertSame( $expected, wp_json_encode( $response->get_data() ), 'The result should be encoded as expected.' );
 	}
 
 	/**
@@ -1874,24 +1874,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides transports and input sources for input that fails sanitization.
-	 *
-	 * @return array
-	 */
-	public static function data_sanitization_error_inputs(): array {
-		return array(
-			'query input'      => array( 'GET', 'request' ),
-			'JSON input'       => array( 'POST', 'request' ),
-			'schema default'   => array( 'POST', 'default' ),
-			'normalizer input' => array( 'POST', 'filter' ),
-		);
-	}
-
-	/**
 	 * Tests that sanitization failures use existing REST error handling before permission checks.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_sanitization_error_inputs
+	 * @dataProvider data_sanitization_error_returns_400
 	 *
 	 * @param string $method HTTP method.
 	 * @param string $source Source of the input that fails sanitization.
@@ -1938,6 +1924,20 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 400, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_input', $data['code'] );
+	}
+
+	/**
+	 * Provides transports and input sources for input that fails sanitization.
+	 *
+	 * @return array
+	 */
+	public static function data_sanitization_error_returns_400(): array {
+		return array(
+			'query input'      => array( 'GET', 'request' ),
+			'JSON input'       => array( 'POST', 'request' ),
+			'schema default'   => array( 'POST', 'default' ),
+			'normalizer input' => array( 'POST', 'filter' ),
+		);
 	}
 
 	/**
@@ -2108,18 +2108,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides explicit input and an omitted input using the schema default.
-	 *
-	 * @return array
-	 */
-	public static function data_permission_callback_input(): array {
-		return array(
-			'explicit input' => array( array( 'count' => '10' ) ),
-			'default input'  => array( null ),
-		);
-	}
-
-	/**
 	 * Tests that the permission callback receives natively typed input.
 	 *
 	 * Coercion runs before `check_ability_permissions()`, so an ability that inspects its input
@@ -2127,7 +2115,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * string delivered. The gate runs first, so the first recorded type is the one it acted on.
 	 *
 	 * @ticket 65594
-	 * @dataProvider data_permission_callback_input
+	 * @dataProvider data_permission_callback_receives_typed_input
 	 *
 	 * @param array|null $input Request input, or null to use the schema default.
 	 */
@@ -2171,14 +2159,14 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for input sent with the request and input left out.
+	 * Provides explicit input and an omitted input using the schema default.
 	 *
-	 * @return array<string, array{0: array|null}> Request input, or null to use the schema default.
+	 * @return array
 	 */
-	public static function data_input_prepared_once(): array {
+	public static function data_permission_callback_receives_typed_input(): array {
 		return array(
-			'request input'  => array( array( 'count' => '10' ) ),
-			'schema default' => array( null ),
+			'explicit input' => array( array( 'count' => '10' ) ),
+			'default input'  => array( null ),
 		);
 	}
 
@@ -2186,7 +2174,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * Tests that the input is prepared only once before the permission check.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_input_prepared_once
+	 * @dataProvider data_input_is_prepared_once_before_permission_check
 	 *
 	 * @param array|null $input Request input, or null to use the schema default.
 	 */
@@ -2236,15 +2224,14 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for requests rejected by the permission check.
+	 * Data provider for input sent with the request and input left out.
 	 *
-	 * @return array<string, array{0: string, 1: bool, 2: string}> HTTP method, whether the
-	 *                                                            ability is shown in REST, and the expected error code.
+	 * @return array<string, array{0: array|null}> Request input, or null to use the schema default.
 	 */
-	public static function data_invalid_input_does_not_hide_request_errors(): array {
+	public static function data_input_is_prepared_once_before_permission_check(): array {
 		return array(
-			'hidden ability'    => array( 'GET', false, 'rest_ability_not_found' ),
-			'wrong HTTP method' => array( 'POST', true, 'rest_ability_invalid_method' ),
+			'request input'  => array( array( 'count' => '10' ) ),
+			'schema default' => array( null ),
 		);
 	}
 
@@ -2283,6 +2270,19 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->dispatch_run( $method, 'test/rejected-request', array( 'count' => 'not-a-number' ) );
 
 		$this->assertSame( $error_code, $response->get_data()['code'] );
+	}
+
+	/**
+	 * Data provider for requests rejected by the permission check.
+	 *
+	 * @return array<string, array{0: string, 1: bool, 2: string}> HTTP method, whether the
+	 *                                                            ability is shown in REST, and the expected error code.
+	 */
+	public static function data_invalid_input_does_not_hide_request_errors(): array {
+		return array(
+			'hidden ability'    => array( 'GET', false, 'rest_ability_not_found' ),
+			'wrong HTTP method' => array( 'POST', true, 'rest_ability_invalid_method' ),
+		);
 	}
 
 	/**

@@ -183,7 +183,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * @covers ::wp_get_state_text_fill_reset
 	 * @covers ::wp_state_paints_own_background
 	 *
-	 * @dataProvider data_state_styles_that_paint_their_own_background
+	 * @dataProvider data_text_clip_helpers_add_nothing_when_the_state_paints_its_own_background
 	 *
 	 * @param array $state_style State style object.
 	 */
@@ -197,7 +197,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_state_styles_that_paint_their_own_background() {
+	public static function data_text_clip_helpers_add_nothing_when_the_state_paints_its_own_background() {
 		$color = array( 'text' => '#ff0000' );
 
 		return array(
@@ -240,7 +240,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * @ticket 66094
 	 * @covers ::wp_get_state_text_clip_escape
 	 *
-	 * @dataProvider data_base_clips_that_are_not_text
+	 * @dataProvider data_text_clip_escape_adds_nothing_without_a_base_text_clip
 	 *
 	 * @param string $base_clip Background clip the state layers over.
 	 */
@@ -258,7 +258,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_base_clips_that_are_not_text() {
+	public static function data_text_clip_escape_adds_nothing_without_a_base_text_clip() {
 		return array(
 			'no base clip' => array( '' ),
 			'border-box'   => array( 'border-box' ),
@@ -272,7 +272,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * @covers ::wp_get_state_text_clip_escape
 	 * @covers ::wp_get_state_text_fill_reset
 	 *
-	 * @dataProvider data_empty_state_clips
+	 * @dataProvider data_text_clip_helpers_treat_an_empty_state_clip_as_no_clip
 	 *
 	 * @param mixed $state_clip Background clip set by the state.
 	 */
@@ -295,7 +295,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_state_clips() {
+	public static function data_text_clip_helpers_treat_an_empty_state_clip_as_no_clip() {
 		return array(
 			'false'        => array( false ),
 			'zero'         => array( 0 ),

@@ -98,7 +98,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_term_archives
+	 * @dataProvider data_returns_title_for_term_archives
 	 *
 	 * @param string $archive  Archive type.
 	 * @param string $expected Expected title.
@@ -114,7 +114,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_term_archives() {
+	public static function data_returns_title_for_term_archives() {
 		return array(
 			'category'        => array( 'category', 'Archive: News &amp; Notes' ),
 			'tag'             => array( 'tag', 'Archive: Featured' ),
@@ -153,7 +153,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_not_term_archives
+	 * @dataProvider data_returns_null_outside_term_archives
 	 *
 	 * @param string $archive Archive type, or an empty string for the home page.
 	 */
@@ -175,7 +175,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_not_term_archives() {
+	public static function data_returns_null_outside_term_archives() {
 		return array(
 			'home page'         => array( '' ),
 			'author archive'    => array( 'author' ),
@@ -188,7 +188,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_filters
+	 * @dataProvider data_applies_filter_for_archive_type
 	 *
 	 * @param string $archive  Archive type.
 	 * @param string $hook     Filter expected to run.
@@ -228,7 +228,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_filters() {
+	public static function data_applies_filter_for_archive_type() {
 		return array(
 			'category'        => array( 'category', 'single_cat_title', 'News &amp; Notes', 'NEWS &AMP; NOTES' ),
 			'tag'             => array( 'tag', 'single_tag_title', 'Featured', 'FEATURED' ),

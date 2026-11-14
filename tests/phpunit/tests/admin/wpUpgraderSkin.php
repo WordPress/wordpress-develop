@@ -40,7 +40,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 *
 	 * @ticket 59446
 	 *
-	 * @dataProvider data_results_that_should_print_nothing
+	 * @dataProvider data_decrement_update_count_should_print_nothing_without_a_usable_result
 	 *
 	 * @covers WP_Upgrader_Skin::decrement_update_count
 	 *
@@ -58,7 +58,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ result: mixed }>
 	 */
-	public static function data_results_that_should_print_nothing(): array {
+	public static function data_decrement_update_count_should_print_nothing_without_a_usable_result(): array {
 		return array(
 			'a false result'         => array( 'result' => false ),
 			'a WP_Error result'      => array( 'result' => new WP_Error( 'test_error' ) ),

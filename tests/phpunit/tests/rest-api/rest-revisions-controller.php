@@ -1600,7 +1600,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 66329
 	 *
-	 * @dataProvider data_pattern_sync_statuses
+	 * @dataProvider data_restoring_pattern_revision_keeps_sync_status
 	 *
 	 * @covers WP_REST_Revisions_Controller::prepare_item_for_response
 	 *
@@ -1644,7 +1644,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @return array[]
 	 */
-	public static function data_pattern_sync_statuses() {
+	public static function data_restoring_pattern_revision_keeps_sync_status() {
 		return array(
 			'synced pattern'           => array( '' ),
 			'unsynced pattern'         => array( 'unsynced' ),

@@ -112,7 +112,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_dependency_states
+	 * @dataProvider data_should_disable_checkbox_for_dependency_state
 	 *
 	 * @param string $state The dependency state, 'dependents' or 'unmet'.
 	 */
@@ -134,7 +134,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @return array[]
 	 */
-	public static function data_dependency_states() {
+	public static function data_should_disable_checkbox_for_dependency_state() {
 		return array(
 			'plugin with dependents'         => array( 'dependents' ),
 			'plugin with unmet dependencies' => array( 'unmet' ),
@@ -176,7 +176,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_update_states
+	 * @dataProvider data_should_mark_plugin_with_update
 	 *
 	 * @param array  $totals   The status totals.
 	 * @param bool   $update   Whether the plugin data has an update.
@@ -195,7 +195,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @return array[]
 	 */
-	public static function data_update_states() {
+	public static function data_should_mark_plugin_with_update() {
 		return array(
 			'update and upgrade total'     => array( array( 'upgrade' => 1 ), true, 'inactive update' ),
 			'update without upgrade total' => array( array(), true, 'inactive' ),
@@ -248,7 +248,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @group ms-required
 	 *
-	 * @dataProvider data_network_restrictions
+	 * @dataProvider data_should_hide_checkbox_for_network_restricted_plugin
 	 *
 	 * @param bool   $network_active Whether the plugin is network active.
 	 * @param string $headers        Additional plugin headers.
@@ -266,7 +266,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 *
 	 * @return array[]
 	 */
-	public static function data_network_restrictions() {
+	public static function data_should_hide_checkbox_for_network_restricted_plugin() {
 		return array(
 			'network active' => array( true, '' ),
 			'network only'   => array( false, " * Network: true\n" ),

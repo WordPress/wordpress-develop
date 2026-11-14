@@ -61,7 +61,7 @@ class Tests_Category_InCategory extends WP_UnitTestCase {
 	 * @ticket 25706
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_empty_categories
+	 * @dataProvider data_returns_false_when_category_is_empty
 	 *
 	 * @param mixed $empty_category Empty category value.
 	 */
@@ -74,7 +74,7 @@ class Tests_Category_InCategory extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_categories() {
+	public static function data_returns_false_when_category_is_empty() {
 		return array(
 			'empty string' => array( '' ),
 			'zero int'     => array( 0 ),

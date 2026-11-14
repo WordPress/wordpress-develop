@@ -995,7 +995,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @ticket 66327
 	 *
-	 * @dataProvider data_unpublished_page_statuses
+	 * @dataProvider data_homepage_action_links_do_not_exist_for_unpublished_pages
 	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 *
@@ -1022,7 +1022,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 *
 	 * @return array[]
 	 */
-	public static function data_unpublished_page_statuses() {
+	public static function data_homepage_action_links_do_not_exist_for_unpublished_pages() {
 		return array(
 			'draft'   => array( 'draft' ),
 			'pending' => array( 'pending' ),

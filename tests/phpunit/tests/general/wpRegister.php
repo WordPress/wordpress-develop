@@ -47,7 +47,7 @@ class Tests_General_WpRegister extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register
 	 *
-	 * @dataProvider data_register_link
+	 * @dataProvider data_register_link_when_registration_is_enabled
 	 *
 	 * @param string $before Text before the link.
 	 * @param string $after  Text after the link.
@@ -66,7 +66,7 @@ class Tests_General_WpRegister extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_register_link() {
+	public static function data_register_link_when_registration_is_enabled() {
 		return array(
 			'custom wrapper' => array( '<p class="register">', '</p>' ),
 			'no wrapper'     => array( '', '' ),

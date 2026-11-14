@@ -206,7 +206,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	/**
 	 * @ticket 63914
 	 *
-	 * @dataProvider data_availability_error_messages
+	 * @dataProvider data_get_response_body_skips_on_availability_failures
 	 *
 	 * @param string $message Error message.
 	 */
@@ -232,7 +232,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_availability_error_messages() {
+	public static function data_get_response_body_skips_on_availability_failures() {
 		return array(
 			'host resolution'             => array( 'cURL error 6: Could not resolve host: endoflife.date' ),
 			'fsocket timed out'           => array( 'fsocket timed out' ),
@@ -280,7 +280,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	/**
 	 * @ticket 63914
 	 *
-	 * @dataProvider data_availability_status_codes
+	 * @dataProvider data_get_response_body_skips_on_server_availability_status_codes
 	 *
 	 * @param int $status_code The HTTP status code.
 	 */
@@ -310,7 +310,7 @@ class Tests_Readme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_availability_status_codes() {
+	public static function data_get_response_body_skips_on_server_availability_status_codes() {
 		return array(
 			'429 Too Many Requests' => array( 429 ),
 			'500 Server Error'      => array( 500 ),

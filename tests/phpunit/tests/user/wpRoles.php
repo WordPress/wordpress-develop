@@ -61,7 +61,7 @@ class Tests_User_wpRoles extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_values_other_than_roles_instance
+	 * @dataProvider data_should_replace_global_which_is_not_roles_instance
 	 *
 	 * @param mixed $value Value the global was overwritten with.
 	 */
@@ -79,7 +79,7 @@ class Tests_User_wpRoles extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_values_other_than_roles_instance() {
+	public static function data_should_replace_global_which_is_not_roles_instance() {
 		return array(
 			'a role name'    => array( 'administrator' ),
 			'another object' => array( new stdClass() ),

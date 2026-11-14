@@ -309,7 +309,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_active_states
+	 * @dataProvider data_should_not_add_links_for_user_without_capabilities
 	 *
 	 * @param bool $active Whether the plugin is active.
 	 */
@@ -329,7 +329,7 @@ class Tests_Admin_wpPluginsListTableActionLinks extends WP_PluginDependencies_Un
 	 *
 	 * @return array[]
 	 */
-	public static function data_active_states() {
+	public static function data_should_not_add_links_for_user_without_capabilities() {
 		return array(
 			'active plugin'   => array( true ),
 			'inactive plugin' => array( false ),

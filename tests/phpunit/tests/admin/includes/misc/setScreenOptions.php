@@ -66,17 +66,6 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $meta );
 	}
 
-	public function intercept_redirect( $location ) {
-		throw new Exception( 'Redirected' );
-	}
-
-	public function filter_set_screen_option_custom( $status, $option, $value ) {
-		if ( 'my_custom_page' === $option || 'layout_columns' === $option ) {
-			return $value;
-		}
-		return $status;
-	}
-
 	/**
 	 * Data provider for test_set_screen_options.
 	 *
@@ -114,6 +103,17 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 				'expected' => 2,
 			),
 		);
+	}
+
+	public function intercept_redirect( $location ) {
+		throw new Exception( 'Redirected' );
+	}
+
+	public function filter_set_screen_option_custom( $status, $option, $value ) {
+		if ( 'my_custom_page' === $option || 'layout_columns' === $option ) {
+			return $value;
+		}
+		return $status;
 	}
 
 	/**

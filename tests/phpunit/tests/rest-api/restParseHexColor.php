@@ -14,7 +14,7 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_valid_hex_colors
+	 * @dataProvider data_returns_valid_hex_color
 	 *
 	 * @param string $color Valid hex color.
 	 */
@@ -27,7 +27,7 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_valid_hex_colors() {
+	public static function data_returns_valid_hex_color() {
 		return array(
 			'3-digit mixed case' => array( '#aBc' ),
 			'6-digit mixed case' => array( '#aBcDeF' ),
@@ -39,7 +39,7 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_hex_colors
+	 * @dataProvider data_returns_false_for_invalid_hex_color
 	 *
 	 * @param mixed $color Invalid color value.
 	 */
@@ -52,7 +52,7 @@ class Tests_REST_API_RestParseHexColor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_hex_colors() {
+	public static function data_returns_false_for_invalid_hex_color() {
 		return array(
 			'missing hash'       => array( 'abcdef' ),
 			'unsupported length' => array( '#ab' ),

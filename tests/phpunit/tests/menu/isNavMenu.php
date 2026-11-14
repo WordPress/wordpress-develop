@@ -26,7 +26,7 @@ class Tests_Menu_IsNavMenu extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_ways_to_identify_a_menu
+	 * @dataProvider data_should_return_true_for_an_existing_menu
 	 *
 	 * @param string $field The menu field to identify the menu by.
 	 */
@@ -41,7 +41,7 @@ class Tests_Menu_IsNavMenu extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_ways_to_identify_a_menu() {
+	public static function data_should_return_true_for_an_existing_menu() {
 		return array(
 			'ID'          => array( 'term_id' ),
 			'slug'        => array( 'slug' ),
@@ -92,7 +92,7 @@ class Tests_Menu_IsNavMenu extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unknown_menus
+	 * @dataProvider data_should_return_false_for_an_unknown_menu
 	 *
 	 * @param int|string $menu A value that does not identify a menu.
 	 */
@@ -105,7 +105,7 @@ class Tests_Menu_IsNavMenu extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unknown_menus() {
+	public static function data_should_return_false_for_an_unknown_menu() {
 		return array(
 			'ID'   => array( PHP_INT_MAX ),
 			'slug' => array( 'no-such-menu' ),

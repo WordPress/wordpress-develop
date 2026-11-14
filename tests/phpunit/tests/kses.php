@@ -113,7 +113,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *
 	 * @ticket 65984
 	 *
-	 * @dataProvider data_wp_kses_idempotent_inputs
+	 * @dataProvider data_wp_kses_is_idempotent
 	 *
 	 * @param string $input                 Process this HTML.
 	 * @param array|null $allowed_html      Optional. If provided, will be passed into `wp_kses()`.
@@ -137,7 +137,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_kses_idempotent_inputs(): array {
+	public static function data_wp_kses_is_idempotent(): array {
 		return array(
 			array(
 				'<div>a < b</div>',

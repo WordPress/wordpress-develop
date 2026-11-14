@@ -251,7 +251,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_ambiguous_ampersands
+	 * @dataProvider data_decodes_ambiguous_ampersands
 	 *
 	 * @param string $context  'attribute' or 'data'.
 	 * @param string $raw_text Raw text.
@@ -270,7 +270,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string, string, string}>
 	 */
-	public static function data_ambiguous_ampersands(): array {
+	public static function data_decodes_ambiguous_ampersands(): array {
 		return array(
 			'Semicolonless reference (data)'          => array( 'data', '&amp', '&' ),
 			'Semicolonless reference (attr)'          => array( 'attribute', '&amp', '&' ),
@@ -560,7 +560,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_decode_attribute_named_character_references
+	 * @dataProvider data_decode_attribute_decodes_named_character_references
 	 *
 	 * @param string $raw_text Raw attribute value containing named character reference.
 	 * @param string $expected Expected decoded string.
@@ -581,7 +581,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string, string}>
 	 */
-	public static function data_decode_attribute_named_character_references(): array {
+	public static function data_decode_attribute_decodes_named_character_references(): array {
 		return array(
 			// The main syntax characters.
 			'Ampersand with semicolon'               => array( '&amp;', '&' ),
@@ -617,7 +617,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_numeric_character_references
+	 * @dataProvider data_decodes_numeric_character_references
 	 *
 	 * @param string $raw_text Raw numeric character reference.
 	 * @param string $expected Expected decoded string.
@@ -646,7 +646,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @return Generator<string, array{string, string}> Test cases.
 	 */
-	public static function data_numeric_character_references(): Generator {
+	public static function data_decodes_numeric_character_references(): Generator {
 		$code_points = array(
 			'ASCII'                 => array( 0x41, 'A' ),
 			'Two-byte UTF-8'        => array( 0xE9, 'é' ),
@@ -691,7 +691,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_windows_1252_mapped_characters
+	 * @dataProvider data_decodes_windows_1252_mapped_characters
 	 *
 	 * @param string $raw_text Raw numeric character reference.
 	 * @param string $expected Expected decoded character.
@@ -714,7 +714,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string, string}>
 	 */
-	public static function data_windows_1252_mapped_characters(): array {
+	public static function data_decodes_windows_1252_mapped_characters(): array {
 		return array(
 			'Euro sign'        => array( '&#x80;', '€' ),
 			'Unmapped U+81'    => array( '&#x81;', "\u{81}" ),

@@ -150,7 +150,7 @@ class Tests_wp_ajax_save_attachment_order extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_missing_parameters
+	 * @dataProvider data_save_attachment_order_missing_parameters
 	 *
 	 * @param array $post_data POST data.
 	 */
@@ -174,7 +174,7 @@ class Tests_wp_ajax_save_attachment_order extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_missing_parameters(): array {
+	public static function data_save_attachment_order_missing_parameters(): array {
 		return array(
 			'missing post_id'     => array(
 				array(

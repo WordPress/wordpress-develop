@@ -69,7 +69,7 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_json_accept_headers
+	 * @dataProvider data_returns_true_for_json_accept_header
 	 *
 	 * @param string $accept Accept header value.
 	 */
@@ -85,7 +85,7 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_json_accept_headers() {
+	public static function data_returns_true_for_json_accept_header() {
 		return array(
 			'application/json'         => array( 'application/json' ),
 			'vendor json'              => array( 'application/vnd.api+json' ),
@@ -98,7 +98,7 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_json_content_types
+	 * @dataProvider data_returns_true_for_json_content_type
 	 *
 	 * @param string $content_type Content-Type header value.
 	 */
@@ -114,7 +114,7 @@ class Tests_Load_WpIsJsonRequest extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_json_content_types() {
+	public static function data_returns_true_for_json_content_type() {
 		return array(
 			'application/json' => array( 'application/json' ),
 			'vendor json'      => array( 'application/vnd.api+json' ),

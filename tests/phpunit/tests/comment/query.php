@@ -4509,7 +4509,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Comment_Query::fill_descendants
 	 *
-	 * @dataProvider data_hierarchical_modes
+	 * @dataProvider data_fill_descendants_should_skip_cached_child_ids_that_no_longer_exist
 	 *
 	 * @param 'threaded'|'flat' $hierarchical Value of the 'hierarchical' query var.
 	 *
@@ -4557,7 +4557,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: 'threaded'|'flat' }>
 	 */
-	public static function data_hierarchical_modes(): array {
+	public static function data_fill_descendants_should_skip_cached_child_ids_that_no_longer_exist(): array {
 		return array(
 			'threaded' => array( 'threaded' ),
 			'flat'     => array( 'flat' ),

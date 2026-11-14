@@ -15,7 +15,7 @@
 class Tests_Includes_RegisteredMeta extends PHPUnit_Adapter_TestCase {
 
 	/**
-	 * @dataProvider data_registered_metadata
+	 * @dataProvider data_restores_metadata_registered_before_test_methods
 	 *
 	 * @param string $object_type    Metadata object type.
 	 * @param string $object_subtype Metadata object subtype.
@@ -83,7 +83,7 @@ class Tests_Includes_RegisteredMeta extends PHPUnit_Adapter_TestCase {
 	/**
 	 * @return array[]
 	 */
-	public static function data_registered_metadata() {
+	public static function data_restores_metadata_registered_before_test_methods() {
 		// Each case boots WordPress separately. Cover the scopes and mutation modes
 		// without repeating their full cross-product in isolated processes.
 		return array(

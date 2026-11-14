@@ -54,7 +54,7 @@ class Tests_Admin_Includes_AjaxActions_closedPostboxes extends WP_Ajax_UnitTestC
 	/**
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_always_shown_postboxes
+	 * @dataProvider data_closed_postboxes_never_hides_always_shown_boxes
 	 *
 	 * @param string $postbox Postbox ID that can never be hidden.
 	 */
@@ -76,7 +76,7 @@ class Tests_Admin_Includes_AjaxActions_closedPostboxes extends WP_Ajax_UnitTestC
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public static function data_always_shown_postboxes(): array {
+	public static function data_closed_postboxes_never_hides_always_shown_boxes(): array {
 		return array(
 			'submitdiv'     => array( 'submitdiv' ),
 			'linksubmitdiv' => array( 'linksubmitdiv' ),

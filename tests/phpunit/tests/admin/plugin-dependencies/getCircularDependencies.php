@@ -42,7 +42,7 @@ class Tests_Admin_WPPluginDependencies_GetCircularDependencies extends WP_Plugin
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_dependencies
+	 * @dataProvider data_should_find_circular_dependencies
 	 *
 	 * @param array $dependencies The dependency slugs of each plugin, keyed by plugin slug.
 	 * @param array $pairs        The expected pairs.
@@ -60,7 +60,7 @@ class Tests_Admin_WPPluginDependencies_GetCircularDependencies extends WP_Plugin
 	 *
 	 * @return array[]
 	 */
-	public static function data_dependencies() {
+	public static function data_should_find_circular_dependencies() {
 		return array(
 			'no circular dependency'                => array(
 				array(

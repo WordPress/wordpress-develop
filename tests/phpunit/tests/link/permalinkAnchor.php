@@ -92,7 +92,7 @@ class Tests_Link_PermalinkAnchor extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unrecognized_modes
+	 * @dataProvider data_permalink_anchor_unrecognized_mode_falls_back_to_id
 	 *
 	 * @param string $mode Mode to pass.
 	 */
@@ -107,7 +107,7 @@ class Tests_Link_PermalinkAnchor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unrecognized_modes() {
+	public static function data_permalink_anchor_unrecognized_mode_falls_back_to_id() {
 		return array(
 			'arbitrary string' => array( 'custom' ),
 		);

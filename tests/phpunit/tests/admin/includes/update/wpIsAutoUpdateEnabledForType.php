@@ -37,7 +37,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_types_and_updater_states
+	 * @dataProvider data_should_follow_automatic_updater
 	 *
 	 * @param string $type     The update type.
 	 * @param bool   $disabled Whether the automatic updater is disabled.
@@ -53,7 +53,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_types_and_updater_states() {
+	public static function data_should_follow_automatic_updater() {
 		return array(
 			'plugin, updater enabled'  => array( 'plugin', false ),
 			'plugin, updater disabled' => array( 'plugin', true ),
@@ -78,7 +78,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_type_filters
+	 * @dataProvider data_should_apply_type_filter
 	 *
 	 * @param string $type   The update type.
 	 * @param string $filter The filter for the type.
@@ -99,7 +99,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_type_filters() {
+	public static function data_should_apply_type_filter() {
 		return array(
 			'plugin' => array( 'plugin', 'plugins_auto_update_enabled' ),
 			'theme'  => array( 'theme', 'themes_auto_update_enabled' ),
@@ -111,7 +111,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_other_types
+	 * @dataProvider data_should_return_false_for_other_types
 	 *
 	 * @param mixed $type The update type.
 	 */
@@ -128,7 +128,7 @@ class Tests_Admin_Includes_Update_WpIsAutoUpdateEnabledForType extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_other_types() {
+	public static function data_should_return_false_for_other_types() {
 		return array(
 			'core'        => array( 'core' ),
 			'plural type' => array( 'plugins' ),

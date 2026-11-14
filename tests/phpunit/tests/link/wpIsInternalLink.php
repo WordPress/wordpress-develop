@@ -55,7 +55,7 @@ class Tests_Link_WpIsInternalLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_internal_links
+	 * @dataProvider data_wp_is_internal_link_returns_true_for_internal_urls
 	 *
 	 * @param string $scheme_and_path URL format with a `%s` placeholder for the home host.
 	 */
@@ -71,7 +71,7 @@ class Tests_Link_WpIsInternalLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_internal_links() {
+	public static function data_wp_is_internal_link_returns_true_for_internal_urls() {
 		return array(
 			'http'             => array( 'http://%s/sample-page/' ),
 			'https'            => array( 'https://%s/sample-page/' ),
@@ -95,7 +95,7 @@ class Tests_Link_WpIsInternalLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_external_links
+	 * @dataProvider data_wp_is_internal_link_returns_false_for_external_urls
 	 *
 	 * @param string $link URL to test.
 	 */
@@ -108,7 +108,7 @@ class Tests_Link_WpIsInternalLink extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_external_links() {
+	public static function data_wp_is_internal_link_returns_false_for_external_urls() {
 		return array(
 			'external https' => array( 'https://example.net/page/' ),
 			'external http'  => array( 'http://wordpress.org/' ),

@@ -35,7 +35,7 @@ class Tests_Load_TimerFloat extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_request_ages
+	 * @dataProvider data_returns_elapsed_seconds_as_float
 	 *
 	 * @param float $request_age     Age of the request in seconds.
 	 * @param float $minimum_elapsed Minimum expected elapsed seconds.
@@ -53,7 +53,7 @@ class Tests_Load_TimerFloat extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public static function data_request_ages() {
+	public static function data_returns_elapsed_seconds_as_float() {
 		return array(
 			'recent request' => array( 1.25, 1.25 ),
 			'older request'  => array( 10.0, 10.0 ),

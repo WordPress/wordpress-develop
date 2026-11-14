@@ -235,30 +235,13 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array[] The id of each field and whether the design post types
-	 *                 exclude it.
-	 */
-	public static function data_default_fields_of_every_post_type() {
-		return array(
-			'date'             => array( 'date', true ),
-			'last_edited_date' => array( 'last_edited_date', false ),
-			'password'         => array( 'password', true ),
-			'scheduled_date'   => array( 'scheduled_date', true ),
-			'status'           => array( 'status', true ),
-			'template'         => array( 'template', true ),
-		);
-	}
-
-	/**
 	 * A default field of every post type is registered on a post type
 	 * supporting nothing, and on the design post types unless they exclude
 	 * it.
 	 *
 	 * @ticket 66229
 	 *
-	 * @dataProvider data_default_fields_of_every_post_type
+	 * @dataProvider data_a_default_field_of_every_post_type
 	 *
 	 * @param string $field_id            The id of the field.
 	 * @param bool   $excluded_for_design Whether the design post types exclude it.
@@ -280,16 +263,17 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	/**
 	 * Data provider.
 	 *
-	 * @return array[] The id of each field and the supports that give it.
+	 * @return array[] The id of each field and whether the design post types
+	 *                 exclude it.
 	 */
-	public static function data_default_fields_and_their_supports() {
+	public static function data_a_default_field_of_every_post_type() {
 		return array(
-			'discussion'        => array( 'discussion', array( 'comments', 'trackbacks' ) ),
-			'excerpt'           => array( 'excerpt', array( 'excerpt' ) ),
-			'parent'            => array( 'parent', array( 'page-attributes' ) ),
-			'ping_status'       => array( 'ping_status', array( 'trackbacks' ) ),
-			'title'             => array( 'title', array( 'title' ) ),
-			'post-content-info' => array( 'post-content-info', array( 'editor' ) ),
+			'date'             => array( 'date', true ),
+			'last_edited_date' => array( 'last_edited_date', false ),
+			'password'         => array( 'password', true ),
+			'scheduled_date'   => array( 'scheduled_date', true ),
+			'status'           => array( 'status', true ),
+			'template'         => array( 'template', true ),
 		);
 	}
 
@@ -299,7 +283,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @ticket 66229
 	 *
-	 * @dataProvider data_default_fields_and_their_supports
+	 * @dataProvider data_a_default_field_follows_its_supports
 	 *
 	 * @param string   $field_id The id of the field.
 	 * @param string[] $supports The supports that give the field.
@@ -316,6 +300,22 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 			$this->assertContains( $field_id, self::get_field_ids( $post_type ), "$post_type gets the field." );
 		}
 		$this->assertNotContains( $field_id, self::get_field_ids( 'test_without' ), 'A post type without the supports does not get the field.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] The id of each field and the supports that give it.
+	 */
+	public static function data_a_default_field_follows_its_supports() {
+		return array(
+			'discussion'        => array( 'discussion', array( 'comments', 'trackbacks' ) ),
+			'excerpt'           => array( 'excerpt', array( 'excerpt' ) ),
+			'parent'            => array( 'parent', array( 'page-attributes' ) ),
+			'ping_status'       => array( 'ping_status', array( 'trackbacks' ) ),
+			'title'             => array( 'title', array( 'title' ) ),
+			'post-content-info' => array( 'post-content-info', array( 'editor' ) ),
+		);
 	}
 
 	/**

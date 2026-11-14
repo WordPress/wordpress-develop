@@ -1900,7 +1900,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 * @requires extension fileinfo
 	 *
-	 * @dataProvider data_wp_check_filetype_and_ext_with_ttf_mime_types
+	 * @dataProvider data_wp_check_filetype_and_ext_accepts_either_ttf_mime_type
 	 *
 	 * @covers ::wp_check_filetype_and_ext
 	 *
@@ -1937,7 +1937,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_check_filetype_and_ext_with_ttf_mime_types() {
+	public static function data_wp_check_filetype_and_ext_accepts_either_ttf_mime_type() {
 		return array(
 			'font/ttf'  => array( 'font/ttf' ),
 			'font/sfnt' => array( 'font/sfnt' ),

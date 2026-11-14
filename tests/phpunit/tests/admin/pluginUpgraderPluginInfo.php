@@ -34,7 +34,7 @@ class Tests_Admin_PluginUpgraderPluginInfo extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unusable_results
+	 * @dataProvider data_should_return_false_without_destination
 	 *
 	 * @param mixed $result The upgrade result.
 	 */
@@ -55,7 +55,7 @@ class Tests_Admin_PluginUpgraderPluginInfo extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unusable_results() {
+	public static function data_should_return_false_without_destination() {
 		return array(
 			'no result'              => array( null ),
 			'false'                  => array( false ),

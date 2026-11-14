@@ -31,7 +31,7 @@ class Tests_Hooks_WpCallAllHook extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_hook_calls
+	 * @dataProvider data_should_pass_hook_name_and_arguments_to_all_hook
 	 *
 	 * @param string $hook_function The hook function to call.
 	 * @param array  $args     The arguments after the hook name.
@@ -50,7 +50,7 @@ class Tests_Hooks_WpCallAllHook extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_hook_calls() {
+	public static function data_should_pass_hook_name_and_arguments_to_all_hook() {
 		return array(
 			'do_action with arguments'        => array( 'do_action', array( 'a', 2, false ) ),
 			'do_action_ref_array'             => array( 'do_action_ref_array', array( array( 'a', 2 ) ) ),

@@ -246,7 +246,7 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_roles_without_edit_theme_options
+	 * @dataProvider data_save_widget_rejects_user_without_edit_theme_options
 	 *
 	 * @param string $role User role.
 	 */
@@ -264,7 +264,7 @@ class Tests_Admin_Includes_AjaxActions_saveWidget extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public static function data_roles_without_edit_theme_options(): array {
+	public static function data_save_widget_rejects_user_without_edit_theme_options(): array {
 		return array(
 			'editor'     => array( 'editor' ),
 			'subscriber' => array( 'subscriber' ),

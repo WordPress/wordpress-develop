@@ -223,7 +223,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * Tests that inline scripts do not include a false entry when no data exists yet.
 	 *
 	 * @ticket 52320
-	 * @dataProvider data_inline_script_positions
+	 * @dataProvider data_add_inline_script_does_not_store_false_for_empty_existing_data
 	 *
 	 * @param string $position Inline script position.
 	 */
@@ -244,7 +244,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}> Inline script positions.
 	 */
-	public static function data_inline_script_positions(): array {
+	public static function data_add_inline_script_does_not_store_false_for_empty_existing_data(): array {
 		return array(
 			'before' => array( 'before' ),
 			'after'  => array( 'after' ),

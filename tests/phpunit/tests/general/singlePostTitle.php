@@ -52,7 +52,7 @@ class Tests_General_SinglePostTitle extends WP_UnitTestCase {
 	 *
 	 * @covers ::single_post_title
 	 *
-	 * @dataProvider data_singular_titles
+	 * @dataProvider data_returns_title_on_singular_views
 	 *
 	 * @param string $post_type Post type to view.
 	 * @param string $prefix    Prefix passed to the function.
@@ -69,7 +69,7 @@ class Tests_General_SinglePostTitle extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_singular_titles() {
+	public static function data_returns_title_on_singular_views() {
 		return array(
 			'post, no prefix'   => array( 'post', '', 'Hello Title' ),
 			'post, with prefix' => array( 'post', 'Blog &raquo; ', 'Blog &raquo; Hello Title' ),

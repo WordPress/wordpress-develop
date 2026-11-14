@@ -106,7 +106,7 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_page_titles
+	 * @dataProvider data_start_el_displays_escaped_title
 	 *
 	 * @param string $post_title Page title.
 	 * @param string $expected   Expected option text.
@@ -126,7 +126,7 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_page_titles() {
+	public static function data_start_el_displays_escaped_title() {
 		return array(
 			'title with markup' => array( 'Tom & <b>Jerry</b> "quoted"', 'Tom &amp; &lt;b&gt;Jerry&lt;/b&gt; &quot;quoted&quot;' ),
 			'empty title'       => array( '', '#7 (no title)' ),
@@ -178,7 +178,7 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_titles_for_list_pages_filter
+	 * @dataProvider data_start_el_applies_list_pages_filter
 	 *
 	 * @param string $post_title Page title.
 	 * @param string $received   Title the filter is expected to receive.
@@ -211,7 +211,7 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_titles_for_list_pages_filter() {
+	public static function data_start_el_applies_list_pages_filter() {
 		return array(
 			'page with a title'    => array( 'About', 'About' ),
 			'page without a title' => array( '', '#7 (no title)' ),

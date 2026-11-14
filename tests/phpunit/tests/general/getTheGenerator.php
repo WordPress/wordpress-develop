@@ -17,7 +17,7 @@ class Tests_General_GetTheGenerator extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_generator_types
+	 * @dataProvider data_get_the_generator_types
 	 *
 	 * @param string $type     Generator type.
 	 * @param string $expected Expected markup template with placeholder for version.
@@ -35,7 +35,7 @@ class Tests_General_GetTheGenerator extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_generator_types() {
+	public static function data_get_the_generator_types() {
 		return array(
 			'html'    => array(
 				'html',

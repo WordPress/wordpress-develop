@@ -699,7 +699,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 65893
 	 *
-	 * @dataProvider data_original_global_instance_runs
+	 * @dataProvider data_original_global_instance_is_restored_after_tear_down
 	 *
 	 * @param string $store_namespace Store namespace to set state for.
 	 */
@@ -723,7 +723,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @return array<string, array{ string }>
 	 */
-	public static function data_original_global_instance_runs() {
+	public static function data_original_global_instance_is_restored_after_tear_down() {
 		return array(
 			'first run'  => array( 'isolationTest' ),
 			'second run' => array( 'isolationTest' ),

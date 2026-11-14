@@ -54,7 +54,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 * @covers ::queue_objects
 	 * @covers ::reset_queue
 	 *
-	 * @dataProvider data_invalid_object_types
+	 * @dataProvider data_invalid_object_type_returns_wp_error
 	 *
 	 * @param mixed $object_type Object type.
 	 */
@@ -81,7 +81,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_object_types() {
+	public static function data_invalid_object_type_returns_wp_error() {
 		return array(
 			'post'           => array( 'post' ),
 			'user'           => array( 'user' ),
@@ -183,7 +183,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 * @covers ::lazyload_meta_callback
 	 * @covers ::queue_objects
 	 *
-	 * @dataProvider data_check_values
+	 * @dataProvider data_lazyload_meta_callback_primes_cache_of_queued_objects
 	 *
 	 * @param mixed $check Value passed through the metadata filter.
 	 */
@@ -205,7 +205,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_check_values() {
+	public static function data_lazyload_meta_callback_primes_cache_of_queued_objects() {
 		return array(
 			'null'  => array( null ),
 			'false' => array( false ),
@@ -260,7 +260,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @covers ::lazyload_meta_callback
 	 *
-	 * @dataProvider data_meta_types_without_queued_objects
+	 * @dataProvider data_lazyload_meta_callback_does_nothing_without_queued_objects_of_type
 	 *
 	 * @param string $meta_type Metadata type requested through the filter.
 	 */
@@ -280,7 +280,7 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_meta_types_without_queued_objects() {
+	public static function data_lazyload_meta_callback_does_nothing_without_queued_objects_of_type() {
 		return array(
 			'type with an empty queue'   => array( 'comment' ),
 			'type that was never queued' => array( 'blog' ),

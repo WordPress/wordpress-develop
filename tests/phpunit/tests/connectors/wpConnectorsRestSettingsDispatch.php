@@ -215,7 +215,7 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	 *
 	 * @ticket 66330
 	 *
-	 * @dataProvider data_settings_route_spellings
+	 * @dataProvider data_masks_credentials_for_every_settings_route_spelling
 	 *
 	 * @param string $route Requested settings route.
 	 */
@@ -247,12 +247,27 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	}
 
 	/**
+	 * Data provider for spellings of the settings route that the REST server
+	 * dispatches to the settings controller.
+	 *
+	 * @return array<string, array{string}> Test cases.
+	 */
+	public static function data_masks_credentials_for_every_settings_route_spelling(): array {
+		return array(
+			'lowercase'        => array( '/wp/v2/settings' ),
+			'mixed case'       => array( '/wp/v2/Settings' ),
+			'uppercase'        => array( '/WP/V2/SETTINGS' ),
+			'trailing newline' => array( "/wp/v2/settings\n" ),
+		);
+	}
+
+	/**
 	 * Ensures settings endpoint responses mask credentials for every `rest_route`
 	 * query variable value that the REST server dispatches to the settings controller.
 	 *
 	 * @ticket 66330
 	 *
-	 * @dataProvider data_settings_rest_route_query_values
+	 * @dataProvider data_settings_endpoint_masks_credentials_for_every_rest_route_spelling
 	 *
 	 * @param string $rest_route Raw `rest_route` query variable value.
 	 */
@@ -294,27 +309,12 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Data provider for spellings of the settings route that the REST server
-	 * dispatches to the settings controller.
-	 *
-	 * @return array<string, array{string}> Test cases.
-	 */
-	public static function data_settings_route_spellings(): array {
-		return array(
-			'lowercase'        => array( '/wp/v2/settings' ),
-			'mixed case'       => array( '/wp/v2/Settings' ),
-			'uppercase'        => array( '/WP/V2/SETTINGS' ),
-			'trailing newline' => array( "/wp/v2/settings\n" ),
-		);
-	}
-
-	/**
 	 * Data provider for raw `rest_route` query variable values that the REST
 	 * server dispatches to the settings controller.
 	 *
 	 * @return array<string, array{string}> Test cases.
 	 */
-	public static function data_settings_rest_route_query_values(): array {
+	public static function data_settings_endpoint_masks_credentials_for_every_rest_route_spelling(): array {
 		return array(
 			'lowercase'                => array( '/wp/v2/settings' ),
 			'mixed case'               => array( '/wp/v2/Settings' ),

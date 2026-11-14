@@ -190,7 +190,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_ways_to_reach_a_token
+	 * @dataProvider data_token_reaches_the_output_only_as_host_content
 	 *
 	 * @param callable $make_state Callable returning the state to set.
 	 * @param string   $printed    How `state.html` is expected to print in the client data.
@@ -232,7 +232,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: callable, 1: string }> Data provider.
 	 */
-	public static function data_ways_to_reach_a_token(): array {
+	public static function data_token_reaches_the_output_only_as_host_content(): array {
 		return array(
 			'token in state'            => array(
 				static function () {
@@ -276,7 +276,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 * @covers wp_interactivity_as_dangerous_html
 	 *
-	 * @dataProvider data_html_strings
+	 * @dataProvider data_html_strings_render_byte_for_byte
 	 *
 	 * @param string $html The trusted HTML.
 	 */
@@ -297,7 +297,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }> Data provider.
 	 */
-	public static function data_html_strings(): array {
+	public static function data_html_strings_render_byte_for_byte(): array {
 		return array(
 			'attributes and entities'         => array( '<DIV Class=\'x\'  data-foo="a&amp;b">&lt;tag&gt; &nbsp;é</div>' ),
 			'empty string'                    => array( '' ),
@@ -363,7 +363,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 * @covers WP_Interactivity_Dangerous_HTML::get_html
 	 *
-	 * @dataProvider data_values_that_are_not_tokens
+	 * @dataProvider data_value_that_is_not_a_token_empties_the_host_with_one_notice
 	 *
 	 * @param string $attributes The attributes of the host.
 	 * @param array  $state      The state of the `test` namespace.
@@ -386,7 +386,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: array }> Data provider.
 	 */
-	public static function data_values_that_are_not_tokens(): array {
+	public static function data_value_that_is_not_a_token_empties_the_host_with_one_notice(): array {
 		$token = wp_interactivity_as_dangerous_html( '<p>Hi</p>' );
 
 		return array(
@@ -427,7 +427,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_references_that_resolve_to_nothing
+	 * @dataProvider data_reference_that_resolves_to_nothing_empties_the_host_without_notice
 	 *
 	 * @param string $attributes The attributes of the host.
 	 */
@@ -452,7 +452,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }> Data provider.
 	 */
-	public static function data_references_that_resolve_to_nothing(): array {
+	public static function data_reference_that_resolves_to_nothing_empties_the_host_without_notice(): array {
 		return array(
 			'null in state'         => array( 'data-wp-html="state.nul"' ),
 			'missing path'          => array( 'data-wp-html="state.missing"' ),
@@ -473,7 +473,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_references_whose_evaluation_fails
+	 * @dataProvider data_failed_evaluation_empties_the_host_without_a_data_wp_html_notice
 	 *
 	 * @param string $input    The HTML to process.
 	 * @param string $expected The expected output.
@@ -498,7 +498,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string }> Data provider.
 	 */
-	public static function data_references_whose_evaluation_fails(): array {
+	public static function data_failed_evaluation_empties_the_host_without_a_data_wp_html_notice(): array {
 		return array(
 			'throwing closure'   => array(
 				'<div data-wp-interactive="test"><div data-wp-html="state.throws">' . self::CHILDREN . '</div></div>',
@@ -525,7 +525,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_islands_that_name_no_namespace
+	 * @dataProvider data_host_under_an_island_that_names_no_namespace_is_emptied
 	 *
 	 * @param string $island The attributes of the inner `data-wp-interactive` element.
 	 */
@@ -549,7 +549,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }> Data provider.
 	 */
-	public static function data_islands_that_name_no_namespace(): array {
+	public static function data_host_under_an_island_that_names_no_namespace_is_emptied(): array {
 		return array(
 			'no value'                   => array( 'data-wp-interactive' ),
 			'object without a namespace' => array( 'data-wp-interactive=\'{"a":1}\'' ),
@@ -591,7 +591,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_directives_that_conflict
+	 * @dataProvider data_conflicting_directive_ignores_data_wp_html_with_one_notice
 	 *
 	 * @param string $host     The host markup.
 	 * @param string $expected The expected host markup.
@@ -622,7 +622,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string, 2: string }> Data provider.
 	 */
-	public static function data_directives_that_conflict(): array {
+	public static function data_conflicting_directive_ignores_data_wp_html_with_one_notice(): array {
 		return array(
 			'data-wp-text'                             => array(
 				'<div data-wp-html="state.html" data-wp-text="state.text">Fallback</div>',
@@ -669,7 +669,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_directives_the_client_drops
+	 * @dataProvider data_directive_the_client_drops_is_ignored
 	 *
 	 * @param string $host     The host markup.
 	 * @param string $expected The expected host markup.
@@ -689,7 +689,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string }> Data provider.
 	 */
-	public static function data_directives_the_client_drops(): array {
+	public static function data_directive_the_client_drops_is_ignored(): array {
 		return array(
 			'reserved namespace in the value'              => array(
 				'<div data-wp-html="constructor::state.html">' . self::CHILDREN . '</div>',
@@ -799,7 +799,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_hosts_that_cannot_hold_html
+	 * @dataProvider data_host_that_cannot_hold_html
 	 *
 	 * @param string $host     The host markup.
 	 * @param string $expected The expected host markup.
@@ -836,7 +836,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string, 2: string }> Data provider.
 	 */
-	public static function data_hosts_that_cannot_hold_html(): array {
+	public static function data_host_that_cannot_hold_html(): array {
 		$cases      = array();
 		$attributes = array(
 			'null'          => 'data-wp-html="state.nul"',
@@ -922,7 +922,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_ways_to_make_a_nested_call
+	 * @dataProvider data_nested_call_keeps_the_outer_call_processing
 	 *
 	 * @param callable $make_value Callable that receives a callable making the nested call, and
 	 *                             returns the value of `state.inner` whose `markup` is its result.
@@ -961,7 +961,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: callable }> Data provider.
 	 */
-	public static function data_ways_to_make_a_nested_call(): array {
+	public static function data_nested_call_keeps_the_outer_call_processing(): array {
 		return array(
 			'derived-state closure'            => array(
 				static function ( callable $render ) {
