@@ -599,6 +599,10 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
 	}
 
+	if ( ! in_array( $request->status, array( 'request-confirmed', 'request-completed' ), true ) ) {
+		return new WP_Error( 'invalid_request', __( 'Invalid request status when sending personal data export email.' ) );
+	}
+
 	// Localize message content for user; fallback to site default for visitors.
 	if ( ! empty( $request->user_id ) ) {
 		$switched_locale = switch_to_user_locale( $request->user_id );
