@@ -295,7 +295,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
 	 */
-	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( callable $callback ) {
+	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( callable $callback ): void {
 		$args = array(
 			'echo'    => false,
 			'depth'   => 1,
@@ -369,7 +369,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @ticket 66052
 	 */
-	public function test_wp_list_pages_excludes_filter_should_receive_numeric_strings() {
+	public function test_wp_list_pages_excludes_filter_should_receive_numeric_strings(): void {
 		$filter = new MockAction();
 		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
 
@@ -600,7 +600,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
 	 */
-	public function test_wp_list_pages_include_should_accept_an_array_of_ids( callable $callback ) {
+	public function test_wp_list_pages_include_should_accept_an_array_of_ids( callable $callback ): void {
 		$args = array(
 			'echo'    => false,
 			'include' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
