@@ -35,16 +35,24 @@ class Tests_Query_RandomContentRedirectHeaders extends WP_UnitTestCase {
 				throw new WP_Tests_Exception( self::REDIRECT_EXCEPTION_MESSAGE );
 			}
 		);
+
+		/*
+		 * The random redirect is sent on `template_redirect`, see go_to(). Canonical
+		 * redirects run on the same action and exit after redirecting, which would
+		 * end the test run.
+		 */
+		remove_action( 'template_redirect', 'redirect_canonical' );
 	}
 
 	/**
-	 * Requests a URL, stopping where a random content redirect ends the request.
+	 * Requests a URL and fires the `template_redirect` action the redirect is sent on.
 	 *
 	 * @param string $url The URL for the request.
 	 */
 	public function go_to( $url ) {
 		try {
 			parent::go_to( $url );
+			do_action( 'template_redirect' );
 		} catch ( WP_Tests_Exception $e ) {
 			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
 				throw $e;
