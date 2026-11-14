@@ -424,6 +424,38 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures wp_page_menu() excludes the static front page when no `exclude` argument is given.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 */
+	public function test_wp_page_menu_should_exclude_front_page_without_exclude_arg(): void {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => true,
+				'depth'     => 1,
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_2 ) ),
+			$filter->get_args()[0],
+			'Expected only the front page to be passed to the filter.'
+		);
+		$this->assertDoesNotMatchRegularExpression( '/\bpage-item-' . self::$parent_2 . '\b/', $menu, 'Expected the front page to be absent.' );
+		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_1 . '\b/', $menu, 'Expected the first remaining page to be present.' );
+		$this->assertMatchesRegularExpression( '/\bpage-item-' . self::$parent_3 . '\b/', $menu, 'Expected the second remaining page to be present.' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|numeric-string[]|string) }>
