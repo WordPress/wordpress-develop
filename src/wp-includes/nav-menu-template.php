@@ -435,14 +435,6 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		) {
 			$classes[]                   = 'current-menu-item';
 			$menu_items[ $key ]->current = true;
-			$ancestor_id                 = (int) $menu_item->db_id;
-
-			while (
-				( $ancestor_id = (int) get_post_meta( $ancestor_id, '_menu_item_menu_item_parent', true ) )
-				&& ! in_array( $ancestor_id, $active_ancestor_item_ids, true )
-			) {
-				$active_ancestor_item_ids[] = $ancestor_id;
-			}
 
 			if ( 'post_type' === $menu_item->type && 'page' === $menu_item->object ) {
 				// Back compat classes for pages to match wp_page_menu().
@@ -450,10 +442,6 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 				$classes[] = 'page-item-' . $menu_item->object_id;
 				$classes[] = 'current_page_item';
 			}
-
-			$active_parent_item_ids[]   = (int) $menu_item->menu_item_parent;
-			$active_parent_object_ids[] = (int) $menu_item->post_parent;
-			$active_object              = $menu_item->object;
 
 			// If the menu item corresponds to the currently queried post type archive.
 		} elseif (
@@ -499,22 +487,11 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			if ( $raw_item_url && in_array( $item_url, $matches, true ) ) {
 				$classes[]                   = 'current-menu-item';
 				$menu_items[ $key ]->current = true;
-				$ancestor_id                 = (int) $menu_item->db_id;
-
-				while (
-					( $ancestor_id = (int) get_post_meta( $ancestor_id, '_menu_item_menu_item_parent', true ) )
-					&& ! in_array( $ancestor_id, $active_ancestor_item_ids, true )
-				) {
-					$active_ancestor_item_ids[] = $ancestor_id;
-				}
 
 				if ( in_array( home_url(), array( untrailingslashit( $current_url ), untrailingslashit( $_indexless_current ) ), true ) ) {
 					// Back compat for home link to match wp_page_menu().
 					$classes[] = 'current_page_item';
 				}
-				$active_parent_item_ids[]   = (int) $menu_item->menu_item_parent;
-				$active_parent_object_ids[] = (int) $menu_item->post_parent;
-				$active_object              = $menu_item->object;
 
 				// Give front page item the 'current-menu-item' class when extra query arguments are involved.
 			} elseif ( $item_url === $front_page_url && is_front_page() ) {
@@ -523,6 +500,26 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 
 			if ( untrailingslashit( $item_url ) === home_url() ) {
 				$classes[] = 'menu-item-home';
+			}
+		}
+
+		// if current item, set active menu parent and ancestors.
+		if ( $menu_items[ $key ]->current ) {
+			$active_parent_item_ids[]   = (int) $menu_item->menu_item_parent;
+			$active_parent_object_ids[] = (int) $menu_item->post_parent;
+			$active_object              = $menu_item->object;
+
+			$_anc_id = (int) $menu_item->menu_item_parent;
+			while (
+					! in_array( $_anc_id, $active_ancestor_item_ids )
+			) {
+				$active_ancestor_item_ids[] = $_anc_id;
+				foreach ( (array) $menu_items as $_key => $_parent ) {
+					if ( $_parent->db_id == $_anc_id ) {
+						$_anc_id = $_parent->menu_item_parent;
+						break;
+					}
+				}
 			}
 		}
 
@@ -535,6 +532,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 
 		$menu_items[ $key ]->classes = array_unique( $classes );
 	}
+
 	$active_ancestor_item_ids = array_filter( array_unique( $active_ancestor_item_ids ) );
 	$active_parent_item_ids   = array_filter( array_unique( $active_parent_item_ids ) );
 	$active_parent_object_ids = array_filter( array_unique( $active_parent_object_ids ) );
