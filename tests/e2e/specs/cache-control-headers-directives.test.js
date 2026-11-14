@@ -4,20 +4,17 @@
 import { test, expect } from '../fixtures';
 
 test.describe( 'Cache Control header directives', () => {
-	test.beforeAll( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllPosts();
-	});
-
 	test(
 		'No private directive present in cache control when user not logged in.',
-		async ( { loggedOutPage, admin, editor}
+		async ( { loggedOutPage, postFactory }
 		) => {
-		await admin.createNewPost( { title: 'Hello World' } );
-		await editor.publishPost();
+		const post = await postFactory.create( {
+			title: postFactory.uniqueTitle( 'Cache control' ),
+			status: 'publish',
+		} );
+		const { pathname, search } = new URL( post.link );
 
-		await admin.visitAdminPage( '/' );
-
-		const response = await loggedOutPage.goto( '/hello-world/' );
+		const response = await loggedOutPage.goto( pathname + search );
 		const responseHeaders = response.headers();
 
 		const cacheControl = responseHeaders[ 'cache-control' ] ?? '';

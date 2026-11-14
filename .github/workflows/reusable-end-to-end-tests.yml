@@ -68,7 +68,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
     name: ${{ inputs.test-group && format( '{0}, ', inputs.test-group ) || '' }}SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 20

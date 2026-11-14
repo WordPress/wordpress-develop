@@ -105,7 +105,7 @@ class Tests_Admin_LanguagePackUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_bulk_upgrade_results() {
+	public static function data_bulk_upgrade_results() {
 		return array(
 			'all package types succeed'             => array(
 				array( 'success', 'success', 'success' ),

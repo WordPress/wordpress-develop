@@ -361,7 +361,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 		$manager       = new WP_Secrets_Key_Manager( $right_keyring );
 		$manager->get_root_key();
 
-		$wrong_keyring = new class() implements WP_Secrets_Keyring {
+		$wrong_keyring = new class() extends WP_Secrets_Keyring {
 			/**
 			 * @param string $key_material Raw key material.
 			 * @return string
@@ -605,5 +605,201 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 		$this->assertSame( $root, $manager->get_root_key(), 'Zeroing the returned copy should not wipe the cached root key.' );
 		$this->assertSame( 1, $mock->unwrap_call_count(), 'The cached root key should be served without another unwrap.' );
+	}
+
+	/**
+	 * Ensure that a failed database read of the root key does not replace the stored root key when reading a secret.
+	 *
+	 * @ticket 66413
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::read_stored_root_key
+	 */
+	public function test_a_failed_root_key_read_does_not_replace_the_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ), 'Storing the first secret should succeed.' );
+
+		$stored = $this->get_stored_root_key();
+
+		$this->fail_root_key_selects( 1 );
+
+		$secret = $this->without_db_errors( 'wp_get_secret', 'test/key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret, 'The secret should still be readable after one failed root key read.' );
+		$this->assertSame( 'value-one', $secret->reveal(), 'The secret should decrypt to the value that was stored.' );
+		$this->assertSame( $stored, $this->get_stored_root_key(), 'A failed root key read should not replace the stored root key.' );
+	}
+
+	/**
+	 * Ensure that a failed database read of the root key does not replace the stored root key when writing a secret.
+	 *
+	 * @ticket 66413
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::generate_root_key
+	 */
+	public function test_a_failed_root_key_read_during_a_write_does_not_replace_the_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ), 'Storing the first secret should succeed.' );
+
+		$stored = $this->get_stored_root_key();
+
+		$this->fail_root_key_selects( 1 );
+
+		$this->assertTrue( $this->without_db_errors( 'wp_set_secret', 'test/other', 'value-two' ), 'Storing a second secret should succeed after one failed root key read.' );
+		$this->assertSame( $stored, $this->get_stored_root_key(), 'A failed root key read during a write should not replace the stored root key.' );
+		$this->assertSame( 'value-one', wp_get_secret( 'test/key' )->reveal(), 'The first secret should still decrypt after the write.' );
+		$this->assertSame( 'value-two', wp_get_secret( 'test/other' )->reveal(), 'The second secret should decrypt with the same root key.' );
+	}
+
+	/**
+	 * Ensure that a root key that cannot be read is reported as an unavailable store and not replaced.
+	 *
+	 * @ticket 66413
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::read_stored_root_key
+	 */
+	public function test_an_unreadable_root_key_is_reported_and_not_replaced(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ), 'Storing the first secret should succeed.' );
+
+		$stored = $this->get_stored_root_key();
+
+		$filter = $this->fail_root_key_selects( 10 );
+
+		$read  = $this->without_db_errors( 'wp_get_secret', 'test/key' );
+		$write = $this->without_db_errors( 'wp_set_secret', 'test/other', 'value-two' );
+
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $read, 'Reading a secret should fail while the root key cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code(), 'The failed read should report an unavailable store.' );
+		$this->assertWPError( $write, 'Writing a secret should fail while the root key cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code(), 'The failed write should report an unavailable store.' );
+		$this->assertSame( $stored, $this->get_stored_root_key(), 'An unreadable root key should not be replaced.' );
+	}
+
+	/**
+	 * Ensure that reading a secret never generates a root key.
+	 *
+	 * @ticket 66413
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_master_key
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
+	public function test_reading_a_secret_does_not_create_a_root_key(): void {
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ), 'Storing the secret should succeed.' );
+		$this->assertTrue( delete_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'Deleting the root key should succeed.' );
+
+		$secret = wp_get_secret( 'test/key' );
+
+		$this->assertWPError( $secret, 'Reading a secret without a root key should fail.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $secret->get_error_code(), 'The failed read should report an unavailable key.' );
+		$this->assertNull( $this->get_stored_root_key(), 'Reading a secret should not store a new root key.' );
+	}
+
+	/**
+	 * Ensure that a root key another request stored after this one cached it as missing is used, not replaced.
+	 *
+	 * @ticket 66413
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::read_stored_root_key
+	 */
+	public function test_a_root_key_stored_after_it_was_cached_as_missing_is_used_not_replaced(): void {
+		global $wpdb;
+
+		$keyring = new WP_Secrets_Config_Key_Provider();
+		$known   = str_repeat( 'R', 32 );
+		$wrapped = $keyring->wrap( $known );
+
+		$this->assertFalse( get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'No root key should be stored before the test, so it is cached as missing.' );
+
+		if ( is_multisite() ) {
+			$inserted = $wpdb->insert(
+				$wpdb->sitemeta,
+				array(
+					'site_id'    => get_current_network_id(),
+					'meta_key'   => WP_Secrets_Key_Manager::ROOT_KEY_OPTION,
+					'meta_value' => $wrapped,
+				)
+			);
+		} else {
+			$inserted = $wpdb->insert(
+				$wpdb->options,
+				array(
+					'option_name'  => WP_Secrets_Key_Manager::ROOT_KEY_OPTION,
+					'option_value' => $wrapped,
+					'autoload'     => 'off',
+				)
+			);
+		}
+
+		$this->assertSame( 1, $inserted, 'Storing the root key as another request would should insert one row.' );
+
+		$manager = new WP_Secrets_Key_Manager( $keyring );
+
+		$this->assertSame( $known, $manager->get_root_key(), 'get_root_key() should return the root key the other request stored.' );
+		$this->assertSame( $wrapped, $this->get_stored_root_key(), 'The stored root key should not be replaced.' );
+		$this->assertSame( $wrapped, get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'The cached root key option should match the stored one.' );
+	}
+
+	/**
+	 * Returns the stored wrapped root key, read straight from the database.
+	 *
+	 * @return string|null
+	 */
+	private function get_stored_root_key(): ?string {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			return $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s ORDER BY meta_id ASC LIMIT 1", WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+		}
+
+		return $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", WP_Secrets_Key_Manager::ROOT_KEY_OPTION ) );
+	}
+
+	/**
+	 * Makes the next database reads of the root key fail, as a killed query or a lost
+	 * connection would, after removing it from the object cache so it is read again.
+	 *
+	 * @param int $count Number of reads to fail.
+	 * @return callable The 'query' filter that was added.
+	 */
+	private function fail_root_key_selects( int $count ): callable {
+		if ( is_multisite() ) {
+			wp_cache_delete( get_current_network_id() . ':' . WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'site-options' );
+		} else {
+			wp_cache_delete( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'options' );
+		}
+
+		$filter = static function ( $query ) use ( &$count ) {
+			if ( $count > 0 && str_starts_with( ltrim( $query ), 'SELECT' ) && str_contains( $query, "'" . WP_Secrets_Key_Manager::ROOT_KEY_OPTION . "'" ) ) {
+				--$count;
+
+				return 'SELECT * FROM wptests_table_that_does_not_exist';
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+
+		return $filter;
+	}
+
+	/**
+	 * Calls a function with database errors suppressed.
+	 *
+	 * @param callable $callback Function to call.
+	 * @param mixed    ...$args  Arguments to pass.
+	 * @return mixed The function's return value.
+	 */
+	private function without_db_errors( callable $callback, ...$args ) {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors( true );
+		$result   = $callback( ...$args );
+		$wpdb->suppress_errors( $suppress );
+
+		return $result;
 	}
 }
