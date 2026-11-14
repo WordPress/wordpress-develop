@@ -655,7 +655,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$templates = get_block_templates();
 
-		$this->assertArrayHasKey( $template_name, $templates );
+		$this->assertContains( 'test-plugin', wp_list_pluck( $templates, 'plugin' ) );
 
 		unregister_block_template( $template_name );
 	}
