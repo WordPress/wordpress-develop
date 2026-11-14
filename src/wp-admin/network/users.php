@@ -216,19 +216,7 @@ if ( isset( $_GET['action'] ) ) {
 			}
 
 			if ( ! empty( $_POST['blog'] ) && is_array( $_POST['blog'] ) ) {
-				foreach ( $_POST['blog'] as $id => $users ) {
-					foreach ( $users as $blogid => $user_id ) {
-						if ( ! current_user_can( 'delete_user', $id ) ) {
-							continue;
-						}
-
-						if ( ! empty( $_POST['delete'] ) && 'reassign' === $_POST['delete'][ $blogid ][ $id ] ) {
-							remove_user_from_blog( $id, $blogid, (int) $user_id );
-						} else {
-							remove_user_from_blog( $id, $blogid );
-						}
-					}
-				}
+				_wpmu_reassign_deleted_users_content( $_POST['blog'], ! empty( $_POST['delete'] ) ? $_POST['delete'] : array() );
 			}
 
 			$i = 0;
