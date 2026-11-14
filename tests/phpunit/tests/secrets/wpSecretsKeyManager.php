@@ -678,6 +678,52 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a root key read that fails without a database error message is reported as an unavailable store.
+	 *
+	 * wpdb::query() returns false without setting wpdb::$last_error on some failure
+	 * paths, such as when the connection is not ready.
+	 *
+	 * @ticket 66187
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 * @covers WP_Secrets_Key_Manager::read_stored_root_key
+	 */
+	public function test_a_root_key_read_that_fails_without_an_error_message_is_reported_and_not_replaced(): void {
+		global $wpdb;
+
+		$this->assertTrue( wp_set_secret( 'test/key', 'value-one' ), 'Storing the first secret should succeed.' );
+
+		$stored  = $this->get_stored_root_key();
+		$manager = new WP_Secrets_Key_Manager( new WP_Secrets_Config_Key_Provider() );
+
+		if ( is_multisite() ) {
+			wp_cache_delete( get_current_network_id() . ':' . WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'site-options' );
+		} else {
+			wp_cache_delete( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, 'options' );
+		}
+
+		// Clear the previous query's result, which a query that fails this way leaves in place.
+		$wpdb->flush();
+
+		$ready       = $wpdb->ready;
+		$wpdb->ready = false;
+
+		$read       = $manager->get_root_key( false );
+		$write      = $manager->get_root_key();
+		$last_error = $wpdb->last_error;
+
+		$wpdb->ready = $ready;
+
+		$this->assertSame( '', $last_error, 'The failed reads should not have set a database error message.' );
+		$this->assertWPError( $read, 'Reading the root key should fail while the database is not ready.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $read->get_error_code(), 'The failed read should report an unavailable store, not a missing root key.' );
+		$this->assertWPError( $write, 'Reading the root key for a write should fail while the database is not ready.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $write->get_error_code(), 'The failed read for a write should report an unavailable store.' );
+		$this->assertSame( $stored, $this->get_stored_root_key(), 'An unreadable root key should not be replaced.' );
+		$this->assertSame( 'value-one', wp_get_secret( 'test/key' )->reveal(), 'The secret should decrypt again once the root key can be read.' );
+	}
+
+	/**
 	 * Ensure that reading a secret never generates a root key.
 	 *
 	 * @ticket 66413

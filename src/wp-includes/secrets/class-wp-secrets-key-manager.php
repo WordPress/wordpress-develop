@@ -118,9 +118,8 @@ final class WP_Secrets_Key_Manager {
 	/**
 	 * Returns the keyring in use.
 	 *
-	 * Used by Site Health and by `wp secret dropin` and `wp secret health`, which all
-	 * need to describe the active keyring without duplicating the logic that resolves
-	 * it.
+	 * Used by Site Health and wp_is_secrets_api_available(), which need to describe
+	 * the active keyring without duplicating the logic that resolves it.
 	 *
 	 * @since 7.2.0
 	 *
@@ -486,7 +485,7 @@ final class WP_Secrets_Key_Manager {
 		global $wpdb;
 
 		if ( is_multisite() ) {
-			$value = $wpdb->get_var(
+			$result = $wpdb->query(
 				$wpdb->prepare(
 					"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d ORDER BY meta_id ASC LIMIT 1",
 					self::ROOT_KEY_OPTION,
@@ -494,7 +493,7 @@ final class WP_Secrets_Key_Manager {
 				)
 			);
 		} else {
-			$value = $wpdb->get_var(
+			$result = $wpdb->query(
 				$wpdb->prepare(
 					"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
 					self::ROOT_KEY_OPTION
@@ -502,16 +501,26 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		if ( '' !== $wpdb->last_error ) {
+		/*
+		 * Failure is taken from wpdb::query(), because wpdb::$last_error is not set on
+		 * every failure path, such as when the connection is not ready.
+		 */
+		if ( false === $result ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
 				__( 'Could not read the root key.' )
 			);
 		}
 
-		if ( null === $value ) {
+		if ( ! $wpdb->num_rows ) {
 			return false;
 		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Reads the result of the prepared query above.
+		$value = $wpdb->get_var();
+
+		// A row with no value exists, so it is reported as malformed below, not as absent.
+		$value = $value ?? '';
 
 		$this->forget_missing_root_key();
 

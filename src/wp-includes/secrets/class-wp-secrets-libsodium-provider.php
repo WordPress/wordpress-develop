@@ -111,6 +111,7 @@ final class WP_Secrets_Libsodium_Provider extends WP_Secrets_Provider {
 	public function is_writable(): bool {
 		return true;
 	}
+
 	/**
 	 * Validates the shape of a record read back from a store.
 	 *
@@ -476,7 +477,6 @@ final class WP_Secrets_Libsodium_Provider extends WP_Secrets_Provider {
 	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $version
 	 */
 	public function get( string $name, string $version, bool $network = false ) {
-
 		$name_check = wp_secrets_validate_name( $name );
 
 		if ( is_wp_error( $name_check ) ) {
@@ -689,7 +689,6 @@ final class WP_Secrets_Libsodium_Provider extends WP_Secrets_Provider {
 	 * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>|WP_Error
 	 */
 	public function list_secrets( string $name_prefix = '', bool $network = false ) {
-
 		$store = $this->store;
 
 		$names = $store->list_names( $network );
