@@ -614,7 +614,12 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	$export_file_name = get_post_meta( $request_id, '_export_file_name', true );
 	$export_file_url  = $exports_url . $export_file_name;
 
-	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	if ( '' !== get_option( 'blogname' ) ) {
+		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_name = parse_url( home_url(), PHP_URL_HOST );
+	}
+
 	$site_url  = home_url();
 
 	/**
