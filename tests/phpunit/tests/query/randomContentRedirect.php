@@ -196,6 +196,41 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		 * random content requests is covered by test_redirect_canonical_skips_random_content_requests_with_a_post().
 		 */
 		remove_action( 'template_redirect', 'redirect_canonical' );
+
+		/*
+		 * Sitemaps are rendered on the same action and exit after rendering, which would
+		 * also end the test run. The sitemaps server is reset between tests while its
+		 * action may remain, so the action is removed for every instance. Creating the
+		 * server first ensures a later call does not add the action again.
+		 */
+		wp_sitemaps_get_server();
+		foreach ( $GLOBALS['wp_filter']['template_redirect']->callbacks[10] ?? array() as $callback ) {
+			if ( is_array( $callback['function'] ) && $callback['function'][0] instanceof WP_Sitemaps ) {
+				remove_action( 'template_redirect', $callback['function'] );
+			}
+		}
+	}
+
+	/**
+	 * Prevents redirects from being sent, so the request continues after a redirect is attempted.
+	 *
+	 * By default a redirect ends the request, see {@see self::filter_wp_redirect()}. This
+	 * is for tests of a request that continues, as it does when the `wp_redirect` filter
+	 * returns an empty location. The location and status of the redirect are still captured.
+	 */
+	protected function prevent_redirects(): void {
+		remove_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10 );
+		add_filter(
+			'wp_redirect',
+			function ( string $location, int $status ): bool {
+				$this->redirect_location = $location;
+				$this->redirect_status   = $status;
+
+				return false;
+			},
+			10,
+			2
+		);
 	}
 
 	/**
@@ -1187,6 +1222,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $expected Expected search terms.
 	 */
 	public function test_random_search_redirect_retains_the_search_terms( string $path, string $expected ): void {
+		// Prevent the redirect so the search is run for the request.
+		$this->prevent_redirects();
+
 		$this->go_to( home_url( $path ) );
 
 		$this->assertSame( $expected, get_query_var( 's' ), 'The request should search for the expected terms.' );
@@ -1489,8 +1527,11 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			)
 		);
 
-		// The redirect is prevented by the `wp_redirect` filter, see self::filter_wp_redirect().
+		$this->prevent_redirects();
+
 		$this->go_to( home_url( '/?s=Baseball&random' ) );
+
+		$this->assertSame( home_url( '/?s=Baseball' ), $this->redirect_location, 'The search should attempt to redirect to the search results.' );
 
 		$this->assertTrue( is_search(), 'The request should remain a search.' );
 		$this->assertFalse( is_random(), 'A search should not be a random content request.' );
@@ -1508,6 +1549,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @ticket 66662
 	 */
 	public function test_random_search_without_results_is_not_a_404(): void {
+		// Prevent the redirect so the search is run for the request.
+		$this->prevent_redirects();
+
 		$this->go_to( home_url( '/?s=qqqzzznothere&random' ) );
 
 		$this->assertSame( home_url( '/?s=qqqzzznothere' ), $this->redirect_location, 'A search without results should redirect to the search results.' );
