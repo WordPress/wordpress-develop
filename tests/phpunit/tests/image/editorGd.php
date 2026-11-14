@@ -29,6 +29,10 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			unlink( $file );
 		}
 
+		foreach ( glob( get_temp_dir() . 'palette-59339*' ) as $file ) {
+			unlink( $file );
+		}
+
 		$this->remove_added_uploads();
 
 		parent::tear_down();
@@ -1199,6 +1203,120 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertTrue( $loaded );
 
 		return $saved;
+	}
+
+	/**
+	 * Tests that a palette image can be saved as WebP or AVIF.
+	 *
+	 * @ticket 59339
+	 *
+	 * @dataProvider data_save_palette_image_as_true_color_format
+	 *
+	 * @param string $mime_type The mime type to save the image as.
+	 */
+	public function test_save_palette_image_as_true_color_format( $mime_type ) {
+		$gd_image_editor = new WP_Image_Editor_GD( $this->create_palette_png() );
+
+		if ( ! $gd_image_editor->supports_mime_type( $mime_type ) ) {
+			$this->markTestSkipped( sprintf( 'This test requires GD to support %s.', $mime_type ) );
+		}
+
+		$gd_image_editor->load();
+
+		$saved = $gd_image_editor->save( null, $mime_type );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( $mime_type, wp_get_image_mime( $saved['path'] ) );
+
+		unlink( $saved['path'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_save_palette_image_as_true_color_format() {
+		return array(
+			'WebP' => array( 'image/webp' ),
+			'AVIF' => array( 'image/avif' ),
+		);
+	}
+
+	/**
+	 * Tests that a palette image saved as WebP keeps its transparency.
+	 *
+	 * @ticket 59339
+	 */
+	public function test_save_palette_image_as_webp_preserves_transparency() {
+		$gd_image_editor = new WP_Image_Editor_GD( $this->create_palette_png() );
+
+		if ( ! $gd_image_editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'This test requires GD to support WebP.' );
+		}
+
+		$gd_image_editor->load();
+
+		$saved = $gd_image_editor->save( null, 'image/webp' );
+		$image = imagecreatefromstring( file_get_contents( $saved['path'] ) );
+		$color = imagecolorsforindex( $image, imagecolorat( $image, 0, 0 ) );
+
+		$this->assertSame( 127, $color['alpha'] );
+
+		unlink( $saved['path'] );
+	}
+
+	/**
+	 * Tests that a palette image can be streamed as WebP or AVIF.
+	 *
+	 * @ticket 59339
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @dataProvider data_save_palette_image_as_true_color_format
+	 *
+	 * @param string $mime_type The mime type to stream the image as.
+	 */
+	public function test_stream_palette_image_as_true_color_format( $mime_type ) {
+		$gd_image_editor = new WP_Image_Editor_GD( $this->create_palette_png() );
+
+		if ( ! $gd_image_editor->supports_mime_type( $mime_type ) ) {
+			$this->markTestSkipped( sprintf( 'This test requires GD to support %s.', $mime_type ) );
+		}
+
+		$gd_image_editor->load();
+
+		ob_start();
+		$streamed = $gd_image_editor->stream( $mime_type );
+		$output   = ob_get_clean();
+
+		$file = get_temp_dir() . 'palette-59339-stream';
+		file_put_contents( $file, $output );
+
+		$this->assertTrue( $streamed );
+		$this->assertSame( $mime_type, wp_get_image_mime( $file ) );
+	}
+
+	/**
+	 * Creates a palette PNG with a transparent background.
+	 *
+	 * @return string Path to the image.
+	 */
+	private function create_palette_png() {
+		$image       = imagecreate( 20, 20 );
+		$transparent = imagecolorallocate( $image, 255, 255, 255 );
+		$red         = imagecolorallocate( $image, 255, 0, 0 );
+
+		imagecolortransparent( $image, $transparent );
+		imagefilledrectangle( $image, 10, 10, 19, 19, $red );
+
+		$file = get_temp_dir() . 'palette-59339.png';
+		imagepng( $image, $file );
+
+		$this->assertFalse( imageistruecolor( imagecreatefrompng( $file ) ), 'The test image should be a palette image.' );
+
+		return $file;
 	}
 }
 
