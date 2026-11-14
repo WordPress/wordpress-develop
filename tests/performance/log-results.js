@@ -17,6 +17,8 @@ const { median, parseFile, accumulateValues } = require( './utils' );
 const testSuiteMap = {
 	'Admin › Locale: en_US': 'admin',
 	'Admin › Locale: de_DE': 'admin-l10n',
+	'Admin General Settings › Locale: en_US': 'admin-general-settings',
+	'Admin General Settings › Locale: de_DE': 'admin-general-settings-l10n',
 	'Homepage › Theme: twentytwentyone, Locale: en_US': 'home-classic-theme',
 	'Homepage › Theme: twentytwentyone, Locale: de_DE':
 		'home-classic-theme-l10n',

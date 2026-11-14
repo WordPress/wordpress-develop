@@ -120,8 +120,12 @@ function formatValue( metric, value ) {
 		return 1 === value ? 'yes' : 'no';
 	}
 
-	if ( 'wpDbQueries' === metric ) {
+	if ( 'wpDbQueries' === metric || metric.endsWith( 'Count' ) ) {
 		return value;
+	}
+
+	if ( metric.endsWith( 'Bytes' ) ) {
+		return `${ ( value / 1024 ).toFixed( 2 ) } KiB`;
 	}
 
 	return `${ value.toFixed( 2 ) } ms`;
