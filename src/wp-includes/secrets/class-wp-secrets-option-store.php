@@ -213,6 +213,11 @@ final class WP_Secrets_Option_Store extends WP_Secrets_Store {
 	 * missing. When the row exists, this clears that cache entry, so the failed read
 	 * does not outlive this call.
 	 *
+	 * This read does not go through the Options API, so the pre_option_{$option} and
+	 * option_{$option} filters, and their network equivalents, are not applied to it.
+	 * It only runs after the Options API has returned the default. A host that keeps
+	 * options elsewhere replaces the store through the secrets.php drop-in.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
