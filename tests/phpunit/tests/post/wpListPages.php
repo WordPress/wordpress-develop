@@ -460,6 +460,64 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures wp_page_menu() leaves the `exclude` argument alone when there is no Home link or no static front page.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 *
+	 * @dataProvider data_wp_page_menu_without_front_page_exclusion
+	 *
+	 * @param bool   $show_home     Value for the `show_home` argument.
+	 * @param string $show_on_front Value for the `show_on_front` option.
+	 */
+	public function test_wp_page_menu_should_not_exclude_front_page( bool $show_home, string $show_on_front ): void {
+		update_option( 'show_on_front', $show_on_front );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => $show_home,
+				'depth'     => 1,
+				'exclude'   => array( self::$parent_1 ),
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1 ) ),
+			$filter->get_args()[0],
+			'Expected only the given excluded page to be passed to the filter, without the front page appended.'
+		);
+		$this->assertSameSets(
+			array( self::$parent_2, self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected the page_on_front page to be listed, since no Home link represents it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ show_home: bool, show_on_front: 'page'|'posts' }>
+	 */
+	public function data_wp_page_menu_without_front_page_exclusion(): array {
+		return array(
+			'no Home link, static front page' => array(
+				'show_home'     => false,
+				'show_on_front' => 'page',
+			),
+			'Home link, posts on front'       => array(
+				'show_home'     => true,
+				'show_on_front' => 'posts',
+			),
+		);
+	}
+
+	/**
 	 * Gets the IDs of the pages listed in the given markup, from the `page-item-{ID}` class of each `LI` tag.
 	 *
 	 * @param string $html Markup of a list of pages.
