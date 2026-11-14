@@ -309,6 +309,43 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the `exclude` argument keeps accepting a comma-separated string of page IDs.
+	 *
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_exclude_separators
+	 *
+	 * @param string $separator Separator to join the page IDs with.
+	 */
+	public function test_wp_list_pages_exclude_should_accept_a_comma_separated_string( string $separator ): void {
+		$args = array(
+			'echo'    => false,
+			'depth'   => 1,
+			'exclude' => implode( $separator, array( self::$parent_1, self::$parent_3 ) ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: a comma-separated string is still accepted.)
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public function data_wp_list_pages_exclude_separators(): array {
+		return array(
+			'comma'            => array( ',' ),
+			'comma and spaces' => array( ' , ' ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{ 0: callable }>
