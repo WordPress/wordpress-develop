@@ -1343,6 +1343,7 @@ function wp_list_pages( $args = '' ) {
 	$output       = '';
 	$current_page = 0;
 
+	// Allow plugins to filter a list of excluded page IDs, cast to strings for back-compat with the filter's original input.
 	$exclude_array = array_map( 'strval', array_values( array_filter( wp_parse_id_list( $parsed_args['exclude'] ) ) ) );
 
 	/**
