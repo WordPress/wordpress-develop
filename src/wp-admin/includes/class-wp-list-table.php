@@ -1388,21 +1388,13 @@ class WP_List_Table {
 
 			$data = (array) $data;
 			// Descending initial sorting.
-			if ( ! isset( $data[1] ) ) {
-				$data[1] = false;
-			}
+			$data[1] ??= false;
 			// Current sorting translatable string.
-			if ( ! isset( $data[2] ) ) {
-				$data[2] = '';
-			}
+			$data[2] ??= '';
 			// Initial view sorted column and asc/desc order, default: false.
-			if ( ! isset( $data[3] ) ) {
-				$data[3] = false;
-			}
+			$data[3] ??= false;
 			// Initial order for the initial sorted column, default: false.
-			if ( ! isset( $data[4] ) ) {
-				$data[4] = false;
-			}
+			$data[4] ??= false;
 
 			$sortable[ $id ] = $data;
 		}

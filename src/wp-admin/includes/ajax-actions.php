@@ -1287,9 +1287,7 @@ function wp_ajax_replyto_comment( $action ) {
 		$user_id              = $user->ID;
 
 		if ( current_user_can( 'unfiltered_html' ) ) {
-			if ( ! isset( $_POST['_wp_unfiltered_html_comment'] ) ) {
-				$_POST['_wp_unfiltered_html_comment'] = '';
-			}
+			$_POST['_wp_unfiltered_html_comment'] ??= '';
 
 			if ( wp_create_nonce( 'unfiltered-html-comment' ) !== $_POST['_wp_unfiltered_html_comment'] ) {
 				kses_remove_filters(); // Start with a clean slate.
