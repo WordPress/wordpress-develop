@@ -288,6 +288,275 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_id_list_callbacks
+	 *
+	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
+	 */
+	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( callable $callback ): void {
+		$args = array(
+			'echo'    => false,
+			'depth'   => 1,
+			'exclude' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+		);
+	}
+
+	/**
+	 * Ensures the `exclude` argument keeps accepting a comma-separated string of page IDs.
+	 *
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_exclude_separators
+	 *
+	 * @param string $separator Separator to join the page IDs with.
+	 */
+	public function test_wp_list_pages_exclude_should_accept_a_comma_separated_string( string $separator ): void {
+		$args = array(
+			'echo'    => false,
+			'depth'   => 1,
+			'exclude' => implode( $separator, array( self::$parent_1, self::$parent_3 ) ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: a comma-separated string is still accepted.)
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string }>
+	 */
+	public function data_wp_list_pages_exclude_separators(): array {
+		return array(
+			'comma'            => array( ',' ),
+			'comma and spaces' => array( ' , ' ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: callable(int): (int|numeric-string) }>
+	 */
+	public function data_wp_list_pages_id_list_callbacks(): array {
+		return array(
+			'integers'        => array( 'intval' ),
+			'numeric strings' => array(
+				static function ( int $id ): string {
+					return (string) $id;
+				},
+			),
+		);
+	}
+
+	/**
+	 * Ensures the 'wp_list_pages_excludes' filter keeps receiving an array of numeric strings.
+	 *
+	 * @ticket 66052
+	 */
+	public function test_wp_list_pages_excludes_filter_should_receive_numeric_strings(): void {
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$args = array(
+			'echo'    => false,
+			'exclude' => ' ' . self::$parent_1 . ', ' . self::$parent_3 . ' ',
+		);
+
+		wp_list_pages( $args ); // @phpstan-ignore argument.type (Back-compat: a comma-separated string is still accepted.)
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1, (string) self::$parent_3 ) ),
+			$filter->get_args()[0]
+		);
+	}
+
+	/**
+	 * Ensures wp_page_menu() adds the static front page to an `exclude` given as an array or a string.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 *
+	 * @dataProvider data_wp_page_menu_exclude_formats
+	 *
+	 * @param callable(int[]): (int[]|numeric-string[]|string) $format Callback to format the array of page IDs to exclude.
+	 */
+	public function test_wp_page_menu_should_exclude_front_page_with_exclude_arg( callable $format ): void {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => true,
+				'depth'     => 1,
+				'exclude'   => $format( array( self::$parent_1 ) ),
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1, (string) self::$parent_2 ) ),
+			$filter->get_args()[0],
+			'Expected the excluded page and the front page to be passed to the filter.'
+		);
+		$this->assertSameSets(
+			array( self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected only the page that is neither excluded nor the front page to be listed.'
+		);
+	}
+
+	/**
+	 * Ensures wp_page_menu() omits the static front page, which the Home link already represents, when no `exclude` argument is given.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 */
+	public function test_wp_page_menu_should_exclude_front_page_without_exclude_arg(): void {
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => true,
+				'depth'     => 1,
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_2 ) ),
+			$filter->get_args()[0],
+			'Expected the front page ID to be the only page excluded, since no exclude argument was given.'
+		);
+		$this->assertSameSets(
+			array( self::$parent_1, self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected every page except the front page to be listed, since the Home link represents it.'
+		);
+	}
+
+	/**
+	 * Ensures wp_page_menu() leaves the `exclude` argument alone when there is no Home link or no static front page.
+	 *
+	 * @ticket 66052
+	 *
+	 * @covers ::wp_page_menu
+	 *
+	 * @dataProvider data_wp_page_menu_without_front_page_exclusion
+	 *
+	 * @param bool   $show_home     Value for the `show_home` argument.
+	 * @param string $show_on_front Value for the `show_on_front` option.
+	 */
+	public function test_wp_page_menu_should_not_exclude_front_page( bool $show_home, string $show_on_front ): void {
+		update_option( 'show_on_front', $show_on_front );
+		update_option( 'page_on_front', self::$parent_2 );
+
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		$menu = wp_page_menu(
+			array(
+				'echo'      => false,
+				'show_home' => $show_home,
+				'depth'     => 1,
+				'exclude'   => array( self::$parent_1 ),
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1 ) ),
+			$filter->get_args()[0],
+			'Expected only the given excluded page to be passed to the filter, without the front page appended.'
+		);
+		$this->assertSameSets(
+			array( self::$parent_2, self::$parent_3 ),
+			$this->get_listed_page_ids( $menu ),
+			'Expected the page_on_front page to be listed, since no Home link represents it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ show_home: bool, show_on_front: 'page'|'posts' }>
+	 */
+	public function data_wp_page_menu_without_front_page_exclusion(): array {
+		return array(
+			'no Home link, static front page' => array(
+				'show_home'     => false,
+				'show_on_front' => 'page',
+			),
+			'Home link, posts on front'       => array(
+				'show_home'     => true,
+				'show_on_front' => 'posts',
+			),
+		);
+	}
+
+	/**
+	 * Gets the IDs of the pages listed in the given markup, from the `page-item-{ID}` class of each `LI` tag.
+	 *
+	 * @param string $html Markup of a list of pages.
+	 * @return list<int> Page IDs.
+	 */
+	private function get_listed_page_ids( string $html ): array {
+		$page_ids  = array();
+		$processor = new WP_HTML_Tag_Processor( $html );
+		while ( $processor->next_tag( array( 'tag_name' => 'LI' ) ) ) {
+			foreach ( $processor->class_list() as $class_name ) {
+				if ( str_starts_with( $class_name, 'page-item-' ) ) {
+					$page_ids[] = (int) substr( $class_name, strlen( 'page-item-' ) );
+				}
+			}
+		}
+		return $page_ids;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|numeric-string[]|string) }>
+	 */
+	public function data_wp_page_menu_exclude_formats(): array {
+		return array(
+			'array of integers'        => array( 'array_values' ),
+			'array of numeric strings' => array(
+				static function ( array $ids ): array {
+					return array_map( 'strval', $ids );
+				},
+			),
+			'comma-separated string'   => array(
+				static function ( array $ids ): string {
+					return implode( ',', $ids );
+				},
+			),
+		);
+	}
+
 	public function test_wp_list_pages_title_li() {
 		$args = array(
 			'echo'     => false,
@@ -435,6 +704,29 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 </ul></li>';
 
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
+
+	/**
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_id_list_callbacks
+	 *
+	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
+	 */
+	public function test_wp_list_pages_include_should_accept_an_array_of_ids( callable $callback ): void {
+		$args = array(
+			'echo'    => false,
+			'include' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL(
+			$expected,
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+		);
 	}
 
 	public function test_wp_list_pages_exclude_tree() {
