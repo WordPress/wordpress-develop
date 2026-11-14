@@ -235,4 +235,194 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 
 		$this->assertNull( $result, 'A site secret should not be readable from a different blog.' );
 	}
+
+	/**
+	 * Ensure that a site secret written after switching to a site on another network can be read in that site's own requests.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
+	public function test_site_secret_written_after_switching_to_another_network_reads_on_that_network(): void {
+		$this->skipWithoutMultisite();
+
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+
+		switch_to_blog( $blog_id );
+		$stored = wp_set_secret( 'myplugin/api-key', 'cross-network-value' );
+		restore_current_blog();
+
+		$this->assertTrue( $stored, 'Setting myplugin/api-key on a site of another network should succeed.' );
+
+		$secret = $this->on_site_of_network(
+			$network_id,
+			$blog_id,
+			static function () {
+				return wp_get_secret( 'myplugin/api-key' );
+			}
+		);
+
+		$this->assertIsSecret( $secret, 'cross-network-value', 'The site secret should be readable in a request for its own network.' );
+	}
+
+	/**
+	 * Ensure that a site secret stored in a request for another network can be read after switch_to_blog().
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
+	public function test_site_secret_stored_on_another_network_reads_after_switch_to_blog(): void {
+		$this->skipWithoutMultisite();
+
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+
+		$stored = $this->on_site_of_network(
+			$network_id,
+			$blog_id,
+			static function () {
+				return wp_set_secret( 'myplugin/api-key', 'own-network-value' );
+			}
+		);
+
+		$this->assertTrue( $stored, 'Setting myplugin/api-key in a request for the other network should succeed.' );
+
+		switch_to_blog( $blog_id );
+		$secret = wp_get_secret( 'myplugin/api-key' );
+		restore_current_blog();
+
+		$this->assertIsSecret( $secret, 'own-network-value', 'The site secret should be readable after switching to its site from another network.' );
+	}
+
+	/**
+	 * Ensure that moving a site to another network keeps its secrets readable.
+	 *
+	 * @ticket 66689
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
+	public function test_site_secret_stays_readable_after_its_site_moves_to_another_network(): void {
+		$this->skipWithoutMultisite();
+
+		list( $network_id ) = $this->create_site_on_another_network();
+		$blog_id            = self::factory()->blog->create();
+
+		switch_to_blog( $blog_id );
+		$stored = wp_set_secret( 'myplugin/api-key', 'before-move' );
+		restore_current_blog();
+
+		$this->assertTrue( $stored, 'Setting myplugin/api-key before the move should succeed.' );
+
+		$moved = wp_update_site(
+			$blog_id,
+			array(
+				'network_id' => $network_id,
+				'domain'     => 'example.net',
+				'path'       => '/moved/',
+			)
+		);
+
+		$this->assertSame( $blog_id, $moved, 'Moving the site to the other network should succeed.' );
+
+		$secret = $this->on_site_of_network(
+			$network_id,
+			$blog_id,
+			static function () {
+				return wp_get_secret( 'myplugin/api-key' );
+			}
+		);
+
+		$this->assertIsSecret( $secret, 'before-move', 'The site secret should be readable after its site moved to another network.' );
+	}
+
+	/**
+	 * Ensure that every network of an install uses the one root key stored on the main network.
+	 *
+	 * @ticket 66691
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Key_Manager::get_root_key
+	 */
+	public function test_every_network_uses_the_root_key_of_the_main_network(): void {
+		$this->skipWithoutMultisite();
+
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+
+		$main_root_key = ( new WP_Secrets_Key_Manager() )->get_root_key();
+
+		$other_root_key = $this->on_site_of_network(
+			$network_id,
+			$blog_id,
+			static function () {
+				return ( new WP_Secrets_Key_Manager() )->get_root_key();
+			}
+		);
+
+		$this->assertIsString( $main_root_key, 'The main network should have a root key.' );
+		$this->assertSame( $main_root_key, $other_root_key, 'The other network should use the main network\'s root key.' );
+		$this->assertNotFalse( get_network_option( get_main_network_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'The root key should be stored on the main network.' );
+		$this->assertFalse( get_network_option( $network_id, WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'No root key should be stored on the other network.' );
+	}
+
+	/**
+	 * Creates a second network with a site on it.
+	 *
+	 * @return int[] The new network's ID and the ID of its site.
+	 */
+	private function create_site_on_another_network(): array {
+		$network_id = self::factory()->network->create(
+			array(
+				'domain' => 'example.net',
+				'path'   => '/',
+			)
+		);
+
+		$blog_id = self::factory()->blog->create(
+			array(
+				'network_id' => $network_id,
+				'domain'     => 'example.net',
+				'path'       => '/site/',
+			)
+		);
+
+		return array( $network_id, $blog_id );
+	}
+
+	/**
+	 * Runs a callback as in a request for a site on another network.
+	 *
+	 * switch_to_blog() changes the current site but not the current network, so
+	 * this also makes the site's network the current one.
+	 *
+	 * @param int      $network_id The network to make current.
+	 * @param int      $blog_id    The site to switch to.
+	 * @param callable $callback   The callback to run.
+	 * @return mixed The callback's return value.
+	 */
+	private function on_site_of_network( int $network_id, int $blog_id, callable $callback ) {
+		$current_site            = $GLOBALS['current_site'];
+		$GLOBALS['current_site'] = get_network( $network_id );
+		switch_to_blog( $blog_id );
+
+		try {
+			return $callback();
+		} finally {
+			restore_current_blog();
+			$GLOBALS['current_site'] = $current_site;
+		}
+	}
 }
