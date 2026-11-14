@@ -48,6 +48,13 @@
  *   cache. WP_Secret cannot round-trip a plaintext through wp_cache_set(), and
  *   caching the raw value alongside it would undo that. Memoize within the request
  *   only.
+ * - Keep sites and networks apart. A site-scope secret belongs to the current site,
+ *   get_current_blog_id(), and a network-scope secret to the current network,
+ *   get_current_network_id(). Neither is passed to these methods, and
+ *   switch_to_blog() changes the current site within a request, so read them on
+ *   every call, and key every record, remote path, and request memo by them. Two
+ *   sites that both store a secret named 'myplugin/api-key' hold two secrets. The
+ *   conformance suite checks this on multisite.
  *
  * Implementations extend this class. It is abstract rather than an interface so
  * that a later release can add a method with a default implementation, and every

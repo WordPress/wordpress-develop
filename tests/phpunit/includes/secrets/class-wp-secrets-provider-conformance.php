@@ -498,4 +498,97 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertContains( 'conformance-a/one', $names, 'The provider should include a secret matching the prefix.' );
 		$this->assertNotContains( 'conformance-b/two', $names, 'The provider should omit a secret not matching the prefix.' );
 	}
+
+	// – sites and networks stay apart -----------------------------------------
+
+	/**
+	 * Ensure that a site-scope secret belongs to its own site.
+	 *
+	 * The provider is not told which site it serves, so it has to read the current
+	 * site on every call. One provider instance serves the whole request, including
+	 * after switch_to_blog(), so this uses one instance throughout.
+	 *
+	 * @ticket 66690
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_a_site_secret_is_kept_apart_from_another_sites(): void {
+		$this->skipWithoutMultisite();
+
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$this->assertTrue( $provider->set( $name, 'first-site-value' ), 'Setting the secret on the first site should succeed.' );
+
+		$other_site_id = self::factory()->blog->create();
+
+		switch_to_blog( $other_site_id );
+
+		try {
+			$unset_elsewhere  = $provider->get( $name, WP_Secret_Version::CURRENT );
+			$stored_elsewhere = $provider->set( $name, 'second-site-value' );
+			$listed_elsewhere = $provider->list_secrets();
+		} finally {
+			restore_current_blog();
+		}
+
+		$this->assertNull( $unset_elsewhere, 'A site secret should be absent on another site.' );
+		$this->assertTrue( $stored_elsewhere, 'Setting the same name on another site should succeed.' );
+		$this->assertNotWPError( $listed_elsewhere, 'The provider should list the other site\'s secrets without a WP_Error.' );
+		$this->assertSame( array( $name ), wp_list_pluck( $listed_elsewhere, 'name' ), 'The other site should list only its own secret.' );
+
+		$secret = $provider->get( $name, WP_Secret_Version::CURRENT );
+
+		$this->assertInstanceOf( 'WP_Secret', $secret, 'The first site\'s secret should still be readable.' );
+		$this->assertSame( 'first-site-value', $secret->reveal(), 'Writing on another site should not change the first site\'s secret.' );
+		$this->assertNull( $provider->get( $name, WP_Secret_Version::PREVIOUS ), 'Writing on another site should not create a previous version on the first site.' );
+	}
+
+	/**
+	 * Ensure that a network-scope secret belongs to its own network.
+	 *
+	 * switch_to_blog() does not change the current network, so this changes the
+	 * current network directly, as a request for another network would.
+	 *
+	 * @ticket 66690
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_a_network_secret_is_kept_apart_from_another_networks(): void {
+		$this->skipWithoutMultisite();
+
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$this->assertTrue( $provider->set( $name, 'first-network-value', true ), 'Setting the network secret on the first network should succeed.' );
+
+		$other_network_id = self::factory()->network->create(
+			array(
+				'domain' => 'conformance.example',
+				'path'   => '/',
+			)
+		);
+
+		$current_site            = $GLOBALS['current_site'];
+		$GLOBALS['current_site'] = get_network( $other_network_id );
+
+		try {
+			$unset_elsewhere  = $provider->get( $name, WP_Secret_Version::CURRENT, true );
+			$stored_elsewhere = $provider->set( $name, 'second-network-value', true );
+		} finally {
+			$GLOBALS['current_site'] = $current_site;
+		}
+
+		$this->assertNull( $unset_elsewhere, 'A network secret should be absent on another network.' );
+		$this->assertTrue( $stored_elsewhere, 'Setting the same name on another network should succeed.' );
+
+		$secret = $provider->get( $name, WP_Secret_Version::CURRENT, true );
+
+		$this->assertInstanceOf( 'WP_Secret', $secret, 'The first network\'s secret should still be readable.' );
+		$this->assertSame( 'first-network-value', $secret->reveal(), 'Writing on another network should not change the first network\'s secret.' );
+	}
 }
