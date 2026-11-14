@@ -74,6 +74,26 @@ if ( 'update_https' === $action ) {
 
 $health_check_site_status = WP_Site_Health::get_instance();
 
+if ( 'verify_email_delivery' === $action ) {
+	check_admin_referer( 'verify-email-delivery' );
+
+	$result = $health_check_site_status->send_email_delivery_test();
+	$status = 'success';
+
+	if ( is_wp_error( $result ) ) {
+		$status = $result->get_error_code();
+	}
+
+	wp_safe_redirect(
+		add_query_arg(
+			'email-delivery-test',
+			$status,
+			admin_url( 'site-health.php' )
+		)
+	);
+	exit;
+}
+
 get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'overview',
@@ -123,6 +143,43 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				)
 			);
 		}
+	}
+
+	$email_delivery_test_status = '';
+	// The query parameter only selects a notice to display.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['email-delivery-test'] ) && is_string( $_GET['email-delivery-test'] ) ) {
+		$email_delivery_test_status = sanitize_key( wp_unslash( $_GET['email-delivery-test'] ) );
+	}
+
+	if ( 'success' === $email_delivery_test_status ) {
+		wp_admin_notice(
+			sprintf(
+				/* translators: %s: Current user's email address. */
+				__( 'WordPress accepted a request to send a test email to %s. Check that it arrived in your inbox and review its headers to confirm that the sender details are correct.' ),
+				'<code>' . esc_html( wp_get_current_user()->user_email ) . '</code>'
+			),
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+			)
+		);
+	} elseif ( 'invalid-address' === $email_delivery_test_status ) {
+		wp_admin_notice(
+			__( 'Your user account does not have a valid email address. Update it before testing email delivery.' ),
+			array(
+				'type'        => 'error',
+				'dismissible' => true,
+			)
+		);
+	} elseif ( 'send-failed' === $email_delivery_test_status ) {
+		wp_admin_notice(
+			__( 'The test email could not be sent. Your site may not be correctly configured to send emails.' ),
+			array(
+				'type'        => 'error',
+				'dismissible' => true,
+			)
+		);
 	}
 	?>
 
