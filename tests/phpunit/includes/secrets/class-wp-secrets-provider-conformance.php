@@ -88,11 +88,6 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	/**
 	 * Whether the provider currently returns a previous version for a name.
 	 *
-	 * Asked before and after retiring, and the answer is expected to differ, so
-	 * this is marked impure to stop static analysis assuming the two agree.
-	 *
-	 * @phpstan-impure
-	 *
 	 * @param WP_Secrets_Provider $provider The provider under test.
 	 * @param string              $name     The secret's name.
 	 * @return bool
