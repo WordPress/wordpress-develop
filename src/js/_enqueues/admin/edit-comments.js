@@ -481,12 +481,13 @@ window.setCommentsList = function() {
 			response = true === settings.parsed ? {} : settings.parsed.responses[0],
 			commentStatus = true === settings.parsed ? '' : response.supplemental.status,
 			commentPostId = true === settings.parsed ? '' : response.supplemental.postId,
+			isCurrentUserComment = true === settings.parsed ? false : !! parseInt( response.supplemental.isCurrentUserComment, 10 ),
 			newTotal = true === settings.parsed ? '' : response.supplemental,
 
 			targetParent = $( settings.target ).parent(),
 			commentRow = $('#' + settings.element),
 
-			spamDiff, trashDiff, pendingDiff, approvedDiff,
+			spamDiff, trashDiff, pendingDiff, approvedDiff, mineDiff,
 
 			/*
 			 * As `wpList` toggles only the `unapproved` class, the approved comment
@@ -622,6 +623,11 @@ window.setCommentsList = function() {
 			} else if ( trashed ) {
 				trashDiff = -1;
 			}
+		}
+
+		mineDiff = ( pendingDiff || 0 ) + ( approvedDiff || 0 );
+		if ( mineDiff && isCurrentUserComment ) {
+			updateCountText( 'span.mine-count', mineDiff );
 		}
 
 		if ( pendingDiff ) {
@@ -1156,6 +1162,7 @@ window.commentReply = {
 			updateInModerationText( r.supplemental );
 			updateApproved( 1, r.supplemental.parent_post_id );
 			updateCountText( 'span.all-count', 1 );
+			updateCountText( 'span.mine-count', 1 );
 		}
 
 		r.data = r.data || '';
