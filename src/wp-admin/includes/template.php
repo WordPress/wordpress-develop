@@ -2108,7 +2108,7 @@ function _draft_or_post_title( $post = 0 ) {
  * @since 2.7.0
  */
 function _admin_search_query() {
-	echo isset( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
+	echo isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
 }
 
 /**

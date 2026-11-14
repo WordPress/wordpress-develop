@@ -879,7 +879,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		<?php $wp_list_table->search_box( __( 'Search Users' ), 'user' ); ?>
 
-		<?php if ( ! empty( $_REQUEST['role'] ) ) { ?>
+		<?php if ( ! empty( $_REQUEST['role'] ) && is_string( $_REQUEST['role'] ) ) { ?>
 			<input type="hidden" name="role" value="<?php echo esc_attr( $_REQUEST['role'] ); ?>" />
 		<?php } ?>
 

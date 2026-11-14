@@ -224,6 +224,74 @@ class Tests_User_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-string 'orderby' entry is skipped rather than causing a fatal error.
+	 *
+	 * @ticket 66432
+	 */
+	public function test_orderby_should_skip_non_string_entries() {
+		$user_ids = $this->create_users_with_reversed_display_names();
+
+		$q = new WP_User_Query(
+			array(
+				'include' => $user_ids,
+				'orderby' => array( array( 'login' ), 'display_name' ),
+				'order'   => 'ASC',
+				'fields'  => 'ID',
+			)
+		);
+
+		$this->assertSame( array_map( 'strval', array_reverse( $user_ids ) ), $q->get_results() );
+	}
+
+	/**
+	 * Tests that 'orderby' falls back to the user login when no entry is a string.
+	 *
+	 * @ticket 66432
+	 */
+	public function test_orderby_should_fall_back_to_user_login_when_no_entry_is_a_string() {
+		$user_ids = $this->create_users_with_reversed_display_names();
+
+		$q = new WP_User_Query(
+			array(
+				'include' => $user_ids,
+				'orderby' => array( array( 'display_name' ) ),
+				'order'   => 'ASC',
+				'fields'  => 'ID',
+			)
+		);
+
+		$this->assertSame( array_map( 'strval', $user_ids ), $q->get_results() );
+	}
+
+	/**
+	 * Creates users whose display names sort in the reverse order of their logins.
+	 *
+	 * @return int[] User IDs, in ascending order of user login.
+	 */
+	private function create_users_with_reversed_display_names(): array {
+		return array(
+			self::factory()->user->create(
+				array(
+					'user_login'   => 'orderby_a',
+					'display_name' => 'Zed',
+				)
+			),
+			self::factory()->user->create(
+				array(
+					'user_login'   => 'orderby_b',
+					'display_name' => 'Yan',
+				)
+			),
+			self::factory()->user->create(
+				array(
+					'user_login'   => 'orderby_c',
+					'display_name' => 'Xia',
+				)
+			),
+		);
+	}
+
+	/**
 	 * @ticket 27887
 	 */
 	public function test_orderby_meta_value_num() {

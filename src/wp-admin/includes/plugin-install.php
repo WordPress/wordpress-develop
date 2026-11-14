@@ -313,8 +313,8 @@ function install_dashboard() {
  * @phpstan-param true $deprecated
  */
 function install_search_form( $deprecated = true ) {
-	$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
-	$term = isset( $_REQUEST['s'] ) ? urldecode( wp_unslash( $_REQUEST['s'] ) ) : '';
+	$type = isset( $_REQUEST['type'] ) && is_string( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
+	$term = isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ? urldecode( wp_unslash( $_REQUEST['s'] ) ) : '';
 	?>
 	<form class="search-form search-plugins" method="get">
 		<input type="hidden" name="tab" value="search" />

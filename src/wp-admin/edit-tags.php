@@ -336,7 +336,7 @@ if ( is_plugin_active( 'wpcat2tag-importer/wpcat2tag-importer.php' ) ) {
 <h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 <?php
-if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
+if ( isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	echo '<span class="subtitle">';
 	printf(
 		/* translators: %s: Search query. */
