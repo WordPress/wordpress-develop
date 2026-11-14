@@ -2736,11 +2736,11 @@ function drop_index( $table, $index ) {
 
 	$wpdb->hide_errors();
 
-	$wpdb->query( "ALTER TABLE `$table` DROP INDEX `$index`" );
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, $index ) );
 
 	// Now we need to take out all the extra ones we may have created.
 	for ( $i = 0; $i < 25; $i++ ) {
-		$wpdb->query( "ALTER TABLE `$table` DROP INDEX `{$index}_$i`" );
+		$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, "{$index}_$i" ) );
 	}
 
 	$wpdb->show_errors();
@@ -2763,7 +2763,7 @@ function add_clean_index( $table, $index ) {
 	global $wpdb;
 
 	drop_index( $table, $index );
-	$wpdb->query( "ALTER TABLE `$table` ADD INDEX ( `$index` )" );
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i ADD INDEX ( %i )', $table, $index ) );
 
 	return true;
 }
@@ -2783,7 +2783,7 @@ function add_clean_index( $table, $index ) {
 function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	global $wpdb;
 
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	foreach ( $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 ) as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2793,7 +2793,7 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	$wpdb->query( $create_ddl );
 
 	// We cannot directly tell that whether this succeeded!
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	foreach ( $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 ) as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2815,7 +2815,7 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 function maybe_convert_table_to_utf8mb4( $table ) {
 	global $wpdb;
 
-	$results = $wpdb->get_results( "SHOW FULL COLUMNS FROM `$table`" );
+	$results = $wpdb->get_results( $wpdb->prepare( 'SHOW FULL COLUMNS FROM %i', $table ) );
 	if ( ! $results ) {
 		return false;
 	}
@@ -2842,7 +2842,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 		return true;
 	}
 
-	return $wpdb->query( "ALTER TABLE $table CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" );
+	return $wpdb->query( $wpdb->prepare( 'ALTER TABLE %i CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', $table ) );
 }
 
 /**
