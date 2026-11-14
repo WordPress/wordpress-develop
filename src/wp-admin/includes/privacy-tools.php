@@ -852,9 +852,9 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 			$groups[ $group_id ]['items'][ $item_id ] = array();
 		}
 
-		$old_item_data                            = $groups[ $group_id ]['items'][ $item_id ];
-		$merged_item_data                         = array_merge( $export_datum['data'], $old_item_data );
-		$groups[ $group_id ]['items'][ $item_id ] = $merged_item_data;
+		foreach ( $export_datum['data'] as $item_data ) {
+			$groups[ $group_id ]['items'][ $item_id ][] = $item_data;
+		}
 	}
 
 	// Then save the grouped data into the request.
