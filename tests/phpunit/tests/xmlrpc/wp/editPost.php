@@ -30,6 +30,64 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( $new_title, $out->post_title );
 	}
 
+	/**
+	 * @ticket 40863
+	 * @dataProvider data_menu_order
+	 *
+	 * @param string $post_type  Post type.
+	 * @param int    $menu_order Menu order.
+	 */
+	public function test_menu_order( $post_type, $menu_order ) {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_author' => $editor_id,
+				'post_type'   => $post_type,
+				'menu_order'  => 10,
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'menu_order' => $menu_order ) ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( $menu_order, get_post( $post_id )->menu_order );
+	}
+
+	/**
+	 * Data provider for test_menu_order().
+	 *
+	 * @return array
+	 */
+	public function data_menu_order() {
+		return array(
+			'post'           => array( 'post', 5 ),
+			'page'           => array( 'page', 5 ),
+			'zero order'     => array( 'page', 0 ),
+			'negative order' => array( 'page', -5 ),
+		);
+	}
+
+	/**
+	 * @ticket 40863
+	 */
+	public function test_menu_order_is_preserved_when_omitted() {
+		$editor_id = $this->make_user_by_role( 'editor' );
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_author' => $editor_id,
+				'post_type'   => 'page',
+				'menu_order'  => 10,
+			)
+		);
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_title' => 'Updated title' ) ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( 10, get_post( $post_id )->menu_order );
+	}
+
 	public function test_capable_edit_others_post() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
 		$this->make_user_by_role( 'editor' );
