@@ -118,9 +118,8 @@ final class WP_Secrets_Key_Manager {
 	/**
 	 * Returns the keyring in use.
 	 *
-	 * Used by Site Health and by `wp secret dropin` and `wp secret health`, which all
-	 * need to describe the active keyring without duplicating the logic that resolves
-	 * it.
+	 * Used by Site Health and wp_is_secrets_api_available(), which need to describe
+	 * the active keyring without duplicating the logic that resolves it.
 	 *
 	 * @since 7.2.0
 	 *

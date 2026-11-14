@@ -700,13 +700,19 @@ function wp_secrets_provider_is_writable(): bool {
  * Whether the Secrets API can store and read secrets on this site.
  *
  * A plugin can check this before it moves a credential into the Secrets API, and
- * keep its existing storage while it returns false:
+ * keep its existing storage while it returns false. An available provider can still
+ * refuse writes, so the plugin also checks wp_secrets_provider_is_writable(), and
+ * removes its own copy only after wp_set_secret() has returned true:
  *
- *     if ( wp_is_secrets_api_available() ) {
- *         // Move the credential, then use wp_set_secret() and wp_get_secret().
- *     } else {
- *         // Keep using the existing storage.
+ *     if ( wp_is_secrets_api_available() && wp_secrets_provider_is_writable() ) {
+ *         if ( true === wp_set_secret( 'my-plugin/api-key', $api_key ) ) {
+ *             // Stored. Remove the copy in the existing storage.
+ *         }
  *     }
+ *
+ * When the API is available but the provider is not writable, its credentials are
+ * managed outside WordPress. Read them with wp_get_secret(), and do not fall back
+ * to storing a credential elsewhere because a write was refused.
  *
  * Returns false when the secrets.php drop-in failed to load, when the default
  * keyring has no usable WP_SECRETS_KEY, or when WP_SECRETS_KEY cannot unwrap the
@@ -716,9 +722,6 @@ function wp_secrets_provider_is_writable(): bool {
  * A provider or keyring from a working drop-in manages its own keys, so it is
  * reported as available. Its backend can still be unreachable on a given request,
  * which each call reports as a WP_Error.
- *
- * Whether the provider accepts writes is a separate question. See
- * wp_secrets_provider_is_writable().
  *
  * @since 7.2.0
  *
