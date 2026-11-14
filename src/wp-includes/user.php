@@ -2207,7 +2207,7 @@ function validate_username( $username ) {
  *     @type int    $ID                   User ID. If supplied, the user will be updated.
  *     @type string $user_pass            The plain-text user password for new users.
  *                                        Hashed password for existing users.
- *     @type string $user_login           The user's login username.
+ *     @type string $user_login           The user's login username. Required when creating a new user.
  *     @type string $user_nicename        The URL-friendly user name.
  *     @type string $user_url             The user URL.
  *     @type string $user_email           The user email address.
@@ -2330,7 +2330,12 @@ function wp_insert_user( $userdata ) {
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
 
-	$sanitized_user_login = sanitize_user( $userdata['user_login'] ?? '', true );
+	$raw_user_login = $userdata['user_login'] ?? '';
+	if ( $update && ! array_key_exists( 'user_login', $userdata ) ) {
+		$raw_user_login = $old_user_data->user_login;
+	}
+
+	$sanitized_user_login = sanitize_user( $raw_user_login, true );
 
 	/**
 	 * Filters a username after it has been sanitized.
