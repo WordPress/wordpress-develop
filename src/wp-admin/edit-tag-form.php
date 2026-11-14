@@ -75,7 +75,7 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 $class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
 
 if ( $message ) {
-	$message = '<p><strong>' . $message . '</strong></p>';
+	$message = '<p>' . $message . '</p>';
 	if ( $wp_http_referer ) {
 		$message .= sprintf(
 			'<p><a href="%1$s">%2$s</a></p>',

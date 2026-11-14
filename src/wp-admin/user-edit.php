@@ -226,9 +226,9 @@ switch ( $action ) {
 
 		if ( isset( $_GET['updated'] ) ) :
 			if ( IS_PROFILE_PAGE ) :
-				$message = '<p><strong>' . __( 'Profile updated.' ) . '</strong></p>';
+				$message = '<p>' . __( 'Profile updated.' ) . '</p>';
 			else :
-				$message = '<p><strong>' . __( 'User updated.' ) . '</strong></p>';
+				$message = '<p>' . __( 'User updated.' ) . '</p>';
 			endif;
 			if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) :
 				$message .= sprintf(
