@@ -20,18 +20,10 @@ class Tests_Post_GetAvailablePostMimeTypes extends WP_UnitTestCase {
 
 	public function test_should_return_expected_post_mime_types() {
 		// Upload a JPEG image.
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'], 'Uploading a JPEG file should not result in an error.' );
-		$this->_make_attachment( $upload );
+		self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		// Upload a PDF file.
-		$filename = DIR_TESTDATA . '/images/test-alpha.pdf';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'], 'Uploading a PDF file should not result in an error.' );
-		$this->_make_attachment( $upload );
+		self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-alpha.pdf' );
 
 		$mime_types = get_available_post_mime_types();
 
