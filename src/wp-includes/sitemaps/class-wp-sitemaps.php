@@ -185,7 +185,7 @@ class WP_Sitemaps {
 		/**
 		 * Fires when a sitemap or sitemap stylesheet is being rendered.
 		 *
-		 * @since 7.1.0
+		 * @since 7.2.0
 		 */
 		do_action( 'wp_doing_sitemaps' );
 
