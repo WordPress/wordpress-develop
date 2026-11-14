@@ -1348,6 +1348,8 @@ class WP_Block_Processor {
 	 * @param int $comment_starting_at Where the HTML comment started, the leading `<`.
 	 * @param int $search_end          Last offset in which to search, for limiting search span.
 	 * @return int Offset after the current HTML comment ends, or `$search_end` if no end was found.
+	 *
+	 * @phpstan-pure
 	 */
 	private function find_html_comment_end( int $comment_starting_at, int $search_end ): int {
 		$text = $this->source_text;
