@@ -220,6 +220,8 @@ final class WP_Interactivity_API {
 	 *                                store namespace.
 	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
 	 *               argument was provided.
+	 *
+	 * @phpstan-impure
 	 */
 	public function state( ?string $store_namespace = null, ?array $state = null ): array {
 		if ( ! $store_namespace ) {
@@ -274,6 +276,8 @@ final class WP_Interactivity_API {
 	 *                                specified store namespace.
 	 * @return array The configuration for the specified store namespace. This will be the updated configuration if a
 	 *               $config argument was provided.
+	 *
+	 * @phpstan-impure
 	 */
 	public function config( string $store_namespace, array $config = array() ): array {
 		$this->config_data[ $store_namespace ] ??= array();
@@ -495,6 +499,8 @@ final class WP_Interactivity_API {
 	 * @since 6.9.0
 	 *
 	 * @param string $script_module_id The script module identifier.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_client_navigation_support_to_script_module( string $script_module_id ) {
 		$this->script_modules_that_can_load_on_client_navigation[ $script_module_id ] = true;
@@ -513,6 +519,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
+	 *
+	 * @phpstan-impure
 	 */
 	public function process_directives( string $html ): string {
 		if ( ! str_contains( $html, 'data-wp-' ) ) {
@@ -578,6 +586,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string|null The processed HTML content. It returns null when the HTML contains unbalanced tags.
+	 *
+	 * @phpstan-impure
 	 */
 	private function _process_directives( string $html ) {
 		$p          = new WP_Interactivity_API_Directives_Processor( $html );
@@ -769,6 +779,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param array $entry An array containing a whole directive entry with its namespace, value, suffix, or unique ID.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
+	 *
+	 * @phpstan-impure
 	 */
 	private function evaluate( $entry ) {
 		$context                               = end( $this->context_stack );
@@ -1129,6 +1141,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
+	 *
+	 * @phpstan-impure
 	 */
 	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		// When exiting tags, it removes the last namespace from the stacks.
@@ -1193,6 +1207,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 *
+	 * @phpstan-impure
 	 */
 	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		// When exiting tags, it removes the last context from the stack.
@@ -1909,6 +1925,8 @@ HTML;
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 *
+	 * @phpstan-impure
 	 */
 	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
@@ -1945,6 +1963,8 @@ HTML;
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 *
+	 * @phpstan-impure
 	 */
 	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {

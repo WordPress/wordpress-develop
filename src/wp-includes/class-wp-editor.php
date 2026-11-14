@@ -66,6 +66,8 @@ final class _WP_Editors {
 	 *                                         Quicktags using an array. Default true.
 	 * }
 	 * @return array Parsed arguments array.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function parse_settings( $editor_id, $settings ) {
 
@@ -155,6 +157,8 @@ final class _WP_Editors {
 	 * @param string $editor_id HTML ID for the textarea and TinyMCE and Quicktags instances.
 	 *                          Should not contain square brackets.
 	 * @param array  $settings  See _WP_Editors::parse_settings() for description.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function editor( $content, $editor_id, $settings = array() ) {
 		$set            = self::parse_settings( $editor_id, $settings );
@@ -317,6 +321,8 @@ final class _WP_Editors {
 	 *
 	 * @param string $editor_id Unique editor identifier, e.g. 'content'.
 	 * @param array  $set       Array of editor arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function editor_settings( $editor_id, $set ) {
 		if ( empty( self::$first_init ) ) {
@@ -1034,6 +1040,8 @@ final class _WP_Editors {
 	 * @since 4.8.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_mce_locale() {
 		if ( empty( self::$mce_locale ) ) {
@@ -1050,6 +1058,8 @@ final class _WP_Editors {
 	 * @since 4.8.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_baseurl() {
 		if ( empty( self::$baseurl ) ) {
@@ -1135,6 +1145,8 @@ final class _WP_Editors {
 	 * @since 4.7.0
 	 *
 	 * @return array
+	 *
+	 * @phpstan-impure
 	 */
 	private static function get_translation() {
 		if ( empty( self::$translation ) ) {
@@ -1549,6 +1561,8 @@ final class _WP_Editors {
 	 * Print (output) the main TinyMCE scripts.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function print_tinymce_scripts() {
 		if ( self::$tinymce_scripts_printed ) {
@@ -1860,6 +1874,8 @@ final class _WP_Editors {
 	 * Dialog for internal linking.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function wp_link_dialog() {
 		// Run once.

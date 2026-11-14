@@ -96,6 +96,8 @@ class WP_List_Util {
 	 * @return array Array of found values.
 	 *
 	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
+	 *
+	 * @phpstan-impure
 	 */
 	public function filter( $args = array(), $operator = 'and' ) {
 		if ( empty( $args ) ) {
@@ -156,6 +158,8 @@ class WP_List_Util {
 	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
 	 *               `$list` will be preserved in the results.
+	 *
+	 * @phpstan-impure
 	 */
 	public function pluck( $field, $index_key = null ) {
 		$newlist = array();
@@ -227,6 +231,8 @@ class WP_List_Util {
 	 *                                    is a string. Default 'ASC'.
 	 * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
 	 * @return array The sorted array.
+	 *
+	 * @phpstan-impure
 	 */
 	public function sort( $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
 		if ( empty( $orderby ) ) {

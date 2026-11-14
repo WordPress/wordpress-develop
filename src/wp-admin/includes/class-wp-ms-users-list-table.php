@@ -33,6 +33,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global string $usersearch User search query.
 	 * @global string $role       The user role to filter by. Only 'super' (super admins) is supported.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $usersearch, $role;

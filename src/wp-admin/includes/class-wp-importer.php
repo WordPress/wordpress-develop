@@ -282,6 +282,8 @@ class WP_Importer {
 	 *
 	 * @global wpdb  $wpdb       WordPress database abstraction object.
 	 * @global int[] $wp_actions Stores the number of times each action was triggered.
+	 *
+	 * @phpstan-impure
 	 */
 	public function stop_the_insanity() {
 		global $wpdb, $wp_actions;

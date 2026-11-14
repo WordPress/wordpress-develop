@@ -52,6 +52,8 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function upgrade_strings() {
 		$this->strings['up_to_date'] = __( 'The theme is at the latest version.' );
@@ -69,6 +71,8 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * Initializes the installation strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
@@ -123,6 +127,8 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool
 	 *
 	 * @phpstan-param non-empty-array<string, mixed> $child_result
+	 *
+	 * @phpstan-impure
 	 */
 	public function check_parent_theme_filter( $install_result, $hook_extra, $child_result ) {
 		// Check to see if we need to install a parent theme.
@@ -386,6 +392,8 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *                                    Default true.
 	 * }
 	 * @return array[]|false An array of results, or false if unable to connect to the filesystem.
+	 *
+	 * @phpstan-impure
 	 */
 	public function bulk_upgrade( $themes, $args = array() ) {
 		$wp_version  = wp_get_wp_version();
@@ -565,6 +573,8 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @param string $source The path to the downloaded package source.
 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function check_package( $source ) {
 		global $wp_filesystem;

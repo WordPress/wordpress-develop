@@ -118,6 +118,8 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function connect() {
 		/*

@@ -1880,6 +1880,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_Post         $item    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
@@ -2425,6 +2427,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *     properties: array<string, array<string, mixed>>,
 	 *     ...
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

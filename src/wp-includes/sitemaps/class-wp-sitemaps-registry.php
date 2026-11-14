@@ -33,6 +33,8 @@ class WP_Sitemaps_Registry {
 	 * @param string               $name     Name of the sitemap provider.
 	 * @param WP_Sitemaps_Provider $provider Instance of a WP_Sitemaps_Provider.
 	 * @return bool Whether the provider was added successfully.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_provider( $name, WP_Sitemaps_Provider $provider ) {
 		if ( isset( $this->providers[ $name ] ) ) {

@@ -67,6 +67,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @global string $s    Search string.
 	 * @global wpdb   $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $s, $wpdb;

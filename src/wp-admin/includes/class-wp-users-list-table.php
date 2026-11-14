@@ -79,6 +79,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global string $role
 	 * @global string $usersearch
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $role, $usersearch;

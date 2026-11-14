@@ -17,6 +17,8 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 	 * Parses the file.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function parse_file() {
 		$this->parsed = true;

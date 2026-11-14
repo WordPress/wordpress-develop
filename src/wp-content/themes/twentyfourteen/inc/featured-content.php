@@ -48,6 +48,8 @@ class Featured_Content {
 	 * We'll just return early instead.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function init() {
 		$theme_support = get_theme_support( 'featured-content' );

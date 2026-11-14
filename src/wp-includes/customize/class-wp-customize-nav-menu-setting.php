@@ -201,6 +201,8 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 * @see WP_Customize_Manager::post_value()
 	 *
 	 * @return bool False if method short-circuited due to no-op.
+	 *
+	 * @phpstan-impure
 	 */
 	public function preview() {
 		if ( $this->is_previewed ) {
@@ -480,6 +482,8 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 *     @type bool   $auto_add    Whether pages will auto_add to this menu. Default false.
 	 * }
 	 * @return bool Whether updated.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function update( $value ) {
 		if ( $this->is_updated ) {
@@ -624,6 +628,8 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 *
 	 * @param array $data Additional information passed back to the 'saved' event on `wp.customize`.
 	 * @return array Export data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function amend_customize_save_response( $data ) {
 		$data['nav_menu_updates']        ??= array();

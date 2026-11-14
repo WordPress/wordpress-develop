@@ -90,6 +90,8 @@ class WP {
 	 * @since 2.1.0
 	 *
 	 * @param string $qv Query variable name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_query_var( $qv ) {
 		if ( ! in_array( $qv, $this->public_query_vars, true ) ) {
@@ -103,6 +105,8 @@ class WP {
 	 * @since 4.5.0
 	 *
 	 * @param string $name Query variable name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_query_var( $name ) {
 		$this->public_query_vars = array_diff( $this->public_query_vars, array( $name ) );
@@ -115,6 +119,8 @@ class WP {
 	 *
 	 * @param string $key   Query variable name.
 	 * @param mixed  $value Query variable value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_query_var( $key, $value ) {
 		$this->query_vars[ $key ] = $value;
@@ -133,6 +139,8 @@ class WP {
 	 *
 	 * @param array|string $extra_query_vars Set the extra query variables.
 	 * @return bool Whether the request was parsed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_request( $extra_query_vars = '' ) {
 		global $wp_rewrite;
@@ -604,6 +612,8 @@ class WP {
 	 * use the {@see 'request'} filter instead.
 	 *
 	 * @since 2.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function build_query_string() {
 		$this->query_string = '';
@@ -657,6 +667,8 @@ class WP {
 	 * @global int                $more         Only set, if single page or post.
 	 * @global int                $single       If single page or post. Only set, if single page or post.
 	 * @global WP_User|false|null $authordata   Only set, if author archive.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_globals() {
 		global $wp_query;

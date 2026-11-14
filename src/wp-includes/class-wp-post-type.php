@@ -512,6 +512,8 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 *
 	 * @param array|string $args Array or string of arguments for registering a post type.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_props( $args ) {
 		$args = wp_parse_args( $args );
@@ -690,6 +692,8 @@ final class WP_Post_Type {
 	 * Sets the features support for the post type.
 	 *
 	 * @since 4.6.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_supports() {
 		if ( ! empty( $this->supports ) ) {
@@ -802,6 +806,8 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 *
 	 * @global array $_wp_post_type_features Post type features.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_supports() {
 		global $_wp_post_type_features;
@@ -818,6 +824,8 @@ final class WP_Post_Type {
 	 *
 	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 * @global WP         $wp         Current WordPress environment instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_rewrite_rules() {
 		global $wp, $wp_rewrite;
@@ -879,6 +887,8 @@ final class WP_Post_Type {
 	 *
 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
 	 *                                 is set not to show in rest.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_rest_controller() {
 		if ( ! $this->show_in_rest ) {
@@ -915,6 +925,8 @@ final class WP_Post_Type {
 	 *
 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
 	 *                                 is set not to show in rest.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_revisions_rest_controller() {
 		if ( ! $this->show_in_rest ) {
@@ -954,6 +966,8 @@ final class WP_Post_Type {
 	 *
 	 * @return WP_REST_Controller|null The controller instance, or null if the post type
 	 *                                 is set not to show in rest.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_autosave_rest_controller() {
 		if ( ! $this->show_in_rest ) {
@@ -991,6 +1005,8 @@ final class WP_Post_Type {
 	 * @since 6.0.0
 	 *
 	 * @return (string|null)[][] The default labels for post types.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_default_labels() {
 		if ( ! empty( self::$default_labels ) ) {
@@ -1046,6 +1062,8 @@ final class WP_Post_Type {
 	 * Resets the cache for the default labels.
 	 *
 	 * @since 6.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function reset_default_labels() {
 		self::$default_labels = array();

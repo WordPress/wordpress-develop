@@ -843,6 +843,8 @@ class WP_Duotone {
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-000000-ffffff-2'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-000000-ffffff-2)' or 'unset'.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function enqueue_block_css( $filter_id, $duotone_selector, $filter_value ) {
 		// Build the CSS selectors to which the filter will be applied.
@@ -881,6 +883,8 @@ class WP_Duotone {
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-000000-ffffff-2)' or 'unset'.
 	 * @param array  $filter_data      Duotone filter data with 'slug' and 'colors' keys.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function enqueue_custom_filter( $filter_id, $duotone_selector, $filter_value, $filter_data ) {
 		self::$used_svg_filter_data[ $filter_id ] = $filter_data;
@@ -899,6 +903,8 @@ class WP_Duotone {
 	 * @param string $filter_id        The filter ID. e.g. 'wp-duotone-blue-orange'.
 	 * @param string $duotone_selector The block's duotone selector. e.g. '.wp-block-image img'.
 	 * @param string $filter_value     The filter CSS value. e.g. 'url(#wp-duotone-blue-orange)' or 'unset'.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function enqueue_global_styles_preset( $filter_id, $duotone_selector, $filter_value ) {
 		$global_styles_presets = self::get_all_global_styles_presets();
@@ -998,6 +1004,8 @@ class WP_Duotone {
 	 * @since 6.3.0
 	 *
 	 * @return array An array of global styles presets, keyed on the filter ID.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function get_all_global_styles_presets() {
 		if ( isset( self::$global_styles_presets ) ) {
@@ -1028,6 +1036,8 @@ class WP_Duotone {
 	 * @since 6.3.0
 	 *
 	 * @return string[] An array of global style block slugs, keyed on the block name.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function get_all_global_style_block_names() {
 		if ( isset( self::$global_styles_block_names ) ) {

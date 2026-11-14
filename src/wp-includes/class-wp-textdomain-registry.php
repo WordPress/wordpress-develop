@@ -142,6 +142,8 @@ class WP_Textdomain_Registry {
 	 * @param string       $domain Text domain.
 	 * @param string       $locale Locale.
 	 * @param string|false $path   Language directory path or false if there is none available.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set( $domain, $locale, $path ) {
 		$this->all[ $domain ][ $locale ] = $path ? rtrim( $path, '/' ) . '/' : false;
@@ -157,6 +159,8 @@ class WP_Textdomain_Registry {
 	 *
 	 * @param string $domain Text domain.
 	 * @param string $path   Language directory path.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_custom_path( $domain, $path ) {
 		// If just-in-time loading was triggered before, reset the entry so it can be tried again.

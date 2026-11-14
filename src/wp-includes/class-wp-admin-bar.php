@@ -32,6 +32,8 @@ class WP_Admin_Bar {
 	 * Initializes the admin bar.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function initialize() {
 		$this->user = new stdClass();
@@ -189,6 +191,8 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @param array $args
+	 *
+	 * @phpstan-impure
 	 */
 	final protected function _set_node( $args ) {
 		$this->nodes[ $args['id'] ] = (object) $args;
@@ -295,6 +299,8 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @param string $id
+	 *
+	 * @phpstan-impure
 	 */
 	final protected function _unset_node( $id ) {
 		unset( $this->nodes[ $id ] );
@@ -314,6 +320,8 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 *
 	 * @return object|null
+	 *
+	 * @phpstan-impure
 	 */
 	final protected function _bind() {
 		if ( $this->bound ) {

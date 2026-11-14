@@ -75,6 +75,8 @@ class WP_Site_Health {
 	 * @since 5.4.0
 	 *
 	 * @return WP_Site_Health|null
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new WP_Site_Health();
@@ -211,6 +213,8 @@ class WP_Site_Health {
 	 * @since 5.2.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	private function prepare_sql_data() {
 		global $wpdb;
@@ -3495,6 +3499,8 @@ class WP_Site_Health {
 	 * Initiates the WP_Cron schedule test cases.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function wp_schedule_test_init() {
 		$this->schedules = wp_get_schedules();
@@ -3505,6 +3511,8 @@ class WP_Site_Health {
 	 * Populates the list of cron events and store them to a class-wide variable.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_cron_tasks() {
 		$cron_tasks = _get_cron_array();
@@ -3544,6 +3552,8 @@ class WP_Site_Health {
 	 * @since 5.2.0
 	 *
 	 * @return bool|WP_Error True if a cron was missed, false if not. WP_Error if the cron is set to that.
+	 *
+	 * @phpstan-impure
 	 */
 	public function has_missed_cron() {
 		if ( is_wp_error( $this->crons ) ) {
@@ -3570,6 +3580,8 @@ class WP_Site_Health {
 	 * @since 5.3.0
 	 *
 	 * @return bool|WP_Error True if a cron is late, false if not. WP_Error if the cron is set to that.
+	 *
+	 * @phpstan-impure
 	 */
 	public function has_late_cron() {
 		if ( is_wp_error( $this->crons ) ) {

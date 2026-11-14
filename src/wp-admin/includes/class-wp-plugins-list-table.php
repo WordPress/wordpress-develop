@@ -109,6 +109,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @global string                                             $orderby Column name to sort by.
 	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
 	 * @global string                                             $s       URL-encoded search term.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
@@ -814,6 +816,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @param array $item The current item. An array containing the plugin file path and plugin data.
 	 * @phpstan-param array{string, array<string, mixed>} $item
+	 *
+	 * @phpstan-impure
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;

@@ -284,6 +284,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param int|false $group  Optional. Group level: level (int), no groups (false).
 	 *                          Default false.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function do_item( $handle, $group = false ) {
 		if ( ! parent::do_item( $handle ) ) {
@@ -770,6 +772,8 @@ JS;
 	 * @param int|false       $group     Optional. Group level: level (int), no groups (false).
 	 *                                   Default false.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function all_deps( $handles, $recursion = false, $group = false ) {
 		$result = parent::all_deps( $handles, $recursion, $group );
@@ -846,6 +850,8 @@ JS;
 	 * @param string $key    The data key.
 	 * @param mixed  $value  The data value.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_data( $handle, $key, $value ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
@@ -967,6 +973,8 @@ JS;
 	 *
 	 * @param string $handle The script handle.
 	 * @return string[] Script handles.
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_dependents( $handle ) {
 		// Check if dependents map for the handle in question is present. If so, use it.
@@ -1203,6 +1211,8 @@ JS;
 	 * Resets class properties.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function reset() {
 		$this->do_concat      = false;

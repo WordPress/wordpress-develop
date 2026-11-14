@@ -1193,6 +1193,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 * @param string      $name  Name of HTML attribute to set.
 		 * @param string|true $value Value to set; `true` for boolean attribute.
 		 * @return bool Whether the attribute was set.
+		 *
+		 * @phpstan-impure
 		 */
 		public function set_attribute( $name, $value ): bool {
 			$lower_name = strtolower( $name );
@@ -1390,6 +1392,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 * @access private
 		 *
 		 * @return string Sanitized copy of given input HTML.
+		 *
+		 * @phpstan-impure
 		 */
 		public function sanitize() {
 			$template_depth            = 0;

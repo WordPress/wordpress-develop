@@ -85,6 +85,8 @@ final class WP_Block_Patterns_Registry {
 	 *     @type string   $filePath      Optional. The full path to the file containing the block pattern content.
 	 * }
 	 * @return bool True if the pattern was registered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $pattern_name, $pattern_properties ) {
 		if ( ! isset( $pattern_name ) || ! is_string( $pattern_name ) ) {
@@ -140,6 +142,8 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @param string $pattern_name Block pattern name including namespace.
 	 * @return bool True if the pattern was unregistered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $pattern_name ) {
 		if ( ! $this->is_registered( $pattern_name ) ) {
@@ -278,6 +282,8 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.5.0
 	 *
 	 * @return WP_Block_Patterns_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

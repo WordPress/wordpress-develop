@@ -142,6 +142,8 @@ final class WP_Customize_Widgets {
 	 *
 	 * @return array Mapping of id_base to support. If theme doesn't support
 	 *               selective refresh, an empty array is returned.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_selective_refreshable_widgets() {
 		global $wp_widget_factory;
@@ -266,6 +268,8 @@ final class WP_Customize_Widgets {
 	 *
 	 * @global array $sidebars_widgets
 	 * @global array $_wp_sidebars_widgets
+	 *
+	 * @phpstan-impure
 	 */
 	public function override_sidebars_widgets_for_theme_switch() {
 		global $sidebars_widgets;
@@ -1343,6 +1347,8 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 *
 	 * @param array $widget Rendered widget to tally.
+	 *
+	 * @phpstan-impure
 	 */
 	public function tally_rendered_widgets( $widget ) {
 		$this->rendered_widgets[ $widget['id'] ] = true;
@@ -1384,6 +1390,8 @@ final class WP_Customize_Widgets {
 	 * @param bool   $is_active  Whether the sidebar is active.
 	 * @param string $sidebar_id Sidebar ID.
 	 * @return bool Whether the sidebar is active.
+	 *
+	 * @phpstan-impure
 	 */
 	public function tally_sidebars_via_is_active_sidebar_calls( $is_active, $sidebar_id ) {
 		if ( is_registered_sidebar( $sidebar_id ) ) {
@@ -1410,6 +1418,8 @@ final class WP_Customize_Widgets {
 	 * @param bool   $has_widgets Whether the current sidebar has widgets.
 	 * @param string $sidebar_id  Sidebar ID.
 	 * @return bool Whether the current sidebar has widgets.
+	 *
+	 * @phpstan-impure
 	 */
 	public function tally_sidebars_via_dynamic_sidebar_calls( $has_widgets, $sidebar_id ) {
 		if ( is_registered_sidebar( $sidebar_id ) ) {
@@ -1817,6 +1827,8 @@ final class WP_Customize_Widgets {
 	 *     @type array $widget_args Widget args.
 	 * }
 	 * @return array Params.
+	 *
+	 * @phpstan-impure
 	 */
 	public function filter_dynamic_sidebar_params( $params ) {
 		$sidebar_args = array_merge(
@@ -1936,6 +1948,8 @@ final class WP_Customize_Widgets {
 	 * @since 4.5.0
 	 *
 	 * @param int|string $index Index, name, or ID of the dynamic sidebar.
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_dynamic_sidebar( $index ) {
 		array_unshift( $this->current_dynamic_sidebar_id_stack, $index );
@@ -2008,6 +2022,8 @@ final class WP_Customize_Widgets {
 	 *     @type int    $sidebar_instance_number Disambiguating instance number.
 	 * }
 	 * @return string|false
+	 *
+	 * @phpstan-impure
 	 */
 	public function render_widget_partial( $partial, $context ) {
 		$id_data   = $partial->id_data();
@@ -2124,6 +2140,8 @@ final class WP_Customize_Widgets {
 	 * Begins keeping track of changes to widget options, caching new values.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function start_capturing_option_updates() {
 		if ( $this->_is_capturing_option_updates ) {
@@ -2144,6 +2162,8 @@ final class WP_Customize_Widgets {
 	 * @param string $option_name Name of the option.
 	 * @param mixed  $old_value   The old option value.
 	 * @return mixed Filtered option value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function capture_filter_pre_update_option( $new_value, $option_name, $old_value ) {
 		if ( $this->is_option_capture_ignored( $option_name ) ) {
@@ -2184,6 +2204,8 @@ final class WP_Customize_Widgets {
 	 * Undoes any changes to the options since options capture began.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function stop_capturing_option_updates() {
 		if ( ! $this->_is_capturing_option_updates ) {

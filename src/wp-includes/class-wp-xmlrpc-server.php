@@ -185,6 +185,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * and set the is_enabled property accordingly.
 	 *
 	 * @since 5.7.3
+	 *
+	 * @phpstan-impure
 	 */
 	private function set_is_enabled() {
 		/*
@@ -271,6 +273,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int $1 A second number to add.
 	 * }
 	 * @return int|IXR_Error Sum of the two given numbers.
+	 *
+	 * @phpstan-impure
 	 */
 	public function addTwoNumbers( $args ) {
 		if ( ! is_array( $args ) || count( $args ) !== 2 || ! is_int( $args[0] ) || ! is_int( $args[1] ) ) {
@@ -295,6 +299,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @phpstan-assert-if-true =scalar $username
 	 * @phpstan-assert-if-true =scalar $password
+	 *
+	 * @phpstan-impure
 	 */
 	public function login(
 		$username,
@@ -549,6 +555,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Passes property through {@see 'xmlrpc_blog_options'} filter.
 	 *
 	 * @since 2.6.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function initialise_blog_option_info() {
 		$this->blog_options = array(
@@ -815,6 +823,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param array $args  An array of arguments to check.
 	 * @param int   $count Minimum number of arguments.
 	 * @return bool True if `$args` contains at least `$count` arguments, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function minimum_args( $args, $count ) {
 		if ( ! is_array( $args ) || count( $args ) < $count ) {
@@ -834,6 +844,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return bool True if `$fields` is an array, false otherwise.
 	 *
 	 * @phpstan-assert-if-true array $fields
+	 *
+	 * @phpstan-impure
 	 */
 	protected function _is_fields_array( $fields ): bool {
 		if ( ! is_array( $fields ) ) {
@@ -5147,6 +5159,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $4 Optional. Number of posts.
 	 * }
 	 * @return array|IXR_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function blogger_getRecentPosts( $args ) {
 
@@ -6576,6 +6590,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     }
 	 * }
 	 * @return array|IXR_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function mw_newMediaObject( $args ) {
 		if ( ! $this->minimum_args( $args, 4 ) ) {
@@ -6715,6 +6731,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $3 Optional. Number of posts.
 	 * }
 	 * @return array|IXR_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function mt_getRecentPostTitles( $args ) {
 		$this->escape( $args );

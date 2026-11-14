@@ -40,6 +40,8 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 *
 	 * @param string $header File contents.
 	 * @return false|'V'|'N' V for little endian, N for big endian, or false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function detect_endian_and_validate_file( string $header ) {
 		$big = unpack( 'N', $header );
@@ -86,6 +88,8 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 * @since 6.5.0
 	 *
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function parse_file(): bool {
 		$this->parsed = true;
@@ -184,6 +188,8 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 * @since 6.5.0
 	 *
 	 * @return string Translation file contents.
+	 *
+	 * @phpstan-impure
 	 */
 	public function export(): string {
 		// Prefix the headers as the first key.

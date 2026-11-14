@@ -82,6 +82,8 @@ final class WP_Block_Bindings_Registry {
 	 * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
 	 *
 	 * @phpstan-param lowercase-string&non-falsy-string $source_name
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( string $source_name, array $source_properties ) {
 		if ( ! is_string( $source_name ) ) {
@@ -188,6 +190,8 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @param string $source_name Block bindings source name including namespace.
 	 * @return WP_Block_Bindings_Source|false The unregistered block bindings source on success and `false` otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( string $source_name ) {
 		if ( ! $this->is_registered( $source_name ) ) {
@@ -272,6 +276,8 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @return WP_Block_Bindings_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

@@ -202,6 +202,8 @@ class WP_Network {
 	 *
 	 * @param string $key   Property to set.
 	 * @param mixed  $value Value to assign to the property.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $key, $value ) {
 		switch ( $key ) {
@@ -226,6 +228,8 @@ class WP_Network {
 	 * @since 4.9.0
 	 *
 	 * @return int The ID of the main site.
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_main_site_id() {
 		/**
@@ -296,6 +300,8 @@ class WP_Network {
 	 * Sets the site name assigned to the network if one has not been populated.
 	 *
 	 * @since 4.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function _set_site_name() {
 		if ( ! empty( $this->site_name ) ) {
@@ -313,6 +319,8 @@ class WP_Network {
 	 * @todo What if the domain of the network doesn't match the current site?
 	 *
 	 * @since 4.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function _set_cookie_domain() {
 		if ( ! empty( $this->cookie_domain ) ) {

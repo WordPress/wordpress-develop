@@ -153,6 +153,8 @@ class WP_Filesystem_Base {
 	 * @param string $base    Optional. The folder to start searching from. Default '.'.
 	 * @param bool   $verbose Optional. True to display debug information. Default false.
 	 * @return string|false The location of the remote path, or false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function find_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
@@ -174,6 +176,8 @@ class WP_Filesystem_Base {
 	 * @param string $base    Optional. The folder to start searching from. Default '.'.
 	 * @param bool   $verbose Optional. True to display debug information. Default false.
 	 * @return string|false The location of the remote path, or false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_base_dir( $base = '.', $verbose = false ) {
 		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
@@ -191,6 +195,8 @@ class WP_Filesystem_Base {
 	 *
 	 * @param string $folder the folder to locate.
 	 * @return string|false The location of the remote path, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function find_folder( $folder ) {
 		if ( isset( $this->cache[ $folder ] ) ) {

@@ -91,6 +91,8 @@ final class WP_Customize_Selective_Refresh {
 	 *                                          See WP_Customize_Partial::__construct() for information
 	 *                                          on accepted arguments. Default empty array.
 	 * @return WP_Customize_Partial The instance of the partial that was added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_partial( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Partial ) {
@@ -129,6 +131,8 @@ final class WP_Customize_Selective_Refresh {
 	 * @since 4.5.0
 	 *
 	 * @param string $id Customize Partial ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_partial( $id ) {
 		unset( $this->partials[ $id ] );
@@ -280,6 +284,8 @@ final class WP_Customize_Selective_Refresh {
 	 * @param string $errfile Error file.
 	 * @param int    $errline Error line.
 	 * @return true Always true.
+	 *
+	 * @phpstan-impure
 	 */
 	public function handle_error( $errno, $errstr, $errfile = null, $errline = null ) {
 		$this->triggered_errors[] = array(
@@ -296,6 +302,8 @@ final class WP_Customize_Selective_Refresh {
 	 * Handles the Ajax request to return the rendered partials for the requested placements.
 	 *
 	 * @since 4.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function handle_render_partials_request() {
 		if ( ! $this->is_render_partials_request() ) {

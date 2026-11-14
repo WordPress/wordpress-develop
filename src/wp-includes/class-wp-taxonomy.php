@@ -308,6 +308,8 @@ final class WP_Taxonomy {
 	 *
 	 * @param string|string[] $object_type Name or array of names of the object types for the taxonomy.
 	 * @param array|string    $args        Array or query string of arguments for registering a taxonomy.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_props( $object_type, $args ) {
 		$args = wp_parse_args( $args );
@@ -564,6 +566,8 @@ final class WP_Taxonomy {
 	 *
 	 * @return WP_REST_Controller|null The controller instance, or null if the taxonomy
 	 *                                 is set not to show in rest.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_rest_controller() {
 		if ( ! $this->show_in_rest ) {
@@ -597,6 +601,8 @@ final class WP_Taxonomy {
 	 * @since 6.0.0
 	 *
 	 * @return (string|null)[][] The default labels for taxonomies.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_default_labels() {
 		if ( ! empty( self::$default_labels ) ) {
@@ -653,6 +659,8 @@ final class WP_Taxonomy {
 	 * Resets the cache for the default labels.
 	 *
 	 * @since 6.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function reset_default_labels() {
 		self::$default_labels = array();

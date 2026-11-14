@@ -172,6 +172,8 @@ class WP_Roles {
 	 * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
 	 *                                                           Default empty array.
 	 * @return WP_Role|null WP_Role object, if the role is added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
@@ -200,6 +202,8 @@ class WP_Roles {
 	 * @since 2.0.0
 	 *
 	 * @param string $role Role name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_role( $role ) {
 		if ( ! isset( $this->role_objects[ $role ] ) ) {
@@ -228,6 +232,8 @@ class WP_Roles {
 	 * @param string $cap   Capability name.
 	 * @param bool   $grant Optional. Whether role is capable of performing capability.
 	 *                      Default true.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_cap( $role, $cap, $grant = true ) {
 		if ( ! isset( $this->roles[ $role ] ) ) {
@@ -247,6 +253,8 @@ class WP_Roles {
 	 *
 	 * @param string $role Role name.
 	 * @param string $cap  Capability name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_cap( $role, $cap ) {
 		if ( ! isset( $this->roles[ $role ] ) ) {
@@ -298,6 +306,8 @@ class WP_Roles {
 	 * Initializes all of the available roles.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function init_roles() {
 		if ( empty( $this->roles ) ) {
@@ -329,6 +339,8 @@ class WP_Roles {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $site_id Site ID to initialize roles for. Default is the current site.
+	 *
+	 * @phpstan-impure
 	 */
 	public function for_site( $site_id = null ) {
 		global $wpdb;

@@ -65,6 +65,8 @@ class WP_Ajax_Response {
 	 * @return string XML response.
 	 *
 	 * @phpstan-return non-falsy-string
+	 *
+	 * @phpstan-impure
 	 */
 	public function add( $args = '' ) {
 		$defaults = array(

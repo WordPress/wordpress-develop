@@ -49,6 +49,8 @@ class WP_Customize_Upload_Control extends WP_Customize_Media_Control {
 	 * @since 3.4.0
 	 *
 	 * @uses WP_Customize_Media_Control::to_json()
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		parent::to_json();

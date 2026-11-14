@@ -213,6 +213,8 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 	 * @since 7.2.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

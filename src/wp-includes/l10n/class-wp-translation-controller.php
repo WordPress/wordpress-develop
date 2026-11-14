@@ -57,6 +57,8 @@ final class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @return WP_Translation_Controller
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance(): WP_Translation_Controller {
 		self::$instance ??= new self();
@@ -81,6 +83,8 @@ final class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string $locale Locale.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_locale( string $locale ) {
 		$this->current_locale = $locale;
@@ -95,6 +99,8 @@ final class WP_Translation_Controller {
 	 * @param string $textdomain       Optional. Text domain. Default 'default'.
 	 * @param string $locale           Optional. Locale. Default current locale.
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function load_file( string $translation_file, string $textdomain = 'default', ?string $locale = null ): bool {
 		$locale ??= $this->current_locale;
@@ -146,6 +152,8 @@ final class WP_Translation_Controller {
 	 * @param string                     $textdomain Optional. Text domain. Default 'default'.
 	 * @param string                     $locale     Optional. Locale. Defaults to all locales.
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unload_file( $file, string $textdomain = 'default', ?string $locale = null ): bool {
 		if ( is_string( $file ) ) {
@@ -191,6 +199,8 @@ final class WP_Translation_Controller {
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Defaults to all locales.
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unload_textdomain( string $textdomain = 'default', ?string $locale = null ): bool {
 		$unloaded = false;

@@ -82,6 +82,8 @@ class WP_Icons_Registry {
 	 * @return bool True if the icon was registered with success and false otherwise.
 	 *
 	 * @phpstan-param lowercase-string&non-falsy-string $icon_name
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $icon_name, $icon_properties ) {
 		if ( ! isset( $icon_name ) || ! is_string( $icon_name ) ) {
@@ -251,6 +253,8 @@ class WP_Icons_Registry {
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
 	 *                          (e.g. "core/arrow-left").
 	 * @return bool True if the icon was unregistered successfully, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $icon_name ) {
 		if ( ! $this->is_registered( $icon_name ) ) {
@@ -379,6 +383,8 @@ class WP_Icons_Registry {
 	 *
 	 * @param string $icon_name Icon name including namespace.
 	 * @return string|null The content of the icon, if found.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_content( $icon_name ) {
 		if ( ! isset( $this->registered_icons[ $icon_name ]['content'] ) ) {
@@ -426,6 +432,8 @@ class WP_Icons_Registry {
 	 *
 	 * @param string $icon_path Icon file path, resolved with `realpath()`.
 	 * @return bool Whether the file is in the core icon library.
+	 *
+	 * @phpstan-impure
 	 */
 	private function is_core_icon_file( $icon_path ) {
 		if ( null === $this->core_icon_library_directory ) {
@@ -535,6 +543,8 @@ class WP_Icons_Registry {
 	 * @return string|null Namespaced name of the replacement icon, such as `core-admin/pin`,
 	 *                     or null if the Dashicon has no replacement or the replacement
 	 *                     is not registered.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_admin_icon_name_for_dashicon( $dashicon ) {
 		if ( ! is_string( $dashicon ) ) {
@@ -574,6 +584,8 @@ class WP_Icons_Registry {
 	 * @since 7.0.0
 	 *
 	 * @return WP_Icons_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

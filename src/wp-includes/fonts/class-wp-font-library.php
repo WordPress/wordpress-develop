@@ -42,6 +42,8 @@ class WP_Font_Library {
 	 * @param array  $args Font collection data. See wp_register_font_collection() for information on accepted arguments.
 	 * @return WP_Font_Collection|WP_Error A font collection if it was registered successfully,
 	 *                                     or WP_Error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_font_collection( string $slug, array $args ) {
 		$new_collection = new WP_Font_Collection( $slug, $args );
@@ -70,6 +72,8 @@ class WP_Font_Library {
 	 *
 	 * @param string $slug Font collection slug.
 	 * @return bool True if the font collection was unregistered successfully and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister_font_collection( string $slug ) {
 		if ( ! $this->is_collection_registered( $slug ) ) {
@@ -131,6 +135,8 @@ class WP_Font_Library {
 	 * @since 6.5.0
 	 *
 	 * @return WP_Font_Library The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

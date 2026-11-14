@@ -72,6 +72,8 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 	 * @param int      $depth             Depth of menu item. Used for padding.
 	 * @param stdClass $args              Not used.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		global $_nav_menu_placeholder, $nav_menu_selected_id;

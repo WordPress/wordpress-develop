@@ -878,6 +878,8 @@ class WP_HTML_Tag_Processor {
 	 * @param string $new_namespace One of 'html', 'svg', or 'math' indicating into what
 	 *                              namespace the next tokens will be processed.
 	 * @return bool Whether the namespace was valid and changed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function change_parsing_namespace( string $new_namespace ): bool {
 		if ( ! in_array( $new_namespace, array( 'html', 'math', 'svg' ), true ) ) {
@@ -974,6 +976,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether a token was parsed.
+	 *
+	 * @phpstan-impure
 	 */
 	private function base_class_next_token(): bool {
 		$was_at = $this->bytes_already_parsed;
@@ -1354,6 +1358,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_bookmark( $name ): bool {
 		// It only makes sense to set a bookmark if the parser has paused on a concrete token.
@@ -1389,6 +1395,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
+	 *
+	 * @phpstan-impure
 	 */
 	public function release_bookmark( $name ): bool {
 		if ( ! array_key_exists( $name, $this->bookmarks ) ) {
@@ -1430,6 +1438,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $tag_name The uppercase tag name which will close the RCDATA region.
 	 * @return bool Whether an end to the RCDATA region was found before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function skip_rcdata( string $tag_name ): bool {
 		$html       = $this->html;
@@ -1519,6 +1529,8 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool Whether the script tag was closed before the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function skip_script_data(): bool {
 		$state      = 'unescaped';
@@ -2208,6 +2220,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether an attribute was found. Returns `false` upon reaching the end
 	 *              of the tag (`>` or `/>`) or the end of the document.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_next_attribute(): bool {
 		$doc_length = strlen( $this->html );
@@ -2602,6 +2616,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param int $shift_this_point Accumulate and return shift for this position.
 	 * @return int How many bytes the given pointer moved in response to the updates.
+	 *
+	 * @phpstan-impure
 	 */
 	private function apply_attributes_updates( int $shift_this_point ): int {
 		if ( ! count( $this->lexical_updates ) ) {
@@ -2714,6 +2730,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
+	 *
+	 * @phpstan-impure
 	 */
 	public function seek( $bookmark_name ): bool {
 		if ( ! array_key_exists( $bookmark_name, $this->bookmarks ) ) {
@@ -3733,6 +3751,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @return bool Whether the text node was subdivided.
+	 *
+	 * @phpstan-impure
 	 */
 	public function subdivide_text_appropriately(): bool {
 		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
@@ -3976,6 +3996,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
 	 * @return bool Whether the text was able to update.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
 		if ( self::STATE_TEXT_NODE === $this->parser_state ) {
@@ -4619,6 +4641,8 @@ class WP_HTML_Tag_Processor {
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_attribute( $name, $value ): bool {
 		if (
@@ -4770,6 +4794,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_attribute( $name ): bool {
 		if (
@@ -4848,6 +4874,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_class( $class_name ): bool {
 		if (
@@ -4890,6 +4918,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_class( $class_name ): bool {
 		if (
@@ -4946,6 +4976,8 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.4.0 No longer calls subclass method `next_tag()` after updating HTML.
 	 *
 	 * @return string The processed HTML.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_updated_html(): string {
 		$requires_no_updating = 0 === count( $this->classname_updates ) && 0 === count( $this->lexical_updates );
@@ -5013,6 +5045,8 @@ class WP_HTML_Tag_Processor {
 	 *     @type string      $tag_closers  "visit" or "skip": whether to stop on tag closers, e.g. </div>.
 	 * }
 	 * @phpstan-param Query $query
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_query( $query ) {
 		if ( null !== $query && $query === $this->last_query ) {

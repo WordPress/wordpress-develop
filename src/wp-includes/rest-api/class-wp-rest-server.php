@@ -329,6 +329,8 @@ class WP_REST_Server {
 	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
 	 *                          Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function serve_request( $path = null ) {
 		// Refuse to start a fresh top-level REST cycle while another dispatch
@@ -636,6 +638,8 @@ class WP_REST_Server {
 	 * @return mixed Data with sub-requests embedded: an array with the links under `_links` and the embedded
 	 *               resources under `_embedded`, or scalar and object data as it is unless the object
 	 *               implements `ArrayAccess`.
+	 *
+	 * @phpstan-impure
 	 */
 	public function response_to_data( $response, $embed ) {
 		$data = $response->get_data();
@@ -838,6 +842,8 @@ class WP_REST_Server {
 	 *     @type array $_links    Links.
 	 *     @type array $_embedded Embedded objects.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	protected function embed_links( $data, $embed = true ) {
 		if ( empty( $data['_links'] ) ) {
@@ -964,6 +970,8 @@ class WP_REST_Server {
 	 *                                Default false.
 	 *
 	 * @phpstan-param non-empty-string $route
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_route( $route_namespace, $route, $route_args, $override = false ) {
 		if ( ! isset( $this->namespaces[ $route_namespace ] ) ) {
@@ -1028,6 +1036,8 @@ class WP_REST_Server {
 	 *               `$handler` is an array of endpoint arguments.
 	 *
 	 * @phpstan-return array<non-empty-string, array<int, Route_Handler>>
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_routes( $route_namespace = '' ) {
 		$endpoints = $this->endpoints;
@@ -1220,6 +1230,8 @@ class WP_REST_Server {
 	 *
 	 * @param WP_REST_Request $request Request to attempt dispatching.
 	 * @return WP_REST_Response Response returned by the callback.
+	 *
+	 * @phpstan-impure
 	 */
 	public function dispatch( $request ) {
 		$this->dispatching_requests[] = $request;
@@ -2155,6 +2167,8 @@ class WP_REST_Server {
 	 * @global string $HTTP_RAW_POST_DATA Raw post data.
 	 *
 	 * @return string Raw request data.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_raw_data() {
 		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved

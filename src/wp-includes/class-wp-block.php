@@ -151,6 +151,8 @@ class WP_Block {
 	 * for each inner block and updating their context based on the block's `provides_context` property.
 	 *
 	 * @since 6.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function refresh_context_dependents() {
 		/*
@@ -182,6 +184,8 @@ class WP_Block {
 	 * correct content and context are updated for each nested block.
 	 *
 	 * @since 6.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function refresh_parsed_block_dependents() {
 		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
@@ -219,6 +223,8 @@ class WP_Block {
 	 *
 	 * @param string $name Property name.
 	 * @return array|null Prepared attributes, or null.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __get( $name ) {
 		if ( 'attributes' === $name ) {
@@ -275,6 +281,8 @@ class WP_Block {
 	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
+	 *
+	 * @phpstan-impure
 	 */
 	private function process_block_bindings() {
 		$block_type                 = $this->name;
@@ -452,6 +460,8 @@ class WP_Block {
 			 * @param int[]  $inner_block_offsets Optional. Byte offsets in the source HTML where
 			 *                                    inner blocks' rendered output begins. Default empty array.
 			 * @return bool True on success.
+			 *
+			 * @phpstan-impure
 			 */
 			public function replace_rich_text( $rich_text, $inner_block_offsets = array() ) {
 				if ( $this->is_tag_closer() || ! $this->expects_closer() ) {
@@ -525,6 +535,8 @@ class WP_Block {
 	 *     @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
 	 * }
 	 * @return string Rendered block output.
+	 *
+	 * @phpstan-impure
 	 */
 	public function render( $options = array() ) {
 		global $post;

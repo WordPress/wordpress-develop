@@ -129,6 +129,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global int                   $paged The current page number.
 	 * @global string                $type  The type of search being performed.
 	 * @global string                $term  The search term.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';

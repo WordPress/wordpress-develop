@@ -110,6 +110,8 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param string $file_path Path to file. Empty if no file.
 	 * @return array Contents that adhere to the theme.json schema.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function read_json_file( $file_path ) {
 		if ( $file_path ) {
@@ -150,6 +152,8 @@ class WP_Theme_JSON_Resolver {
 	 * @param string $domain     Optional. Text domain. Unique identifier for retrieving translated strings.
 	 *                           Default 'default'.
 	 * @return array Returns the modified $theme_json_structure.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function translate( $theme_json, $domain = 'default' ) {
 		if ( null === static::$i18n_schema ) {
@@ -166,6 +170,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 *
 	 * @return WP_Theme_JSON Entity that holds core data.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_core_data() {
 		if ( null !== static::$core && static::has_same_registered_blocks( 'core' ) ) {
@@ -208,6 +214,8 @@ class WP_Theme_JSON_Resolver {
 	 *                       Valid values are 'core', 'blocks', 'theme', 'user',
 	 *                       and 'merged'.
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function has_same_registered_blocks( $origin ) {
 		// Bail out if the origin is invalid.
@@ -254,6 +262,8 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 *
 	 * @phpstan-param array{} $deprecated
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_theme_data( $deprecated = array(), $options = array() ) {
 		if ( ! empty( $deprecated ) ) {
@@ -402,6 +412,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.1.0
 	 *
 	 * @return WP_Theme_JSON
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_block_data() {
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -553,6 +565,8 @@ class WP_Theme_JSON_Resolver {
 	 *              Register the block style variations coming from the user data.
 	 *
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_user_data() {
 		if ( null !== static::$user && static::has_same_registered_blocks( 'user' ) ) {
@@ -655,6 +669,8 @@ class WP_Theme_JSON_Resolver {
 	 * @param string $origin Optional. To what level should we merge data: 'default', 'blocks', 'theme' or 'custom'.
 	 *                       'custom' is used as default value as well as fallback value if the origin is unknown.
 	 * @return WP_Theme_JSON
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_merged_data( $origin = 'custom' ) {
 		if ( is_array( $origin ) ) {
@@ -703,6 +719,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0
 	 *
 	 * @return int|null ID for a post of type `wp_global_styles`, or null if not available.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_user_global_styles_post_id() {
 		if ( null !== static::$user_custom_post_type_id ) {
@@ -761,6 +779,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.1.0 Added the `$blocks` and `$blocks_cache` variables
 	 *              to reset.
 	 * @since 7.2.0 Added the `$merged` variable to reset.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function clean_cached_data() {
 		static::$core                     = null;

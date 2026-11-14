@@ -61,6 +61,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
+	 *
+	 * @phpstan-impure
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -113,6 +115,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Custom HTML widget instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public function widget( $args, $instance ) {
 		global $post;

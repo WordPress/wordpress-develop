@@ -310,6 +310,8 @@ class WP_Customize_Control {
 	 * Refreshes the parameters passed to the JavaScript via JSON.
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		$this->json['settings'] = array();
@@ -489,6 +491,8 @@ class WP_Customize_Control {
 	 * Control content can alternately be rendered in JS. See WP_Customize_Control::print_template().
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function render_content() {
 		$input_id         = '_customize-input-' . $this->id;

@@ -291,6 +291,8 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 * @since 6.4.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

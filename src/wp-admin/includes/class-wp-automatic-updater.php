@@ -462,6 +462,8 @@ class WP_Automatic_Updater {
 	 *         $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|WP_Error|null
 	 *     )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
@@ -1905,6 +1907,8 @@ Thanks! -- The WordPress Team"
 	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
 	 *
 	 * @return bool Whether a fatal error was detected.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function has_fatal_error() {
 		global $upgrading;

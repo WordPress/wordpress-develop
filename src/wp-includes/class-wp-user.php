@@ -179,6 +179,8 @@ class WP_User {
 	 *
 	 * @param object $data    User DB row object.
 	 * @param int    $site_id Optional. The site ID to initialize for.
+	 *
+	 * @phpstan-impure
 	 */
 	public function init( $data, $site_id = 0 ) {
 		if ( ! isset( $data->ID ) ) {
@@ -352,6 +354,8 @@ class WP_User {
 	 *
 	 * @param string $key   User meta key.
 	 * @param mixed  $value User meta value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $key, $value ) {
 		if ( 'id' === $key ) {
@@ -480,6 +484,8 @@ class WP_User {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $cap_key Optional capability key
+	 *
+	 * @phpstan-impure
 	 */
 	protected function _init_caps( $cap_key = '' ) {
 		global $wpdb;
@@ -509,6 +515,8 @@ class WP_User {
 	 *
 	 * @return bool[] Array of key/value pairs where keys represent a capability name
 	 *                and boolean values represent whether the user has that capability.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_role_caps() {
 		$switch_site = false;
@@ -554,6 +562,8 @@ class WP_User {
 	 * @since 2.0.0
 	 *
 	 * @param string $role Role name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_role( $role ) {
 		if ( empty( $role ) ) {
@@ -586,6 +596,8 @@ class WP_User {
 	 * @since 2.0.0
 	 *
 	 * @param string $role Role name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_role( $role ) {
 		if ( ! in_array( $role, $this->roles, true ) ) {
@@ -618,6 +630,8 @@ class WP_User {
 	 * @since 2.0.0
 	 *
 	 * @param string $role Role name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_role( $role ) {
 		if ( 1 === count( $this->roles ) && current( $this->roles ) === $role ) {
@@ -705,6 +719,8 @@ class WP_User {
 	 * @since 2.0.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function update_user_level_from_caps() {
 		global $wpdb;
@@ -719,6 +735,8 @@ class WP_User {
 	 *
 	 * @param string $cap   Capability name.
 	 * @param bool   $grant Whether to grant capability to user.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_cap( $cap, $grant = true ) {
 		$this->caps[ $cap ] = $grant;
@@ -733,6 +751,8 @@ class WP_User {
 	 * @since 2.0.0
 	 *
 	 * @param string $cap Capability name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_cap( $cap ) {
 		if ( ! isset( $this->caps[ $cap ] ) ) {
@@ -750,6 +770,8 @@ class WP_User {
 	 * @since 2.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_all_caps() {
 		global $wpdb;
@@ -871,6 +893,8 @@ class WP_User {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $site_id Site ID to initialize user capabilities for. Default is the current site.
+	 *
+	 * @phpstan-impure
 	 */
 	public function for_site( $site_id = 0 ) {
 		global $wpdb;

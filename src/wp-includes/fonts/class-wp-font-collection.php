@@ -80,6 +80,8 @@ final class WP_Font_Collection {
 	 * @since 6.5.0
 	 *
 	 * @return array|WP_Error An array containing the font collection data, or a WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_data() {
 		if ( is_wp_error( $this->data ) ) {

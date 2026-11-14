@@ -515,6 +515,8 @@ class WP_Query {
 	 * The query flags are what page info WordPress was able to figure out.
 	 *
 	 * @since 2.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function init_query_flags() {
 		$this->is_single            = false;
@@ -553,6 +555,8 @@ class WP_Query {
 	 * Initiates object properties and sets default values.
 	 *
 	 * @since 1.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function init() {
 		unset( $this->posts );
@@ -821,6 +825,8 @@ class WP_Query {
 	 *     @type int             $w                      The week number of the year. Default empty. Accepts numbers 1-53.
 	 *     @type int             $year                   The four-digit year. Default empty. Accepts any four-digit year.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_query( $query = '' ) {
 		if ( ! empty( $query ) ) {
@@ -1190,6 +1196,8 @@ class WP_Query {
 	 * @since 3.1.0
 	 *
 	 * @param array $query_vars The query variables. Passed by reference.
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_tax_query( &$query_vars ) {
 		if ( ! empty( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ) {
@@ -1604,6 +1612,8 @@ class WP_Query {
 	 * @since 3.7.0
 	 *
 	 * @return string[] Stopwords.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_search_stopwords() {
 		if ( isset( $this->stopwords ) ) {
@@ -1855,6 +1865,8 @@ class WP_Query {
 	 * Sets the 404 property and saves whether query is feed.
 	 *
 	 * @since 2.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_404() {
 		$is_feed = $this->is_feed;
@@ -1896,6 +1908,8 @@ class WP_Query {
 	 *
 	 * @param string $query_var Query variable key.
 	 * @param mixed  $value     Query variable value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set( $query_var, $value ) {
 		$this->query_vars[ $query_var ] = $value;
@@ -1917,6 +1931,8 @@ class WP_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_posts() {
 		global $wpdb;
@@ -3692,6 +3708,8 @@ class WP_Query {
 	 *
 	 * @param array  $query_vars Query variables.
 	 * @param string $limits     LIMIT clauses of the query.
+	 *
+	 * @phpstan-impure
 	 */
 	private function set_found_posts( $query_vars, $limits ) {
 		global $wpdb;
@@ -3753,6 +3771,8 @@ class WP_Query {
 	 * @since 1.5.0
 	 *
 	 * @return WP_Post Next post.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_post() {
 
@@ -3772,6 +3792,8 @@ class WP_Query {
 	 * @since 1.5.0
 	 *
 	 * @global WP_Post $post Global post object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function the_post() {
 		global $post;
@@ -3887,6 +3909,8 @@ class WP_Query {
 	 * Rewinds the posts and resets post index.
 	 *
 	 * @since 1.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function rewind_posts() {
 		$this->current_post = -1;
@@ -3901,6 +3925,8 @@ class WP_Query {
 	 * @since 2.2.0
 	 *
 	 * @return WP_Comment Comment object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_comment() {
 		++$this->current_comment;
@@ -3916,6 +3942,8 @@ class WP_Query {
 	 * @since 2.2.0
 	 *
 	 * @global WP_Comment $comment Global comment object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function the_comment() {
 		global $comment;
@@ -3957,6 +3985,8 @@ class WP_Query {
 	 * Rewinds the comments, resets the comment index and comment to first.
 	 *
 	 * @since 2.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function rewind_comments() {
 		$this->current_comment = -1;
@@ -3982,6 +4012,8 @@ class WP_Query {
 	 *             ? array<int, int>
 	 *             : WP_Post[] )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		$this->init();
@@ -4000,6 +4032,8 @@ class WP_Query {
 	 * @since 1.5.0
 	 *
 	 * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_queried_object() {
 		if ( isset( $this->queried_object ) ) {
@@ -4880,6 +4914,8 @@ class WP_Query {
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function setup_postdata( $post ) {
 		global $id, $authordata, $currentday, $currentmonth, $page, $pages, $multipage, $more, $numpages;
@@ -5034,6 +5070,8 @@ class WP_Query {
 	 * @param array  $args Query arguments.
 	 * @param string $sql  SQL statement.
 	 * @return string Cache key.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function generate_cache_key( array $args, $sql ) {
 		global $wpdb;
@@ -5134,6 +5172,8 @@ class WP_Query {
 	 * @since 3.7.0
 	 *
 	 * @global WP_Post $post Global post object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function reset_postdata() {
 		if ( ! empty( $this->post ) ) {

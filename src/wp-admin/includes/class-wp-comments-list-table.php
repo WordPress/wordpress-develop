@@ -88,6 +88,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @global string $comment_status Comment status filter.
 	 * @global string $comment_type   Comment type filter.
 	 * @global string $search         Search term.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $mode, $post_id, $comment_status, $comment_type, $search;
@@ -598,6 +600,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * Overrides the parent display() method to render extra comments.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
@@ -668,6 +672,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @global WP_Comment $comment Global comment object.
 	 *
 	 * @param WP_Comment $item The comment object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function single_row( $item ) {
 		global $post, $comment;
@@ -1105,6 +1111,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * Outputs the response column.
 	 *
 	 * @param WP_Comment $comment The comment object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function column_response( $comment ) {
 		$post = get_post();

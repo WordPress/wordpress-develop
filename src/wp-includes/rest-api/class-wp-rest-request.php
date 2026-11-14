@@ -201,6 +201,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $method HTTP method.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_method( $method ) {
 		$this->method = strtoupper( $method );
@@ -305,6 +307,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string          $key   Header name.
 	 * @param string|string[] $value Header value, or list of values.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -320,6 +324,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string          $key   Header name.
 	 * @param string|string[] $value Header value, or list of values.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -334,6 +340,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Header name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_header( $key ) {
 		$key = static::canonicalize_header_name( $key );
@@ -347,6 +355,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param array<string, string|string[]> $headers  Map of header name to value, or list of values.
 	 * @param bool                           $override If true, replace the request's headers. Otherwise, merge with existing.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_headers( $headers, $override = true ) {
 		if ( true === $override ) {
@@ -519,6 +529,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $key   Parameter name.
 	 * @param mixed  $value Parameter value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_param( $key, $value ) {
 		$order     = $this->get_parameter_order();
@@ -590,6 +602,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, mixed> $params Parameter map of key to value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_url_params( $params ) {
 		$this->params['URL'] = $params;
@@ -616,6 +630,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<mixed> $params Parameter map of key to value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_query_params( $params ) {
 		$this->params['GET'] = $params;
@@ -642,6 +658,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<mixed> $params Parameter map of key to value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_body_params( $params ) {
 		$this->params['POST'] = $params;
@@ -672,6 +690,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param array<string, array<string, mixed>> $params Parameter map of key to value.
 	 *
 	 * @phpstan-param array<string, File_Param> $params
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
@@ -698,6 +718,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, mixed> $params Parameter map of key to value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_default_params( $params ) {
 		$this->params['defaults'] = $params;
@@ -720,6 +742,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $data Binary data from the request body.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_body( $data ) {
 		$this->body = $data;
@@ -754,6 +778,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @since 4.7.0 Returns error instance if value cannot be decoded.
 	 * @return true|WP_Error True if the JSON data was passed or no JSON data was provided, WP_Error if invalid JSON was passed.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function parse_json_params() {
 		if ( $this->parsed_json ) {
@@ -802,6 +828,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * natively by PHP.
 	 *
 	 * @since 4.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function parse_body_params() {
 		if ( $this->parsed_body ) {
@@ -846,6 +874,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route matching regex.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_route( $route ) {
 		$this->route = $route;
@@ -874,6 +904,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param array<string, mixed> $attributes Attributes for the request.
 	 *
 	 * @phpstan-param Attributes $attributes
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_attributes( $attributes ) {
 		$this->attributes = $attributes;
@@ -888,6 +920,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @return true|WP_Error True if parameters were sanitized, WP_Error if an error occurred during sanitization.
+	 *
+	 * @phpstan-impure
 	 */
 	public function sanitize_params() {
 		$attributes = $this->get_attributes();

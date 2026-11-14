@@ -103,6 +103,8 @@ class WP_Object_Cache {
 	 *
 	 * @param string $name  Property to set.
 	 * @param mixed  $value Property value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $name, $value ) {
 		$this->$name = $value;
@@ -299,6 +301,8 @@ class WP_Object_Cache {
 	 * @param string     $group  Optional. Where to group the cache contents. Default 'default'.
 	 * @param int        $expire Optional. Not used.
 	 * @return bool True if contents were set, false if key is invalid.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set( $key, $data, $group = 'default', $expire = 0 ) {
 		if ( ! $this->is_valid_key( $key ) ) {
@@ -360,6 +364,8 @@ class WP_Object_Cache {
 	 * @param bool|null  $found Optional. Whether the key was found in the cache (passed by reference).
 	 *                          Disambiguates a return of false, a storable value. Default null.
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get( $key, $group = 'default', $force = false, &$found = null ) {
 		if ( ! $this->is_valid_key( $key ) ) {
@@ -424,6 +430,8 @@ class WP_Object_Cache {
 	 * @return bool True on success, false if the contents were not deleted.
 	 *
 	 * @phpstan-param false $deprecated
+	 *
+	 * @phpstan-impure
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( ! $this->is_valid_key( $key ) ) {
@@ -476,6 +484,8 @@ class WP_Object_Cache {
 	 *                           Default 1.
 	 * @param string     $group  Optional. The group the key is in. Default 'default'.
 	 * @return int|false The item's new value on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function incr( $key, $offset = 1, $group = 'default' ) {
 		if ( ! $this->is_valid_key( $key ) ) {
@@ -519,6 +529,8 @@ class WP_Object_Cache {
 	 *                           Default 1.
 	 * @param string     $group  Optional. The group the key is in. Default 'default'.
 	 * @return int|false The item's new value on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function decr( $key, $offset = 1, $group = 'default' ) {
 		if ( ! $this->is_valid_key( $key ) ) {
@@ -558,6 +570,8 @@ class WP_Object_Cache {
 	 * @since 2.0.0
 	 *
 	 * @return true Always returns true.
+	 *
+	 * @phpstan-impure
 	 */
 	public function flush() {
 		$this->cache = array();
@@ -572,6 +586,8 @@ class WP_Object_Cache {
 	 *
 	 * @param string $group Name of group to remove from cache.
 	 * @return true Always returns true.
+	 *
+	 * @phpstan-impure
 	 */
 	public function flush_group( $group ) {
 		unset( $this->cache[ $group ] );
@@ -585,6 +601,8 @@ class WP_Object_Cache {
 	 * @since 3.0.0
 	 *
 	 * @param string|string[] $groups List of groups that are global.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_global_groups( $groups ) {
 		$groups = (array) $groups;
@@ -601,6 +619,8 @@ class WP_Object_Cache {
 	 * @since 3.5.0
 	 *
 	 * @param int $blog_id Blog ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function switch_to_blog( $blog_id ) {
 		$blog_id           = (int) $blog_id;
@@ -614,6 +634,8 @@ class WP_Object_Cache {
 	 *
 	 * @deprecated 3.5.0 Use WP_Object_Cache::switch_to_blog()
 	 * @see switch_to_blog()
+	 *
+	 * @phpstan-impure
 	 */
 	public function reset() {
 		_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Object_Cache::switch_to_blog()' );

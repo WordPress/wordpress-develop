@@ -191,6 +191,8 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @param int $menu_id       The term ID for the menu.
 	 * @param int $menu_item_id  The post ID for the menu item.
+	 *
+	 * @phpstan-impure
 	 */
 	public function flush_cached_value( $menu_id, $menu_item_id ) {
 		unset( $menu_id );
@@ -207,6 +209,8 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @see wp_setup_nav_menu_item()
 	 *
 	 * @return array|false Instance data array, or false if the item is marked for deletion.
+	 *
+	 * @phpstan-impure
 	 */
 	public function value() {
 		$type_label = null;
@@ -349,6 +353,8 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @since 4.3.0
 	 *
 	 * @see WP_Customize_Nav_Menu_Item_Setting::value()
+	 *
+	 * @phpstan-impure
 	 */
 	protected function populate_value() {
 		if ( ! is_array( $this->value ) ) {
@@ -446,6 +452,8 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @see WP_Customize_Manager::post_value()
 	 *
 	 * @return bool False if method short-circuited due to no-op.
+	 *
+	 * @phpstan-impure
 	 */
 	public function preview() {
 		if ( $this->is_previewed ) {
@@ -767,6 +775,8 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *                           entirely. See WP_Customize_Nav_Menu_Item_Setting::$default for what the value
 	 *                           should consist of.
 	 * @return bool Whether updated.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function update( $value ) {
 		if ( $this->is_updated ) {

@@ -388,6 +388,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

@@ -28,6 +28,8 @@ class Core_Upgrader extends WP_Upgrader {
 	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function upgrade_strings() {
 		$this->strings['up_to_date'] = __( 'WordPress is at the latest version.' );

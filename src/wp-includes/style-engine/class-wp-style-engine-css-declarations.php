@@ -65,6 +65,8 @@ class WP_Style_Engine_CSS_Declarations {
 	 *     @type bool $important Whether to output the declaration with !important. Default false.
 	 * }
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_declaration( $property, $value, $options = array() ) {
 		// Sanitizes the property.
@@ -111,6 +113,8 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @param string $property The CSS property.
 	 * @return WP_Style_Engine_CSS_Declarations Returns the object to allow chaining methods.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_declaration( $property ) {
 		unset( $this->declarations[ $property ] );

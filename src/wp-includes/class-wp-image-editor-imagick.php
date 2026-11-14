@@ -146,6 +146,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @return true|WP_Error True if loaded; WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function load() {
 		if ( $this->image instanceof Imagick ) {
@@ -866,6 +868,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function make_subsize( $size_data ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
@@ -1057,6 +1061,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type string $mime-type The mime type of the image.
 	 *     @type int    $filesize  File size of the image.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
 		$saved = $this->_save( $this->image, $destfilename, $mime_type );

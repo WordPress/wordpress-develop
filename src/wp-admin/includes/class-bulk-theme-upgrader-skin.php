@@ -33,6 +33,8 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 * Sets up the strings used in the update process.
 	 *
 	 * @since 3.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_strings() {
 		parent::add_strings();

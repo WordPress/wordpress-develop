@@ -100,6 +100,8 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_items( $request ) {
 		if ( ! $this->remote_patterns_loaded ) {
@@ -203,6 +205,8 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 	 * @since 6.3.0 Added `source` property.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

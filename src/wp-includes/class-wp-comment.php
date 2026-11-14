@@ -386,6 +386,8 @@ final class WP_Comment {
 	 *         )
 	 *     )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_children( $args = array() ) {
 		$defaults = array(

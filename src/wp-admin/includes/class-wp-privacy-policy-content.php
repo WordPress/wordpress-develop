@@ -32,6 +32,8 @@ final class WP_Privacy_Policy_Content {
 	 *
 	 * @param string $plugin_name The name of the plugin or theme that is suggesting content for the site's privacy policy.
 	 * @param string $policy_text The suggested content for inclusion in the policy.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function add( $plugin_name, $policy_text ) {
 		if ( empty( $plugin_name ) || empty( $policy_text ) ) {
@@ -310,6 +312,8 @@ final class WP_Privacy_Policy_Content {
 	 * @global WP_Post $post Global post object.
 	 *
 	 * @param WP_Post|null $post The currently edited post. Default null.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function notice( $post = null ) {
 		if ( is_null( $post ) ) {

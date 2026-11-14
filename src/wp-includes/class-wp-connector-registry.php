@@ -146,6 +146,8 @@ final class WP_Connector_Registry {
 	 *     }
 	 * } $args
 	 * @phpstan-return Connector|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( string $id, array $args ): ?array {
 		if ( ! preg_match( '/^[a-z0-9_-]+$/', $id ) ) {
@@ -324,6 +326,8 @@ final class WP_Connector_Registry {
 	 * @return array|null The unregistered connector data on success, null on failure.
 	 *
 	 * @phpstan-return Connector|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( string $id ): ?array {
 		if ( ! $this->is_registered( $id ) ) {

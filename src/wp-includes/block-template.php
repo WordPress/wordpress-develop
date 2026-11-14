@@ -354,6 +354,8 @@ function _block_template_add_skip_link( string $template_html ): string {
 		 * Inserts text before the current token.
 		 *
 		 * @param string $text Text to insert.
+		 *
+		 * @phpstan-impure
 		 */
 		public function insert_before( string $text ) {
 			$this->set_bookmark( 'here' );

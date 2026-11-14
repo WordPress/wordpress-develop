@@ -88,6 +88,8 @@ class WP_Recovery_Mode {
 	 * Initialize recovery mode for the current request.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function initialize() {
 		$this->is_initialized = true;
@@ -266,6 +268,8 @@ class WP_Recovery_Mode {
 	 * Handles checking for the recovery mode cookie and validating it.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function handle_cookie() {
 		$validated = $this->cookie_service->validate_cookie();

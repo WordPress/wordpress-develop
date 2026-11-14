@@ -82,6 +82,8 @@ class WP_Upgrader_Skin {
 	 * @since 2.8.0
 	 *
 	 * @param WP_Upgrader $upgrader
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_upgrader( &$upgrader ) {
 		if ( is_object( $upgrader ) ) {
@@ -104,6 +106,8 @@ class WP_Upgrader_Skin {
 	 * @since 2.8.0
 	 *
 	 * @param string|bool|WP_Error $result The result of an upgrade.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_result( $result ) {
 		$this->result = $result;
@@ -143,6 +147,8 @@ class WP_Upgrader_Skin {
 	 * Displays the header before the update process.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function header() {
 		if ( $this->done_header ) {
@@ -157,6 +163,8 @@ class WP_Upgrader_Skin {
 	 * Displays the footer following the update process.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function footer() {
 		if ( $this->done_footer ) {

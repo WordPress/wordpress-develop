@@ -328,6 +328,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @since 5.9.0 The `rest_namespace` property was added.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

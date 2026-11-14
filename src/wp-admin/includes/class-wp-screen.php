@@ -208,6 +208,8 @@ final class WP_Screen {
 	 * @param string|WP_Screen|null $hook_name Optional. The hook name (also known as the hook suffix) used to determine the screen.
 	 *                                         Defaults to the current $hook_suffix global.
 	 * @return WP_Screen Screen object.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get( $hook_name = '' ) {
 		if ( $hook_name instanceof WP_Screen ) {
@@ -408,6 +410,8 @@ final class WP_Screen {
 	 * @global WP_Screen $current_screen WordPress current screen object.
 	 * @global string    $typenow        The post type of the current screen.
 	 * @global string    $taxnow         The taxonomy of the current screen.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_current_screen() {
 		global $current_screen, $taxnow, $typenow;
@@ -457,6 +461,8 @@ final class WP_Screen {
 	 *
 	 * @param bool $set Optional. Sets whether the block editor is loading on the current screen or not.
 	 * @return bool True if the block editor is being loaded, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function is_block_editor( $set = null ) {
 		if ( null !== $set ) {
@@ -473,6 +479,8 @@ final class WP_Screen {
 	 *
 	 * @param WP_Screen $screen A screen object.
 	 * @param string    $help   Help text.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function add_old_compat_help( $screen, $help ) {
 		self::$_old_compat_help[ $screen->id ] = $help;
@@ -486,6 +494,8 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @param string $parent_file The parent file of the screen. Typically the $parent_file global.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_parentage( $parent_file ) {
 		$this->parent_file         = $parent_file;
@@ -503,6 +513,8 @@ final class WP_Screen {
 	 *
 	 * @param string $option Option ID.
 	 * @param mixed  $args   Option-dependent arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_option( $option, $args = array() ) {
 		$this->_options[ $option ] = $args;
@@ -514,6 +526,8 @@ final class WP_Screen {
 	 * @since 3.8.0
 	 *
 	 * @param string $option Option ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_option( $option ) {
 		unset( $this->_options[ $option ] );
@@ -523,6 +537,8 @@ final class WP_Screen {
 	 * Removes all options from the screen.
 	 *
 	 * @since 3.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_options() {
 		$this->_options = array();
@@ -629,6 +645,8 @@ final class WP_Screen {
 	 *     @type callable $callback Optional. A callback to generate the tab content. Default false.
 	 *     @type int      $priority Optional. The priority of the tab, used for ordering. Default 10.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_help_tab( $args ) {
 		$defaults = array(
@@ -657,6 +675,8 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @param string $id The help tab ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_help_tab( $id ) {
 		unset( $this->_help_tabs[ $id ] );
@@ -666,6 +686,8 @@ final class WP_Screen {
 	 * Removes all help tabs from the contextual help for the screen.
 	 *
 	 * @since 3.3.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_help_tabs() {
 		$this->_help_tabs = array();
@@ -691,6 +713,8 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @param string $content Sidebar content in plain text or HTML.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_help_sidebar( $content ) {
 		$this->_help_sidebar = $content;
@@ -756,6 +780,8 @@ final class WP_Screen {
 	 *     @type string $heading_list       Screen reader text for the items list heading.
 	 *                                      Default 'Items list'.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_screen_reader_content( $content = array() ) {
 		$defaults = array(
@@ -772,6 +798,8 @@ final class WP_Screen {
 	 * Removes all the accessible hidden headings and text for the screen.
 	 *
 	 * @since 4.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_screen_reader_content() {
 		$this->_screen_reader_content = array();
@@ -785,6 +813,8 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @global string $screen_layout_columns
+	 *
+	 * @phpstan-impure
 	 */
 	public function render_screen_meta() {
 
@@ -992,6 +1022,8 @@ final class WP_Screen {
 	 * @global array $wp_meta_boxes Global meta box state.
 	 *
 	 * @return bool Whether to show the Screen Options tab for the current screen.
+	 *
+	 * @phpstan-impure
 	 */
 	public function show_screen_options() {
 		global $wp_meta_boxes;
@@ -1349,6 +1381,8 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 *
 	 * @global string $mode List table view mode.
+	 *
+	 * @phpstan-impure
 	 */
 	public function render_view_mode() {
 		global $mode;

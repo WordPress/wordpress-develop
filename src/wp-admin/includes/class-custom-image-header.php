@@ -216,6 +216,8 @@ class Custom_Image_Header {
 	 * Executes custom header modification.
 	 *
 	 * @since 2.6.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function take_action() {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -277,6 +279,8 @@ class Custom_Image_Header {
 	 * @since 3.0.0
 	 *
 	 * @global array $_wp_default_headers Default headers registered for themes.
+	 *
+	 * @phpstan-impure
 	 */
 	public function process_default_headers() {
 		global $_wp_default_headers;
@@ -1114,6 +1118,8 @@ endif;
 	 * Displays last step of custom header image page.
 	 *
 	 * @since 2.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function finished() {
 		$this->updated = true;

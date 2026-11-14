@@ -56,6 +56,8 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * Sets up the strings used in the update process.
 	 *
 	 * @since 3.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_strings() {
 		$this->upgrader->strings['skin_upgrade_start'] = __( 'The update process is starting. This process may take a while on some hosts, so please be patient.' );
@@ -124,6 +126,8 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * @since 5.9.0 Renamed `$error` to `$errors` for PHP 8 named parameter support.
 	 *
 	 * @param string|WP_Error $errors Errors.
+	 *
+	 * @phpstan-impure
 	 */
 	public function error( $errors ) {
 		if ( is_string( $errors ) && isset( $this->upgrader->strings[ $errors ] ) ) {
@@ -179,6 +183,8 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * @since 3.0.0
 	 *
 	 * @param string $title
+	 *
+	 * @phpstan-impure
 	 */
 	public function before( $title = '' ) {
 		$this->in_loop = true;
@@ -265,6 +271,8 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * Resets the properties used in the update process.
 	 *
 	 * @since 3.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function reset() {
 		$this->in_loop = false;

@@ -308,6 +308,8 @@ final class WP_Site {
 	 *
 	 * @param string $key   Property to set.
 	 * @param mixed  $value Value to assign to the property.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $key, $value ) {
 		switch ( $key ) {
