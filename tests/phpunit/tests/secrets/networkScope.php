@@ -11,6 +11,31 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 	use WP_Secrets_Assertions;
 
 	/**
+	 * Original current network object, preserved across multisite tests that switch networks.
+	 *
+	 * @var WP_Network|null
+	 */
+	private $original_current_site;
+
+	public function set_up(): void {
+		parent::set_up();
+
+		if ( is_multisite() ) {
+			global $current_site;
+			$this->original_current_site = $current_site;
+		}
+	}
+
+	public function tear_down(): void {
+		if ( is_multisite() ) {
+			global $current_site;
+			$current_site = $this->original_current_site;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Ensure that a value stored by wp_set_network_secret() is returned by wp_get_network_secret().
 	 *
 	 * @covers ::wp_set_network_secret
@@ -234,5 +259,139 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertNull( $result, 'A site secret should not be readable from a different blog.' );
+	}
+
+	/**
+	 * Ensure that writing a site secret after switching to a site on another network
+	 * uses that network's root key so native requests on that site can decrypt it.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
+	public function test_site_secret_written_after_switching_to_a_site_on_another_network_uses_that_networks_root_key(): void {
+		$this->skipWithoutMultisite();
+
+		$this->assertTrue( wp_set_network_secret( 'myplugin/net1-key', 'net1-value' ), 'Initializing network 1 should succeed.' );
+
+		$network_2         = self::factory()->network->create();
+		$site_on_network_2 = self::factory()->blog->create(
+			array(
+				'network_id' => $network_2,
+			)
+		);
+
+		$this->assertFalse(
+			get_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION ),
+			'Network 2 should not have a root key before a secret is written on its site.'
+		);
+
+		switch_to_blog( $site_on_network_2 );
+		$written = wp_set_secret( 'myplugin/cross-net', 'secret-for-net2' );
+		restore_current_blog();
+
+		$this->assertTrue( $written, 'Writing a site secret after switching to a site on network 2 should succeed.' );
+
+		$network_2_root_key = get_network_option( $network_2, WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		$this->assertIsString( $network_2_root_key, 'Writing on a network 2 site should create network 2 root key in sitemeta.' );
+		$this->assertNotSame(
+			get_network_option( get_current_network_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION ),
+			$network_2_root_key,
+			'Network 2 root key should be distinct from network 1 root key.'
+		);
+
+		global $current_site;
+		$current_site = get_network( $network_2 );
+
+		switch_to_blog( $site_on_network_2 );
+		$secret = wp_get_secret( 'myplugin/cross-net' );
+		restore_current_blog();
+
+		$this->assertIsSecret( $secret, 'secret-for-net2', 'A native request on network 2 should decrypt the site secret written via cross-network switch.' );
+	}
+
+	/**
+	 * Ensure that a site secret stored natively on a site in another network
+	 * is readable after switch_to_blog() from the main network.
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_secret
+	 * @covers ::wp_get_secret
+	 */
+	public function test_site_secret_on_another_network_is_readable_after_switch_to_blog(): void {
+		$this->skipWithoutMultisite();
+
+		$this->assertTrue( wp_set_network_secret( 'myplugin/net1-key', 'net1-value' ), 'Initializing network 1 should succeed.' );
+
+		$network_2         = self::factory()->network->create();
+		$site_on_network_2 = self::factory()->blog->create(
+			array(
+				'network_id' => $network_2,
+			)
+		);
+
+		global $current_site;
+		$original_network = $current_site;
+		$current_site     = get_network( $network_2 );
+
+		switch_to_blog( $site_on_network_2 );
+		$native_written = wp_set_secret( 'myplugin/native-net2', 'native-secret' );
+		restore_current_blog();
+
+		$current_site = $original_network;
+
+		$this->assertTrue( $native_written, 'Writing a secret natively on network 2 should succeed.' );
+		$this->assertNull( wp_get_secret( 'myplugin/native-net2' ), 'The network 2 site secret should not exist on the network 1 site.' );
+
+		switch_to_blog( $site_on_network_2 );
+		$switched_secret = wp_get_secret( 'myplugin/native-net2' );
+		restore_current_blog();
+
+		$this->assertIsSecret( $switched_secret, 'native-secret', 'Switching from network 1 to a network 2 site should decrypt that site secret.' );
+	}
+
+	/**
+	 * Ensure that network-scope secrets stay on the current network after switch_to_blog().
+	 *
+	 * @ticket 66688
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_set_network_secret
+	 * @covers ::wp_get_network_secret
+	 */
+	public function test_network_secret_after_switching_to_a_site_on_another_network_stays_on_the_current_network(): void {
+		$this->skipWithoutMultisite();
+
+		$this->assertTrue( wp_set_network_secret( 'myplugin/net-secret', 'network-1-value' ), 'Setting network 1 secret should succeed.' );
+
+		$network_2         = self::factory()->network->create();
+		$site_on_network_2 = self::factory()->blog->create(
+			array(
+				'network_id' => $network_2,
+			)
+		);
+
+		switch_to_blog( $site_on_network_2 );
+		$read_while_switched  = wp_get_network_secret( 'myplugin/net-secret' );
+		$wrote_while_switched = wp_set_network_secret( 'myplugin/from-switched', 'still-network-1' );
+		restore_current_blog();
+
+		$this->assertIsSecret( $read_while_switched, 'network-1-value', 'Reading a network secret after switching to a site on another network should still read the current network secret.' );
+		$this->assertTrue( $wrote_while_switched, 'Writing a network secret after switching to a site on another network should succeed.' );
+		$this->assertIsSecret( wp_get_network_secret( 'myplugin/from-switched' ), 'still-network-1', 'A network secret written while switched should be stored on the current network.' );
+		$this->assertFalse(
+			get_network_option( $network_2, WP_Secrets_Option_Store::NETWORK_PREFIX . 'myplugin/from-switched' ),
+			'Switching to a site on network 2 should not write network-scope secrets to network 2.'
+		);
 	}
 }
