@@ -499,6 +499,17 @@ abstract class WP_REST_Meta_Fields {
 
 			$rest_args['schema'] = rest_default_additional_properties_to_false( $rest_args['schema'] );
 
+			// A nullable schema can still use one of the supported meta types.
+			if ( is_array( $type ) && 2 === count( $type ) && in_array( 'null', $type, true ) ) {
+				$non_null_types = array_filter(
+					$type,
+					static function ( $type ) {
+						return 'null' !== $type;
+					}
+				);
+				$type           = reset( $non_null_types );
+			}
+
 			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ), true ) ) {
 				continue;
 			}
@@ -564,8 +575,20 @@ abstract class WP_REST_Meta_Fields {
 			$schema = $args['schema']['items'];
 		}
 
-		if ( '' === $value && in_array( $schema['type'], array( 'boolean', 'integer', 'number' ), true ) ) {
-			$value = static::get_empty_value_for_type( $schema['type'] );
+		// Use the non-null type only for the existing empty-string conversion.
+		$type = $schema['type'];
+		if ( is_array( $type ) && 2 === count( $type ) && in_array( 'null', $type, true ) ) {
+			$non_null_types = array_filter(
+				$type,
+				static function ( $type ) {
+					return 'null' !== $type;
+				}
+			);
+			$type           = reset( $non_null_types );
+		}
+
+		if ( '' === $value && in_array( $type, array( 'boolean', 'integer', 'number' ), true ) ) {
+			$value = static::get_empty_value_for_type( $type );
 		}
 
 		if ( is_wp_error( rest_validate_value_from_schema( $value, $schema ) ) ) {
@@ -618,7 +641,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param string $type The schema type.
+	 * @param string|string[] $type The schema type or nullable type pair.
 	 * @return mixed
 	 */
 	protected static function get_empty_value_for_type( $type ) {
