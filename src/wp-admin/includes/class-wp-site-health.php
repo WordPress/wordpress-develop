@@ -2889,10 +2889,13 @@ class WP_Site_Health {
 		 * Once a root key exists, it is wrapped with the current site key, and core has no way
 		 * to re-wrap it under another one. Changing the key source then locks every stored
 		 * secret, and blocks saving new ones, until the change is reverted.
+		 *
+		 * A WP_Error means the root key could not be read. That proves neither that no secrets
+		 * are stored nor that the key is wrong: skip the unwrap, and still say to keep the key.
 		 */
-		$has_root_key = false !== get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		$has_root_key = _wp_secrets_get_key_manager()->has_root_key();
 
-		if ( $has_root_key ) {
+		if ( true === $has_root_key ) {
 			$root_key = _wp_secrets_get_key_manager()->get_root_key();
 
 			if ( is_wp_error( $root_key ) ) {
