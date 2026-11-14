@@ -421,6 +421,146 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Patterns may be used across the site, so they're kept when their author is deleted.
+	 *
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 */
+	public function test_wpmu_delete_user_keeps_patterns() {
+		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id    = self::factory()->post->create( array( 'post_author' => $user_id ) );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should have been deleted.' );
+		$this->assertSame( 'publish', get_post_status( $pattern_id ), 'The pattern should have been kept.' );
+		$this->assertSame( (string) $user_id, get_post( $pattern_id )->post_author, 'The pattern should still list the deleted user as its author.' );
+		$this->assertFalse( get_userdata( $user_id ), 'The user should have been deleted.' );
+	}
+
+	/**
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 */
+	public function test_wpmu_delete_user_keeps_patterns_on_every_site() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$site_id = self::factory()->blog->create();
+
+		add_user_to_blog( $site_id, $user_id, 'author' );
+
+		switch_to_blog( $site_id );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+		restore_current_blog();
+
+		wpmu_delete_user( $user_id );
+
+		switch_to_blog( $site_id );
+		$status = get_post_status( $pattern_id );
+		restore_current_blog();
+
+		wp_delete_site( $site_id );
+
+		$this->assertSame( 'publish', $status );
+	}
+
+	/**
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 *
+	 * @dataProvider data_wpmu_delete_user_keeps_core_post_types_that_opt_out
+	 *
+	 * @param string $post_type Core post type registered with `delete_with_user` set to false.
+	 */
+	public function test_wpmu_delete_user_keeps_core_post_types_that_opt_out( $post_type ) {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => $post_type,
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ string }>
+	 */
+	public static function data_wpmu_delete_user_keeps_core_post_types_that_opt_out() {
+		return array(
+			'wp_block'      => array( 'wp_block' ),
+			'nav_menu_item' => array( 'nav_menu_item' ),
+			'custom_css'    => array( 'custom_css' ),
+			'oembed_cache'  => array( 'oembed_cache' ),
+		);
+	}
+
+	/**
+	 * Post types registered by plugins are still deleted, because a plugin active on
+	 * only some sites may not have registered its post types in the current request.
+	 *
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 *
+	 * @dataProvider data_wpmu_delete_user_deletes_plugin_post_types
+	 *
+	 * @param bool|null $delete_with_user Value of the post type's `delete_with_user` argument.
+	 */
+	public function test_wpmu_delete_user_deletes_plugin_post_types( $delete_with_user ) {
+		register_post_type(
+			'wptests_pt',
+			array(
+				'delete_with_user' => $delete_with_user,
+				'supports'         => array( 'title', 'author' ),
+			)
+		);
+
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_pt',
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		$this->assertNull( get_post( $post_id ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ bool|null }>
+	 */
+	public static function data_wpmu_delete_user_deletes_plugin_post_types() {
+		return array(
+			'delete_with_user true'  => array( true ),
+			'delete_with_user false' => array( false ),
+			'delete_with_user null'  => array( null ),
+		);
+	}
+
+	/**
 	 * @ticket 38356
 	 */
 	public function test_add_user_to_blog_subscriber() {
