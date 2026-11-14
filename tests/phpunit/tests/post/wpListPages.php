@@ -366,12 +366,12 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
 
-		wp_list_pages(
-			array(
-				'echo'    => false,
-				'exclude' => ' ' . self::$parent_1 . ', ' . self::$parent_3 . ' ',
-			)
+		$args = array(
+			'echo'    => false,
+			'exclude' => ' ' . self::$parent_1 . ', ' . self::$parent_3 . ' ',
 		);
+
+		wp_list_pages( $args ); // @phpstan-ignore argument.type (Back-compat: a comma-separated string is still accepted.)
 
 		$this->assertSame(
 			array( array( (string) self::$parent_1, (string) self::$parent_3 ) ),
