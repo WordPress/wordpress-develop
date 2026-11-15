@@ -720,18 +720,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $args;
 		};
 
-		if ( $max_size > 0 ) {
-			add_filter( 'http_request_args', $limit_response_size );
-		}
+		/*
+		 * A URL that points at this site itself (theme images are the common
+		 * case) would make the server fetch its own response over HTTP. With
+		 * as many concurrent sideloads as PHP workers, every worker then waits
+		 * on a request only those same workers can serve, and the site stops
+		 * responding until the downloads time out. Reading the file straight
+		 * from disk removes the loopback; URLs that do not map cleanly to a
+		 * file inside the install still fall through to the download below.
+		 */
+		$tmp_file = $this->copy_same_site_file_to_temp( $url, $filename, $max_size );
 
-		$tmp_file = download_url( $url );
+		if ( null === $tmp_file ) {
+			if ( $max_size > 0 ) {
+				add_filter( 'http_request_args', $limit_response_size );
+			}
 
-		if ( $max_size > 0 ) {
-			remove_filter( 'http_request_args', $limit_response_size );
-		}
+			$tmp_file = download_url( $url );
 
-		if ( is_wp_error( $tmp_file ) ) {
-			return $tmp_file;
+			if ( $max_size > 0 ) {
+				remove_filter( 'http_request_args', $limit_response_size );
+			}
+
+			if ( is_wp_error( $tmp_file ) ) {
+				return $tmp_file;
+			}
 		}
 
 		$file_array = array(
@@ -788,6 +801,106 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $sideloaded;
+	}
+
+	/**
+	 * Copies a same-site URL's file to a temp file, when the URL maps to a
+	 * real file inside the WordPress install.
+	 *
+	 * The URL's host must match home_url() or site_url(), and the URL path,
+	 * rawurl-decoded and resolved with realpath(), must land on an existing
+	 * file inside ABSPATH. The scheme is not compared, so an http URL on an
+	 * https site is still read from disk instead of being fetched and
+	 * redirected back to this same server; only an explicit port that does
+	 * not match the site is rejected, since that may be a different service.
+	 * Anything else returns null so the caller falls back to downloading the
+	 * URL over HTTP.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $url      URL of the image to sideload.
+	 * @param string $filename Filename derived from the URL path.
+	 * @param int    $max_size Maximum allowed file size in bytes. Files
+	 *                         larger than this are left for the size-limited
+	 *                         download, as a copy has no transfer ceiling.
+	 *                         0 means no limit.
+	 * @return string|null Path to the temp copy, or null when the URL does not
+	 *                     map to a local file.
+	 */
+	private function copy_same_site_file_to_temp( $url, $filename, $max_size ) {
+		$parts = wp_parse_url( $url );
+
+		if ( empty( $parts['host'] ) || empty( $parts['scheme'] ) ) {
+			return null;
+		}
+
+		$port = $parts['port'] ?? ( 'https' === $parts['scheme'] ? 443 : 80 );
+
+		$is_same_site = false;
+
+		foreach ( array( home_url(), site_url() ) as $site_url ) {
+			$site_parts = wp_parse_url( $site_url );
+
+			if ( empty( $site_parts['host'] ) ) {
+				continue;
+			}
+
+			/*
+			 * The scheme is deliberately not compared: a URL like
+			 * http://example.org/file.jpg on a site whose canonical URL is
+			 * https would otherwise fall through to download_url(), follow
+			 * the redirect back to this same server, and re-enter the
+			 * loopback this method exists to prevent. Only an explicit port
+			 * that does not match the site is rejected, since that may be a
+			 * different service.
+			 */
+			$site_port = $site_parts['port'] ?? ( 'https' === $parts['scheme'] ? 443 : 80 );
+
+			if (
+				strtolower( $parts['host'] ) === strtolower( $site_parts['host'] )
+				&& $port === $site_port
+			) {
+				$is_same_site = true;
+				break;
+			}
+		}
+
+		if ( ! $is_same_site || empty( $parts['path'] ) ) {
+			return null;
+		}
+
+		$file = realpath( ABSPATH . rawurldecode( $parts['path'] ) );
+
+		if ( false === $file || ! is_file( $file ) ) {
+			return null;
+		}
+
+		$abspath = realpath( ABSPATH );
+		$file    = wp_normalize_path( $file );
+		$abspath = wp_normalize_path( $abspath );
+
+		if ( ! str_starts_with( $file, trailingslashit( $abspath ) ) ) {
+			return null;
+		}
+
+		/*
+		 * Do not copy a file the caller's size check would reject. Unlike the
+		 * download path, which aborts the transfer at the limit, a copy has
+		 * no ceiling, so an oversized file is left for the size-limited
+		 * download instead of being copied to disk in full first.
+		 */
+		if ( $max_size > 0 && filesize( $file ) > $max_size ) {
+			return null;
+		}
+
+		$tmp_file = wp_tempnam( $filename );
+
+		if ( ! copy( $file, $tmp_file ) ) {
+			wp_delete_file( $tmp_file );
+			return null;
+		}
+
+		return $tmp_file;
 	}
 
 	/**

@@ -6017,6 +6017,281 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that a URL pointing at a file on the site itself is read from
+	 * disk instead of being fetched over HTTP, so sideloading cannot deadlock
+	 * the site by occupying every PHP worker with a request to itself.
+	 *
+	 * The pre_http_request counter fails the request if one fires, so the 201
+	 * together with the zero count proves the sideload used no HTTP at all.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_same_site_file_avoids_http_loopback() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$upload_dir = wp_upload_dir();
+		$fixture    = $upload_dir['path'] . '/66699 same-site.jpg';
+		copy( DIR_TESTDATA . '/images/canola.jpg', $fixture );
+
+		$http_calls = 0;
+		$fail_http  = static function () use ( &$http_calls ) {
+			++$http_calls;
+			return new WP_Error( 'http_request_failed', 'Unexpected HTTP request.' );
+		};
+		add_filter( 'pre_http_request', $fail_http );
+
+		// The space is URL-encoded so the disk lookup must rawurl-decode the path.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $upload_dir['url'] . '/66699%20same-site.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $fail_http );
+		unlink( $fixture );
+
+		$data = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 0, $http_calls, 'No HTTP request should fire for a same-site file.' );
+		$this->assertSame( 'image', $data['media_type'] );
+	}
+
+	/**
+	 * Verifies that a same-site URL with no matching file on disk still falls
+	 * back to the HTTP download, unchanged from before.
+	 *
+	 * Together with the zero-count assertion in the loopback test, the counter
+	 * here proves the counter actually fires when a download happens.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_same_site_missing_file_falls_back_to_http() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$http_calls      = 0;
+		$count_downloads = function ( $response, $args, $url ) use ( &$http_calls ) {
+			++$http_calls;
+			return $this->mock_image_download( $response, $args, $url );
+		};
+		add_filter( 'pre_http_request', $count_downloads, 10, 3 );
+
+		$url = home_url( '/wp-content/uploads/66699-missing-' . wp_generate_password( 6, false ) . '.jpg' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $url );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $count_downloads, 10 );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 1, $http_calls, 'The HTTP fallback should fire exactly once.' );
+		$this->assertSame( $url, $this->last_download_url );
+	}
+
+	/**
+	 * Verifies that a same-site URL resolving through a symlink to a file
+	 * outside ABSPATH is not read from disk, but falls back to the HTTP
+	 * download: the containment check must resolve the real path, not trust
+	 * the URL path.
+	 *
+	 * A fix that maps the raw path without realpath() would find this symlink
+	 * and copy the outside file, so the expected HTTP fallback fails there.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_same_site_symlink_outside_abspath_falls_back_to_http() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$unique      = '66699-escape-' . wp_generate_password( 8, false );
+		$upload_dir  = wp_upload_dir();
+		$link        = $upload_dir['path'] . '/' . $unique . '.jpg';
+		$outside_dir = sys_get_temp_dir() . '/' . $unique;
+
+		// Nothing may exist at the raw path before the symlink is created.
+		$this->assertFileDoesNotExist( $link );
+
+		wp_mkdir_p( $outside_dir );
+		copy( DIR_TESTDATA . '/images/canola.jpg', $outside_dir . '/image.jpg' );
+		symlink( $outside_dir . '/image.jpg', $link );
+
+		$http_calls      = 0;
+		$count_downloads = function ( $response, $args, $url ) use ( &$http_calls ) {
+			++$http_calls;
+			return $this->mock_image_download( $response, $args, $url );
+		};
+		add_filter( 'pre_http_request', $count_downloads, 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $upload_dir['url'] . '/' . $unique . '.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $count_downloads, 10 );
+		unlink( $link );
+		unlink( $outside_dir . '/image.jpg' );
+		rmdir( $outside_dir );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 1, $http_calls, 'A symlink escaping ABSPATH must use the HTTP fallback.' );
+	}
+
+	/**
+	 * Verifies that a same-site URL whose scheme does not match the site's
+	 * canonical scheme is still read from disk instead of being fetched over
+	 * HTTP: otherwise the download would follow the redirect to the canonical
+	 * URL back to this same server and re-enter the loopback.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_same_site_noncanonical_scheme_avoids_http_loopback() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		// Resolve the upload URLs while the site is still plain http.
+		$upload_dir = wp_upload_dir();
+		$fixture    = $upload_dir['path'] . '/66699-noncanonical-scheme.jpg';
+		copy( DIR_TESTDATA . '/images/canola.jpg', $fixture );
+
+		$to_https = static function ( $url ) {
+			return set_url_scheme( $url, 'https' );
+		};
+		add_filter( 'home_url', $to_https );
+		add_filter( 'site_url', $to_https );
+
+		$http_calls = 0;
+		$fail_http  = static function () use ( &$http_calls ) {
+			++$http_calls;
+			return new WP_Error( 'http_request_failed', 'Unexpected HTTP request.' );
+		};
+		add_filter( 'pre_http_request', $fail_http );
+
+		// The URL stays http while home_url() and site_url() now answer https.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $upload_dir['url'] . '/66699-noncanonical-scheme.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $fail_http );
+		remove_filter( 'home_url', $to_https );
+		remove_filter( 'site_url', $to_https );
+		unlink( $fixture );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 0, $http_calls, 'A non-canonical scheme must not re-enter the HTTP loopback.' );
+	}
+
+	/**
+	 * Verifies that a same-site file larger than the upload size limit is not
+	 * copied to a temp file in full before the size check rejects it: the
+	 * copy path has no transfer ceiling, so oversized files fall back to the
+	 * size-limited download, the same path that rejects them without a
+	 * whole-file copy.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_same_site_oversized_file_falls_back_to_http() {
+		$max_size = (int) wp_max_upload_size();
+
+		if ( ! $max_size ) {
+			$this->markTestSkipped( 'No upload size limit is configured.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$upload_dir = wp_upload_dir();
+		$fixture    = $upload_dir['path'] . '/66699-oversized.jpg';
+		file_put_contents( $fixture, str_repeat( "\0", $max_size + 1 ) );
+
+		$http_calls      = 0;
+		$count_downloads = function ( $response, $args, $url ) use ( &$http_calls ) {
+			++$http_calls;
+			return $this->mock_image_download( $response, $args, $url );
+		};
+		add_filter( 'pre_http_request', $count_downloads, 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', $upload_dir['url'] . '/66699-oversized.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $count_downloads, 10 );
+		unlink( $fixture );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 1, $http_calls, 'An oversized same-site file must use the size-limited HTTP fallback.' );
+	}
+
+	/**
+	 * Verifies that a URL on a different host still uses the HTTP download,
+	 * unchanged from before.
+	 *
+	 * @ticket 66699
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_different_host_uses_http() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$http_calls      = 0;
+		$count_downloads = function ( $response, $args, $url ) use ( &$http_calls ) {
+			++$http_calls;
+			return $this->mock_image_download( $response, $args, $url );
+		};
+		add_filter( 'pre_http_request', $count_downloads, 10, 3 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/66699-cross-origin.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $count_downloads, 10 );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 1, $http_calls, 'A different-host URL should use the HTTP path.' );
+		$this->assertSame( 'https://example.com/66699-cross-origin.jpg', $this->last_download_url );
+	}
+
+	/**
 	 * Verifies that downloaded content which does not match an allowed type is
 	 * reported as a client error rather than a server error.
 	 *
