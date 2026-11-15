@@ -8316,7 +8316,7 @@ function wp_is_uuid( $uuid, $version = null ) {
  * @return string Unique ID.
  *
  * @phpstan-return (
- *     ( $prefix is '' ? decimal-int-string : ( $prefix is numeric-string ? numeric-string : string ) )
+ *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string
  *     & ( $prefix is lowercase-string ? lowercase-string : string )
  * )
@@ -8341,7 +8341,7 @@ function wp_unique_id( $prefix = '' ) {
  * @return string Incremental ID per prefix.
  *
  * @phpstan-return (
- *     ( $prefix is '' ? decimal-int-string : ( $prefix is numeric-string ? numeric-string : string ) )
+ *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string
  *     & ( $prefix is lowercase-string ? lowercase-string : string )
  * )
