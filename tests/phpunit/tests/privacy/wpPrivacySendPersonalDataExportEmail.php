@@ -130,6 +130,84 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	}
 
 	/**
+	 * The function should error, without sending an email, when the request has not been confirmed.
+	 *
+	 * @ticket 65758
+	 *
+	 * @dataProvider data_unconfirmed_request_statuses
+	 *
+	 * @param string $status The request status.
+	 */
+	public function test_should_return_wp_error_when_request_is_not_confirmed( $status ) {
+		$request_id = wp_create_user_request( "export-$status@example.com", 'export_personal_data' );
+		wp_update_post(
+			array(
+				'ID'          => $request_id,
+				'post_status' => $status,
+			)
+		);
+
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+		$mailer     = tests_retrieve_phpmailer_instance();
+
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
+		$this->assertSame( 'Invalid request status when sending personal data export email.', $email_sent->get_error_message() );
+		$this->assertFalse( $mailer->get_sent() );
+		$this->assertSame( $status, get_post_status( $request_id ) );
+	}
+
+	/**
+	 * Data provider for test_should_return_wp_error_when_request_is_not_confirmed().
+	 *
+	 * @return array[]
+	 */
+	public static function data_unconfirmed_request_statuses() {
+		return array(
+			'pending' => array( 'request-pending' ),
+			'failed'  => array( 'request-failed' ),
+		);
+	}
+
+	/**
+	 * The function should send the email when the request has been confirmed or already completed.
+	 *
+	 * @ticket 65758
+	 *
+	 * @dataProvider data_confirmed_request_statuses
+	 *
+	 * @param string $status The request status.
+	 */
+	public function test_should_send_email_when_request_is_confirmed_or_completed( $status ) {
+		$email      = "export-$status@example.com";
+		$request_id = wp_create_user_request( $email, 'export_personal_data' );
+		wp_update_post(
+			array(
+				'ID'          => $request_id,
+				'post_status' => $status,
+			)
+		);
+
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+		$mailer     = tests_retrieve_phpmailer_instance();
+
+		$this->assertTrue( $email_sent );
+		$this->assertSame( $email, $mailer->get_recipient( 'to' )->address );
+	}
+
+	/**
+	 * Data provider for test_should_send_email_when_request_is_confirmed_or_completed().
+	 *
+	 * @return array[]
+	 */
+	public static function data_confirmed_request_statuses() {
+		return array(
+			'confirmed' => array( 'request-confirmed' ),
+			'completed' => array( 'request-completed' ),
+		);
+	}
+
+	/**
 	 * The function should error when the email was not sent.
 	 *
 	 * @since 4.9.6
